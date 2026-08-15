@@ -1,21 +1,22 @@
-# My Raid CDs Exporter
+# Raidwise
 
 WoW addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`).
 
-![](https://img.shields.io/badge/current_version-0.5.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--15-blue)
+![](https://img.shields.io/badge/current_version-1.0.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--16-blue)
 
 
 ## Install
 
-1. Copy the `mrc-exporter` folder into your client’s AddOns directory:
+1. Copy the `Raidwise` folder into your client’s AddOns directory:
 
    ```text
-   <WoW>/Interface/AddOns/mrc-exporter/
+   <WoW>/Interface/AddOns/Raidwise/
    ```
 
 2. Restart the client (or `/reload`).
-3. Enable **mrc-exporter** on the character select AddOns screen if needed.
+3. Enable **Raidwise** on the character select AddOns screen if needed.
+4. If you previously used **mrc-exporter**, remove that folder from AddOns so only Raidwise loads.
 
 
 ## Usage
@@ -24,11 +25,11 @@ In-game slash commands:
 
 | Command | Description |
 |---------|-------------|
-| `/mrc` or `/mrcexporter` (also `help`) | Show help |
-| `/mrc version` | Show addon version |
-| `/mrc status` | Show load status |
-| `/mrc show` | Open the main window |
-| `/mrc hide` | Close the main window |
+| `/raidwise` or `/rw` (also `help`) | Show help |
+| `/raidwise version` | Show addon version |
+| `/raidwise status` | Show load status |
+| `/raidwise show` | Open the main window |
+| `/raidwise hide` | Close the main window |
 
 In the window:
 
@@ -40,11 +41,11 @@ In the window:
 Consumers can type the export JSON with `types/CharacterExport.ts`.
 
 ## Screenshots:
-Main addon view (`/mrc show`):
+Main addon view (`/raidwise show`):
 
 ![Main addon view](./screenshots/main-view.png)
 
-In-chat menu (`/mrc help`):
+In-chat menu (`/raidwise help`):
 
 ![In-chat menu](./screenshots/in-chat-menu.png)
 
@@ -53,9 +54,9 @@ In-chat menu (`/mrc help`):
 ## Layout
 
 ```text
-mrc-exporter/
-  mrc-exporter.toc    # addon metadata (Interface 30300)
-  mrc-exporter.lua    # entry point, events, slash commands
+Raidwise/
+  Raidwise.toc        # addon metadata (Interface 30300)
+  Raidwise.lua        # entry point, events, slash commands
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   ExporterWindow.lua  # main in-game window
 types/
@@ -65,6 +66,6 @@ types/
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `MrcExporterDB` (`WTF/Account/.../SavedVariables/`).
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load.
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.

@@ -55,7 +55,7 @@ export type InstanceLockout = {
 };
 
 /**
- * JSON object produced by mrc-exporter's character export.
+ * JSON object produced by Raidwise's character export.
  * `gear.names` / `bags.names` are omitted when "Include item names" is disabled.
  * `gearScore` is omitted when the GearScore addon is not available.
  */

@@ -7,7 +7,7 @@ alwaysApply: true
 
 - Target **Lua 5.1** / WoW **3.3.5a** APIs only (`Interface: 30300`); do not use retail Classic APIs
 - Prefer small, focused functions; avoid deep nesting
-- Keep addon state on a single namespace table (`MrcExporter`); use `local` for internals
+- Keep addon state on a single namespace table (`Raidwise`); use `local` for internals
 - Prefer early returns over nested `if` blocks
 - Do not introduce Ace3 (or other libs) unless explicitly requested
 - Match existing formatting and indentation in touched files

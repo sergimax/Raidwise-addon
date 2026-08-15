@@ -1,6 +1,6 @@
 -- Collect character identity and equipped gear; format as a JSON-like object.
 
-local Addon = MrcExporter
+local Addon = Raidwise
 
 -- Same order as WowSimsExporter (AmmoSlot omitted).
 local SLOT_NAMES = {
