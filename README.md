@@ -2,7 +2,7 @@
 
 WoW addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`).
 
-![](https://img.shields.io/badge/current_version-0.4.0-purple)
+![](https://img.shields.io/badge/current_version-0.5.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--15-blue)
 
 
@@ -33,8 +33,9 @@ In-game slash commands:
 In the window:
 
 - Version is shown under the title
-- **Export Gear** fills the text area with character JSON (name, class, spec, gear, bags, lockouts); focus the box and use Ctrl+C to copy
+- **Export Gear** fills the text area with character JSON (name, class, spec, gearScore, gear, bags, lockouts); focus the box and use Ctrl+C to copy
 - **Include item names** toggles whether `names` arrays are included in the export
+- `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
 
 Consumers can type the export JSON with `types/CharacterExport.ts`.
 
@@ -66,3 +67,4 @@ types/
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
 - Saved variables are stored in `MrcExporterDB` (`WTF/Account/.../SavedVariables/`).
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
+- Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.
