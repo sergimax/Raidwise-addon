@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 MrcExporter = MrcExporter or {}
 local Addon = MrcExporter
 
-Addon.version = "0.2.0"
+Addon.version = "0.3.0"
 -- Filled from ## X-LastUpdated in mrc-exporter.toc on load.
 Addon.lastUpdated = ""
 
