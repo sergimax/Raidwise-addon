@@ -6,7 +6,7 @@ alwaysApply: true
 # Versioning & Changelog
 
 - Use [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH
-- Version lives in `mrc-exporter.toc` (`## Version`) and should stay in sync with `Addon.version` in `mrc-exporter.lua`
+- Version lives in `Raidwise.toc` (`## Version`) and should stay in sync with `Addon.version` in `Raidwise.lua`
 - When releasing: bump both version locations, then add a `CHANGELOG.md` entry
 - Changelog entries must describe **actual user-facing changes** included in the release (from commits/diff since the previous release), not just “bump version”
 

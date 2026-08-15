@@ -34,8 +34,8 @@ Bump progress:
 
 ### 1. Diff since last release
 
-- Read current version from `mrc-exporter/mrc-exporter.toc` (`## Version`)
-  and `Addon.version` in `mrc-exporter/mrc-exporter.lua` — they must already
+- Read current version from `Raidwise/Raidwise.toc` (`## Version`)
+  and `Addon.version` in `Raidwise/Raidwise.lua` — they must already
   match; if not, fix that first.
 - Collect changes since the previous tagged/released version (or since the
   last `CHANGELOG.md` entry if no tag): commits + diff of addon sources and docs.
@@ -58,8 +58,8 @@ If commits include `BREAKING CHANGE` / `!`, prefer **MAJOR**.
 
 Set the same `X.Y.Z` in:
 
-1. `mrc-exporter/mrc-exporter.toc` → `## Version: X.Y.Z`
-2. `mrc-exporter/mrc-exporter.lua` → `Addon.version = "X.Y.Z"`
+1. `Raidwise/Raidwise.toc` → `## Version: X.Y.Z`
+2. `Raidwise/Raidwise.lua` → `Addon.version = "X.Y.Z"`
 
 Never bump only one file.
 
@@ -97,7 +97,7 @@ Compare public surface in code vs docs:
 
 | Check | Where |
 |-------|--------|
-| Slash commands (`/mrc`, aliases, subcommands) | `README.md` Usage |
+| Slash commands (`/raidwise`, aliases, subcommands) | `README.md` Usage |
 | Install / folder / TOC title | `README.md` Install |
 | Layout / new Lua modules | `README.md` Layout |
 | SavedVariables name | `README.md` Notes |
