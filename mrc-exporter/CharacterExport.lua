@@ -125,6 +125,49 @@ local function AppendItemListJson(lines, key, items, includeNames, isLast)
 	end
 end
 
+-- JSON true/false from WoW 1/nil flags.
+local function FormatJsonBoolean(value)
+	if value then
+		return "true"
+	end
+	return "false"
+end
+
+-- Append a JSON array of instance lockout objects.
+local function AppendLockoutsJson(lines, lockouts, isLast)
+	if #lockouts == 0 then
+		if isLast then
+			lines[#lines + 1] = '  "lockouts": []'
+		else
+			lines[#lines + 1] = '  "lockouts": [],'
+		end
+		return
+	end
+
+	lines[#lines + 1] = '  "lockouts": ['
+	for i = 1, #lockouts do
+		local entry = lockouts[i]
+		local comma = (i < #lockouts) and "," or ""
+		lines[#lines + 1] = "    {"
+		lines[#lines + 1] = '      "name": "' .. JsonEscape(entry.name) .. '",'
+		lines[#lines + 1] = '      "id": ' .. tostring(entry.id) .. ","
+		lines[#lines + 1] = '      "reset": ' .. tostring(entry.reset) .. ","
+		lines[#lines + 1] = '      "resetAt": ' .. tostring(entry.resetAt) .. ","
+		lines[#lines + 1] = '      "difficulty": ' .. tostring(entry.difficulty) .. ","
+		lines[#lines + 1] = '      "difficultyName": "' .. JsonEscape(entry.difficultyName) .. '",'
+		lines[#lines + 1] = '      "locked": ' .. FormatJsonBoolean(entry.locked) .. ","
+		lines[#lines + 1] = '      "extended": ' .. FormatJsonBoolean(entry.extended) .. ","
+		lines[#lines + 1] = '      "isRaid": ' .. FormatJsonBoolean(entry.isRaid) .. ","
+		lines[#lines + 1] = '      "maxPlayers": ' .. tostring(entry.maxPlayers)
+		lines[#lines + 1] = "    }" .. comma
+	end
+	if isLast then
+		lines[#lines + 1] = "  ]"
+	else
+		lines[#lines + 1] = "  ],"
+	end
+end
+
 -- Return equipped gear as { ids = {...}, names = {...} } (empty slots omitted).
 function Addon:CollectEquippedGear()
 	local ids = {}
@@ -168,6 +211,34 @@ function Addon:CollectBagItems()
 	return { ids = ids, names = names }
 end
 
+-- Saved raid/dungeon lockouts (cleared IDs and time until reset).
+-- Uses GetSavedInstanceInfo; call RequestRaidInfo() first for fresh data.
+function Addon:CollectInstanceLockouts()
+	local lockouts = {}
+	local now = time()
+	local count = GetNumSavedInstances() or 0
+
+	for index = 1, count do
+		local name, lockoutId, reset, difficulty, locked, extended, _, isRaid, maxPlayers, difficultyName =
+			GetSavedInstanceInfo(index)
+		reset = tonumber(reset) or 0
+		lockouts[#lockouts + 1] = {
+			name = name or "",
+			id = tonumber(lockoutId) or 0,
+			reset = reset,
+			resetAt = now + reset,
+			difficulty = tonumber(difficulty) or 0,
+			difficultyName = difficultyName or "",
+			locked = locked and true or false,
+			extended = extended and true or false,
+			isRaid = isRaid and true or false,
+			maxPlayers = tonumber(maxPlayers) or 0,
+		}
+	end
+
+	return lockouts
+end
+
 -- Current character name, english class token, and primary talent tree name.
 function Addon:CollectCharacterInfo()
 	local name = UnitName("player") or ""
@@ -179,11 +250,12 @@ function Addon:CollectCharacterInfo()
 	}
 end
 
--- JSON-like export: name, class, spec, gear, and bags.
+-- JSON-like export: name, class, spec, gear, bags, and instance lockouts.
 function Addon:FormatEquippedGearExport()
 	local info = self:CollectCharacterInfo()
 	local gear = self:CollectEquippedGear()
 	local bags = self:CollectBagItems()
+	local lockouts = self:CollectInstanceLockouts()
 	local includeNames = not self.db or self.db.includeGearNames ~= false
 
 	local lines = {
@@ -193,7 +265,8 @@ function Addon:FormatEquippedGearExport()
 		'  "spec": "' .. JsonEscape(info.spec) .. '",',
 	}
 	AppendItemListJson(lines, "gear", gear, includeNames, false)
-	AppendItemListJson(lines, "bags", bags, includeNames, true)
+	AppendItemListJson(lines, "bags", bags, includeNames, false)
+	AppendLockoutsJson(lines, lockouts, true)
 	lines[#lines + 1] = "}"
 	return table.concat(lines, "\n")
 end

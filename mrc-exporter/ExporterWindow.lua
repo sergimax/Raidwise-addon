@@ -46,20 +46,16 @@ function Addon:CreateMainFrame()
 	local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
 	close:SetPoint("TOPRIGHT", -4, -4)
 
-	-- Fills the export EditBox with character + gear JSON.
+	-- Fills the export EditBox with character + gear + lockout JSON.
+	-- Requests fresh raid/dungeon lockouts, then refreshes when the server answers.
 	local exportBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 	exportBtn:SetSize(200, 24)
 	exportBtn:SetPoint("TOP", versionLabel, "BOTTOM", 0, -12)
 	exportBtn:SetText("Export Gear")
 	exportBtn:SetScript("OnClick", function()
-		local exportBox = frame.exportBox
-		if not exportBox then
-			return
-		end
-		local text = Addon:FormatEquippedGearExport()
-		exportBox:SetText(text)
-		exportBox:SetFocus()
-		exportBox:HighlightText()
+		Addon:FlushExportToWindow()
+		Addon.pendingLockoutExport = true
+		RequestRaidInfo()
 	end)
 
 	-- Persist whether gear names are included in the JSON export.
@@ -95,6 +91,19 @@ function Addon:CreateMainFrame()
 	frame.exportBox = exportBox
 	self.mainFrame = frame
 	return frame
+end
+
+-- Write the current character export into the main window EditBox.
+function Addon:FlushExportToWindow()
+	local frame = self.mainFrame
+	if not frame or not frame.exportBox then
+		return
+	end
+	local exportBox = frame.exportBox
+	local text = self:FormatEquippedGearExport()
+	exportBox:SetText(text)
+	exportBox:SetFocus()
+	exportBox:HighlightText()
 end
 
 -- Show the main window (creates it if needed).
