@@ -38,6 +38,10 @@ function Addon:CreateMainFrame()
 	title:SetPoint("TOP", 0, -16)
 	title:SetText("mrc-exporter")
 
+	local versionLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	versionLabel:SetPoint("TOP", title, "BOTTOM", 0, -4)
+	versionLabel:SetText("v" .. tostring(Addon.version))
+
 	-- Standard close (X); also Esc via UISpecialFrames.
 	local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
 	close:SetPoint("TOPRIGHT", -4, -4)
@@ -45,7 +49,7 @@ function Addon:CreateMainFrame()
 	-- Prints Addon.version to chat.
 	local versionBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 	versionBtn:SetSize(120, 24)
-	versionBtn:SetPoint("TOP", title, "BOTTOM", 0, -16)
+	versionBtn:SetPoint("TOP", versionLabel, "BOTTOM", 0, -12)
 	versionBtn:SetText("Version")
 	versionBtn:SetScript("OnClick", function()
 		Addon:Print("version " .. tostring(Addon.version))
