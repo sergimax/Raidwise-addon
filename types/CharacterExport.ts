@@ -1,9 +1,20 @@
-/** Equipped gear or bag contents: parallel id/name lists (names optional). */
-export type ItemIdList = {
+/** Item ids only (when "Include item names" is off). */
+export type ItemIdListIdsOnly = {
   ids: number[];
-  /** Present when "Include item names" is enabled in the addon. */
-  names?: string[];
 };
+
+/** Item ids with parallel display names (when "Include item names" is on). */
+export type ItemIdListWithNames = {
+  ids: number[];
+  /** Same length and order as `ids`. */
+  names: string[];
+};
+
+/**
+ * Equipped gear or bag contents.
+ * `names` is included only when the addon toggle is enabled.
+ */
+export type ItemIdList = ItemIdListIdsOnly | ItemIdListWithNames;
 
 /**
  * WotLK raid difficulty IDs from `GetSavedInstanceInfo`.
@@ -43,14 +54,19 @@ export type InstanceLockout = {
   maxPlayers: number;
 };
 
-/** JSON object produced by mrc-exporter's character export. */
+/**
+ * JSON object produced by mrc-exporter's character export.
+ * `gear.names` / `bags.names` are omitted when "Include item names" is disabled.
+ */
 export type CharacterExport = {
   name: string;
   /** English class token, e.g. `"MAGE"`. */
   class: string;
   /** Primary talent tree name on the active dual-spec. */
   spec: string;
+  /** Equipped items; `names` optional per export toggle. */
   gear: ItemIdList;
+  /** Bag items; `names` optional per export toggle. */
   bags: ItemIdList;
   lockouts: InstanceLockout[];
 };
