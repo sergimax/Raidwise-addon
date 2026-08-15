@@ -1,0 +1,26 @@
+---
+description: Semantic versioning and Keep a Changelog rules
+alwaysApply: true
+---
+
+# Versioning & Changelog
+
+- Use [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH
+- Version lives in `mrc-exporter.toc` (`## Version`) and should stay in sync with `Addon.version` in `mrc-exporter.lua`
+- When releasing: bump both version locations, then add a `CHANGELOG.md` entry
+- Changelog entries must describe **actual user-facing changes** included in the release (from commits/diff since the previous release), not just “bump version”
+
+## Changelog format
+
+- Follow [Keep a Changelog](https://keepachangelog.com/)
+- File: `CHANGELOG.md` at project root
+- Sections: `### Added`, `### Changed`, `### Deprecated`, `### Removed`, `### Fixed`, `### Security`
+- Entry format: `## [X.Y.Z] - YYYY-MM-DD`
+- Add new entries at the top (above previous releases)
+- Do **not** add filler entries like “version bump for release”; if a release has no notable changes, do not cut a release (or explicitly document why)
+
+## Version bump rules
+
+- **PATCH** — bug fixes, minor tweaks
+- **MINOR** — new features, non-breaking changes
+- **MAJOR** — breaking changes (use `BREAKING CHANGE` in commit)

@@ -1,0 +1,13 @@
+---
+description: Naming conventions for files and symbols
+alwaysApply: true
+---
+
+# Naming
+
+- Addon folder is `mrc-exporter/`: `mrc-exporter.toc`, `mrc-exporter.lua` (copy/symlink into `Interface/AddOns/mrc-exporter/`)
+- Prefer **PascalCase** for file names of major modules (e.g. `ExporterWindow.lua`, `CharacterExport.lua`)
+- Prefer **PascalCase** for public methods on the addon table (`Addon:OnInitialize`)
+- Prefer **camelCase** or descriptive locals for private helpers (`EnsureDB`, `DeepCopy` are fine when matching existing style)
+- Avoid oversimplified names for locals and params (`v`, `d`, `c`, `e`); prefer `event`, `unit`, `itemLink`, `character`
+- SavedVariables and slash command keys stay stable once shipped (`MrcExporterDB`, `SLASH_MRCEXPORTER1`)

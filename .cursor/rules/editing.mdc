@@ -1,0 +1,12 @@
+---
+description: How to edit files in this repo
+alwaysApply: true
+---
+
+# Editing
+
+- Prefer editing existing files over creating new ones
+- Preserve existing formatting and indentation
+- Do not expand scope beyond the requested change
+- If a linter or checker is configured, run it after changes and fix new issues
+- Do not edit or invent React/TypeScript/Vite conventions from other projects; this repo is a WoW addon
