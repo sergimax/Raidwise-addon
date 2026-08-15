@@ -6,4 +6,5 @@
 ## SavedVariables: MrcExporterDB
 
 mrc-exporter.lua
+CharacterExport.lua
 ExporterWindow.lua

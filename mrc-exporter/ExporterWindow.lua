@@ -1,9 +1,9 @@
--- Simple main window: title + Version / Character Info buttons.
+-- Simple main window: title, action buttons, and gear export text area.
 
 local Addon = MrcExporter
 
-local FRAME_WIDTH = 280
-local FRAME_HEIGHT = 160
+local FRAME_WIDTH = 320
+local FRAME_HEIGHT = 300
 
 -- Build the main frame once; store on Addon.mainFrame.
 function Addon:CreateMainFrame()
@@ -62,6 +62,49 @@ function Addon:CreateMainFrame()
 		Addon:Print(string.format("%s | %s", stamp, character))
 	end)
 
+	-- Fills the export EditBox with equipped item IDs and names.
+	local exportBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+	exportBtn:SetSize(200, 24)
+	exportBtn:SetPoint("TOP", infoBtn, "BOTTOM", 0, -10)
+	exportBtn:SetText("Export Gear")
+	exportBtn:SetScript("OnClick", function()
+		local exportBox = frame.exportBox
+		if not exportBox then
+			return
+		end
+		local text = Addon:FormatEquippedGearExport()
+		if text == "" then
+			Addon:Print("no equipped gear to export")
+			exportBox:SetText("")
+			return
+		end
+		exportBox:SetText(text)
+		exportBox:SetFocus()
+		exportBox:HighlightText()
+	end)
+
+	local exportLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	exportLabel:SetPoint("TOPLEFT", 20, -130)
+	exportLabel:SetText("Gear export (Ctrl+C to copy)")
+
+	-- Scrollable multiline EditBox for the export result.
+	local scroll = CreateFrame("ScrollFrame", "MrcExporterExportScroll", frame, "UIPanelScrollFrameTemplate")
+	scroll:SetPoint("TOPLEFT", 20, -150)
+	scroll:SetPoint("BOTTOMRIGHT", -36, 20)
+
+	local exportBox = CreateFrame("EditBox", "MrcExporterExportBox", scroll)
+	exportBox:SetMultiLine(true)
+	exportBox:SetFontObject(ChatFontNormal)
+	exportBox:SetWidth(FRAME_WIDTH - 60)
+	exportBox:SetHeight(140)
+	exportBox:SetAutoFocus(false)
+	exportBox:EnableMouse(true)
+	exportBox:SetScript("OnEscapePressed", function(self)
+		self:ClearFocus()
+	end)
+	scroll:SetScrollChild(exportBox)
+
+	frame.exportBox = exportBox
 	self.mainFrame = frame
 	return frame
 end

@@ -28,8 +28,11 @@ In-game slash commands:
 | `/mrc show` | Open the main window |
 | `/mrc hide` | Close the main window |
 
-In the window: **Version** prints the addon version; **Character Info** prints local date/time and character name.
+In the window:
 
+- **Version** prints the addon version
+- **Character Info** prints local date/time and character name
+- **Export Gear** fills the text area with equipped item IDs (line 1) and names (line 2); focus the box and use Ctrl+C to copy
 
 ## Screenshots:
 Main addon view:
@@ -46,9 +49,10 @@ In-chat menu:
 
 ```text
 mrc-exporter/
-  mrc-exporter.toc   # addon metadata (Interface 30300)
-  mrc-exporter.lua   # entry point, events, slash commands
-  ExporterWindow.lua # main in-game window
+  mrc-exporter.toc    # addon metadata (Interface 30300)
+  mrc-exporter.lua    # entry point, events, slash commands
+  CharacterExport.lua # equipped gear ID/name export
+  ExporterWindow.lua  # main in-game window
 ```
 
 
