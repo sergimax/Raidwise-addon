@@ -1,6 +1,6 @@
 -- Simple main window: title, action buttons, and gear export text area.
 
-local Addon = MrcExporter
+local Addon = Raidwise
 
 local FRAME_WIDTH = 320
 local FRAME_HEIGHT = 280
@@ -11,7 +11,7 @@ function Addon:CreateMainFrame()
 		return self.mainFrame
 	end
 
-	local frame = CreateFrame("Frame", "MrcExporterFrame", UIParent)
+	local frame = CreateFrame("Frame", "RaidwiseFrame", UIParent)
 	frame:SetSize(FRAME_WIDTH, FRAME_HEIGHT)
 	frame:SetPoint("CENTER")
 	frame:SetMovable(true)
@@ -32,11 +32,11 @@ function Addon:CreateMainFrame()
 	})
 	frame:SetBackdropColor(0, 0, 0, 1)
 
-	tinsert(UISpecialFrames, "MrcExporterFrame")
+	tinsert(UISpecialFrames, "RaidwiseFrame")
 
 	local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	title:SetPoint("TOP", 0, -16)
-	title:SetText("mrc-exporter")
+	title:SetText("Raidwise")
 
 	local versionLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	versionLabel:SetPoint("TOP", title, "BOTTOM", 0, -4)
@@ -59,7 +59,7 @@ function Addon:CreateMainFrame()
 	end)
 
 	-- Persist whether gear names are included in the JSON export.
-	local namesCheck = CreateFrame("CheckButton", "MrcExporterIncludeNamesCheck", frame, "UICheckButtonTemplate")
+	local namesCheck = CreateFrame("CheckButton", "RaidwiseIncludeNamesCheck", frame, "UICheckButtonTemplate")
 	namesCheck:SetPoint("TOPLEFT", exportBtn, "BOTTOMLEFT", -4, -6)
 	namesCheck:SetChecked(Addon.db.includeGearNames ~= false)
 	_G[namesCheck:GetName() .. "Text"]:SetText("Include item names")
@@ -72,11 +72,11 @@ function Addon:CreateMainFrame()
 	exportLabel:SetText("Character export (Ctrl+C to copy)")
 
 	-- Scrollable multiline EditBox for the export result.
-	local scroll = CreateFrame("ScrollFrame", "MrcExporterExportScroll", frame, "UIPanelScrollFrameTemplate")
+	local scroll = CreateFrame("ScrollFrame", "RaidwiseExportScroll", frame, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", exportLabel, "BOTTOMLEFT", 0, -8)
 	scroll:SetPoint("BOTTOMRIGHT", -36, 20)
 
-	local exportBox = CreateFrame("EditBox", "MrcExporterExportBox", scroll)
+	local exportBox = CreateFrame("EditBox", "RaidwiseExportBox", scroll)
 	exportBox:SetMultiLine(true)
 	exportBox:SetFontObject(ChatFontNormal)
 	exportBox:SetWidth(FRAME_WIDTH - 60)

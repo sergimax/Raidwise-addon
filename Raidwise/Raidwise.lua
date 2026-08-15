@@ -1,10 +1,10 @@
 local ADDON_NAME = ...
 
-MrcExporter = MrcExporter or {}
-local Addon = MrcExporter
+Raidwise = Raidwise or {}
+local Addon = Raidwise
 
-Addon.version = "0.5.0"
--- Filled from ## X-LastUpdated in mrc-exporter.toc on load.
+Addon.version = "1.0.0"
+-- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
 local defaults = {
@@ -26,20 +26,24 @@ end
 
 -- Create or migrate SavedVariables, then bind Addon.db.
 local function EnsureDB()
-	if type(MrcExporterDB) ~= "table" then
-		MrcExporterDB = DeepCopy(defaults)
-	end
-	for k, v in pairs(defaults) do
-		if MrcExporterDB[k] == nil then
-			MrcExporterDB[k] = DeepCopy(v)
+	if type(RaidwiseDB) ~= "table" then
+		if type(MrcExporterDB) == "table" then
+			RaidwiseDB = DeepCopy(MrcExporterDB)
+		else
+			RaidwiseDB = DeepCopy(defaults)
 		end
 	end
-	Addon.db = MrcExporterDB
+	for k, v in pairs(defaults) do
+		if RaidwiseDB[k] == nil then
+			RaidwiseDB[k] = DeepCopy(v)
+		end
+	end
+	Addon.db = RaidwiseDB
 end
 
 -- Print a prefixed message to the default chat frame.
 function Addon:Print(msg)
-	DEFAULT_CHAT_FRAME:AddMessage("|cff00ccffmrc-exporter|r: " .. tostring(msg))
+	DEFAULT_CHAT_FRAME:AddMessage("|cff00ccffRaidwise|r: " .. tostring(msg))
 end
 
 -- Run once when this addon finishes loading.
@@ -47,7 +51,7 @@ function Addon:OnInitialize()
 	EnsureDB()
 	self.lastUpdated = GetAddOnMetadata(ADDON_NAME, "X-LastUpdated") or ""
 	self:CreateMainFrame()
-	self:Print("loaded (v" .. self.version .. "). Type /mrc for help.")
+	self:Print("loaded (v" .. self.version .. "). Type /raidwise for help.")
 end
 
 -- Run when the player is fully in the world (gear, talents, etc.).
@@ -65,21 +69,21 @@ function Addon:OnUpdateInstanceInfo()
 		self:FlushExportToWindow()
 	end
 end
--- Slash commands: /mrc and /mrcexporter
-SLASH_MRCEXPORTER1 = "/mrc"
-SLASH_MRCEXPORTER2 = "/mrcexporter"
+-- Slash commands: /raidwise and /rw
+SLASH_RAIDWISE1 = "/raidwise"
+SLASH_RAIDWISE2 = "/rw"
 
--- Handle /mrc and /mrcexporter (help, version, status, show/hide UI).
-SlashCmdList["MRCEXPORTER"] = function(msg)
+-- Handle /raidwise and /rw (help, version, status, show/hide UI).
+SlashCmdList["RAIDWISE"] = function(msg)
 	msg = (msg or ""):match("^%s*(.-)%s*$") or ""
 	msg = msg:lower()
 
 	if msg == "" or msg == "help" then
-		Addon:Print("/mrc help    - show this help")
-		Addon:Print("/mrc version - show addon version")
-		Addon:Print("/mrc status  - show addon status")
-		Addon:Print("/mrc show    - open the main window")
-		Addon:Print("/mrc hide    - close the main window")
+		Addon:Print("/raidwise help    - show this help")
+		Addon:Print("/raidwise version - show addon version")
+		Addon:Print("/raidwise status  - show addon status")
+		Addon:Print("/raidwise show    - open the main window")
+		Addon:Print("/raidwise hide    - close the main window")
 		return
 	end
 
@@ -109,7 +113,7 @@ SlashCmdList["MRCEXPORTER"] = function(msg)
 		return
 	end
 
-	Addon:Print("Unknown command. Type /mrc help")
+	Addon:Print("Unknown command. Type /raidwise help")
 end
 
 local frame = CreateFrame("Frame")

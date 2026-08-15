@@ -1,12 +1,12 @@
 ## Interface: 30300
-## Title: mrc-exporter
+## Title: Raidwise
 ## Notes: Character exporter for Wrath of the Lich King 3.3.5a
 ## Author: sergimax
-## Version: 0.5.0
-## X-LastUpdated: 2026-08-15
+## Version: 1.0.0
+## X-LastUpdated: 2026-08-16
 ## OptionalDeps: GearScore
-## SavedVariables: MrcExporterDB
+## SavedVariables: RaidwiseDB, MrcExporterDB
 
-mrc-exporter.lua
+Raidwise.lua
 CharacterExport.lua
 ExporterWindow.lua
