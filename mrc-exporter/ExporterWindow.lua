@@ -3,7 +3,7 @@
 local Addon = MrcExporter
 
 local FRAME_WIDTH = 320
-local FRAME_HEIGHT = 330
+local FRAME_HEIGHT = 280
 
 -- Build the main frame once; store on Addon.mainFrame.
 function Addon:CreateMainFrame()
@@ -46,30 +46,10 @@ function Addon:CreateMainFrame()
 	local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
 	close:SetPoint("TOPRIGHT", -4, -4)
 
-	-- Prints Addon.version to chat.
-	local versionBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-	versionBtn:SetSize(120, 24)
-	versionBtn:SetPoint("TOP", versionLabel, "BOTTOM", 0, -12)
-	versionBtn:SetText("Version")
-	versionBtn:SetScript("OnClick", function()
-		Addon:Print("version " .. tostring(Addon.version))
-	end)
-
-	-- Prints local date/time and character name to chat.
-	local infoBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-	infoBtn:SetSize(200, 24)
-	infoBtn:SetPoint("TOP", versionBtn, "BOTTOM", 0, -10)
-	infoBtn:SetText("Character Info")
-	infoBtn:SetScript("OnClick", function()
-		local character = UnitName("player") or "?"
-		local stamp = date("%Y-%m-%d %H:%M:%S")
-		Addon:Print(string.format("%s | %s", stamp, character))
-	end)
-
 	-- Fills the export EditBox with character + gear JSON.
 	local exportBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 	exportBtn:SetSize(200, 24)
-	exportBtn:SetPoint("TOP", infoBtn, "BOTTOM", 0, -10)
+	exportBtn:SetPoint("TOP", versionLabel, "BOTTOM", 0, -12)
 	exportBtn:SetText("Export Gear")
 	exportBtn:SetScript("OnClick", function()
 		local exportBox = frame.exportBox
