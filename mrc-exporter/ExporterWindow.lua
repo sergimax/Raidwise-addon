@@ -62,7 +62,7 @@ function Addon:CreateMainFrame()
 		Addon:Print(string.format("%s | %s", stamp, character))
 	end)
 
-	-- Fills the export EditBox with equipped item IDs and names.
+	-- Fills the export EditBox with character + gear JSON.
 	local exportBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 	exportBtn:SetSize(200, 24)
 	exportBtn:SetPoint("TOP", infoBtn, "BOTTOM", 0, -10)
@@ -73,11 +73,6 @@ function Addon:CreateMainFrame()
 			return
 		end
 		local text = Addon:FormatEquippedGearExport()
-		if text == "" then
-			Addon:Print("no equipped gear to export")
-			exportBox:SetText("")
-			return
-		end
 		exportBox:SetText(text)
 		exportBox:SetFocus()
 		exportBox:HighlightText()
@@ -85,7 +80,7 @@ function Addon:CreateMainFrame()
 
 	local exportLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	exportLabel:SetPoint("TOPLEFT", 20, -130)
-	exportLabel:SetText("Gear export (Ctrl+C to copy)")
+	exportLabel:SetText("Character export (Ctrl+C to copy)")
 
 	-- Scrollable multiline EditBox for the export result.
 	local scroll = CreateFrame("ScrollFrame", "MrcExporterExportScroll", frame, "UIPanelScrollFrameTemplate")

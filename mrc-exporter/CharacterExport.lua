@@ -1,4 +1,4 @@
--- Collect equipped gear as item IDs and names (WotLK inventory slots).
+-- Collect character identity and equipped gear; format as a JSON-like object.
 
 local Addon = MrcExporter
 
@@ -22,6 +22,37 @@ local SLOT_NAMES = {
 	"SecondaryHandSlot",
 	"RangedSlot",
 }
+
+-- Escape a string for JSON output.
+local function JsonEscape(value)
+	local str = tostring(value or "")
+	str = str:gsub("\\", "\\\\")
+	str = str:gsub('"', '\\"')
+	str = str:gsub("\n", "\\n")
+	str = str:gsub("\r", "\\r")
+	str = str:gsub("\t", "\\t")
+	return str
+end
+
+-- Join numbers as a JSON array: [1,2,3]
+local function FormatJsonNumberArray(values)
+	if #values == 0 then
+		return "[]"
+	end
+	return "[" .. table.concat(values, ",") .. "]"
+end
+
+-- Join strings as a JSON array: ["a","b"]
+local function FormatJsonStringArray(values)
+	if #values == 0 then
+		return "[]"
+	end
+	local parts = {}
+	for i = 1, #values do
+		parts[i] = '"' .. JsonEscape(values[i]) .. '"'
+	end
+	return "[" .. table.concat(parts, ",") .. "]"
+end
 
 -- Resolve a display name from item cache or the item link.
 local function ItemNameFromLink(itemId, itemLink)
@@ -53,6 +84,24 @@ local function ItemIdFromSlot(slotId, itemLink)
 	return nil
 end
 
+-- Active talent tree with the most points spent (WotLK dual-spec aware).
+local function PrimarySpecName()
+	local talentGroup = GetActiveTalentGroup and GetActiveTalentGroup() or 1
+	local bestName = ""
+	local bestPoints = -1
+
+	for tab = 1, GetNumTalentTabs() do
+		local name, _, pointsSpent = GetTalentTabInfo(tab, false, false, talentGroup)
+		pointsSpent = tonumber(pointsSpent) or 0
+		if pointsSpent > bestPoints then
+			bestPoints = pointsSpent
+			bestName = name or ""
+		end
+	end
+
+	return bestName
+end
+
 -- Return equipped gear as { ids = {...}, names = {...} } (empty slots omitted).
 function Addon:CollectEquippedGear()
 	local ids = {}
@@ -73,11 +122,32 @@ function Addon:CollectEquippedGear()
 	return { ids = ids, names = names }
 end
 
--- Two-line export: comma-separated IDs, then comma-separated names.
+-- Current character name, english class token, and primary talent tree name.
+function Addon:CollectCharacterInfo()
+	local name = UnitName("player") or ""
+	local _, classToken = UnitClass("player")
+	return {
+		name = name,
+		class = classToken or "",
+		spec = PrimarySpecName(),
+	}
+end
+
+-- JSON-like export: name, class, spec, and gear { ids, names }.
 function Addon:FormatEquippedGearExport()
+	local info = self:CollectCharacterInfo()
 	local gear = self:CollectEquippedGear()
-	if #gear.ids == 0 then
-		return ""
-	end
-	return table.concat(gear.ids, ",") .. "\n" .. table.concat(gear.names, ",")
+
+	local lines = {
+		"{",
+		'  "name": "' .. JsonEscape(info.name) .. '",',
+		'  "class": "' .. JsonEscape(info.class) .. '",',
+		'  "spec": "' .. JsonEscape(info.spec) .. '",',
+		'  "gear": {',
+		'    "ids": ' .. FormatJsonNumberArray(gear.ids) .. ",",
+		'    "names": ' .. FormatJsonStringArray(gear.names),
+		"  }",
+		"}",
+	}
+	return table.concat(lines, "\n")
 end
