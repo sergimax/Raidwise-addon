@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0] - 2026-08-16
+
+### Changed
+- Renamed the addon from **mrc-exporter** to **Raidwise** (folder, TOC title, UI, chat prefix)
+- Slash commands are now `/raidwise` and `/rw` (replacing `/mrc` and `/mrcexporter`)
+- SavedVariables renamed to `RaidwiseDB` (migrates settings from `MrcExporterDB` on first load)
+
+### Removed
+- Install path `Interface/AddOns/mrc-exporter/` — use `Interface/AddOns/Raidwise/` instead
+
 ## [0.5.0] - 2026-08-15
 
 ### Added
