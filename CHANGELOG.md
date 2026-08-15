@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-08-15
+
+### Added
+- Optional `gearScore` field in the character JSON export, read from the **GearScore** addon (same value as the character window)
+- `## OptionalDeps: GearScore` so GearScore loads before mrc-exporter when both are installed
+- `gearScore?: number` on the TypeScript `CharacterExport` type
+
 ## [0.4.0] - 2026-08-15
 
 ### Added
