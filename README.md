@@ -19,7 +19,7 @@ In-game slash commands:
 
 | Command | Description |
 |---------|-------------|
-| `/mrc` or `/mrc help` | Show help |
+| `/mrc` or `/mrcexporter` (also `help`) | Show help |
 | `/mrc status` | Show load status |
 
 ## Layout
