@@ -2,7 +2,7 @@
 
 WoW addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`).
 
-![](https://img.shields.io/badge/current_version-0.1.0-purple)
+![](https://img.shields.io/badge/current_version-0.2.0-purple)
 
 
 ## Install

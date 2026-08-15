@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 MrcExporter = MrcExporter or {}
 local Addon = MrcExporter
 
-Addon.version = "0.1.0"
+Addon.version = "0.2.0"
 
 local defaults = {
 	enabled = true,
