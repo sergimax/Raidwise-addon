@@ -7,6 +7,7 @@ Addon.version = "0.2.0"
 
 local defaults = {
 	enabled = true,
+	includeGearNames = true,
 }
 
 -- Recursively copy a value (tables become independent copies).

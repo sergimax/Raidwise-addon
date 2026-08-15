@@ -133,21 +133,31 @@ function Addon:CollectCharacterInfo()
 	}
 end
 
--- JSON-like export: name, class, spec, and gear { ids, names }.
+-- JSON-like export: name, class, spec, and gear { ids[, names] }.
 function Addon:FormatEquippedGearExport()
 	local info = self:CollectCharacterInfo()
 	local gear = self:CollectEquippedGear()
+	local includeNames = not self.db or self.db.includeGearNames ~= false
+
+	local gearLines = {
+		'  "gear": {',
+		'    "ids": ' .. FormatJsonNumberArray(gear.ids),
+	}
+	if includeNames then
+		gearLines[2] = gearLines[2] .. ","
+		gearLines[#gearLines + 1] = '    "names": ' .. FormatJsonStringArray(gear.names)
+	end
+	gearLines[#gearLines + 1] = "  }"
 
 	local lines = {
 		"{",
 		'  "name": "' .. JsonEscape(info.name) .. '",',
 		'  "class": "' .. JsonEscape(info.class) .. '",',
 		'  "spec": "' .. JsonEscape(info.spec) .. '",',
-		'  "gear": {',
-		'    "ids": ' .. FormatJsonNumberArray(gear.ids) .. ",",
-		'    "names": ' .. FormatJsonStringArray(gear.names),
-		"  }",
-		"}",
 	}
+	for i = 1, #gearLines do
+		lines[#lines + 1] = gearLines[i]
+	end
+	lines[#lines + 1] = "}"
 	return table.concat(lines, "\n")
 end

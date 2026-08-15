@@ -3,7 +3,7 @@
 local Addon = MrcExporter
 
 local FRAME_WIDTH = 320
-local FRAME_HEIGHT = 300
+local FRAME_HEIGHT = 330
 
 -- Build the main frame once; store on Addon.mainFrame.
 function Addon:CreateMainFrame()
@@ -78,13 +78,22 @@ function Addon:CreateMainFrame()
 		exportBox:HighlightText()
 	end)
 
+	-- Persist whether gear names are included in the JSON export.
+	local namesCheck = CreateFrame("CheckButton", "MrcExporterIncludeNamesCheck", frame, "UICheckButtonTemplate")
+	namesCheck:SetPoint("TOPLEFT", exportBtn, "BOTTOMLEFT", -4, -6)
+	namesCheck:SetChecked(Addon.db.includeGearNames ~= false)
+	_G[namesCheck:GetName() .. "Text"]:SetText("Include item names")
+	namesCheck:SetScript("OnClick", function(self)
+		Addon.db.includeGearNames = self:GetChecked() and true or false
+	end)
+
 	local exportLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	exportLabel:SetPoint("TOPLEFT", 20, -130)
+	exportLabel:SetPoint("TOPLEFT", namesCheck, "BOTTOMLEFT", 4, -6)
 	exportLabel:SetText("Character export (Ctrl+C to copy)")
 
 	-- Scrollable multiline EditBox for the export result.
 	local scroll = CreateFrame("ScrollFrame", "MrcExporterExportScroll", frame, "UIPanelScrollFrameTemplate")
-	scroll:SetPoint("TOPLEFT", 20, -150)
+	scroll:SetPoint("TOPLEFT", exportLabel, "BOTTOMLEFT", 0, -8)
 	scroll:SetPoint("BOTTOMRIGHT", -36, 20)
 
 	local exportBox = CreateFrame("EditBox", "MrcExporterExportBox", scroll)
