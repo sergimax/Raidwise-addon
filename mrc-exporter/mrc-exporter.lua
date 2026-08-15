@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 MrcExporter = MrcExporter or {}
 local Addon = MrcExporter
 
-Addon.version = "0.1.0"
+Addon.version = "0.2.0"
 
 local defaults = {
 	enabled = true,
@@ -42,6 +42,7 @@ end
 -- Run once when this addon finishes loading.
 function Addon:OnInitialize()
 	EnsureDB()
+	self:CreateMainFrame()
 	self:Print("loaded (v" .. self.version .. "). Type /mrc for help.")
 end
 
@@ -54,14 +55,16 @@ end
 SLASH_MRCEXPORTER1 = "/mrc"
 SLASH_MRCEXPORTER2 = "/mrcexporter"
 
--- Handle /mrc and /mrcexporter (help, status).
+-- Handle /mrc and /mrcexporter (help, status, show/hide UI).
 SlashCmdList["MRCEXPORTER"] = function(msg)
 	msg = (msg or ""):match("^%s*(.-)%s*$") or ""
 	msg = msg:lower()
 
 	if msg == "" or msg == "help" then
-		Addon:Print("/mrc help  - show this help")
+		Addon:Print("/mrc help   - show this help")
 		Addon:Print("/mrc status - show addon status")
+		Addon:Print("/mrc show   - open the main window")
+		Addon:Print("/mrc hide   - close the main window")
 		return
 	end
 
@@ -72,6 +75,16 @@ SlashCmdList["MRCEXPORTER"] = function(msg)
 			tostring(Addon.db and Addon.db.enabled),
 			UnitName("player") or "?"
 		))
+		return
+	end
+
+	if msg == "show" or msg == "ui" then
+		Addon:ShowMainFrame()
+		return
+	end
+
+	if msg == "hide" then
+		Addon:HideMainFrame()
 		return
 	end
 
