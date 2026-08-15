@@ -37,11 +37,11 @@ In the window:
 - **Include item names** toggles whether `names` arrays are included in the export
 
 ## Screenshots:
-Main addon view:
+Main addon view (`/mrc show`):
 
 ![Main addon view](./screenshots/main-view.png)
 
-In-chat menu:
+In-chat menu (`/mrc help`):
 
 ![In-chat menu](./screenshots/in-chat-menu.png)
 
