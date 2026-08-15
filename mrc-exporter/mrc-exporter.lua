@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 MrcExporter = MrcExporter or {}
 local Addon = MrcExporter
 
-Addon.version = "0.3.0"
+Addon.version = "0.4.0"
 -- Filled from ## X-LastUpdated in mrc-exporter.toc on load.
 Addon.lastUpdated = ""
 
@@ -52,9 +52,19 @@ end
 
 -- Run when the player is fully in the world (gear, talents, etc.).
 function Addon:OnPlayerLogin()
-	-- Hook character-ready logic here.
+	RequestRaidInfo()
 end
 
+-- Refresh saved instance cache when the server answers RequestRaidInfo.
+function Addon:OnUpdateInstanceInfo()
+	if not self.pendingLockoutExport then
+		return
+	end
+	self.pendingLockoutExport = nil
+	if self.FlushExportToWindow then
+		self:FlushExportToWindow()
+	end
+end
 -- Slash commands: /mrc and /mrcexporter
 SLASH_MRCEXPORTER1 = "/mrc"
 SLASH_MRCEXPORTER2 = "/mrcexporter"
@@ -105,6 +115,7 @@ end
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("UPDATE_INSTANCE_INFO")
 
 -- Dispatch ADDON_LOADED and PLAYER_LOGIN to addon lifecycle hooks.
 frame:SetScript("OnEvent", function(_, event, arg1)
@@ -112,5 +123,7 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnInitialize()
 	elseif event == "PLAYER_LOGIN" then
 		Addon:OnPlayerLogin()
+	elseif event == "UPDATE_INSTANCE_INFO" then
+		Addon:OnUpdateInstanceInfo()
 	end
 end)
