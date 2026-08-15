@@ -57,6 +57,7 @@ export type InstanceLockout = {
 /**
  * JSON object produced by mrc-exporter's character export.
  * `gear.names` / `bags.names` are omitted when "Include item names" is disabled.
+ * `gearScore` is omitted when the GearScore addon is not available.
  */
 export type CharacterExport = {
   name: string;
@@ -64,6 +65,11 @@ export type CharacterExport = {
   class: string;
   /** Primary talent tree name on the active dual-spec. */
   spec: string;
+  /**
+   * Current GearScore from the GearScore addon (character-window value).
+   * Omitted if GearScore is not loaded.
+   */
+  gearScore?: number;
   /** Equipped items; `names` optional per export toggle. */
   gear: ItemIdList;
   /** Bag items; `names` optional per export toggle. */

@@ -33,8 +33,9 @@ In-game slash commands:
 In the window:
 
 - Version is shown under the title
-- **Export Gear** fills the text area with character JSON (name, class, spec, gear, bags, lockouts); focus the box and use Ctrl+C to copy
+- **Export Gear** fills the text area with character JSON (name, class, spec, gearScore, gear, bags, lockouts); focus the box and use Ctrl+C to copy
 - **Include item names** toggles whether `names` arrays are included in the export
+- `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
 
 Consumers can type the export JSON with `types/CharacterExport.ts`.
 

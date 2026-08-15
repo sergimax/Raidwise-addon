@@ -239,6 +239,40 @@ function Addon:CollectInstanceLockouts()
 	return lockouts
 end
 
+-- Current GearScore from the GearScore addon (same value as the character window).
+-- Returns nil if GearScore is not loaded or has no score yet.
+function Addon:CollectCurrentGearScore()
+	local playerName = UnitName("player")
+	if not playerName then
+		return nil
+	end
+
+	-- Ask GearScore to refresh the player record (their calculation, not ours).
+	if type(GearScore_GetScore) == "function" then
+		pcall(GearScore_GetScore, playerName, "player")
+	end
+
+	local realm = GetRealmName()
+	local players = GS_Data and realm and GS_Data[realm] and GS_Data[realm].Players
+	local record = players and players[playerName]
+	if record and record.GearScore ~= nil then
+		local score = tonumber(record.GearScore)
+		if score then
+			return score
+		end
+	end
+
+	-- Fallback: value shown on the character-frame FontString.
+	if PersonalGearScore and PersonalGearScore.GetText then
+		local score = tonumber(PersonalGearScore:GetText())
+		if score then
+			return score
+		end
+	end
+
+	return nil
+end
+
 -- Current character name, english class token, and primary talent tree name.
 function Addon:CollectCharacterInfo()
 	local name = UnitName("player") or ""
@@ -250,9 +284,10 @@ function Addon:CollectCharacterInfo()
 	}
 end
 
--- JSON-like export: name, class, spec, gear, bags, and instance lockouts.
+-- JSON-like export: name, class, spec, gearScore, gear, bags, and instance lockouts.
 function Addon:FormatEquippedGearExport()
 	local info = self:CollectCharacterInfo()
+	local gearScore = self:CollectCurrentGearScore()
 	local gear = self:CollectEquippedGear()
 	local bags = self:CollectBagItems()
 	local lockouts = self:CollectInstanceLockouts()
@@ -264,6 +299,9 @@ function Addon:FormatEquippedGearExport()
 		'  "class": "' .. JsonEscape(info.class) .. '",',
 		'  "spec": "' .. JsonEscape(info.spec) .. '",',
 	}
+	if gearScore ~= nil then
+		lines[#lines + 1] = '  "gearScore": ' .. tostring(gearScore) .. ","
+	end
 	AppendItemListJson(lines, "gear", gear, includeNames, false)
 	AppendItemListJson(lines, "bags", bags, includeNames, false)
 	AppendLockoutsJson(lines, lockouts, true)
