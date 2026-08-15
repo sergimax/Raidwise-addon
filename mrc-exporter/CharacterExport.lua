@@ -69,19 +69,25 @@ local function ItemNameFromLink(itemId, itemLink)
 	return tostring(itemId)
 end
 
+-- Resolve item id from an item link string.
+local function ItemIdFromLink(itemLink)
+	if not itemLink then
+		return nil
+	end
+	local parsed = tonumber(itemLink:match("item:(%d+)"))
+	if parsed and parsed > 0 then
+		return parsed
+	end
+	return nil
+end
+
 -- Resolve item id from inventory API or by parsing the item link.
 local function ItemIdFromSlot(slotId, itemLink)
 	local itemId = GetInventoryItemID("player", slotId)
 	if itemId and itemId > 0 then
 		return itemId
 	end
-	if itemLink then
-		local parsed = tonumber(itemLink:match("item:(%d+)"))
-		if parsed and parsed > 0 then
-			return parsed
-		end
-	end
-	return nil
+	return ItemIdFromLink(itemLink)
 end
 
 -- Active talent tree with the most points spent (WotLK dual-spec aware).
@@ -100,6 +106,23 @@ local function PrimarySpecName()
 	end
 
 	return bestName
+end
+
+-- Append JSON object lines for { ids[, names] } under the given key.
+local function AppendItemListJson(lines, key, items, includeNames, isLast)
+	lines[#lines + 1] = '  "' .. key .. '": {'
+	local idsLine = '    "ids": ' .. FormatJsonNumberArray(items.ids)
+	if includeNames then
+		lines[#lines + 1] = idsLine .. ","
+		lines[#lines + 1] = '    "names": ' .. FormatJsonStringArray(items.names)
+	else
+		lines[#lines + 1] = idsLine
+	end
+	if isLast then
+		lines[#lines + 1] = "  }"
+	else
+		lines[#lines + 1] = "  },"
+	end
 end
 
 -- Return equipped gear as { ids = {...}, names = {...} } (empty slots omitted).
@@ -122,6 +145,29 @@ function Addon:CollectEquippedGear()
 	return { ids = ids, names = names }
 end
 
+-- Return backpack + bag-slot items as { ids = {...}, names = {...} }.
+-- One entry per occupied container slot (stack size ignored). Bags 0-4 only.
+function Addon:CollectBagItems()
+	local ids = {}
+	local names = {}
+
+	for bag = 0, 4 do
+		local numSlots = GetContainerNumSlots(bag) or 0
+		for slot = 1, numSlots do
+			local itemLink = GetContainerItemLink(bag, slot)
+			if itemLink then
+				local itemId = ItemIdFromLink(itemLink)
+				if itemId then
+					ids[#ids + 1] = itemId
+					names[#names + 1] = ItemNameFromLink(itemId, itemLink)
+				end
+			end
+		end
+	end
+
+	return { ids = ids, names = names }
+end
+
 -- Current character name, english class token, and primary talent tree name.
 function Addon:CollectCharacterInfo()
 	local name = UnitName("player") or ""
@@ -133,21 +179,12 @@ function Addon:CollectCharacterInfo()
 	}
 end
 
--- JSON-like export: name, class, spec, and gear { ids[, names] }.
+-- JSON-like export: name, class, spec, gear, and bags.
 function Addon:FormatEquippedGearExport()
 	local info = self:CollectCharacterInfo()
 	local gear = self:CollectEquippedGear()
+	local bags = self:CollectBagItems()
 	local includeNames = not self.db or self.db.includeGearNames ~= false
-
-	local gearLines = {
-		'  "gear": {',
-		'    "ids": ' .. FormatJsonNumberArray(gear.ids),
-	}
-	if includeNames then
-		gearLines[2] = gearLines[2] .. ","
-		gearLines[#gearLines + 1] = '    "names": ' .. FormatJsonStringArray(gear.names)
-	end
-	gearLines[#gearLines + 1] = "  }"
 
 	local lines = {
 		"{",
@@ -155,9 +192,8 @@ function Addon:FormatEquippedGearExport()
 		'  "class": "' .. JsonEscape(info.class) .. '",',
 		'  "spec": "' .. JsonEscape(info.spec) .. '",',
 	}
-	for i = 1, #gearLines do
-		lines[#lines + 1] = gearLines[i]
-	end
+	AppendItemListJson(lines, "gear", gear, includeNames, false)
+	AppendItemListJson(lines, "bags", bags, includeNames, true)
 	lines[#lines + 1] = "}"
 	return table.concat(lines, "\n")
 end
