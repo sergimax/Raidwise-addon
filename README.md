@@ -53,8 +53,10 @@ In-chat menu:
 mrc-exporter/
   mrc-exporter.toc    # addon metadata (Interface 30300)
   mrc-exporter.lua    # entry point, events, slash commands
-  CharacterExport.lua # equipped gear ID/name export
+  CharacterExport.lua # character JSON export (gear, bags, lockouts)
   ExporterWindow.lua  # main in-game window
+types/
+  CharacterExport.ts  # TypeScript types for the export JSON
 ```
 
 
