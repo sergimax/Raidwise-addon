@@ -5,6 +5,21 @@ export type ItemIdList = {
   names?: string[];
 };
 
+/**
+ * WotLK raid difficulty IDs from `GetSavedInstanceInfo`.
+ * 5-man dungeons may use other numeric values at runtime.
+ */
+export enum InstanceDifficulty {
+  /** 10-player normal */
+  Raid10Normal = 1,
+  /** 25-player normal */
+  Raid25Normal = 2,
+  /** 10-player heroic */
+  Raid10Heroic = 3,
+  /** 25-player heroic */
+  Raid25Heroic = 4,
+}
+
 /** One saved raid/dungeon lockout from GetSavedInstanceInfo. */
 export type InstanceLockout = {
   name: string;
@@ -14,7 +29,11 @@ export type InstanceLockout = {
   reset: number;
   /** Unix timestamp when the lockout resets (`time() + reset` in-game). */
   resetAt: number;
-  difficulty: number;
+  /**
+   * Numeric difficulty from the client.
+   * For raids, see {@link InstanceDifficulty}; dungeons may use other values.
+   */
+  difficulty: InstanceDifficulty | number;
   /** Localized difficulty label, e.g. "25 Player". */
   difficultyName: string;
   /** True if the character is currently saved/cleared on this ID. */
