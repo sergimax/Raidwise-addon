@@ -1,9 +1,9 @@
--- Simple main window: title + Version / Character Info buttons.
+-- Simple main window: title, action buttons, and gear export text area.
 
 local Addon = MrcExporter
 
-local FRAME_WIDTH = 280
-local FRAME_HEIGHT = 160
+local FRAME_WIDTH = 320
+local FRAME_HEIGHT = 280
 
 -- Build the main frame once; store on Addon.mainFrame.
 function Addon:CreateMainFrame()
@@ -38,30 +38,61 @@ function Addon:CreateMainFrame()
 	title:SetPoint("TOP", 0, -16)
 	title:SetText("mrc-exporter")
 
+	local versionLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	versionLabel:SetPoint("TOP", title, "BOTTOM", 0, -4)
+	versionLabel:SetText("v" .. tostring(Addon.version))
+
 	-- Standard close (X); also Esc via UISpecialFrames.
 	local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
 	close:SetPoint("TOPRIGHT", -4, -4)
 
-	-- Prints Addon.version to chat.
-	local versionBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-	versionBtn:SetSize(120, 24)
-	versionBtn:SetPoint("TOP", title, "BOTTOM", 0, -16)
-	versionBtn:SetText("Version")
-	versionBtn:SetScript("OnClick", function()
-		Addon:Print("version " .. tostring(Addon.version))
+	-- Fills the export EditBox with character + gear JSON.
+	local exportBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+	exportBtn:SetSize(200, 24)
+	exportBtn:SetPoint("TOP", versionLabel, "BOTTOM", 0, -12)
+	exportBtn:SetText("Export Gear")
+	exportBtn:SetScript("OnClick", function()
+		local exportBox = frame.exportBox
+		if not exportBox then
+			return
+		end
+		local text = Addon:FormatEquippedGearExport()
+		exportBox:SetText(text)
+		exportBox:SetFocus()
+		exportBox:HighlightText()
 	end)
 
-	-- Prints local date/time and character name to chat.
-	local infoBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-	infoBtn:SetSize(200, 24)
-	infoBtn:SetPoint("TOP", versionBtn, "BOTTOM", 0, -10)
-	infoBtn:SetText("Character Info")
-	infoBtn:SetScript("OnClick", function()
-		local character = UnitName("player") or "?"
-		local stamp = date("%Y-%m-%d %H:%M:%S")
-		Addon:Print(string.format("%s | %s", stamp, character))
+	-- Persist whether gear names are included in the JSON export.
+	local namesCheck = CreateFrame("CheckButton", "MrcExporterIncludeNamesCheck", frame, "UICheckButtonTemplate")
+	namesCheck:SetPoint("TOPLEFT", exportBtn, "BOTTOMLEFT", -4, -6)
+	namesCheck:SetChecked(Addon.db.includeGearNames ~= false)
+	_G[namesCheck:GetName() .. "Text"]:SetText("Include item names")
+	namesCheck:SetScript("OnClick", function(self)
+		Addon.db.includeGearNames = self:GetChecked() and true or false
 	end)
 
+	local exportLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	exportLabel:SetPoint("TOPLEFT", namesCheck, "BOTTOMLEFT", 4, -6)
+	exportLabel:SetText("Character export (Ctrl+C to copy)")
+
+	-- Scrollable multiline EditBox for the export result.
+	local scroll = CreateFrame("ScrollFrame", "MrcExporterExportScroll", frame, "UIPanelScrollFrameTemplate")
+	scroll:SetPoint("TOPLEFT", exportLabel, "BOTTOMLEFT", 0, -8)
+	scroll:SetPoint("BOTTOMRIGHT", -36, 20)
+
+	local exportBox = CreateFrame("EditBox", "MrcExporterExportBox", scroll)
+	exportBox:SetMultiLine(true)
+	exportBox:SetFontObject(ChatFontNormal)
+	exportBox:SetWidth(FRAME_WIDTH - 60)
+	exportBox:SetHeight(140)
+	exportBox:SetAutoFocus(false)
+	exportBox:EnableMouse(true)
+	exportBox:SetScript("OnEscapePressed", function(self)
+		self:ClearFocus()
+	end)
+	scroll:SetScrollChild(exportBox)
+
+	frame.exportBox = exportBox
 	self.mainFrame = frame
 	return frame
 end

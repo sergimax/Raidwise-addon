@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-08-15
+
+### Added
+- Character JSON export with name, class, spec, equipped gear, and bag items (`CharacterExport.lua`)
+- **Include item names** checkbox to optionally omit `names` arrays from the export (SavedVariables `includeGearNames`)
+- Addon version shown under the window title
+- Slash command `/mrc version` to print the addon version
+- `## X-LastUpdated` TOC field (mirrored by README badge); `/mrc status` includes the last-updated date
+
+### Changed
+- Export output is a JSON-like object instead of two comma-separated lines
+
+### Removed
+- **Version** and **Character Info** buttons from the main window (use `/mrc version` and the title label instead)
+
 ## [0.2.0] - 2026-08-15
 
 ### Added
