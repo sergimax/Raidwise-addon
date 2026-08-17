@@ -32,7 +32,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Export gear and CDs**, **Info**.
+Tabs (in order): **Export gear and CDs**, **Character cooldowns**, **Info**.
 
 ## Content padding
 
@@ -74,6 +74,22 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Body → next heading | 14 px | |
 | URL copy box | height **28** | Tooltip border; fills row minus Select all |
 | Select all | **110 × 28** | Right of the URL box; 8 px gap |
+
+## Character cooldowns tab
+
+See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Toolbar row | height **28** | Hint left, Refresh right |
+| Gap: toolbar → table | 8 px | Table starts below Refresh button |
+| Refresh | **80 × 28** | Top-right of the page |
+| Instance column | **170** | Name + type stacked |
+| Character column | **90** | Spec icon **14 × 14**, then class-colored name |
+| Header row | **38** | Title-bar fill |
+| Data row | **34** | Alternate fills RGB **0.18** / **0.14** |
+| Vertical scrollbar | **16** | Right of the table; hidden if unused |
+| Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
 
 ## Fonts
 

@@ -10,6 +10,7 @@ Addon.lastUpdated = ""
 local defaults = {
 	enabled = true,
 	includeGearNames = true,
+	characters = {},
 }
 
 -- Recursively copy a value (tables become independent copies).
@@ -56,19 +57,36 @@ end
 
 -- Run when the player is fully in the world (gear, talents, etc.).
 function Addon:OnPlayerLogin()
+	self:SaveCurrentCharacterLockouts()
+	RequestRaidInfo()
+end
+
+-- Fires on login and /reload; PLAYER_LOGIN does not fire after /reload.
+function Addon:OnPlayerEnteringWorld()
+	self:SaveCurrentCharacterLockouts()
 	RequestRaidInfo()
 end
 
 -- Refresh saved instance cache when the server answers RequestRaidInfo.
 function Addon:OnUpdateInstanceInfo()
-	if not self.pendingLockoutExport then
-		return
+	self:SaveCurrentCharacterLockouts()
+
+	if self.pendingLockoutExport then
+		self.pendingLockoutExport = nil
+		if self.FlushExportToWindow then
+			self:FlushExportToWindow()
+		end
 	end
-	self.pendingLockoutExport = nil
-	if self.FlushExportToWindow then
-		self:FlushExportToWindow()
+
+	if self.RefreshCooldownTable then
+		local frame = self.mainFrame
+		if self.pendingLockoutTable or (frame and frame:IsShown() and frame.selectedTab == "cooldowns") then
+			self.pendingLockoutTable = nil
+			self:RefreshCooldownTable()
+		end
 	end
 end
+
 -- Slash commands: /raidwise and /rw
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
@@ -119,6 +137,7 @@ end
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("UPDATE_INSTANCE_INFO")
 
 -- Dispatch ADDON_LOADED and PLAYER_LOGIN to addon lifecycle hooks.
@@ -127,6 +146,8 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnInitialize()
 	elseif event == "PLAYER_LOGIN" then
 		Addon:OnPlayerLogin()
+	elseif event == "PLAYER_ENTERING_WORLD" then
+		Addon:OnPlayerEnteringWorld()
 	elseif event == "UPDATE_INSTANCE_INFO" then
 		Addon:OnUpdateInstanceInfo()
 	end

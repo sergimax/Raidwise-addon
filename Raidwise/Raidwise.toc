@@ -1,5 +1,5 @@
 ## Interface: 30300
-## Title: Raidwise
+## Title: Raidwise TEST 0113
 ## Notes: Character exporter for Wrath of the Lich King 3.3.5a
 ## Author: sergimax
 ## Version: 1.1.0
@@ -9,4 +9,5 @@
 
 Raidwise.lua
 CharacterExport.lua
+CharacterLockouts.lua
 ExporterWindow.lua

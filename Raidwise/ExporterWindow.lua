@@ -43,6 +43,19 @@ local UI = {
 	INFO_HEADING_GAP = 8,
 	URL_BOX_H = 28,
 
+	-- Cooldowns tab
+	CD_HINT_TO_TABLE = 8,
+	CD_TOOLBAR_H = 28,
+	CD_INSTANCE_COL_W = 170,
+	CD_CHAR_COL_W = 90,
+	CD_HEADER_H = 38,
+	CD_ROW_H = 34,
+	CD_SPEC_ICON = 14,
+	CD_SCROLLBAR_W = 16,
+	CD_HSCROLL_H = 16,
+	CD_ROW_A = { 0.18, 0.18, 0.18, 0.90 },
+	CD_ROW_B = { 0.14, 0.14, 0.14, 0.90 },
+
 	-- Colors
 	GOLD = { 0.890, 0.729, 0.016 },
 	TEXT_IDLE = { 0.80, 0.80, 0.80 },
@@ -60,6 +73,7 @@ local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
 
 local PAGES = {
 	{ id = "export", label = "Export gear and CDs" },
+	{ id = "cooldowns", label = "Character cooldowns" },
 	{ id = "info", label = "Info" },
 }
 
@@ -350,6 +364,13 @@ function Addon:SelectTab(tabId)
 	for _, button in ipairs(frame.menuButtons) do
 		SetMenuButtonState(button, button.tabId == tabId, false)
 	end
+
+	if tabId == "cooldowns" then
+		self.pendingLockoutTable = true
+		self:SaveCurrentCharacterLockouts()
+		RequestRaidInfo()
+		self:RefreshCooldownTable()
+	end
 end
 
 local function AttachDragHandle(handle, target)
@@ -513,6 +534,8 @@ local function CreateInfoPage(parent)
 			.. "Export gear and CDs builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
 			.. "Turn on Include item names to add display names next to item ids. "
 			.. "If the GearScore addon is loaded, the current score is included.\n\n"
+			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account. "
+			.. "Log in on each alt to record their lockouts.\n\n"
 			.. "Slash commands: /raidwise or /rw (help, version, status, show, hide)."
 	)
 
@@ -541,6 +564,410 @@ local function CreateInfoPage(parent)
 	page.repoBox = repoBox
 	page.repoHint = repoHint
 	return page
+end
+
+local function ClassColor(classToken)
+	local color = RAID_CLASS_COLORS and RAID_CLASS_COLORS[classToken]
+	if color then
+		return color.r, color.g, color.b
+	end
+	return UI.TEXT_IDLE[1], UI.TEXT_IDLE[2], UI.TEXT_IDLE[3]
+end
+
+local function SetSpecOrClassIcon(texture, specIcon, classToken)
+	if specIcon and specIcon ~= "" then
+		texture:SetTexture(specIcon)
+		texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+		return
+	end
+	texture:SetTexture("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES")
+	local coords = CLASS_ICON_TCOORDS and classToken and CLASS_ICON_TCOORDS[classToken]
+	if coords then
+		texture:SetTexCoord(coords[1], coords[2], coords[3], coords[4])
+	else
+		texture:SetTexCoord(0, 1, 0, 1)
+	end
+end
+
+local function HidePoolFrom(pool, startIndex)
+	for index = startIndex, #pool do
+		pool[index]:Hide()
+	end
+end
+
+local function CreateCooldownScrollBar(parent, orientation)
+	local bar = CreateFrame("Slider", nil, parent)
+	bar:SetOrientation(orientation)
+	if orientation == "VERTICAL" then
+		bar:SetWidth(UI.CD_SCROLLBAR_W)
+	else
+		bar:SetHeight(UI.CD_HSCROLL_H)
+	end
+	ApplyPlainPanel(bar, UI.BTN_IDLE)
+	bar:SetThumbTexture("Interface\\Buttons\\UI-ScrollBar-Knob")
+	local thumb = bar:GetThumbTexture()
+	if thumb then
+		if orientation == "VERTICAL" then
+			thumb:SetSize(UI.CD_SCROLLBAR_W, 24)
+		else
+			thumb:SetSize(24, UI.CD_HSCROLL_H)
+		end
+	end
+	bar:SetMinMaxValues(0, 0)
+	bar:SetValueStep(1)
+	bar:SetValue(0)
+	return bar
+end
+
+local function CreateCooldownHeaderCell(parent)
+	local cell = CreateFrame("Frame", nil, parent)
+	cell:SetHeight(UI.CD_HEADER_H)
+
+	local icon = cell:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
+	icon:SetPoint("TOPLEFT", 6, -6)
+	cell.icon = icon
+
+	local name = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	name:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+	name:SetPoint("RIGHT", cell, "RIGHT", -4, 0)
+	name:SetJustifyH("LEFT")
+	name:SetJustifyV("MIDDLE")
+	cell.name = name
+
+	cell:EnableMouse(true)
+	cell:SetScript("OnEnter", function(self)
+		if not self.tooltipTitle then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.tooltipTitle)
+		if self.tooltipSpec then
+			GameTooltip:AddLine(self.tooltipSpec, 0.8, 0.8, 0.8)
+		end
+		GameTooltip:Show()
+	end)
+	cell:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	return cell
+end
+
+local function CreateCooldownRow(parent)
+	local row = CreateFrame("Frame", nil, parent)
+	row:SetHeight(UI.CD_ROW_H)
+	ApplyPlainPanel(row, UI.CD_ROW_A)
+
+	local name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	name:SetPoint("TOPLEFT", 6, -4)
+	name:SetPoint("RIGHT", row, "LEFT", UI.CD_INSTANCE_COL_W - 4, 0)
+	name:SetJustifyH("LEFT")
+	name:SetJustifyV("TOP")
+	row.instanceName = name
+
+	local typeLabel = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	typeLabel:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -1)
+	typeLabel:SetPoint("RIGHT", row, "LEFT", UI.CD_INSTANCE_COL_W - 4, 0)
+	typeLabel:SetJustifyH("LEFT")
+	SetFontColor(typeLabel, UI.TEXT_IDLE)
+	row.typeLabel = typeLabel
+
+	row.cells = {}
+	return row
+end
+
+local function CreateCooldownValueCell(parent)
+	local cell = CreateFrame("Frame", nil, parent)
+	cell:SetHeight(UI.CD_ROW_H)
+
+	local text = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	text:SetPoint("LEFT", 4, 0)
+	text:SetPoint("RIGHT", -4, 0)
+	text:SetJustifyH("CENTER")
+	cell.text = text
+
+	cell:EnableMouse(true)
+	cell:SetScript("OnEnter", function(self)
+		if not self.tooltipTitle then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.tooltipTitle)
+		if self.tooltipType then
+			GameTooltip:AddLine(self.tooltipType, 0.8, 0.8, 0.8)
+		end
+		if self.tooltipBody then
+			GameTooltip:AddLine(self.tooltipBody, 1, 1, 1)
+		end
+		GameTooltip:Show()
+	end)
+	cell:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	return cell
+end
+
+local function LayoutCooldownScrollBars(page)
+	local host = page.tableHost
+	local scroll = page.scroll
+	local content = page.tableContent
+	local vBar = page.vBar
+	local hBar = page.hBar
+	if not host or not scroll or not content then
+		return
+	end
+
+	local viewW = scroll:GetWidth() or 0
+	local viewH = scroll:GetHeight() or 0
+	local childW = content:GetWidth() or 0
+	local childH = content:GetHeight() or 0
+	local maxH = math.max(0, childW - viewW)
+	local maxV = math.max(0, childH - viewH)
+
+	if hBar then
+		hBar:SetMinMaxValues(0, maxH)
+		if maxH > 0 then
+			hBar:Show()
+			local current = math.min(scroll:GetHorizontalScroll() or 0, maxH)
+			hBar:SetValue(current)
+			scroll:SetHorizontalScroll(current)
+		else
+			hBar:SetValue(0)
+			hBar:Hide()
+			scroll:SetHorizontalScroll(0)
+		end
+	end
+	if vBar then
+		vBar:SetMinMaxValues(0, maxV)
+		if maxV > 0 then
+			vBar:Show()
+			local current = math.min(scroll:GetVerticalScroll() or 0, maxV)
+			vBar:SetValue(current)
+			scroll:SetVerticalScroll(current)
+		else
+			vBar:SetValue(0)
+			vBar:Hide()
+			scroll:SetVerticalScroll(0)
+		end
+	end
+end
+
+local function CooldownTableTopOffset()
+	return UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE
+end
+
+local function CreateCooldownsPage(parent)
+	local page = CreateFrame("Frame", nil, parent)
+	page:SetAllPoints(parent)
+
+	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	hint:SetPoint("TOPLEFT", 0, 0)
+	hint:SetPoint("RIGHT", page, "RIGHT", -90, 0)
+	hint:SetJustifyH("LEFT")
+	hint:SetJustifyV("TOP")
+	hint:SetText("Lockouts for every character saved on this account.")
+
+	local refreshBtn = CreatePlainButton(page, 80, UI.CD_TOOLBAR_H, "Refresh")
+	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
+	refreshBtn:SetScript("OnClick", function()
+		Addon.pendingLockoutTable = true
+		RequestRaidInfo()
+		Addon:RefreshCooldownTable()
+	end)
+
+	local tableTop = -CooldownTableTopOffset()
+
+	local emptyLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	emptyLabel:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
+	emptyLabel:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+	emptyLabel:SetJustifyH("CENTER")
+	emptyLabel:SetJustifyV("MIDDLE")
+	SetFontColor(emptyLabel, UI.TEXT_IDLE)
+	emptyLabel:SetText("Log in on each character to record raid and dungeon lockouts.")
+	page.emptyLabel = emptyLabel
+
+	local tableHost = CreateFrame("Frame", nil, page)
+	tableHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
+	tableHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+	ApplyPlainPanel(tableHost, UI.PANEL_BG)
+	page.tableHost = tableHost
+
+	local scroll = CreateFrame("ScrollFrame", "RaidwiseCooldownScroll", tableHost)
+	scroll:SetPoint("TOPLEFT", 1, -1)
+	scroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 2), UI.CD_HSCROLL_H + 2)
+	scroll:EnableMouseWheel(true)
+	page.scroll = scroll
+
+	local content = CreateFrame("Frame", nil, scroll)
+	content:SetSize(1, 1)
+	scroll:SetScrollChild(content)
+	page.tableContent = content
+	page.headerCells = {}
+	page.rowFrames = {}
+
+	local headerBg = CreateFrame("Frame", nil, content)
+	headerBg:SetPoint("TOPLEFT", 0, 0)
+	headerBg:SetHeight(UI.CD_HEADER_H)
+	ApplyPlainPanel(headerBg, UI.TITLE_BG)
+	page.headerBg = headerBg
+
+	local instanceHeader = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	instanceHeader:SetPoint("LEFT", 6, 0)
+	instanceHeader:SetText("Raid / Dungeon")
+	SetFontColor(instanceHeader, UI.GOLD)
+	page.instanceHeader = instanceHeader
+
+	local noRowsLabel = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	noRowsLabel:SetPoint("TOPLEFT", headerBg, "BOTTOMLEFT", 8, -10)
+	noRowsLabel:SetPoint("RIGHT", content, "RIGHT", -8, 0)
+	noRowsLabel:SetJustifyH("LEFT")
+	SetFontColor(noRowsLabel, UI.TEXT_IDLE)
+	noRowsLabel:SetText("No current lockouts.")
+	noRowsLabel:Hide()
+	page.noRowsLabel = noRowsLabel
+
+	local vBar = CreateCooldownScrollBar(tableHost, "VERTICAL")
+	vBar:SetPoint("TOPRIGHT", -1, -1)
+	vBar:SetPoint("BOTTOMRIGHT", -1, UI.CD_HSCROLL_H + 2)
+	vBar:SetScript("OnValueChanged", function(self)
+		scroll:SetVerticalScroll(self:GetValue() or 0)
+	end)
+	page.vBar = vBar
+
+	local hBar = CreateCooldownScrollBar(tableHost, "HORIZONTAL")
+	hBar:SetPoint("BOTTOMLEFT", 1, 1)
+	hBar:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 2), 1)
+	hBar:SetScript("OnValueChanged", function(self)
+		scroll:SetHorizontalScroll(self:GetValue() or 0)
+	end)
+	page.hBar = hBar
+
+	scroll:SetScript("OnMouseWheel", function(self, delta)
+		local maxV = math.max(0, (content:GetHeight() or 0) - (self:GetHeight() or 0))
+		local step = UI.CD_ROW_H
+		local nextValue = math.max(0, math.min(maxV, (self:GetVerticalScroll() or 0) - delta * step))
+		self:SetVerticalScroll(nextValue)
+		vBar:SetValue(nextValue)
+	end)
+	scroll:SetScript("OnSizeChanged", function()
+		LayoutCooldownScrollBars(page)
+	end)
+
+	page.hint = hint
+	page.refreshBtn = refreshBtn
+	return page
+end
+
+-- Rebuild the cooldowns table from account SavedVariables.
+function Addon:RefreshCooldownTable()
+	local frame = self.mainFrame
+	local page = frame and frame.pages and frame.pages.cooldowns
+	if not page then
+		return
+	end
+
+	self:SaveCurrentCharacterLockouts()
+
+	local model = self:BuildCooldownTable()
+	local characters = model.characters
+	local rows = model.rows
+	local content = page.tableContent
+	local headerBg = page.headerBg
+
+	if #characters == 0 then
+		page.emptyLabel:ClearAllPoints()
+		page.emptyLabel:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -CooldownTableTopOffset())
+		page.emptyLabel:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+		page.emptyLabel:SetText("Log in on each character to record raid and dungeon lockouts.")
+		page.emptyLabel:Show()
+		page.tableHost:Hide()
+		return
+	end
+
+	page.emptyLabel:Hide()
+	page.tableHost:Show()
+
+	local tableW = UI.CD_INSTANCE_COL_W + (#characters * UI.CD_CHAR_COL_W)
+	local tableH = UI.CD_HEADER_H + math.max(#rows, 1) * UI.CD_ROW_H
+	content:SetSize(tableW, tableH)
+	headerBg:SetWidth(tableW)
+
+	HidePoolFrom(page.headerCells, #characters + 1)
+	for index = 1, #characters do
+		local character = characters[index]
+		local cell = page.headerCells[index]
+		if not cell then
+			cell = CreateCooldownHeaderCell(headerBg)
+			page.headerCells[index] = cell
+		end
+		cell:ClearAllPoints()
+		cell:SetPoint("TOPLEFT", headerBg, "TOPLEFT", UI.CD_INSTANCE_COL_W + (index - 1) * UI.CD_CHAR_COL_W, 0)
+		cell:SetWidth(UI.CD_CHAR_COL_W)
+		cell.name:SetText(character.displayName)
+		cell.name:SetTextColor(ClassColor(character.class))
+		SetSpecOrClassIcon(cell.icon, character.specIcon, character.class)
+		cell.tooltipTitle = character.displayName
+		cell.tooltipSpec = character.spec ~= "" and character.spec or nil
+		cell:Show()
+	end
+
+	HidePoolFrom(page.rowFrames, #rows + 1)
+	for rowIndex = 1, #rows do
+		local rowData = rows[rowIndex]
+		local row = page.rowFrames[rowIndex]
+		if not row then
+			row = CreateCooldownRow(content)
+			page.rowFrames[rowIndex] = row
+		end
+		row:ClearAllPoints()
+		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(UI.CD_HEADER_H + (rowIndex - 1) * UI.CD_ROW_H))
+		row:SetSize(tableW, UI.CD_ROW_H)
+		local stripe = (rowIndex % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
+		row:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+		row.instanceName:SetText(rowData.name)
+		row.typeLabel:SetText(rowData.typeLabel)
+
+		HidePoolFrom(row.cells, #characters + 1)
+		for colIndex = 1, #characters do
+			local character = characters[colIndex]
+			local cell = row.cells[colIndex]
+			if not cell then
+				cell = CreateCooldownValueCell(row)
+				row.cells[colIndex] = cell
+			end
+			cell:ClearAllPoints()
+			cell:SetPoint("TOPLEFT", row, "TOPLEFT", UI.CD_INSTANCE_COL_W + (colIndex - 1) * UI.CD_CHAR_COL_W, 0)
+			cell:SetWidth(UI.CD_CHAR_COL_W)
+
+			local saved = rowData.cells[character.key]
+			cell.tooltipTitle = rowData.name
+			cell.tooltipType = rowData.typeLabel
+			if saved and saved.remainingText then
+				cell.text:SetText(saved.remainingText)
+				SetFontColor(cell.text, UI.GOLD)
+				cell.tooltipBody = "Saved - resets in " .. saved.remainingText
+			else
+				cell.text:SetText("-")
+				SetFontColor(cell.text, UI.TEXT_DISABLED)
+				cell.tooltipBody = "Not saved"
+			end
+			cell:Show()
+		end
+		row:Show()
+	end
+
+	if page.noRowsLabel then
+		if #rows == 0 then
+			page.noRowsLabel:Show()
+		else
+			page.noRowsLabel:Hide()
+		end
+	end
+
+	page.emptyLabel:Hide()
+	LayoutCooldownScrollBars(page)
 end
 
 -- Build the main frame once; store on Addon.mainFrame.
@@ -617,6 +1044,10 @@ function Addon:CreateMainFrame()
 	frame.exportBox = exportPage.exportBox
 	frame.statusLabel = exportPage.statusLabel
 	frame.selectBtn = exportPage.selectBtn
+
+	local cooldownsPage = CreateCooldownsPage(content)
+	frame.pages.cooldowns = cooldownsPage
+	cooldownsPage:Hide()
 
 	local infoPage = CreateInfoPage(content)
 	frame.pages.info = infoPage

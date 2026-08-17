@@ -40,6 +40,13 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 - **Select all** highlights the JSON for Ctrl+C
 - `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
 
+**Character cooldowns** tab:
+
+- Table of raid and dungeon lockouts for every character saved on this account
+- First column is the instance name and type (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40)
+- Other columns are characters (class-colored name and spec icon); log in on each alt to record them
+- Saved cells show time remaining until reset
+
 **Info** tab:
 
 - What the addon exports and which slash commands exist
@@ -67,6 +74,7 @@ Raidwise/
   Raidwise.toc        # addon metadata (Interface 30300)
   Raidwise.lua        # entry point, events, slash commands
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
+  CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view
