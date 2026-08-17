@@ -56,9 +56,12 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Gap: buttons → hint | 8 px | |
 | Copy hint | full inner width | `GameFontNormalSmall` |
 | Gap: hint → copy box | 6 px | |
-| Copy box (inset) | fills remaining height | Darker panel `{0.08, 0.08, 0.08}` |
-| Inset inner padding | 8 px | |
-| Scrollbar gutter | 20 px | Right side of inset |
+| Copy box | fills remaining height | WowSims/AceGUI MultiLineEditBox: tooltip border, black fill |
+| Copy box edge | 16 px | `UI-Tooltip-Border` |
+| Copy box insets | 4 / 3 / 4 / 3 | left / right / top / bottom of backdrop |
+| EditBox padding inside border | 5, 6, 4, 4 | left, top, right, bottom |
+| Scrollbar | 20 px wide | Outside the bordered box, 2 px gap; 16 px inset top/bottom |
+| EditBox line height | 14 | `ChatFontNormal` |
 | EditBox min height | 180 | Grows with line count |
 
 ## Fonts

@@ -31,8 +31,13 @@ local UI = {
 	ACTION_BTN_GAP = 8,
 	BUTTONS_TO_HINT = 8,
 	HINT_TO_INSET = 6,
-	INSET_PAD = 8,
-	SCROLLBAR_GUTTER = 20,
+	COPY_SCROLLBAR_W = 20,
+	COPY_PAD_L = 5,
+	COPY_PAD_T = 6,
+	COPY_PAD_R = 4,
+	COPY_PAD_B = 4,
+	COPY_LINE_H = 14,
+	COPY_MIN_H = 180,
 
 	-- Colors
 	GOLD = { 0.890, 0.729, 0.016 },
@@ -151,6 +156,90 @@ local function CreatePlainButton(parent, width, height, label)
 	end)
 
 	return button
+end
+
+-- WowSimsExporter-style copy box (AceGUI MultiLineEditBox look, no Ace).
+local COPY_BACKDROP = {
+	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+	edgeSize = 16,
+	insets = { left = 4, right = 3, top = 4, bottom = 3 },
+}
+
+local function CreateCopyBox(parent)
+	local host = CreateFrame("Frame", nil, parent)
+
+	local scrollBG = CreateFrame("Frame", nil, host)
+	scrollBG:SetPoint("TOPLEFT", 0, 0)
+	scrollBG:SetPoint("BOTTOMRIGHT", -UI.COPY_SCROLLBAR_W, 0)
+	scrollBG:SetBackdrop(COPY_BACKDROP)
+	scrollBG:SetBackdropColor(0, 0, 0, 1)
+	scrollBG:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+
+	local scroll = CreateFrame("ScrollFrame", "RaidwiseExportScroll", host, "UIPanelScrollFrameTemplate")
+	scroll:SetPoint("TOPLEFT", scrollBG, "TOPLEFT", UI.COPY_PAD_L, -UI.COPY_PAD_T)
+	scroll:SetPoint("BOTTOMRIGHT", scrollBG, "BOTTOMRIGHT", -UI.COPY_PAD_R, UI.COPY_PAD_B)
+
+	local scrollBar = _G[scroll:GetName() .. "ScrollBar"]
+	scrollBar:ClearAllPoints()
+	scrollBar:SetPoint("TOPLEFT", scrollBG, "TOPRIGHT", 2, -16)
+	scrollBar:SetPoint("BOTTOMLEFT", scrollBG, "BOTTOMRIGHT", 2, 16)
+
+	local exportBox = CreateFrame("EditBox", "RaidwiseExportBox", scroll)
+	exportBox:SetMultiLine(true)
+	exportBox:SetFontObject(ChatFontNormal)
+	exportBox:SetAutoFocus(false)
+	exportBox:EnableMouse(true)
+	exportBox:SetTextInsets(0, 0, 3, 3)
+	scroll:SetScrollChild(exportBox)
+
+	scroll:SetScript("OnSizeChanged", function(self, width)
+		exportBox:SetWidth(width)
+	end)
+	scroll:SetScript("OnMouseUp", function()
+		exportBox:SetFocus()
+		if (exportBox:GetText() or "") ~= "" then
+			exportBox:HighlightText()
+		end
+	end)
+	scroll:HookScript("OnVerticalScroll", function(self, offset)
+		local height = exportBox:GetHeight()
+		exportBox:SetHitRectInsets(0, 0, offset, height - offset - self:GetHeight())
+	end)
+
+	exportBox:SetScript("OnEscapePressed", function(box)
+		box:ClearFocus()
+	end)
+	exportBox:SetScript("OnEditFocusLost", function(box)
+		box:HighlightText(0, 0)
+	end)
+	exportBox:SetScript("OnMouseUp", function(box)
+		if (box:GetText() or "") ~= "" then
+			box:HighlightText()
+		end
+	end)
+	exportBox:SetScript("OnCursorChanged", function(box, _, y, _, cursorHeight)
+		y = -y
+		local offset = scroll:GetVerticalScroll()
+		if y < offset then
+			scroll:SetVerticalScroll(y)
+		else
+			y = y + cursorHeight - scroll:GetHeight()
+			if y > offset then
+				scroll:SetVerticalScroll(y)
+			end
+		end
+	end)
+	exportBox:SetScript("OnTextChanged", function(box)
+		local lines = 1
+		local text = box:GetText() or ""
+		for _ in text:gmatch("\n") do
+			lines = lines + 1
+		end
+		box:SetHeight(math.max(UI.COPY_MIN_H, lines * UI.COPY_LINE_H + 8))
+	end)
+
+	return exportBox, host
 end
 
 local function SetMenuButtonState(button, selected, hovering)
@@ -312,44 +401,9 @@ local function CreateExportPage(parent)
 	statusLabel:SetJustifyH("LEFT")
 	statusLabel:SetText("After export, press Ctrl+C to copy.")
 
-	local inset = CreateFrame("Frame", nil, page)
-	inset:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
-	inset:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
-	ApplyPlainPanel(inset, { 0.08, 0.08, 0.08, 0.95 })
-
-	local scroll = CreateFrame("ScrollFrame", "RaidwiseExportScroll", inset, "UIPanelScrollFrameTemplate")
-	scroll:SetPoint("TOPLEFT", UI.INSET_PAD, -UI.INSET_PAD)
-	scroll:SetPoint("BOTTOMRIGHT", -(UI.INSET_PAD + UI.SCROLLBAR_GUTTER), UI.INSET_PAD)
-
-	local exportBox = CreateFrame("EditBox", "RaidwiseExportBox", scroll)
-	exportBox:SetMultiLine(true)
-	exportBox:SetFontObject(ChatFontNormal)
-	exportBox:SetWidth(ContentInnerWidth() - (UI.INSET_PAD * 2) - UI.SCROLLBAR_GUTTER)
-	exportBox:SetAutoFocus(false)
-	exportBox:EnableMouse(true)
-	exportBox:SetTextInsets(2, 2, 2, 2)
-	exportBox:SetScript("OnEscapePressed", function(box)
-		box:ClearFocus()
-	end)
-	exportBox:SetScript("OnCursorChanged", function(box, _, y, _, lineHeight)
-		local viewportH = scroll:GetHeight()
-		local offset = scroll:GetVerticalScroll()
-		if y > 0 then
-			scroll:SetVerticalScroll(offset - y)
-		elseif (-y - lineHeight) > (viewportH - offset) then
-			scroll:SetVerticalScroll(offset + (-y - lineHeight - (viewportH - offset)))
-		end
-	end)
-	exportBox:SetScript("OnTextChanged", function(box)
-		local fontHeight = 12
-		local lines = 1
-		local text = box:GetText() or ""
-		for _ in text:gmatch("\n") do
-			lines = lines + 1
-		end
-		box:SetHeight(math.max(180, lines * fontHeight + 8))
-	end)
-	scroll:SetScrollChild(exportBox)
+	local exportBox, copyHost = CreateCopyBox(page)
+	copyHost:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
+	copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 
 	page.exportBox = exportBox
 	page.statusLabel = statusLabel

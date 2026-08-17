@@ -44,7 +44,7 @@ Menu tabs (top to bottom):
 | export data button | **Export data** — fills the copy box |
 | select all data button | **Select all** — highlights JSON for Ctrl+C (disabled until export) |
 | short hint | Starts as “After export, press Ctrl+C to copy.” |
-| input for copy | Scrollable JSON EditBox |
+| input for copy | Tooltip-bordered multiline EditBox (WowSimsExporter / AceGUI style). Click selects all; Ctrl+C copies. |
 
 ## Adding a view
 
