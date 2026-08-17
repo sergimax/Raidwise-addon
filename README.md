@@ -34,9 +34,12 @@ In-game slash commands:
 In the window:
 
 - Version is shown under the title
-- **Export Gear** fills the text area with character JSON (name, class, spec, gearScore, gear, bags, lockouts); focus the box and use Ctrl+C to copy
+- **Export Character** fills the JSON panel (name, class, spec, gearScore, gear, bags, lockouts), selects the text, and prompts Ctrl+C
 - **Include item names** toggles whether `names` arrays are included in the export
+- **Select All** re-highlights the JSON if the selection was cleared
 - `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
+
+UI element sizes are documented in [`docs/UI-Sizes.md`](docs/UI-Sizes.md).
 
 Consumers can type the export JSON with `types/CharacterExport.ts`.
 
@@ -59,6 +62,8 @@ Raidwise/
   Raidwise.lua        # entry point, events, slash commands
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   ExporterWindow.lua  # main in-game window
+docs/
+  UI-Sizes.md         # window / control pixel sizes
 types/
   CharacterExport.ts  # TypeScript types for the export JSON
 ```
