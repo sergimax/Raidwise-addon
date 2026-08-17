@@ -31,7 +31,7 @@ In-game slash commands:
 | `/raidwise show` | Open the main window |
 | `/raidwise hide` | Close the main window |
 
-The window uses a Details-style layout: plain panels, a **left menu**, and a content page. Right-click closes the window.
+The window uses a Details-style layout: plain panels, a **left menu**, and a content page. The status bar shows the addon name, version, and GitHub link (click prints the URL in chat). Esc or the title **X** closes the window.
 
 **Export gear and CDs** tab:
 

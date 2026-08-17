@@ -10,7 +10,9 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 |---------|------|-------|
 | Content frame (`RaidwiseFrame`) | **520 × 480** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
 | Menu panel (`RaidwiseMenu`) | **170 × 480** | Anchored to content `TOPLEFT` with a 2 px gap |
-| Status bar | height **20** | Spans menu left → content right, 2 px below both |
+| Status bar | height **20** | Spans menu left → content right, 2 px below both; name, version, GitHub link |
+| Status bar padding | 8 px | Left / right |
+| Status bar gap | 12 px | Between name and version |
 | Title bar | height **20** | Top of content; only this (and the menu title) starts a drag |
 | Menu title bar | height **20** | Top of menu; drag handle; label “Menu” |
 | Close button | **16 × 16** | Right side of content title bar |
@@ -66,6 +68,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Window / menu titles | `GameFontNormal` | Gold `{0.89, 0.73, 0.016}` |
 | Menu / action buttons | `GameFontNormalSmall` | Idle `{0.8, 0.8, 0.8}` |
 | Version / status / hints | `GameFontNormalSmall` | Idle gray |
+| GitHub link | `GameFontNormalSmall` | `{0.4, 0.7, 1}` (hover brighter) |
 | Checkbox & section labels | `GameFontHighlight` | |
 | Export JSON | `ChatFontNormal` | |
 

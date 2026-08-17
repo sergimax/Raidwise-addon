@@ -19,6 +19,8 @@ local UI = {
 
 	-- Status bar (under menu + content)
 	STATUS_H = 20,
+	STATUS_PAD_X = 8,
+	STATUS_GAP = 12,
 
 	-- Export tab
 	DESC_TO_CHECK = 8,
@@ -43,7 +45,12 @@ local UI = {
 	BTN_DISABLED = { 0.12, 0.12, 0.12, 0.90 },
 	TEXT_HOVER = { 1.00, 1.00, 0.40 },
 	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
+	TEXT_LINK = { 0.40, 0.70, 1.00 },
+	TEXT_LINK_HOVER = { 0.65, 0.85, 1.00 },
 }
+
+local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
+local GITHUB_LABEL = "github.com/sergimax/Raidwise-addon"
 
 local PAGES = {
 	{ id = "export", label = "Export gear and CDs" },
@@ -368,12 +375,6 @@ function Addon:CreateMainFrame()
 	ApplyPlainPanel(frame)
 	tinsert(UISpecialFrames, "RaidwiseFrame")
 
-	frame:SetScript("OnMouseDown", function(_, button)
-		if button == "RightButton" then
-			frame:Hide()
-		end
-	end)
-
 	CreateTitleBar(frame)
 
 	local menu = CreateFrame("Frame", "RaidwiseMenu", frame)
@@ -410,15 +411,38 @@ function Addon:CreateMainFrame()
 	statusBar:SetPoint("TOPRIGHT", frame, "BOTTOMRIGHT", 0, -UI.MENU_GAP)
 	ApplyPlainPanel(statusBar, UI.TITLE_BG)
 
+	local nameLabel = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	nameLabel:SetPoint("LEFT", UI.STATUS_PAD_X, 0)
+	nameLabel:SetText("Raidwise")
+	SetFontColor(nameLabel, UI.GOLD)
+
 	local versionLabel = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	versionLabel:SetPoint("LEFT", 8, 0)
+	versionLabel:SetPoint("LEFT", nameLabel, "RIGHT", UI.STATUS_GAP, 0)
 	versionLabel:SetText("v" .. tostring(Addon.version))
 	SetFontColor(versionLabel, UI.TEXT_IDLE)
 
-	local hintLabel = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	hintLabel:SetPoint("RIGHT", -8, 0)
-	hintLabel:SetText("right-click to close")
-	hintLabel:SetTextColor(0.45, 0.45, 0.45)
+	local repoLink = CreateFrame("Button", nil, statusBar)
+	local repoLabel = repoLink:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	repoLabel:SetPoint("RIGHT", statusBar, "RIGHT", -UI.STATUS_PAD_X, 0)
+	repoLabel:SetText(GITHUB_LABEL)
+	SetFontColor(repoLabel, UI.TEXT_LINK)
+	repoLink:SetPoint("RIGHT", statusBar, "RIGHT", -UI.STATUS_PAD_X, 0)
+	repoLink:SetHeight(UI.STATUS_H)
+	repoLink:SetWidth(repoLabel:GetStringWidth() + 4)
+	repoLink:SetScript("OnEnter", function()
+		SetFontColor(repoLabel, UI.TEXT_LINK_HOVER)
+		GameTooltip:SetOwner(repoLink, "ANCHOR_TOP")
+		GameTooltip:SetText(GITHUB_URL, 1, 1, 1)
+		GameTooltip:AddLine("Click to print the URL in chat.", 0.7, 0.7, 0.7)
+		GameTooltip:Show()
+	end)
+	repoLink:SetScript("OnLeave", function()
+		SetFontColor(repoLabel, UI.TEXT_LINK)
+		GameTooltip:Hide()
+	end)
+	repoLink:SetScript("OnClick", function()
+		Addon:Print(GITHUB_URL)
+	end)
 
 	local content = CreateFrame("Frame", nil, frame)
 	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.PAD))

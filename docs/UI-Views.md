@@ -10,8 +10,16 @@ Details-style plain panels: left menu, content page, status bar under both.
 [ Menu 170 ] 2px [ Content 520 x 480 ]
                  [ title bar 20      ]
                  [ page body         ]
-[ status bar 20 spanning both         ]
+[ addon name ] [ current version ] [ github repo link ]
 ```
+
+Status bar:
+
+| Block | In-game text |
+|-------|----------------|
+| addon name | Raidwise |
+| current version | `v` + `Addon.version` |
+| github repo link | `github.com/sergimax/Raidwise-addon` (click prints the full URL in chat) |
 
 Menu tabs (top to bottom):
 
