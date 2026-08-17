@@ -31,9 +31,10 @@ In-game slash commands:
 | `/raidwise show` | Open the main window |
 | `/raidwise hide` | Close the main window |
 
-In the window:
+The window uses a Details-style layout: plain panels, a **left menu**, and a content page. Right-click closes the window.
 
-- Version is shown under the title
+**Export** tab:
+
 - **Export Character** fills the JSON panel (name, class, spec, gearScore, gear, bags, lockouts), selects the text, and prompts Ctrl+C
 - **Include item names** toggles whether `names` arrays are included in the export
 - **Select All** re-highlights the JSON if the selection was cleared

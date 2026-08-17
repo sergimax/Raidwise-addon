@@ -1,78 +1,192 @@
--- Main window: export-focused layout with clear actions and a large copy area.
+-- Details-style shell: plain panels, left menu, tabbed content pages.
 
 local Addon = Raidwise
 
 -- Keep in sync with docs/UI-Sizes.md
 local UI = {
-	FRAME_WIDTH = 420,
-	FRAME_HEIGHT = 460,
-	PAD_X = 20,
-	PAD_TOP = 16,
-	PAD_BOTTOM = 16,
-	TITLE_TO_VERSION = 4,
-	VERSION_TO_EXPORT = 14,
+	CONTENT_WIDTH = 520,
+	CONTENT_HEIGHT = 480,
+	MENU_WIDTH = 150,
+	MENU_GAP = 2,
+	TITLE_H = 20,
+	STATUS_H = 20,
+	MENU_BTN_H = 22,
+	MENU_BTN_GAP = 2,
+	PAD = 10,
 	EXPORT_BTN_H = 28,
 	EXPORT_TO_OPTIONS = 10,
 	CHECK_SIZE = 24,
 	OPTIONS_H = 28,
 	OPTIONS_TO_STATUS = 6,
-	STATUS_TO_LABEL = 10,
+	STATUS_TO_LABEL = 8,
 	LABEL_TO_INSET = 6,
 	INSET_PAD = 8,
 	SCROLLBAR_GUTTER = 20,
 	INSET_TO_SELECT = 8,
 	SELECT_BTN_W = 140,
 	SELECT_BTN_H = 24,
-	CLOSE_OFFSET = 4,
+	CLOSE_SIZE = 16,
+	GOLD = { 0.890, 0.729, 0.016 },
+	TEXT_IDLE = { 0.80, 0.80, 0.80 },
+	PANEL_BG = { 0.15, 0.15, 0.15, 0.96 },
+	TITLE_BG = { 0.20, 0.20, 0.20, 1 },
+	BTN_IDLE = { 0.18, 0.18, 0.18, 0.95 },
+	BTN_HOVER = { 0.28, 0.28, 0.28, 1 },
+	BTN_SELECTED = { 0.32, 0.28, 0.12, 1 },
 }
 
-local function ContentWidth()
-	return UI.FRAME_WIDTH - (UI.PAD_X * 2)
-end
+local PAGES = {
+	{ id = "export", label = "Export" },
+}
 
--- Build the main frame once; store on Addon.mainFrame.
-function Addon:CreateMainFrame()
-	if self.mainFrame then
-		return self.mainFrame
+local function ApplyPlainPanel(frame, color)
+	color = color or UI.PANEL_BG
+	frame:SetBackdrop({
+		bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+		tile = true,
+		tileSize = 16,
+		insets = { left = 1, right = 1, top = 1, bottom = 1 },
+	})
+	frame:SetBackdropColor(color[1], color[2], color[3], color[4] or 1)
+
+	if frame.rwBorderTop then
+		return
 	end
 
-	local frame = CreateFrame("Frame", "RaidwiseFrame", UIParent)
-	frame:SetSize(UI.FRAME_WIDTH, UI.FRAME_HEIGHT)
-	frame:SetPoint("CENTER")
-	frame:SetMovable(true)
-	frame:EnableMouse(true)
-	frame:RegisterForDrag("LeftButton")
-	frame:SetScript("OnDragStart", frame.StartMoving)
-	frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
-	frame:SetFrameStrata("DIALOG")
-	frame:Hide()
+	local function Edge(layerPointA, relA, layerPointB, relB, width, height)
+		local tex = frame:CreateTexture(nil, "BORDER")
+		tex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+		tex:SetVertexColor(0, 0, 0, 1)
+		tex:SetPoint(layerPointA, frame, relA)
+		tex:SetPoint(layerPointB, frame, relB)
+		if width then
+			tex:SetWidth(width)
+		end
+		if height then
+			tex:SetHeight(height)
+		end
+		return tex
+	end
 
-	frame:SetBackdrop({
-		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-		tile = true,
-		tileSize = 32,
-		edgeSize = 32,
-		insets = { left = 8, right = 8, top = 8, bottom = 8 },
-	})
-	frame:SetBackdropColor(0, 0, 0, 1)
+	frame.rwBorderTop = Edge("TOPLEFT", "TOPLEFT", "TOPRIGHT", "TOPRIGHT", nil, 1)
+	frame.rwBorderBottom = Edge("BOTTOMLEFT", "BOTTOMLEFT", "BOTTOMRIGHT", "BOTTOMRIGHT", nil, 1)
+	frame.rwBorderLeft = Edge("TOPLEFT", "TOPLEFT", "BOTTOMLEFT", "BOTTOMLEFT", 1, nil)
+	frame.rwBorderRight = Edge("TOPRIGHT", "TOPRIGHT", "BOTTOMRIGHT", "BOTTOMRIGHT", 1, nil)
+end
 
-	tinsert(UISpecialFrames, "RaidwiseFrame")
+local function SetFontColor(fontString, color)
+	fontString:SetTextColor(color[1], color[2], color[3], color[4] or 1)
+end
 
-	local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	title:SetPoint("TOP", 0, -UI.PAD_TOP)
+local function ContentInnerWidth()
+	return UI.CONTENT_WIDTH - (UI.PAD * 2)
+end
+
+local function SetMenuButtonState(button, selected, hovering)
+	if selected then
+		button:SetBackdropColor(UI.BTN_SELECTED[1], UI.BTN_SELECTED[2], UI.BTN_SELECTED[3], UI.BTN_SELECTED[4])
+		SetFontColor(button.label, UI.GOLD)
+	elseif hovering then
+		button:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
+		SetFontColor(button.label, { 1, 1, 0.4 })
+	else
+		button:SetBackdropColor(UI.BTN_IDLE[1], UI.BTN_IDLE[2], UI.BTN_IDLE[3], UI.BTN_IDLE[4])
+		SetFontColor(button.label, UI.TEXT_IDLE)
+	end
+end
+
+function Addon:SelectTab(tabId)
+	local frame = self.mainFrame
+	if not frame then
+		return
+	end
+
+	frame.selectedTab = tabId
+	for id, page in pairs(frame.pages) do
+		if id == tabId then
+			page:Show()
+		else
+			page:Hide()
+		end
+	end
+	for _, button in ipairs(frame.menuButtons) do
+		SetMenuButtonState(button, button.tabId == tabId, false)
+	end
+end
+
+local function CreateTitleBar(parent)
+	local titleBar = CreateFrame("Frame", nil, parent)
+	titleBar:SetPoint("TOPLEFT", 1, -1)
+	titleBar:SetPoint("TOPRIGHT", -1, -1)
+	titleBar:SetHeight(UI.TITLE_H)
+	ApplyPlainPanel(titleBar, UI.TITLE_BG)
+	titleBar:EnableMouse(true)
+	titleBar:RegisterForDrag("LeftButton")
+	titleBar:SetScript("OnDragStart", function()
+		parent:StartMoving()
+	end)
+	titleBar:SetScript("OnDragStop", function()
+		parent:StopMovingOrSizing()
+	end)
+
+	local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	title:SetPoint("CENTER", 0, 0)
 	title:SetText("Raidwise")
+	SetFontColor(title, UI.GOLD)
 
-	local versionLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	versionLabel:SetPoint("TOP", title, "BOTTOM", 0, -UI.TITLE_TO_VERSION)
-	versionLabel:SetText("v" .. tostring(Addon.version))
+	local close = CreateFrame("Button", nil, titleBar)
+	close:SetSize(UI.CLOSE_SIZE, UI.CLOSE_SIZE)
+	close:SetPoint("RIGHT", -3, 0)
+	local closeText = close:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	closeText:SetPoint("CENTER", 1, 1)
+	closeText:SetText("X")
+	SetFontColor(closeText, UI.GOLD)
+	close:SetScript("OnEnter", function()
+		closeText:SetTextColor(1, 0.25, 0.25)
+	end)
+	close:SetScript("OnLeave", function()
+		SetFontColor(closeText, UI.GOLD)
+	end)
+	close:SetScript("OnClick", function()
+		parent:Hide()
+	end)
 
-	local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-	close:SetPoint("TOPRIGHT", -UI.CLOSE_OFFSET, -UI.CLOSE_OFFSET)
+	return titleBar
+end
 
-	local exportBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-	exportBtn:SetSize(ContentWidth(), UI.EXPORT_BTN_H)
-	exportBtn:SetPoint("TOP", versionLabel, "BOTTOM", 0, -UI.VERSION_TO_EXPORT)
+local function CreateMenuButton(parent, tabId, label, yOffset)
+	local button = CreateFrame("Button", nil, parent)
+	button:SetSize(UI.MENU_WIDTH - 12, UI.MENU_BTN_H)
+	button:SetPoint("TOP", 0, yOffset)
+	ApplyPlainPanel(button, UI.BTN_IDLE)
+	button.tabId = tabId
+
+	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	text:SetPoint("LEFT", 8, 0)
+	text:SetText(label)
+	SetFontColor(text, UI.TEXT_IDLE)
+	button.label = text
+
+	button:SetScript("OnEnter", function(self)
+		SetMenuButtonState(self, Addon.mainFrame and Addon.mainFrame.selectedTab == tabId, true)
+	end)
+	button:SetScript("OnLeave", function(self)
+		SetMenuButtonState(self, Addon.mainFrame and Addon.mainFrame.selectedTab == tabId, false)
+	end)
+	button:SetScript("OnClick", function()
+		Addon:SelectTab(tabId)
+	end)
+
+	return button
+end
+
+local function CreateExportPage(parent)
+	local page = CreateFrame("Frame", nil, parent)
+	page:SetAllPoints(parent)
+
+	local exportBtn = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
+	exportBtn:SetSize(ContentInnerWidth(), UI.EXPORT_BTN_H)
+	exportBtn:SetPoint("TOPLEFT", 0, 0)
 	exportBtn:SetText("Export Character")
 	exportBtn:SetScript("OnClick", function()
 		Addon:FlushExportToWindow()
@@ -80,7 +194,7 @@ function Addon:CreateMainFrame()
 		RequestRaidInfo()
 	end)
 
-	local namesCheck = CreateFrame("CheckButton", "RaidwiseIncludeNamesCheck", frame, "UICheckButtonTemplate")
+	local namesCheck = CreateFrame("CheckButton", "RaidwiseIncludeNamesCheck", page, "UICheckButtonTemplate")
 	namesCheck:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
 	namesCheck:SetPoint("TOPLEFT", exportBtn, "BOTTOMLEFT", 0, -UI.EXPORT_TO_OPTIONS)
 	namesCheck:SetChecked(Addon.db.includeGearNames ~= false)
@@ -93,12 +207,11 @@ function Addon:CreateMainFrame()
 		Addon.db.includeGearNames = btn:GetChecked() and true or false
 	end)
 
-	local namesLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local namesLabel = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	namesLabel:SetPoint("LEFT", namesCheck, "RIGHT", 4, 0)
 	namesLabel:SetText("Include item names in JSON")
 
-	-- Clicking the label toggles the checkbox (easier hit target).
-	local namesHit = CreateFrame("Button", nil, frame)
+	local namesHit = CreateFrame("Button", nil, page)
 	namesHit:SetPoint("LEFT", namesCheck, "RIGHT", 0, 0)
 	namesHit:SetPoint("RIGHT", exportBtn, "RIGHT", 0, 0)
 	namesHit:SetHeight(UI.OPTIONS_H)
@@ -106,38 +219,29 @@ function Addon:CreateMainFrame()
 		namesCheck:Click()
 	end)
 
-	local statusLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local statusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	statusLabel:SetPoint("TOPLEFT", namesCheck, "BOTTOMLEFT", 0, -UI.OPTIONS_TO_STATUS)
 	statusLabel:SetPoint("RIGHT", exportBtn, "RIGHT", 0, 0)
 	statusLabel:SetJustifyH("LEFT")
 	statusLabel:SetText("Click Export, then Ctrl+C to copy.")
 
-	local exportLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local exportLabel = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	exportLabel:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.STATUS_TO_LABEL)
 	exportLabel:SetText("Character JSON")
 
-	local selectBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+	local selectBtn = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
 	selectBtn:SetSize(UI.SELECT_BTN_W, UI.SELECT_BTN_H)
-	selectBtn:SetPoint("BOTTOM", 0, UI.PAD_BOTTOM)
+	selectBtn:SetPoint("BOTTOM", 0, 0)
 	selectBtn:SetText("Select All")
 	selectBtn:Disable()
 	selectBtn:SetScript("OnClick", function()
 		Addon:SelectExportText()
 	end)
 
-	local inset = CreateFrame("Frame", nil, frame)
+	local inset = CreateFrame("Frame", nil, page)
 	inset:SetPoint("TOPLEFT", exportLabel, "BOTTOMLEFT", 0, -UI.LABEL_TO_INSET)
-	inset:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -UI.PAD_X, UI.PAD_BOTTOM + UI.SELECT_BTN_H + UI.INSET_TO_SELECT)
-	inset:SetBackdrop({
-		bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-		tile = true,
-		tileSize = 16,
-		edgeSize = 12,
-		insets = { left = 3, right = 3, top = 3, bottom = 3 },
-	})
-	inset:SetBackdropColor(0, 0, 0, 0.85)
-	inset:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+	inset:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, UI.SELECT_BTN_H + UI.INSET_TO_SELECT)
+	ApplyPlainPanel(inset, { 0.08, 0.08, 0.08, 0.95 })
 
 	local scroll = CreateFrame("ScrollFrame", "RaidwiseExportScroll", inset, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", UI.INSET_PAD, -UI.INSET_PAD)
@@ -146,14 +250,14 @@ function Addon:CreateMainFrame()
 	local exportBox = CreateFrame("EditBox", "RaidwiseExportBox", scroll)
 	exportBox:SetMultiLine(true)
 	exportBox:SetFontObject(ChatFontNormal)
-	exportBox:SetWidth(ContentWidth() - (UI.INSET_PAD * 2) - UI.SCROLLBAR_GUTTER)
+	exportBox:SetWidth(ContentInnerWidth() - (UI.INSET_PAD * 2) - UI.SCROLLBAR_GUTTER)
 	exportBox:SetAutoFocus(false)
 	exportBox:EnableMouse(true)
 	exportBox:SetTextInsets(2, 2, 2, 2)
 	exportBox:SetScript("OnEscapePressed", function(box)
 		box:ClearFocus()
 	end)
-	exportBox:SetScript("OnCursorChanged", function(box, x, y, _, lineHeight)
+	exportBox:SetScript("OnCursorChanged", function(box, _, y, _, lineHeight)
 		local viewportH = scroll:GetHeight()
 		local offset = scroll:GetVerticalScroll()
 		if y > 0 then
@@ -163,7 +267,6 @@ function Addon:CreateMainFrame()
 		end
 	end)
 	exportBox:SetScript("OnTextChanged", function(box)
-		-- Grow scroll child so long exports remain scrollable.
 		local fontHeight = 12
 		local lines = 1
 		local text = box:GetText() or ""
@@ -174,10 +277,97 @@ function Addon:CreateMainFrame()
 	end)
 	scroll:SetScrollChild(exportBox)
 
-	frame.exportBox = exportBox
-	frame.statusLabel = statusLabel
-	frame.selectBtn = selectBtn
+	page.exportBox = exportBox
+	page.statusLabel = statusLabel
+	page.selectBtn = selectBtn
+	return page
+end
+
+-- Build the main frame once; store on Addon.mainFrame.
+function Addon:CreateMainFrame()
+	if self.mainFrame then
+		return self.mainFrame
+	end
+
+	local frame = CreateFrame("Frame", "RaidwiseFrame", UIParent)
+	frame:SetSize(UI.CONTENT_WIDTH, UI.CONTENT_HEIGHT)
+	frame:SetPoint("CENTER")
+	frame:SetMovable(true)
+	frame:EnableMouse(true)
+	frame:RegisterForDrag("LeftButton")
+	frame:SetScript("OnDragStart", frame.StartMoving)
+	frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+	frame:SetFrameStrata("DIALOG")
+	frame:SetClampedToScreen(true)
+	frame:SetClampRectInsets(-(UI.MENU_WIDTH + UI.MENU_GAP), 0, 0, -(UI.STATUS_H + UI.MENU_GAP))
+	frame:Hide()
+	ApplyPlainPanel(frame)
+	tinsert(UISpecialFrames, "RaidwiseFrame")
+
+	frame:SetScript("OnMouseDown", function(_, button)
+		if button == "RightButton" then
+			frame:Hide()
+		end
+	end)
+
+	CreateTitleBar(frame)
+
+	local menu = CreateFrame("Frame", "RaidwiseMenu", frame)
+	menu:SetWidth(UI.MENU_WIDTH)
+	menu:SetPoint("TOPRIGHT", frame, "TOPLEFT", -UI.MENU_GAP, 0)
+	menu:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", -UI.MENU_GAP, 0)
+	ApplyPlainPanel(menu)
+	menu:EnableMouse(true)
+
+	local menuTitleBar = CreateFrame("Frame", nil, menu)
+	menuTitleBar:SetPoint("TOPLEFT", 1, -1)
+	menuTitleBar:SetPoint("TOPRIGHT", -1, -1)
+	menuTitleBar:SetHeight(UI.TITLE_H)
+	ApplyPlainPanel(menuTitleBar, UI.TITLE_BG)
+
+	local menuTitle = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	menuTitle:SetPoint("CENTER", 0, 0)
+	menuTitle:SetText("Menu")
+	SetFontColor(menuTitle, UI.GOLD)
+
+	frame.menuButtons = {}
+	local menuY = -(UI.TITLE_H + 8)
+	for i = 1, #PAGES do
+		local pageInfo = PAGES[i]
+		local button = CreateMenuButton(menu, pageInfo.id, pageInfo.label, menuY)
+		frame.menuButtons[#frame.menuButtons + 1] = button
+		menuY = menuY - UI.MENU_BTN_H - UI.MENU_BTN_GAP
+	end
+
+	local statusBar = CreateFrame("Frame", nil, frame)
+	statusBar:SetHeight(UI.STATUS_H)
+	statusBar:SetPoint("TOPLEFT", menu, "BOTTOMLEFT", 0, -UI.MENU_GAP)
+	statusBar:SetPoint("TOPRIGHT", frame, "BOTTOMRIGHT", 0, -UI.MENU_GAP)
+	ApplyPlainPanel(statusBar, UI.TITLE_BG)
+
+	local versionLabel = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	versionLabel:SetPoint("LEFT", 8, 0)
+	versionLabel:SetText("v" .. tostring(Addon.version))
+	SetFontColor(versionLabel, UI.TEXT_IDLE)
+
+	local hintLabel = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	hintLabel:SetPoint("RIGHT", -8, 0)
+	hintLabel:SetText("right-click to close")
+	hintLabel:SetTextColor(0.45, 0.45, 0.45)
+
+	local content = CreateFrame("Frame", nil, frame)
+	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.PAD))
+	content:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
+
+	frame.pages = {}
+	local exportPage = CreateExportPage(content)
+	frame.pages.export = exportPage
+	frame.exportBox = exportPage.exportBox
+	frame.statusLabel = exportPage.statusLabel
+	frame.selectBtn = exportPage.selectBtn
+
 	self.mainFrame = frame
+	self:SelectTab("export")
 	return frame
 end
 
@@ -191,6 +381,7 @@ function Addon:SelectExportText()
 	if (exportBox:GetText() or "") == "" then
 		return
 	end
+	self:SelectTab("export")
 	exportBox:SetFocus()
 	exportBox:HighlightText()
 	if frame.statusLabel then
@@ -204,6 +395,7 @@ function Addon:FlushExportToWindow()
 	if not frame or not frame.exportBox then
 		return
 	end
+	self:SelectTab("export")
 	local exportBox = frame.exportBox
 	local text = self:FormatEquippedGearExport()
 	exportBox:SetText(text)
@@ -220,6 +412,7 @@ end
 -- Show the main window (creates it if needed).
 function Addon:ShowMainFrame()
 	local frame = self:CreateMainFrame()
+	self:SelectTab(frame.selectedTab or "export")
 	frame:Show()
 	frame:Raise()
 end
