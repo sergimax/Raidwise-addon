@@ -58,8 +58,8 @@ local UI = {
 
 	-- Party tab
 	PARTY_COL_NAME = 90,
-	PARTY_COL_CLASS = 72,
-	PARTY_COL_SPEC = 88,
+	PARTY_COL_CLASS = 28,
+	PARTY_COL_SPEC = 96,
 	PARTY_COL_GS = 52,
 	PARTY_COL_ILVL = 44,
 	PARTY_COL_GUILD = 100,
@@ -1057,22 +1057,46 @@ local function CreatePartyRow(parent)
 	row:SetHeight(UI.CD_ROW_H)
 	ApplyPlainPanel(row, UI.CD_ROW_A)
 
-	local function AddColumn(index, justify)
+	local function AddTextColumn(index, justify, insetLeft)
 		local text = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		text:SetPoint("TOPLEFT", row, "TOPLEFT", PartyColumnOffset(index) + 4, -4)
-		text:SetWidth(({ UI.PARTY_COL_NAME, UI.PARTY_COL_CLASS, UI.PARTY_COL_SPEC, UI.PARTY_COL_GS, UI.PARTY_COL_ILVL, UI.PARTY_COL_GUILD, UI.PARTY_COL_RANK })[index] - 8)
+		text:SetPoint("TOPLEFT", row, "TOPLEFT", PartyColumnOffset(index) + (insetLeft or 4), -4)
+		text:SetWidth(({ UI.PARTY_COL_NAME, UI.PARTY_COL_CLASS, UI.PARTY_COL_SPEC, UI.PARTY_COL_GS, UI.PARTY_COL_ILVL, UI.PARTY_COL_GUILD, UI.PARTY_COL_RANK })[index] - (insetLeft or 4) - 4)
 		text:SetJustifyH(justify or "LEFT")
 		text:SetJustifyV("TOP")
 		return text
 	end
 
-	row.nameText = AddColumn(1, "LEFT")
-	row.classText = AddColumn(2, "LEFT")
-	row.specText = AddColumn(3, "LEFT")
-	row.gsText = AddColumn(4, "CENTER")
-	row.ilvlText = AddColumn(5, "CENTER")
-	row.guildText = AddColumn(6, "LEFT")
-	row.rankText = AddColumn(7, "LEFT")
+	row.nameText = AddTextColumn(1, "LEFT")
+
+	row.classIconHost = CreateFrame("Frame", nil, row)
+	row.classIconHost:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
+	row.classIconHost:SetPoint("LEFT", row, "TOPLEFT", PartyColumnOffset(2) + 7, -10)
+	row.classIcon = row.classIconHost:CreateTexture(nil, "ARTWORK")
+	row.classIcon:SetAllPoints(row.classIconHost)
+
+	row.specIcon = row:CreateTexture(nil, "ARTWORK")
+	row.specIcon:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
+	row.specIcon:SetPoint("LEFT", row, "TOPLEFT", PartyColumnOffset(3) + 4, -10)
+
+	row.specText = AddTextColumn(3, "LEFT", 4 + UI.CD_SPEC_ICON + 4)
+	row.gsText = AddTextColumn(4, "CENTER")
+	row.ilvlText = AddTextColumn(5, "CENTER")
+	row.guildText = AddTextColumn(6, "LEFT")
+	row.rankText = AddTextColumn(7, "LEFT")
+
+	row.classIconHost:EnableMouse(true)
+	row.classIconHost:SetScript("OnEnter", function(self)
+		if not row.classLabel or row.classLabel == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(row.classLabel)
+		GameTooltip:Show()
+	end)
+	row.classIconHost:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
 	return row
 end
 
@@ -1085,7 +1109,7 @@ local function CreatePartyPage(parent)
 	hint:SetPoint("RIGHT", page, "RIGHT", -90, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
-	hint:SetText("Current party members. Refresh after gear or spec changes.")
+	hint:SetText("Current party or raid members. Refresh after gear or spec changes.")
 
 	local refreshBtn = CreatePlainButton(page, 80, UI.CD_TOOLBAR_H, "Refresh")
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
@@ -1209,8 +1233,9 @@ function Addon:RefreshPartyView(refreshGearScore)
 
 		row.nameText:SetText(member.name)
 		row.nameText:SetTextColor(ClassColor(member.class))
-		row.classText:SetText(member.classLabel ~= "" and member.classLabel or "-")
-		SetFontColor(row.classText, UI.TEXT_IDLE)
+		row.classLabel = member.classLabel
+		SetSpecOrClassIcon(row.classIcon, nil, member.class)
+		SetSpecOrClassIcon(row.specIcon, member.specIcon, member.class)
 		row.specText:SetText(member.spec ~= "" and member.spec or "-")
 		SetFontColor(row.specText, UI.TEXT_IDLE)
 

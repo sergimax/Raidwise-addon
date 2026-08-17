@@ -97,9 +97,9 @@ Same toolbar + scroll table layout as Character cooldowns (`CD_TOOLBAR_H`, `CD_H
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Columns | **90 + 72 + 88 + 52 + 44 + 100 + 84 = 530** | Name, Class, Spec, GS, iLvl, Guild, Rank |
-| GS column | center-aligned | Gold when present |
-| iLvl column | center-aligned | |
+| Columns | **90 + 28 + 96 + 52 + 44 + 100 + 84 = 494** | Name, class icon, spec icon+name, GS, iLvl, Guild, Rank |
+| Class column | **14** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
+| Spec column | **14** px icon + label | Talent tree icon from `GetTalentTabInfo`; class icon fallback |
 
 ## Export cooldowns tab
 

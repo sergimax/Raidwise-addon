@@ -25,8 +25,52 @@ local INSPECT_SLOTS = {
 local inspectQueue = {}
 local inspectPending = nil
 local specCache = {}
+local scanTooltip
+
+local function EnsureScanTooltip()
+	if not scanTooltip then
+		scanTooltip = CreateFrame("GameTooltip", "RaidwisePartyScanTooltip", nil, "GameTooltipTemplate")
+		scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+	end
+	return scanTooltip
+end
+
+local function ItemLevelFromTooltipText(text)
+	if not text or text == "" then
+		return nil
+	end
+	if ITEM_LEVEL then
+		local pattern = ITEM_LEVEL:gsub("%%d", "(%%d+)")
+		local level = text:match(pattern)
+		if level then
+			return tonumber(level)
+		end
+	end
+	return nil
+end
+
+local function ItemLevelFromTooltip(tooltip, tooltipName)
+	for lineIndex = 2, tooltip:NumLines() do
+		local left = _G[tooltipName .. "TextLeft" .. lineIndex]
+		if left then
+			local level = ItemLevelFromTooltipText(left:GetText())
+			if level and level > 0 then
+				return level
+			end
+		end
+	end
+	return nil
+end
 
 local function PartyUnitIds()
+	if GetNumRaidMembers and (GetNumRaidMembers() or 0) > 0 then
+		local units = {}
+		for index = 1, GetNumRaidMembers() do
+			units[#units + 1] = "raid" .. index
+		end
+		return units
+	end
+
 	local units = { "player" }
 	local partyCount = GetNumPartyMembers() or 0
 	for index = 1, partyCount do
@@ -51,13 +95,54 @@ local function ItemLevelFromLink(itemLink)
 	if not itemLink then
 		return nil
 	end
-	local itemId = tonumber(itemLink:match("item:(%d+)"))
-	if not itemId then
-		return nil
+
+	local ok, itemLevel = pcall(function()
+		local _, _, _, level = GetItemInfo(itemLink)
+		return tonumber(level)
+	end)
+	if ok and itemLevel and itemLevel > 0 then
+		return itemLevel
 	end
-	local _, _, _, itemLevel = GetItemInfo(itemId)
-	itemLevel = tonumber(itemLevel)
-	if itemLevel and itemLevel > 0 then
+
+	local itemId = tonumber(itemLink:match("item:(%d+)"))
+	if itemId then
+		ok, itemLevel = pcall(function()
+			local _, _, _, level = GetItemInfo(itemId)
+			return tonumber(level)
+		end)
+		if ok and itemLevel and itemLevel > 0 then
+			return itemLevel
+		end
+	end
+
+	local tooltipOk, itemLevel = pcall(function()
+		local tooltip = EnsureScanTooltip()
+		tooltip:ClearLines()
+		tooltip:SetHyperlink(itemLink)
+		return ItemLevelFromTooltip(tooltip, tooltip:GetName())
+	end)
+	if tooltipOk then
+		return itemLevel
+	end
+	return nil
+end
+
+local function ItemLevelFromUnitSlot(unit, slotId)
+	local itemLink = GetInventoryItemLink(unit, slotId)
+	if itemLink then
+		local itemLevel = ItemLevelFromLink(itemLink)
+		if itemLevel then
+			return itemLevel
+		end
+	end
+
+	local ok, itemLevel = pcall(function()
+		local tooltip = EnsureScanTooltip()
+		tooltip:ClearLines()
+		tooltip:SetInventoryItem(unit, slotId)
+		return ItemLevelFromTooltip(tooltip, tooltip:GetName())
+	end)
+	if ok then
 		return itemLevel
 	end
 	return nil
@@ -70,8 +155,7 @@ local function AverageItemLevelForUnit(unit)
 	for index = 1, #INSPECT_SLOTS do
 		local slotId = GetInventorySlotInfo(INSPECT_SLOTS[index])
 		if slotId then
-			local itemLink = GetInventoryItemLink(unit, slotId)
-			local itemLevel = ItemLevelFromLink(itemLink)
+			local itemLevel = ItemLevelFromUnitSlot(unit, slotId)
 			if itemLevel then
 				total = total + itemLevel
 				count = count + 1
@@ -90,6 +174,16 @@ local function GearScoreForUnit(unit, refresh)
 		return nil
 	end
 
+	if unit == "player" and Addon.CollectCurrentGearScore then
+		if refresh then
+			return Addon:CollectCurrentGearScore()
+		end
+		local score = Addon:CollectCurrentGearScore()
+		if score then
+			return score
+		end
+	end
+
 	local name, realm = UnitName(unit)
 	if not name then
 		return nil
@@ -106,21 +200,12 @@ local function GearScoreForUnit(unit, refresh)
 		return tonumber(record.GearScore)
 	end
 
-	if unit == "player" and PersonalGearScore and PersonalGearScore.GetText then
-		local ok, score = pcall(function()
-			return tonumber(PersonalGearScore:GetText())
-		end)
-		if ok then
-			return score
-		end
-	end
-
 	return nil
 end
 
 local function PrimarySpecFromInspect()
 	if type(GetInspectUnit) == "function" and not GetInspectUnit() then
-		return ""
+		return "", ""
 	end
 
 	local talentGroup = 1
@@ -129,6 +214,7 @@ local function PrimarySpecFromInspect()
 	end
 
 	local bestName = ""
+	local bestIcon = ""
 	local bestPoints = -1
 	local tabCount = 0
 	if type(GetNumTalentTabs) == "function" then
@@ -136,42 +222,65 @@ local function PrimarySpecFromInspect()
 	end
 
 	for tab = 1, tabCount do
-		local name, _, pointsSpent = GetTalentTabInfo(tab, true, false, talentGroup)
+		local name, icon, pointsSpent = GetTalentTabInfo(tab, true, false, talentGroup)
 		pointsSpent = tonumber(pointsSpent) or 0
 		if pointsSpent > bestPoints then
 			bestPoints = pointsSpent
 			bestName = name or ""
+			bestIcon = icon or ""
 		end
 	end
 
-	return bestName
+	return bestName, bestIcon
+end
+
+local function CachedSpecForGuid(guid)
+	local cached = guid and specCache[guid]
+	if type(cached) == "table" then
+		return cached.name or "-", cached.icon or ""
+	end
+	if type(cached) == "string" and cached ~= "" then
+		return cached, ""
+	end
+	return nil
+end
+
+local function StoreSpecCache(guid, specName, specIcon)
+	if not guid or not specName or specName == "" then
+		return
+	end
+	specCache[guid] = {
+		name = specName,
+		icon = specIcon or "",
+	}
 end
 
 local function SpecForUnit(unit)
 	if unit == "player" then
-		local ok, specName = pcall(Addon.CollectPrimarySpec, Addon)
-		if ok and specName and specName ~= "" then
-			return specName
+		if Addon.CollectPrimarySpec then
+			local specName, specIcon = Addon:CollectPrimarySpec()
+			if specName and specName ~= "" then
+				return specName, specIcon or ""
+			end
 		end
-		return "-"
+		return "-", ""
 	end
 
 	local guid = UnitGUID(unit)
-	if guid and specCache[guid] and specCache[guid] ~= "" then
-		return specCache[guid]
+	local cachedName, cachedIcon = CachedSpecForGuid(guid)
+	if cachedName then
+		return cachedName, cachedIcon
 	end
 
 	if inspectPending == unit and type(GetInspectUnit) == "function" and GetInspectUnit() == unit then
-		local specName = PrimarySpecFromInspect()
+		local specName, specIcon = PrimarySpecFromInspect()
 		if specName ~= "" then
-			if guid then
-				specCache[guid] = specName
-			end
-			return specName
+			StoreSpecCache(guid, specName, specIcon)
+			return specName, specIcon
 		end
 	end
 
-	return "-"
+	return "-", ""
 end
 
 local function GuildInfoForUnit(unit)
@@ -181,7 +290,12 @@ local function GuildInfoForUnit(unit)
 
 	local guildName, guildRankName
 	if UnitIsUnit(unit, "player") then
-		guildName, guildRankName = GetGuildInfo()
+		if (not IsInGuild or IsInGuild()) and type(GetGuildInfo) == "function" then
+			guildName, guildRankName = GetGuildInfo("player")
+			if not guildName or guildName == "" then
+				guildName, guildRankName = GetGuildInfo()
+			end
+		end
 	else
 		local ok
 		ok, guildName, guildRankName = pcall(GetGuildInfo, unit)
@@ -209,6 +323,7 @@ local function MinimalPartyMember(unit)
 		class = classToken or "",
 		classLabel = localizedClass or "",
 		spec = "-",
+		specIcon = "",
 		gearScore = nil,
 		averageIlvl = nil,
 		guildName = nil,
@@ -220,6 +335,7 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 	local name, realm = UnitName(unit)
 	local localizedClass, classToken = UnitClass(unit)
 	local guildName, guildRankName = GuildInfoForUnit(unit)
+	local specName, specIcon = SpecForUnit(unit)
 
 	return {
 		unit = unit,
@@ -227,7 +343,8 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 		realm = realm or "",
 		class = classToken or "",
 		classLabel = localizedClass or "",
-		spec = SpecForUnit(unit),
+		spec = specName,
+		specIcon = specIcon or "",
 		gearScore = GearScoreForUnit(unit, refreshGearScore),
 		averageIlvl = AverageItemLevelForUnit(unit),
 		guildName = guildName,
@@ -295,12 +412,9 @@ end
 function Addon:OnInspectReady()
 	local unit = type(GetInspectUnit) == "function" and GetInspectUnit() or nil
 	if unit and UnitExists(unit) then
-		local specName = PrimarySpecFromInspect()
+		local specName, specIcon = PrimarySpecFromInspect()
 		if specName and specName ~= "" then
-			local guid = UnitGUID(unit)
-			if guid then
-				specCache[guid] = specName
-			end
+			StoreSpecCache(UnitGUID(unit), specName, specIcon)
 		end
 	end
 

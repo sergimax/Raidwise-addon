@@ -106,6 +106,13 @@ function Addon:OnInspectTalentReadyEvent(unit)
 	end
 end
 
+function Addon:OnGuildInfoUpdated()
+	local frame = self.mainFrame
+	if frame and frame.selectedTab == "party" and self.RefreshPartyView then
+		self:RefreshPartyView(false)
+	end
+end
+
 -- Slash commands: /raidwise and /rw
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
@@ -160,6 +167,8 @@ frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("UPDATE_INSTANCE_INFO")
 frame:RegisterEvent("INSPECT_READY")
 frame:RegisterEvent("INSPECT_TALENT_READY")
+frame:RegisterEvent("PLAYER_GUILD_UPDATE")
+frame:RegisterEvent("GUILD_ROSTER_UPDATE")
 
 -- Dispatch ADDON_LOADED and PLAYER_LOGIN to addon lifecycle hooks.
 frame:SetScript("OnEvent", function(_, event, arg1)
@@ -175,5 +184,7 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnInspectReadyEvent()
 	elseif event == "INSPECT_TALENT_READY" then
 		Addon:OnInspectTalentReadyEvent(arg1)
+	elseif event == "PLAYER_GUILD_UPDATE" or event == "GUILD_ROSTER_UPDATE" then
+		Addon:OnGuildInfoUpdated()
 	end
 end)
