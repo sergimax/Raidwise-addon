@@ -2,7 +2,7 @@
 
 local Addon = Raidwise
 
--- Keep in sync with docs/UI-Sizes.md
+-- Keep in sync with docs/UI-Sizes.md and docs/UI-Views.md
 local UI = {
 	-- Content panel (RaidwiseFrame)
 	CONTENT_WIDTH = 520,
@@ -21,18 +21,16 @@ local UI = {
 	STATUS_H = 20,
 
 	-- Export tab
-	EXPORT_BTN_H = 28,
-	EXPORT_TO_OPTIONS = 10,
+	DESC_TO_CHECK = 8,
 	CHECK_SIZE = 24,
 	OPTIONS_H = 28,
-	OPTIONS_TO_STATUS = 6,
-	STATUS_TO_LABEL = 8,
-	LABEL_TO_INSET = 6,
+	CHECK_TO_BUTTONS = 10,
+	ACTION_BTN_H = 28,
+	ACTION_BTN_GAP = 8,
+	BUTTONS_TO_HINT = 8,
+	HINT_TO_INSET = 6,
 	INSET_PAD = 8,
 	SCROLLBAR_GUTTER = 20,
-	INSET_TO_SELECT = 8,
-	SELECT_BTN_W = 140,
-	SELECT_BTN_H = 24,
 
 	-- Colors
 	GOLD = { 0.890, 0.729, 0.016 },
@@ -247,17 +245,18 @@ local function CreateExportPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local exportBtn = CreatePlainButton(page, ContentInnerWidth(), UI.EXPORT_BTN_H, "Export Character")
-	exportBtn:SetPoint("TOPLEFT", 0, 0)
-	exportBtn:SetScript("OnClick", function()
-		Addon:FlushExportToWindow()
-		Addon.pendingLockoutExport = true
-		RequestRaidInfo()
-	end)
+	local innerW = ContentInnerWidth()
+
+	local desc = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	desc:SetPoint("TOPLEFT", 0, 0)
+	desc:SetWidth(innerW)
+	desc:SetJustifyH("LEFT")
+	desc:SetJustifyV("TOP")
+	desc:SetText("Export this character's gear, bags, and raid lockouts as JSON.")
 
 	local namesCheck = CreateFrame("CheckButton", "RaidwiseIncludeNamesCheck", page, "UICheckButtonTemplate")
 	namesCheck:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
-	namesCheck:SetPoint("TOPLEFT", exportBtn, "BOTTOMLEFT", 0, -UI.EXPORT_TO_OPTIONS)
+	namesCheck:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -UI.DESC_TO_CHECK)
 	namesCheck:SetChecked(Addon.db.includeGearNames ~= false)
 	local templateCheckText = _G[namesCheck:GetName() .. "Text"]
 	if templateCheckText then
@@ -270,36 +269,41 @@ local function CreateExportPage(parent)
 
 	local namesLabel = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	namesLabel:SetPoint("LEFT", namesCheck, "RIGHT", 4, 0)
-	namesLabel:SetText("Include item names in JSON")
+	namesLabel:SetText("Include item names")
 
 	local namesHit = CreateFrame("Button", nil, page)
 	namesHit:SetPoint("LEFT", namesCheck, "RIGHT", 0, 0)
-	namesHit:SetPoint("RIGHT", exportBtn, "RIGHT", 0, 0)
+	namesHit:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	namesHit:SetHeight(UI.OPTIONS_H)
 	namesHit:SetScript("OnClick", function()
 		namesCheck:Click()
 	end)
 
-	local statusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	statusLabel:SetPoint("TOPLEFT", namesCheck, "BOTTOMLEFT", 0, -UI.OPTIONS_TO_STATUS)
-	statusLabel:SetPoint("RIGHT", exportBtn, "RIGHT", 0, 0)
-	statusLabel:SetJustifyH("LEFT")
-	statusLabel:SetText("Click Export, then Ctrl+C to copy.")
+	local buttonW = (innerW - UI.ACTION_BTN_GAP) / 2
+	local exportBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, "Export data")
+	exportBtn:SetPoint("TOPLEFT", namesCheck, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
+	exportBtn:SetScript("OnClick", function()
+		Addon:FlushExportToWindow()
+		Addon.pendingLockoutExport = true
+		RequestRaidInfo()
+	end)
 
-	local exportLabel = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	exportLabel:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.STATUS_TO_LABEL)
-	exportLabel:SetText("Character JSON")
-
-	local selectBtn = CreatePlainButton(page, UI.SELECT_BTN_W, UI.SELECT_BTN_H, "Select All")
-	selectBtn:SetPoint("BOTTOM", 0, 0)
+	local selectBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, "Select all")
+	selectBtn:SetPoint("LEFT", exportBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
 	selectBtn:Disable()
 	selectBtn:SetScript("OnClick", function()
 		Addon:SelectExportText()
 	end)
 
+	local statusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	statusLabel:SetPoint("TOPLEFT", exportBtn, "BOTTOMLEFT", 0, -UI.BUTTONS_TO_HINT)
+	statusLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	statusLabel:SetJustifyH("LEFT")
+	statusLabel:SetText("After export, press Ctrl+C to copy.")
+
 	local inset = CreateFrame("Frame", nil, page)
-	inset:SetPoint("TOPLEFT", exportLabel, "BOTTOMLEFT", 0, -UI.LABEL_TO_INSET)
-	inset:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, UI.SELECT_BTN_H + UI.INSET_TO_SELECT)
+	inset:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
+	inset:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 	ApplyPlainPanel(inset, { 0.08, 0.08, 0.08, 0.95 })
 
 	local scroll = CreateFrame("ScrollFrame", "RaidwiseExportScroll", inset, "UIPanelScrollFrameTemplate")

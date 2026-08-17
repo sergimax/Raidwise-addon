@@ -2,14 +2,7 @@
 
 Reference for the main window (`ExporterWindow.lua`). All units are WoW UI pixels. Values here must stay in sync with the `UI` table in that file.
 
-The layout follows Details-style **plain panels**: a content window, a left menu panel, and a status bar under both.
-
-```text
-[ Menu 170 ] 2px [ Content 520 x 480 ]
-                 [ title bar 20      ]
-                 [ page body         ]
-[ status bar 20 spanning both         ]
-```
+View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 
 ## Shell
 
@@ -48,21 +41,23 @@ Tabs (in order): **Export gear and CDs**.
 
 ## Export tab
 
+See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
+
 | Element | Size | Notes |
 |---------|------|-------|
-| Export button | **500 × 28** | Plain panel button (same style as menu) |
-| Gap: export → options | 10 px | |
+| Description | full inner width | `GameFontHighlight`; wraps via `SetWidth` |
+| Gap: description → checkbox | 8 px | |
 | Include-names checkbox | **24 × 24** | `UICheckButtonTemplate` |
 | Options row height | 28 px | Checkbox + clickable label |
-| Gap: checkbox → status | 6 px | |
-| Gap: status → “Character JSON” | 8 px | |
-| Gap: label → inset | 6 px | |
-| JSON inset | fills remaining height | Darker panel `{0.08, 0.08, 0.08}` |
+| Gap: checkbox → buttons | 10 px | |
+| Export data / Select all | equal width × **28** | `(innerWidth - 8) / 2`; 8 px gap between |
+| Gap: buttons → hint | 8 px | |
+| Copy hint | full inner width | `GameFontNormalSmall` |
+| Gap: hint → copy box | 6 px | |
+| Copy box (inset) | fills remaining height | Darker panel `{0.08, 0.08, 0.08}` |
 | Inset inner padding | 8 px | |
 | Scrollbar gutter | 20 px | Right side of inset |
 | EditBox min height | 180 | Grows with line count |
-| Gap: inset → Select All | 8 px | |
-| Select All button | **140 × 24** | Plain panel button; disabled until an export exists |
 
 ## Fonts
 

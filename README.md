@@ -35,12 +35,12 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 
 **Export gear and CDs** tab:
 
-- **Export Character** fills the JSON panel (name, class, spec, gearScore, gear, bags, lockouts), selects the text, and prompts Ctrl+C
-- **Include item names** toggles whether `names` arrays are included in the export
-- **Select All** re-highlights the JSON if the selection was cleared
+- Short description, then **Include item names**
+- **Export data** fills the JSON box (name, class, spec, gearScore, gear, bags, lockouts)
+- **Select all** highlights the JSON for Ctrl+C
 - `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
 
-UI element sizes are documented in [`docs/UI-Sizes.md`](docs/UI-Sizes.md).
+View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md).
 
 Consumers can type the export JSON with `types/CharacterExport.ts`.
 
@@ -64,6 +64,7 @@ Raidwise/
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   ExporterWindow.lua  # main in-game window
 docs/
+  UI-Views.md         # ASCII layouts for each view
   UI-Sizes.md         # window / control pixel sizes
 types/
   CharacterExport.ts  # TypeScript types for the export JSON
