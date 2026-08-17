@@ -4,15 +4,23 @@ local Addon = Raidwise
 
 -- Keep in sync with docs/UI-Sizes.md
 local UI = {
+	-- Content panel (RaidwiseFrame)
 	CONTENT_WIDTH = 520,
 	CONTENT_HEIGHT = 480,
+	PAD = 10,
+	TITLE_H = 20,
+	CLOSE_SIZE = 16,
+
+	-- Left menu (RaidwiseMenu)
 	MENU_WIDTH = 150,
 	MENU_GAP = 2,
-	TITLE_H = 20,
-	STATUS_H = 20,
 	MENU_BTN_H = 22,
 	MENU_BTN_GAP = 2,
-	PAD = 10,
+
+	-- Status bar (under menu + content)
+	STATUS_H = 20,
+
+	-- Export tab
 	EXPORT_BTN_H = 28,
 	EXPORT_TO_OPTIONS = 10,
 	CHECK_SIZE = 24,
@@ -25,7 +33,8 @@ local UI = {
 	INSET_TO_SELECT = 8,
 	SELECT_BTN_W = 140,
 	SELECT_BTN_H = 24,
-	CLOSE_SIZE = 16,
+
+	-- Colors
 	GOLD = { 0.890, 0.729, 0.016 },
 	TEXT_IDLE = { 0.80, 0.80, 0.80 },
 	PANEL_BG = { 0.15, 0.15, 0.15, 0.96 },
