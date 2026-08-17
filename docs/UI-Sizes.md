@@ -32,7 +32,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Export gear and CDs**, **Character cooldowns**, **Info**.
+Tabs (in order): **Character cooldowns**, **Export gear and CDs**, **Export cooldowns**, **Info**.
 
 ## Content padding
 
@@ -90,6 +90,10 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Data row | **34** | Alternate fills RGB **0.18** / **0.14** |
 | Vertical scrollbar | **16** | Right of the table; hidden if unused |
 | Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
+
+## Export cooldowns tab
+
+Same layout as Export gear and CDs, without the include-names checkbox. Description → **Export cooldowns** / **Select all** (28 px) → hint → copy box.
 
 ## Fonts
 

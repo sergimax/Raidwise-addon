@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 - **Character cooldowns** tab: account-wide lockout table with instance + difficulty rows and one column per character (class-colored name and spec icon)
+- **Export cooldowns** tab: JSON export of every stored character and their current lockouts
+
+### Changed
+- Left menu order: Character cooldowns, Export gear and CDs, Export cooldowns, Info
+- Export gear and CDs button renamed to **Export character data**
 
 ## [1.1.0] - 2026-08-17
 

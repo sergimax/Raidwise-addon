@@ -276,3 +276,94 @@ function Addon:BuildCooldownTable()
 		rows = rows,
 	}
 end
+
+local function JsonEscape(value)
+	local str = tostring(value or "")
+	str = str:gsub("\\", "\\\\")
+	str = str:gsub('"', '\\"')
+	str = str:gsub("\n", "\\n")
+	str = str:gsub("\r", "\\r")
+	str = str:gsub("\t", "\\t")
+	return str
+end
+
+local function FormatJsonBoolean(value)
+	if value then
+		return "true"
+	end
+	return "false"
+end
+
+local function AppendLockoutObjectsJson(lines, lockouts, baseIndent)
+	baseIndent = baseIndent or "      "
+	local entryIndent = baseIndent .. "  "
+	local fieldIndent = entryIndent .. "  "
+
+	if #lockouts == 0 then
+		lines[#lines + 1] = baseIndent .. '"lockouts": []'
+		return
+	end
+
+	lines[#lines + 1] = baseIndent .. '"lockouts": ['
+	for index = 1, #lockouts do
+		local entry = lockouts[index]
+		local comma = (index < #lockouts) and "," or ""
+		lines[#lines + 1] = entryIndent .. "{"
+		lines[#lines + 1] = fieldIndent .. '"name": "' .. JsonEscape(entry.name) .. '",'
+		lines[#lines + 1] = fieldIndent .. '"id": ' .. tostring(entry.id) .. ","
+		lines[#lines + 1] = fieldIndent .. '"reset": ' .. tostring(entry.reset) .. ","
+		lines[#lines + 1] = fieldIndent .. '"resetAt": ' .. tostring(entry.resetAt) .. ","
+		lines[#lines + 1] = fieldIndent .. '"difficulty": ' .. tostring(entry.difficulty) .. ","
+		lines[#lines + 1] = fieldIndent .. '"difficultyName": "' .. JsonEscape(entry.difficultyName) .. '",'
+		lines[#lines + 1] = fieldIndent .. '"locked": ' .. FormatJsonBoolean(entry.locked) .. ","
+		lines[#lines + 1] = fieldIndent .. '"extended": ' .. FormatJsonBoolean(entry.extended) .. ","
+		lines[#lines + 1] = fieldIndent .. '"isRaid": ' .. FormatJsonBoolean(entry.isRaid) .. ","
+		lines[#lines + 1] = fieldIndent .. '"maxPlayers": ' .. tostring(entry.maxPlayers)
+		lines[#lines + 1] = entryIndent .. "}" .. comma
+	end
+	lines[#lines + 1] = baseIndent .. "]"
+end
+
+local function SortedCharacterKeys(characters)
+	local keys = {}
+	for key in pairs(characters) do
+		keys[#keys + 1] = key
+	end
+	table.sort(keys)
+	return keys
+end
+
+-- JSON export of every stored character and their current lockouts.
+function Addon:FormatCooldownsExport()
+	self:SaveCurrentCharacterLockouts()
+	self:PruneExpiredCharacterLockouts()
+
+	local characters = EnsureCharactersTable() or {}
+	local keys = SortedCharacterKeys(characters)
+	local now = time()
+	local lines = {
+		"{",
+		'  "exportedAt": ' .. tostring(now) .. ",",
+		'  "characters": [',
+	}
+
+	for index = 1, #keys do
+		local key = keys[index]
+		local character = characters[key]
+		local lockouts = FilterActiveLockouts(character.lockouts, now)
+		local comma = (index < #keys) and "," or ""
+		lines[#lines + 1] = "    {"
+		lines[#lines + 1] = '      "key": "' .. JsonEscape(key) .. '",'
+		lines[#lines + 1] = '      "name": "' .. JsonEscape(character.name or key) .. '",'
+		lines[#lines + 1] = '      "realm": "' .. JsonEscape(character.realm or "") .. '",'
+		lines[#lines + 1] = '      "class": "' .. JsonEscape(character.class or "") .. '",'
+		lines[#lines + 1] = '      "spec": "' .. JsonEscape(character.spec or "") .. '",'
+		lines[#lines + 1] = '      "updatedAt": ' .. tostring(tonumber(character.updatedAt) or 0) .. ","
+		AppendLockoutObjectsJson(lines, lockouts, "      ")
+		lines[#lines + 1] = "    }" .. comma
+	end
+
+	lines[#lines + 1] = "  ]"
+	lines[#lines + 1] = "}"
+	return table.concat(lines, "\n")
+end

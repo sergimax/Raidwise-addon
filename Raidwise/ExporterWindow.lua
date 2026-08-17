@@ -72,8 +72,9 @@ local UI = {
 local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
 
 local PAGES = {
-	{ id = "export", label = "Export gear and CDs" },
 	{ id = "cooldowns", label = "Character cooldowns" },
+	{ id = "export", label = "Export gear and CDs" },
+	{ id = "exportCooldowns", label = "Export cooldowns" },
 	{ id = "info", label = "Info" },
 }
 
@@ -482,7 +483,7 @@ local function CreateExportPage(parent)
 	end)
 
 	local buttonW = (innerW - UI.ACTION_BTN_GAP) / 2
-	local exportBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, "Export data")
+	local exportBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, "Export character data")
 	exportBtn:SetPoint("TOPLEFT", namesCheck, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
 	exportBtn:SetScript("OnClick", function()
 		Addon:FlushExportToWindow()
@@ -504,6 +505,51 @@ local function CreateExportPage(parent)
 	statusLabel:SetText("After export, press Ctrl+C to copy.")
 
 	local exportBox, copyHost = CreateCopyBox(page, "RaidwiseExportScroll", "RaidwiseExportBox")
+	copyHost:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
+	copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+
+	page.exportBox = exportBox
+	page.statusLabel = statusLabel
+	page.selectBtn = selectBtn
+	return page
+end
+
+local function CreateCooldownExportPage(parent)
+	local page = CreateFrame("Frame", nil, parent)
+	page:SetAllPoints(parent)
+
+	local innerW = ContentInnerWidth()
+
+	local desc = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	desc:SetPoint("TOPLEFT", 0, 0)
+	desc:SetWidth(innerW)
+	desc:SetJustifyH("LEFT")
+	desc:SetJustifyV("TOP")
+	desc:SetText("Export account-wide raid and dungeon lockouts as JSON.")
+
+	local buttonW = (innerW - UI.ACTION_BTN_GAP) / 2
+	local exportBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, "Export cooldowns")
+	exportBtn:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
+	exportBtn:SetScript("OnClick", function()
+		Addon:FlushCooldownExportToWindow()
+		Addon.pendingCooldownExport = true
+		RequestRaidInfo()
+	end)
+
+	local selectBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, "Select all")
+	selectBtn:SetPoint("LEFT", exportBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
+	selectBtn:Disable()
+	selectBtn:SetScript("OnClick", function()
+		Addon:SelectCooldownExportText()
+	end)
+
+	local statusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	statusLabel:SetPoint("TOPLEFT", exportBtn, "BOTTOMLEFT", 0, -UI.BUTTONS_TO_HINT)
+	statusLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	statusLabel:SetJustifyH("LEFT")
+	statusLabel:SetText("After export, press Ctrl+C to copy.")
+
+	local exportBox, copyHost = CreateCopyBox(page, "RaidwiseCooldownExportScroll", "RaidwiseCooldownExportBox")
 	copyHost:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
 	copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 
@@ -535,6 +581,7 @@ local function CreateInfoPage(parent)
 			.. "Turn on Include item names to add display names next to item ids. "
 			.. "If the GearScore addon is loaded, the current score is included.\n\n"
 			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account. "
+			.. "Export cooldowns writes the same account-wide lockout data as JSON. "
 			.. "Log in on each alt to record their lockouts.\n\n"
 			.. "Slash commands: /raidwise or /rw (help, version, status, show, hide)."
 	)
@@ -1039,15 +1086,23 @@ function Addon:CreateMainFrame()
 	content:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
 
 	frame.pages = {}
+	local cooldownsPage = CreateCooldownsPage(content)
+	frame.pages.cooldowns = cooldownsPage
+	cooldownsPage:Hide()
+
 	local exportPage = CreateExportPage(content)
 	frame.pages.export = exportPage
 	frame.exportBox = exportPage.exportBox
 	frame.statusLabel = exportPage.statusLabel
 	frame.selectBtn = exportPage.selectBtn
+	exportPage:Hide()
 
-	local cooldownsPage = CreateCooldownsPage(content)
-	frame.pages.cooldowns = cooldownsPage
-	cooldownsPage:Hide()
+	local cooldownExportPage = CreateCooldownExportPage(content)
+	frame.pages.exportCooldowns = cooldownExportPage
+	frame.cooldownExportBox = cooldownExportPage.exportBox
+	frame.cooldownExportStatus = cooldownExportPage.statusLabel
+	frame.cooldownExportSelectBtn = cooldownExportPage.selectBtn
+	cooldownExportPage:Hide()
 
 	local infoPage = CreateInfoPage(content)
 	frame.pages.info = infoPage
@@ -1056,7 +1111,7 @@ function Addon:CreateMainFrame()
 	infoPage:Hide()
 
 	self.mainFrame = frame
-	self:SelectTab("export")
+	self:SelectTab("cooldowns")
 	return frame
 end
 
@@ -1075,6 +1130,44 @@ function Addon:SelectExportText()
 	exportBox:HighlightText()
 	if frame.statusLabel then
 		frame.statusLabel:SetText("Selected — press Ctrl+C to copy.")
+	end
+end
+
+-- Focus the cooldown export box and highlight all text for Ctrl+C.
+function Addon:SelectCooldownExportText()
+	local frame = self.mainFrame
+	if not frame or not frame.cooldownExportBox then
+		return
+	end
+	local exportBox = frame.cooldownExportBox
+	if (exportBox:GetText() or "") == "" then
+		return
+	end
+	self:SelectTab("exportCooldowns")
+	exportBox:SetFocus()
+	exportBox:HighlightText()
+	if frame.cooldownExportStatus then
+		frame.cooldownExportStatus:SetText("Selected — press Ctrl+C to copy.")
+	end
+end
+
+-- Write the account-wide cooldown export into the main window EditBox.
+function Addon:FlushCooldownExportToWindow()
+	local frame = self.mainFrame
+	if not frame or not frame.cooldownExportBox then
+		return
+	end
+	self:SelectTab("exportCooldowns")
+	local exportBox = frame.cooldownExportBox
+	local text = self:FormatCooldownsExport()
+	exportBox:SetText(text)
+	exportBox:SetFocus()
+	exportBox:HighlightText()
+	if frame.cooldownExportSelectBtn then
+		frame.cooldownExportSelectBtn:Enable()
+	end
+	if frame.cooldownExportStatus then
+		frame.cooldownExportStatus:SetText("Export ready — press Ctrl+C to copy.")
 	end
 end
 
@@ -1116,7 +1209,7 @@ end
 -- Show the main window (creates it if needed).
 function Addon:ShowMainFrame()
 	local frame = self:CreateMainFrame()
-	self:SelectTab(frame.selectedTab or "export")
+	self:SelectTab(frame.selectedTab or "cooldowns")
 	frame:Show()
 	frame:Raise()
 end
