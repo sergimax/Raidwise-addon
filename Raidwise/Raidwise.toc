@@ -1,5 +1,5 @@
 ## Interface: 30300
-## Title: Raidwise TEST 0121
+## Title: |cffff7d0aRaid|rwise
 ## Notes: Character exporter for Wrath of the Lich King 3.3.5a
 ## Author: sergimax
 ## Version: 1.1.0
