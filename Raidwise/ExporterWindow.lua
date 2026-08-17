@@ -12,7 +12,7 @@ local UI = {
 	CLOSE_SIZE = 16,
 
 	-- Left menu (RaidwiseMenu)
-	MENU_WIDTH = 150,
+	MENU_WIDTH = 170,
 	MENU_GAP = 2,
 	MENU_BTN_H = 22,
 	MENU_BTN_GAP = 2,
@@ -48,7 +48,7 @@ local UI = {
 }
 
 local PAGES = {
-	{ id = "export", label = "Export" },
+	{ id = "export", label = "Export gear and CDs" },
 }
 
 local function ApplyPlainPanel(frame, color)

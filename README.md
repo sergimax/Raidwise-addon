@@ -33,7 +33,7 @@ In-game slash commands:
 
 The window uses a Details-style layout: plain panels, a **left menu**, and a content page. Right-click closes the window.
 
-**Export** tab:
+**Export gear and CDs** tab:
 
 - **Export Character** fills the JSON panel (name, class, spec, gearScore, gear, bags, lockouts), selects the text, and prompts Ctrl+C
 - **Include item names** toggles whether `names` arrays are included in the export

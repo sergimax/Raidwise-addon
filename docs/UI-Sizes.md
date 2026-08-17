@@ -5,7 +5,7 @@ Reference for the main window (`ExporterWindow.lua`). All units are WoW UI pixel
 The layout follows Details-style **plain panels**: a content window, a left menu panel, and a status bar under both.
 
 ```text
-[ Menu 150 ] 2px [ Content 520 x 480 ]
+[ Menu 170 ] 2px [ Content 520 x 480 ]
                  [ title bar 20      ]
                  [ page body         ]
 [ status bar 20 spanning both         ]
@@ -16,7 +16,7 @@ The layout follows Details-style **plain panels**: a content window, a left menu
 | Element | Size | Notes |
 |---------|------|-------|
 | Content frame (`RaidwiseFrame`) | **520 × 480** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Menu panel (`RaidwiseMenu`) | **150 × 480** | Anchored to content `TOPLEFT` with a 2 px gap |
+| Menu panel (`RaidwiseMenu`) | **170 × 480** | Anchored to content `TOPLEFT` with a 2 px gap |
 | Status bar | height **20** | Spans menu left → content right, 2 px below both |
 | Title bar | height **20** | Top of content; drag handle |
 | Menu title bar | height **20** | Top of menu; label “Menu” |
@@ -29,7 +29,7 @@ The layout follows Details-style **plain panels**: a content window, a left menu
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Menu button | **138 × 22** | Width is `MENU_WIDTH - 12` |
+| Menu button | **158 × 22** | Width is `MENU_WIDTH - 12` |
 | Gap between buttons | 2 px | |
 | First button offset | 8 px below menu title | |
 | Idle fill | RGB **0.18** | Menu + action buttons |
@@ -37,7 +37,7 @@ The layout follows Details-style **plain panels**: a content window, a left menu
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Export**.
+Tabs (in order): **Export gear and CDs**.
 
 ## Content padding
 
