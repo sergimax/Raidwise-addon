@@ -61,8 +61,8 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Copy box insets | 4 / 3 / 4 / 3 | left / right / top / bottom of backdrop |
 | EditBox padding inside border | 5, 6, 4, 4 | left, top, right, bottom |
 | Scrollbar | 20 px wide | Outside the bordered box, 2 px gap; 16 px inset top/bottom |
-| EditBox line height | 14 | `ChatFontNormal` |
-| EditBox min height | 180 | Grows with line count |
+| EditBox line height | from `ChatFontNormal` | Face size + 2, or EditBox `cursorHeight` once known; not a hardcoded 12 px |
+| EditBox min height | 180 | Grows from measured wrapped text height |
 
 ## Fonts
 

@@ -36,7 +36,6 @@ local UI = {
 	COPY_PAD_T = 6,
 	COPY_PAD_R = 4,
 	COPY_PAD_B = 4,
-	COPY_LINE_H = 14,
 	COPY_MIN_H = 180,
 
 	-- Colors
@@ -166,6 +165,52 @@ local COPY_BACKDROP = {
 	insets = { left = 4, right = 3, top = 4, bottom = 3 },
 }
 
+-- ChatFontNormal face size plus leading; EditBox rows are taller than a raw 12px guess.
+local function ChatFontLineHeight()
+	local _, fontSize = ChatFontNormal:GetFont()
+	fontSize = tonumber(fontSize) or 14
+	return fontSize + 2
+end
+
+local function FitCopyBoxToText(box)
+	local text = box:GetText() or ""
+	local width = box:GetWidth()
+	local insets = 8
+	local lineHeight = box.rwLineHeight
+	if not lineHeight or lineHeight <= 0 then
+		lineHeight = ChatFontLineHeight()
+	end
+
+	if text == "" then
+		box:SetHeight(UI.COPY_MIN_H)
+		return
+	end
+
+	if width > 1 then
+		local probe = box.rwProbe
+		if not probe then
+			probe = box:CreateFontString(nil, "ARTWORK")
+			probe:SetFontObject(ChatFontNormal)
+			probe:SetJustifyH("LEFT")
+			probe:Hide()
+			box.rwProbe = probe
+		end
+		probe:SetWidth(width)
+		probe:SetText(text)
+		local measured = probe:GetStringHeight()
+		if measured and measured > 0 then
+			box:SetHeight(math.max(UI.COPY_MIN_H, measured + insets))
+			return
+		end
+	end
+
+	local lines = 1
+	for _ in text:gmatch("\n") do
+		lines = lines + 1
+	end
+	box:SetHeight(math.max(UI.COPY_MIN_H, lines * lineHeight + insets))
+end
+
 local function CreateCopyBox(parent)
 	local host = CreateFrame("Frame", nil, parent)
 
@@ -195,6 +240,7 @@ local function CreateCopyBox(parent)
 
 	scroll:SetScript("OnSizeChanged", function(self, width)
 		exportBox:SetWidth(width)
+		FitCopyBoxToText(exportBox)
 	end)
 	scroll:SetScript("OnMouseUp", function()
 		exportBox:SetFocus()
@@ -219,6 +265,9 @@ local function CreateCopyBox(parent)
 		end
 	end)
 	exportBox:SetScript("OnCursorChanged", function(box, _, y, _, cursorHeight)
+		if cursorHeight and cursorHeight > 0 then
+			box.rwLineHeight = cursorHeight
+		end
 		y = -y
 		local offset = scroll:GetVerticalScroll()
 		if y < offset then
@@ -231,12 +280,7 @@ local function CreateCopyBox(parent)
 		end
 	end)
 	exportBox:SetScript("OnTextChanged", function(box)
-		local lines = 1
-		local text = box:GetText() or ""
-		for _ in text:gmatch("\n") do
-			lines = lines + 1
-		end
-		box:SetHeight(math.max(UI.COPY_MIN_H, lines * UI.COPY_LINE_H + 8))
+		FitCopyBoxToText(box)
 	end)
 
 	return exportBox, host
