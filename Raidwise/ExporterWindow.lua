@@ -42,6 +42,9 @@ local UI = {
 	BTN_IDLE = { 0.18, 0.18, 0.18, 0.95 },
 	BTN_HOVER = { 0.28, 0.28, 0.28, 1 },
 	BTN_SELECTED = { 0.32, 0.28, 0.12, 1 },
+	BTN_DISABLED = { 0.12, 0.12, 0.12, 0.90 },
+	TEXT_HOVER = { 1.00, 1.00, 0.40 },
+	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
 }
 
 local PAGES = {
@@ -91,16 +94,67 @@ local function ContentInnerWidth()
 	return UI.CONTENT_WIDTH - (UI.PAD * 2)
 end
 
-local function SetMenuButtonState(button, selected, hovering)
-	if selected then
+local function SetPlainButtonState(button, state)
+	if state == "selected" then
 		button:SetBackdropColor(UI.BTN_SELECTED[1], UI.BTN_SELECTED[2], UI.BTN_SELECTED[3], UI.BTN_SELECTED[4])
 		SetFontColor(button.label, UI.GOLD)
-	elseif hovering then
+	elseif state == "hover" then
 		button:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
-		SetFontColor(button.label, { 1, 1, 0.4 })
+		SetFontColor(button.label, UI.TEXT_HOVER)
+	elseif state == "disabled" then
+		button:SetBackdropColor(UI.BTN_DISABLED[1], UI.BTN_DISABLED[2], UI.BTN_DISABLED[3], UI.BTN_DISABLED[4])
+		SetFontColor(button.label, UI.TEXT_DISABLED)
 	else
 		button:SetBackdropColor(UI.BTN_IDLE[1], UI.BTN_IDLE[2], UI.BTN_IDLE[3], UI.BTN_IDLE[4])
 		SetFontColor(button.label, UI.TEXT_IDLE)
+	end
+end
+
+local function ActionButtonState(button, hovering)
+	if not button:IsEnabled() then
+		return "disabled"
+	end
+	if hovering then
+		return "hover"
+	end
+	return "idle"
+end
+
+-- Plain 1px-border button (same look as the left-menu items).
+local function CreatePlainButton(parent, width, height, label)
+	local button = CreateFrame("Button", nil, parent)
+	button:SetSize(width, height)
+	ApplyPlainPanel(button, UI.BTN_IDLE)
+
+	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	text:SetPoint("CENTER", 0, 0)
+	text:SetText(label)
+	SetFontColor(text, UI.TEXT_IDLE)
+	button.label = text
+
+	button:SetScript("OnEnter", function(self)
+		SetPlainButtonState(self, ActionButtonState(self, true))
+	end)
+	button:SetScript("OnLeave", function(self)
+		SetPlainButtonState(self, ActionButtonState(self, false))
+	end)
+	button:SetScript("OnEnable", function(self)
+		SetPlainButtonState(self, ActionButtonState(self, false))
+	end)
+	button:SetScript("OnDisable", function(self)
+		SetPlainButtonState(self, "disabled")
+	end)
+
+	return button
+end
+
+local function SetMenuButtonState(button, selected, hovering)
+	if selected then
+		SetPlainButtonState(button, "selected")
+	elseif hovering then
+		SetPlainButtonState(button, "hover")
+	else
+		SetPlainButtonState(button, "idle")
 	end
 end
 
@@ -193,10 +247,8 @@ local function CreateExportPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local exportBtn = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
-	exportBtn:SetSize(ContentInnerWidth(), UI.EXPORT_BTN_H)
+	local exportBtn = CreatePlainButton(page, ContentInnerWidth(), UI.EXPORT_BTN_H, "Export Character")
 	exportBtn:SetPoint("TOPLEFT", 0, 0)
-	exportBtn:SetText("Export Character")
 	exportBtn:SetScript("OnClick", function()
 		Addon:FlushExportToWindow()
 		Addon.pendingLockoutExport = true
@@ -238,10 +290,8 @@ local function CreateExportPage(parent)
 	exportLabel:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.STATUS_TO_LABEL)
 	exportLabel:SetText("Character JSON")
 
-	local selectBtn = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
-	selectBtn:SetSize(UI.SELECT_BTN_W, UI.SELECT_BTN_H)
+	local selectBtn = CreatePlainButton(page, UI.SELECT_BTN_W, UI.SELECT_BTN_H, "Select All")
 	selectBtn:SetPoint("BOTTOM", 0, 0)
-	selectBtn:SetText("Select All")
 	selectBtn:Disable()
 	selectBtn:SetScript("OnClick", function()
 		Addon:SelectExportText()

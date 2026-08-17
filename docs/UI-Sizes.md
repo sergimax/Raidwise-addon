@@ -32,9 +32,10 @@ The layout follows Details-style **plain panels**: a content window, a left menu
 | Menu button | **138 × 22** | Width is `MENU_WIDTH - 12` |
 | Gap between buttons | 2 px | |
 | First button offset | 8 px below menu title | |
-| Idle fill | RGB **0.18** | |
-| Hover fill | RGB **0.28** | Label turns yellow |
+| Idle fill | RGB **0.18** | Menu + action buttons |
+| Hover fill | RGB **0.28** | Label `{1, 1, 0.4}` |
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
+| Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
 Tabs (in order): **Export**.
 
@@ -49,7 +50,7 @@ Tabs (in order): **Export**.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Export button | **500 × 28** | Full page width |
+| Export button | **500 × 28** | Plain panel button (same style as menu) |
 | Gap: export → options | 10 px | |
 | Include-names checkbox | **24 × 24** | `UICheckButtonTemplate` |
 | Options row height | 28 px | Checkbox + clickable label |
@@ -61,14 +62,14 @@ Tabs (in order): **Export**.
 | Scrollbar gutter | 20 px | Right side of inset |
 | EditBox min height | 180 | Grows with line count |
 | Gap: inset → Select All | 8 px | |
-| Select All button | **140 × 24** | Centered under inset |
+| Select All button | **140 × 24** | Plain panel button; disabled until an export exists |
 
 ## Fonts
 
 | Role | Font object | Color |
 |------|-------------|-------|
 | Window / menu titles | `GameFontNormal` | Gold `{0.89, 0.73, 0.016}` |
-| Menu buttons | `GameFontNormalSmall` | Idle `{0.8, 0.8, 0.8}` |
+| Menu / action buttons | `GameFontNormalSmall` | Idle `{0.8, 0.8, 0.8}` |
 | Version / status / hints | `GameFontNormalSmall` | Idle gray |
 | Checkbox & section labels | `GameFontHighlight` | |
 | Export JSON | `ChatFontNormal` | |
