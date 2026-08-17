@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-08-18
+
+### Added
+- **Character cooldowns** tab: account-wide lockout table with instance + difficulty rows and one column per character (class-colored name and spec icon)
+- **Export cooldowns** tab: JSON export of every stored character and their current lockouts (`types/CooldownsExport.ts`)
+- Account-wide lockout snapshots in `RaidwiseDB.characters` (updated on login, `/reload`, and export)
+
+### Changed
+- Left menu order: Character cooldowns, Export gear and CDs, Export cooldowns, Info; window opens on Character cooldowns
+- Export gear and CDs button renamed to **Export character data**
+- Addon list title uses a colored **Raid**wise label
+
+### Fixed
+- Character cooldowns stayed empty after login when `UPDATE_INSTANCE_INFO` did not fire; lockouts now save from live client data on login and when opening the tab
+- Refresh button on Character cooldowns overlapped the table top border
+
 ## [1.1.0] - 2026-08-17
 
 ### Added

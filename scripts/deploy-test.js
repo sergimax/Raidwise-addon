@@ -26,13 +26,13 @@ const hours = String(now.getHours()).padStart(2, "0");
 const minutes = String(now.getMinutes()).padStart(2, "0");
 const titleLine = "## Title: Raidwise TEST " + hours + minutes;
 
-const toc = fs.readFileSync(tocPath, "utf8");
-if (!/^## Title:.*$/m.test(toc)) {
-  console.error("Could not find ## Title line in " + tocPath);
-  process.exit(1);
-}
-fs.writeFileSync(tocPath, toc.replace(/^## Title:.*$/m, titleLine), "utf8");
-console.log("Updated title: " + titleLine);
+// const toc = fs.readFileSync(tocPath, "utf8");
+// if (!/^## Title:.*$/m.test(toc)) {
+//   console.error("Could not find ## Title line in " + tocPath);
+//   process.exit(1);
+// }
+// fs.writeFileSync(tocPath, toc.replace(/^## Title:.*$/m, titleLine), "utf8");
+// console.log("Updated title: " + titleLine);
 
 fs.mkdirSync(path.dirname(destDir), { recursive: true });
 fs.cpSync(srcDir, destDir, { recursive: true, force: true });

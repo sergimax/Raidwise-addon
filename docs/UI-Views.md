@@ -23,7 +23,9 @@ Status bar:
 Menu tabs (top to bottom):
 
 ```text
+[ Character cooldowns ]
 [ Export gear and CDs ]
+[ Export cooldowns ]
 [ Info ]
 ```
 
@@ -41,10 +43,53 @@ Menu tabs (top to bottom):
 |-------|------------------------|
 | short description | “Export this character's gear, bags, and raid lockouts as JSON.” |
 | checkbox | Include item names |
-| export data button | **Export data** — fills the copy box |
+| export data button | **Export character data** — fills the copy box |
 | select all data button | **Select all** — highlights JSON for Ctrl+C (disabled until export) |
 | short hint | Starts as “After export, press Ctrl+C to copy.” |
 | input for copy | Tooltip-bordered multiline EditBox (WowSimsExporter / AceGUI style). Click selects all; Ctrl+C copies. |
+
+## Character cooldowns
+
+Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you log in on each character.
+
+```text
+[ short description ]                              [ Refresh ]
+        8 px gap
+[ Raid / Dungeon | Char (class color + spec icon) | Char | ... ]
+[ Icecrown Citadel                               | 2d 4h | -   ]
+[ Raid / 25 Heroic                               |       |     ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | “Lockouts for every character saved on this account.” |
+| Refresh | Requests fresh raid info, then redraws the table |
+| first column | Instance name, then type (`Raid` / `Dungeon` / size / Heroic) |
+| character columns | Name in class color with the primary spec icon; current character first |
+| saved cell | Remaining time until reset (gold); tooltip has instance + type |
+| empty cell | `-` (not saved) |
+| empty table | “Log in on each character…” if none saved; “No current lockouts.” if columns exist but nothing is saved |
+
+Rows come only from current lockouts (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40). Expired lockouts are dropped.
+
+## Export cooldowns
+
+```text
+[ short description ]
+[ export cooldowns button ] [ select all button ]
+[ short hint about copy ]
+[ input for copy ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | “Export account-wide raid and dungeon lockouts as JSON.” |
+| export cooldowns button | **Export cooldowns** — fills the copy box |
+| select all button | **Select all** — highlights JSON for Ctrl+C (disabled until export) |
+| short hint | Starts as “After export, press Ctrl+C to copy.” |
+| input for copy | Same tooltip-bordered multiline EditBox as Export gear and CDs |
+
+JSON includes `exportedAt` and a `characters[]` array (key, name, realm, class, spec, `updatedAt`, `lockouts[]`). Log in on each alt so their lockouts are stored.
 
 ## Info
 
@@ -59,7 +104,7 @@ Menu tabs (top to bottom):
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | What Export does, optional item names, GearScore, slash commands |
+| descriptions | What Export and Character cooldowns do, optional item names, GearScore, slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |

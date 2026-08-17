@@ -91,21 +91,29 @@ local function ItemIdFromSlot(slotId, itemLink)
 end
 
 -- Active talent tree with the most points spent (WotLK dual-spec aware).
-local function PrimarySpecName()
+-- Returns name, icon texture path.
+function Addon:CollectPrimarySpec()
 	local talentGroup = GetActiveTalentGroup and GetActiveTalentGroup() or 1
 	local bestName = ""
+	local bestIcon = ""
 	local bestPoints = -1
 
-	for tab = 1, GetNumTalentTabs() do
-		local name, _, pointsSpent = GetTalentTabInfo(tab, false, false, talentGroup)
+	for tab = 1, GetNumTalentTabs() or 0 do
+		local name, icon, pointsSpent = GetTalentTabInfo(tab, false, false, talentGroup)
 		pointsSpent = tonumber(pointsSpent) or 0
 		if pointsSpent > bestPoints then
 			bestPoints = pointsSpent
 			bestName = name or ""
+			bestIcon = icon or ""
 		end
 	end
 
-	return bestName
+	return bestName, bestIcon
+end
+
+local function PrimarySpecName()
+	local name = Addon:CollectPrimarySpec()
+	return name
 end
 
 -- Append JSON object lines for { ids[, names] } under the given key.
@@ -306,5 +314,8 @@ function Addon:FormatEquippedGearExport()
 	AppendItemListJson(lines, "bags", bags, includeNames, false)
 	AppendLockoutsJson(lines, lockouts, true)
 	lines[#lines + 1] = "}"
+	if self.SaveCurrentCharacterLockouts then
+		self:SaveCurrentCharacterLockouts()
+	end
 	return table.concat(lines, "\n")
 end

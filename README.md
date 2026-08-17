@@ -2,8 +2,8 @@
 
 WoW addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`).
 
-![](https://img.shields.io/badge/current_version-1.1.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--17-blue)
+![](https://img.shields.io/badge/current_version-1.2.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--18-blue)
 
 
 ## Install
@@ -33,12 +33,24 @@ In-game slash commands:
 
 The window uses a Details-style layout: plain panels, a **left menu**, and a content page. The status bar shows the addon name and version. Esc or the title **X** closes the window.
 
+**Character cooldowns** tab:
+
+- Table of raid and dungeon lockouts for every character saved on this account
+- First column is the instance name and type (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40)
+- Other columns are characters (class-colored name and spec icon); log in on each alt to record them
+- Saved cells show time remaining until reset
+
 **Export gear and CDs** tab:
 
 - Short description, then **Include item names**
-- **Export data** fills the JSON box (name, class, spec, gearScore, gear, bags, lockouts)
+- **Export character data** fills the JSON box (name, class, spec, gearScore, gear, bags, lockouts)
 - **Select all** highlights the JSON for Ctrl+C
 - `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
+
+**Export cooldowns** tab:
+
+- **Export cooldowns** fills a JSON box with every stored character and their current lockouts (`exportedAt`, `characters[]`)
+- **Select all** highlights the JSON for Ctrl+C
 
 **Info** tab:
 
@@ -47,7 +59,7 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md).
 
-Consumers can type the export JSON with `types/CharacterExport.ts`.
+Consumers can type the export JSON with `types/CharacterExport.ts` and `types/CooldownsExport.ts`.
 
 ## Screenshots:
 Main addon view (`/raidwise show`):
@@ -67,17 +79,19 @@ Raidwise/
   Raidwise.toc        # addon metadata (Interface 30300)
   Raidwise.lua        # entry point, events, slash commands
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
+  CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view
   UI-Sizes.md         # window / control pixel sizes
 types/
-  CharacterExport.ts  # TypeScript types for the export JSON
+  CharacterExport.ts  # TypeScript types for the character export JSON
+  CooldownsExport.ts  # TypeScript types for the account cooldown export JSON
 ```
 
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load.
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`.
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.
