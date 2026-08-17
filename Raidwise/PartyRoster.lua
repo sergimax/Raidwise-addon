@@ -1,4 +1,4 @@
--- Party member snapshots for the Party view (GearScore, ilvl, guild, spec via inspect).
+-- Party member snapshots for the Party roster view (GearScore, ilvl, guild, spec via inspect).
 
 local Addon = Raidwise
 

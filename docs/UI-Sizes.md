@@ -32,7 +32,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Character cooldowns**, **Party**, **Export gear and CDs**, **Export cooldowns**, **Info**.
+Tabs (in order): **Character cooldowns**, **Party roster**, **Export gear and CDs**, **Export cooldowns**, **Info**.
 
 ## Content padding
 
@@ -91,15 +91,16 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Vertical scrollbar | **16** | Right of the table; hidden if unused |
 | Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
 
-## Party tab
+## Party roster tab
 
 Same toolbar + scroll table layout as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H`, `CD_ROW_H`, scrollbars).
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Columns | **90 + 28 + 28 + 52 + 44 + 100 + 84 = 426** | Name, class icon, spec icon, GS, iLvl, Guild, Rank |
+| Columns | **90 + 28 + 28 + 52 + 44 + 184 = 426** | Name, class icon, spec icon, GS, iLvl, Guild |
 | Class column | **14** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
 | Spec column | **14** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
+| Guild column | **184** | `GuildName (Rank)`; `-` when not in a guild |
 
 ## Export cooldowns tab
 

@@ -24,7 +24,7 @@ Menu tabs (top to bottom):
 
 ```text
 [ Character cooldowns ]
-[ Party ]
+[ Party roster ]
 [ Export gear and CDs ]
 [ Export cooldowns ]
 [ Info ]
@@ -73,15 +73,15 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 
 Rows come only from current lockouts (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40). Expired lockouts are dropped.
 
-## Party
+## Party roster
 
-Current party roster (solo shows only you). Spec for party members is filled via inspect when they are nearby.
+Current party or raid roster (solo shows only you). Spec for other members is filled via inspect when they are nearby.
 
 ```text
 [ short description ]                              [ Refresh ]
         8 px gap
-[ Name | (class) | (spec) | GS | iLvl | Guild | Rank ]
-[ Rhee |  SH   |  Enh   | 6158 | 264 | MyGuild | Member ]
+[ Name | (class) | (spec) | GS | iLvl | Guild (rank) ]
+[ Rhee |  SH   |  Enh   | 6158 | 264 | MyGuild (Member) ]
 ```
 
 | Block | In-game text / control |
@@ -90,10 +90,10 @@ Current party roster (solo shows only you). Spec for party members is filled via
 | Refresh | Re-reads GearScore, item levels, guild info; re-queues inspect for specs |
 | Name | Class-colored character name |
 | Class | Class icon (`CLASS_ICON_TCOORDS`); hover shows localized class name |
-| Spec | Primary talent tree icon only; hover shows spec name (`-` until inspect completes for others) |
+| Spec | Primary talent tree icon only; hover shows spec name |
 | GS | GearScore when the GearScore addon has scanned the player |
 | iLvl | Average equipped item level (tooltip scan when item cache is cold) |
-| Guild / Rank | From `GetGuildInfo` when available (`-` otherwise) |
+| Guild | `GuildName (Rank)` from `GetGuildInfo`; `-` when not in a guild |
 
 ## Export cooldowns
 
@@ -127,7 +127,7 @@ JSON includes `exportedAt` and a `characters[]` array (key, name, realm, class, 
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | What Export, Character cooldowns, Party, and Export cooldowns do; optional item names, GearScore, slash commands |
+| descriptions | What Export, Character cooldowns, Party roster, and Export cooldowns do; optional item names, GearScore, slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |

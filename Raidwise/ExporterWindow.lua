@@ -62,8 +62,7 @@ local UI = {
 	PARTY_COL_SPEC = 28,
 	PARTY_COL_GS = 52,
 	PARTY_COL_ILVL = 44,
-	PARTY_COL_GUILD = 100,
-	PARTY_COL_RANK = 84,
+	PARTY_COL_GUILD = 184,
 
 	-- Colors
 	GOLD = { 0.890, 0.729, 0.016 },
@@ -82,7 +81,7 @@ local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
 
 local PAGES = {
 	{ id = "cooldowns", label = "Character cooldowns" },
-	{ id = "party", label = "Party" },
+	{ id = "party", label = "Party roster" },
 	{ id = "export", label = "Export gear and CDs" },
 	{ id = "exportCooldowns", label = "Export cooldowns" },
 	{ id = "info", label = "Info" },
@@ -593,7 +592,7 @@ local function CreateInfoPage(parent)
 			.. "Turn on Include item names to add display names next to item ids. "
 			.. "If the GearScore addon is loaded, the current score is included.\n\n"
 			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account. "
-			.. "Party lists current group members with spec, GearScore, average item level, and guild info. "
+			.. "Party roster lists current group members with spec, GearScore, average item level, and guild info. "
 			.. "Export cooldowns writes the same account-wide lockout data as JSON. "
 			.. "Log in on each alt to record their lockouts.\n\n"
 			.. "Slash commands: /raidwise or /rw (help, version, status, show, hide)."
@@ -1032,7 +1031,7 @@ end
 
 local function PartyTableWidth()
 	return UI.PARTY_COL_NAME + UI.PARTY_COL_CLASS + UI.PARTY_COL_SPEC + UI.PARTY_COL_GS
-		+ UI.PARTY_COL_ILVL + UI.PARTY_COL_GUILD + UI.PARTY_COL_RANK
+		+ UI.PARTY_COL_ILVL + UI.PARTY_COL_GUILD
 end
 
 local function PartyColumnOffset(index)
@@ -1043,13 +1042,31 @@ local function PartyColumnOffset(index)
 		UI.PARTY_COL_GS,
 		UI.PARTY_COL_ILVL,
 		UI.PARTY_COL_GUILD,
-		UI.PARTY_COL_RANK,
 	}
 	local offset = 0
 	for column = 1, index - 1 do
 		offset = offset + widths[column]
 	end
 	return offset
+end
+
+local PARTY_COLUMN_WIDTHS = {
+	UI.PARTY_COL_NAME,
+	UI.PARTY_COL_CLASS,
+	UI.PARTY_COL_SPEC,
+	UI.PARTY_COL_GS,
+	UI.PARTY_COL_ILVL,
+	UI.PARTY_COL_GUILD,
+}
+
+local function FormatGuildDisplay(guildName, guildRank)
+	if not guildName or guildName == "" then
+		return "-"
+	end
+	if guildRank and guildRank ~= "" then
+		return guildName .. " (" .. guildRank .. ")"
+	end
+	return guildName
 end
 
 local function CreatePartyRow(parent)
@@ -1060,7 +1077,7 @@ local function CreatePartyRow(parent)
 	local function AddTextColumn(index, justify, insetLeft)
 		local text = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 		text:SetPoint("TOPLEFT", row, "TOPLEFT", PartyColumnOffset(index) + (insetLeft or 4), -4)
-		text:SetWidth(({ UI.PARTY_COL_NAME, UI.PARTY_COL_CLASS, UI.PARTY_COL_SPEC, UI.PARTY_COL_GS, UI.PARTY_COL_ILVL, UI.PARTY_COL_GUILD, UI.PARTY_COL_RANK })[index] - (insetLeft or 4) - 4)
+		text:SetWidth(PARTY_COLUMN_WIDTHS[index] - (insetLeft or 4) - 4)
 		text:SetJustifyH(justify or "LEFT")
 		text:SetJustifyV("TOP")
 		return text
@@ -1083,7 +1100,6 @@ local function CreatePartyRow(parent)
 	row.gsText = AddTextColumn(4, "CENTER")
 	row.ilvlText = AddTextColumn(5, "CENTER")
 	row.guildText = AddTextColumn(6, "LEFT")
-	row.rankText = AddTextColumn(7, "LEFT")
 
 	row.classIconHost:EnableMouse(true)
 	row.classIconHost:SetScript("OnEnter", function(self)
@@ -1157,12 +1173,12 @@ local function CreatePartyPage(parent)
 	ApplyPlainPanel(headerBg, UI.TITLE_BG)
 	page.headerBg = headerBg
 
-	local headers = { "Name", "Class", "Spec", "GS", "iLvl", "Guild", "Rank" }
+	local headers = { "Name", "Class", "Spec", "GS", "iLvl", "Guild" }
 	page.headerLabels = {}
 	for index = 1, #headers do
 		local label = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("TOPLEFT", headerBg, "TOPLEFT", PartyColumnOffset(index) + 4, -10)
-		label:SetWidth(({ UI.PARTY_COL_NAME, UI.PARTY_COL_CLASS, UI.PARTY_COL_SPEC, UI.PARTY_COL_GS, UI.PARTY_COL_ILVL, UI.PARTY_COL_GUILD, UI.PARTY_COL_RANK })[index] - 8)
+		label:SetWidth(PARTY_COLUMN_WIDTHS[index] - 8)
 		label:SetJustifyH(index >= 4 and index <= 5 and "CENTER" or "LEFT")
 		label:SetText(headers[index])
 		SetFontColor(label, UI.GOLD)
@@ -1268,10 +1284,8 @@ function Addon:RefreshPartyView(refreshGearScore)
 			SetFontColor(row.ilvlText, UI.TEXT_DISABLED)
 		end
 
-		row.guildText:SetText(member.guildName or "-")
+		row.guildText:SetText(FormatGuildDisplay(member.guildName, member.guildRank))
 		SetFontColor(row.guildText, UI.TEXT_IDLE)
-		row.rankText:SetText(member.guildRank or "-")
-		SetFontColor(row.rankText, UI.TEXT_IDLE)
 		row:Show()
 	end
 
