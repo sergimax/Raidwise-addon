@@ -2,7 +2,7 @@
 
 WoW addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`).
 
-![](https://img.shields.io/badge/current_version-1.2.0-purple)
+![](https://img.shields.io/badge/current_version-1.3.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--18-blue)
 
 
@@ -39,6 +39,12 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 - First column is the instance name and type (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40)
 - Other columns are characters (class-colored name and spec icon); log in on each alt to record them
 - Saved cells show time remaining until reset
+
+**Party roster** tab:
+
+- Table of current party or raid members (you alone when not grouped)
+- Columns: name, class icon, spec icon, GearScore, average item level, guild with rank
+- **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
 
 **Export gear and CDs** tab:
 
@@ -80,6 +86,7 @@ Raidwise/
   Raidwise.lua        # entry point, events, slash commands
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
+  PartyRoster.lua     # party member stats for the Party roster view
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view

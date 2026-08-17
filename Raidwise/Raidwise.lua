@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.2.0"
+Addon.version = "1.3.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -94,6 +94,19 @@ function Addon:OnUpdateInstanceInfo()
 	end
 end
 
+function Addon:OnInspectTalentReadyEvent(unit)
+	if self.OnInspectTalentReady then
+		self:OnInspectTalentReady()
+	end
+end
+
+function Addon:OnGuildInfoUpdated()
+	local frame = self.mainFrame
+	if frame and frame.selectedTab == "party" and self.RefreshPartyView then
+		self:RefreshPartyView(false)
+	end
+end
+
 -- Slash commands: /raidwise and /rw
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
@@ -146,6 +159,9 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("UPDATE_INSTANCE_INFO")
+frame:RegisterEvent("INSPECT_TALENT_READY")
+frame:RegisterEvent("PLAYER_GUILD_UPDATE")
+frame:RegisterEvent("GUILD_ROSTER_UPDATE")
 
 -- Dispatch ADDON_LOADED and PLAYER_LOGIN to addon lifecycle hooks.
 frame:SetScript("OnEvent", function(_, event, arg1)
@@ -157,5 +173,9 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnPlayerEnteringWorld()
 	elseif event == "UPDATE_INSTANCE_INFO" then
 		Addon:OnUpdateInstanceInfo()
+	elseif event == "INSPECT_TALENT_READY" then
+		Addon:OnInspectTalentReadyEvent(arg1)
+	elseif event == "PLAYER_GUILD_UPDATE" or event == "GUILD_ROSTER_UPDATE" then
+		Addon:OnGuildInfoUpdated()
 	end
 end)

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-08-18
+
+### Added
+- **Party roster** tab: scrollable table of current party or raid members with class icon, spec icon (inspect for others), GearScore, average item level, and guild shown as `GuildName (Rank)`
+- **Refresh** on Party roster re-scans GearScore, item levels, and guild info, and re-queues talent inspect for nearby members
+
+### Changed
+- Left menu order: Character cooldowns, Party roster, Export gear and CDs, Export cooldowns, Info
+
+### Fixed
+- Party roster rows failed to render when class-icon tooltips used mouse handlers on textures (3.3.5 requires a Frame host)
+- Other members’ specs were not filled in because talent data was read on `INSPECT_READY` instead of `INSPECT_TALENT_READY`
+- Player GearScore, item level, and guild on Party roster now use the same collection paths as export (including tooltip scan when the item cache is cold)
+
 ## [1.2.0] - 2026-08-18
 
 ### Added

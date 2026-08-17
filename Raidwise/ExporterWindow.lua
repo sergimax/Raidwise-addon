@@ -56,6 +56,14 @@ local UI = {
 	CD_ROW_A = { 0.18, 0.18, 0.18, 0.90 },
 	CD_ROW_B = { 0.14, 0.14, 0.14, 0.90 },
 
+	-- Party tab
+	PARTY_COL_NAME = 90,
+	PARTY_COL_CLASS = 28,
+	PARTY_COL_SPEC = 28,
+	PARTY_COL_GS = 52,
+	PARTY_COL_ILVL = 44,
+	PARTY_COL_GUILD = 184,
+
 	-- Colors
 	GOLD = { 0.890, 0.729, 0.016 },
 	TEXT_IDLE = { 0.80, 0.80, 0.80 },
@@ -73,6 +81,7 @@ local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
 
 local PAGES = {
 	{ id = "cooldowns", label = "Character cooldowns" },
+	{ id = "party", label = "Party roster" },
 	{ id = "export", label = "Export gear and CDs" },
 	{ id = "exportCooldowns", label = "Export cooldowns" },
 	{ id = "info", label = "Info" },
@@ -371,6 +380,8 @@ function Addon:SelectTab(tabId)
 		self:SaveCurrentCharacterLockouts()
 		RequestRaidInfo()
 		self:RefreshCooldownTable()
+	elseif tabId == "party" then
+		self:RefreshPartyData(true)
 	end
 end
 
@@ -581,6 +592,7 @@ local function CreateInfoPage(parent)
 			.. "Turn on Include item names to add display names next to item ids. "
 			.. "If the GearScore addon is loaded, the current score is included.\n\n"
 			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account. "
+			.. "Party roster lists current group members with spec, GearScore, average item level, and guild info. "
 			.. "Export cooldowns writes the same account-wide lockout data as JSON. "
 			.. "Log in on each alt to record their lockouts.\n\n"
 			.. "Slash commands: /raidwise or /rw (help, version, status, show, hide)."
@@ -1017,6 +1029,269 @@ function Addon:RefreshCooldownTable()
 	LayoutCooldownScrollBars(page)
 end
 
+local function PartyTableWidth()
+	return UI.PARTY_COL_NAME + UI.PARTY_COL_CLASS + UI.PARTY_COL_SPEC + UI.PARTY_COL_GS
+		+ UI.PARTY_COL_ILVL + UI.PARTY_COL_GUILD
+end
+
+local function PartyColumnOffset(index)
+	local widths = {
+		UI.PARTY_COL_NAME,
+		UI.PARTY_COL_CLASS,
+		UI.PARTY_COL_SPEC,
+		UI.PARTY_COL_GS,
+		UI.PARTY_COL_ILVL,
+		UI.PARTY_COL_GUILD,
+	}
+	local offset = 0
+	for column = 1, index - 1 do
+		offset = offset + widths[column]
+	end
+	return offset
+end
+
+local PARTY_COLUMN_WIDTHS = {
+	UI.PARTY_COL_NAME,
+	UI.PARTY_COL_CLASS,
+	UI.PARTY_COL_SPEC,
+	UI.PARTY_COL_GS,
+	UI.PARTY_COL_ILVL,
+	UI.PARTY_COL_GUILD,
+}
+
+local function FormatGuildDisplay(guildName, guildRank)
+	if not guildName or guildName == "" then
+		return "-"
+	end
+	if guildRank and guildRank ~= "" then
+		return guildName .. " (" .. guildRank .. ")"
+	end
+	return guildName
+end
+
+local function CreatePartyRow(parent)
+	local row = CreateFrame("Frame", nil, parent)
+	row:SetHeight(UI.CD_ROW_H)
+	ApplyPlainPanel(row, UI.CD_ROW_A)
+
+	local function AddTextColumn(index, justify, insetLeft)
+		local text = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		text:SetPoint("TOPLEFT", row, "TOPLEFT", PartyColumnOffset(index) + (insetLeft or 4), -4)
+		text:SetWidth(PARTY_COLUMN_WIDTHS[index] - (insetLeft or 4) - 4)
+		text:SetJustifyH(justify or "LEFT")
+		text:SetJustifyV("TOP")
+		return text
+	end
+
+	row.nameText = AddTextColumn(1, "LEFT")
+
+	row.classIconHost = CreateFrame("Frame", nil, row)
+	row.classIconHost:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
+	row.classIconHost:SetPoint("LEFT", row, "TOPLEFT", PartyColumnOffset(2) + 7, -10)
+	row.classIcon = row.classIconHost:CreateTexture(nil, "ARTWORK")
+	row.classIcon:SetAllPoints(row.classIconHost)
+
+	row.specIconHost = CreateFrame("Frame", nil, row)
+	row.specIconHost:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
+	row.specIconHost:SetPoint("LEFT", row, "TOPLEFT", PartyColumnOffset(3) + 7, -10)
+	row.specIcon = row.specIconHost:CreateTexture(nil, "ARTWORK")
+	row.specIcon:SetAllPoints(row.specIconHost)
+
+	row.gsText = AddTextColumn(4, "CENTER")
+	row.ilvlText = AddTextColumn(5, "CENTER")
+	row.guildText = AddTextColumn(6, "LEFT")
+
+	row.classIconHost:EnableMouse(true)
+	row.classIconHost:SetScript("OnEnter", function(self)
+		if not row.classLabel or row.classLabel == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(row.classLabel)
+		GameTooltip:Show()
+	end)
+	row.classIconHost:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	row.specIconHost:EnableMouse(true)
+	row.specIconHost:SetScript("OnEnter", function(self)
+		if not row.specLabel or row.specLabel == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(row.specLabel)
+		GameTooltip:Show()
+	end)
+	row.specIconHost:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	return row
+end
+
+local function CreatePartyPage(parent)
+	local page = CreateFrame("Frame", nil, parent)
+	page:SetAllPoints(parent)
+
+	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	hint:SetPoint("TOPLEFT", 0, 0)
+	hint:SetPoint("RIGHT", page, "RIGHT", -90, 0)
+	hint:SetJustifyH("LEFT")
+	hint:SetJustifyV("TOP")
+	hint:SetText("Current party or raid members. Refresh after gear or spec changes.")
+
+	local refreshBtn = CreatePlainButton(page, 80, UI.CD_TOOLBAR_H, "Refresh")
+	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
+	refreshBtn:SetScript("OnClick", function()
+		Addon:RefreshPartyData(true)
+	end)
+
+	local tableTop = -CooldownTableTopOffset()
+
+	local tableHost = CreateFrame("Frame", nil, page)
+	tableHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
+	tableHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+	ApplyPlainPanel(tableHost, UI.PANEL_BG)
+	page.tableHost = tableHost
+
+	local scroll = CreateFrame("ScrollFrame", "RaidwisePartyScroll", tableHost)
+	scroll:SetPoint("TOPLEFT", 1, -1)
+	scroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 2), UI.CD_HSCROLL_H + 2)
+	scroll:EnableMouseWheel(true)
+	page.scroll = scroll
+
+	local content = CreateFrame("Frame", nil, scroll)
+	content:SetSize(1, 1)
+	scroll:SetScrollChild(content)
+	page.tableContent = content
+	page.rowFrames = {}
+
+	local headerBg = CreateFrame("Frame", nil, content)
+	headerBg:SetPoint("TOPLEFT", 0, 0)
+	headerBg:SetHeight(UI.CD_HEADER_H)
+	ApplyPlainPanel(headerBg, UI.TITLE_BG)
+	page.headerBg = headerBg
+
+	local headers = { "Name", "Class", "Spec", "GS", "iLvl", "Guild" }
+	page.headerLabels = {}
+	for index = 1, #headers do
+		local label = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("TOPLEFT", headerBg, "TOPLEFT", PartyColumnOffset(index) + 4, -10)
+		label:SetWidth(PARTY_COLUMN_WIDTHS[index] - 8)
+		label:SetJustifyH(index >= 4 and index <= 5 and "CENTER" or "LEFT")
+		label:SetText(headers[index])
+		SetFontColor(label, UI.GOLD)
+		page.headerLabels[index] = label
+	end
+
+	local vBar = CreateCooldownScrollBar(tableHost, "VERTICAL")
+	vBar:SetPoint("TOPRIGHT", -1, -1)
+	vBar:SetPoint("BOTTOMRIGHT", -1, UI.CD_HSCROLL_H + 2)
+	vBar:SetScript("OnValueChanged", function(self)
+		scroll:SetVerticalScroll(self:GetValue() or 0)
+	end)
+	page.vBar = vBar
+
+	local hBar = CreateCooldownScrollBar(tableHost, "HORIZONTAL")
+	hBar:SetPoint("BOTTOMLEFT", 1, 1)
+	hBar:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 2), 1)
+	hBar:SetScript("OnValueChanged", function(self)
+		scroll:SetHorizontalScroll(self:GetValue() or 0)
+	end)
+	page.hBar = hBar
+
+	scroll:SetScript("OnMouseWheel", function(self, delta)
+		local maxV = math.max(0, (content:GetHeight() or 0) - (self:GetHeight() or 0))
+		local step = UI.CD_ROW_H
+		local nextValue = math.max(0, math.min(maxV, (self:GetVerticalScroll() or 0) - delta * step))
+		self:SetVerticalScroll(nextValue)
+		vBar:SetValue(nextValue)
+	end)
+	scroll:SetScript("OnSizeChanged", function()
+		LayoutCooldownScrollBars(page)
+	end)
+
+	page:SetScript("OnShow", function()
+		Addon:RefreshPartyView(true)
+	end)
+
+	page.hint = hint
+	page.refreshBtn = refreshBtn
+	return page
+end
+
+function Addon:RefreshPartyView(refreshGearScore)
+	local frame = self.mainFrame
+	local page = frame and frame.pages and frame.pages.party
+	if not page then
+		return
+	end
+
+	if not self.BuildPartyRoster then
+		if page.hint then
+			page.hint:SetText("Party module failed to load. Reload UI (/reload).")
+		end
+		return
+	end
+
+	page.tableHost:Show()
+
+	local roster = self:BuildPartyRoster(refreshGearScore)
+	local content = page.tableContent
+	local headerBg = page.headerBg
+	local tableW = PartyTableWidth()
+	local tableH = UI.CD_HEADER_H + math.max(#roster, 1) * UI.CD_ROW_H
+
+	content:SetSize(tableW, tableH)
+	headerBg:SetWidth(tableW)
+
+	HidePoolFrom(page.rowFrames, #roster + 1)
+	for rowIndex = 1, #roster do
+		local member = roster[rowIndex]
+		local row = page.rowFrames[rowIndex]
+		if not row then
+			row = CreatePartyRow(content)
+			page.rowFrames[rowIndex] = row
+		end
+
+		row:ClearAllPoints()
+		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(UI.CD_HEADER_H + (rowIndex - 1) * UI.CD_ROW_H))
+		row:SetSize(tableW, UI.CD_ROW_H)
+		local stripe = (rowIndex % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
+		row:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+
+		row.nameText:SetText(member.name)
+		row.nameText:SetTextColor(ClassColor(member.class))
+		row.classLabel = member.classLabel
+		row.specLabel = member.spec
+		SetSpecOrClassIcon(row.classIcon, nil, member.class)
+		SetSpecOrClassIcon(row.specIcon, member.specIcon, member.class)
+
+		if member.gearScore then
+			row.gsText:SetText(tostring(member.gearScore))
+			SetFontColor(row.gsText, UI.GOLD)
+		else
+			row.gsText:SetText("-")
+			SetFontColor(row.gsText, UI.TEXT_DISABLED)
+		end
+
+		if member.averageIlvl then
+			row.ilvlText:SetText(tostring(member.averageIlvl))
+			SetFontColor(row.ilvlText, UI.TEXT_IDLE)
+		else
+			row.ilvlText:SetText("-")
+			SetFontColor(row.ilvlText, UI.TEXT_DISABLED)
+		end
+
+		row.guildText:SetText(FormatGuildDisplay(member.guildName, member.guildRank))
+		SetFontColor(row.guildText, UI.TEXT_IDLE)
+		row:Show()
+	end
+
+	LayoutCooldownScrollBars(page)
+end
+
 -- Build the main frame once; store on Addon.mainFrame.
 function Addon:CreateMainFrame()
 	if self.mainFrame then
@@ -1089,6 +1364,10 @@ function Addon:CreateMainFrame()
 	local cooldownsPage = CreateCooldownsPage(content)
 	frame.pages.cooldowns = cooldownsPage
 	cooldownsPage:Hide()
+
+	local partyPage = CreatePartyPage(content)
+	frame.pages.party = partyPage
+	partyPage:Hide()
 
 	local exportPage = CreateExportPage(content)
 	frame.pages.export = exportPage
