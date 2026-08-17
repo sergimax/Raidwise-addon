@@ -80,17 +80,17 @@ Current party roster (solo shows only you). Spec for party members is filled via
 ```text
 [ short description ]                              [ Refresh ]
         8 px gap
-[ Name | (class) | (spec) Enh | GS | iLvl | Guild | Rank ]
-[ Rhee |  SH   |  Enh icon Enh | 6158 | 264 | MyGuild | Member ]
+[ Name | (class) | (spec) | GS | iLvl | Guild | Rank ]
+[ Rhee |  SH   |  Enh   | 6158 | 264 | MyGuild | Member ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Current party members. Refresh after gear or spec changes.” |
+| short description | “Current party or raid members. Refresh after gear or spec changes.” |
 | Refresh | Re-reads GearScore, item levels, guild info; re-queues inspect for specs |
 | Name | Class-colored character name |
 | Class | Class icon (`CLASS_ICON_TCOORDS`); hover shows localized class name |
-| Spec | Primary talent tree icon + name (`-` until inspect completes for others) |
+| Spec | Primary talent tree icon only; hover shows spec name (`-` until inspect completes for others) |
 | GS | GearScore when the GearScore addon has scanned the player |
 | iLvl | Average equipped item level (tooltip scan when item cache is cold) |
 | Guild / Rank | From `GetGuildInfo` when available (`-` otherwise) |

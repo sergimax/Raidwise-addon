@@ -59,7 +59,7 @@ local UI = {
 	-- Party tab
 	PARTY_COL_NAME = 90,
 	PARTY_COL_CLASS = 28,
-	PARTY_COL_SPEC = 96,
+	PARTY_COL_SPEC = 28,
 	PARTY_COL_GS = 52,
 	PARTY_COL_ILVL = 44,
 	PARTY_COL_GUILD = 100,
@@ -1074,11 +1074,12 @@ local function CreatePartyRow(parent)
 	row.classIcon = row.classIconHost:CreateTexture(nil, "ARTWORK")
 	row.classIcon:SetAllPoints(row.classIconHost)
 
-	row.specIcon = row:CreateTexture(nil, "ARTWORK")
-	row.specIcon:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
-	row.specIcon:SetPoint("LEFT", row, "TOPLEFT", PartyColumnOffset(3) + 4, -10)
+	row.specIconHost = CreateFrame("Frame", nil, row)
+	row.specIconHost:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
+	row.specIconHost:SetPoint("LEFT", row, "TOPLEFT", PartyColumnOffset(3) + 7, -10)
+	row.specIcon = row.specIconHost:CreateTexture(nil, "ARTWORK")
+	row.specIcon:SetAllPoints(row.specIconHost)
 
-	row.specText = AddTextColumn(3, "LEFT", 4 + UI.CD_SPEC_ICON + 4)
 	row.gsText = AddTextColumn(4, "CENTER")
 	row.ilvlText = AddTextColumn(5, "CENTER")
 	row.guildText = AddTextColumn(6, "LEFT")
@@ -1094,6 +1095,19 @@ local function CreatePartyRow(parent)
 		GameTooltip:Show()
 	end)
 	row.classIconHost:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	row.specIconHost:EnableMouse(true)
+	row.specIconHost:SetScript("OnEnter", function(self)
+		if not row.specLabel or row.specLabel == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(row.specLabel)
+		GameTooltip:Show()
+	end)
+	row.specIconHost:SetScript("OnLeave", function()
 		GameTooltip:Hide()
 	end)
 
@@ -1234,10 +1248,9 @@ function Addon:RefreshPartyView(refreshGearScore)
 		row.nameText:SetText(member.name)
 		row.nameText:SetTextColor(ClassColor(member.class))
 		row.classLabel = member.classLabel
+		row.specLabel = member.spec
 		SetSpecOrClassIcon(row.classIcon, nil, member.class)
 		SetSpecOrClassIcon(row.specIcon, member.specIcon, member.class)
-		row.specText:SetText(member.spec ~= "" and member.spec or "-")
-		SetFontColor(row.specText, UI.TEXT_IDLE)
 
 		if member.gearScore then
 			row.gsText:SetText(tostring(member.gearScore))

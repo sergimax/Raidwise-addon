@@ -94,15 +94,9 @@ function Addon:OnUpdateInstanceInfo()
 	end
 end
 
-function Addon:OnInspectReadyEvent()
-	if self.OnInspectReady then
-		self:OnInspectReady()
-	end
-end
-
 function Addon:OnInspectTalentReadyEvent(unit)
-	if self.OnInspectReady then
-		self:OnInspectReady()
+	if self.OnInspectTalentReady then
+		self:OnInspectTalentReady()
 	end
 end
 
@@ -165,7 +159,6 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("UPDATE_INSTANCE_INFO")
-frame:RegisterEvent("INSPECT_READY")
 frame:RegisterEvent("INSPECT_TALENT_READY")
 frame:RegisterEvent("PLAYER_GUILD_UPDATE")
 frame:RegisterEvent("GUILD_ROSTER_UPDATE")
@@ -180,8 +173,6 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnPlayerEnteringWorld()
 	elseif event == "UPDATE_INSTANCE_INFO" then
 		Addon:OnUpdateInstanceInfo()
-	elseif event == "INSPECT_READY" then
-		Addon:OnInspectReadyEvent()
 	elseif event == "INSPECT_TALENT_READY" then
 		Addon:OnInspectTalentReadyEvent(arg1)
 	elseif event == "PLAYER_GUILD_UPDATE" or event == "GUILD_ROSTER_UPDATE" then

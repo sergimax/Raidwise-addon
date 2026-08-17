@@ -80,7 +80,13 @@ local function PartyUnitIds()
 end
 
 local function SafeCanInspect(unit)
-	return type(CanInspect) == "function" and CanInspect(unit)
+	if type(CanInspect) ~= "function" or not CanInspect(unit) then
+		return false
+	end
+	if type(CheckInteractDistance) == "function" and not CheckInteractDistance(unit, 4) then
+		return false
+	end
+	return true
 end
 
 local function SafeNotifyInspect(unit)
@@ -203,26 +209,27 @@ local function GearScoreForUnit(unit, refresh)
 	return nil
 end
 
-local function PrimarySpecFromInspect()
-	if type(GetInspectUnit) == "function" and not GetInspectUnit() then
+local function PrimarySpecFromInspectUnit(unit)
+	if not unit or not UnitExists(unit) then
 		return "", ""
 	end
 
+	local isInspect = not UnitIsUnit("player", unit)
 	local talentGroup = 1
 	if type(GetActiveTalentGroup) == "function" then
-		talentGroup = GetActiveTalentGroup(true) or 1
+		talentGroup = GetActiveTalentGroup(isInspect) or 1
 	end
 
 	local bestName = ""
 	local bestIcon = ""
 	local bestPoints = -1
-	local tabCount = 0
+	local tabCount = 3
 	if type(GetNumTalentTabs) == "function" then
-		tabCount = GetNumTalentTabs(true) or 0
+		tabCount = GetNumTalentTabs(isInspect) or 3
 	end
 
 	for tab = 1, tabCount do
-		local name, icon, pointsSpent = GetTalentTabInfo(tab, true, false, talentGroup)
+		local name, icon, pointsSpent = GetTalentTabInfo(tab, isInspect, nil, talentGroup)
 		pointsSpent = tonumber(pointsSpent) or 0
 		if pointsSpent > bestPoints then
 			bestPoints = pointsSpent
@@ -237,7 +244,9 @@ end
 local function CachedSpecForGuid(guid)
 	local cached = guid and specCache[guid]
 	if type(cached) == "table" then
-		return cached.name or "-", cached.icon or ""
+		if cached.icon ~= "" or (cached.name and cached.name ~= "") then
+			return cached.name or "", cached.icon or ""
+		end
 	end
 	if type(cached) == "string" and cached ~= "" then
 		return cached, ""
@@ -246,41 +255,46 @@ local function CachedSpecForGuid(guid)
 end
 
 local function StoreSpecCache(guid, specName, specIcon)
-	if not guid or not specName or specName == "" then
+	if not guid then
+		return
+	end
+	specName = specName or ""
+	specIcon = specIcon or ""
+	if specName == "" and specIcon == "" then
 		return
 	end
 	specCache[guid] = {
 		name = specName,
-		icon = specIcon or "",
+		icon = specIcon,
 	}
 end
 
 local function SpecForUnit(unit)
-	if unit == "player" then
+	if UnitIsUnit(unit, "player") then
 		if Addon.CollectPrimarySpec then
 			local specName, specIcon = Addon:CollectPrimarySpec()
 			if specName and specName ~= "" then
 				return specName, specIcon or ""
 			end
 		end
-		return "-", ""
+		return "", ""
 	end
 
 	local guid = UnitGUID(unit)
 	local cachedName, cachedIcon = CachedSpecForGuid(guid)
-	if cachedName then
+	if cachedName ~= nil then
 		return cachedName, cachedIcon
 	end
 
-	if inspectPending == unit and type(GetInspectUnit) == "function" and GetInspectUnit() == unit then
-		local specName, specIcon = PrimarySpecFromInspect()
-		if specName ~= "" then
+	if inspectPending == unit then
+		local specName, specIcon = PrimarySpecFromInspectUnit(unit)
+		if specName ~= "" or specIcon ~= "" then
 			StoreSpecCache(guid, specName, specIcon)
 			return specName, specIcon
 		end
 	end
 
-	return "-", ""
+	return "", ""
 end
 
 local function GuildInfoForUnit(unit)
@@ -322,7 +336,7 @@ local function MinimalPartyMember(unit)
 		realm = realm or "",
 		class = classToken or "",
 		classLabel = localizedClass or "",
-		spec = "-",
+		spec = "",
 		specIcon = "",
 		gearScore = nil,
 		averageIlvl = nil,
@@ -383,7 +397,7 @@ function Addon:QueuePartyInspects()
 	end
 
 	for _, unit in ipairs(PartyUnitIds()) do
-		if unit ~= "player" and UnitExists(unit) and UnitIsVisible(unit) and SafeCanInspect(unit) then
+		if not UnitIsUnit(unit, "player") and UnitExists(unit) and UnitIsVisible(unit) and SafeCanInspect(unit) then
 			inspectQueue[#inspectQueue + 1] = unit
 		end
 	end
@@ -409,11 +423,11 @@ function Addon:ProcessNextPartyInspect()
 	self:ProcessNextPartyInspect()
 end
 
-function Addon:OnInspectReady()
-	local unit = type(GetInspectUnit) == "function" and GetInspectUnit() or nil
+function Addon:OnInspectTalentReady()
+	local unit = inspectPending
 	if unit and UnitExists(unit) then
-		local specName, specIcon = PrimarySpecFromInspect()
-		if specName and specName ~= "" then
+		local specName, specIcon = PrimarySpecFromInspectUnit(unit)
+		if specName ~= "" or specIcon ~= "" then
 			StoreSpecCache(UnitGUID(unit), specName, specIcon)
 		end
 	end

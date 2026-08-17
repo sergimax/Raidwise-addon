@@ -43,7 +43,7 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 **Party** tab:
 
 - Table of current party members (you alone when not grouped)
-- Columns: name, class icon, spec icon + name, GearScore, average item level, guild, guild rank
+- Columns: name, class icon, spec icon, GearScore, average item level, guild, guild rank
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
 
 **Export gear and CDs** tab:
