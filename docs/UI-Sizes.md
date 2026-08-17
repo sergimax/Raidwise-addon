@@ -11,8 +11,8 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Content frame (`RaidwiseFrame`) | **520 × 480** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
 | Menu panel (`RaidwiseMenu`) | **170 × 480** | Anchored to content `TOPLEFT` with a 2 px gap |
 | Status bar | height **20** | Spans menu left → content right, 2 px below both |
-| Title bar | height **20** | Top of content; drag handle |
-| Menu title bar | height **20** | Top of menu; label “Menu” |
+| Title bar | height **20** | Top of content; only this (and the menu title) starts a drag |
+| Menu title bar | height **20** | Top of menu; drag handle; label “Menu” |
 | Close button | **16 × 16** | Right side of content title bar |
 | Panel fill | RGB **0.15** | `ChatFrameBackground`, alpha 0.96 |
 | Title / status fill | RGB **0.20** | Same texture |
