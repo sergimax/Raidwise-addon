@@ -31,7 +31,7 @@ In-game slash commands:
 | `/raidwise show` | Open the main window |
 | `/raidwise hide` | Close the main window |
 
-The window uses a Details-style layout: plain panels, a **left menu**, and a content page. The status bar shows the addon name, version, and GitHub link (click prints the URL in chat). Esc or the title **X** closes the window.
+The window uses a Details-style layout: plain panels, a **left menu**, and a content page. The status bar shows the addon name and version. Esc or the title **X** closes the window.
 
 **Export gear and CDs** tab:
 
@@ -39,6 +39,11 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 - **Export data** fills the JSON box (name, class, spec, gearScore, gear, bags, lockouts)
 - **Select all** highlights the JSON for Ctrl+C
 - `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
+
+**Info** tab:
+
+- What the addon exports and which slash commands exist
+- Repository URL in a copy box with **Select all** (Ctrl+C)
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md).
 

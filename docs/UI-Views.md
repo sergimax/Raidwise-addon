@@ -10,7 +10,7 @@ Details-style plain panels: left menu, content page, status bar under both.
 [ Menu 170 ] 2px [ Content 520 x 480 ]
                  [ title bar 20      ]
                  [ page body         ]
-[ addon name ] [ current version ] [ github repo link ]
+[ addon name ] [ current version ]
 ```
 
 Status bar:
@@ -19,12 +19,12 @@ Status bar:
 |-------|----------------|
 | addon name | Raidwise |
 | current version | `v` + `Addon.version` |
-| github repo link | `github.com/sergimax/Raidwise-addon` (click prints the full URL in chat) |
 
 Menu tabs (top to bottom):
 
 ```text
 [ Export gear and CDs ]
+[ Info ]
 ```
 
 ## Export gear and CDs
@@ -45,6 +45,25 @@ Menu tabs (top to bottom):
 | select all data button | **Select all** — highlights JSON for Ctrl+C (disabled until export) |
 | short hint | Starts as “After export, press Ctrl+C to copy.” |
 | input for copy | Tooltip-bordered multiline EditBox (WowSimsExporter / AceGUI style). Click selects all; Ctrl+C copies. |
+
+## Info
+
+```text
+[ about heading ]
+[ descriptions about addon functions ]
+[ github heading ]
+[ short hint about copy ]
+[ input for repo URL ] [ select all button ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| about heading | About |
+| descriptions | What Export does, optional item names, GearScore, slash commands |
+| github heading | GitHub |
+| short hint | “Select the URL, then press Ctrl+C to copy.” |
+| input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |
+| select all button | **Select all** — highlights the URL for Ctrl+C |
 
 ## Adding a view
 

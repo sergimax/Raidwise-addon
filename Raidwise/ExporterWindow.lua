@@ -38,6 +38,11 @@ local UI = {
 	COPY_PAD_B = 4,
 	COPY_MIN_H = 180,
 
+	-- Info tab
+	INFO_BLOCK_GAP = 14,
+	INFO_HEADING_GAP = 8,
+	URL_BOX_H = 28,
+
 	-- Colors
 	GOLD = { 0.890, 0.729, 0.016 },
 	TEXT_IDLE = { 0.80, 0.80, 0.80 },
@@ -49,15 +54,13 @@ local UI = {
 	BTN_DISABLED = { 0.12, 0.12, 0.12, 0.90 },
 	TEXT_HOVER = { 1.00, 1.00, 0.40 },
 	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
-	TEXT_LINK = { 0.40, 0.70, 1.00 },
-	TEXT_LINK_HOVER = { 0.65, 0.85, 1.00 },
 }
 
 local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
-local GITHUB_LABEL = "github.com/sergimax/Raidwise-addon"
 
 local PAGES = {
 	{ id = "export", label = "Export gear and CDs" },
+	{ id = "info", label = "Info" },
 }
 
 local function ApplyPlainPanel(frame, color)
@@ -211,7 +214,7 @@ local function FitCopyBoxToText(box)
 	box:SetHeight(math.max(UI.COPY_MIN_H, lines * lineHeight + insets))
 end
 
-local function CreateCopyBox(parent)
+local function CreateCopyBox(parent, scrollName, boxName)
 	local host = CreateFrame("Frame", nil, parent)
 
 	local scrollBG = CreateFrame("Frame", nil, host)
@@ -221,7 +224,7 @@ local function CreateCopyBox(parent)
 	scrollBG:SetBackdropColor(0, 0, 0, 1)
 	scrollBG:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
 
-	local scroll = CreateFrame("ScrollFrame", "RaidwiseExportScroll", host, "UIPanelScrollFrameTemplate")
+	local scroll = CreateFrame("ScrollFrame", scrollName, host, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", scrollBG, "TOPLEFT", UI.COPY_PAD_L, -UI.COPY_PAD_T)
 	scroll:SetPoint("BOTTOMRIGHT", scrollBG, "BOTTOMRIGHT", -UI.COPY_PAD_R, UI.COPY_PAD_B)
 
@@ -230,7 +233,7 @@ local function CreateCopyBox(parent)
 	scrollBar:SetPoint("TOPLEFT", scrollBG, "TOPRIGHT", 2, -16)
 	scrollBar:SetPoint("BOTTOMLEFT", scrollBG, "BOTTOMRIGHT", 2, 16)
 
-	local exportBox = CreateFrame("EditBox", "RaidwiseExportBox", scroll)
+	local exportBox = CreateFrame("EditBox", boxName, scroll)
 	exportBox:SetMultiLine(true)
 	exportBox:SetFontObject(ChatFontNormal)
 	exportBox:SetAutoFocus(false)
@@ -284,6 +287,40 @@ local function CreateCopyBox(parent)
 	end)
 
 	return exportBox, host
+end
+
+-- Single-line copy field (same tooltip border as the export box).
+local function CreateLineCopyBox(parent, boxName)
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetHeight(UI.URL_BOX_H)
+	host:SetBackdrop(COPY_BACKDROP)
+	host:SetBackdropColor(0, 0, 0, 1)
+	host:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+
+	local box = CreateFrame("EditBox", boxName, host)
+	box:SetPoint("TOPLEFT", 8, -4)
+	box:SetPoint("BOTTOMRIGHT", -8, 4)
+	box:SetFontObject(ChatFontNormal)
+	box:SetAutoFocus(false)
+	box:SetMultiLine(false)
+	box:EnableMouse(true)
+	box:SetScript("OnEscapePressed", function(edit)
+		edit:ClearFocus()
+	end)
+	box:SetScript("OnEditFocusGained", function(edit)
+		edit:HighlightText()
+	end)
+	box:SetScript("OnMouseUp", function(edit)
+		edit:HighlightText()
+	end)
+	box:SetScript("OnEditFocusLost", function(edit)
+		edit:HighlightText(0, 0)
+		if (edit:GetText() or "") == "" then
+			edit:SetText(GITHUB_URL)
+		end
+	end)
+
+	return box, host
 end
 
 local function SetMenuButtonState(button, selected, hovering)
@@ -445,13 +482,64 @@ local function CreateExportPage(parent)
 	statusLabel:SetJustifyH("LEFT")
 	statusLabel:SetText("After export, press Ctrl+C to copy.")
 
-	local exportBox, copyHost = CreateCopyBox(page)
+	local exportBox, copyHost = CreateCopyBox(page, "RaidwiseExportScroll", "RaidwiseExportBox")
 	copyHost:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
 	copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 
 	page.exportBox = exportBox
 	page.statusLabel = statusLabel
 	page.selectBtn = selectBtn
+	return page
+end
+
+local function CreateInfoPage(parent)
+	local page = CreateFrame("Frame", nil, parent)
+	page:SetAllPoints(parent)
+
+	local innerW = ContentInnerWidth()
+
+	local aboutHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	aboutHeading:SetPoint("TOPLEFT", 0, 0)
+	aboutHeading:SetText("About")
+	SetFontColor(aboutHeading, UI.GOLD)
+
+	local about = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	about:SetPoint("TOPLEFT", aboutHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	about:SetWidth(innerW)
+	about:SetJustifyH("LEFT")
+	about:SetJustifyV("TOP")
+	about:SetText(
+		"Raidwise helps you share a character snapshot for raid prep on Wrath of the Lich King 3.3.5a.\n\n"
+			.. "Export gear and CDs builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
+			.. "Turn on Include item names to add display names next to item ids. "
+			.. "If the GearScore addon is loaded, the current score is included.\n\n"
+			.. "Slash commands: /raidwise or /rw (help, version, status, show, hide)."
+	)
+
+	local repoHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	repoHeading:SetPoint("TOPLEFT", about, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
+	repoHeading:SetText("GitHub")
+	SetFontColor(repoHeading, UI.GOLD)
+
+	local repoHint = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	repoHint:SetPoint("TOPLEFT", repoHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	repoHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	repoHint:SetJustifyH("LEFT")
+	repoHint:SetText("Select the URL, then press Ctrl+C to copy.")
+
+	local copyBtn = CreatePlainButton(page, 110, UI.ACTION_BTN_H, "Select all")
+	copyBtn:SetPoint("TOPRIGHT", repoHint, "BOTTOMRIGHT", 0, -UI.INFO_HEADING_GAP)
+	copyBtn:SetScript("OnClick", function()
+		Addon:SelectRepoUrl()
+	end)
+
+	local repoBox, repoHost = CreateLineCopyBox(page, "RaidwiseRepoBox")
+	repoHost:SetPoint("TOPLEFT", repoHint, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	repoHost:SetPoint("RIGHT", copyBtn, "LEFT", -UI.ACTION_BTN_GAP, 0)
+	repoBox:SetText(GITHUB_URL)
+
+	page.repoBox = repoBox
+	page.repoHint = repoHint
 	return page
 end
 
@@ -519,29 +607,6 @@ function Addon:CreateMainFrame()
 	versionLabel:SetText("v" .. tostring(Addon.version))
 	SetFontColor(versionLabel, UI.TEXT_IDLE)
 
-	local repoLink = CreateFrame("Button", nil, statusBar)
-	local repoLabel = repoLink:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	repoLabel:SetPoint("RIGHT", statusBar, "RIGHT", -UI.STATUS_PAD_X, 0)
-	repoLabel:SetText(GITHUB_LABEL)
-	SetFontColor(repoLabel, UI.TEXT_LINK)
-	repoLink:SetPoint("RIGHT", statusBar, "RIGHT", -UI.STATUS_PAD_X, 0)
-	repoLink:SetHeight(UI.STATUS_H)
-	repoLink:SetWidth(repoLabel:GetStringWidth() + 4)
-	repoLink:SetScript("OnEnter", function()
-		SetFontColor(repoLabel, UI.TEXT_LINK_HOVER)
-		GameTooltip:SetOwner(repoLink, "ANCHOR_TOP")
-		GameTooltip:SetText(GITHUB_URL, 1, 1, 1)
-		GameTooltip:AddLine("Click to print the URL in chat.", 0.7, 0.7, 0.7)
-		GameTooltip:Show()
-	end)
-	repoLink:SetScript("OnLeave", function()
-		SetFontColor(repoLabel, UI.TEXT_LINK)
-		GameTooltip:Hide()
-	end)
-	repoLink:SetScript("OnClick", function()
-		Addon:Print(GITHUB_URL)
-	end)
-
 	local content = CreateFrame("Frame", nil, frame)
 	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.PAD))
 	content:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
@@ -552,6 +617,12 @@ function Addon:CreateMainFrame()
 	frame.exportBox = exportPage.exportBox
 	frame.statusLabel = exportPage.statusLabel
 	frame.selectBtn = exportPage.selectBtn
+
+	local infoPage = CreateInfoPage(content)
+	frame.pages.info = infoPage
+	frame.repoBox = infoPage.repoBox
+	frame.repoHint = infoPage.repoHint
+	infoPage:Hide()
 
 	self.mainFrame = frame
 	self:SelectTab("export")
@@ -593,6 +664,21 @@ function Addon:FlushExportToWindow()
 	end
 	if frame.statusLabel then
 		frame.statusLabel:SetText("Export ready — press Ctrl+C to copy.")
+	end
+end
+
+function Addon:SelectRepoUrl()
+	local frame = self.mainFrame
+	if not frame or not frame.repoBox then
+		return
+	end
+	self:SelectTab("info")
+	local repoBox = frame.repoBox
+	repoBox:SetText(GITHUB_URL)
+	repoBox:SetFocus()
+	repoBox:HighlightText()
+	if frame.repoHint then
+		frame.repoHint:SetText("Selected — press Ctrl+C to copy.")
 	end
 end
 

@@ -10,7 +10,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 |---------|------|-------|
 | Content frame (`RaidwiseFrame`) | **520 × 480** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
 | Menu panel (`RaidwiseMenu`) | **170 × 480** | Anchored to content `TOPLEFT` with a 2 px gap |
-| Status bar | height **20** | Spans menu left → content right, 2 px below both; name, version, GitHub link |
+| Status bar | height **20** | Spans menu left → content right, 2 px below both; name and version |
 | Status bar padding | 8 px | Left / right |
 | Status bar gap | 12 px | Between name and version |
 | Title bar | height **20** | Top of content; only this (and the menu title) starts a drag |
@@ -32,7 +32,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Export gear and CDs**.
+Tabs (in order): **Export gear and CDs**, **Info**.
 
 ## Content padding
 
@@ -64,6 +64,17 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | EditBox line height | from `ChatFontNormal` | Face size + 2, or EditBox `cursorHeight` once known; not a hardcoded 12 px |
 | EditBox min height | 180 | Grows from measured wrapped text height |
 
+## Info tab
+
+See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Heading → body | 8 px | About / GitHub |
+| Body → next heading | 14 px | |
+| URL copy box | height **28** | Tooltip border; fills row minus Select all |
+| Select all | **110 × 28** | Right of the URL box; 8 px gap |
+
 ## Fonts
 
 | Role | Font object | Color |
@@ -71,7 +82,6 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Window / menu titles | `GameFontNormal` | Gold `{0.89, 0.73, 0.016}` |
 | Menu / action buttons | `GameFontNormalSmall` | Idle `{0.8, 0.8, 0.8}` |
 | Version / status / hints | `GameFontNormalSmall` | Idle gray |
-| GitHub link | `GameFontNormalSmall` | `{0.4, 0.7, 1}` (hover brighter) |
 | Checkbox & section labels | `GameFontHighlight` | |
 | Export JSON | `ChatFontNormal` | |
 
