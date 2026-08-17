@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-08-17
+
+### Added
+- Details-style window with a left menu, content panel, and status bar (addon name and version)
+- **Info** tab with a short addon description and a GitHub URL copy box (**Select all**, then Ctrl+C)
+
+### Changed
+- Export tab is now **Export gear and CDs**: description, include-names checkbox, **Export data** / **Select all**, then a WowSims-style copy box
+- Window uses plain panels; drag the title bars only (not the whole frame)
+
+### Fixed
+- Long JSON exports could not scroll to the bottom of the copy box (`ChatFontNormal` line height)
+
+### Removed
+- Right-click to close the window (use **X** or Esc)
+
 ## [1.0.0] - 2026-08-16
 
 ### Changed
