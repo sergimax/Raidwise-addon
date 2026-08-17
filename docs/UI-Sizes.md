@@ -32,7 +32,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Character cooldowns**, **Export gear and CDs**, **Export cooldowns**, **Info**.
+Tabs (in order): **Character cooldowns**, **Party**, **Export gear and CDs**, **Export cooldowns**, **Info**.
 
 ## Content padding
 
@@ -90,6 +90,16 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Data row | **34** | Alternate fills RGB **0.18** / **0.14** |
 | Vertical scrollbar | **16** | Right of the table; hidden if unused |
 | Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
+
+## Party tab
+
+Same toolbar + scroll table layout as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H`, `CD_ROW_H`, scrollbars).
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Columns | **90 + 72 + 88 + 52 + 44 + 100 + 84 = 530** | Name, Class, Spec, GS, iLvl, Guild, Rank |
+| GS column | center-aligned | Gold when present |
+| iLvl column | center-aligned | |
 
 ## Export cooldowns tab
 

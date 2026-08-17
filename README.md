@@ -40,6 +40,12 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 - Other columns are characters (class-colored name and spec icon); log in on each alt to record them
 - Saved cells show time remaining until reset
 
+**Party** tab:
+
+- Table of current party members (you alone when not grouped)
+- Columns: name, class, spec, GearScore, average item level, guild, guild rank
+- **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
+
 **Export gear and CDs** tab:
 
 - Short description, then **Include item names**
@@ -80,6 +86,7 @@ Raidwise/
   Raidwise.lua        # entry point, events, slash commands
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
+  PartyRoster.lua     # party member stats for the Party view
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view

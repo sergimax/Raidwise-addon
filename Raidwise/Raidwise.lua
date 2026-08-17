@@ -94,6 +94,18 @@ function Addon:OnUpdateInstanceInfo()
 	end
 end
 
+function Addon:OnInspectReadyEvent()
+	if self.OnInspectReady then
+		self:OnInspectReady()
+	end
+end
+
+function Addon:OnInspectTalentReadyEvent(unit)
+	if self.OnInspectReady then
+		self:OnInspectReady()
+	end
+end
+
 -- Slash commands: /raidwise and /rw
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
@@ -146,6 +158,8 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("UPDATE_INSTANCE_INFO")
+frame:RegisterEvent("INSPECT_READY")
+frame:RegisterEvent("INSPECT_TALENT_READY")
 
 -- Dispatch ADDON_LOADED and PLAYER_LOGIN to addon lifecycle hooks.
 frame:SetScript("OnEvent", function(_, event, arg1)
@@ -157,5 +171,9 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnPlayerEnteringWorld()
 	elseif event == "UPDATE_INSTANCE_INFO" then
 		Addon:OnUpdateInstanceInfo()
+	elseif event == "INSPECT_READY" then
+		Addon:OnInspectReadyEvent()
+	elseif event == "INSPECT_TALENT_READY" then
+		Addon:OnInspectTalentReadyEvent(arg1)
 	end
 end)

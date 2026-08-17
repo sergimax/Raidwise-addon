@@ -24,6 +24,7 @@ Menu tabs (top to bottom):
 
 ```text
 [ Character cooldowns ]
+[ Party ]
 [ Export gear and CDs ]
 [ Export cooldowns ]
 [ Info ]
@@ -72,6 +73,28 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 
 Rows come only from current lockouts (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40). Expired lockouts are dropped.
 
+## Party
+
+Current party roster (solo shows only you). Spec for party members is filled via inspect when they are nearby.
+
+```text
+[ short description ]                              [ Refresh ]
+        8 px gap
+[ Name | Class | Spec | GS | iLvl | Guild | Rank ]
+[ Rhee | Shaman | Enh | 6158 | 264 | MyGuild | Member ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | “Current party members. Refresh after gear or spec changes.” |
+| Refresh | Re-reads GearScore, item levels, guild info; re-queues inspect for specs |
+| Name | Class-colored character name |
+| Class | Localized class name |
+| Spec | Primary talent tree (`-` until inspect completes) |
+| GS | GearScore when the GearScore addon has scanned the player |
+| iLvl | Average equipped item level |
+| Guild / Rank | From `GetGuildInfo` when available (`-` otherwise) |
+
 ## Export cooldowns
 
 ```text
@@ -104,7 +127,7 @@ JSON includes `exportedAt` and a `characters[]` array (key, name, realm, class, 
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | What Export and Character cooldowns do, optional item names, GearScore, slash commands |
+| descriptions | What Export, Character cooldowns, Party, and Export cooldowns do; optional item names, GearScore, slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |

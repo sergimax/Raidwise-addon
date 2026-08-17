@@ -10,4 +10,5 @@
 Raidwise.lua
 CharacterExport.lua
 CharacterLockouts.lua
+PartyRoster.lua
 ExporterWindow.lua
