@@ -2,8 +2,8 @@
 
 WoW addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`).
 
-![](https://img.shields.io/badge/current_version-1.1.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--17-blue)
+![](https://img.shields.io/badge/current_version-1.2.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--18-blue)
 
 
 ## Install
@@ -92,6 +92,6 @@ types/
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load.
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`.
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.
