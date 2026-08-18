@@ -96,6 +96,7 @@ function Addon:CollectPrimarySpec()
 	local talentGroup = GetActiveTalentGroup and GetActiveTalentGroup() or 1
 	local bestName = ""
 	local bestIcon = ""
+	local bestTab = 0
 	local bestPoints = -1
 
 	for tab = 1, GetNumTalentTabs() or 0 do
@@ -105,10 +106,11 @@ function Addon:CollectPrimarySpec()
 			bestPoints = pointsSpent
 			bestName = name or ""
 			bestIcon = icon or ""
+			bestTab = tab
 		end
 	end
 
-	return bestName, bestIcon
+	return bestName, bestIcon, bestTab
 end
 
 local function PrimarySpecName()

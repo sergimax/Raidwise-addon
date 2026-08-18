@@ -51,6 +51,8 @@ local UI = {
 	CD_HEADER_H = 38,
 	CD_ROW_H = 34,
 	CD_SPEC_ICON = 14,
+	ROSTER_ICON = 18,
+	PROFILE_ICON = 24,
 	CD_SCROLLBAR_W = 16,
 	CD_HSCROLL_H = 16,
 	CD_ROW_A = { 0.18, 0.18, 0.18, 0.90 },
@@ -68,16 +70,21 @@ local UI = {
 	ROSTER_STATS_H = 16,
 
 	-- Raid roster tab
-	RAID_CELL_W = 148,
-	RAID_CELL_H = 72,
+	RAID_CELL_W = 168,
+	RAID_CELL_H = 98,
 	RAID_CELL_GAP = 2,
 	RAID_CELL_PAD = 4,
 	RAID_LINE_H = 14,
+	RAID_ICON = 20,
+	RAID_BUFF_ICON = 18,
 	RAID_GROUP_LABEL_H = 16,
 	RAID_BLOCK_GAP = 12,
 	RAID_KARMA_PLACEHOLDER = 4.3,
 	RAID_DETAIL_W = 300,
 	RAID_DETAIL_H = 360,
+	RAID_BUFF_MAX = 8,
+	RAID_BUFF_GAP = 2,
+	RAID_STATS_H = 32,
 
 	-- History tab
 	HISTORY_COL_NAME = 90,
@@ -670,10 +677,20 @@ local function ClassColor(classToken)
 	return UI.TEXT_IDLE[1], UI.TEXT_IDLE[2], UI.TEXT_IDLE[3]
 end
 
+local ICON_TEX_INSET = 0.07
+local ICON_TEX_MAX = 1 - ICON_TEX_INSET
+
+local function SetSpellIconTexture(texture, iconPath)
+	if not texture or not iconPath or iconPath == "" then
+		return
+	end
+	texture:SetTexture(iconPath)
+	texture:SetTexCoord(ICON_TEX_INSET, ICON_TEX_MAX, ICON_TEX_INSET, ICON_TEX_MAX)
+end
+
 local function SetSpecOrClassIcon(texture, specIcon, classToken)
 	if specIcon and specIcon ~= "" then
-		texture:SetTexture(specIcon)
-		texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+		SetSpellIconTexture(texture, specIcon)
 		return
 	end
 	texture:SetTexture("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES")
@@ -683,6 +700,14 @@ local function SetSpecOrClassIcon(texture, specIcon, classToken)
 	else
 		texture:SetTexCoord(0, 1, 0, 1)
 	end
+end
+
+local function TableIconInset(columnWidth, iconSize)
+	return math.floor((columnWidth - iconSize) / 2)
+end
+
+local function TableIconTopOffset(iconSize)
+	return -math.floor((UI.CD_ROW_H - iconSize) / 2)
 end
 
 local function HidePoolFrom(pool, startIndex)
@@ -856,6 +881,10 @@ end
 
 local function RosterTableTopOffset()
 	return UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE + UI.ROSTER_STATS_H + UI.CD_HINT_TO_TABLE
+end
+
+local function RaidRosterTableTopOffset()
+	return UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE + UI.RAID_STATS_H + UI.CD_HINT_TO_TABLE
 end
 
 local function CreateCooldownsPage(parent)
@@ -1170,6 +1199,64 @@ local function UpdateRosterStatsLabel(page, members)
 	page.statsLabel:SetText(FormatRosterAverages(averageGs, averageIlvl))
 end
 
+local function FormatRoleIlvlGs(bucket)
+	if not bucket then
+		return "-/-"
+	end
+	local ilvlText = bucket.averageIlvl ~= nil and tostring(bucket.averageIlvl) or "-"
+	local gsText = bucket.gearScore ~= nil and tostring(bucket.gearScore) or "-"
+	return ilvlText .. "/" .. gsText
+end
+
+local function UpdateRaidRosterStatsLabels(page, members)
+	if not page or not page.statsLabel then
+		return
+	end
+
+	local overall, roles
+	if Addon.AverageRosterStatsByRole then
+		overall, roles = Addon:AverageRosterStatsByRole(members)
+	end
+	overall = overall or {}
+	roles = roles or {}
+	local tank = roles.tank or {}
+	local healer = roles.healer or {}
+	local melee = roles.melee or {}
+	local ranged = roles.ranged or {}
+
+	page.statsLabel:SetText(
+		FormatRosterAverages(overall.gearScore, overall.averageIlvl)
+			.. "     "
+			.. tostring(tank.count or 0) .. "T  "
+			.. tostring(healer.count or 0) .. "H  "
+			.. tostring(melee.count or 0) .. "MDD  "
+			.. tostring(ranged.count or 0) .. "RDD"
+	)
+
+	if page.roleStatsLabel then
+		page.roleStatsLabel:SetText(
+			"Tanks " .. FormatRoleIlvlGs(tank)
+				.. "     Healers " .. FormatRoleIlvlGs(healer)
+				.. "     Melee " .. FormatRoleIlvlGs(melee)
+				.. "     Range " .. FormatRoleIlvlGs(ranged)
+		)
+	end
+end
+
+local function CreateRaidStatsLabels(page)
+	CreateRosterStatsLabel(page)
+	local roleStats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	roleStats:SetPoint("TOPLEFT", page.statsLabel, "BOTTOMLEFT", 0, 0)
+	roleStats:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	roleStats:SetHeight(UI.ROSTER_STATS_H)
+	roleStats:SetJustifyH("LEFT")
+	roleStats:SetJustifyV("MIDDLE")
+	SetFontColor(roleStats, UI.TEXT_IDLE)
+	roleStats:SetText("Tanks -/-     Healers -/-     Melee -/-     Range -/-")
+	page.roleStatsLabel = roleStats
+	return page.statsLabel
+end
+
 local function MembersFromRaidGroups(groups)
 	local members = {}
 	if type(groups) ~= "table" then
@@ -1203,14 +1290,26 @@ local function CreatePartyRow(parent)
 	row.nameText = AddTextColumn(1, "LEFT")
 
 	row.classIconHost = CreateFrame("Frame", nil, row)
-	row.classIconHost:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
-	row.classIconHost:SetPoint("LEFT", row, "TOPLEFT", PartyColumnOffset(2) + 7, -10)
+	row.classIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
+	row.classIconHost:SetPoint(
+		"LEFT",
+		row,
+		"TOPLEFT",
+		PartyColumnOffset(2) + TableIconInset(UI.PARTY_COL_CLASS, UI.ROSTER_ICON),
+		TableIconTopOffset(UI.ROSTER_ICON)
+	)
 	row.classIcon = row.classIconHost:CreateTexture(nil, "ARTWORK")
 	row.classIcon:SetAllPoints(row.classIconHost)
 
 	row.specIconHost = CreateFrame("Frame", nil, row)
-	row.specIconHost:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
-	row.specIconHost:SetPoint("LEFT", row, "TOPLEFT", PartyColumnOffset(3) + 7, -10)
+	row.specIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
+	row.specIconHost:SetPoint(
+		"LEFT",
+		row,
+		"TOPLEFT",
+		PartyColumnOffset(3) + TableIconInset(UI.PARTY_COL_SPEC, UI.ROSTER_ICON),
+		TableIconTopOffset(UI.ROSTER_ICON)
+	)
 	row.specIcon = row.specIconHost:CreateTexture(nil, "ARTWORK")
 	row.specIcon:SetAllPoints(row.specIconHost)
 
@@ -1503,7 +1602,7 @@ local function CreateRaidCharacterWindow()
 	body:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
 
 	local classIcon = body:CreateTexture(nil, "ARTWORK")
-	classIcon:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
+	classIcon:SetSize(UI.PROFILE_ICON, UI.PROFILE_ICON)
 	classIcon:SetPoint("TOPLEFT", 0, 0)
 	frame.classIcon = classIcon
 
@@ -1514,7 +1613,7 @@ local function CreateRaidCharacterWindow()
 	frame.classText = classText
 
 	local specIcon = body:CreateTexture(nil, "ARTWORK")
-	specIcon:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
+	specIcon:SetSize(UI.PROFILE_ICON, UI.PROFILE_ICON)
 	specIcon:SetPoint("TOPLEFT", classIcon, "BOTTOMLEFT", 0, -8)
 	frame.specIcon = specIcon
 
@@ -1651,7 +1750,7 @@ local function CreateRaidPlayerCell(parent)
 	cell:RegisterForClicks("LeftButtonUp")
 
 	cell.classIconHost = CreateFrame("Frame", nil, cell)
-	cell.classIconHost:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
+	cell.classIconHost:SetSize(UI.RAID_ICON, UI.RAID_ICON)
 	cell.classIconHost:SetPoint("TOPLEFT", UI.RAID_CELL_PAD, -UI.RAID_CELL_PAD)
 	cell.classIcon = cell.classIconHost:CreateTexture(nil, "ARTWORK")
 	cell.classIcon:SetAllPoints(cell.classIconHost)
@@ -1663,9 +1762,27 @@ local function CreateRaidPlayerCell(parent)
 	cell.nameText:SetJustifyH("LEFT")
 	cell.nameText:SetJustifyV("MIDDLE")
 
+	cell.roleIconHost = CreateFrame("Frame", nil, cell)
+	cell.roleIconHost:SetSize(UI.RAID_ICON, UI.RAID_ICON)
+	cell.roleIconHost:SetPoint("TOPLEFT", cell.classIconHost, "BOTTOMLEFT", 0, -3)
+	cell.roleIcon = cell.roleIconHost:CreateTexture(nil, "ARTWORK")
+	cell.roleIcon:SetAllPoints(cell.roleIconHost)
+	cell.roleIconHost:EnableMouse(true)
+	cell.roleIconHost:SetScript("OnEnter", function(self)
+		if not cell.roleLabel or cell.roleLabel == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(cell.roleLabel)
+		GameTooltip:Show()
+	end)
+	cell.roleIconHost:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
 	cell.specIconHost = CreateFrame("Frame", nil, cell)
-	cell.specIconHost:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
-	cell.specIconHost:SetPoint("TOPLEFT", cell.classIconHost, "BOTTOMLEFT", 0, -2)
+	cell.specIconHost:SetSize(UI.RAID_ICON, UI.RAID_ICON)
+	cell.specIconHost:SetPoint("LEFT", cell.roleIconHost, "RIGHT", 3, 0)
 	cell.specIcon = cell.specIconHost:CreateTexture(nil, "ARTWORK")
 	cell.specIcon:SetAllPoints(cell.specIconHost)
 
@@ -1676,8 +1793,35 @@ local function CreateRaidPlayerCell(parent)
 	cell.statsText:SetJustifyH("LEFT")
 	cell.statsText:SetJustifyV("MIDDLE")
 
+	cell.buffHosts = {}
+	for buffIndex = 1, UI.RAID_BUFF_MAX do
+		local host = CreateFrame("Frame", nil, cell)
+		host:SetSize(UI.RAID_BUFF_ICON, UI.RAID_BUFF_ICON)
+		if buffIndex == 1 then
+			host:SetPoint("TOPLEFT", cell.roleIconHost, "BOTTOMLEFT", 0, -3)
+		else
+			host:SetPoint("LEFT", cell.buffHosts[buffIndex - 1], "RIGHT", UI.RAID_BUFF_GAP, 0)
+		end
+		host.icon = host:CreateTexture(nil, "ARTWORK")
+		host.icon:SetAllPoints(host)
+		host:EnableMouse(true)
+		host:SetScript("OnEnter", function(self)
+			if not self.buffName or self.buffName == "" then
+				return
+			end
+			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+			GameTooltip:AddLine(self.buffName)
+			GameTooltip:Show()
+		end)
+		host:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+		host:Hide()
+		cell.buffHosts[buffIndex] = host
+	end
+
 	cell.karmaText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.karmaText:SetPoint("TOPLEFT", cell.specIconHost, "BOTTOMLEFT", 0, -2)
+	cell.karmaText:SetPoint("TOPLEFT", cell.buffHosts[1], "BOTTOMLEFT", 0, -2)
 	cell.karmaText:SetPoint("RIGHT", cell, "RIGHT", -UI.RAID_CELL_PAD, 0)
 	cell.karmaText:SetHeight(UI.RAID_LINE_H)
 	cell.karmaText:SetJustifyH("LEFT")
@@ -1748,18 +1892,38 @@ local function CreateRaidBlock(parent, startGroup, endGroup)
 	return block
 end
 
+local function FillRaidBuffIcons(cell, buffs)
+	buffs = buffs or {}
+	for buffIndex = 1, UI.RAID_BUFF_MAX do
+		local host = cell.buffHosts[buffIndex]
+		local buff = buffs[buffIndex]
+		if buff and buff.icon then
+			SetSpellIconTexture(host.icon, buff.icon)
+			host.buffName = buff.name or ""
+			host:Show()
+		else
+			host.icon:SetTexture(nil)
+			host.buffName = nil
+			host:Hide()
+		end
+	end
+end
+
 local function FillRaidPlayerCell(cell, member, stripe)
 	cell.stripe = stripe
 	cell:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
 
 	if not member then
 		cell.member = nil
+		cell.roleLabel = nil
 		cell.nameText:SetText("")
 		cell.statsText:SetText("")
 		cell.karmaText:SetText("")
 		cell.tagText:SetText("")
 		cell.classIconHost:Hide()
+		cell.roleIconHost:Hide()
 		cell.specIconHost:Hide()
+		FillRaidBuffIcons(cell, nil)
 		cell:EnableMouse(false)
 		cell:Show()
 		return
@@ -1771,6 +1935,15 @@ local function FillRaidPlayerCell(cell, member, stripe)
 	cell.nameText:SetTextColor(ClassColor(member.class))
 	SetSpecOrClassIcon(cell.classIcon, nil, member.class)
 	cell.classIconHost:Show()
+
+	local role = member.role or "unknown"
+	cell.roleLabel = (Addon.RaidRoleLabel and Addon:RaidRoleLabel(role)) or ""
+	if Addon.RaidRoleIcon then
+		SetSpellIconTexture(cell.roleIcon, Addon:RaidRoleIcon(role))
+	else
+		SetSpellIconTexture(cell.roleIcon, "Interface\\Icons\\INV_Misc_QuestionMark")
+	end
+	cell.roleIconHost:Show()
 
 	if member.specIcon and member.specIcon ~= "" then
 		SetSpecOrClassIcon(cell.specIcon, member.specIcon, member.class)
@@ -1788,6 +1961,8 @@ local function FillRaidPlayerCell(cell, member, stripe)
 	else
 		SetFontColor(cell.statsText, UI.TEXT_IDLE)
 	end
+
+	FillRaidBuffIcons(cell, member.raidBuffs)
 
 	cell.karmaText:SetText(FormatKarmaLine(member.karma))
 	SetFontColor(cell.karmaText, UI.TEXT_IDLE)
@@ -1819,9 +1994,9 @@ local function CreateRaidRosterPage(parent)
 		Addon:RefreshPartyData(true)
 	end)
 
-	CreateRosterStatsLabel(page)
+	CreateRaidStatsLabels(page)
 
-	local tableTop = -RosterTableTopOffset()
+	local tableTop = -RaidRosterTableTopOffset()
 	local tableHost = CreateFrame("Frame", nil, page)
 	tableHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
 	tableHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
@@ -1901,7 +2076,7 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 	page.tableHost:Show()
 
 	local groups = self:BuildRaidGroups(refreshGearScore)
-	UpdateRosterStatsLabel(page, MembersFromRaidGroups(groups))
+	UpdateRaidRosterStatsLabels(page, MembersFromRaidGroups(groups))
 	local blocks = { page.topBlock, page.bottomBlock }
 	for blockIndex = 1, #blocks do
 		local block = blocks[blockIndex]
@@ -1962,14 +2137,26 @@ local function CreateHistoryRow(parent)
 	row.nameText = AddTextColumn(1, "LEFT")
 
 	row.classIconHost = CreateFrame("Frame", nil, row)
-	row.classIconHost:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
-	row.classIconHost:SetPoint("LEFT", row, "TOPLEFT", HistoryColumnOffset(2) + 7, -10)
+	row.classIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
+	row.classIconHost:SetPoint(
+		"LEFT",
+		row,
+		"TOPLEFT",
+		HistoryColumnOffset(2) + TableIconInset(UI.HISTORY_COL_CLASS, UI.ROSTER_ICON),
+		TableIconTopOffset(UI.ROSTER_ICON)
+	)
 	row.classIcon = row.classIconHost:CreateTexture(nil, "ARTWORK")
 	row.classIcon:SetAllPoints(row.classIconHost)
 
 	row.specIconHost = CreateFrame("Frame", nil, row)
-	row.specIconHost:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
-	row.specIconHost:SetPoint("LEFT", row, "TOPLEFT", HistoryColumnOffset(3) + 7, -10)
+	row.specIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
+	row.specIconHost:SetPoint(
+		"LEFT",
+		row,
+		"TOPLEFT",
+		HistoryColumnOffset(3) + TableIconInset(UI.HISTORY_COL_SPEC, UI.ROSTER_ICON),
+		TableIconTopOffset(UI.ROSTER_ICON)
+	)
 	row.specIcon = row.specIconHost:CreateTexture(nil, "ARTWORK")
 	row.specIcon:SetAllPoints(row.specIconHost)
 

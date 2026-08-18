@@ -109,11 +109,13 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 ```text
 [ short description ]                              [ Refresh ]
         8 px gap
-[ Average iLvl: 264     Average GS: 6158 ]
+[ Average iLvl: 264     Average GS: 6158     2T  6H  10MDD  7RDD ]
+[ Tanks 270/6200     Healers 265/5800     Melee 268/6400     Range 264/6100 ]
         8 px gap
 [ 1              ][ 2              ][ 3              ][ 4              ][ 5              ]
 [ (class) Rhee   ][ empty slot     ] ...
-[ (spec) 6158gs 264ilvl ]
+[ (role)(spec) 6158gs 264ilvl ]
+[ (buff)(buff)(buff) ]
 [ 4.3 Karma      ]
 [ #tag #tag      ]
         12 px gap
@@ -125,12 +127,14 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 |-------|------------------------|
 | short description | “Raid groups 1–5 and 6–8. Refresh after gear or spec changes.” |
 | Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons |
-| averages | Mean iLvl and GearScore of filled raid members that have a value (`-` when none) |
+| averages | Overall mean iLvl and GearScore, then tank/healer/MDD/RDD counts |
+| role averages | Mean iLvl/GS per role (`Tanks 270/6200`); `-/-` when none |
 | column header | Group number (`1`–`8`) |
 | line 1 | Class icon + class-colored name |
-| line 2 | Spec icon + `6158gs 264ilvl` (omit missing values) |
-| line 3 | Temporary karma placeholder (`4.3 Karma`) |
-| line 4 | Tags (`#tag #tag`); placeholder until tag functions exist |
+| line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
+| line 3 | Spec- and race-specific raid buff icons (hover for name); up to 8 |
+| line 4 | Temporary karma placeholder (`4.3 Karma`) |
+| line 5 | Tags (`#tag #tag`); placeholder until tag functions exist |
 | click | Left-click a filled cell opens **Character profile** |
 
 ## Character profile

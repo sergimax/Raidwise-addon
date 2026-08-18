@@ -50,8 +50,10 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 **Raid roster** tab:
 
 - Two blocks: raid groups **1–5**, then **6–8**
-- Line above the cells: average item level and average GearScore
-- Each group is a column of five player cards: class icon + name, spec icon + GS/iLvl, karma, and tags
+- Line above the cells: overall average iLvl/GS plus tank/healer/MDD/RDD counts; second line is per-role iLvl/GS
+- Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, karma, and tags
+- Role icon matches RaidBuffStatus (tank / healer / melee / ranged)
+- Buff icons are spec- and race-specific raid utilities (hover for the name)
 - Click a filled card to open **Character profile** (`{name} - Character profile`)
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 
@@ -103,6 +105,7 @@ Raidwise/
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
   PartyRoster.lua     # party / raid member stats for roster views
+  RaidRoles.lua       # raid role and spec/race buff lookups
   PlayerHistory.lua   # saved party/raid encounter list (History tab)
   ExporterWindow.lua  # main in-game window
 docs/

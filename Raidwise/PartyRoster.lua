@@ -249,6 +249,7 @@ local function PrimarySpecFromInspectUnit(unit)
 
 	local bestName = ""
 	local bestIcon = ""
+	local bestTab = 0
 	local bestPoints = -1
 	local tabCount = 3
 	if type(GetNumTalentTabs) == "function" then
@@ -262,66 +263,69 @@ local function PrimarySpecFromInspectUnit(unit)
 			bestPoints = pointsSpent
 			bestName = name or ""
 			bestIcon = icon or ""
+			bestTab = tab
 		end
 	end
 
-	return bestName, bestIcon
+	return bestName, bestIcon, bestTab
 end
 
 local function CachedSpecForGuid(guid)
 	local cached = guid and specCache[guid]
 	if type(cached) == "table" then
-		if cached.icon ~= "" or (cached.name and cached.name ~= "") then
-			return cached.name or "", cached.icon or ""
+		if cached.icon ~= "" or (cached.name and cached.name ~= "") or (cached.tab and cached.tab > 0) then
+			return cached.name or "", cached.icon or "", cached.tab or 0
 		end
 	end
 	if type(cached) == "string" and cached ~= "" then
-		return cached, ""
+		return cached, "", 0
 	end
 	return nil
 end
 
-local function StoreSpecCache(guid, specName, specIcon)
+local function StoreSpecCache(guid, specName, specIcon, specTab)
 	if not guid then
 		return
 	end
 	specName = specName or ""
 	specIcon = specIcon or ""
-	if specName == "" and specIcon == "" then
+	specTab = tonumber(specTab) or 0
+	if specName == "" and specIcon == "" and specTab == 0 then
 		return
 	end
 	specCache[guid] = {
 		name = specName,
 		icon = specIcon,
+		tab = specTab,
 	}
 end
 
 local function SpecForUnit(unit)
 	if UnitIsUnit(unit, "player") then
 		if Addon.CollectPrimarySpec then
-			local specName, specIcon = Addon:CollectPrimarySpec()
+			local specName, specIcon, specTab = Addon:CollectPrimarySpec()
 			if specName and specName ~= "" then
-				return specName, specIcon or ""
+				return specName, specIcon or "", specTab or 0
 			end
 		end
-		return "", ""
+		return "", "", 0
 	end
 
 	local guid = UnitGUID(unit)
-	local cachedName, cachedIcon = CachedSpecForGuid(guid)
+	local cachedName, cachedIcon, cachedTab = CachedSpecForGuid(guid)
 	if cachedName ~= nil then
-		return cachedName, cachedIcon
+		return cachedName, cachedIcon, cachedTab or 0
 	end
 
 	if inspectPending == unit then
-		local specName, specIcon = PrimarySpecFromInspectUnit(unit)
-		if specName ~= "" or specIcon ~= "" then
-			StoreSpecCache(guid, specName, specIcon)
-			return specName, specIcon
+		local specName, specIcon, specTab = PrimarySpecFromInspectUnit(unit)
+		if specName ~= "" or specIcon ~= "" or (specTab and specTab > 0) then
+			StoreSpecCache(guid, specName, specIcon, specTab)
+			return specName, specIcon, specTab
 		end
 	end
 
-	return "", ""
+	return "", "", 0
 end
 
 local function GuildInfoForUnit(unit)
@@ -366,6 +370,9 @@ local function MinimalPartyMember(unit)
 		classLabel = localizedClass or "",
 		spec = "",
 		specIcon = "",
+		specTab = 0,
+		role = "unknown",
+		raidBuffs = {},
 		gearScore = nil,
 		averageIlvl = nil,
 		guildName = nil,
@@ -478,11 +485,26 @@ local function AppendRaidMember(groups, groupIndex, member)
 	slots[#slots + 1] = member
 end
 
-function Addon:CollectRaidMember(unit, refreshGearScore)
+function Addon:CollectRaidMember(unit, refreshGearScore, raidIndex)
 	local name, realm = UnitName(unit)
 	local localizedClass, classToken = UnitClass(unit)
-	local specName, specIcon = SpecForUnit(unit)
+	local specName, specIcon, specTab = SpecForUnit(unit)
 	local guildName, guildRankName = GuildInfoForUnit(unit)
+	local _, raceToken = UnitRace(unit)
+	local faction = UnitFactionGroup and UnitFactionGroup(unit) or ""
+	local isMainTank = false
+	if raidIndex and type(GetRaidRosterInfo) == "function" then
+		local _, _, _, _, _, _, _, _, _, raidRole = GetRaidRosterInfo(raidIndex)
+		isMainTank = raidRole == "MAINTANK"
+	end
+	local role = "unknown"
+	if self.RoleForRaidMember then
+		role = self:RoleForRaidMember(classToken, specTab, isMainTank)
+	end
+	local raidBuffs = {}
+	if self.RaidBuffsForMember then
+		raidBuffs = self:RaidBuffsForMember(classToken, specTab, raceToken, faction)
+	end
 
 	return {
 		unit = unit,
@@ -493,6 +515,10 @@ function Addon:CollectRaidMember(unit, refreshGearScore)
 		classLabel = localizedClass or "",
 		spec = specName,
 		specIcon = specIcon or "",
+		specTab = specTab or 0,
+		race = raceToken or "",
+		role = role,
+		raidBuffs = raidBuffs,
 		gearScore = GearScoreForUnit(unit, refreshGearScore),
 		averageIlvl = AverageItemLevelForUnit(unit),
 		guildName = guildName,
@@ -514,7 +540,7 @@ function Addon:BuildRaidGroups(refreshGearScore)
 			local unit = "raid" .. index
 			if UnitExists(unit) then
 				local _, _, subgroup = GetRaidRosterInfo(index)
-				local ok, member = pcall(self.CollectRaidMember, self, unit, refreshGearScore)
+				local ok, member = pcall(self.CollectRaidMember, self, unit, refreshGearScore, index)
 				if not ok or type(member) ~= "table" then
 					member = MinimalPartyMember(unit)
 				end
@@ -572,9 +598,9 @@ end
 function Addon:OnInspectTalentReady()
 	local unit = inspectPending
 	if unit and UnitExists(unit) then
-		local specName, specIcon = PrimarySpecFromInspectUnit(unit)
-		if specName ~= "" or specIcon ~= "" then
-			StoreSpecCache(UnitGUID(unit), specName, specIcon)
+		local specName, specIcon, specTab = PrimarySpecFromInspectUnit(unit)
+		if specName ~= "" or specIcon ~= "" or (specTab and specTab > 0) then
+			StoreSpecCache(UnitGUID(unit), specName, specIcon, specTab)
 		end
 		AverageItemLevelForUnit(unit)
 	end

@@ -99,8 +99,8 @@ Same toolbar as Character cooldowns, plus an averages line, then the scroll tabl
 |---------|------|-------|
 | Averages line | height **16** | `Average iLvl: {n}     Average GS: {n}`; 8 px gap above and below |
 | Columns | **90 + 28 + 28 + 52 + 44 + 52 + 100 + 184 = 578** | Name, class icon, spec icon, GS, iLvl, Karma, Tags, Guild |
-| Class column | **14** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
-| Spec column | **14** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
+| Class column | **18** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
+| Spec column | **18** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
 | Karma column | **52**, center | Placeholder `4.3` until karma is implemented |
 | Tags column | **100** | `#tag #tag`; placeholder until tag functions exist |
 | Guild column | **184** | `GuildName (Rank)`; `-` when not in a guild |
@@ -109,18 +109,19 @@ Max **5** rows (player + `party1`–`party4`). Raid members are not listed here.
 
 ## Raid roster tab
 
-Same toolbar + averages line as Party roster (`CD_TOOLBAR_H`, gap, scrollbars). Two stacked blocks inside the scroll child.
+Same toolbar as Party roster, then two stats lines, then the scroll host. Two stacked blocks inside the scroll child.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Averages line | height **16** | Same as Party roster; mean of filled members with a value |
-| Player cell | **148 × 72** | Four lines: class+name, spec+GS/iLvl, karma, tags |
+| Averages line | height **16** | Overall iLvl/GS plus `2T  6H  10MDD  7RDD` |
+| Role averages | height **16** | `Tanks {ilvl}/{gs}` (and Healers, Melee, Range) |
+| Player cell | **168 × 98** | Five lines: class+name, role+spec+GS/iLvl, buff icons, karma, tags |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Gold number above each party column |
-| Block 1 | **5 × (148 + 2) − 2 = 748** | Parties 1–5 |
-| Block 2 | **3 × (148 + 2) − 2 = 448** | Parties 6–8, left-aligned under block 1 |
+| Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
+| Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
-| Cell content | **14** px icons | Class on line 1, spec on line 2 |
+| Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3 |
 
 ## Character profile
 
@@ -132,7 +133,7 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Ra
 | Title bar | height **20** | Drag handle; `{name} - Character profile` |
 | Close button | **16 × 16** | Right of title bar |
 | Body padding | **10** | Same as main shell `PAD` |
-| Icons | **14** | Class then spec, stacked |
+| Icons | **24** | Class then spec, stacked |
 | Line gap | **8** | Between body rows |
 
 ## History tab
@@ -142,6 +143,7 @@ Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H
 | Element | Size | Notes |
 |---------|------|-------|
 | Columns | **90 + 28 + 28 + 52 + 44 + 160 + 130 + 150 = 682** | Name, class, spec, GS, iLvl, Met in, When, Guild |
+| Class / spec icons | **18** px | Centered in 28 px columns |
 | Met in | **160** | First meeting instance or zone |
 | When | **130** | `YYYY-MM-DD HH:MM` |
 

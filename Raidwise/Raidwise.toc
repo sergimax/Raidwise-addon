@@ -11,5 +11,6 @@ Raidwise.lua
 CharacterExport.lua
 CharacterLockouts.lua
 PartyRoster.lua
+RaidRoles.lua
 PlayerHistory.lua
 ExporterWindow.lua
