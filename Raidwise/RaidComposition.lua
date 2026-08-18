@@ -245,6 +245,7 @@ local EFFECTS = {
 		id = "sacred_shield",
 		labelKey = "COMP_SACRED_SHIELD",
 		spellId = 53601,
+		hidden = true,
 		sources = { Src("PALADIN", 1) },
 	},
 	{
@@ -259,6 +260,7 @@ local EFFECTS = {
 		id = "intervene",
 		labelKey = "COMP_INTERVENE",
 		spellId = 3411,
+		hidden = true,
 		sources = { Src("WARRIOR") },
 	},
 	{
@@ -266,6 +268,7 @@ local EFFECTS = {
 		id = "amz",
 		labelKey = "COMP_AMZ",
 		spellId = 51052,
+		hidden = true,
 		sources = { Src("DEATHKNIGHT", 3) },
 	},
 	{
@@ -287,6 +290,7 @@ local EFFECTS = {
 		id = "shield_wall",
 		labelKey = "COMP_SHIELD_WALL",
 		spellId = 871,
+		hidden = true,
 		sources = { Src("WARRIOR") },
 	},
 	{
@@ -294,6 +298,7 @@ local EFFECTS = {
 		id = "last_stand",
 		labelKey = "COMP_LAST_STAND",
 		spellId = 12975,
+		hidden = true,
 		sources = { Src("WARRIOR", 3) },
 	},
 	{
@@ -301,6 +306,7 @@ local EFFECTS = {
 		id = "icebound",
 		labelKey = "COMP_ICEBOUND",
 		spellId = 48792,
+		hidden = true,
 		sources = { Src("DEATHKNIGHT") },
 	},
 	{
@@ -308,6 +314,7 @@ local EFFECTS = {
 		id = "vampiric_blood",
 		labelKey = "COMP_VAMPIRIC_BLOOD",
 		spellId = 55233,
+		hidden = true,
 		sources = { Src("DEATHKNIGHT", 1) },
 	},
 	{
@@ -315,6 +322,7 @@ local EFFECTS = {
 		id = "survival_instincts",
 		labelKey = "COMP_SURVIVAL_INSTINCTS",
 		spellId = 61336,
+		hidden = true,
 		sources = { Src("DRUID", 2) },
 	},
 	{
@@ -322,6 +330,7 @@ local EFFECTS = {
 		id = "frenzied_regen",
 		labelKey = "COMP_FRENZIED_REGEN",
 		spellId = 22842,
+		hidden = true,
 		sources = { Src("DRUID", 2) },
 	},
 	{
@@ -329,6 +338,7 @@ local EFFECTS = {
 		id = "dispersion",
 		labelKey = "COMP_DISPERSION",
 		spellId = 47585,
+		hidden = true,
 		sources = { Src("PRIEST", 3) },
 	},
 	{
@@ -336,6 +346,7 @@ local EFFECTS = {
 		id = "divine_protection",
 		labelKey = "COMP_DIVINE_PROTECTION",
 		spellId = 498,
+		hidden = true,
 		sources = { Src("PALADIN") },
 	},
 	{
@@ -350,6 +361,7 @@ local EFFECTS = {
 		id = "barkskin",
 		labelKey = "COMP_BARKSKIN",
 		spellId = 22812,
+		hidden = true,
 		sources = { Src("DRUID") },
 	},
 	{
@@ -357,6 +369,7 @@ local EFFECTS = {
 		id = "ice_block",
 		labelKey = "COMP_ICE_BLOCK",
 		spellId = 45438,
+		hidden = true,
 		sources = { Src("MAGE") },
 	},
 	{
@@ -364,6 +377,7 @@ local EFFECTS = {
 		id = "cloak",
 		labelKey = "COMP_CLOAK",
 		spellId = 31224,
+		hidden = true,
 		sources = { Src("ROGUE") },
 	},
 	{
@@ -371,6 +385,7 @@ local EFFECTS = {
 		id = "ams",
 		labelKey = "COMP_AMS",
 		spellId = 48707,
+		hidden = true,
 		sources = { Src("DEATHKNIGHT") },
 	},
 	{
@@ -736,7 +751,7 @@ function Addon:AnalyzeRaidComposition(members)
 		local effects = {}
 		for effectIndex = 1, #EFFECTS do
 			local effect = EFFECTS[effectIndex]
-			if effect.section == sectionInfo.id then
+			if effect.section == sectionInfo.id and not effect.hidden then
 				local providers = {}
 				for memberIndex = 1, #members do
 					local member = members[memberIndex]
@@ -763,11 +778,13 @@ function Addon:AnalyzeRaidComposition(members)
 				}
 			end
 		end
-		sections[#sections + 1] = {
-			id = sectionInfo.id,
-			labelKey = sectionInfo.labelKey,
-			effects = effects,
-		}
+		if #effects > 0 then
+			sections[#sections + 1] = {
+				id = sectionInfo.id,
+				labelKey = sectionInfo.labelKey,
+				effects = effects,
+			}
+		end
 	end
 
 	return {

@@ -47,52 +47,56 @@ Raid-wide stat and throughput buffs. Spells in the same row **do not stack**.
 
 Single-target (or small-group) spells you put **on an ally**. Count is how many people in the raid can cast it.
 
-| Spell | Who |
-|-------|-----|
-| Focus Magic | Arcane Mage |
-| Tricks of the Trade | Any Rogue |
-| Unholy Frenzy | Unholy Death Knight |
-| Power Infusion | Discipline Priest |
-| Innervate | Any Druid |
-| Hand of Salvation | Any Paladin |
-| Hand of Sacrifice | Any Paladin |
-| Hand of Freedom | Any Paladin |
-| Hand of Protection | Any Paladin |
-| Pain Suppression | Discipline Priest |
-| Guardian Spirit | Holy Priest |
-| Misdirection | Any Hunter |
-| Earth Shield | Restoration Shaman |
-| Beacon of Light | Holy Paladin |
-| Sacred Shield | Holy Paladin |
-| Divine Sacrifice | Protection Paladin |
-| Intervene | Any Warrior |
+Rows marked **hidden** stay in this list for reference but are omitted from the Raid composition tab (self-targeted or not useful for raid-lead coverage).
+
+| Spell | Who | View |
+|-------|-----|------|
+| Focus Magic | Arcane Mage | |
+| Tricks of the Trade | Any Rogue | |
+| Unholy Frenzy | Unholy Death Knight | |
+| Power Infusion | Discipline Priest | |
+| Innervate | Any Druid | |
+| Hand of Salvation | Any Paladin | |
+| Hand of Sacrifice | Any Paladin | |
+| Hand of Freedom | Any Paladin | |
+| Hand of Protection | Any Paladin | |
+| Pain Suppression | Discipline Priest | |
+| Guardian Spirit | Holy Priest | |
+| Misdirection | Any Hunter | |
+| Earth Shield | Restoration Shaman | |
+| Beacon of Light | Holy Paladin | |
+| Sacred Shield | Holy Paladin | hidden |
+| Divine Sacrifice | Protection Paladin | |
+| Intervene | Any Warrior | hidden |
 
 ## Damage reduction
 
 Raid or personal CDs and passives that cut damage. Pain Suppression, Guardian Spirit, and Hand of Sacrifice are also listed under External buffs.
 
-| Spell / effect | Who |
-|----------------|-----|
-| Anti-Magic Zone | Unholy Death Knight |
-| Divine Guardian | Protection Paladin |
-| Aura Mastery | Any Paladin (Retribution talent is the usual raid take) |
-| Shield Wall | Any Warrior |
-| Last Stand | Protection Warrior |
-| Icebound Fortitude | Any Death Knight |
-| Vampiric Blood | Blood Death Knight |
-| Survival Instincts | Feral Druid |
-| Frenzied Regeneration | Feral Druid |
-| Dispersion | Shadow Priest |
-| Divine Protection | Any Paladin |
-| Divine Shield | Any Paladin |
-| Barkskin | Any Druid |
-| Ice Block | Any Mage |
-| Cloak of Shadows | Any Rogue |
-| Anti-Magic Shell | Any Death Knight |
-| Lay on Hands | Any Paladin |
-| Divine Hymn | Any Priest |
-| Tranquility | Restoration Druid |
-| Blessing of Sanctuary / Grace | Protection Paladin; Discipline Priest |
+Self-targeted defensives are marked **hidden** and are omitted from the Raid composition tab.
+
+| Spell / effect | Who | View |
+|----------------|-----|------|
+| Anti-Magic Zone | Unholy Death Knight | hidden |
+| Divine Guardian | Protection Paladin | |
+| Aura Mastery | Any Paladin (Retribution talent is the usual raid take) | |
+| Shield Wall | Any Warrior | hidden |
+| Last Stand | Protection Warrior | hidden |
+| Icebound Fortitude | Any Death Knight | hidden |
+| Vampiric Blood | Blood Death Knight | hidden |
+| Survival Instincts | Feral Druid | hidden |
+| Frenzied Regeneration | Feral Druid | hidden |
+| Dispersion | Shadow Priest | hidden |
+| Divine Protection | Any Paladin | hidden |
+| Divine Shield | Any Paladin | |
+| Barkskin | Any Druid | hidden |
+| Ice Block | Any Mage | hidden |
+| Cloak of Shadows | Any Rogue | hidden |
+| Anti-Magic Shell | Any Death Knight | hidden |
+| Lay on Hands | Any Paladin | |
+| Divine Hymn | Any Priest | |
+| Tranquility | Restoration Druid | |
+| Blessing of Sanctuary / Grace | Protection Paladin; Discipline Priest | |
 
 Aura Mastery is treated as present for **any Paladin** (the ability exists on the class; Retribution is the typical raid talent). Divine Guardian requires Protection.
 
@@ -148,3 +152,4 @@ One Replenishment source covers 10 people; 25-man raids usually want two.
 - Pets (Imp Blood Pact, Acid Spit, Sting) are not inspected; the class/spec is enough to mark coverage.
 - Blessings and totems are “can provide”, not “currently assigned on this subgroup”.
 - Party (5) and raid (40) both feed the same checklist; solo shows only your own rows as present.
+- Rows marked **hidden** (self-targeted defensives, Sacred Shield, Intervene) are not shown in the tab.
