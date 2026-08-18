@@ -96,7 +96,7 @@ Self-targeted defensives are marked **hidden** and are omitted from the Raid com
 | Lay on Hands | Any Paladin | |
 | Divine Hymn | Any Priest | |
 | Tranquility | Restoration Druid | |
-| Blessing of Sanctuary / Grace | Protection Paladin; Discipline Priest | |
+| Blessing of Sanctuary / Renewed Hope | Protection Paladin; Discipline Priest | |
 | Inspiration / Ancestral Healing | Discipline or Holy Priest; Restoration Shaman | |
 
 Aura Mastery is treated as present for **any Paladin** (the ability exists on the class; Retribution is the typical raid talent). Divine Guardian requires Protection.
