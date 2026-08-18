@@ -1,3 +1,5 @@
+[English](README.md) | [Русский](README.ru.md)
+
 # Raidwise
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, meeting history, account-wide lockouts, and character JSON export.
@@ -25,13 +27,15 @@ In-game slash commands:
 
 | Command | Description |
 |---------|-------------|
-| `/raidwise` or `/rw` (also `help`) | Show help |
+| `/raidwise` or `/rw` (also `/rw help`) | Show help |
 | `/raidwise version` | Show addon version |
 | `/raidwise status` | Show load status |
 | `/raidwise show` | Open the main window |
 | `/raidwise hide` | Close the main window |
 
-The window uses a Details-style layout: plain panels, a **left menu**, and a content page. The status bar shows the addon name and version. Esc or the title **X** closes the window.
+Plain panels, a **left menu**, and a content page.
+The status bar shows the addon name and version.
+Esc or the title **X** closes the window.
 
 **Character cooldowns** tab:
 
@@ -71,6 +75,11 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 - Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
 - **Refresh** records the current group again and redraws the list
 
+**Settings** tab:
+
+- Interface language: **English** or **Русский**
+- The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
+
 **Info** tab:
 
 - What the addon does (rosters, history, lockouts, export) and which slash commands exist
@@ -97,6 +106,7 @@ In-chat menu (`/raidwise help`):
 Raidwise/
   Raidwise.toc        # addon metadata (Interface 30300)
   Raidwise.lua        # entry point, events, slash commands
+  Locale.lua          # English / Russian UI strings and language switch
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
   PartyRoster.lua     # party / raid member stats for roster views
@@ -114,6 +124,6 @@ types/
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID).
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`).
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.

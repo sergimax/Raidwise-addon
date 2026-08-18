@@ -7,6 +7,35 @@ Addon.version = "1.5.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
+-- Fallback if Locale.lua does not load. Locale.lua replaces Addon.T.
+local FallbackChat = {
+	CHAT_LOADED = "loaded (v%s). Type /raidwise for help.",
+	CHAT_HELP_HELP = "/raidwise help    - show this help",
+	CHAT_HELP_VERSION = "/raidwise version - show addon version",
+	CHAT_HELP_STATUS = "/raidwise status  - show addon status",
+	CHAT_HELP_SHOW = "/raidwise show    - open the main window",
+	CHAT_HELP_HIDE = "/raidwise hide    - close the main window",
+	CHAT_VERSION = "version %s",
+	CHAT_STATUS = "v%s | updated=%s | enabled=%s | player=%s",
+	CHAT_UNKNOWN = "Unknown command. Type /raidwise help",
+}
+
+local function FormatText(text, ...)
+	local count = select("#", ...)
+	if count <= 0 then
+		return text
+	end
+	local ok, formatted = pcall(string.format, text, ...)
+	if ok then
+		return formatted
+	end
+	return text
+end
+
+function Addon:T(key, ...)
+	return FormatText(FallbackChat[key] or tostring(key or ""), ...)
+end
+
 local defaults = {
 	enabled = true,
 	includeGearNames = true,
@@ -52,8 +81,19 @@ end
 function Addon:OnInitialize()
 	EnsureDB()
 	self.lastUpdated = GetAddOnMetadata(ADDON_NAME, "X-LastUpdated") or ""
-	self:CreateMainFrame()
-	self:Print("loaded (v" .. self.version .. "). Type /raidwise for help.")
+	if not self.db.locale or (self.db.locale ~= "enUS" and self.db.locale ~= "ruRU") then
+		self.db.locale = self.DetectClientLocale and self:DetectClientLocale() or "enUS"
+	end
+	if self.SetLocale then
+		self:SetLocale(self.db.locale, true)
+	end
+	if self.CreateMainFrame then
+		local ok, err = pcall(self.CreateMainFrame, self)
+		if not ok then
+			self:Print("UI failed to load: " .. tostring(err))
+		end
+	end
+	self:Print(self:T("CHAT_LOADED", self.version))
 end
 
 -- Run when the player is fully in the world (gear, talents, etc.).
@@ -130,22 +170,22 @@ SlashCmdList["RAIDWISE"] = function(msg)
 	msg = msg:lower()
 
 	if msg == "" or msg == "help" then
-		Addon:Print("/raidwise help    - show this help")
-		Addon:Print("/raidwise version - show addon version")
-		Addon:Print("/raidwise status  - show addon status")
-		Addon:Print("/raidwise show    - open the main window")
-		Addon:Print("/raidwise hide    - close the main window")
+		Addon:Print(Addon:T("CHAT_HELP_HELP"))
+		Addon:Print(Addon:T("CHAT_HELP_VERSION"))
+		Addon:Print(Addon:T("CHAT_HELP_STATUS"))
+		Addon:Print(Addon:T("CHAT_HELP_SHOW"))
+		Addon:Print(Addon:T("CHAT_HELP_HIDE"))
 		return
 	end
 
 	if msg == "version" then
-		Addon:Print("version " .. tostring(Addon.version))
+		Addon:Print(Addon:T("CHAT_VERSION", tostring(Addon.version)))
 		return
 	end
 
 	if msg == "status" then
-		Addon:Print(string.format(
-			"v%s | updated=%s | enabled=%s | player=%s",
+		Addon:Print(Addon:T(
+			"CHAT_STATUS",
 			Addon.version,
 			tostring(Addon.lastUpdated),
 			tostring(Addon.db and Addon.db.enabled),
@@ -164,7 +204,7 @@ SlashCmdList["RAIDWISE"] = function(msg)
 		return
 	end
 
-	Addon:Print("Unknown command. Type /raidwise help")
+	Addon:Print(Addon:T("CHAT_UNKNOWN"))
 end
 
 local frame = CreateFrame("Frame")

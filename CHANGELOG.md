@@ -14,12 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Buffs** column on **Party roster** (same raid-utility icons as Raid roster)
 - Raid roster summary: overall average GearScore plus per-role count and average GS (`Tanks: 2 (6200 gs)`)
 - **Character cooldowns** column headers show when that character was last checked (`18 Aug 23:58`; full date on hover)
+- **Settings** tab: English / Russian interface language, saved in `RaidwiseDB.locale`
+- Russian localization for in-game UI, slash help, and addon list notes (`## Notes-ruRU`)
+- Russian README ([`README.ru.md`](README.ru.md))
 
 ### Changed
 - Main window content area is **890 × 690** so raid groups 1–5 fit without vertical scrolling
 - Larger roster icons (party/history **18** px, raid **20** px, buffs **18** px, profile **24** px)
 - Raid roster summary hides average iLvl (transmog skews it); per-player cells still show iLvl
-- Left menu order: Character cooldowns, Export gear and CDs, Party roster, Raid roster, History, Info
+- Left menu order: Character cooldowns, Export gear and CDs, Party roster, Raid roster, History, Settings, Info
 - Addon list notes and Info about text mention meeting history
 
 ### Removed

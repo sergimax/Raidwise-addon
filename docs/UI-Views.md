@@ -28,6 +28,7 @@ Menu tabs (top to bottom):
 [ Party roster ]
 [ Raid roster ]
 [ History ]
+[ Settings ]
 [ Info ]
 ```
 
@@ -200,6 +201,22 @@ Players you have been in a party or raid with (not yourself). Each GUID is store
 
 Notes, tags, links, and a change log are stored empty on each record for later editing; they are not shown on this table yet.
 
+## Settings
+
+```text
+[ language heading ]
+[ short hint ]
+[ English button ] [ Русский button ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| language heading | Language |
+| short hint | “Interface language. Saved on this account.” |
+| English / Русский | Menu-style buttons; the active locale is selected. Choice is stored in `RaidwiseDB.locale` (`enUS` / `ruRU`). Default is the client locale. |
+
+Switching language updates the left menu, page labels, and visible tables without `/reload`.
+
 ## Info
 
 ```text
@@ -213,7 +230,7 @@ Notes, tags, links, and a change log are stored empty on each record for later e
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | Raid-prep overview (rosters, history, lockouts, export); what Character cooldowns, Party roster, Raid roster, History, and Export gear and CDs do; slash commands |
+| descriptions | Raid-prep overview (rosters, history, lockouts, export); what Character cooldowns, Party roster, Raid roster, History, Export gear and CDs, and Settings do; slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |

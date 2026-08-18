@@ -43,18 +43,18 @@ local function LockoutRowKey(entry)
 end
 
 local function TypeLabel(entry)
-	local kind = entry.isRaid and "Raid" or "Dungeon"
+	local kind = Addon:T(entry.isRaid and "LOCKOUT_RAID" or "LOCKOUT_DUNGEON")
 	local size = tonumber(entry.maxPlayers) or 0
 	local sizeText
 	if size > 0 then
 		sizeText = tostring(size)
 		if IsHeroicLockout(entry) then
-			sizeText = sizeText .. " Heroic"
+			sizeText = sizeText .. " " .. Addon:T("LOCKOUT_HEROIC")
 		end
 	else
 		sizeText = entry.difficultyName or ""
 		if sizeText == "" then
-			sizeText = IsHeroicLockout(entry) and "Heroic" or "Normal"
+			sizeText = Addon:T(IsHeroicLockout(entry) and "LOCKOUT_HEROIC" or "LOCKOUT_NORMAL")
 		end
 	end
 	return kind .. " / " .. sizeText
@@ -85,15 +85,15 @@ local function FormatRemaining(resetAt, now)
 	remaining = remaining - hours * 3600
 	local minutes = math.floor(remaining / 60)
 	if days > 0 then
-		return days .. "d " .. hours .. "h"
+		return Addon:T("TIME_DAYS_HOURS", days, hours)
 	end
 	if hours > 0 then
-		return hours .. "h " .. minutes .. "m"
+		return Addon:T("TIME_HOURS_MINUTES", hours, minutes)
 	end
 	if minutes > 0 then
-		return minutes .. "m"
+		return Addon:T("TIME_MINUTES", minutes)
 	end
-	return "<1m"
+	return Addon:T("TIME_LESS_MINUTE")
 end
 
 local function EnsureCharactersTable()

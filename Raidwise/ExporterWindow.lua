@@ -2,6 +2,13 @@
 
 local Addon = Raidwise
 
+local function T(key, ...)
+	if Addon.T then
+		return Addon:T(key, ...)
+	end
+	return tostring(key or "")
+end
+
 -- Keep in sync with docs/UI-Sizes.md and docs/UI-Views.md
 local UI = {
 	-- Content panel (RaidwiseFrame)
@@ -113,12 +120,13 @@ local UI = {
 local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
 
 local PAGES = {
-	{ id = "cooldowns", label = "Character cooldowns" },
-	{ id = "export", label = "Export gear and CDs" },
-	{ id = "party", label = "Party roster" },
-	{ id = "raid", label = "Raid roster" },
-	{ id = "history", label = "History" },
-	{ id = "info", label = "Info" },
+	{ id = "cooldowns", labelKey = "TAB_COOLDOWNS" },
+	{ id = "export", labelKey = "TAB_EXPORT" },
+	{ id = "party", labelKey = "TAB_PARTY" },
+	{ id = "raid", labelKey = "TAB_RAID" },
+	{ id = "history", labelKey = "TAB_HISTORY" },
+	{ id = "settings", labelKey = "TAB_SETTINGS" },
+	{ id = "info", labelKey = "TAB_INFO" },
 }
 
 local function ApplyPlainPanel(frame, color)
@@ -506,7 +514,7 @@ local function CreateExportPage(parent)
 	desc:SetWidth(innerW)
 	desc:SetJustifyH("LEFT")
 	desc:SetJustifyV("TOP")
-	desc:SetText("Export this character's gear, bags, and raid lockouts as JSON.")
+	desc:SetText(T("EXPORT_DESC"))
 
 	local namesCheck = CreateFrame("CheckButton", "RaidwiseIncludeNamesCheck", page, "UICheckButtonTemplate")
 	namesCheck:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
@@ -523,7 +531,7 @@ local function CreateExportPage(parent)
 
 	local namesLabel = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	namesLabel:SetPoint("LEFT", namesCheck, "RIGHT", 4, 0)
-	namesLabel:SetText("Include item names")
+	namesLabel:SetText(T("EXPORT_INCLUDE_NAMES"))
 
 	local namesHit = CreateFrame("Button", nil, page)
 	namesHit:SetPoint("LEFT", namesCheck, "RIGHT", 0, 0)
@@ -534,7 +542,7 @@ local function CreateExportPage(parent)
 	end)
 
 	local buttonW = (innerW - UI.ACTION_BTN_GAP) / 2
-	local exportBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, "Export character data")
+	local exportBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, T("BTN_EXPORT_DATA"))
 	exportBtn:SetPoint("TOPLEFT", namesCheck, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
 	exportBtn:SetScript("OnClick", function()
 		Addon:FlushExportToWindow()
@@ -542,7 +550,7 @@ local function CreateExportPage(parent)
 		RequestRaidInfo()
 	end)
 
-	local selectBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, "Select all")
+	local selectBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, T("BTN_SELECT_ALL"))
 	selectBtn:SetPoint("LEFT", exportBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
 	selectBtn:Disable()
 	selectBtn:SetScript("OnClick", function()
@@ -553,7 +561,7 @@ local function CreateExportPage(parent)
 	statusLabel:SetPoint("TOPLEFT", exportBtn, "BOTTOMLEFT", 0, -UI.BUTTONS_TO_HINT)
 	statusLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	statusLabel:SetJustifyH("LEFT")
-	statusLabel:SetText("After export, press Ctrl+C to copy.")
+	statusLabel:SetText(T("EXPORT_HINT"))
 
 	local exportBox, copyHost = CreateCopyBox(page, "RaidwiseExportScroll", "RaidwiseExportBox")
 	copyHost:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
@@ -562,6 +570,67 @@ local function CreateExportPage(parent)
 	page.exportBox = exportBox
 	page.statusLabel = statusLabel
 	page.selectBtn = selectBtn
+	page.desc = desc
+	page.namesLabel = namesLabel
+	page.exportBtn = exportBtn
+	return page
+end
+
+local function UpdateLocaleButtons(page)
+	if not page or not page.enBtn or not page.ruBtn then
+		return
+	end
+	local locale = Addon:GetLocaleId()
+	SetMenuButtonState(page.enBtn, locale == "enUS", false)
+	SetMenuButtonState(page.ruBtn, locale == "ruRU", false)
+end
+
+local function CreateSettingsPage(parent)
+	local page = CreateFrame("Frame", nil, parent)
+	page:SetAllPoints(parent)
+
+	local heading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	heading:SetPoint("TOPLEFT", 0, 0)
+	heading:SetText(T("SETTINGS_LANGUAGE"))
+	SetFontColor(heading, UI.GOLD)
+	page.heading = heading
+
+	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	hint:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	hint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	hint:SetJustifyH("LEFT")
+	hint:SetText(T("SETTINGS_LANGUAGE_HINT"))
+	page.hint = hint
+
+	local enBtn = CreatePlainButton(page, 120, UI.ACTION_BTN_H, T("LOCALE_EN"))
+	enBtn:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
+	enBtn.tabId = "enUS"
+	enBtn:SetScript("OnEnter", function(self)
+		SetMenuButtonState(self, Addon:GetLocaleId() == "enUS", true)
+	end)
+	enBtn:SetScript("OnLeave", function(self)
+		SetMenuButtonState(self, Addon:GetLocaleId() == "enUS", false)
+	end)
+	enBtn:SetScript("OnClick", function()
+		Addon:SetLocale("enUS")
+	end)
+	page.enBtn = enBtn
+
+	local ruBtn = CreatePlainButton(page, 120, UI.ACTION_BTN_H, T("LOCALE_RU"))
+	ruBtn:SetPoint("LEFT", enBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
+	ruBtn.tabId = "ruRU"
+	ruBtn:SetScript("OnEnter", function(self)
+		SetMenuButtonState(self, Addon:GetLocaleId() == "ruRU", true)
+	end)
+	ruBtn:SetScript("OnLeave", function(self)
+		SetMenuButtonState(self, Addon:GetLocaleId() == "ruRU", false)
+	end)
+	ruBtn:SetScript("OnClick", function()
+		Addon:SetLocale("ruRU")
+	end)
+	page.ruBtn = ruBtn
+
+	UpdateLocaleButtons(page)
 	return page
 end
 
@@ -573,42 +642,31 @@ local function CreateInfoPage(parent)
 
 	local aboutHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	aboutHeading:SetPoint("TOPLEFT", 0, 0)
-	aboutHeading:SetText("About")
+	aboutHeading:SetText(T("INFO_ABOUT"))
 	SetFontColor(aboutHeading, UI.GOLD)
+	page.aboutHeading = aboutHeading
 
 	local about = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	about:SetPoint("TOPLEFT", aboutHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	about:SetWidth(innerW)
 	about:SetJustifyH("LEFT")
 	about:SetJustifyV("TOP")
-	about:SetText(
-		"Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, meeting history, account-wide lockouts, and character export.\n\n"
-			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account, "
-			.. "including when each character was last checked. "
-			.. "Log in on each alt to record their lockouts.\n\n"
-			.. "Party roster lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, karma, and tags. "
-			.. "Raid roster shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
-			.. "Click a filled card to open Character profile.\n\n"
-			.. "History keeps party and raid players you have grouped with, including where and when you met them. "
-			.. "That list is saved on this account and stays after logout.\n\n"
-			.. "Export gear and CDs builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
-			.. "Turn on Include item names to add display names next to item ids. "
-			.. "If the GearScore addon is loaded, the current score is included.\n\n"
-			.. "Slash commands: /raidwise or /rw (help, version, status, show, hide)."
-	)
+	about:SetText(T("INFO_BODY"))
+	page.about = about
 
 	local repoHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	repoHeading:SetPoint("TOPLEFT", about, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
-	repoHeading:SetText("GitHub")
+	repoHeading:SetText(T("INFO_GITHUB"))
 	SetFontColor(repoHeading, UI.GOLD)
+	page.repoHeading = repoHeading
 
 	local repoHint = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	repoHint:SetPoint("TOPLEFT", repoHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	repoHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	repoHint:SetJustifyH("LEFT")
-	repoHint:SetText("Select the URL, then press Ctrl+C to copy.")
+	repoHint:SetText(T("INFO_REPO_HINT"))
 
-	local copyBtn = CreatePlainButton(page, 110, UI.ACTION_BTN_H, "Select all")
+	local copyBtn = CreatePlainButton(page, 130, UI.ACTION_BTN_H, T("BTN_SELECT_ALL"))
 	copyBtn:SetPoint("TOPRIGHT", repoHint, "BOTTOMRIGHT", 0, -UI.INFO_HEADING_GAP)
 	copyBtn:SetScript("OnClick", function()
 		Addon:SelectRepoUrl()
@@ -621,6 +679,8 @@ local function CreateInfoPage(parent)
 
 	page.repoBox = repoBox
 	page.repoHint = repoHint
+	page.copyBtn = copyBtn
+	page.repoHost = repoHost
 	return page
 end
 
@@ -738,18 +798,21 @@ local function FormatLastCheckTime(timestamp)
 	if not timestamp or timestamp <= 0 then
 		return "-"
 	end
+	if Addon.FormatShortDateTime then
+		return Addon:FormatShortDateTime(timestamp)
+	end
 	return date("%d %b %H:%M", timestamp)
 end
 
 local function FormatLastCheckTooltip(timestamp)
 	timestamp = tonumber(timestamp)
 	if not timestamp or timestamp <= 0 then
-		return "Last check: -"
+		return T("CD_LAST_CHECK_NONE")
 	end
 	if Addon.FormatHistoryTime then
-		return "Last check: " .. Addon:FormatHistoryTime(timestamp)
+		return T("CD_LAST_CHECK", Addon:FormatHistoryTime(timestamp))
 	end
-	return "Last check: " .. date("%Y-%m-%d %H:%M", timestamp)
+	return T("CD_LAST_CHECK", date("%Y-%m-%d %H:%M", timestamp))
 end
 
 local function CreateCooldownHeaderCell(parent)
@@ -916,12 +979,12 @@ local function CreateCooldownsPage(parent)
 
 	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
-	hint:SetPoint("RIGHT", page, "RIGHT", -90, 0)
+	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
-	hint:SetText("Lockouts for every character saved on this account.")
+	hint:SetText(T("CD_HINT"))
 
-	local refreshBtn = CreatePlainButton(page, 80, UI.CD_TOOLBAR_H, "Refresh")
+	local refreshBtn = CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
 	refreshBtn:SetScript("OnClick", function()
 		Addon.pendingLockoutTable = true
@@ -937,7 +1000,7 @@ local function CreateCooldownsPage(parent)
 	emptyLabel:SetJustifyH("CENTER")
 	emptyLabel:SetJustifyV("MIDDLE")
 	SetFontColor(emptyLabel, UI.TEXT_IDLE)
-	emptyLabel:SetText("Log in on each character to record raid and dungeon lockouts.")
+	emptyLabel:SetText(T("CD_EMPTY"))
 	page.emptyLabel = emptyLabel
 
 	local tableHost = CreateFrame("Frame", nil, page)
@@ -967,7 +1030,7 @@ local function CreateCooldownsPage(parent)
 
 	local instanceHeader = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	instanceHeader:SetPoint("LEFT", 6, 0)
-	instanceHeader:SetText("Raid / Dungeon")
+	instanceHeader:SetText(T("CD_INSTANCE"))
 	SetFontColor(instanceHeader, UI.GOLD)
 	page.instanceHeader = instanceHeader
 
@@ -976,7 +1039,7 @@ local function CreateCooldownsPage(parent)
 	noRowsLabel:SetPoint("RIGHT", content, "RIGHT", -8, 0)
 	noRowsLabel:SetJustifyH("LEFT")
 	SetFontColor(noRowsLabel, UI.TEXT_IDLE)
-	noRowsLabel:SetText("No current lockouts.")
+	noRowsLabel:SetText(T("CD_NO_ROWS"))
 	noRowsLabel:Hide()
 	page.noRowsLabel = noRowsLabel
 
@@ -1032,7 +1095,7 @@ function Addon:RefreshCooldownTable()
 		page.emptyLabel:ClearAllPoints()
 		page.emptyLabel:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -CooldownTableTopOffset())
 		page.emptyLabel:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
-		page.emptyLabel:SetText("Log in on each character to record raid and dungeon lockouts.")
+		page.emptyLabel:SetText(T("CD_EMPTY"))
 		page.emptyLabel:Show()
 		page.tableHost:Hide()
 		return
@@ -1101,11 +1164,11 @@ function Addon:RefreshCooldownTable()
 			if saved and saved.remainingText then
 				cell.text:SetText(saved.remainingText)
 				SetFontColor(cell.text, UI.GOLD)
-				cell.tooltipBody = "Saved - resets in " .. saved.remainingText
+				cell.tooltipBody = T("CD_SAVED_RESETS", saved.remainingText)
 			else
 				cell.text:SetText("-")
 				SetFontColor(cell.text, UI.TEXT_DISABLED)
-				cell.tooltipBody = "Not saved"
+				cell.tooltipBody = T("CD_NOT_SAVED")
 			end
 			cell:Show()
 		end
@@ -1178,7 +1241,7 @@ local function KarmaValue(karma)
 end
 
 local function FormatKarmaLine(karma)
-	return KarmaValue(karma) .. " Karma"
+	return T("KARMA_LINE", KarmaValue(karma))
 end
 
 local function FormatTagLine(tags)
@@ -1199,7 +1262,7 @@ end
 local function FormatRosterAverages(gearScore, averageIlvl)
 	local ilvlText = averageIlvl ~= nil and tostring(averageIlvl) or "-"
 	local gsText = gearScore ~= nil and tostring(gearScore) or "-"
-	return "Average iLvl: " .. ilvlText .. "     Average GS: " .. gsText
+	return T("AVG_ILVL_GS", ilvlText, gsText)
 end
 
 local function CreateRosterStatsLabel(page)
@@ -1228,13 +1291,13 @@ end
 
 local function FormatRaidAverageGs(gearScore)
 	local gsText = gearScore ~= nil and tostring(gearScore) or "-"
-	return "Average GS: " .. gsText
+	return T("AVG_GS", gsText)
 end
 
 local function FormatRoleGsSummary(label, bucket)
 	bucket = bucket or {}
 	local gsText = bucket.gearScore ~= nil and tostring(bucket.gearScore) or "-"
-	return label .. ": " .. tostring(bucket.count or 0) .. " (" .. gsText .. " gs)"
+	return T("ROLE_SUMMARY", label, tostring(bucket.count or 0), gsText)
 end
 
 local function UpdateRaidRosterStatsLabels(page, members)
@@ -1257,13 +1320,13 @@ local function UpdateRaidRosterStatsLabels(page, members)
 
 	if page.roleStatsLabel then
 		page.roleStatsLabel:SetText(
-			FormatRoleGsSummary("Tanks", tank)
+			FormatRoleGsSummary(T("ROLE_TANKS"), tank)
 				.. "     "
-				.. FormatRoleGsSummary("Healers", healer)
+				.. FormatRoleGsSummary(T("ROLE_HEALERS"), healer)
 				.. "     "
-				.. FormatRoleGsSummary("Melee", melee)
+				.. FormatRoleGsSummary(T("ROLE_MELEE_SHORT"), melee)
 				.. "     "
-				.. FormatRoleGsSummary("Range", ranged)
+				.. FormatRoleGsSummary(T("ROLE_RANGE"), ranged)
 		)
 	end
 end
@@ -1279,13 +1342,13 @@ local function CreateRaidStatsLabels(page)
 	roleStats:SetJustifyV("MIDDLE")
 	SetFontColor(roleStats, UI.TEXT_IDLE)
 	roleStats:SetText(
-		FormatRoleGsSummary("Tanks")
+		FormatRoleGsSummary(T("ROLE_TANKS"))
 			.. "     "
-			.. FormatRoleGsSummary("Healers")
+			.. FormatRoleGsSummary(T("ROLE_HEALERS"))
 			.. "     "
-			.. FormatRoleGsSummary("Melee")
+			.. FormatRoleGsSummary(T("ROLE_MELEE_SHORT"))
 			.. "     "
-			.. FormatRoleGsSummary("Range")
+			.. FormatRoleGsSummary(T("ROLE_RANGE"))
 	)
 	page.roleStatsLabel = roleStats
 	return page.statsLabel
@@ -1396,12 +1459,12 @@ local function CreatePartyPage(parent)
 
 	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
-	hint:SetPoint("RIGHT", page, "RIGHT", -90, 0)
+	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
-	hint:SetText("Current party (5 players max). Refresh after gear or spec changes.")
+	hint:SetText(T("PARTY_HINT"))
 
-	local refreshBtn = CreatePlainButton(page, 80, UI.CD_TOOLBAR_H, "Refresh")
+	local refreshBtn = CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
 	refreshBtn:SetScript("OnClick", function()
 		Addon:RefreshPartyData(true)
@@ -1435,7 +1498,14 @@ local function CreatePartyPage(parent)
 	ApplyPlainPanel(headerBg, UI.TITLE_BG)
 	page.headerBg = headerBg
 
-	local headers = { "Name", "Class", "Spec", "Buffs", "GS", "iLvl", "Karma", "Tags", "Guild" }
+	local headers = {
+		T("COL_NAME"), T("COL_CLASS"), T("COL_SPEC"), T("COL_BUFFS"),
+		T("COL_GS"), T("COL_ILVL"), T("COL_KARMA"), T("COL_TAGS"), T("COL_GUILD"),
+	}
+	page.headerKeys = {
+		"COL_NAME", "COL_CLASS", "COL_SPEC", "COL_BUFFS",
+		"COL_GS", "COL_ILVL", "COL_KARMA", "COL_TAGS", "COL_GUILD",
+	}
 	page.headerLabels = {}
 	for index = 1, #headers do
 		local label = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -1492,7 +1562,7 @@ function Addon:RefreshPartyView(refreshGearScore)
 
 	if not self.BuildPartyRoster then
 		if page.hint then
-			page.hint:SetText("Party module failed to load. Reload UI (/reload).")
+			page.hint:SetText(T("PARTY_FAIL"))
 		end
 		return
 	end
@@ -1571,10 +1641,10 @@ end
 local function FormatRaidStatsLine(gearScore, averageIlvl)
 	local parts = {}
 	if gearScore then
-		parts[#parts + 1] = tostring(gearScore) .. "gs"
+		parts[#parts + 1] = T("STATS_GS", tostring(gearScore))
 	end
 	if averageIlvl then
-		parts[#parts + 1] = tostring(averageIlvl) .. "ilvl"
+		parts[#parts + 1] = T("STATS_ILVL", tostring(averageIlvl))
 	end
 	if #parts == 0 then
 		return ""
@@ -1703,7 +1773,9 @@ function Addon:ShowRaidCharacterWindow(member)
 		self.raidDetailFrame = frame
 	end
 
-	frame.titleText:SetText((member.name or "?") .. " - Character profile")
+	frame.profileMember = member
+
+	frame.titleText:SetText(T("PROFILE_TITLE", member.name or "?"))
 	SetSpecOrClassIcon(frame.classIcon, nil, member.class)
 	frame.classText:SetText(member.classLabel ~= "" and member.classLabel or "-")
 	frame.classText:SetTextColor(ClassColor(member.class))
@@ -1719,22 +1791,22 @@ function Addon:ShowRaidCharacterWindow(member)
 	SetFontColor(frame.specText, UI.TEXT_IDLE)
 
 	if member.gearScore then
-		frame.gsText:SetText("GearScore: " .. tostring(member.gearScore))
+		frame.gsText:SetText(T("PROFILE_GS", tostring(member.gearScore)))
 		SetFontColor(frame.gsText, UI.GOLD)
 	else
-		frame.gsText:SetText("GearScore: -")
+		frame.gsText:SetText(T("PROFILE_GS", "-"))
 		SetFontColor(frame.gsText, UI.TEXT_DISABLED)
 	end
 
 	if member.averageIlvl then
-		frame.ilvlText:SetText("iLvl: " .. tostring(member.averageIlvl))
+		frame.ilvlText:SetText(T("PROFILE_ILVL", tostring(member.averageIlvl)))
 		SetFontColor(frame.ilvlText, UI.TEXT_IDLE)
 	else
-		frame.ilvlText:SetText("iLvl: -")
+		frame.ilvlText:SetText(T("PROFILE_ILVL", "-"))
 		SetFontColor(frame.ilvlText, UI.TEXT_DISABLED)
 	end
 
-	frame.guildText:SetText("Guild: " .. FormatGuildDisplay(member.guildName, member.guildRank))
+	frame.guildText:SetText(T("PROFILE_GUILD", FormatGuildDisplay(member.guildName, member.guildRank)))
 	SetFontColor(frame.guildText, UI.TEXT_IDLE)
 	frame.karmaText:SetText(FormatKarmaLine(member.karma))
 	SetFontColor(frame.karmaText, UI.TEXT_IDLE)
@@ -1749,35 +1821,35 @@ function Addon:ShowRaidCharacterWindow(member)
 	end
 
 	if member.metZone and member.metZone ~= "" then
-		frame.metZoneText:SetText("Met: " .. member.metZone)
+		frame.metZoneText:SetText(T("PROFILE_MET", member.metZone))
 		SetFontColor(frame.metZoneText, UI.TEXT_IDLE)
 	else
-		frame.metZoneText:SetText("Met: -")
+		frame.metZoneText:SetText(T("PROFILE_MET", "-"))
 		SetFontColor(frame.metZoneText, UI.TEXT_DISABLED)
 	end
 
 	local metWhen = (self.FormatHistoryTime and self:FormatHistoryTime(member.metAt)) or "-"
 	if metWhen ~= "-" then
-		frame.metAtText:SetText("When: " .. metWhen)
+		frame.metAtText:SetText(T("PROFILE_WHEN", metWhen))
 		SetFontColor(frame.metAtText, UI.TEXT_IDLE)
 	else
-		frame.metAtText:SetText("When: -")
+		frame.metAtText:SetText(T("PROFILE_WHEN", "-"))
 		SetFontColor(frame.metAtText, UI.TEXT_DISABLED)
 	end
 
 	if member.metRealm and member.metRealm ~= "" then
-		frame.metRealmText:SetText("Realm: " .. member.metRealm)
+		frame.metRealmText:SetText(T("PROFILE_REALM", member.metRealm))
 		SetFontColor(frame.metRealmText, UI.TEXT_IDLE)
 	else
-		frame.metRealmText:SetText("Realm: -")
+		frame.metRealmText:SetText(T("PROFILE_REALM", "-"))
 		SetFontColor(frame.metRealmText, UI.TEXT_DISABLED)
 	end
 
 	if member.guid and member.guid ~= "" then
-		frame.guidText:SetText("GUID: " .. member.guid)
+		frame.guidText:SetText(T("PROFILE_GUID", member.guid))
 		SetFontColor(frame.guidText, UI.TEXT_IDLE)
 	else
-		frame.guidText:SetText("GUID: -")
+		frame.guidText:SetText(T("PROFILE_GUID", "-"))
 		SetFontColor(frame.guidText, UI.TEXT_DISABLED)
 	end
 
@@ -1993,12 +2065,12 @@ local function CreateRaidRosterPage(parent)
 
 	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
-	hint:SetPoint("RIGHT", page, "RIGHT", -90, 0)
+	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
-	hint:SetText("Raid groups 1–5 and 6–8. Refresh after gear or spec changes.")
+	hint:SetText(T("RAID_HINT"))
 
-	local refreshBtn = CreatePlainButton(page, 80, UI.CD_TOOLBAR_H, "Refresh")
+	local refreshBtn = CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
 	refreshBtn:SetScript("OnClick", function()
 		Addon:RefreshPartyData(true)
@@ -2078,7 +2150,7 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 
 	if not self.BuildRaidGroups then
 		if page.hint then
-			page.hint:SetText("Raid roster module failed to load. Reload UI (/reload).")
+			page.hint:SetText(T("RAID_FAIL"))
 		end
 		return
 	end
@@ -2224,12 +2296,12 @@ local function CreateHistoryPage(parent)
 
 	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
-	hint:SetPoint("RIGHT", page, "RIGHT", -90, 0)
+	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
-	hint:SetText("Players from your parties and raids. Saved on this account.")
+	hint:SetText(T("HISTORY_HINT"))
 
-	local refreshBtn = CreatePlainButton(page, 80, UI.CD_TOOLBAR_H, "Refresh")
+	local refreshBtn = CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
 	refreshBtn:SetScript("OnClick", function()
 		if Addon.RecordCurrentGroupHistory then
@@ -2263,7 +2335,14 @@ local function CreateHistoryPage(parent)
 	ApplyPlainPanel(headerBg, UI.TITLE_BG)
 	page.headerBg = headerBg
 
-	local headers = { "Name", "Class", "Spec", "GS", "iLvl", "Met in", "When", "Guild" }
+	local headers = {
+		T("COL_NAME"), T("COL_CLASS"), T("COL_SPEC"), T("COL_GS"),
+		T("COL_ILVL"), T("COL_ZONE"), T("COL_WHEN"), T("COL_GUILD"),
+	}
+	page.headerKeys = {
+		"COL_NAME", "COL_CLASS", "COL_SPEC", "COL_GS",
+		"COL_ILVL", "COL_ZONE", "COL_WHEN", "COL_GUILD",
+	}
 	page.headerLabels = {}
 	for index = 1, #headers do
 		local label = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -2320,7 +2399,7 @@ function Addon:RefreshHistoryView()
 
 	if not self.BuildHistoryRoster then
 		if page.hint then
-			page.hint:SetText("History module failed to load. Reload UI (/reload).")
+			page.hint:SetText(T("HISTORY_FAIL"))
 		end
 		return
 	end
@@ -2436,14 +2515,15 @@ function Addon:CreateMainFrame()
 
 	local menuTitle = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	menuTitle:SetPoint("CENTER", 0, 0)
-	menuTitle:SetText("Menu")
+	menuTitle:SetText(T("MENU"))
 	SetFontColor(menuTitle, UI.GOLD)
+	frame.menuTitle = menuTitle
 
 	frame.menuButtons = {}
 	local menuY = -(UI.TITLE_H + 8)
 	for i = 1, #PAGES do
 		local pageInfo = PAGES[i]
-		local button = CreateMenuButton(menu, pageInfo.id, pageInfo.label, menuY)
+		local button = CreateMenuButton(menu, pageInfo.id, T(pageInfo.labelKey), menuY)
 		frame.menuButtons[#frame.menuButtons + 1] = button
 		menuY = menuY - UI.MENU_BTN_H - UI.MENU_BTN_GAP
 	end
@@ -2492,6 +2572,10 @@ function Addon:CreateMainFrame()
 	frame.selectBtn = exportPage.selectBtn
 	exportPage:Hide()
 
+	local settingsPage = CreateSettingsPage(content)
+	frame.pages.settings = settingsPage
+	settingsPage:Hide()
+
 	local infoPage = CreateInfoPage(content)
 	frame.pages.info = infoPage
 	frame.repoBox = infoPage.repoBox
@@ -2501,6 +2585,160 @@ function Addon:CreateMainFrame()
 	self.mainFrame = frame
 	self:SelectTab("cooldowns")
 	return frame
+end
+
+local function ApplyPageHeaders(page)
+	if not page or not page.headerLabels or not page.headerKeys then
+		return
+	end
+	for index = 1, #page.headerKeys do
+		local label = page.headerLabels[index]
+		if label then
+			label:SetText(T(page.headerKeys[index]))
+		end
+	end
+end
+
+function Addon:RefreshLocalizedUI()
+	local frame = self.mainFrame
+	if not frame then
+		return
+	end
+
+	if frame.menuTitle then
+		frame.menuTitle:SetText(T("MENU"))
+	end
+	for index = 1, #PAGES do
+		local button = frame.menuButtons[index]
+		if button and PAGES[index] then
+			button.label:SetText(T(PAGES[index].labelKey))
+			SetMenuButtonState(button, button.tabId == frame.selectedTab, false)
+		end
+	end
+
+	local exportPage = frame.pages.export
+	if exportPage then
+		if exportPage.desc then
+			exportPage.desc:SetText(T("EXPORT_DESC"))
+		end
+		if exportPage.namesLabel then
+			exportPage.namesLabel:SetText(T("EXPORT_INCLUDE_NAMES"))
+		end
+		if exportPage.exportBtn then
+			exportPage.exportBtn.label:SetText(T("BTN_EXPORT_DATA"))
+		end
+		if exportPage.selectBtn then
+			exportPage.selectBtn.label:SetText(T("BTN_SELECT_ALL"))
+		end
+		if exportPage.statusLabel then
+			local exported = frame.exportBox and (frame.exportBox:GetText() or "") ~= ""
+			exportPage.statusLabel:SetText(exported and T("EXPORT_READY") or T("EXPORT_HINT"))
+		end
+	end
+
+	local settingsPage = frame.pages.settings
+	if settingsPage then
+		if settingsPage.heading then
+			settingsPage.heading:SetText(T("SETTINGS_LANGUAGE"))
+		end
+		if settingsPage.hint then
+			settingsPage.hint:SetText(T("SETTINGS_LANGUAGE_HINT"))
+		end
+		if settingsPage.enBtn then
+			settingsPage.enBtn.label:SetText(T("LOCALE_EN"))
+		end
+		if settingsPage.ruBtn then
+			settingsPage.ruBtn.label:SetText(T("LOCALE_RU"))
+		end
+		UpdateLocaleButtons(settingsPage)
+	end
+
+	local infoPage = frame.pages.info
+	if infoPage then
+		if infoPage.aboutHeading then
+			infoPage.aboutHeading:SetText(T("INFO_ABOUT"))
+		end
+		if infoPage.about then
+			infoPage.about:SetText(T("INFO_BODY"))
+		end
+		if infoPage.repoHeading then
+			infoPage.repoHeading:SetText(T("INFO_GITHUB"))
+		end
+		if infoPage.repoHint then
+			infoPage.repoHint:SetText(T("INFO_REPO_HINT"))
+		end
+		if infoPage.copyBtn then
+			infoPage.copyBtn.label:SetText(T("BTN_SELECT_ALL"))
+		end
+	end
+
+	local cooldownsPage = frame.pages.cooldowns
+	if cooldownsPage then
+		if cooldownsPage.hint then
+			cooldownsPage.hint:SetText(T("CD_HINT"))
+		end
+		if cooldownsPage.refreshBtn then
+			cooldownsPage.refreshBtn.label:SetText(T("BTN_REFRESH"))
+		end
+		if cooldownsPage.emptyLabel then
+			cooldownsPage.emptyLabel:SetText(T("CD_EMPTY"))
+		end
+		if cooldownsPage.instanceHeader then
+			cooldownsPage.instanceHeader:SetText(T("CD_INSTANCE"))
+		end
+		if cooldownsPage.noRowsLabel then
+			cooldownsPage.noRowsLabel:SetText(T("CD_NO_ROWS"))
+		end
+	end
+
+	local partyPage = frame.pages.party
+	if partyPage then
+		if partyPage.hint then
+			partyPage.hint:SetText(T("PARTY_HINT"))
+		end
+		if partyPage.refreshBtn then
+			partyPage.refreshBtn.label:SetText(T("BTN_REFRESH"))
+		end
+		ApplyPageHeaders(partyPage)
+	end
+
+	local raidPage = frame.pages.raid
+	if raidPage then
+		if raidPage.hint then
+			raidPage.hint:SetText(T("RAID_HINT"))
+		end
+		if raidPage.refreshBtn then
+			raidPage.refreshBtn.label:SetText(T("BTN_REFRESH"))
+		end
+	end
+
+	local historyPage = frame.pages.history
+	if historyPage then
+		if historyPage.hint then
+			historyPage.hint:SetText(T("HISTORY_HINT"))
+		end
+		if historyPage.refreshBtn then
+			historyPage.refreshBtn.label:SetText(T("BTN_REFRESH"))
+		end
+		ApplyPageHeaders(historyPage)
+	end
+
+	if self.RefreshCooldownTable then
+		self:RefreshCooldownTable()
+	end
+	if self.RefreshPartyView then
+		self:RefreshPartyView(false)
+	end
+	if self.RefreshRaidRosterView then
+		self:RefreshRaidRosterView(false)
+	end
+	if self.RefreshHistoryView then
+		self:RefreshHistoryView()
+	end
+
+	if self.raidDetailFrame and self.raidDetailFrame:IsShown() and self.raidDetailFrame.profileMember then
+		self:ShowRaidCharacterWindow(self.raidDetailFrame.profileMember)
+	end
 end
 
 -- Focus the export box and highlight all text for Ctrl+C.
@@ -2517,7 +2755,7 @@ function Addon:SelectExportText()
 	exportBox:SetFocus()
 	exportBox:HighlightText()
 	if frame.statusLabel then
-		frame.statusLabel:SetText("Selected — press Ctrl+C to copy.")
+		frame.statusLabel:SetText(T("EXPORT_SELECTED"))
 	end
 end
 
@@ -2537,7 +2775,7 @@ function Addon:FlushExportToWindow()
 		frame.selectBtn:Enable()
 	end
 	if frame.statusLabel then
-		frame.statusLabel:SetText("Export ready — press Ctrl+C to copy.")
+		frame.statusLabel:SetText(T("EXPORT_READY"))
 	end
 end
 
@@ -2552,7 +2790,7 @@ function Addon:SelectRepoUrl()
 	repoBox:SetFocus()
 	repoBox:HighlightText()
 	if frame.repoHint then
-		frame.repoHint:SetText("Selected — press Ctrl+C to copy.")
+		frame.repoHint:SetText(T("INFO_REPO_SELECTED"))
 	end
 end
 
