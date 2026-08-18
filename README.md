@@ -50,7 +50,7 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 
 - Two blocks: raid groups **1–5**, then **6–8**
 - Each group is a column of five player cards: class icon + name, spec icon + GS/iLvl, karma, and tags
-- Click a filled card to open a character window
+- Click a filled card to open **Character profile** (`{name} - Character profile`)
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 
 **Export gear and CDs** tab:

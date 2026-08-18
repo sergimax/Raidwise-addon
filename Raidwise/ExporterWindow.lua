@@ -1479,7 +1479,7 @@ function Addon:ShowRaidCharacterWindow(member)
 		self.raidDetailFrame = frame
 	end
 
-	frame.titleText:SetText(member.name or "Character")
+	frame.titleText:SetText((member.name or "?") .. " - Character profile")
 	SetSpecOrClassIcon(frame.classIcon, nil, member.class)
 	frame.classText:SetText(member.classLabel ~= "" and member.classLabel or "-")
 	frame.classText:SetTextColor(ClassColor(member.class))

@@ -124,7 +124,34 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 | line 2 | Spec icon + `6158gs 264ilvl` (omit missing values) |
 | line 3 | Temporary karma placeholder (`4.3 Karma`) |
 | line 4 | Tags (`#tag #tag`); placeholder until tag functions exist |
-| click | Left-click a filled cell opens a character window (class, spec, GS, iLvl, guild, karma, tags) |
+| click | Left-click a filled cell opens **Character profile** |
+
+## Character profile
+
+Standalone window opened from Raid roster (left-click a filled player cell). Esc or **X** closes it; drag the title bar to move it.
+
+```text
+[ Rhee - Character profile                                      X ]
+[ (class) Shaman ]
+[ (spec) Enhancement ]
+[ GearScore: 6158 ]
+[ iLvl: 264 ]
+[ Guild: MyGuild (Member) ]
+[ 4.3 Karma ]
+[ #tag #tag ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| title | `{characterName} - Character profile` |
+| close | **X** (right of title bar); Esc also closes |
+| class | Class icon + localized class name (class-colored) |
+| spec | Talent tree icon + spec name (`-` until inspect) |
+| GearScore | `GearScore: {score}` or `GearScore: -` |
+| iLvl | `iLvl: {average}` or `iLvl: -` |
+| Guild | `Guild: GuildName (Rank)` or `Guild: -` |
+| Karma | Placeholder `{value} Karma` (`4.3 Karma`) |
+| Tags | `#tag #tag`; placeholder until tag functions exist |
 
 ## Export cooldowns
 

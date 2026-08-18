@@ -117,7 +117,19 @@ Same toolbar + scroll host as Party roster (`CD_TOOLBAR_H`, gap, scrollbars). Tw
 | Block 2 | **3 × (148 + 2) − 2 = 448** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
 | Cell content | **14** px icons | Class on line 1, spec on line 2 |
-| Character window | **280 × 260** | Opens on left-click of a filled cell |
+
+## Character profile
+
+Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Raid roster; Esc-close via `UISpecialFrames`.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Window | **280 × 260** | Centered, offset +40 / +20 from parent center |
+| Title bar | height **20** | Drag handle; `{name} - Character profile` |
+| Close button | **16 × 16** | Right of title bar |
+| Body padding | **10** | Same as main shell `PAD` |
+| Icons | **14** | Class then spec, stacked |
+| Line gap | **8** | Between body rows |
 
 ## Export cooldowns tab
 
