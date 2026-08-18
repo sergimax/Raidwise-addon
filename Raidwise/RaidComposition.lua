@@ -161,7 +161,7 @@ local EFFECTS = {
 		id = "unholy_frenzy",
 		labelKey = "COMP_UNHOLY_FRENZY",
 		spellId = 49016,
-		sources = { Src("DEATHKNIGHT", 3) },
+		sources = { Src("DEATHKNIGHT", 1) },
 	},
 	{
 		section = "external",
@@ -414,6 +414,7 @@ local EFFECTS = {
 		id = "sanctuary_grace",
 		labelKey = "COMP_SANCTUARY_GRACE",
 		spellId = 20911,
+		comboLabel = true,
 		sources = { Src("PALADIN", 2), Src("PRIEST", 1) },
 	},
 	{
@@ -421,6 +422,7 @@ local EFFECTS = {
 		id = "inspiration",
 		labelKey = "COMP_INSPIRATION",
 		spellId = 15359,
+		comboLabel = true,
 		sources = { Src("PRIEST", 1), Src("PRIEST", 2), Src("SHAMAN", 3) },
 	},
 	{
@@ -567,6 +569,7 @@ local EFFECTS = {
 		id = "shadowfiend",
 		labelKey = "COMP_SHADOWFIEND",
 		spellId = 34433,
+		hidden = true,
 		sources = { Src("PRIEST") },
 	},
 	{
@@ -581,6 +584,7 @@ local EFFECTS = {
 		id = "imp_lotp",
 		labelKey = "COMP_IMP_LOTP",
 		spellId = 17007,
+		comboLabel = true,
 		sources = { Src("DRUID", 2) },
 	},
 	{
@@ -602,6 +606,7 @@ local EFFECTS = {
 		id = "gift_naaru",
 		labelKey = "COMP_GIFT_NAARU",
 		spellId = 28880,
+		hidden = true,
 		sources = { Src(nil, nil, "Draenei") },
 	},
 }
@@ -671,6 +676,31 @@ local function FormatSource(source)
 		return Addon:T("COMP_SRC_SPEC", className, SpecLabel(source.class, source.specTab))
 	end
 	return Addon:T("COMP_SRC_ANY", className)
+end
+
+local function ClientLocaleMatchesAddon()
+	if not Addon.GetLocaleId or not GetLocale then
+		return false
+	end
+	return Addon:GetLocaleId() == GetLocale()
+end
+
+-- Spell-named rows use the client’s GetSpellInfo when the addon language matches
+-- the client, so ruRU/enUS names stay official 3.3.5a strings.
+local function EffectLabel(effect)
+	if effect.comboLabel then
+		return Addon:T(effect.labelKey)
+	end
+	local section = effect.section
+	if section == "external" or section == "damage_reduction" or section == "mana" or section == "health_regen" then
+		if ClientLocaleMatchesAddon() and type(GetSpellInfo) == "function" and effect.spellId then
+			local name = GetSpellInfo(effect.spellId)
+			if name and name ~= "" then
+				return name
+			end
+		end
+	end
+	return Addon:T(effect.labelKey)
 end
 
 local function SourceMatches(source, member)
@@ -778,6 +808,7 @@ function Addon:AnalyzeRaidComposition(members)
 				effects[#effects + 1] = {
 					id = effect.id,
 					labelKey = effect.labelKey,
+					label = EffectLabel(effect),
 					spellId = effect.spellId,
 					count = #providers,
 					providers = providers,

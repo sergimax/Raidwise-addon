@@ -53,7 +53,7 @@ Rows marked **hidden** stay in this list for reference but are omitted from the 
 |-------|-----|------|
 | Focus Magic | Arcane Mage | |
 | Tricks of the Trade | Any Rogue | |
-| Unholy Frenzy | Unholy Death Knight | |
+| Hysteria | Blood Death Knight | |
 | Power Infusion | Discipline Priest | |
 | Innervate | Any Druid | |
 | Hand of Salvation | Any Paladin | |
@@ -127,25 +127,25 @@ Acid Spit, Hunter Sting, Stampede, and Lava Breath depend on the pet. Beast Mast
 
 ## Mana regeneration
 
-| Spell / effect | Who |
-|----------------|-----|
-| Replenishment | Shadow Priest (Vampiric Touch); Survival Hunter (Hunting Party); Retribution Paladin (Judgements of the Wise); Frost Mage (Enduring Winter); Destruction Warlock (Improved Soul Leech) |
-| Mana Tide Totem | Restoration Shaman |
-| Hymn of Hope | Any Priest |
-| Innervate | Any Druid |
-| Shadowfiend | Any Priest |
-| Revitalize | Restoration Druid |
+| Spell / effect | Who | View |
+|----------------|-----|------|
+| Replenishment | Shadow Priest (Vampiric Touch); Survival Hunter (Hunting Party); Retribution Paladin (Judgements of the Wise); Frost Mage (Enduring Winter); Destruction Warlock (Improved Soul Leech) | |
+| Mana Tide Totem | Restoration Shaman | |
+| Hymn of Hope | Any Priest | |
+| Innervate | Any Druid | |
+| Shadowfiend | Any Priest | hidden |
+| Revitalize | Restoration Druid | |
 
 One Replenishment source covers 10 people; 25-man raids usually want two.
 
 ## Health regeneration
 
-| Spell / effect | Who |
-|----------------|-----|
-| Improved Leader of the Pack | Feral Druid |
-| Vampiric Embrace | Shadow Priest |
-| Judgement of Light | Any Paladin |
-| Gift of the Naaru | Draenei (any class) |
+| Spell / effect | Who | View |
+|----------------|-----|------|
+| Improved Leader of the Pack | Feral Druid | |
+| Vampiric Embrace | Shadow Priest | |
+| Judgement of Light | Any Paladin | |
+| Gift of the Naaru | Draenei (any class) | hidden |
 
 ## Limits
 
@@ -153,4 +153,4 @@ One Replenishment source covers 10 people; 25-man raids usually want two.
 - Pets (Imp Blood Pact, Acid Spit, Sting) are not inspected; the class/spec is enough to mark coverage.
 - Blessings and totems are “can provide”, not “currently assigned on this subgroup”.
 - Party (5) and raid (40) both feed the same checklist; solo shows only your own rows as present.
-- Rows marked **hidden** (self-targeted defensives, Sacred Shield, Intervene) are not shown in the tab.
+- Rows marked **hidden** (self-targeted defensives, Sacred Shield, Intervene, Shadowfiend, Gift of the Naaru) are not shown in the tab.

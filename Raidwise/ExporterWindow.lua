@@ -2416,7 +2416,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 		for effectIndex = 1, #section.effects do
 			local effect = section.effects[effectIndex]
 			block.rows[#block.rows + 1] = {
-				name = T(effect.labelKey),
+				name = effect.label or T(effect.labelKey),
 				count = effect.count or 0,
 				icon = SpellTexture(effect.spellId),
 				providers = effect.providers,

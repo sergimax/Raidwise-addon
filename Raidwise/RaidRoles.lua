@@ -159,6 +159,7 @@ function Addon:RaidBuffsForMember(class, specTab, raceToken, faction)
 		AddSpellBuff(buffs, 57623)
 		if specTab == 1 then
 			AddSpellBuff(buffs, 53138)
+			AddSpellBuff(buffs, 49016)
 		elseif specTab == 2 then
 			AddSpellBuff(buffs, 55610)
 		elseif specTab == 3 then
