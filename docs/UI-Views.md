@@ -81,8 +81,8 @@ Current party or raid roster (solo shows only you). Spec for other members is fi
 ```text
 [ short description ]                              [ Refresh ]
         8 px gap
-[ Name | (class) | (spec) | GS | iLvl | Guild (rank) ]
-[ Rhee |  SH   |  Enh   | 6158 | 264 | MyGuild (Member) ]
+[ Name | (class) | (spec) | GS | iLvl | Karma | Tags | Guild (rank) ]
+[ Rhee |  SH   |  Enh   | 6158 | 264 | 4.3 | #tag #tag | MyGuild (Member) ]
 ```
 
 | Block | In-game text / control |
@@ -94,6 +94,8 @@ Current party or raid roster (solo shows only you). Spec for other members is fi
 | Spec | Primary talent tree icon only; hover shows spec name |
 | GS | GearScore when the GearScore addon has scanned the player |
 | iLvl | Average equipped item level (tooltip scan when item cache is cold) |
+| Karma | Placeholder `4.3` until karma is implemented |
+| Tags | `#tag #tag`; placeholder until tag functions exist |
 | Guild | `GuildName (Rank)` from `GetGuildInfo`; `-` when not in a guild |
 
 ## Raid roster

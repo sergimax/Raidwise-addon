@@ -43,7 +43,7 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 **Party roster** tab:
 
 - Table of current party or raid members (you alone when not grouped)
-- Columns: name, class icon, spec icon, GearScore, average item level, guild with rank
+- Columns: name, class icon, spec icon, GearScore, average item level, karma, tags, guild with rank
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
 
 **Raid roster** tab:

@@ -62,6 +62,8 @@ local UI = {
 	PARTY_COL_SPEC = 28,
 	PARTY_COL_GS = 52,
 	PARTY_COL_ILVL = 44,
+	PARTY_COL_KARMA = 52,
+	PARTY_COL_TAGS = 100,
 	PARTY_COL_GUILD = 184,
 
 	-- Raid roster tab
@@ -605,7 +607,7 @@ local function CreateInfoPage(parent)
 			.. "Turn on Include item names to add display names next to item ids. "
 			.. "If the GearScore addon is loaded, the current score is included.\n\n"
 			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account. "
-			.. "Party roster lists current group members with spec, GearScore, average item level, and guild info. "
+			.. "Party roster lists current group members with spec, GearScore, average item level, guild, karma, and tags. "
 			.. "Raid roster shows raid groups 1–5 and 6–8 as player cards (class, name, spec, GearScore, iLvl). "
 			.. "Export cooldowns writes the same account-wide lockout data as JSON. "
 			.. "Log in on each alt to record their lockouts.\n\n"
@@ -1045,7 +1047,7 @@ end
 
 local function PartyTableWidth()
 	return UI.PARTY_COL_NAME + UI.PARTY_COL_CLASS + UI.PARTY_COL_SPEC + UI.PARTY_COL_GS
-		+ UI.PARTY_COL_ILVL + UI.PARTY_COL_GUILD
+		+ UI.PARTY_COL_ILVL + UI.PARTY_COL_KARMA + UI.PARTY_COL_TAGS + UI.PARTY_COL_GUILD
 end
 
 local function PartyColumnOffset(index)
@@ -1055,6 +1057,8 @@ local function PartyColumnOffset(index)
 		UI.PARTY_COL_SPEC,
 		UI.PARTY_COL_GS,
 		UI.PARTY_COL_ILVL,
+		UI.PARTY_COL_KARMA,
+		UI.PARTY_COL_TAGS,
 		UI.PARTY_COL_GUILD,
 	}
 	local offset = 0
@@ -1070,6 +1074,8 @@ local PARTY_COLUMN_WIDTHS = {
 	UI.PARTY_COL_SPEC,
 	UI.PARTY_COL_GS,
 	UI.PARTY_COL_ILVL,
+	UI.PARTY_COL_KARMA,
+	UI.PARTY_COL_TAGS,
 	UI.PARTY_COL_GUILD,
 }
 
@@ -1081,6 +1087,32 @@ local function FormatGuildDisplay(guildName, guildRank)
 		return guildName .. " (" .. guildRank .. ")"
 	end
 	return guildName
+end
+
+local function KarmaValue(karma)
+	if karma == nil then
+		karma = UI.RAID_KARMA_PLACEHOLDER
+	end
+	return tostring(karma)
+end
+
+local function FormatKarmaLine(karma)
+	return KarmaValue(karma) .. " Karma"
+end
+
+local function FormatTagLine(tags)
+	if type(tags) ~= "table" or #tags == 0 then
+		return ""
+	end
+	local parts = {}
+	for index = 1, #tags do
+		local tag = tags[index]
+		local name = type(tag) == "table" and tag.name or nil
+		if name and name ~= "" then
+			parts[#parts + 1] = "#" .. name
+		end
+	end
+	return table.concat(parts, " ")
 end
 
 local function CreatePartyRow(parent)
@@ -1113,7 +1145,9 @@ local function CreatePartyRow(parent)
 
 	row.gsText = AddTextColumn(4, "CENTER")
 	row.ilvlText = AddTextColumn(5, "CENTER")
-	row.guildText = AddTextColumn(6, "LEFT")
+	row.karmaText = AddTextColumn(6, "CENTER")
+	row.tagText = AddTextColumn(7, "LEFT")
+	row.guildText = AddTextColumn(8, "LEFT")
 
 	row.classIconHost:EnableMouse(true)
 	row.classIconHost:SetScript("OnEnter", function(self)
@@ -1187,13 +1221,13 @@ local function CreatePartyPage(parent)
 	ApplyPlainPanel(headerBg, UI.TITLE_BG)
 	page.headerBg = headerBg
 
-	local headers = { "Name", "Class", "Spec", "GS", "iLvl", "Guild" }
+	local headers = { "Name", "Class", "Spec", "GS", "iLvl", "Karma", "Tags", "Guild" }
 	page.headerLabels = {}
 	for index = 1, #headers do
 		local label = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("TOPLEFT", headerBg, "TOPLEFT", PartyColumnOffset(index) + 4, -10)
 		label:SetWidth(PARTY_COLUMN_WIDTHS[index] - 8)
-		label:SetJustifyH(index >= 4 and index <= 5 and "CENTER" or "LEFT")
+		label:SetJustifyH((index >= 4 and index <= 6) and "CENTER" or "LEFT")
 		label:SetText(headers[index])
 		SetFontColor(label, UI.GOLD)
 		page.headerLabels[index] = label
@@ -1298,6 +1332,18 @@ function Addon:RefreshPartyView(refreshGearScore)
 			SetFontColor(row.ilvlText, UI.TEXT_DISABLED)
 		end
 
+		row.karmaText:SetText(KarmaValue(member.karma))
+		SetFontColor(row.karmaText, UI.TEXT_IDLE)
+
+		local tags = FormatTagLine(member.tags)
+		if tags ~= "" then
+			row.tagText:SetText(tags)
+			SetFontColor(row.tagText, UI.TEXT_IDLE)
+		else
+			row.tagText:SetText("-")
+			SetFontColor(row.tagText, UI.TEXT_DISABLED)
+		end
+
 		row.guildText:SetText(FormatGuildDisplay(member.guildName, member.guildRank))
 		SetFontColor(row.guildText, UI.TEXT_IDLE)
 		row:Show()
@@ -1316,28 +1362,6 @@ local function FormatRaidStatsLine(gearScore, averageIlvl)
 	end
 	if #parts == 0 then
 		return ""
-	end
-	return table.concat(parts, " ")
-end
-
-local function FormatKarmaLine(karma)
-	if karma == nil then
-		karma = UI.RAID_KARMA_PLACEHOLDER
-	end
-	return tostring(karma) .. " Karma"
-end
-
-local function FormatTagLine(tags)
-	if type(tags) ~= "table" or #tags == 0 then
-		return ""
-	end
-	local parts = {}
-	for index = 1, #tags do
-		local tag = tags[index]
-		local name = type(tag) == "table" and tag.name or nil
-		if name and name ~= "" then
-			parts[#parts + 1] = "#" .. name
-		end
 	end
 	return table.concat(parts, " ")
 end

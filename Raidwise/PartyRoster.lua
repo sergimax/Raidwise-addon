@@ -387,6 +387,11 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 		averageIlvl = AverageItemLevelForUnit(unit),
 		guildName = guildName,
 		guildRank = guildRankName,
+		karma = 4.3,
+		tags = {
+			{ name = "tag" },
+			{ name = "tag" },
+		},
 	}
 end
 

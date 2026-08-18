@@ -97,9 +97,11 @@ Same toolbar + scroll table layout as Character cooldowns (`CD_TOOLBAR_H`, `CD_H
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Columns | **90 + 28 + 28 + 52 + 44 + 184 = 426** | Name, class icon, spec icon, GS, iLvl, Guild |
+| Columns | **90 + 28 + 28 + 52 + 44 + 52 + 100 + 184 = 578** | Name, class icon, spec icon, GS, iLvl, Karma, Tags, Guild |
 | Class column | **14** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
 | Spec column | **14** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
+| Karma column | **52**, center | Placeholder `4.3` until karma is implemented |
+| Tags column | **100** | `#tag #tag`; placeholder until tag functions exist |
 | Guild column | **184** | `GuildName (Rank)`; `-` when not in a guild |
 
 ## Raid roster tab
