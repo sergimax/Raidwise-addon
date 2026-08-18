@@ -5,8 +5,8 @@ local Addon = Raidwise
 -- Keep in sync with docs/UI-Sizes.md and docs/UI-Views.md
 local UI = {
 	-- Content panel (RaidwiseFrame)
-	CONTENT_WIDTH = 790,
-	CONTENT_HEIGHT = 480,
+	CONTENT_WIDTH = 890,
+	CONTENT_HEIGHT = 690,
 	PAD = 10,
 	TITLE_H = 20,
 	CLOSE_SIZE = 16,
@@ -62,6 +62,7 @@ local UI = {
 	PARTY_COL_NAME = 90,
 	PARTY_COL_CLASS = 28,
 	PARTY_COL_SPEC = 28,
+	PARTY_COL_BUFFS = 166,
 	PARTY_COL_GS = 52,
 	PARTY_COL_ILVL = 44,
 	PARTY_COL_KARMA = 52,
@@ -71,7 +72,7 @@ local UI = {
 
 	-- Raid roster tab
 	RAID_CELL_W = 168,
-	RAID_CELL_H = 98,
+	RAID_CELL_H = 106,
 	RAID_CELL_GAP = 2,
 	RAID_CELL_PAD = 4,
 	RAID_LINE_H = 14,
@@ -710,6 +711,44 @@ local function TableIconTopOffset(iconSize)
 	return -math.floor((UI.CD_ROW_H - iconSize) / 2)
 end
 
+local function CreateBuffIconHost(parent)
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetSize(UI.RAID_BUFF_ICON, UI.RAID_BUFF_ICON)
+	host.icon = host:CreateTexture(nil, "ARTWORK")
+	host.icon:SetAllPoints(host)
+	host:EnableMouse(true)
+	host:SetScript("OnEnter", function(self)
+		if not self.buffName or self.buffName == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.buffName)
+		GameTooltip:Show()
+	end)
+	host:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+	host:Hide()
+	return host
+end
+
+local function FillRaidBuffIcons(hosts, buffs)
+	buffs = buffs or {}
+	for buffIndex = 1, UI.RAID_BUFF_MAX do
+		local host = hosts[buffIndex]
+		local buff = buffs[buffIndex]
+		if host and buff and buff.icon then
+			SetSpellIconTexture(host.icon, buff.icon)
+			host.buffName = buff.name or ""
+			host:Show()
+		elseif host then
+			host.icon:SetTexture(nil)
+			host.buffName = nil
+			host:Hide()
+		end
+	end
+end
+
 local function HidePoolFrom(pool, startIndex)
 	for index = startIndex, #pool do
 		pool[index]:Hide()
@@ -1100,8 +1139,8 @@ function Addon:RefreshCooldownTable()
 end
 
 local function PartyTableWidth()
-	return UI.PARTY_COL_NAME + UI.PARTY_COL_CLASS + UI.PARTY_COL_SPEC + UI.PARTY_COL_GS
-		+ UI.PARTY_COL_ILVL + UI.PARTY_COL_KARMA + UI.PARTY_COL_TAGS + UI.PARTY_COL_GUILD
+	return UI.PARTY_COL_NAME + UI.PARTY_COL_CLASS + UI.PARTY_COL_SPEC + UI.PARTY_COL_BUFFS
+		+ UI.PARTY_COL_GS + UI.PARTY_COL_ILVL + UI.PARTY_COL_KARMA + UI.PARTY_COL_TAGS + UI.PARTY_COL_GUILD
 end
 
 local function PartyColumnOffset(index)
@@ -1109,6 +1148,7 @@ local function PartyColumnOffset(index)
 		UI.PARTY_COL_NAME,
 		UI.PARTY_COL_CLASS,
 		UI.PARTY_COL_SPEC,
+		UI.PARTY_COL_BUFFS,
 		UI.PARTY_COL_GS,
 		UI.PARTY_COL_ILVL,
 		UI.PARTY_COL_KARMA,
@@ -1126,6 +1166,7 @@ local PARTY_COLUMN_WIDTHS = {
 	UI.PARTY_COL_NAME,
 	UI.PARTY_COL_CLASS,
 	UI.PARTY_COL_SPEC,
+	UI.PARTY_COL_BUFFS,
 	UI.PARTY_COL_GS,
 	UI.PARTY_COL_ILVL,
 	UI.PARTY_COL_KARMA,
@@ -1199,13 +1240,15 @@ local function UpdateRosterStatsLabel(page, members)
 	page.statsLabel:SetText(FormatRosterAverages(averageGs, averageIlvl))
 end
 
-local function FormatRoleIlvlGs(bucket)
-	if not bucket then
-		return "-/-"
-	end
-	local ilvlText = bucket.averageIlvl ~= nil and tostring(bucket.averageIlvl) or "-"
+local function FormatRaidAverageGs(gearScore)
+	local gsText = gearScore ~= nil and tostring(gearScore) or "-"
+	return "Average GS: " .. gsText
+end
+
+local function FormatRoleGsSummary(label, bucket)
+	bucket = bucket or {}
 	local gsText = bucket.gearScore ~= nil and tostring(bucket.gearScore) or "-"
-	return ilvlText .. "/" .. gsText
+	return label .. ": " .. tostring(bucket.count or 0) .. " (" .. gsText .. " gs)"
 end
 
 local function UpdateRaidRosterStatsLabels(page, members)
@@ -1224,27 +1267,24 @@ local function UpdateRaidRosterStatsLabels(page, members)
 	local melee = roles.melee or {}
 	local ranged = roles.ranged or {}
 
-	page.statsLabel:SetText(
-		FormatRosterAverages(overall.gearScore, overall.averageIlvl)
-			.. "     "
-			.. tostring(tank.count or 0) .. "T  "
-			.. tostring(healer.count or 0) .. "H  "
-			.. tostring(melee.count or 0) .. "MDD  "
-			.. tostring(ranged.count or 0) .. "RDD"
-	)
+	page.statsLabel:SetText(FormatRaidAverageGs(overall.gearScore))
 
 	if page.roleStatsLabel then
 		page.roleStatsLabel:SetText(
-			"Tanks " .. FormatRoleIlvlGs(tank)
-				.. "     Healers " .. FormatRoleIlvlGs(healer)
-				.. "     Melee " .. FormatRoleIlvlGs(melee)
-				.. "     Range " .. FormatRoleIlvlGs(ranged)
+			FormatRoleGsSummary("Tanks", tank)
+				.. "     "
+				.. FormatRoleGsSummary("Healers", healer)
+				.. "     "
+				.. FormatRoleGsSummary("Melee", melee)
+				.. "     "
+				.. FormatRoleGsSummary("Range", ranged)
 		)
 	end
 end
 
 local function CreateRaidStatsLabels(page)
 	CreateRosterStatsLabel(page)
+	page.statsLabel:SetText(FormatRaidAverageGs(nil))
 	local roleStats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	roleStats:SetPoint("TOPLEFT", page.statsLabel, "BOTTOMLEFT", 0, 0)
 	roleStats:SetPoint("RIGHT", page, "RIGHT", 0, 0)
@@ -1252,7 +1292,15 @@ local function CreateRaidStatsLabels(page)
 	roleStats:SetJustifyH("LEFT")
 	roleStats:SetJustifyV("MIDDLE")
 	SetFontColor(roleStats, UI.TEXT_IDLE)
-	roleStats:SetText("Tanks -/-     Healers -/-     Melee -/-     Range -/-")
+	roleStats:SetText(
+		FormatRoleGsSummary("Tanks")
+			.. "     "
+			.. FormatRoleGsSummary("Healers")
+			.. "     "
+			.. FormatRoleGsSummary("Melee")
+			.. "     "
+			.. FormatRoleGsSummary("Range")
+	)
 	page.roleStatsLabel = roleStats
 	return page.statsLabel
 end
@@ -1313,11 +1361,19 @@ local function CreatePartyRow(parent)
 	row.specIcon = row.specIconHost:CreateTexture(nil, "ARTWORK")
 	row.specIcon:SetAllPoints(row.specIconHost)
 
-	row.gsText = AddTextColumn(4, "CENTER")
-	row.ilvlText = AddTextColumn(5, "CENTER")
-	row.karmaText = AddTextColumn(6, "CENTER")
-	row.tagText = AddTextColumn(7, "LEFT")
-	row.guildText = AddTextColumn(8, "LEFT")
+	row.buffHosts = {}
+	for buffIndex = 1, UI.RAID_BUFF_MAX do
+		local host = CreateBuffIconHost(row)
+		local x = PartyColumnOffset(4) + 4 + (buffIndex - 1) * (UI.RAID_BUFF_ICON + UI.RAID_BUFF_GAP)
+		host:SetPoint("LEFT", row, "TOPLEFT", x, TableIconTopOffset(UI.RAID_BUFF_ICON))
+		row.buffHosts[buffIndex] = host
+	end
+
+	row.gsText = AddTextColumn(5, "CENTER")
+	row.ilvlText = AddTextColumn(6, "CENTER")
+	row.karmaText = AddTextColumn(7, "CENTER")
+	row.tagText = AddTextColumn(8, "LEFT")
+	row.guildText = AddTextColumn(9, "LEFT")
 
 	row.classIconHost:EnableMouse(true)
 	row.classIconHost:SetScript("OnEnter", function(self)
@@ -1393,13 +1449,13 @@ local function CreatePartyPage(parent)
 	ApplyPlainPanel(headerBg, UI.TITLE_BG)
 	page.headerBg = headerBg
 
-	local headers = { "Name", "Class", "Spec", "GS", "iLvl", "Karma", "Tags", "Guild" }
+	local headers = { "Name", "Class", "Spec", "Buffs", "GS", "iLvl", "Karma", "Tags", "Guild" }
 	page.headerLabels = {}
 	for index = 1, #headers do
 		local label = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("TOPLEFT", headerBg, "TOPLEFT", PartyColumnOffset(index) + 4, -10)
 		label:SetWidth(PARTY_COLUMN_WIDTHS[index] - 8)
-		label:SetJustifyH((index >= 4 and index <= 6) and "CENTER" or "LEFT")
+		label:SetJustifyH((index >= 5 and index <= 7) and "CENTER" or "LEFT")
 		label:SetText(headers[index])
 		SetFontColor(label, UI.GOLD)
 		page.headerLabels[index] = label
@@ -1488,6 +1544,7 @@ function Addon:RefreshPartyView(refreshGearScore)
 		row.specLabel = member.spec
 		SetSpecOrClassIcon(row.classIcon, nil, member.class)
 		SetSpecOrClassIcon(row.specIcon, member.specIcon, member.class)
+		FillRaidBuffIcons(row.buffHosts, member.raidBuffs)
 
 		if member.gearScore then
 			row.gsText:SetText(tostring(member.gearScore))
@@ -1795,28 +1852,12 @@ local function CreateRaidPlayerCell(parent)
 
 	cell.buffHosts = {}
 	for buffIndex = 1, UI.RAID_BUFF_MAX do
-		local host = CreateFrame("Frame", nil, cell)
-		host:SetSize(UI.RAID_BUFF_ICON, UI.RAID_BUFF_ICON)
+		local host = CreateBuffIconHost(cell)
 		if buffIndex == 1 then
 			host:SetPoint("TOPLEFT", cell.roleIconHost, "BOTTOMLEFT", 0, -3)
 		else
 			host:SetPoint("LEFT", cell.buffHosts[buffIndex - 1], "RIGHT", UI.RAID_BUFF_GAP, 0)
 		end
-		host.icon = host:CreateTexture(nil, "ARTWORK")
-		host.icon:SetAllPoints(host)
-		host:EnableMouse(true)
-		host:SetScript("OnEnter", function(self)
-			if not self.buffName or self.buffName == "" then
-				return
-			end
-			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-			GameTooltip:AddLine(self.buffName)
-			GameTooltip:Show()
-		end)
-		host:SetScript("OnLeave", function()
-			GameTooltip:Hide()
-		end)
-		host:Hide()
 		cell.buffHosts[buffIndex] = host
 	end
 
@@ -1892,23 +1933,6 @@ local function CreateRaidBlock(parent, startGroup, endGroup)
 	return block
 end
 
-local function FillRaidBuffIcons(cell, buffs)
-	buffs = buffs or {}
-	for buffIndex = 1, UI.RAID_BUFF_MAX do
-		local host = cell.buffHosts[buffIndex]
-		local buff = buffs[buffIndex]
-		if buff and buff.icon then
-			SetSpellIconTexture(host.icon, buff.icon)
-			host.buffName = buff.name or ""
-			host:Show()
-		else
-			host.icon:SetTexture(nil)
-			host.buffName = nil
-			host:Hide()
-		end
-	end
-end
-
 local function FillRaidPlayerCell(cell, member, stripe)
 	cell.stripe = stripe
 	cell:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
@@ -1923,7 +1947,7 @@ local function FillRaidPlayerCell(cell, member, stripe)
 		cell.classIconHost:Hide()
 		cell.roleIconHost:Hide()
 		cell.specIconHost:Hide()
-		FillRaidBuffIcons(cell, nil)
+		FillRaidBuffIcons(cell.buffHosts, nil)
 		cell:EnableMouse(false)
 		cell:Show()
 		return
@@ -1962,7 +1986,7 @@ local function FillRaidPlayerCell(cell, member, stripe)
 		SetFontColor(cell.statsText, UI.TEXT_IDLE)
 	end
 
-	FillRaidBuffIcons(cell, member.raidBuffs)
+	FillRaidBuffIcons(cell.buffHosts, member.raidBuffs)
 
 	cell.karmaText:SetText(FormatKarmaLine(member.karma))
 	SetFontColor(cell.karmaText, UI.TEXT_IDLE)

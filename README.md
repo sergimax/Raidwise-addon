@@ -44,13 +44,13 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 
 - Table of the current 5-player party (you alone when not grouped)
 - Line above the table: average item level and average GearScore
-- Columns: name, class icon, spec icon, GearScore, average item level, karma, tags, guild with rank
+- Columns: name, class icon, spec icon, raid-buff icons, GearScore, average item level, karma, tags, guild with rank
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
 
 **Raid roster** tab:
 
 - Two blocks: raid groups **1–5**, then **6–8**
-- Line above the cells: overall average iLvl/GS plus tank/healer/MDD/RDD counts; second line is per-role iLvl/GS
+- Line above the cells: overall average GearScore; second line is per-role count and average GS (`Tanks: 2 (6200 gs)`)
 - Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, karma, and tags
 - Role icon matches RaidBuffStatus (tank / healer / melee / ranged)
 - Buff icons are spec- and race-specific raid utilities (hover for the name)

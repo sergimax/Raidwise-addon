@@ -386,7 +386,13 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 	local name, realm = UnitName(unit)
 	local localizedClass, classToken = UnitClass(unit)
 	local guildName, guildRankName = GuildInfoForUnit(unit)
-	local specName, specIcon = SpecForUnit(unit)
+	local specName, specIcon, specTab = SpecForUnit(unit)
+	local _, raceToken = UnitRace(unit)
+	local faction = UnitFactionGroup and UnitFactionGroup(unit) or ""
+	local raidBuffs = {}
+	if self.RaidBuffsForMember then
+		raidBuffs = self:RaidBuffsForMember(classToken, specTab, raceToken, faction)
+	end
 
 	return {
 		unit = unit,
@@ -397,6 +403,9 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 		classLabel = localizedClass or "",
 		spec = specName,
 		specIcon = specIcon or "",
+		specTab = specTab or 0,
+		race = raceToken or "",
+		raidBuffs = raidBuffs,
 		gearScore = GearScoreForUnit(unit, refreshGearScore),
 		averageIlvl = AverageItemLevelForUnit(unit),
 		guildName = guildName,
