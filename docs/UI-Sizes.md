@@ -32,7 +32,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Character cooldowns**, **Party roster**, **Export gear and CDs**, **Export cooldowns**, **Info**.
+Tabs (in order): **Character cooldowns**, **Party roster**, **Raid roster**, **Export gear and CDs**, **Export cooldowns**, **Info**.
 
 ## Content padding
 
@@ -101,6 +101,21 @@ Same toolbar + scroll table layout as Character cooldowns (`CD_TOOLBAR_H`, `CD_H
 | Class column | **14** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
 | Spec column | **14** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
 | Guild column | **184** | `GuildName (Rank)`; `-` when not in a guild |
+
+## Raid roster tab
+
+Same toolbar + scroll host as Party roster (`CD_TOOLBAR_H`, gap, scrollbars). Two stacked blocks inside the scroll child.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Player cell | **148 × 72** | Four lines: class+name, spec+GS/iLvl, karma, tags |
+| Cell gap | **2** | Between cells and columns |
+| Group label | height **16** | Gold number above each party column |
+| Block 1 | **5 × (148 + 2) − 2 = 748** | Parties 1–5 |
+| Block 2 | **3 × (148 + 2) − 2 = 448** | Parties 6–8, left-aligned under block 1 |
+| Gap between blocks | **12** | |
+| Cell content | **14** px icons | Class on line 1, spec on line 2 |
+| Character window | **280 × 260** | Opens on left-click of a filled cell |
 
 ## Export cooldowns tab
 

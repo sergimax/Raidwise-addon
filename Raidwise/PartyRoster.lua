@@ -180,7 +180,7 @@ local function GearScoreForUnit(unit, refresh)
 		return nil
 	end
 
-	if unit == "player" and Addon.CollectCurrentGearScore then
+	if UnitIsUnit(unit, "player") and Addon.CollectCurrentGearScore then
 		if refresh then
 			return Addon:CollectCurrentGearScore()
 		end
@@ -342,6 +342,8 @@ local function MinimalPartyMember(unit)
 		averageIlvl = nil,
 		guildName = nil,
 		guildRank = nil,
+		karma = nil,
+		tags = nil,
 	}
 end
 
@@ -391,6 +393,84 @@ function Addon:BuildPartyRoster(refreshGearScore)
 	return roster
 end
 
+local function EmptyRaidGroups()
+	local groups = {}
+	for groupIndex = 1, 8 do
+		groups[groupIndex] = {}
+	end
+	return groups
+end
+
+local function AppendRaidMember(groups, groupIndex, member)
+	groupIndex = tonumber(groupIndex) or 1
+	if groupIndex < 1 or groupIndex > 8 then
+		return
+	end
+	local slots = groups[groupIndex]
+	if #slots >= 5 then
+		return
+	end
+	slots[#slots + 1] = member
+end
+
+function Addon:CollectRaidMember(unit, refreshGearScore)
+	local name, realm = UnitName(unit)
+	local localizedClass, classToken = UnitClass(unit)
+	local specName, specIcon = SpecForUnit(unit)
+	local guildName, guildRankName = GuildInfoForUnit(unit)
+
+	return {
+		unit = unit,
+		name = name or "?",
+		realm = realm or "",
+		class = classToken or "",
+		classLabel = localizedClass or "",
+		spec = specName,
+		specIcon = specIcon or "",
+		gearScore = GearScoreForUnit(unit, refreshGearScore),
+		averageIlvl = AverageItemLevelForUnit(unit),
+		guildName = guildName,
+		guildRank = guildRankName,
+		karma = 4.3,
+		tags = {
+			{ name = "tag" },
+			{ name = "tag" },
+		},
+	}
+end
+
+function Addon:BuildRaidGroups(refreshGearScore)
+	local groups = EmptyRaidGroups()
+	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
+
+	if raidCount > 0 then
+		for index = 1, raidCount do
+			local unit = "raid" .. index
+			if UnitExists(unit) then
+				local _, _, subgroup = GetRaidRosterInfo(index)
+				local ok, member = pcall(self.CollectRaidMember, self, unit, refreshGearScore)
+				if not ok or type(member) ~= "table" then
+					member = MinimalPartyMember(unit)
+				end
+				AppendRaidMember(groups, subgroup, member)
+			end
+		end
+		return groups
+	end
+
+	for _, unit in ipairs(PartyUnitIds()) do
+		if UnitExists(unit) then
+			local ok, member = pcall(self.CollectRaidMember, self, unit, refreshGearScore)
+			if not ok or type(member) ~= "table" then
+				member = MinimalPartyMember(unit)
+			end
+			AppendRaidMember(groups, 1, member)
+		end
+	end
+
+	return groups
+end
+
 function Addon:QueuePartyInspects()
 	for index = #inspectQueue, 1, -1 do
 		inspectQueue[index] = nil
@@ -437,6 +517,9 @@ function Addon:OnInspectTalentReady()
 	if self.RefreshPartyView then
 		self:RefreshPartyView(false)
 	end
+	if self.RefreshRaidRosterView then
+		self:RefreshRaidRosterView(false)
+	end
 
 	self:ProcessNextPartyInspect()
 end
@@ -447,6 +530,9 @@ function Addon:RefreshPartyData(refreshGearScore)
 	end
 	if self.RefreshPartyView then
 		self:RefreshPartyView(refreshGearScore)
+	end
+	if self.RefreshRaidRosterView then
+		self:RefreshRaidRosterView(refreshGearScore)
 	end
 	self:QueuePartyInspects()
 end

@@ -25,6 +25,7 @@ Menu tabs (top to bottom):
 ```text
 [ Character cooldowns ]
 [ Party roster ]
+[ Raid roster ]
 [ Export gear and CDs ]
 [ Export cooldowns ]
 [ Info ]
@@ -95,6 +96,34 @@ Current party or raid roster (solo shows only you). Spec for other members is fi
 | iLvl | Average equipped item level (tooltip scan when item cache is cold) |
 | Guild | `GuildName (Rank)` from `GetGuildInfo`; `-` when not in a guild |
 
+## Raid roster
+
+Current raid layout by group. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1.
+
+```text
+[ short description ]                              [ Refresh ]
+        8 px gap
+[ 1              ][ 2              ][ 3              ][ 4              ][ 5              ]
+[ (class) Rhee   ][ empty slot     ] ...
+[ (spec) 6158gs 264ilvl ]
+[ 4.3 Karma      ]
+[ #tag #tag      ]
+        12 px gap
+[ 6              ][ 7              ][ 8              ]
+[ player cell    ] ...
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | “Raid groups 1–5 and 6–8. Refresh after gear or spec changes.” |
+| Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons |
+| column header | Group number (`1`–`8`) |
+| line 1 | Class icon + class-colored name |
+| line 2 | Spec icon + `6158gs 264ilvl` (omit missing values) |
+| line 3 | Temporary karma placeholder (`4.3 Karma`) |
+| line 4 | Tags (`#tag #tag`); placeholder until tag functions exist |
+| click | Left-click a filled cell opens a character window (class, spec, GS, iLvl, guild, karma, tags) |
+
 ## Export cooldowns
 
 ```text
@@ -127,7 +156,7 @@ JSON includes `exportedAt` and a `characters[]` array (key, name, realm, class, 
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | What Export, Character cooldowns, Party roster, and Export cooldowns do; optional item names, GearScore, slash commands |
+| descriptions | What Export, Character cooldowns, Party roster, Raid roster, and Export cooldowns do; optional item names, GearScore, slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |

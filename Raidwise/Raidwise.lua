@@ -102,8 +102,23 @@ end
 
 function Addon:OnGuildInfoUpdated()
 	local frame = self.mainFrame
-	if frame and frame.selectedTab == "party" and self.RefreshPartyView then
+	if not frame then
+		return
+	end
+	if frame.selectedTab == "party" and self.RefreshPartyView then
 		self:RefreshPartyView(false)
+	elseif frame.selectedTab == "raid" and self.RefreshRaidRosterView then
+		self:RefreshRaidRosterView(false)
+	end
+end
+
+function Addon:OnGroupRosterUpdated()
+	local frame = self.mainFrame
+	if not frame or not frame:IsShown() then
+		return
+	end
+	if frame.selectedTab == "party" or frame.selectedTab == "raid" then
+		self:RefreshPartyData(false)
 	end
 end
 
@@ -162,6 +177,8 @@ frame:RegisterEvent("UPDATE_INSTANCE_INFO")
 frame:RegisterEvent("INSPECT_TALENT_READY")
 frame:RegisterEvent("PLAYER_GUILD_UPDATE")
 frame:RegisterEvent("GUILD_ROSTER_UPDATE")
+frame:RegisterEvent("PARTY_MEMBERS_CHANGED")
+frame:RegisterEvent("RAID_ROSTER_UPDATE")
 
 -- Dispatch ADDON_LOADED and PLAYER_LOGIN to addon lifecycle hooks.
 frame:SetScript("OnEvent", function(_, event, arg1)
@@ -177,5 +194,7 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnInspectTalentReadyEvent(arg1)
 	elseif event == "PLAYER_GUILD_UPDATE" or event == "GUILD_ROSTER_UPDATE" then
 		Addon:OnGuildInfoUpdated()
+	elseif event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then
+		Addon:OnGroupRosterUpdated()
 	end
 end)

@@ -46,6 +46,13 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 - Columns: name, class icon, spec icon, GearScore, average item level, guild with rank
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
 
+**Raid roster** tab:
+
+- Two blocks: raid groups **1–5**, then **6–8**
+- Each group is a column of five player cards: class icon + name, spec icon + GS/iLvl, karma, and tags
+- Click a filled card to open a character window
+- **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
+
 **Export gear and CDs** tab:
 
 - Short description, then **Include item names**
@@ -86,7 +93,7 @@ Raidwise/
   Raidwise.lua        # entry point, events, slash commands
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
-  PartyRoster.lua     # party member stats for the Party roster view
+  PartyRoster.lua     # party / raid member stats for roster views
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view
