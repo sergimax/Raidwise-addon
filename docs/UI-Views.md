@@ -191,7 +191,7 @@ JSON includes `exportedAt` and a `characters[]` array (key, name, realm, class, 
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | What Export, Character cooldowns, Party roster, Raid roster, and Export cooldowns do; optional item names, GearScore, slash commands |
+| descriptions | Raid-prep overview (rosters, lockouts, export); what Character cooldowns, Party roster, Raid roster, Export gear and CDs, and Export cooldowns do; slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |

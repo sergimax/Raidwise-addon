@@ -1,8 +1,8 @@
 ## Interface: 30300
 ## Title: |cffff7d0aRaid|rwise
-## Notes: Character exporter for Wrath of the Lich King 3.3.5a
+## Notes: Party and raid rosters, lockouts, and character export for Wrath of the Lich King 3.3.5a
 ## Author: sergimax
-## Version: 1.3.0
+## Version: 1.4.0
 ## X-LastUpdated: 2026-08-18
 ## OptionalDeps: GearScore
 ## SavedVariables: RaidwiseDB, MrcExporterDB

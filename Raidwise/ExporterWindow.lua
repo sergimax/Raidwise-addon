@@ -603,15 +603,16 @@ local function CreateInfoPage(parent)
 	about:SetJustifyH("LEFT")
 	about:SetJustifyV("TOP")
 	about:SetText(
-		"Raidwise helps you share a character snapshot for raid prep on Wrath of the Lich King 3.3.5a.\n\n"
-			.. "Export gear and CDs builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
-			.. "Turn on Include item names to add display names next to item ids. "
-			.. "If the GearScore addon is loaded, the current score is included.\n\n"
+		"Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, account-wide lockouts, and character export.\n\n"
 			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account. "
+			.. "Log in on each alt to record their lockouts.\n\n"
 			.. "Party roster lists the current 5-player party with spec, GearScore, average item level, guild, karma, and tags. "
 			.. "Raid roster shows raid groups 1–5 and 6–8 as player cards (class, name, spec, GearScore, iLvl). "
-			.. "Export cooldowns writes the same account-wide lockout data as JSON. "
-			.. "Log in on each alt to record their lockouts.\n\n"
+			.. "Click a filled card to open Character profile.\n\n"
+			.. "Export gear and CDs builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
+			.. "Turn on Include item names to add display names next to item ids. "
+			.. "If the GearScore addon is loaded, the current score is included. "
+			.. "Export cooldowns writes the same account-wide lockout data as JSON.\n\n"
 			.. "Slash commands: /raidwise or /rw (help, version, status, show, hide)."
 	)
 

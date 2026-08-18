@@ -1,8 +1,8 @@
 # Raidwise
 
-WoW addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`).
+Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.3.0-purple)
+![](https://img.shields.io/badge/current_version-1.4.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--18-blue)
 
 
@@ -69,7 +69,7 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 
 **Info** tab:
 
-- What the addon exports and which slash commands exist
+- What the addon does (rosters, lockouts, export) and which slash commands exist
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md).
