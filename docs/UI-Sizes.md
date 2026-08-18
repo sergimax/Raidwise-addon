@@ -8,7 +8,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Content frame (`RaidwiseFrame`) | **520 × 480** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
+| Content frame (`RaidwiseFrame`) | **790 × 480** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
 | Menu panel (`RaidwiseMenu`) | **170 × 480** | Anchored to content `TOPLEFT` with a 2 px gap |
 | Status bar | height **20** | Spans menu left → content right, 2 px below both; name and version |
 | Status bar padding | 8 px | Left / right |
@@ -39,7 +39,7 @@ Tabs (in order): **Character cooldowns**, **Party roster**, **Raid roster**, **E
 | Element | Size | Notes |
 |---------|------|-------|
 | Page padding | 10 px | Inside content, below title bar |
-| Page inner width | **500** | `520 - 10 - 10` |
+| Page inner width | **770** | `790 - 10 - 10` |
 
 ## Export tab
 

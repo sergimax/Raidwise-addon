@@ -5,7 +5,7 @@ local Addon = Raidwise
 -- Keep in sync with docs/UI-Sizes.md and docs/UI-Views.md
 local UI = {
 	-- Content panel (RaidwiseFrame)
-	CONTENT_WIDTH = 520,
+	CONTENT_WIDTH = 790,
 	CONTENT_HEIGHT = 480,
 	PAD = 10,
 	TITLE_H = 20,

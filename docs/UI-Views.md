@@ -7,7 +7,7 @@ ASCII layouts for each window and content page. Update this file when a view cha
 Details-style plain panels: left menu, content page, status bar under both.
 
 ```text
-[ Menu 170 ] 2px [ Content 520 x 480 ]
+[ Menu 170 ] 2px [ Content 790 x 480 ]
                  [ title bar 20      ]
                  [ page body         ]
 [ addon name ] [ current version ]

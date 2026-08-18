@@ -25,6 +25,7 @@ local INSPECT_SLOTS = {
 local inspectQueue = {}
 local inspectPending = nil
 local specCache = {}
+local ilvlCache = {}
 local scanTooltip
 
 local function EnsureScanTooltip()
@@ -154,25 +155,46 @@ local function ItemLevelFromUnitSlot(unit, slotId)
 	return nil
 end
 
-local function AverageItemLevelForUnit(unit)
-	local total = 0
-	local count = 0
+local function CanScanUnitItemLevels(unit)
+	if not unit or not UnitExists(unit) then
+		return false
+	end
+	if UnitIsUnit(unit, "player") then
+		return true
+	end
+	return inspectPending == unit
+end
 
-	for index = 1, #INSPECT_SLOTS do
-		local slotId = GetInventorySlotInfo(INSPECT_SLOTS[index])
-		if slotId then
-			local itemLevel = ItemLevelFromUnitSlot(unit, slotId)
-			if itemLevel then
-				total = total + itemLevel
-				count = count + 1
+local function AverageItemLevelForUnit(unit)
+	local guid = UnitGUID(unit)
+	if CanScanUnitItemLevels(unit) then
+		local total = 0
+		local count = 0
+
+		for index = 1, #INSPECT_SLOTS do
+			local slotId = GetInventorySlotInfo(INSPECT_SLOTS[index])
+			if slotId then
+				local itemLevel = ItemLevelFromUnitSlot(unit, slotId)
+				if itemLevel then
+					total = total + itemLevel
+					count = count + 1
+				end
 			end
+		end
+
+		if count > 0 then
+			local average = math.floor(total / count + 0.5)
+			if guid then
+				ilvlCache[guid] = average
+			end
+			return average
 		end
 	end
 
-	if count == 0 then
-		return nil
+	if guid and ilvlCache[guid] then
+		return ilvlCache[guid]
 	end
-	return math.floor(total / count + 0.5)
+	return nil
 end
 
 local function GearScoreForUnit(unit, refresh)
@@ -510,6 +532,7 @@ function Addon:OnInspectTalentReady()
 		if specName ~= "" or specIcon ~= "" then
 			StoreSpecCache(UnitGUID(unit), specName, specIcon)
 		end
+		AverageItemLevelForUnit(unit)
 	end
 
 	inspectPending = nil
