@@ -7,7 +7,7 @@ ASCII layouts for each window and content page. Update this file when a view cha
 Details-style plain panels: left menu, content page, status bar under both.
 
 ```text
-[ Menu 170 ] 2px [ Content 790 x 480 ]
+[ Menu 170 ] 2px [ Content 890 x 690 ]
                  [ title bar 20      ]
                  [ page body         ]
 [ addon name ] [ current version ]
@@ -84,8 +84,8 @@ Current 5-player party (you plus up to four others). Solo shows only you. Raid m
         8 px gap
 [ Average iLvl: 264     Average GS: 6158 ]
         8 px gap
-[ Name | (class) | (spec) | GS | iLvl | Karma | Tags | Guild (rank) ]
-[ Rhee |  SH   |  Enh   | 6158 | 264 | 4.3 | #tag #tag | MyGuild (Member) ]
+[ Name | (class) | (spec) | (buffs) | GS | iLvl | Karma | Tags | Guild (rank) ]
+[ Rhee |  SH   |  Enh   |  icons  | 6158 | 264 | 4.3 | #tag #tag | MyGuild (Member) ]
 ```
 
 | Block | In-game text / control |
@@ -96,6 +96,7 @@ Current 5-player party (you plus up to four others). Solo shows only you. Raid m
 | Name | Class-colored character name |
 | Class | Class icon (`CLASS_ICON_TCOORDS`); hover shows localized class name |
 | Spec | Primary talent tree icon only; hover shows spec name |
+| Buffs | Spec- and race-specific raid buff icons (hover for name); up to 8 |
 | GS | GearScore when the GearScore addon has scanned the player |
 | iLvl | Average equipped item level (tooltip scan when item cache is cold) |
 | Karma | Placeholder `4.3` until karma is implemented |
@@ -109,8 +110,8 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 ```text
 [ short description ]                              [ Refresh ]
         8 px gap
-[ Average iLvl: 264     Average GS: 6158     2T  6H  10MDD  7RDD ]
-[ Tanks 270/6200     Healers 265/5800     Melee 268/6400     Range 264/6100 ]
+[ Average GS: 6158 ]
+[ Tanks: 2 (6200 gs)     Healers: 6 (5800 gs)     Melee: 10 (6400 gs)     Range: 7 (6100 gs) ]
         8 px gap
 [ 1              ][ 2              ][ 3              ][ 4              ][ 5              ]
 [ (class) Rhee   ][ empty slot     ] ...
@@ -127,8 +128,8 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 |-------|------------------------|
 | short description | “Raid groups 1–5 and 6–8. Refresh after gear or spec changes.” |
 | Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons |
-| averages | Overall mean iLvl and GearScore, then tank/healer/MDD/RDD counts |
-| role averages | Mean iLvl/GS per role (`Tanks 270/6200`); `-/-` when none |
+| averages | Mean GearScore of members that have a value (`-` when none). Average iLvl is omitted (transmog skews it). |
+| role averages | Count and mean GS per role (`Tanks: 2 (6200 gs)`); `-` when none |
 | column header | Group number (`1`–`8`) |
 | line 1 | Class icon + class-colored name |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |

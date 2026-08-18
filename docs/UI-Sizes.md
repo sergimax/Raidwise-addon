@@ -8,8 +8,8 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Content frame (`RaidwiseFrame`) | **790 × 480** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Menu panel (`RaidwiseMenu`) | **170 × 480** | Anchored to content `TOPLEFT` with a 2 px gap |
+| Content frame (`RaidwiseFrame`) | **890 × 690** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
+| Menu panel (`RaidwiseMenu`) | **170 × 690** | Anchored to content `TOPLEFT` with a 2 px gap |
 | Status bar | height **20** | Spans menu left → content right, 2 px below both; name and version |
 | Status bar padding | 8 px | Left / right |
 | Status bar gap | 12 px | Between name and version |
@@ -39,7 +39,7 @@ Tabs (in order): **Character cooldowns**, **Party roster**, **Raid roster**, **H
 | Element | Size | Notes |
 |---------|------|-------|
 | Page padding | 10 px | Inside content, below title bar |
-| Page inner width | **770** | `790 - 10 - 10` |
+| Page inner width | **870** | `890 - 10 - 10` |
 
 ## Export tab
 
@@ -98,9 +98,10 @@ Same toolbar as Character cooldowns, plus an averages line, then the scroll tabl
 | Element | Size | Notes |
 |---------|------|-------|
 | Averages line | height **16** | `Average iLvl: {n}     Average GS: {n}`; 8 px gap above and below |
-| Columns | **90 + 28 + 28 + 52 + 44 + 52 + 100 + 184 = 578** | Name, class icon, spec icon, GS, iLvl, Karma, Tags, Guild |
+| Columns | **90 + 28 + 28 + 166 + 52 + 44 + 52 + 100 + 184 = 744** | Name, class, spec, buffs, GS, iLvl, Karma, Tags, Guild |
 | Class column | **18** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
 | Spec column | **18** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
+| Buffs column | **166** | Up to **8** raid-buff icons (**18** px, 2 px gap); hover shows the spell name |
 | Karma column | **52**, center | Placeholder `4.3` until karma is implemented |
 | Tags column | **100** | `#tag #tag`; placeholder until tag functions exist |
 | Guild column | **184** | `GuildName (Rank)`; `-` when not in a guild |
@@ -113,9 +114,9 @@ Same toolbar as Party roster, then two stats lines, then the scroll host. Two st
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Averages line | height **16** | Overall iLvl/GS plus `2T  6H  10MDD  7RDD` |
-| Role averages | height **16** | `Tanks {ilvl}/{gs}` (and Healers, Melee, Range) |
-| Player cell | **168 × 98** | Five lines: class+name, role+spec+GS/iLvl, buff icons, karma, tags |
+| Averages line | height **16** | `Average GS: {n}` only (no average iLvl; transmog skews it) |
+| Role averages | height **16** | `Tanks: {n} ({gs} gs)` (and Healers, Melee, Range); `-` when no GS |
+| Player cell | **168 × 106** | Five lines: class+name, role+spec+GS/iLvl, buff icons, karma, tags |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Gold number above each party column |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
