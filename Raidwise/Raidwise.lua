@@ -11,6 +11,7 @@ local defaults = {
 	enabled = true,
 	includeGearNames = true,
 	characters = {},
+	history = {},
 }
 
 -- Recursively copy a value (tables become independent copies).
@@ -65,6 +66,9 @@ end
 function Addon:OnPlayerEnteringWorld()
 	self:SaveCurrentCharacterLockouts()
 	RequestRaidInfo()
+	if self.RecordCurrentGroupHistory then
+		self:RecordCurrentGroupHistory(false)
+	end
 end
 
 -- Refresh saved instance cache when the server answers RequestRaidInfo.
@@ -114,11 +118,12 @@ end
 
 function Addon:OnGroupRosterUpdated()
 	local frame = self.mainFrame
-	if not frame or not frame:IsShown() then
+	if frame and frame:IsShown() and (frame.selectedTab == "party" or frame.selectedTab == "raid") then
+		self:RefreshPartyData(false)
 		return
 	end
-	if frame.selectedTab == "party" or frame.selectedTab == "raid" then
-		self:RefreshPartyData(false)
+	if self.RecordCurrentGroupHistory then
+		self:RecordCurrentGroupHistory(false)
 	end
 end
 

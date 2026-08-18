@@ -1,6 +1,6 @@
 # Raidwise
 
-Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, account-wide lockouts, and character JSON export.
+Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, meeting history, account-wide lockouts, and character JSON export.
 
 ![](https://img.shields.io/badge/current_version-1.4.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--18-blue)
@@ -55,6 +55,13 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 - Click a filled card to open **Character profile** (`{name} - Character profile`)
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 
+**History** tab:
+
+- Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
+- Columns: name, class icon, spec icon, GearScore, iLvl, where you met, when, guild
+- Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
+- **Refresh** records the current group again and redraws the list
+
 **Export gear and CDs** tab:
 
 - Short description, then **Include item names**
@@ -69,7 +76,7 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 
 **Info** tab:
 
-- What the addon does (rosters, lockouts, export) and which slash commands exist
+- What the addon does (rosters, history, lockouts, export) and which slash commands exist
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md).
@@ -96,6 +103,7 @@ Raidwise/
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
   PartyRoster.lua     # party / raid member stats for roster views
+  PlayerHistory.lua   # saved party/raid encounter list (History tab)
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view
@@ -108,6 +116,6 @@ types/
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`.
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID).
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.

@@ -359,6 +359,7 @@ local function MinimalPartyMember(unit)
 	local localizedClass, classToken = UnitClass(unit)
 	return {
 		unit = unit,
+		guid = UnitGUID(unit) or "",
 		name = name or "?",
 		realm = realm or "",
 		class = classToken or "",
@@ -382,6 +383,7 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 
 	return {
 		unit = unit,
+		guid = UnitGUID(unit) or "",
 		name = name or "?",
 		realm = realm or "",
 		class = classToken or "",
@@ -484,6 +486,7 @@ function Addon:CollectRaidMember(unit, refreshGearScore)
 
 	return {
 		unit = unit,
+		guid = UnitGUID(unit) or "",
 		name = name or "?",
 		realm = realm or "",
 		class = classToken or "",
@@ -584,6 +587,9 @@ function Addon:OnInspectTalentReady()
 	if self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(false)
 	end
+	if self.RecordCurrentGroupHistory then
+		self:RecordCurrentGroupHistory(false)
+	end
 
 	self:ProcessNextPartyInspect()
 end
@@ -597,6 +603,9 @@ function Addon:RefreshPartyData(refreshGearScore)
 	end
 	if self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(refreshGearScore)
+	end
+	if self.RecordCurrentGroupHistory then
+		self:RecordCurrentGroupHistory(refreshGearScore)
 	end
 	self:QueuePartyInspects()
 end

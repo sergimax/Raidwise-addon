@@ -26,6 +26,7 @@ Menu tabs (top to bottom):
 [ Character cooldowns ]
 [ Party roster ]
 [ Raid roster ]
+[ History ]
 [ Export gear and CDs ]
 [ Export cooldowns ]
 [ Info ]
@@ -134,7 +135,7 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 
 ## Character profile
 
-Standalone window opened from Raid roster (left-click a filled player cell). Esc or **X** closes it; drag the title bar to move it.
+Standalone window opened from Raid roster or History (left-click a filled player cell or row). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
 [ Rhee - Character profile                                      X ]
@@ -145,6 +146,10 @@ Standalone window opened from Raid roster (left-click a filled player cell). Esc
 [ Guild: MyGuild (Member) ]
 [ 4.3 Karma ]
 [ #tag #tag ]
+[ Met: Icecrown Citadel ]
+[ When: 2026-08-18 18:54 ]
+[ Realm: Icecrown ]
+[ GUID: 0x00000000002a3b4c ]
 ```
 
 | Block | In-game text / control |
@@ -158,6 +163,37 @@ Standalone window opened from Raid roster (left-click a filled player cell). Esc
 | Guild | `Guild: GuildName (Rank)` or `Guild: -` |
 | Karma | Placeholder `{value} Karma` (`4.3 Karma`) |
 | Tags | `#tag #tag`; placeholder until tag functions exist |
+| Met | Raid or dungeon (or zone) where you first grouped with them; `-` if unknown |
+| When | Local date and time of that first meeting (`YYYY-MM-DD HH:MM`) |
+| Realm | Realm where the meeting happened; `-` if unknown |
+| GUID | `UnitGUID` for this character; shown only here |
+
+## History
+
+Players you have been in a party or raid with (not yourself). Each GUID is stored in `RaidwiseDB.history` and survives logout. First meeting zone, time, and realm are kept; later grouping updates GearScore, iLvl, spec, and last seen.
+
+```text
+[ short description ]                              [ Refresh ]
+        8 px gap
+[ Name | (class) | (spec) | GS | iLvl | Met in | When | Guild (rank) ]
+[ Rhee |  SH   |  Enh   | 6158 | 264 | Icecrown Citadel | 2026-08-18 18:54 | MyGuild (Member) ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | “Players from your parties and raids. Saved on this account.” |
+| Refresh | Records the current group again, then redraws the saved list |
+| Name | Class-colored character name |
+| Class | Class icon; hover shows localized class name |
+| Spec | Primary talent tree icon; hover shows spec name |
+| GS | Last stored GearScore |
+| iLvl | Last stored average item level |
+| Met in | Raid, dungeon, or zone at first meeting |
+| When | First meeting date and time |
+| Guild | Last stored `GuildName (Rank)` |
+| click | Left-click a row opens **Character profile** |
+
+Notes, tags, links, and a change log are stored empty on each record for later editing; they are not shown on this table yet.
 
 ## Export cooldowns
 
@@ -191,7 +227,7 @@ JSON includes `exportedAt` and a `characters[]` array (key, name, realm, class, 
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | Raid-prep overview (rosters, lockouts, export); what Character cooldowns, Party roster, Raid roster, Export gear and CDs, and Export cooldowns do; slash commands |
+| descriptions | Raid-prep overview (rosters, history, lockouts, export); what Character cooldowns, Party roster, Raid roster, History, Export gear and CDs, and Export cooldowns do; slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |

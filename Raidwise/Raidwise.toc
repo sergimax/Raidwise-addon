@@ -1,6 +1,6 @@
 ## Interface: 30300
 ## Title: |cffff7d0aRaid|rwise
-## Notes: Party and raid rosters, lockouts, and character export for Wrath of the Lich King 3.3.5a
+## Notes: Party and raid rosters, meeting history, lockouts, and character export for Wrath of the Lich King 3.3.5a
 ## Author: sergimax
 ## Version: 1.4.0
 ## X-LastUpdated: 2026-08-18
@@ -11,4 +11,5 @@ Raidwise.lua
 CharacterExport.lua
 CharacterLockouts.lua
 PartyRoster.lua
+PlayerHistory.lua
 ExporterWindow.lua

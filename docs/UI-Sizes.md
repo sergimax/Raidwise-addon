@@ -32,7 +32,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Character cooldowns**, **Party roster**, **Raid roster**, **Export gear and CDs**, **Export cooldowns**, **Info**.
+Tabs (in order): **Character cooldowns**, **Party roster**, **Raid roster**, **History**, **Export gear and CDs**, **Export cooldowns**, **Info**.
 
 ## Content padding
 
@@ -124,16 +124,26 @@ Same toolbar + averages line as Party roster (`CD_TOOLBAR_H`, gap, scrollbars). 
 
 ## Character profile
 
-Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Raid roster; Esc-close via `UISpecialFrames`.
+Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Raid roster or History; Esc-close via `UISpecialFrames`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Window | **280 × 260** | Centered, offset +40 / +20 from parent center |
+| Window | **300 × 360** | Centered, offset +40 / +20 from parent center |
 | Title bar | height **20** | Drag handle; `{name} - Character profile` |
 | Close button | **16 × 16** | Right of title bar |
 | Body padding | **10** | Same as main shell `PAD` |
 | Icons | **14** | Class then spec, stacked |
 | Line gap | **8** | Between body rows |
+
+## History tab
+
+Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H`, `CD_ROW_H`, scrollbars). No averages line.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Columns | **90 + 28 + 28 + 52 + 44 + 160 + 130 + 150 = 682** | Name, class, spec, GS, iLvl, Met in, When, Guild |
+| Met in | **160** | First meeting instance or zone |
+| When | **130** | `YYYY-MM-DD HH:MM` |
 
 ## Export cooldowns tab
 
