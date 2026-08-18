@@ -32,7 +32,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Character cooldowns**, **Export gear and CDs**, **Party roster**, **Raid roster**, **History**, **Settings**, **Info**.
+Tabs (in order): **Character cooldowns**, **Export gear and CDs**, **Party roster**, **Raid roster**, **Raid composition**, **History**, **Settings**, **Info**.
 
 ## Content padding
 
@@ -123,6 +123,17 @@ Same toolbar as Party roster, then two stats lines, then the scroll host. Two st
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
 | Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3 |
+
+## Raid composition tab
+
+Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollbar only.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Columns | **3** | Equal width; `COMP_COL_GAP` **12** px |
+| Section heading | height **20** | Gold `GameFontNormal` |
+| Effect row | height **20** | Icon **16** px, name, count width **22** |
+| Gap between sections | **10** px | After packing into the shortest column |
 
 ## Character profile
 

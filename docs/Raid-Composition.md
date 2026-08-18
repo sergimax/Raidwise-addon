@@ -1,6 +1,6 @@
 # Raid composition tracking
 
-What the **Raid composition** tab checks for Wrath of the Lich King **3.3.5a**. Layout follows the [Wowhead raid composition](https://www.wowhead.com/wotlk/raid-composition) tool: roles, then exclusive buff/debuff/utility categories.
+What the **Raid composition** tab (**Анализ состава**) checks for Wrath of the Lich King **3.3.5a**. Layout follows the [Wowhead raid composition](https://www.wowhead.com/wotlk/raid-composition) tool: roles, then exclusive buff/debuff/utility categories.
 
 Only the strongest effect in a category applies to the raid. The tab marks a category **present** if anyone in the current party or raid can bring it, and **missing** otherwise. Spec is the player’s **primary talent tree** (same inspect data as Raid roster). Deep talent points are not read: if the tree is right, the addon assumes the usual raid talent is taken.
 

@@ -104,6 +104,15 @@ local UI = {
 	HISTORY_COL_MET = 130,
 	HISTORY_COL_GUILD = 150,
 
+	-- Raid composition tab
+	COMP_COLS = 3,
+	COMP_COL_GAP = 12,
+	COMP_SECTION_GAP = 10,
+	COMP_HEADING_H = 20,
+	COMP_ROW_H = 20,
+	COMP_ICON = 16,
+	COMP_COUNT_W = 22,
+
 	-- Colors
 	GOLD = { 0.890, 0.729, 0.016 },
 	TEXT_IDLE = { 0.80, 0.80, 0.80 },
@@ -124,6 +133,7 @@ local PAGES = {
 	{ id = "export", labelKey = "TAB_EXPORT" },
 	{ id = "party", labelKey = "TAB_PARTY" },
 	{ id = "raid", labelKey = "TAB_RAID" },
+	{ id = "composition", labelKey = "TAB_COMPOSITION" },
 	{ id = "history", labelKey = "TAB_HISTORY" },
 	{ id = "settings", labelKey = "TAB_SETTINGS" },
 	{ id = "info", labelKey = "TAB_INFO" },
@@ -422,7 +432,7 @@ function Addon:SelectTab(tabId)
 		self:SaveCurrentCharacterLockouts()
 		RequestRaidInfo()
 		self:RefreshCooldownTable()
-	elseif tabId == "party" or tabId == "raid" then
+	elseif tabId == "party" or tabId == "raid" or tabId == "composition" then
 		self:RefreshPartyData(true)
 	elseif tabId == "history" then
 		if self.RecordCurrentGroupHistory then
@@ -2176,6 +2186,338 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 	LayoutCooldownScrollBars(page)
 end
 
+local COMP_ROLE_KEYS = {
+	tank = "ROLE_TANKS",
+	healer = "ROLE_HEALERS",
+	melee = "ROLE_MELEE_SHORT",
+	ranged = "ROLE_RANGE",
+}
+
+local function SpellTexture(spellId)
+	if type(GetSpellInfo) == "function" and spellId then
+		local _, _, icon = GetSpellInfo(spellId)
+		if icon and icon ~= "" then
+			return icon
+		end
+	end
+	return "Interface\\Icons\\INV_Misc_QuestionMark"
+end
+
+local function JoinNames(names)
+	if not names or #names == 0 then
+		return T("COMP_NONE")
+	end
+	return table.concat(names, ", ")
+end
+
+local function LayoutCompositionScrollBars(page)
+	local scroll = page.scroll
+	local content = page.tableContent
+	local vBar = page.vBar
+	if not scroll or not content or not vBar then
+		return
+	end
+	local viewH = scroll:GetHeight() or 0
+	local childH = content:GetHeight() or 0
+	local maxV = math.max(0, childH - viewH)
+	vBar:SetMinMaxValues(0, maxV)
+	if maxV > 0 then
+		vBar:Show()
+		local current = math.min(scroll:GetVerticalScroll() or 0, maxV)
+		vBar:SetValue(current)
+		scroll:SetVerticalScroll(current)
+	else
+		vBar:SetValue(0)
+		vBar:Hide()
+		scroll:SetVerticalScroll(0)
+	end
+end
+
+local function CreateCompositionHeading(parent)
+	local heading = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	heading:SetHeight(UI.COMP_HEADING_H)
+	heading:SetJustifyH("LEFT")
+	heading:SetJustifyV("MIDDLE")
+	SetFontColor(heading, UI.GOLD)
+	return heading
+end
+
+local function CreateCompositionRow(parent)
+	local row = CreateFrame("Frame", nil, parent)
+	row:SetHeight(UI.COMP_ROW_H)
+	row:EnableMouse(true)
+
+	local icon = row:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(UI.COMP_ICON, UI.COMP_ICON)
+	icon:SetPoint("LEFT", 2, 0)
+	row.icon = icon
+
+	local count = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	count:SetPoint("RIGHT", -2, 0)
+	count:SetWidth(UI.COMP_COUNT_W)
+	count:SetJustifyH("RIGHT")
+	row.count = count
+
+	local name = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	name:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+	name:SetPoint("RIGHT", count, "LEFT", -4, 0)
+	name:SetJustifyH("LEFT")
+	name:SetJustifyV("MIDDLE")
+	row.name = name
+
+	row:SetScript("OnEnter", function(self)
+		if not self.tooltipTitle then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.tooltipTitle)
+		if self.tooltipProviders then
+			GameTooltip:AddLine(self.tooltipProviders, 0.8, 0.8, 0.8, true)
+		end
+		if self.tooltipSources then
+			GameTooltip:AddLine(self.tooltipSources, 1, 1, 1, true)
+		end
+		GameTooltip:Show()
+	end)
+	row:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	return row
+end
+
+local function CreateCompositionPage(parent)
+	local page = CreateFrame("Frame", nil, parent)
+	page:SetAllPoints(parent)
+
+	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	hint:SetPoint("TOPLEFT", 0, 0)
+	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
+	hint:SetJustifyH("LEFT")
+	hint:SetJustifyV("TOP")
+	hint:SetText(T("COMP_HINT"))
+
+	local refreshBtn = CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, T("BTN_REFRESH"))
+	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
+	refreshBtn:SetScript("OnClick", function()
+		Addon:RefreshPartyData(true)
+	end)
+
+	local tableTop = -CooldownTableTopOffset()
+
+	local tableHost = CreateFrame("Frame", nil, page)
+	tableHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
+	tableHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+	ApplyPlainPanel(tableHost, UI.PANEL_BG)
+	page.tableHost = tableHost
+
+	local scroll = CreateFrame("ScrollFrame", "RaidwiseCompositionScroll", tableHost)
+	scroll:SetPoint("TOPLEFT", 6, -6)
+	scroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 4), 6)
+	scroll:EnableMouseWheel(true)
+	page.scroll = scroll
+
+	local content = CreateFrame("Frame", nil, scroll)
+	content:SetSize(1, 1)
+	scroll:SetScrollChild(content)
+	page.tableContent = content
+	page.headings = {}
+	page.rows = {}
+
+	local vBar = CreateCooldownScrollBar(tableHost, "VERTICAL")
+	vBar:SetPoint("TOPRIGHT", -1, -1)
+	vBar:SetPoint("BOTTOMRIGHT", -1, 1)
+	vBar:SetScript("OnValueChanged", function(self)
+		scroll:SetVerticalScroll(self:GetValue() or 0)
+	end)
+	page.vBar = vBar
+
+	scroll:SetScript("OnMouseWheel", function(self, delta)
+		local maxV = math.max(0, (content:GetHeight() or 0) - (self:GetHeight() or 0))
+		local step = UI.COMP_ROW_H * 3
+		local nextValue = math.max(0, math.min(maxV, (self:GetVerticalScroll() or 0) - delta * step))
+		self:SetVerticalScroll(nextValue)
+		vBar:SetValue(nextValue)
+	end)
+	scroll:SetScript("OnSizeChanged", function()
+		if Addon.RefreshCompositionView then
+			Addon:RefreshCompositionView(false)
+		end
+	end)
+
+	page:SetScript("OnShow", function()
+		if Addon.RefreshCompositionView then
+			Addon:RefreshCompositionView(false)
+		end
+	end)
+
+	page.hint = hint
+	page.refreshBtn = refreshBtn
+	return page
+end
+
+function Addon:RefreshCompositionView(refreshGearScore)
+	local frame = self.mainFrame
+	local page = frame and frame.pages and frame.pages.composition
+	if not page then
+		return
+	end
+	if page.layouting then
+		return
+	end
+	page.layouting = true
+
+	if not self.AnalyzeRaidComposition or not self.CompositionMembers then
+		if page.hint then
+			page.hint:SetText(T("COMP_FAIL"))
+		end
+		page.layouting = nil
+		return
+	end
+
+	if page.hint then
+		page.hint:SetText(T("COMP_HINT"))
+	end
+
+	local analysis = self:AnalyzeRaidComposition(self:CompositionMembers(refreshGearScore))
+	local content = page.tableContent
+	local viewW = page.scroll:GetWidth() or ContentInnerWidth()
+	if viewW < 100 then
+		viewW = ContentInnerWidth() - UI.CD_SCROLLBAR_W - 10
+	end
+	local cols = UI.COMP_COLS
+	local colW = math.floor((viewW - UI.COMP_COL_GAP * (cols - 1)) / cols)
+	if colW < 80 then
+		colW = 80
+	end
+
+	local blocks = {
+		{
+			headingKey = "COMP_SECTION_ROLES",
+			rows = {},
+		},
+	}
+	for roleIndex = 1, #analysis.roleOrder do
+		local role = analysis.roleOrder[roleIndex]
+		local bucket = analysis.roles[role] or {}
+		blocks[1].rows[#blocks[1].rows + 1] = {
+			name = T(COMP_ROLE_KEYS[role] or "ROLE_UNKNOWN"),
+			count = bucket.count or 0,
+			icon = (self.RaidRoleIcon and self:RaidRoleIcon(role)) or "Interface\\Icons\\INV_Misc_QuestionMark",
+			providers = bucket.names,
+		}
+	end
+	for sectionIndex = 1, #analysis.sections do
+		local section = analysis.sections[sectionIndex]
+		local block = {
+			headingKey = section.labelKey,
+			rows = {},
+		}
+		for effectIndex = 1, #section.effects do
+			local effect = section.effects[effectIndex]
+			block.rows[#block.rows + 1] = {
+				name = T(effect.labelKey),
+				count = effect.count or 0,
+				icon = SpellTexture(effect.spellId),
+				providers = effect.providers,
+				sources = effect.sourceLabels,
+			}
+		end
+		blocks[#blocks + 1] = block
+	end
+
+	HidePoolFrom(page.headings, #blocks + 1)
+	local rowNeeded = 0
+	for blockIndex = 1, #blocks do
+		rowNeeded = rowNeeded + #blocks[blockIndex].rows
+	end
+	HidePoolFrom(page.rows, rowNeeded + 1)
+
+	local colHeights = {}
+	for col = 1, cols do
+		colHeights[col] = 0
+	end
+
+	local headingIndex = 0
+	local rowIndex = 0
+
+	local function PlaceHeight(height)
+		local best = 1
+		for col = 2, cols do
+			if colHeights[col] < colHeights[best] then
+				best = col
+			end
+		end
+		local x = (best - 1) * (colW + UI.COMP_COL_GAP)
+		local y = -colHeights[best]
+		colHeights[best] = colHeights[best] + height + UI.COMP_SECTION_GAP
+		return x, y
+	end
+
+	for blockIndex = 1, #blocks do
+		local block = blocks[blockIndex]
+		local blockH = UI.COMP_HEADING_H + #block.rows * UI.COMP_ROW_H
+		local x, y = PlaceHeight(blockH)
+
+		headingIndex = headingIndex + 1
+		local heading = page.headings[headingIndex]
+		if not heading then
+			heading = CreateCompositionHeading(content)
+			page.headings[headingIndex] = heading
+		end
+		heading:ClearAllPoints()
+		heading:SetPoint("TOPLEFT", content, "TOPLEFT", x, y)
+		heading:SetWidth(colW)
+		heading:SetText(T(block.headingKey))
+		heading:Show()
+
+		for itemIndex = 1, #block.rows do
+			rowIndex = rowIndex + 1
+			local item = block.rows[itemIndex]
+			local row = page.rows[rowIndex]
+			if not row then
+				row = CreateCompositionRow(content)
+				page.rows[rowIndex] = row
+			end
+			row:ClearAllPoints()
+			row:SetPoint("TOPLEFT", content, "TOPLEFT", x, y - UI.COMP_HEADING_H - (itemIndex - 1) * UI.COMP_ROW_H)
+			row:SetSize(colW, UI.COMP_ROW_H)
+			row.icon:SetTexture(item.icon)
+			row.name:SetText(item.name)
+			row.count:SetText(tostring(item.count or 0))
+			if (item.count or 0) > 0 then
+				SetFontColor(row.name, UI.GOLD)
+				SetFontColor(row.count, UI.GOLD)
+			else
+				SetFontColor(row.name, UI.TEXT_DISABLED)
+				SetFontColor(row.count, UI.TEXT_DISABLED)
+			end
+			row.tooltipTitle = item.name
+			if (item.count or 0) > 0 then
+				row.tooltipProviders = T("COMP_PROVIDERS", JoinNames(item.providers))
+			else
+				row.tooltipProviders = T("COMP_MISSING")
+			end
+			if item.sources then
+				row.tooltipSources = T("COMP_CAN_BRING", JoinNames(item.sources))
+			else
+				row.tooltipSources = nil
+			end
+			row:Show()
+		end
+	end
+
+	local contentH = 0
+	for col = 1, cols do
+		if colHeights[col] > contentH then
+			contentH = colHeights[col]
+		end
+	end
+	content:SetSize(viewW, math.max(contentH, 1))
+	LayoutCompositionScrollBars(page)
+	page.layouting = nil
+end
+
 local function HistoryTableWidth()
 	return UI.HISTORY_COL_NAME + UI.HISTORY_COL_CLASS + UI.HISTORY_COL_SPEC + UI.HISTORY_COL_GS
 		+ UI.HISTORY_COL_ILVL + UI.HISTORY_COL_ZONE + UI.HISTORY_COL_MET + UI.HISTORY_COL_GUILD
@@ -2561,6 +2903,10 @@ function Addon:CreateMainFrame()
 	frame.pages.raid = raidPage
 	raidPage:Hide()
 
+	local compositionPage = CreateCompositionPage(content)
+	frame.pages.composition = compositionPage
+	compositionPage:Hide()
+
 	local historyPage = CreateHistoryPage(content)
 	frame.pages.history = historyPage
 	historyPage:Hide()
@@ -2712,6 +3058,16 @@ function Addon:RefreshLocalizedUI()
 		end
 	end
 
+	local compositionPage = frame.pages.composition
+	if compositionPage then
+		if compositionPage.hint then
+			compositionPage.hint:SetText(T("COMP_HINT"))
+		end
+		if compositionPage.refreshBtn then
+			compositionPage.refreshBtn.label:SetText(T("BTN_REFRESH"))
+		end
+	end
+
 	local historyPage = frame.pages.history
 	if historyPage then
 		if historyPage.hint then
@@ -2731,6 +3087,9 @@ function Addon:RefreshLocalizedUI()
 	end
 	if self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(false)
+	end
+	if self.RefreshCompositionView then
+		self:RefreshCompositionView(false)
 	end
 	if self.RefreshHistoryView then
 		self:RefreshHistoryView()

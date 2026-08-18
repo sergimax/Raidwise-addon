@@ -27,6 +27,7 @@ Menu tabs (top to bottom):
 [ Export gear and CDs ]
 [ Party roster ]
 [ Raid roster ]
+[ Raid composition ]
 [ History ]
 [ Settings ]
 [ Info ]
@@ -139,6 +140,33 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 | line 5 | Tags (`#tag #tag`); placeholder until tag functions exist |
 | click | Left-click a filled cell opens **Character profile** |
 
+## Raid composition
+
+Wowhead-style checklist of the current party or raid: who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered. Tracking list: [`Raid-Composition.md`](Raid-Composition.md).
+
+```text
+[ short description ]                              [ Refresh ]
+        8 px gap
+[ Roles              ] [ Buffs              ] [ External buffs    ]
+[ (icon) Tanks     2 ] [ (icon) 10% stats 1 ] [ (icon) Focus Magic 0 ]
+[ (icon) Healers   6 ] [ (icon) MotW      1 ] ...
+[ Damage reduction   ] [ Debuffs            ] [ Mana regeneration ]
+[ ...                ] [ ...                ] [ Health regeneration ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | “Who is needed, and which raid buffs, debuffs, and utility are already covered.” |
+| Refresh | Re-reads the current group (same inspect/GearScore path as Raid roster) |
+| columns | Three equal columns; sections pack into the shortest column |
+| section heading | Gold: Roles, Buffs, External buffs, Damage reduction, Debuffs, Mana regeneration, Health regeneration |
+| row | Spell or role icon, name, count of players who can provide it |
+| present | Gold name and count (`> 0`) |
+| missing | Dim name and `0` |
+| tooltip | Who in the raid has it, then which classes/specs can bring it |
+
+Spec is the primary talent tree (same as Raid roster). Solo shows only your own coverage.
+
 ## Character profile
 
 Standalone window opened from Raid roster or History (left-click a filled player cell or row). Esc or **X** closes it; drag the title bar to move it.
@@ -230,7 +258,7 @@ Switching language updates the left menu, page labels, and visible tables withou
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | Raid-prep overview (rosters, history, lockouts, export); what Character cooldowns, Party roster, Raid roster, History, Export gear and CDs, and Settings do; slash commands |
+| descriptions | Raid-prep overview (rosters, composition, history, lockouts, export); what Character cooldowns, Party roster, Raid roster, Raid composition, History, Export gear and CDs, and Settings do; slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |
