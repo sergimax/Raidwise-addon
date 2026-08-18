@@ -76,10 +76,12 @@ Rows come only from current lockouts (10 / 10 Heroic / 25 / 25 Heroic, plus olde
 
 ## Party roster
 
-Current party or raid roster (solo shows only you). Spec for other members is filled via inspect when they are nearby.
+Current 5-player party (you plus up to four others). Solo shows only you. Raid members are listed on Raid roster. Spec for other members is filled via inspect when they are nearby.
 
 ```text
 [ short description ]                              [ Refresh ]
+        8 px gap
+[ Average iLvl: 264     Average GS: 6158 ]
         8 px gap
 [ Name | (class) | (spec) | GS | iLvl | Karma | Tags | Guild (rank) ]
 [ Rhee |  SH   |  Enh   | 6158 | 264 | 4.3 | #tag #tag | MyGuild (Member) ]
@@ -87,8 +89,9 @@ Current party or raid roster (solo shows only you). Spec for other members is fi
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Current party or raid members. Refresh after gear or spec changes.” |
+| short description | “Current party (5 players max). Refresh after gear or spec changes.” |
 | Refresh | Re-reads GearScore, item levels, guild info; re-queues inspect for specs |
+| averages | Mean iLvl and GearScore of members that have a value (`-` when none) |
 | Name | Class-colored character name |
 | Class | Class icon (`CLASS_ICON_TCOORDS`); hover shows localized class name |
 | Spec | Primary talent tree icon only; hover shows spec name |
@@ -105,6 +108,8 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 ```text
 [ short description ]                              [ Refresh ]
         8 px gap
+[ Average iLvl: 264     Average GS: 6158 ]
+        8 px gap
 [ 1              ][ 2              ][ 3              ][ 4              ][ 5              ]
 [ (class) Rhee   ][ empty slot     ] ...
 [ (spec) 6158gs 264ilvl ]
@@ -119,6 +124,7 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 |-------|------------------------|
 | short description | “Raid groups 1–5 and 6–8. Refresh after gear or spec changes.” |
 | Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons |
+| averages | Mean iLvl and GearScore of filled raid members that have a value (`-` when none) |
 | column header | Group number (`1`–`8`) |
 | line 1 | Class icon + class-colored name |
 | line 2 | Spec icon + `6158gs 264ilvl` (omit missing values) |

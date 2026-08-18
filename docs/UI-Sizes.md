@@ -93,10 +93,11 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Party roster tab
 
-Same toolbar + scroll table layout as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H`, `CD_ROW_H`, scrollbars).
+Same toolbar as Character cooldowns, plus an averages line, then the scroll table (`CD_TOOLBAR_H`, `CD_HEADER_H`, `CD_ROW_H`, scrollbars).
 
 | Element | Size | Notes |
 |---------|------|-------|
+| Averages line | height **16** | `Average iLvl: {n}     Average GS: {n}`; 8 px gap above and below |
 | Columns | **90 + 28 + 28 + 52 + 44 + 52 + 100 + 184 = 578** | Name, class icon, spec icon, GS, iLvl, Karma, Tags, Guild |
 | Class column | **14** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
 | Spec column | **14** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
@@ -104,12 +105,15 @@ Same toolbar + scroll table layout as Character cooldowns (`CD_TOOLBAR_H`, `CD_H
 | Tags column | **100** | `#tag #tag`; placeholder until tag functions exist |
 | Guild column | **184** | `GuildName (Rank)`; `-` when not in a guild |
 
+Max **5** rows (player + `party1`–`party4`). Raid members are not listed here.
+
 ## Raid roster tab
 
-Same toolbar + scroll host as Party roster (`CD_TOOLBAR_H`, gap, scrollbars). Two stacked blocks inside the scroll child.
+Same toolbar + averages line as Party roster (`CD_TOOLBAR_H`, gap, scrollbars). Two stacked blocks inside the scroll child.
 
 | Element | Size | Notes |
 |---------|------|-------|
+| Averages line | height **16** | Same as Party roster; mean of filled members with a value |
 | Player cell | **148 × 72** | Four lines: class+name, spec+GS/iLvl, karma, tags |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Gold number above each party column |

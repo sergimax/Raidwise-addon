@@ -42,13 +42,15 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 
 **Party roster** tab:
 
-- Table of current party or raid members (you alone when not grouped)
+- Table of the current 5-player party (you alone when not grouped)
+- Line above the table: average item level and average GearScore
 - Columns: name, class icon, spec icon, GearScore, average item level, karma, tags, guild with rank
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
 
 **Raid roster** tab:
 
 - Two blocks: raid groups **1–5**, then **6–8**
+- Line above the cells: average item level and average GearScore
 - Each group is a column of five player cards: class icon + name, spec icon + GS/iLvl, karma, and tags
 - Click a filled card to open **Character profile** (`{name} - Character profile`)
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons

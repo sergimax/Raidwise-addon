@@ -65,6 +65,7 @@ local UI = {
 	PARTY_COL_KARMA = 52,
 	PARTY_COL_TAGS = 100,
 	PARTY_COL_GUILD = 184,
+	ROSTER_STATS_H = 16,
 
 	-- Raid roster tab
 	RAID_CELL_W = 148,
@@ -607,7 +608,7 @@ local function CreateInfoPage(parent)
 			.. "Turn on Include item names to add display names next to item ids. "
 			.. "If the GearScore addon is loaded, the current score is included.\n\n"
 			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account. "
-			.. "Party roster lists current group members with spec, GearScore, average item level, guild, karma, and tags. "
+			.. "Party roster lists the current 5-player party with spec, GearScore, average item level, guild, karma, and tags. "
 			.. "Raid roster shows raid groups 1–5 and 6–8 as player cards (class, name, spec, GearScore, iLvl). "
 			.. "Export cooldowns writes the same account-wide lockout data as JSON. "
 			.. "Log in on each alt to record their lockouts.\n\n"
@@ -831,6 +832,10 @@ end
 
 local function CooldownTableTopOffset()
 	return UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE
+end
+
+local function RosterTableTopOffset()
+	return UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE + UI.ROSTER_STATS_H + UI.CD_HINT_TO_TABLE
 end
 
 local function CreateCooldownsPage(parent)
@@ -1115,6 +1120,52 @@ local function FormatTagLine(tags)
 	return table.concat(parts, " ")
 end
 
+local function FormatRosterAverages(gearScore, averageIlvl)
+	local ilvlText = averageIlvl ~= nil and tostring(averageIlvl) or "-"
+	local gsText = gearScore ~= nil and tostring(gearScore) or "-"
+	return "Average iLvl: " .. ilvlText .. "     Average GS: " .. gsText
+end
+
+local function CreateRosterStatsLabel(page)
+	local stats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	stats:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -(UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE))
+	stats:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	stats:SetHeight(UI.ROSTER_STATS_H)
+	stats:SetJustifyH("LEFT")
+	stats:SetJustifyV("MIDDLE")
+	SetFontColor(stats, UI.TEXT_IDLE)
+	stats:SetText(FormatRosterAverages(nil, nil))
+	page.statsLabel = stats
+	return stats
+end
+
+local function UpdateRosterStatsLabel(page, members)
+	if not page or not page.statsLabel then
+		return
+	end
+	local averageGs, averageIlvl
+	if Addon.AverageRosterStats then
+		averageGs, averageIlvl = Addon:AverageRosterStats(members)
+	end
+	page.statsLabel:SetText(FormatRosterAverages(averageGs, averageIlvl))
+end
+
+local function MembersFromRaidGroups(groups)
+	local members = {}
+	if type(groups) ~= "table" then
+		return members
+	end
+	for groupIndex = 1, 8 do
+		local slots = groups[groupIndex]
+		if slots then
+			for slot = 1, #slots do
+				members[#members + 1] = slots[slot]
+			end
+		end
+	end
+	return members
+end
+
 local function CreatePartyRow(parent)
 	local row = CreateFrame("Frame", nil, parent)
 	row:SetHeight(UI.CD_ROW_H)
@@ -1187,7 +1238,7 @@ local function CreatePartyPage(parent)
 	hint:SetPoint("RIGHT", page, "RIGHT", -90, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
-	hint:SetText("Current party or raid members. Refresh after gear or spec changes.")
+	hint:SetText("Current party (5 players max). Refresh after gear or spec changes.")
 
 	local refreshBtn = CreatePlainButton(page, 80, UI.CD_TOOLBAR_H, "Refresh")
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
@@ -1195,7 +1246,9 @@ local function CreatePartyPage(parent)
 		Addon:RefreshPartyData(true)
 	end)
 
-	local tableTop = -CooldownTableTopOffset()
+	CreateRosterStatsLabel(page)
+
+	local tableTop = -RosterTableTopOffset()
 
 	local tableHost = CreateFrame("Frame", nil, page)
 	tableHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
@@ -1286,6 +1339,7 @@ function Addon:RefreshPartyView(refreshGearScore)
 	page.tableHost:Show()
 
 	local roster = self:BuildPartyRoster(refreshGearScore)
+	UpdateRosterStatsLabel(page, roster)
 	local content = page.tableContent
 	local headerBg = page.headerBg
 	local tableW = PartyTableWidth()
@@ -1704,7 +1758,9 @@ local function CreateRaidRosterPage(parent)
 		Addon:RefreshPartyData(true)
 	end)
 
-	local tableTop = -CooldownTableTopOffset()
+	CreateRosterStatsLabel(page)
+
+	local tableTop = -RosterTableTopOffset()
 	local tableHost = CreateFrame("Frame", nil, page)
 	tableHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
 	tableHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
@@ -1784,6 +1840,7 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 	page.tableHost:Show()
 
 	local groups = self:BuildRaidGroups(refreshGearScore)
+	UpdateRosterStatsLabel(page, MembersFromRaidGroups(groups))
 	local blocks = { page.topBlock, page.bottomBlock }
 	for blockIndex = 1, #blocks do
 		local block = blocks[blockIndex]

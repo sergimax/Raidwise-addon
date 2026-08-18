@@ -1,4 +1,4 @@
--- Party member snapshots for the Party roster view (GearScore, ilvl, guild, spec via inspect).
+-- Party / raid member snapshots for roster views (GearScore, ilvl, guild, spec via inspect).
 
 local Addon = Raidwise
 
@@ -63,21 +63,26 @@ local function ItemLevelFromTooltip(tooltip, tooltipName)
 	return nil
 end
 
+-- Party is player + up to 4 others (5 total). Raid members belong on Raid roster.
 local function PartyUnitIds()
-	if GetNumRaidMembers and (GetNumRaidMembers() or 0) > 0 then
-		local units = {}
-		for index = 1, GetNumRaidMembers() do
-			units[#units + 1] = "raid" .. index
-		end
-		return units
-	end
-
 	local units = { "player" }
-	local partyCount = GetNumPartyMembers() or 0
+	local partyCount = math.min(GetNumPartyMembers() or 0, 4)
 	for index = 1, partyCount do
 		units[#units + 1] = "party" .. index
 	end
 	return units
+end
+
+local function InspectUnitIds()
+	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
+	if raidCount > 0 then
+		local units = {}
+		for index = 1, raidCount do
+			units[#units + 1] = "raid" .. index
+		end
+		return units
+	end
+	return PartyUnitIds()
 end
 
 local function SafeCanInspect(unit)
@@ -420,6 +425,37 @@ function Addon:BuildPartyRoster(refreshGearScore)
 	return roster
 end
 
+function Addon:AverageRosterStats(members)
+	local gsTotal, gsCount, ilvlTotal, ilvlCount = 0, 0, 0, 0
+	if type(members) ~= "table" then
+		return nil, nil
+	end
+
+	for index = 1, #members do
+		local member = members[index]
+		if member then
+			if member.gearScore then
+				gsTotal = gsTotal + member.gearScore
+				gsCount = gsCount + 1
+			end
+			if member.averageIlvl then
+				ilvlTotal = ilvlTotal + member.averageIlvl
+				ilvlCount = ilvlCount + 1
+			end
+		end
+	end
+
+	local averageGs = nil
+	if gsCount > 0 then
+		averageGs = math.floor(gsTotal / gsCount + 0.5)
+	end
+	local averageIlvl = nil
+	if ilvlCount > 0 then
+		averageIlvl = math.floor(ilvlTotal / ilvlCount + 0.5)
+	end
+	return averageGs, averageIlvl
+end
+
 local function EmptyRaidGroups()
 	local groups = {}
 	for groupIndex = 1, 8 do
@@ -503,7 +539,7 @@ function Addon:QueuePartyInspects()
 		inspectQueue[index] = nil
 	end
 
-	for _, unit in ipairs(PartyUnitIds()) do
+	for _, unit in ipairs(InspectUnitIds()) do
 		if not UnitIsUnit(unit, "player") and UnitExists(unit) and UnitIsVisible(unit) and SafeCanInspect(unit) then
 			inspectQueue[#inspectQueue + 1] = unit
 		end
