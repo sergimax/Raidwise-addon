@@ -7,7 +7,7 @@ ASCII layouts for each window and content page. Update this file when a view cha
 Details-style plain panels: left menu, content page, status bar under both.
 
 ```text
-[ Menu 170 ] 2px [ Content 520 x 480 ]
+[ Menu 170 ] 2px [ Content 790 x 480 ]
                  [ title bar 20      ]
                  [ page body         ]
 [ addon name ] [ current version ]
@@ -25,6 +25,7 @@ Menu tabs (top to bottom):
 ```text
 [ Character cooldowns ]
 [ Party roster ]
+[ Raid roster ]
 [ Export gear and CDs ]
 [ Export cooldowns ]
 [ Info ]
@@ -75,25 +76,88 @@ Rows come only from current lockouts (10 / 10 Heroic / 25 / 25 Heroic, plus olde
 
 ## Party roster
 
-Current party or raid roster (solo shows only you). Spec for other members is filled via inspect when they are nearby.
+Current 5-player party (you plus up to four others). Solo shows only you. Raid members are listed on Raid roster. Spec for other members is filled via inspect when they are nearby.
 
 ```text
 [ short description ]                              [ Refresh ]
         8 px gap
-[ Name | (class) | (spec) | GS | iLvl | Guild (rank) ]
-[ Rhee |  SH   |  Enh   | 6158 | 264 | MyGuild (Member) ]
+[ Average iLvl: 264     Average GS: 6158 ]
+        8 px gap
+[ Name | (class) | (spec) | GS | iLvl | Karma | Tags | Guild (rank) ]
+[ Rhee |  SH   |  Enh   | 6158 | 264 | 4.3 | #tag #tag | MyGuild (Member) ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Current party or raid members. Refresh after gear or spec changes.” |
+| short description | “Current party (5 players max). Refresh after gear or spec changes.” |
 | Refresh | Re-reads GearScore, item levels, guild info; re-queues inspect for specs |
+| averages | Mean iLvl and GearScore of members that have a value (`-` when none) |
 | Name | Class-colored character name |
 | Class | Class icon (`CLASS_ICON_TCOORDS`); hover shows localized class name |
 | Spec | Primary talent tree icon only; hover shows spec name |
 | GS | GearScore when the GearScore addon has scanned the player |
 | iLvl | Average equipped item level (tooltip scan when item cache is cold) |
+| Karma | Placeholder `4.3` until karma is implemented |
+| Tags | `#tag #tag`; placeholder until tag functions exist |
 | Guild | `GuildName (Rank)` from `GetGuildInfo`; `-` when not in a guild |
+
+## Raid roster
+
+Current raid layout by group. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1.
+
+```text
+[ short description ]                              [ Refresh ]
+        8 px gap
+[ Average iLvl: 264     Average GS: 6158 ]
+        8 px gap
+[ 1              ][ 2              ][ 3              ][ 4              ][ 5              ]
+[ (class) Rhee   ][ empty slot     ] ...
+[ (spec) 6158gs 264ilvl ]
+[ 4.3 Karma      ]
+[ #tag #tag      ]
+        12 px gap
+[ 6              ][ 7              ][ 8              ]
+[ player cell    ] ...
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | “Raid groups 1–5 and 6–8. Refresh after gear or spec changes.” |
+| Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons |
+| averages | Mean iLvl and GearScore of filled raid members that have a value (`-` when none) |
+| column header | Group number (`1`–`8`) |
+| line 1 | Class icon + class-colored name |
+| line 2 | Spec icon + `6158gs 264ilvl` (omit missing values) |
+| line 3 | Temporary karma placeholder (`4.3 Karma`) |
+| line 4 | Tags (`#tag #tag`); placeholder until tag functions exist |
+| click | Left-click a filled cell opens **Character profile** |
+
+## Character profile
+
+Standalone window opened from Raid roster (left-click a filled player cell). Esc or **X** closes it; drag the title bar to move it.
+
+```text
+[ Rhee - Character profile                                      X ]
+[ (class) Shaman ]
+[ (spec) Enhancement ]
+[ GearScore: 6158 ]
+[ iLvl: 264 ]
+[ Guild: MyGuild (Member) ]
+[ 4.3 Karma ]
+[ #tag #tag ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| title | `{characterName} - Character profile` |
+| close | **X** (right of title bar); Esc also closes |
+| class | Class icon + localized class name (class-colored) |
+| spec | Talent tree icon + spec name (`-` until inspect) |
+| GearScore | `GearScore: {score}` or `GearScore: -` |
+| iLvl | `iLvl: {average}` or `iLvl: -` |
+| Guild | `Guild: GuildName (Rank)` or `Guild: -` |
+| Karma | Placeholder `{value} Karma` (`4.3 Karma`) |
+| Tags | `#tag #tag`; placeholder until tag functions exist |
 
 ## Export cooldowns
 
@@ -127,7 +191,7 @@ JSON includes `exportedAt` and a `characters[]` array (key, name, realm, class, 
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | What Export, Character cooldowns, Party roster, and Export cooldowns do; optional item names, GearScore, slash commands |
+| descriptions | Raid-prep overview (rosters, lockouts, export); what Character cooldowns, Party roster, Raid roster, Export gear and CDs, and Export cooldowns do; slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |

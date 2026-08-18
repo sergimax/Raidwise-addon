@@ -1,8 +1,8 @@
 # Raidwise
 
-WoW addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`).
+Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.3.0-purple)
+![](https://img.shields.io/badge/current_version-1.4.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--18-blue)
 
 
@@ -42,9 +42,18 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 
 **Party roster** tab:
 
-- Table of current party or raid members (you alone when not grouped)
-- Columns: name, class icon, spec icon, GearScore, average item level, guild with rank
+- Table of the current 5-player party (you alone when not grouped)
+- Line above the table: average item level and average GearScore
+- Columns: name, class icon, spec icon, GearScore, average item level, karma, tags, guild with rank
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
+
+**Raid roster** tab:
+
+- Two blocks: raid groups **1–5**, then **6–8**
+- Line above the cells: average item level and average GearScore
+- Each group is a column of five player cards: class icon + name, spec icon + GS/iLvl, karma, and tags
+- Click a filled card to open **Character profile** (`{name} - Character profile`)
+- **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 
 **Export gear and CDs** tab:
 
@@ -60,7 +69,7 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 
 **Info** tab:
 
-- What the addon exports and which slash commands exist
+- What the addon does (rosters, lockouts, export) and which slash commands exist
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md).
@@ -86,7 +95,7 @@ Raidwise/
   Raidwise.lua        # entry point, events, slash commands
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
-  PartyRoster.lua     # party member stats for the Party roster view
+  PartyRoster.lua     # party / raid member stats for roster views
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view

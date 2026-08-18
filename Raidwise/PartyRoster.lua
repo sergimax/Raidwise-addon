@@ -1,4 +1,4 @@
--- Party member snapshots for the Party roster view (GearScore, ilvl, guild, spec via inspect).
+-- Party / raid member snapshots for roster views (GearScore, ilvl, guild, spec via inspect).
 
 local Addon = Raidwise
 
@@ -25,6 +25,7 @@ local INSPECT_SLOTS = {
 local inspectQueue = {}
 local inspectPending = nil
 local specCache = {}
+local ilvlCache = {}
 local scanTooltip
 
 local function EnsureScanTooltip()
@@ -62,21 +63,26 @@ local function ItemLevelFromTooltip(tooltip, tooltipName)
 	return nil
 end
 
+-- Party is player + up to 4 others (5 total). Raid members belong on Raid roster.
 local function PartyUnitIds()
-	if GetNumRaidMembers and (GetNumRaidMembers() or 0) > 0 then
-		local units = {}
-		for index = 1, GetNumRaidMembers() do
-			units[#units + 1] = "raid" .. index
-		end
-		return units
-	end
-
 	local units = { "player" }
-	local partyCount = GetNumPartyMembers() or 0
+	local partyCount = math.min(GetNumPartyMembers() or 0, 4)
 	for index = 1, partyCount do
 		units[#units + 1] = "party" .. index
 	end
 	return units
+end
+
+local function InspectUnitIds()
+	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
+	if raidCount > 0 then
+		local units = {}
+		for index = 1, raidCount do
+			units[#units + 1] = "raid" .. index
+		end
+		return units
+	end
+	return PartyUnitIds()
 end
 
 local function SafeCanInspect(unit)
@@ -154,25 +160,46 @@ local function ItemLevelFromUnitSlot(unit, slotId)
 	return nil
 end
 
-local function AverageItemLevelForUnit(unit)
-	local total = 0
-	local count = 0
+local function CanScanUnitItemLevels(unit)
+	if not unit or not UnitExists(unit) then
+		return false
+	end
+	if UnitIsUnit(unit, "player") then
+		return true
+	end
+	return inspectPending == unit
+end
 
-	for index = 1, #INSPECT_SLOTS do
-		local slotId = GetInventorySlotInfo(INSPECT_SLOTS[index])
-		if slotId then
-			local itemLevel = ItemLevelFromUnitSlot(unit, slotId)
-			if itemLevel then
-				total = total + itemLevel
-				count = count + 1
+local function AverageItemLevelForUnit(unit)
+	local guid = UnitGUID(unit)
+	if CanScanUnitItemLevels(unit) then
+		local total = 0
+		local count = 0
+
+		for index = 1, #INSPECT_SLOTS do
+			local slotId = GetInventorySlotInfo(INSPECT_SLOTS[index])
+			if slotId then
+				local itemLevel = ItemLevelFromUnitSlot(unit, slotId)
+				if itemLevel then
+					total = total + itemLevel
+					count = count + 1
+				end
 			end
+		end
+
+		if count > 0 then
+			local average = math.floor(total / count + 0.5)
+			if guid then
+				ilvlCache[guid] = average
+			end
+			return average
 		end
 	end
 
-	if count == 0 then
-		return nil
+	if guid and ilvlCache[guid] then
+		return ilvlCache[guid]
 	end
-	return math.floor(total / count + 0.5)
+	return nil
 end
 
 local function GearScoreForUnit(unit, refresh)
@@ -180,7 +207,7 @@ local function GearScoreForUnit(unit, refresh)
 		return nil
 	end
 
-	if unit == "player" and Addon.CollectCurrentGearScore then
+	if UnitIsUnit(unit, "player") and Addon.CollectCurrentGearScore then
 		if refresh then
 			return Addon:CollectCurrentGearScore()
 		end
@@ -342,6 +369,8 @@ local function MinimalPartyMember(unit)
 		averageIlvl = nil,
 		guildName = nil,
 		guildRank = nil,
+		karma = nil,
+		tags = nil,
 	}
 end
 
@@ -363,6 +392,11 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 		averageIlvl = AverageItemLevelForUnit(unit),
 		guildName = guildName,
 		guildRank = guildRankName,
+		karma = 4.3,
+		tags = {
+			{ name = "tag" },
+			{ name = "tag" },
+		},
 	}
 end
 
@@ -391,12 +425,121 @@ function Addon:BuildPartyRoster(refreshGearScore)
 	return roster
 end
 
+function Addon:AverageRosterStats(members)
+	local gsTotal, gsCount, ilvlTotal, ilvlCount = 0, 0, 0, 0
+	if type(members) ~= "table" then
+		return nil, nil
+	end
+
+	for index = 1, #members do
+		local member = members[index]
+		if member then
+			if member.gearScore then
+				gsTotal = gsTotal + member.gearScore
+				gsCount = gsCount + 1
+			end
+			if member.averageIlvl then
+				ilvlTotal = ilvlTotal + member.averageIlvl
+				ilvlCount = ilvlCount + 1
+			end
+		end
+	end
+
+	local averageGs = nil
+	if gsCount > 0 then
+		averageGs = math.floor(gsTotal / gsCount + 0.5)
+	end
+	local averageIlvl = nil
+	if ilvlCount > 0 then
+		averageIlvl = math.floor(ilvlTotal / ilvlCount + 0.5)
+	end
+	return averageGs, averageIlvl
+end
+
+local function EmptyRaidGroups()
+	local groups = {}
+	for groupIndex = 1, 8 do
+		groups[groupIndex] = {}
+	end
+	return groups
+end
+
+local function AppendRaidMember(groups, groupIndex, member)
+	groupIndex = tonumber(groupIndex) or 1
+	if groupIndex < 1 or groupIndex > 8 then
+		return
+	end
+	local slots = groups[groupIndex]
+	if #slots >= 5 then
+		return
+	end
+	slots[#slots + 1] = member
+end
+
+function Addon:CollectRaidMember(unit, refreshGearScore)
+	local name, realm = UnitName(unit)
+	local localizedClass, classToken = UnitClass(unit)
+	local specName, specIcon = SpecForUnit(unit)
+	local guildName, guildRankName = GuildInfoForUnit(unit)
+
+	return {
+		unit = unit,
+		name = name or "?",
+		realm = realm or "",
+		class = classToken or "",
+		classLabel = localizedClass or "",
+		spec = specName,
+		specIcon = specIcon or "",
+		gearScore = GearScoreForUnit(unit, refreshGearScore),
+		averageIlvl = AverageItemLevelForUnit(unit),
+		guildName = guildName,
+		guildRank = guildRankName,
+		karma = 4.3,
+		tags = {
+			{ name = "tag" },
+			{ name = "tag" },
+		},
+	}
+end
+
+function Addon:BuildRaidGroups(refreshGearScore)
+	local groups = EmptyRaidGroups()
+	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
+
+	if raidCount > 0 then
+		for index = 1, raidCount do
+			local unit = "raid" .. index
+			if UnitExists(unit) then
+				local _, _, subgroup = GetRaidRosterInfo(index)
+				local ok, member = pcall(self.CollectRaidMember, self, unit, refreshGearScore)
+				if not ok or type(member) ~= "table" then
+					member = MinimalPartyMember(unit)
+				end
+				AppendRaidMember(groups, subgroup, member)
+			end
+		end
+		return groups
+	end
+
+	for _, unit in ipairs(PartyUnitIds()) do
+		if UnitExists(unit) then
+			local ok, member = pcall(self.CollectRaidMember, self, unit, refreshGearScore)
+			if not ok or type(member) ~= "table" then
+				member = MinimalPartyMember(unit)
+			end
+			AppendRaidMember(groups, 1, member)
+		end
+	end
+
+	return groups
+end
+
 function Addon:QueuePartyInspects()
 	for index = #inspectQueue, 1, -1 do
 		inspectQueue[index] = nil
 	end
 
-	for _, unit in ipairs(PartyUnitIds()) do
+	for _, unit in ipairs(InspectUnitIds()) do
 		if not UnitIsUnit(unit, "player") and UnitExists(unit) and UnitIsVisible(unit) and SafeCanInspect(unit) then
 			inspectQueue[#inspectQueue + 1] = unit
 		end
@@ -430,12 +573,16 @@ function Addon:OnInspectTalentReady()
 		if specName ~= "" or specIcon ~= "" then
 			StoreSpecCache(UnitGUID(unit), specName, specIcon)
 		end
+		AverageItemLevelForUnit(unit)
 	end
 
 	inspectPending = nil
 
 	if self.RefreshPartyView then
 		self:RefreshPartyView(false)
+	end
+	if self.RefreshRaidRosterView then
+		self:RefreshRaidRosterView(false)
 	end
 
 	self:ProcessNextPartyInspect()
@@ -447,6 +594,9 @@ function Addon:RefreshPartyData(refreshGearScore)
 	end
 	if self.RefreshPartyView then
 		self:RefreshPartyView(refreshGearScore)
+	end
+	if self.RefreshRaidRosterView then
+		self:RefreshRaidRosterView(refreshGearScore)
 	end
 	self:QueuePartyInspects()
 end

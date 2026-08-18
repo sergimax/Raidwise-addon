@@ -8,7 +8,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Content frame (`RaidwiseFrame`) | **520 × 480** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
+| Content frame (`RaidwiseFrame`) | **790 × 480** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
 | Menu panel (`RaidwiseMenu`) | **170 × 480** | Anchored to content `TOPLEFT` with a 2 px gap |
 | Status bar | height **20** | Spans menu left → content right, 2 px below both; name and version |
 | Status bar padding | 8 px | Left / right |
@@ -32,14 +32,14 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Character cooldowns**, **Party roster**, **Export gear and CDs**, **Export cooldowns**, **Info**.
+Tabs (in order): **Character cooldowns**, **Party roster**, **Raid roster**, **Export gear and CDs**, **Export cooldowns**, **Info**.
 
 ## Content padding
 
 | Element | Size | Notes |
 |---------|------|-------|
 | Page padding | 10 px | Inside content, below title bar |
-| Page inner width | **500** | `520 - 10 - 10` |
+| Page inner width | **770** | `790 - 10 - 10` |
 
 ## Export tab
 
@@ -93,14 +93,47 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Party roster tab
 
-Same toolbar + scroll table layout as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H`, `CD_ROW_H`, scrollbars).
+Same toolbar as Character cooldowns, plus an averages line, then the scroll table (`CD_TOOLBAR_H`, `CD_HEADER_H`, `CD_ROW_H`, scrollbars).
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Columns | **90 + 28 + 28 + 52 + 44 + 184 = 426** | Name, class icon, spec icon, GS, iLvl, Guild |
+| Averages line | height **16** | `Average iLvl: {n}     Average GS: {n}`; 8 px gap above and below |
+| Columns | **90 + 28 + 28 + 52 + 44 + 52 + 100 + 184 = 578** | Name, class icon, spec icon, GS, iLvl, Karma, Tags, Guild |
 | Class column | **14** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
 | Spec column | **14** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
+| Karma column | **52**, center | Placeholder `4.3` until karma is implemented |
+| Tags column | **100** | `#tag #tag`; placeholder until tag functions exist |
 | Guild column | **184** | `GuildName (Rank)`; `-` when not in a guild |
+
+Max **5** rows (player + `party1`–`party4`). Raid members are not listed here.
+
+## Raid roster tab
+
+Same toolbar + averages line as Party roster (`CD_TOOLBAR_H`, gap, scrollbars). Two stacked blocks inside the scroll child.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Averages line | height **16** | Same as Party roster; mean of filled members with a value |
+| Player cell | **148 × 72** | Four lines: class+name, spec+GS/iLvl, karma, tags |
+| Cell gap | **2** | Between cells and columns |
+| Group label | height **16** | Gold number above each party column |
+| Block 1 | **5 × (148 + 2) − 2 = 748** | Parties 1–5 |
+| Block 2 | **3 × (148 + 2) − 2 = 448** | Parties 6–8, left-aligned under block 1 |
+| Gap between blocks | **12** | |
+| Cell content | **14** px icons | Class on line 1, spec on line 2 |
+
+## Character profile
+
+Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Raid roster; Esc-close via `UISpecialFrames`.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Window | **280 × 260** | Centered, offset +40 / +20 from parent center |
+| Title bar | height **20** | Drag handle; `{name} - Character profile` |
+| Close button | **16 × 16** | Right of title bar |
+| Body padding | **10** | Same as main shell `PAD` |
+| Icons | **14** | Class then spec, stacked |
+| Line gap | **8** | Between body rows |
 
 ## Export cooldowns tab
 

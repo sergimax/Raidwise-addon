@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-08-18
+
+### Added
+- **Raid roster** tab: raid groups **1–5** and **6–8** as player cards (class icon, name, spec, GearScore, iLvl, karma, tags)
+- **Character profile** window from left-clicking a filled Raid roster card (`{name} - Character profile`)
+- Karma and Tags columns on **Party roster** (placeholder `4.3` and `#tag #tag` until those features exist)
+- Average iLvl and average GearScore line above the Party roster table and Raid roster cells
+
+### Changed
+- Main window content area is **790 × 480** so the Raid roster grid fits
+- Left menu order: Character cooldowns, Party roster, Raid roster, Export gear and CDs, Export cooldowns, Info
+- Party roster lists the current 5-player party only (raid members stay on Raid roster)
+- Addon list notes and Info about text describe rosters, lockouts, and export (not only character export)
+
+### Fixed
+- Other members’ item levels no longer vanish after inspect; iLvl is cached until the next successful scan
+- Party and Raid roster refresh when the group or raid composition changes
+
 ## [1.3.0] - 2026-08-18
 
 ### Added
