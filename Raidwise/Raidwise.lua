@@ -82,13 +82,6 @@ function Addon:OnUpdateInstanceInfo()
 		end
 	end
 
-	if self.pendingCooldownExport then
-		self.pendingCooldownExport = nil
-		if self.FlushCooldownExportToWindow then
-			self:FlushCooldownExportToWindow()
-		end
-	end
-
 	if self.RefreshCooldownTable then
 		local frame = self.mainFrame
 		if self.pendingLockoutTable or (frame and frame:IsShown() and frame.selectedTab == "cooldowns") then

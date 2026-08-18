@@ -37,8 +37,15 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 
 - Table of raid and dungeon lockouts for every character saved on this account
 - First column is the instance name and type (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40)
-- Other columns are characters (class-colored name and spec icon); log in on each alt to record them
+- Other columns are characters (class-colored name, spec icon, and last check time); log in on each alt to record them
 - Saved cells show time remaining until reset
+
+**Export gear and CDs** tab:
+
+- Short description, then **Include item names**
+- **Export character data** fills the JSON box (name, class, spec, gearScore, gear, bags, lockouts)
+- **Select all** highlights the JSON for Ctrl+C
+- `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
 
 **Party roster** tab:
 
@@ -63,18 +70,6 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 - Columns: name, class icon, spec icon, GearScore, iLvl, where you met, when, guild
 - Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
 - **Refresh** records the current group again and redraws the list
-
-**Export gear and CDs** tab:
-
-- Short description, then **Include item names**
-- **Export character data** fills the JSON box (name, class, spec, gearScore, gear, bags, lockouts)
-- **Select all** highlights the JSON for Ctrl+C
-- `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
-
-**Export cooldowns** tab:
-
-- **Export cooldowns** fills a JSON box with every stored character and their current lockouts (`exportedAt`, `characters[]`)
-- **Select all** highlights the JSON for Ctrl+C
 
 **Info** tab:
 

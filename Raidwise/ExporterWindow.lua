@@ -48,7 +48,7 @@ local UI = {
 	CD_TOOLBAR_H = 28,
 	CD_INSTANCE_COL_W = 170,
 	CD_CHAR_COL_W = 90,
-	CD_HEADER_H = 38,
+	CD_HEADER_H = 52,
 	CD_ROW_H = 34,
 	CD_SPEC_ICON = 14,
 	ROSTER_ICON = 18,
@@ -114,11 +114,10 @@ local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
 
 local PAGES = {
 	{ id = "cooldowns", label = "Character cooldowns" },
+	{ id = "export", label = "Export gear and CDs" },
 	{ id = "party", label = "Party roster" },
 	{ id = "raid", label = "Raid roster" },
 	{ id = "history", label = "History" },
-	{ id = "export", label = "Export gear and CDs" },
-	{ id = "exportCooldowns", label = "Export cooldowns" },
 	{ id = "info", label = "Info" },
 }
 
@@ -566,51 +565,6 @@ local function CreateExportPage(parent)
 	return page
 end
 
-local function CreateCooldownExportPage(parent)
-	local page = CreateFrame("Frame", nil, parent)
-	page:SetAllPoints(parent)
-
-	local innerW = ContentInnerWidth()
-
-	local desc = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	desc:SetPoint("TOPLEFT", 0, 0)
-	desc:SetWidth(innerW)
-	desc:SetJustifyH("LEFT")
-	desc:SetJustifyV("TOP")
-	desc:SetText("Export account-wide raid and dungeon lockouts as JSON.")
-
-	local buttonW = (innerW - UI.ACTION_BTN_GAP) / 2
-	local exportBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, "Export cooldowns")
-	exportBtn:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
-	exportBtn:SetScript("OnClick", function()
-		Addon:FlushCooldownExportToWindow()
-		Addon.pendingCooldownExport = true
-		RequestRaidInfo()
-	end)
-
-	local selectBtn = CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, "Select all")
-	selectBtn:SetPoint("LEFT", exportBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
-	selectBtn:Disable()
-	selectBtn:SetScript("OnClick", function()
-		Addon:SelectCooldownExportText()
-	end)
-
-	local statusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	statusLabel:SetPoint("TOPLEFT", exportBtn, "BOTTOMLEFT", 0, -UI.BUTTONS_TO_HINT)
-	statusLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
-	statusLabel:SetJustifyH("LEFT")
-	statusLabel:SetText("After export, press Ctrl+C to copy.")
-
-	local exportBox, copyHost = CreateCopyBox(page, "RaidwiseCooldownExportScroll", "RaidwiseCooldownExportBox")
-	copyHost:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
-	copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
-
-	page.exportBox = exportBox
-	page.statusLabel = statusLabel
-	page.selectBtn = selectBtn
-	return page
-end
-
 local function CreateInfoPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
@@ -629,7 +583,8 @@ local function CreateInfoPage(parent)
 	about:SetJustifyV("TOP")
 	about:SetText(
 		"Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, meeting history, account-wide lockouts, and character export.\n\n"
-			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account. "
+			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account, "
+			.. "including when each character was last checked. "
 			.. "Log in on each alt to record their lockouts.\n\n"
 			.. "Party roster lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, karma, and tags. "
 			.. "Raid roster shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
@@ -638,8 +593,7 @@ local function CreateInfoPage(parent)
 			.. "That list is saved on this account and stays after logout.\n\n"
 			.. "Export gear and CDs builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
 			.. "Turn on Include item names to add display names next to item ids. "
-			.. "If the GearScore addon is loaded, the current score is included. "
-			.. "Export cooldowns writes the same account-wide lockout data as JSON.\n\n"
+			.. "If the GearScore addon is loaded, the current score is included.\n\n"
 			.. "Slash commands: /raidwise or /rw (help, version, status, show, hide)."
 	)
 
@@ -779,21 +733,48 @@ local function CreateCooldownScrollBar(parent, orientation)
 	return bar
 end
 
+local function FormatLastCheckTime(timestamp)
+	timestamp = tonumber(timestamp)
+	if not timestamp or timestamp <= 0 then
+		return "-"
+	end
+	return date("%d %b %H:%M", timestamp)
+end
+
+local function FormatLastCheckTooltip(timestamp)
+	timestamp = tonumber(timestamp)
+	if not timestamp or timestamp <= 0 then
+		return "Last check: -"
+	end
+	if Addon.FormatHistoryTime then
+		return "Last check: " .. Addon:FormatHistoryTime(timestamp)
+	end
+	return "Last check: " .. date("%Y-%m-%d %H:%M", timestamp)
+end
+
 local function CreateCooldownHeaderCell(parent)
 	local cell = CreateFrame("Frame", nil, parent)
 	cell:SetHeight(UI.CD_HEADER_H)
 
 	local icon = cell:CreateTexture(nil, "ARTWORK")
 	icon:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
-	icon:SetPoint("TOPLEFT", 6, -6)
+	icon:SetPoint("TOPLEFT", 6, -4)
 	cell.icon = icon
 
 	local name = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	name:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+	name:SetPoint("TOPLEFT", icon, "TOPRIGHT", 4, 0)
 	name:SetPoint("RIGHT", cell, "RIGHT", -4, 0)
+	name:SetHeight(14)
 	name:SetJustifyH("LEFT")
 	name:SetJustifyV("MIDDLE")
 	cell.name = name
+
+	local lastCheck = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	lastCheck:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -1)
+	lastCheck:SetPoint("RIGHT", cell, "RIGHT", -4, 0)
+	lastCheck:SetJustifyH("LEFT")
+	SetFontColor(lastCheck, UI.TEXT_DISABLED)
+	cell.lastCheck = lastCheck
 
 	cell:EnableMouse(true)
 	cell:SetScript("OnEnter", function(self)
@@ -804,6 +785,9 @@ local function CreateCooldownHeaderCell(parent)
 		GameTooltip:AddLine(self.tooltipTitle)
 		if self.tooltipSpec then
 			GameTooltip:AddLine(self.tooltipSpec, 0.8, 0.8, 0.8)
+		end
+		if self.tooltipLastCheck then
+			GameTooltip:AddLine(self.tooltipLastCheck, 0.8, 0.8, 0.8)
 		end
 		GameTooltip:Show()
 	end)
@@ -1076,8 +1060,10 @@ function Addon:RefreshCooldownTable()
 		cell.name:SetText(character.displayName)
 		cell.name:SetTextColor(ClassColor(character.class))
 		SetSpecOrClassIcon(cell.icon, character.specIcon, character.class)
+		cell.lastCheck:SetText(FormatLastCheckTime(character.updatedAt))
 		cell.tooltipTitle = character.displayName
 		cell.tooltipSpec = character.spec ~= "" and character.spec or nil
+		cell.tooltipLastCheck = FormatLastCheckTooltip(character.updatedAt)
 		cell:Show()
 	end
 
@@ -2506,13 +2492,6 @@ function Addon:CreateMainFrame()
 	frame.selectBtn = exportPage.selectBtn
 	exportPage:Hide()
 
-	local cooldownExportPage = CreateCooldownExportPage(content)
-	frame.pages.exportCooldowns = cooldownExportPage
-	frame.cooldownExportBox = cooldownExportPage.exportBox
-	frame.cooldownExportStatus = cooldownExportPage.statusLabel
-	frame.cooldownExportSelectBtn = cooldownExportPage.selectBtn
-	cooldownExportPage:Hide()
-
 	local infoPage = CreateInfoPage(content)
 	frame.pages.info = infoPage
 	frame.repoBox = infoPage.repoBox
@@ -2539,44 +2518,6 @@ function Addon:SelectExportText()
 	exportBox:HighlightText()
 	if frame.statusLabel then
 		frame.statusLabel:SetText("Selected — press Ctrl+C to copy.")
-	end
-end
-
--- Focus the cooldown export box and highlight all text for Ctrl+C.
-function Addon:SelectCooldownExportText()
-	local frame = self.mainFrame
-	if not frame or not frame.cooldownExportBox then
-		return
-	end
-	local exportBox = frame.cooldownExportBox
-	if (exportBox:GetText() or "") == "" then
-		return
-	end
-	self:SelectTab("exportCooldowns")
-	exportBox:SetFocus()
-	exportBox:HighlightText()
-	if frame.cooldownExportStatus then
-		frame.cooldownExportStatus:SetText("Selected — press Ctrl+C to copy.")
-	end
-end
-
--- Write the account-wide cooldown export into the main window EditBox.
-function Addon:FlushCooldownExportToWindow()
-	local frame = self.mainFrame
-	if not frame or not frame.cooldownExportBox then
-		return
-	end
-	self:SelectTab("exportCooldowns")
-	local exportBox = frame.cooldownExportBox
-	local text = self:FormatCooldownsExport()
-	exportBox:SetText(text)
-	exportBox:SetFocus()
-	exportBox:HighlightText()
-	if frame.cooldownExportSelectBtn then
-		frame.cooldownExportSelectBtn:Enable()
-	end
-	if frame.cooldownExportStatus then
-		frame.cooldownExportStatus:SetText("Export ready — press Ctrl+C to copy.")
 	end
 end
 

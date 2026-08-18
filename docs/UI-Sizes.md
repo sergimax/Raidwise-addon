@@ -32,7 +32,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Character cooldowns**, **Party roster**, **Raid roster**, **History**, **Export gear and CDs**, **Export cooldowns**, **Info**.
+Tabs (in order): **Character cooldowns**, **Export gear and CDs**, **Party roster**, **Raid roster**, **History**, **Info**.
 
 ## Content padding
 
@@ -85,8 +85,8 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Gap: toolbar → table | 8 px | Table starts below Refresh button |
 | Refresh | **80 × 28** | Top-right of the page |
 | Instance column | **170** | Name + type stacked |
-| Character column | **90** | Spec icon **14 × 14**, then class-colored name |
-| Header row | **38** | Title-bar fill |
+| Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`) |
+| Header row | **52** | Title-bar fill; spec icon, name, then last check time |
 | Data row | **34** | Alternate fills RGB **0.18** / **0.14** |
 | Vertical scrollbar | **16** | Right of the table; hidden if unused |
 | Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
@@ -147,10 +147,6 @@ Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H
 | Class / spec icons | **18** px | Centered in 28 px columns |
 | Met in | **160** | First meeting instance or zone |
 | When | **130** | `YYYY-MM-DD HH:MM` |
-
-## Export cooldowns tab
-
-Same layout as Export gear and CDs, without the include-names checkbox. Description → **Export cooldowns** / **Select all** (28 px) → hint → copy box.
 
 ## Fonts
 

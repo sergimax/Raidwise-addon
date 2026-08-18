@@ -236,6 +236,7 @@ function Addon:BuildCooldownTable()
 			class = character.class or "",
 			spec = character.spec or "",
 			specIcon = character.specIcon or "",
+			updatedAt = tonumber(character.updatedAt) or 0,
 		}
 		local lockouts = character.lockouts or {}
 		for index = 1, #lockouts do

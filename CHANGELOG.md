@@ -13,13 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Raid roster **role icons** (tank / healer / melee / ranged, RaidBuffStatus-style) and **spec/race raid-buff** icons on player cards
 - **Buffs** column on **Party roster** (same raid-utility icons as Raid roster)
 - Raid roster summary: overall average GearScore plus per-role count and average GS (`Tanks: 2 (6200 gs)`)
+- **Character cooldowns** column headers show when that character was last checked (`18 Aug 23:58`; full date on hover)
 
 ### Changed
 - Main window content area is **890 × 690** so raid groups 1–5 fit without vertical scrolling
 - Larger roster icons (party/history **18** px, raid **20** px, buffs **18** px, profile **24** px)
 - Raid roster summary hides average iLvl (transmog skews it); per-player cells still show iLvl
-- Left menu adds **History** between Raid roster and Export gear and CDs
+- Left menu order: Character cooldowns, Export gear and CDs, Party roster, Raid roster, History, Info
 - Addon list notes and Info about text mention meeting history
+
+### Removed
+- **Export cooldowns** tab (account lockouts for the current character are already in **Export gear and CDs**)
 
 ### Fixed
 - Raid roster player-card **#tag** line no longer clipped at the bottom of the cell
