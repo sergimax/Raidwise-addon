@@ -5,25 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-08-18
+
+### Added
+- **History** tab: party and raid players saved in `RaidwiseDB.history` (keyed by GUID), with where/when you met and guild
+- **Character profile** from History or Raid roster adds meeting zone, time, realm, and GUID
+- Raid roster **role icons** (tank / healer / melee / ranged, RaidBuffStatus-style) and **spec/race raid-buff** icons on player cards
+- **Buffs** column on **Party roster** (same raid-utility icons as Raid roster)
+- Raid roster summary: overall average GearScore plus per-role count and average GS (`Tanks: 2 (6200 gs)`)
+
+### Changed
+- Main window content area is **890 × 690** so raid groups 1–5 fit without vertical scrolling
+- Larger roster icons (party/history **18** px, raid **20** px, buffs **18** px, profile **24** px)
+- Raid roster summary hides average iLvl (transmog skews it); per-player cells still show iLvl
+- Left menu adds **History** between Raid roster and Export gear and CDs
+- Addon list notes and Info about text mention meeting history
+
+### Fixed
+- Raid roster player-card **#tag** line no longer clipped at the bottom of the cell
+
 ## [1.4.0] - 2026-08-18
 
 ### Added
 - **Raid roster** tab: raid groups **1–5** and **6–8** as player cards (class icon, name, spec, GearScore, iLvl, karma, tags)
 - **Character profile** window from left-clicking a filled Raid roster card (`{name} - Character profile`)
 - Karma and Tags columns on **Party roster** (placeholder `4.3` and `#tag #tag` until those features exist)
-- Average iLvl and average GearScore line above the Party roster table
-- Raid roster stats: overall average GearScore, plus per-role count and average GS (`Tanks: 2 (6200 gs)`)
-- Raid-buff icons on **Party roster** (same spec/race utilities as Raid roster)
+- Average iLvl and average GearScore line above the Party roster table and Raid roster cells
 
 ### Changed
-- Main window content area is **890 × 690** so raid groups 1–5 fit without vertical scrolling
-- Raid roster summary hides average iLvl (transmog skews it); per-player cells still show iLvl
+- Main window content area is **790 × 480** so the Raid roster grid fits
 - Left menu order: Character cooldowns, Party roster, Raid roster, Export gear and CDs, Export cooldowns, Info
 - Party roster lists the current 5-player party only (raid members stay on Raid roster)
 - Addon list notes and Info about text describe rosters, lockouts, and export (not only character export)
 
 ### Fixed
-- Raid roster player-card tag line is no longer clipped at the bottom of the cell
 - Other members’ item levels no longer vanish after inspect; iLvl is cached until the next successful scan
 - Party and Raid roster refresh when the group or raid composition changes
 

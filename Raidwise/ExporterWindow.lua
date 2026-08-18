@@ -628,11 +628,11 @@ local function CreateInfoPage(parent)
 	about:SetJustifyH("LEFT")
 	about:SetJustifyV("TOP")
 	about:SetText(
-		"Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, account-wide lockouts, and character export.\n\n"
+		"Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, meeting history, account-wide lockouts, and character export.\n\n"
 			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account. "
 			.. "Log in on each alt to record their lockouts.\n\n"
-			.. "Party roster lists the current 5-player party with spec, GearScore, average item level, guild, karma, and tags. "
-			.. "Raid roster shows raid groups 1–5 and 6–8 as player cards (class, name, spec, GearScore, iLvl). "
+			.. "Party roster lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, karma, and tags. "
+			.. "Raid roster shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
 			.. "Click a filled card to open Character profile.\n\n"
 			.. "History keeps party and raid players you have grouped with, including where and when you met them. "
 			.. "That list is saved on this account and stays after logout.\n\n"
