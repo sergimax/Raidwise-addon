@@ -30,15 +30,15 @@ Raid-wide stat and throughput buffs. Spells in the same row **do not stack**.
 | Spirit | Divine Spirit / Prayer of Spirit; Fel Intelligence | Any Priest; Affliction Warlock |
 | Attack power | Battle Shout; Blessing of Might | Any Warrior; Any Paladin |
 | Strength / Agility | Horn of Winter; Strength of Earth Totem | Any Death Knight; Any Shaman |
-| Health | Commanding Shout; Blood Pact (Imp) | Any Warrior; Destruction Warlock (Imp) |
-| Mana per 5 | Blessing of Wisdom; Mana Spring Totem | Any Paladin; Restoration Shaman |
+| Health | Commanding Shout; Blood Pact (Imp) | Any Warrior; Any Warlock (Imp; Destruction improves it) |
+| Mana per 5 | Blessing of Wisdom; Mana Spring Totem | Any Paladin; Any Shaman (Restoration improves it) |
 | Spell power | Flametongue Totem; Totem of Wrath; Demonic Pact | Any Shaman; Elemental Shaman; Demonology Warlock |
 | 5% melee/ranged crit | Leader of the Pack; Rampage | Feral Druid; Fury Warrior |
-| 5% spell crit | Moonkin Aura; Elemental Oath | Balance Druid; Elemental Shaman |
-| Melee haste | Improved Icy Talons; Windfury Totem | Frost (or Blood) Death Knight; Any Shaman (Enhancement improves it) |
+| 5% spell crit (raid aura) | Moonkin Aura; Elemental Oath | Balance Druid; Elemental Shaman |
+| Melee haste | Improved Icy Talons; Windfury Totem | Frost Death Knight; Any Shaman (Enhancement improves it) |
 | Spell haste | Wrath of Air Totem | Any Shaman |
 | 3% haste (all) | Swift Retribution; Improved Moonkin Aura | Retribution Paladin; Balance Druid |
-| 3% damage | Sanctified Retribution; Ferocious Inspiration | Retribution Paladin; Beast Mastery Hunter |
+| 3% damage | Sanctified Retribution; Ferocious Inspiration; Arcane Empowerment | Retribution Paladin; Beast Mastery Hunter; Arcane Mage |
 | 10% attack power | Trueshot Aura; Unleashed Rage; Abomination’s Might | Marksmanship Hunter; Enhancement Shaman; Blood Death Knight |
 | Bloodlust / Heroism | Raid haste, 10 min CD | Any Shaman |
 | Healing received | Tree of Life; Improved Devotion Aura | Restoration Druid; Holy Paladin |
@@ -97,12 +97,13 @@ Self-targeted defensives are marked **hidden** and are omitted from the Raid com
 | Divine Hymn | Any Priest | |
 | Tranquility | Restoration Druid | |
 | Blessing of Sanctuary / Grace | Protection Paladin; Discipline Priest | |
+| Inspiration / Ancestral Healing | Discipline or Holy Priest; Restoration Shaman | |
 
 Aura Mastery is treated as present for **any Paladin** (the ability exists on the class; Retribution is the typical raid talent). Divine Guardian requires Protection.
 
 ## Debuffs
 
-Boss debuffs. Major and minor armor **do stack with each other**.
+Boss debuffs. Major and minor armor **do stack with each other**. Moonkin Aura / Elemental Oath are the **raid buff** for 5% spell crit; Improved Shadow Bolt is the **boss debuff** in the same exclusive category as Improved Scorch and Winter’s Chill.
 
 | Category | Effect | Who |
 |----------|--------|-----|
@@ -112,17 +113,17 @@ Boss debuffs. Major and minor armor **do stack with each other**.
 | Physical damage taken | Blood Frenzy; Savage Combat | Arms Warrior; Combat Rogue |
 | Spell damage taken | Curse of the Elements; Earth and Moon; Ebon Plaguebringer | Any Warlock; Balance Druid; Unholy Death Knight |
 | Spell hit (Misery) | Misery; Improved Faerie Fire | Shadow Priest; Balance Druid |
-| Crit chance taken | Heart of the Crusader; Totem of Wrath; Master Poisoner | Retribution Paladin; Elemental Shaman; Assassination Rogue |
-| Spell crit taken | Improved Scorch; Winter’s Chill | Fire Mage; Frost Mage |
+| Crit chance taken | Heart of the Crusader; Totem of Wrath; Master Poisoner | Retribution or Protection Paladin; Elemental Shaman; Assassination Rogue |
+| Spell crit taken | Improved Scorch; Winter’s Chill; Improved Shadow Bolt | Fire Mage; Frost Mage; Destruction Warlock |
 | Attack speed slow | Thunder Clap; Icy Touch; Infected Wounds; Judgements of the Just | Any Warrior; Any Death Knight; Feral Druid; Protection Paladin |
 | Attack power down | Demoralizing Shout; Demoralizing Roar; Curse of Weakness; Vindication | Any Warrior; Feral Druid; Any Warlock; Ret/Prot Paladin |
 | Healing reduction | Mortal Strike; Aimed Shot; Wound Poison; Furious Attacks | Arms Warrior; Any Hunter; Any Rogue; Fury Warrior |
-| Cast speed slow | Curse of Tongues; Slow; Mind-numbing Poison | Any Warlock; Arcane Mage; Any Rogue |
+| Cast speed slow | Curse of Tongues; Slow; Mind-numbing Poison; Lava Breath (pet) | Any Warlock; Arcane Mage; Any Rogue; Beast Mastery Hunter |
 | Melee hit reduction | Insect Swarm; Scorpid Sting | Balance Druid; Any Hunter |
 | Judgement of Light | Health return on melee hits | Any Paladin |
 | Judgement of Wisdom | Mana return on melee/spell hits | Any Paladin |
 
-Acid Spit and Hunter Sting depend on the pet. Beast Mastery / any Hunter is listed as a **possible** source.
+Acid Spit, Hunter Sting, Stampede, and Lava Breath depend on the pet. Beast Mastery / any Hunter is listed as a **possible** source.
 
 ## Mana regeneration
 

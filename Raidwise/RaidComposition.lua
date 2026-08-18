@@ -63,14 +63,14 @@ local EFFECTS = {
 		id = "health",
 		labelKey = "COMP_HEALTH",
 		spellId = 47440,
-		sources = { Src("WARRIOR"), Src("WARLOCK", 3) },
+		sources = { Src("WARRIOR"), Src("WARLOCK") },
 	},
 	{
 		section = "buffs",
 		id = "mp5",
 		labelKey = "COMP_MP5",
 		spellId = 48936,
-		sources = { Src("PALADIN"), Src("SHAMAN", 3) },
+		sources = { Src("PALADIN"), Src("SHAMAN") },
 	},
 	{
 		section = "buffs",
@@ -98,7 +98,7 @@ local EFFECTS = {
 		id = "melee_haste",
 		labelKey = "COMP_MELEE_HASTE",
 		spellId = 55610,
-		sources = { Src("DEATHKNIGHT", 1), Src("DEATHKNIGHT", 2), Src("SHAMAN") },
+		sources = { Src("DEATHKNIGHT", 2), Src("SHAMAN") },
 	},
 	{
 		section = "buffs",
@@ -119,7 +119,7 @@ local EFFECTS = {
 		id = "damage_pct",
 		labelKey = "COMP_DAMAGE_PCT",
 		spellId = 31869,
-		sources = { Src("PALADIN", 3), Src("HUNTER", 1) },
+		sources = { Src("PALADIN", 3), Src("HUNTER", 1), Src("MAGE", 1) },
 	},
 	{
 		section = "buffs",
@@ -417,6 +417,13 @@ local EFFECTS = {
 		sources = { Src("PALADIN", 2), Src("PRIEST", 1) },
 	},
 	{
+		section = "damage_reduction",
+		id = "inspiration",
+		labelKey = "COMP_INSPIRATION",
+		spellId = 15359,
+		sources = { Src("PRIEST", 1), Src("PRIEST", 2), Src("SHAMAN", 3) },
+	},
+	{
 		section = "debuffs",
 		id = "armor_major",
 		labelKey = "COMP_ARMOR_MAJOR",
@@ -463,14 +470,14 @@ local EFFECTS = {
 		id = "crit_taken",
 		labelKey = "COMP_CRIT_TAKEN",
 		spellId = 20337,
-		sources = { Src("PALADIN", 3), Src("SHAMAN", 1), Src("ROGUE", 1) },
+		sources = { Src("PALADIN", 2), Src("PALADIN", 3), Src("SHAMAN", 1), Src("ROGUE", 1) },
 	},
 	{
 		section = "debuffs",
 		id = "spell_crit_taken",
 		labelKey = "COMP_SPELL_CRIT_TAKEN",
 		spellId = 12873,
-		sources = { Src("MAGE", 2), Src("MAGE", 3) },
+		sources = { Src("MAGE", 2), Src("MAGE", 3), Src("WARLOCK", 3) },
 	},
 	{
 		section = "debuffs",
@@ -498,7 +505,7 @@ local EFFECTS = {
 		id = "cast_slow",
 		labelKey = "COMP_CAST_SLOW",
 		spellId = 11719,
-		sources = { Src("WARLOCK"), Src("MAGE", 1), Src("ROGUE") },
+		sources = { Src("WARLOCK"), Src("MAGE", 1), Src("ROGUE"), Src("HUNTER", 1) },
 	},
 	{
 		section = "debuffs",
