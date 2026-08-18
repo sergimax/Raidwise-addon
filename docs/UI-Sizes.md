@@ -32,7 +32,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Character cooldowns**, **Party roster**, **Raid roster**, **History**, **Export gear and CDs**, **Export cooldowns**, **Info**.
+Tabs (in order): **Character cooldowns**, **Export gear and CDs**, **Party roster**, **Raid roster**, **Raid composition**, **History**, **Settings**, **Info**.
 
 ## Content padding
 
@@ -83,10 +83,10 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 |---------|------|-------|
 | Toolbar row | height **28** | Hint left, Refresh right |
 | Gap: toolbar → table | 8 px | Table starts below Refresh button |
-| Refresh | **80 × 28** | Top-right of the page |
+| Refresh | **96 × 28** | Top-right of the page |
 | Instance column | **170** | Name + type stacked |
-| Character column | **90** | Spec icon **14 × 14**, then class-colored name |
-| Header row | **38** | Title-bar fill |
+| Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`) |
+| Header row | **52** | Title-bar fill; spec icon, name, then last check time |
 | Data row | **34** | Alternate fills RGB **0.18** / **0.14** |
 | Vertical scrollbar | **16** | Right of the table; hidden if unused |
 | Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
@@ -124,6 +124,17 @@ Same toolbar as Party roster, then two stats lines, then the scroll host. Two st
 | Gap between blocks | **12** | |
 | Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3 |
 
+## Raid composition tab
+
+Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollbar only.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Columns | **3** | Equal width; `COMP_COL_GAP` **12** px |
+| Section heading | height **20** | Gold `GameFontNormal` |
+| Effect row | height **20** | Icon **16** px, name, count width **22** |
+| Gap between sections | **10** px | After packing into the shortest column |
+
 ## Character profile
 
 Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Raid roster or History; Esc-close via `UISpecialFrames`.
@@ -148,9 +159,9 @@ Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H
 | Met in | **160** | First meeting instance or zone |
 | When | **130** | `YYYY-MM-DD HH:MM` |
 
-## Export cooldowns tab
+## Settings tab
 
-Same layout as Export gear and CDs, without the include-names checkbox. Description → **Export cooldowns** / **Select all** (28 px) → hint → copy box.
+Language heading, hint, then two **120 × 28** locale buttons (**English**, **Русский**) with an 8 px gap. Selected button uses the same gold fill as the left menu.
 
 ## Fonts
 

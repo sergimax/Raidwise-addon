@@ -24,11 +24,12 @@ Menu tabs (top to bottom):
 
 ```text
 [ Character cooldowns ]
+[ Export gear and CDs ]
 [ Party roster ]
 [ Raid roster ]
+[ Raid composition ]
 [ History ]
-[ Export gear and CDs ]
-[ Export cooldowns ]
+[ Settings ]
 [ Info ]
 ```
 
@@ -59,6 +60,7 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 [ short description ]                              [ Refresh ]
         8 px gap
 [ Raid / Dungeon | Char (class color + spec icon) | Char | ... ]
+                 | last check                     |            |
 [ Icecrown Citadel                               | 2d 4h | -   ]
 [ Raid / 25 Heroic                               |       |     ]
 ```
@@ -68,7 +70,7 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 | short description | “Lockouts for every character saved on this account.” |
 | Refresh | Requests fresh raid info, then redraws the table |
 | first column | Instance name, then type (`Raid` / `Dungeon` / size / Heroic) |
-| character columns | Name in class color with the primary spec icon; current character first |
+| character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first |
 | saved cell | Remaining time until reset (gold); tooltip has instance + type |
 | empty cell | `-` (not saved) |
 | empty table | “Log in on each character…” if none saved; “No current lockouts.” if columns exist but nothing is saved |
@@ -138,6 +140,33 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 | line 5 | Tags (`#tag #tag`); placeholder until tag functions exist |
 | click | Left-click a filled cell opens **Character profile** |
 
+## Raid composition
+
+Wowhead-style checklist of the current party or raid: who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered. Tracking list: [`Raid-Composition.md`](Raid-Composition.md).
+
+```text
+[ short description ]                              [ Refresh ]
+        8 px gap
+[ Roles              ] [ Buffs              ] [ External buffs    ]
+[ (icon) Tanks     2 ] [ (icon) 10% stats 1 ] [ (icon) Focus Magic 0 ]
+[ (icon) Healers   6 ] [ (icon) MotW      1 ] ...
+[ Damage reduction   ] [ Debuffs            ] [ Mana regeneration ]
+[ ...                ] [ ...                ] [ Health regeneration ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | “Who is needed, and which raid buffs, debuffs, and utility are already covered.” |
+| Refresh | Re-reads the current group (same inspect/GearScore path as Raid roster) |
+| columns | Three equal columns; sections pack into the shortest column |
+| section heading | Gold: Roles, Buffs, External buffs, Damage reduction, Debuffs, Mana regeneration, Health regeneration |
+| row | Spell or role icon, name, count of players who can provide it |
+| present | Gold name and count (`> 0`) |
+| missing | Dim name and `0` |
+| tooltip | Who in the raid has it, then which classes/specs can bring it |
+
+Spec is the primary talent tree (same as Raid roster). Solo shows only your own coverage.
+
 ## Character profile
 
 Standalone window opened from Raid roster or History (left-click a filled player cell or row). Esc or **X** closes it; drag the title bar to move it.
@@ -200,24 +229,21 @@ Players you have been in a party or raid with (not yourself). Each GUID is store
 
 Notes, tags, links, and a change log are stored empty on each record for later editing; they are not shown on this table yet.
 
-## Export cooldowns
+## Settings
 
 ```text
-[ short description ]
-[ export cooldowns button ] [ select all button ]
-[ short hint about copy ]
-[ input for copy ]
+[ language heading ]
+[ short hint ]
+[ English button ] [ Русский button ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Export account-wide raid and dungeon lockouts as JSON.” |
-| export cooldowns button | **Export cooldowns** — fills the copy box |
-| select all button | **Select all** — highlights JSON for Ctrl+C (disabled until export) |
-| short hint | Starts as “After export, press Ctrl+C to copy.” |
-| input for copy | Same tooltip-bordered multiline EditBox as Export gear and CDs |
+| language heading | Language |
+| short hint | “Interface language. Saved on this account.” |
+| English / Русский | Menu-style buttons; the active locale is selected. Choice is stored in `RaidwiseDB.locale` (`enUS` / `ruRU`). Default is the client locale. |
 
-JSON includes `exportedAt` and a `characters[]` array (key, name, realm, class, spec, `updatedAt`, `lockouts[]`). Log in on each alt so their lockouts are stored.
+Switching language updates the left menu, page labels, and visible tables without `/reload`.
 
 ## Info
 
@@ -232,7 +258,7 @@ JSON includes `exportedAt` and a `characters[]` array (key, name, realm, class, 
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | Raid-prep overview (rosters, history, lockouts, export); what Character cooldowns, Party roster, Raid roster, History, Export gear and CDs, and Export cooldowns do; slash commands |
+| descriptions | Raid-prep overview (rosters, composition, history, lockouts, export); what Character cooldowns, Party roster, Raid roster, Raid composition, History, Export gear and CDs, and Settings do; slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |

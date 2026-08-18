@@ -622,6 +622,9 @@ function Addon:OnInspectTalentReady()
 	if self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(false)
 	end
+	if self.RefreshCompositionView then
+		self:RefreshCompositionView(false)
+	end
 	if self.RecordCurrentGroupHistory then
 		self:RecordCurrentGroupHistory(false)
 	end
@@ -638,6 +641,9 @@ function Addon:RefreshPartyData(refreshGearScore)
 	end
 	if self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(refreshGearScore)
+	end
+	if self.RefreshCompositionView then
+		self:RefreshCompositionView(refreshGearScore)
 	end
 	if self.RecordCurrentGroupHistory then
 		self:RecordCurrentGroupHistory(refreshGearScore)

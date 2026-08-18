@@ -1,9 +1,11 @@
+[English](README.md) | [Русский](README.ru.md)
+
 # Raidwise
 
-Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, meeting history, account-wide lockouts, and character JSON export.
+Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.5.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--18-blue)
+![](https://img.shields.io/badge/current_version-1.6.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--19-blue)
 
 
 ## Install
@@ -25,20 +27,29 @@ In-game slash commands:
 
 | Command | Description |
 |---------|-------------|
-| `/raidwise` or `/rw` (also `help`) | Show help |
+| `/raidwise` or `/rw` (also `/rw help`) | Show help |
 | `/raidwise version` | Show addon version |
 | `/raidwise status` | Show load status |
 | `/raidwise show` | Open the main window |
 | `/raidwise hide` | Close the main window |
 
-The window uses a Details-style layout: plain panels, a **left menu**, and a content page. The status bar shows the addon name and version. Esc or the title **X** closes the window.
+Plain panels, a **left menu**, and a content page.
+The status bar shows the addon name and version.
+Esc or the title **X** closes the window.
 
 **Character cooldowns** tab:
 
 - Table of raid and dungeon lockouts for every character saved on this account
 - First column is the instance name and type (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40)
-- Other columns are characters (class-colored name and spec icon); log in on each alt to record them
+- Other columns are characters (class-colored name, spec icon, and last check time); log in on each alt to record them
 - Saved cells show time remaining until reset
+
+**Export gear and CDs** tab:
+
+- Short description, then **Include item names**
+- **Export character data** fills the JSON box (name, class, spec, gearScore, gear, bags, lockouts)
+- **Select all** highlights the JSON for Ctrl+C
+- `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
 
 **Party roster** tab:
 
@@ -57,6 +68,14 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 - Click a filled card to open **Character profile** (`{name} - Character profile`)
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 
+**Raid composition** tab:
+
+- Checklist of the current party or raid (solo uses only you)
+- Sections: roles, buffs, external buffs, damage reduction, debuffs, mana regeneration, health regeneration
+- Gold rows are already covered; dim rows are missing. Hover for who in the group has it and which class/spec can bring it
+- **Refresh** re-reads the group (same inspect path as Raid roster)
+- Full tracking list: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
+
 **History** tab:
 
 - Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
@@ -64,24 +83,17 @@ The window uses a Details-style layout: plain panels, a **left menu**, and a con
 - Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
 - **Refresh** records the current group again and redraws the list
 
-**Export gear and CDs** tab:
+**Settings** tab:
 
-- Short description, then **Include item names**
-- **Export character data** fills the JSON box (name, class, spec, gearScore, gear, bags, lockouts)
-- **Select all** highlights the JSON for Ctrl+C
-- `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
-
-**Export cooldowns** tab:
-
-- **Export cooldowns** fills a JSON box with every stored character and their current lockouts (`exportedAt`, `characters[]`)
-- **Select all** highlights the JSON for Ctrl+C
+- Interface language: **English** or **Русский**
+- The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
 
 **Info** tab:
 
-- What the addon does (rosters, history, lockouts, export) and which slash commands exist
+- What the addon does (rosters, composition, history, lockouts, export) and which slash commands exist
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
-View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md).
+View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
 Consumers can type the export JSON with `types/CharacterExport.ts` and `types/CooldownsExport.ts`.
 
@@ -102,15 +114,18 @@ In-chat menu (`/raidwise help`):
 Raidwise/
   Raidwise.toc        # addon metadata (Interface 30300)
   Raidwise.lua        # entry point, events, slash commands
+  Locale.lua          # English / Russian UI strings and language switch
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
   PartyRoster.lua     # party / raid member stats for roster views
   RaidRoles.lua       # raid role and spec/race buff lookups
+  RaidComposition.lua # party/raid buff, debuff, and utility coverage
   PlayerHistory.lua   # saved party/raid encounter list (History tab)
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view
   UI-Sizes.md         # window / control pixel sizes
+  Raid-Composition.md # classes/specs tracked by the Raid composition tab
 types/
   CharacterExport.ts  # TypeScript types for the character export JSON
   CooldownsExport.ts  # TypeScript types for the account cooldown export JSON
@@ -119,6 +134,6 @@ types/
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID).
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`).
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.

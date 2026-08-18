@@ -19,14 +19,6 @@ local ROLE_ICONS = {
 	unknown = "Interface\\Icons\\INV_Misc_QuestionMark",
 }
 
-local ROLE_LABELS = {
-	tank = "Tank",
-	healer = "Healer",
-	melee = "Melee DPS",
-	ranged = "Ranged DPS",
-	unknown = "Unknown",
-}
-
 -- WotLK talent tab (1–3) that is typically tank or healer for that class.
 local TANK_TABS = {
 	WARRIOR = 3,
@@ -74,7 +66,7 @@ function Addon:RaidRoleIcon(role)
 end
 
 function Addon:RaidRoleLabel(role)
-	return ROLE_LABELS[role] or ROLE_LABELS.unknown
+	return self:T(self:RoleLabelKey(role))
 end
 
 function Addon:RoleForRaidMember(class, specTab, isMainTank)
@@ -167,6 +159,7 @@ function Addon:RaidBuffsForMember(class, specTab, raceToken, faction)
 		AddSpellBuff(buffs, 57623)
 		if specTab == 1 then
 			AddSpellBuff(buffs, 53138)
+			AddSpellBuff(buffs, 49016)
 		elseif specTab == 2 then
 			AddSpellBuff(buffs, 55610)
 		elseif specTab == 3 then
