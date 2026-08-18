@@ -2,10 +2,10 @@
 
 # Raidwise
 
-Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, meeting history, account-wide lockouts, and character JSON export.
+Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.5.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--18-blue)
+![](https://img.shields.io/badge/current_version-1.6.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--19-blue)
 
 
 ## Install
@@ -68,6 +68,14 @@ Esc or the title **X** closes the window.
 - Click a filled card to open **Character profile** (`{name} - Character profile`)
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 
+**Raid composition** tab:
+
+- Checklist of the current party or raid (solo uses only you)
+- Sections: roles, buffs, external buffs, damage reduction, debuffs, mana regeneration, health regeneration
+- Gold rows are already covered; dim rows are missing. Hover for who in the group has it and which class/spec can bring it
+- **Refresh** re-reads the group (same inspect path as Raid roster)
+- Full tracking list: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
+
 **History** tab:
 
 - Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
@@ -82,10 +90,10 @@ Esc or the title **X** closes the window.
 
 **Info** tab:
 
-- What the addon does (rosters, history, lockouts, export) and which slash commands exist
+- What the addon does (rosters, composition, history, lockouts, export) and which slash commands exist
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
-View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md).
+View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
 Consumers can type the export JSON with `types/CharacterExport.ts` and `types/CooldownsExport.ts`.
 
@@ -111,11 +119,13 @@ Raidwise/
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
   PartyRoster.lua     # party / raid member stats for roster views
   RaidRoles.lua       # raid role and spec/race buff lookups
+  RaidComposition.lua # party/raid buff, debuff, and utility coverage
   PlayerHistory.lua   # saved party/raid encounter list (History tab)
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view
   UI-Sizes.md         # window / control pixel sizes
+  Raid-Composition.md # classes/specs tracked by the Raid composition tab
 types/
   CharacterExport.ts  # TypeScript types for the character export JSON
   CooldownsExport.ts  # TypeScript types for the account cooldown export JSON

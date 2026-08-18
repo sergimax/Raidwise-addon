@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-08-19
+
+### Added
+- **Raid composition** tab: Wowhead-style checklist of roles, raid buffs, external CDs, damage reduction, debuffs, and mana/health regen for the current party or raid (self-targeted defensives are omitted)
+- **Settings** tab: English / Russian interface language, saved in `RaidwiseDB.locale`
+- Russian localization for in-game UI, slash help, and addon list notes (`## Notes-ruRU`)
+- Russian README ([`README.ru.md`](README.ru.md))
+- **Character cooldowns** column headers show when that character was last checked (`18 Aug 23:58`; full date on hover)
+
+### Changed
+- Left menu order: Character cooldowns, Export gear and CDs, Party roster, Raid roster, Raid composition, History, Settings, Info
+- Addon list notes and Info about text mention raid composition
+
+### Removed
+- **Export cooldowns** tab (account lockouts for the current character are already in **Export gear and CDs**)
+
 ## [1.5.0] - 2026-08-18
 
 ### Added
@@ -13,20 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Raid roster **role icons** (tank / healer / melee / ranged, RaidBuffStatus-style) and **spec/race raid-buff** icons on player cards
 - **Buffs** column on **Party roster** (same raid-utility icons as Raid roster)
 - Raid roster summary: overall average GearScore plus per-role count and average GS (`Tanks: 2 (6200 gs)`)
-- **Character cooldowns** column headers show when that character was last checked (`18 Aug 23:58`; full date on hover)
-- **Settings** tab: English / Russian interface language, saved in `RaidwiseDB.locale`
-- Russian localization for in-game UI, slash help, and addon list notes (`## Notes-ruRU`)
-- Russian README ([`README.ru.md`](README.ru.md))
 
 ### Changed
 - Main window content area is **890 × 690** so raid groups 1–5 fit without vertical scrolling
 - Larger roster icons (party/history **18** px, raid **20** px, buffs **18** px, profile **24** px)
 - Raid roster summary hides average iLvl (transmog skews it); per-player cells still show iLvl
-- Left menu order: Character cooldowns, Export gear and CDs, Party roster, Raid roster, History, Settings, Info
+- Left menu adds **History** between Raid roster and Export gear and CDs
 - Addon list notes and Info about text mention meeting history
-
-### Removed
-- **Export cooldowns** tab (account lockouts for the current character are already in **Export gear and CDs**)
 
 ### Fixed
 - Raid roster player-card **#tag** line no longer clipped at the bottom of the cell
