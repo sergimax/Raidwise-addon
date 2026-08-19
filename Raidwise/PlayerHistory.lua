@@ -125,6 +125,8 @@ function Addon:EnsureHistoryEntryForGuid(guid, seed)
 			classLabel = (seed and seed.classLabel) or "",
 			spec = (seed and seed.spec) or "",
 			specIcon = (seed and seed.specIcon) or "",
+			race = (seed and seed.race) or "",
+			faction = (seed and seed.faction) or "",
 			gearScore = seed and seed.gearScore or nil,
 			averageIlvl = seed and seed.averageIlvl or nil,
 			guildName = seed and seed.guildName or nil,
@@ -174,6 +176,8 @@ function Addon:UpsertHistoryMember(member)
 	CopyIfValue(entry, member, "classLabel")
 	CopyIfValue(entry, member, "spec")
 	CopyIfValue(entry, member, "specIcon")
+	CopyIfValue(entry, member, "race")
+	CopyIfValue(entry, member, "faction")
 	CopyIfValue(entry, member, "guildName")
 	CopyIfValue(entry, member, "guildRank")
 	if CharacterRealm(member) ~= "" then
@@ -285,6 +289,12 @@ function Addon:HistoryProfileForMember(member)
 		if not profile.averageIlvl and saved.averageIlvl then
 			profile.averageIlvl = saved.averageIlvl
 		end
+		if not profile.race or profile.race == "" then
+			profile.race = saved.race
+		end
+		if not profile.faction or profile.faction == "" then
+			profile.faction = saved.faction
+		end
 		if type(saved.notes) == "string" then
 			profile.notes = saved.notes
 		end
@@ -324,6 +334,8 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds)
 		CopyIfValue(entry, seed, "classLabel")
 		CopyIfValue(entry, seed, "spec")
 		CopyIfValue(entry, seed, "specIcon")
+		CopyIfValue(entry, seed, "race")
+		CopyIfValue(entry, seed, "faction")
 		CopyIfValue(entry, seed, "guildName")
 		CopyIfValue(entry, seed, "guildRank")
 		if CharacterRealm(seed) ~= "" then
@@ -333,5 +345,31 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds)
 	personal.opinion = self:NormalizePersonalOpinion(opinion)
 	personal.tags = self:NormalizePersonalTags(tagIds)
 	personal.updatedAt = time()
+	return entry
+end
+
+function Addon:SaveProfileNotesForGuid(guid, seed, notes)
+	if not guid or guid == "" then
+		return nil
+	end
+	local entry = self:EnsureHistoryEntryForGuid(guid, seed)
+	if not entry then
+		return nil
+	end
+	if seed then
+		CopyIfValue(entry, seed, "name")
+		CopyIfValue(entry, seed, "class")
+		CopyIfValue(entry, seed, "classLabel")
+		CopyIfValue(entry, seed, "spec")
+		CopyIfValue(entry, seed, "specIcon")
+		CopyIfValue(entry, seed, "race")
+		CopyIfValue(entry, seed, "faction")
+		CopyIfValue(entry, seed, "guildName")
+		CopyIfValue(entry, seed, "guildRank")
+		if CharacterRealm(seed) ~= "" then
+			entry.realm = CharacterRealm(seed)
+		end
+	end
+	entry.notes = type(notes) == "string" and notes or ""
 	return entry
 end

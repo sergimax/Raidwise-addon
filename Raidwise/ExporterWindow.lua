@@ -1757,6 +1757,84 @@ local function CreateChoiceButton(parent, width, height, label)
 	return button
 end
 
+local function CreateProfileNotesBox(parent, width, height)
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetSize(width, height)
+	host:SetBackdrop(COPY_BACKDROP)
+	host:SetBackdropColor(0, 0, 0, 1)
+	host:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+
+	local scroll = CreateFrame("ScrollFrame", nil, host, "UIPanelScrollFrameTemplate")
+	scroll:SetPoint("TOPLEFT", 6, -6)
+	scroll:SetPoint("BOTTOMRIGHT", -24, 6)
+
+	local scrollBar = scroll.ScrollBar or _G["UIPanelScrollFrameTemplateScrollBar"]
+	if scrollBar and scrollBar.GetParent and scrollBar:GetParent() == scroll then
+		scrollBar:ClearAllPoints()
+		scrollBar:SetPoint("TOPLEFT", host, "TOPRIGHT", -20, -16)
+		scrollBar:SetPoint("BOTTOMLEFT", host, "BOTTOMRIGHT", -20, 16)
+	end
+
+	local box = CreateFrame("EditBox", nil, scroll)
+	box:SetMultiLine(true)
+	box:SetFontObject(ChatFontNormal)
+	box:SetAutoFocus(false)
+	box:SetWidth(width - 36)
+	box:SetHeight(height - 12)
+	box:SetTextInsets(0, 0, 3, 3)
+	scroll:SetScrollChild(box)
+
+	box:SetScript("OnEscapePressed", function(self)
+		self:ClearFocus()
+	end)
+	box:SetScript("OnCursorChanged", function(self, _, y, _, cursorHeight)
+		y = -y
+		local offset = scroll:GetVerticalScroll()
+		if y < offset then
+			scroll:SetVerticalScroll(y)
+		else
+			y = y + (cursorHeight or ChatFontLineHeight()) - scroll:GetHeight()
+			if y > offset then
+				scroll:SetVerticalScroll(y)
+			end
+		end
+	end)
+	box:SetScript("OnEditFocusLost", function(self)
+		if Addon.raidDetailFrame and Addon.raidDetailFrame.isUpdatingNotes then
+			return
+		end
+		Addon:SaveProfileNotes(self:GetText() or "")
+	end)
+
+	host.box = box
+	host.scroll = scroll
+	return host, box
+end
+
+local function ProfileFieldValue(value)
+	if value == nil or value == "" then
+		return "-"
+	end
+	return tostring(value)
+end
+
+local function ProfileRaceText(race)
+	return ProfileFieldValue(race)
+end
+
+local function ProfileFactionText(faction)
+	if not faction or faction == "" then
+		return "-"
+	end
+	if faction == "Alliance" and FACTION_ALLIANCE then
+		return FACTION_ALLIANCE
+	end
+	if faction == "Horde" and FACTION_HORDE then
+		return FACTION_HORDE
+	end
+	return faction
+end
+
 local function UpdateProfileScroll(frame)
 	if not frame or not frame.profileScroll or not frame.profileContent or not frame.profileVBar then
 		return
@@ -1909,6 +1987,25 @@ function Addon:SaveProfilePersonalRating(opinion, tagIds)
 	self:RefreshRatingViews()
 end
 
+function Addon:SaveProfileNotes(notes)
+	local frame = self.raidDetailFrame
+	local member = frame and frame.profileMember
+	if not member or not member.guid or member.guid == "" or not self.SaveProfileNotesForGuid then
+		return
+	end
+	local entry = self:SaveProfileNotesForGuid(member.guid, member, notes)
+	if not entry then
+		return
+	end
+	frame.profileMember = self:HistoryProfileForMember(member)
+	if frame.notesBox and not frame.notesBox:HasFocus() then
+		frame.isUpdatingNotes = true
+		frame.notesBox:SetText(frame.profileMember.notes or "")
+		frame.isUpdatingNotes = false
+	end
+	self:RefreshRatingViews()
+end
+
 function Addon:SetProfileOpinion(opinion)
 	local frame = self.raidDetailFrame
 	local member = frame and frame.profileMember
@@ -2057,6 +2154,34 @@ local function CreateRaidCharacterWindow()
 		UpdateProfileScroll(frame)
 	end)
 
+	local function CreateTextLine(anchor, topOffset)
+		local text = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		if anchor then
+			text:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, topOffset or -8)
+		else
+			text:SetPoint("TOPLEFT", 0, 0)
+		end
+		text:SetPoint("RIGHT", content, "RIGHT", 0, 0)
+		text:SetJustifyH("LEFT")
+		SetFontColor(text, UI.TEXT_IDLE)
+		return text
+	end
+
+	local function CreatePairTextLine(anchor, topOffset)
+		local left = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		left:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, topOffset or -8)
+		left:SetWidth(math.floor((contentWidth - 12) / 2))
+		left:SetJustifyH("LEFT")
+		SetFontColor(left, UI.TEXT_IDLE)
+
+		local right = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		right:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, topOffset or -8)
+		right:SetWidth(math.floor((contentWidth - 12) / 2))
+		right:SetJustifyH("LEFT")
+		SetFontColor(right, UI.TEXT_IDLE)
+		return left, right
+	end
+
 	local classIcon = content:CreateTexture(nil, "ARTWORK")
 	classIcon:SetSize(UI.PROFILE_ICON, UI.PROFILE_ICON)
 	classIcon:SetPoint("TOPLEFT", 0, 0)
@@ -2064,13 +2189,13 @@ local function CreateRaidCharacterWindow()
 
 	local classText = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	classText:SetPoint("LEFT", classIcon, "RIGHT", 6, 0)
-	classText:SetPoint("RIGHT", content, "RIGHT", 0, 0)
+	classText:SetWidth(math.floor((contentWidth - UI.PROFILE_ICON * 2 - 24) / 2))
 	classText:SetJustifyH("LEFT")
 	frame.classText = classText
 
 	local specIcon = content:CreateTexture(nil, "ARTWORK")
 	specIcon:SetSize(UI.PROFILE_ICON, UI.PROFILE_ICON)
-	specIcon:SetPoint("TOPLEFT", classIcon, "BOTTOMLEFT", 0, -8)
+	specIcon:SetPoint("TOPLEFT", classText, "TOPRIGHT", 12, 0)
 	frame.specIcon = specIcon
 
 	local specText = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -2079,30 +2204,21 @@ local function CreateRaidCharacterWindow()
 	specText:SetJustifyH("LEFT")
 	frame.specText = specText
 
-	local function AddBodyLine(anchor)
-		local text = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		text:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -8)
-		text:SetPoint("RIGHT", content, "RIGHT", 0, 0)
-		text:SetJustifyH("LEFT")
-		SetFontColor(text, UI.TEXT_IDLE)
-		return text
-	end
-
-	frame.gsText = AddBodyLine(specIcon)
-	frame.ilvlText = AddBodyLine(frame.gsText)
-	frame.guildText = AddBodyLine(frame.ilvlText)
-	frame.karmaText = AddBodyLine(frame.guildText)
-	frame.tagText = AddBodyLine(frame.karmaText)
-	frame.metZoneText = AddBodyLine(frame.tagText)
-	frame.metAtText = AddBodyLine(frame.metZoneText)
-	frame.metRealmText = AddBodyLine(frame.metAtText)
-	frame.guidText = AddBodyLine(frame.metRealmText)
+	frame.gsText, frame.ilvlText = CreatePairTextLine(classIcon, -10)
+	frame.raceText, frame.factionText = CreatePairTextLine(frame.gsText, -8)
+	frame.guildText = CreateTextLine(frame.raceText, -8)
+	frame.karmaText = CreateTextLine(frame.guildText, -8)
+	frame.tagText = CreateTextLine(frame.karmaText, -8)
+	frame.metZoneText = CreateTextLine(frame.tagText, -8)
+	frame.metAtText = CreateTextLine(frame.metZoneText, -8)
+	frame.guidText = CreateTextLine(frame.metAtText, -8)
+	frame.metRealmText = CreateTextLine(frame.guidText, -4)
 
 	local ratingHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	ratingHeading:SetPoint("TOPLEFT", frame.guidText, "BOTTOMLEFT", 0, -12)
 	ratingHeading:SetPoint("RIGHT", content, "RIGHT", 0, 0)
 	ratingHeading:SetJustifyH("LEFT")
-	ratingHeading:SetText(T("RATING_PERSONAL_TITLE"))
+	ratingHeading:SetText(T("RATING_PERSONAL_OPINION_TITLE"))
 	SetFontColor(ratingHeading, UI.GOLD)
 	frame.ratingHeading = ratingHeading
 
@@ -2174,6 +2290,21 @@ local function CreateRaidCharacterWindow()
 		}
 		currentY = currentY - 32
 	end
+
+	local notesHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	notesHeading:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
+	notesHeading:SetPoint("RIGHT", content, "RIGHT", 0, 0)
+	notesHeading:SetJustifyH("LEFT")
+	notesHeading:SetText(T("PROFILE_NOTES"))
+	SetFontColor(notesHeading, UI.GOLD)
+	frame.notesHeading = notesHeading
+	currentY = currentY - 24
+
+	local notesHost, notesBox = CreateProfileNotesBox(content, contentWidth, 72)
+	notesHost:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
+	frame.notesHost = notesHost
+	frame.notesBox = notesBox
+	currentY = currentY - 80
 
 	local communityHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	communityHeading:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
@@ -2248,6 +2379,12 @@ function Addon:ShowRaidCharacterWindow(member)
 		SetFontColor(frame.ilvlText, UI.TEXT_DISABLED)
 	end
 
+	frame.raceText:SetText(T("PROFILE_RACE", ProfileRaceText(member.race)))
+	SetFontColor(frame.raceText, member.race and member.race ~= "" and UI.TEXT_IDLE or UI.TEXT_DISABLED)
+
+	frame.factionText:SetText(T("PROFILE_FACTION", ProfileFactionText(member.faction)))
+	SetFontColor(frame.factionText, member.faction and member.faction ~= "" and UI.TEXT_IDLE or UI.TEXT_DISABLED)
+
 	frame.guildText:SetText(T("PROFILE_GUILD", FormatGuildDisplay(member.guildName, member.guildRank)))
 	SetFontColor(frame.guildText, UI.TEXT_IDLE)
 	frame.karmaText:SetText(FormatOpinionLine(member))
@@ -2296,10 +2433,18 @@ function Addon:ShowRaidCharacterWindow(member)
 	end
 
 	if frame.ratingHeading then
-		frame.ratingHeading:SetText(T("RATING_PERSONAL_TITLE"))
+		frame.ratingHeading:SetText(T("RATING_PERSONAL_OPINION_TITLE"))
 	end
 	if frame.tagsHeading then
 		frame.tagsHeading:SetText(T("RATING_TAGS_TITLE"))
+	end
+	if frame.notesHeading then
+		frame.notesHeading:SetText(T("PROFILE_NOTES"))
+	end
+	if frame.notesBox then
+		frame.isUpdatingNotes = true
+		frame.notesBox:SetText(member.notes or "")
+		frame.isUpdatingNotes = false
 	end
 
 	UpdateProfileEditor(frame, member)
@@ -2338,6 +2483,20 @@ function Addon:ShowRaidCharacterWindow(member)
 					resetBtn:Disable()
 				end
 			end
+		end
+	end
+	if frame.notesBox and frame.notesHost then
+		if editable then
+			frame.notesBox:EnableMouse(true)
+			frame.notesBox:EnableKeyboard(true)
+			frame.notesBox:SetTextColor(1, 1, 1)
+			frame.notesHost:SetAlpha(1)
+		else
+			frame.notesBox:ClearFocus()
+			frame.notesBox:EnableMouse(false)
+			frame.notesBox:EnableKeyboard(false)
+			frame.notesBox:SetTextColor(0.6, 0.6, 0.6)
+			frame.notesHost:SetAlpha(0.6)
 		end
 	end
 	UpdateProfileScroll(frame)
