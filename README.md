@@ -2,7 +2,7 @@
 
 # Raidwise
 
-Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, meeting history, account-wide lockouts, and character JSON export.
+Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
 ![](https://img.shields.io/badge/current_version-1.6.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--19-blue)
@@ -55,7 +55,7 @@ Esc or the title **X** closes the window.
 
 - Table of the current 5-player party (you alone when not grouped)
 - Line above the table: average item level and average GearScore
-- Columns: name, class icon, spec icon, raid-buff icons, GearScore, average item level, karma, tags, guild with rank
+- Columns: name, class icon, spec icon, raid-buff icons, GearScore, average item level, personal opinion, tags, guild with rank
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
 
 **Raid roster** tab:
@@ -63,6 +63,7 @@ Esc or the title **X** closes the window.
 - Two blocks: raid groups **1–5**, then **6–8**
 - Line above the cells: overall average GearScore; second line is per-role count and average GS (`Tanks: 2 (6200 gs)`)
 - Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, karma, and tags
+- Rating lines now show your saved personal opinion and tag summary for known players
 - Role icon matches RaidBuffStatus (tank / healer / melee / ranged)
 - Buff icons are spec- and race-specific raid utilities (hover for the name)
 - Click a filled card to open **Character profile** (`{name} - Character profile`)
@@ -79,9 +80,16 @@ Esc or the title **X** closes the window.
 **History** tab:
 
 - Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
-- Columns: name, class icon, spec icon, GearScore, iLvl, where you met, when, guild
+- Columns: name, class icon, spec icon, personal opinion, tags, GearScore, iLvl, where you met, when, guild
 - Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
 - **Refresh** records the current group again and redraws the list
+
+**Player rating** in Character profile:
+
+- Save your **Personal** opinion for a player: **Positive**, **Neutral**, or **Negative**
+- Add short personal tags such as **Friendly**, **Prepared**, **Ninja Looter**, **Good Tank**, and more
+- Party, raid, and History views show your saved opinion and tag summary for that player
+- **Community opinion** is currently a mock preview for a future addon exchange / web app feature
 
 **Settings** tab:
 

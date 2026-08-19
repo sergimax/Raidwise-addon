@@ -361,7 +361,7 @@ end
 local function MinimalPartyMember(unit)
 	local name, realm = UnitName(unit)
 	local localizedClass, classToken = UnitClass(unit)
-	return {
+	local member = {
 		unit = unit,
 		guid = UnitGUID(unit) or "",
 		name = name or "?",
@@ -377,9 +377,11 @@ local function MinimalPartyMember(unit)
 		averageIlvl = nil,
 		guildName = nil,
 		guildRank = nil,
-		karma = nil,
-		tags = nil,
 	}
+	if Addon.MergeRatingIntoMember then
+		Addon:MergeRatingIntoMember(member)
+	end
+	return member
 end
 
 function Addon:CollectPartyMember(unit, refreshGearScore)
@@ -394,7 +396,7 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 		raidBuffs = self:RaidBuffsForMember(classToken, specTab, raceToken, faction)
 	end
 
-	return {
+	local member = {
 		unit = unit,
 		guid = UnitGUID(unit) or "",
 		name = name or "?",
@@ -410,12 +412,11 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 		averageIlvl = AverageItemLevelForUnit(unit),
 		guildName = guildName,
 		guildRank = guildRankName,
-		karma = 4.3,
-		tags = {
-			{ name = "tag" },
-			{ name = "tag" },
-		},
 	}
+	if self.MergeRatingIntoMember then
+		self:MergeRatingIntoMember(member)
+	end
+	return member
 end
 
 function Addon:BuildPartyRoster(refreshGearScore)
@@ -515,7 +516,7 @@ function Addon:CollectRaidMember(unit, refreshGearScore, raidIndex)
 		raidBuffs = self:RaidBuffsForMember(classToken, specTab, raceToken, faction)
 	end
 
-	return {
+	local member = {
 		unit = unit,
 		guid = UnitGUID(unit) or "",
 		name = name or "?",
@@ -532,12 +533,11 @@ function Addon:CollectRaidMember(unit, refreshGearScore, raidIndex)
 		averageIlvl = AverageItemLevelForUnit(unit),
 		guildName = guildName,
 		guildRank = guildRankName,
-		karma = 4.3,
-		tags = {
-			{ name = "tag" },
-			{ name = "tag" },
-		},
 	}
+	if self.MergeRatingIntoMember then
+		self:MergeRatingIntoMember(member)
+	end
+	return member
 end
 
 function Addon:BuildRaidGroups(refreshGearScore)

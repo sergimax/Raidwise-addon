@@ -104,7 +104,44 @@ local function EnsureHistoryFields(entry)
 	if type(entry.changes) ~= "table" then
 		entry.changes = {}
 	end
+	if Addon.EnsurePersonalRating then
+		Addon:EnsurePersonalRating(entry)
+	end
 	return entry
+end
+
+function Addon:EnsureHistoryEntryForGuid(guid, seed)
+	if not guid or guid == "" then
+		return nil
+	end
+	local store = self:HistoryStore()
+	local entry = store[guid]
+	if not entry then
+		entry = {
+			guid = guid,
+			name = (seed and seed.name) or "?",
+			realm = (seed and CharacterRealm(seed)) or "",
+			class = (seed and seed.class) or "",
+			classLabel = (seed and seed.classLabel) or "",
+			spec = (seed and seed.spec) or "",
+			specIcon = (seed and seed.specIcon) or "",
+			gearScore = seed and seed.gearScore or nil,
+			averageIlvl = seed and seed.averageIlvl or nil,
+			guildName = seed and seed.guildName or nil,
+			guildRank = seed and seed.guildRank or nil,
+			notes = "",
+			tags = {},
+			links = {},
+			changes = {},
+			metZone = "",
+			metAt = 0,
+			metRealm = "",
+			lastSeenAt = 0,
+			lastSeenZone = "",
+		}
+		store[guid] = entry
+	end
+	return EnsureHistoryFields(entry)
 end
 
 function Addon:UpsertHistoryMember(member)
@@ -117,36 +154,17 @@ function Addon:UpsertHistoryMember(member)
 		return nil
 	end
 
-	local store = self:HistoryStore()
-	local entry = store[guid]
+	local entry = self:EnsureHistoryEntryForGuid(guid, member)
 	local now = time()
 	local zone = MeetingZone()
 	local metRealm = MeetingRealm()
 
-	if not entry then
-		entry = {
-			guid = guid,
-			name = member.name or "?",
-			realm = CharacterRealm(member),
-			class = member.class or "",
-			classLabel = member.classLabel or "",
-			spec = member.spec or "",
-			specIcon = member.specIcon or "",
-			gearScore = member.gearScore,
-			averageIlvl = member.averageIlvl,
-			guildName = member.guildName,
-			guildRank = member.guildRank,
-			notes = "",
-			tags = {},
-			links = {},
-			changes = {},
-			metZone = zone,
-			metAt = now,
-			metRealm = metRealm,
-			lastSeenAt = now,
-			lastSeenZone = zone,
-		}
-		store[guid] = entry
+	if not entry.metAt or entry.metAt <= 0 then
+		entry.metZone = zone
+		entry.metAt = now
+		entry.metRealm = metRealm
+		entry.lastSeenAt = now
+		entry.lastSeenZone = zone
 		return entry
 	end
 
@@ -276,7 +294,44 @@ function Addon:HistoryProfileForMember(member)
 		if type(saved.links) == "table" then
 			profile.links = saved.links
 		end
+		if saved.rating then
+			profile.rating = {
+				personal = self.GetPersonalRating and self:GetPersonalRating(saved) or saved.rating.personal,
+			}
+		end
+	end
+
+	if self.GetPersonalRating then
+		profile.rating = profile.rating or {}
+		profile.rating.personal = self:GetPersonalRating(profile)
 	end
 
 	return profile
+end
+
+function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds)
+	if not guid or guid == "" then
+		return nil
+	end
+	local entry = self:EnsureHistoryEntryForGuid(guid, seed)
+	if not entry then
+		return nil
+	end
+	local personal = self:EnsurePersonalRating(entry)
+	if seed then
+		CopyIfValue(entry, seed, "name")
+		CopyIfValue(entry, seed, "class")
+		CopyIfValue(entry, seed, "classLabel")
+		CopyIfValue(entry, seed, "spec")
+		CopyIfValue(entry, seed, "specIcon")
+		CopyIfValue(entry, seed, "guildName")
+		CopyIfValue(entry, seed, "guildRank")
+		if CharacterRealm(seed) ~= "" then
+			entry.realm = CharacterRealm(seed)
+		end
+	end
+	personal.opinion = self:NormalizePersonalOpinion(opinion)
+	personal.tags = self:NormalizePersonalTags(tagIds)
+	personal.updatedAt = time()
+	return entry
 end
