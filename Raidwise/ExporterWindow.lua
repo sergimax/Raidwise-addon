@@ -1283,8 +1283,8 @@ end
 
 local function FormatTagLine(member)
 	local _, tags = RatingOpinion(member)
-	if Addon.RatingTagSummary then
-		return Addon:RatingTagSummary(tags, 3)
+	if Addon.RatingTagColoredSummary then
+		return Addon:RatingTagColoredSummary(tags, 3)
 	end
 	return ""
 end
@@ -1294,7 +1294,11 @@ local function ShowMemberRatingTooltip(anchor, member)
 		return
 	end
 	GameTooltip:SetOwner(anchor, "ANCHOR_RIGHT")
-	GameTooltip:AddLine(T("COL_OPINION") .. ": " .. RatingOpinionText(member))
+	local opinionText = RatingOpinionText(member)
+	if Addon.RatingWrapColor and Addon.RatingOpinionColor then
+		opinionText = Addon:RatingWrapColor(opinionText, Addon:RatingOpinionColor(RatingOpinion(member)))
+	end
+	GameTooltip:AddLine(T("COL_OPINION") .. ": " .. opinionText)
 	local tags = FormatTagLine(member)
 	if tags ~= "" then
 		GameTooltip:AddLine(T("COL_TAGS") .. ": " .. tags, 0.8, 0.8, 0.8, true)
@@ -1727,33 +1731,58 @@ local function RaidContentSize()
 	return width, height
 end
 
-local function SetChoiceButtonState(button, selected, hovering)
+local function BlendColor(base, accent, accentWeight)
+	local weight = accentWeight or 0.3
+	return {
+		base[1] * (1 - weight) + accent[1] * weight,
+		base[2] * (1 - weight) + accent[2] * weight,
+		base[3] * (1 - weight) + accent[3] * weight,
+		base[4] or 1,
+	}
+end
+
+local function SetOpinionButtonState(button, selected, hovering)
 	button.selected = selected and true or false
 	button.hovering = hovering and true or false
-	if button.selected then
-		SetPlainButtonState(button, "selected")
-	elseif button.hovering then
-		SetPlainButtonState(button, "hover")
-	else
-		SetPlainButtonState(button, "idle")
+	local opinionColor = Addon.RatingOpinionColor and Addon:RatingOpinionColor(button.opinionId) or UI.TEXT_IDLE
+
+	if not button:IsEnabled() then
+		button:SetBackdropColor(UI.BTN_DISABLED[1], UI.BTN_DISABLED[2], UI.BTN_DISABLED[3], UI.BTN_DISABLED[4])
+		SetFontColor(button.label, {
+			opinionColor[1] * 0.45,
+			opinionColor[2] * 0.45,
+			opinionColor[3] * 0.45,
+		})
+		return
 	end
+
+	local backdrop
+	if button.selected then
+		backdrop = BlendColor(UI.BTN_SELECTED, opinionColor, 0.45)
+	elseif button.hovering then
+		backdrop = BlendColor(UI.BTN_HOVER, opinionColor, 0.25)
+	else
+		backdrop = BlendColor(UI.BTN_IDLE, opinionColor, 0.12)
+	end
+	button:SetBackdropColor(backdrop[1], backdrop[2], backdrop[3], backdrop[4])
+	SetFontColor(button.label, opinionColor)
 end
 
 local function CreateChoiceButton(parent, width, height, label)
 	local button = CreatePlainButton(parent, width, height, label)
 	button:SetScript("OnEnter", function(self)
-		SetChoiceButtonState(self, self.selected, true)
+		SetOpinionButtonState(self, self.selected, true)
 	end)
 	button:SetScript("OnLeave", function(self)
-		SetChoiceButtonState(self, self.selected, false)
+		SetOpinionButtonState(self, self.selected, false)
 	end)
 	button:SetScript("OnEnable", function(self)
-		SetChoiceButtonState(self, self.selected, false)
+		SetOpinionButtonState(self, self.selected, false)
 	end)
 	button:SetScript("OnDisable", function(self)
-		SetPlainButtonState(self, "disabled")
+		SetOpinionButtonState(self, self.selected, false)
 	end)
-	SetChoiceButtonState(button, false, false)
+	SetOpinionButtonState(button, false, false)
 	return button
 end
 
@@ -1861,6 +1890,9 @@ local function RatingGroupSummary(member, group)
 	if #groupTags == 0 then
 		return T("RATING_TAGS_NONE")
 	end
+	if Addon.RatingTagColoredSummary then
+		return Addon:RatingTagColoredSummary(groupTags, 2)
+	end
 	return Addon:RatingTagSummary(groupTags, 2)
 end
 
@@ -1902,7 +1934,7 @@ local function CreateTagDropdown(parent, name, width, group)
 		for index = 1, #group.tags do
 			local tag = group.tags[index]
 			local info = UIDropDownMenu_CreateInfo()
-			info.text = Addon:RatingTagLabel(tag.id)
+			info.text = Addon.RatingTagColoredLabel and Addon:RatingTagColoredLabel(tag.id) or Addon:RatingTagLabel(tag.id)
 			info.keepShownOnClick = 1
 			info.isNotRadio = 1
 			info.checked = selected[tag.id] and true or false
@@ -1928,7 +1960,7 @@ local function UpdateProfileEditor(frame, member)
 		for _, button in ipairs(frame.opinionButtons) do
 			local selected = button.opinionId == opinion
 			button.label:SetText(Addon:RatingOpinionLabel(button.opinionId))
-			SetChoiceButtonState(button, selected, false)
+			SetOpinionButtonState(button, selected, false)
 		end
 	end
 	if frame.tagDropdowns then

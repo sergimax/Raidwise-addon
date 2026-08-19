@@ -219,6 +219,31 @@ function Addon:RatingMetaColor(meta)
 	return META_COLORS[meta] or META_COLORS.fact
 end
 
+function Addon:RatingColorHex(color)
+	if type(color) ~= "table" then
+		return "ffffff"
+	end
+	local red = math.floor((color[1] or 1) * 255 + 0.5)
+	local green = math.floor((color[2] or 1) * 255 + 0.5)
+	local blue = math.floor((color[3] or 1) * 255 + 0.5)
+	return string.format("%02x%02x%02x", red, green, blue)
+end
+
+function Addon:RatingWrapColor(text, color)
+	if not text or text == "" then
+		return ""
+	end
+	return "|cff" .. self:RatingColorHex(color) .. text .. "|r"
+end
+
+function Addon:RatingTagColoredLabel(tagId)
+	local tag = TAGS_BY_ID[tagId]
+	if not tag then
+		return tostring(tagId or "")
+	end
+	return self:RatingWrapColor(self:T(tag.labelKey), self:RatingMetaColor(tag.meta))
+end
+
 function Addon:RatingOpinionLabel(opinion)
 	local data = OPINIONS[self:NormalizePersonalOpinion(opinion)] or OPINIONS.neutral
 	return self:T(data.labelKey)
@@ -260,6 +285,24 @@ function Addon:RatingTagSummary(tags, limit)
 	return summary
 end
 
+function Addon:RatingTagColoredSummary(tags, limit)
+	limit = tonumber(limit) or 2
+	local normalized = self:NormalizePersonalTags(tags)
+	if #normalized == 0 then
+		return ""
+	end
+	local parts = {}
+	local maxCount = math.min(#normalized, limit)
+	for index = 1, maxCount do
+		parts[#parts + 1] = self:RatingTagColoredLabel(normalized[index])
+	end
+	local summary = table.concat(parts, ", ")
+	if #normalized > limit then
+		summary = summary .. self:T("RATING_TAGS_MORE", #normalized - limit)
+	end
+	return summary
+end
+
 function Addon:RatingDisplayText(entryOrMember)
 	local personal = self:GetPersonalRating(entryOrMember)
 	local opinion = self:RatingOpinionLabel(personal.opinion)
@@ -271,11 +314,14 @@ end
 
 function Addon:RatingProfileSummary(entryOrMember)
 	local personal = self:GetPersonalRating(entryOrMember)
-	local opinion = self:RatingOpinionLabel(personal.opinion)
+	local opinion = self:RatingWrapColor(
+		self:RatingOpinionLabel(personal.opinion),
+		self:RatingOpinionColor(personal.opinion)
+	)
 	if #personal.tags == 0 then
 		return self:T("RATING_PROFILE_SUMMARY", opinion, self:T("RATING_TAGS_NONE"))
 	end
-	return self:T("RATING_PROFILE_SUMMARY", opinion, self:RatingTagSummary(personal.tags, 3))
+	return self:T("RATING_PROFILE_SUMMARY", opinion, self:RatingTagColoredSummary(personal.tags, 3))
 end
 
 function Addon:MergeRatingIntoMember(member)
