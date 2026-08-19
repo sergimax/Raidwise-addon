@@ -391,6 +391,7 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 	local specName, specIcon, specTab = SpecForUnit(unit)
 	local _, raceToken = UnitRace(unit)
 	local faction = UnitFactionGroup and UnitFactionGroup(unit) or ""
+	local gender = UnitSex and UnitSex(unit) or nil
 	local raidBuffs = {}
 	if self.RaidBuffsForMember then
 		raidBuffs = self:RaidBuffsForMember(classToken, specTab, raceToken, faction)
@@ -408,6 +409,7 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 		specTab = specTab or 0,
 		race = raceToken or "",
 		faction = faction,
+		gender = gender,
 		raidBuffs = raidBuffs,
 		gearScore = GearScoreForUnit(unit, refreshGearScore),
 		averageIlvl = AverageItemLevelForUnit(unit),
@@ -503,6 +505,7 @@ function Addon:CollectRaidMember(unit, refreshGearScore, raidIndex)
 	local guildName, guildRankName = GuildInfoForUnit(unit)
 	local _, raceToken = UnitRace(unit)
 	local faction = UnitFactionGroup and UnitFactionGroup(unit) or ""
+	local gender = UnitSex and UnitSex(unit) or nil
 	local isMainTank = false
 	if raidIndex and type(GetRaidRosterInfo) == "function" then
 		local _, _, _, _, _, _, _, _, _, raidRole = GetRaidRosterInfo(raidIndex)
@@ -529,6 +532,7 @@ function Addon:CollectRaidMember(unit, refreshGearScore, raidIndex)
 		specTab = specTab or 0,
 		race = raceToken or "",
 		faction = faction,
+		gender = gender,
 		role = role,
 		raidBuffs = raidBuffs,
 		gearScore = GearScoreForUnit(unit, refreshGearScore),

@@ -88,7 +88,8 @@ local UI = {
 	RAID_GROUP_LABEL_H = 16,
 	RAID_BLOCK_GAP = 12,
 	RAID_DETAIL_W = 430,
-	RAID_DETAIL_H = 620,
+	RAID_DETAIL_H = 520,
+	PROFILE_TAB_H = 26,
 	RAID_BUFF_MAX = 8,
 	RAID_BUFF_GAP = 2,
 	RAID_STATS_H = 32,
@@ -1331,7 +1332,10 @@ local function RatingUIReady()
 end
 
 local function ProfileFrameNeedsRebuild(frame)
-	if not frame or not RatingUIReady() then
+	if not frame or frame.layoutVersion ~= PROFILE_LAYOUT_VERSION then
+		return true
+	end
+	if not RatingUIReady() then
 		return false
 	end
 	local groups = GetRatingTagGroups()
@@ -1912,18 +1916,187 @@ local function ProfileFactionText(faction)
 	return faction
 end
 
-local function UpdateProfileScroll(frame)
-	if not frame or not frame.profileScroll or not frame.profileContent or not frame.profileVBar then
+local PROFILE_LAYOUT_VERSION = 4
+
+local RACE_ICON_TEXTURE = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Races"
+local RACE_ICON_TCOORDS = {
+	["HUMAN_MALE"] = { 0, 0.125, 0, 0.25 },
+	["DWARF_MALE"] = { 0.125, 0.25, 0, 0.25 },
+	["GNOME_MALE"] = { 0.25, 0.375, 0, 0.25 },
+	["NIGHTELF_MALE"] = { 0.375, 0.5, 0, 0.25 },
+	["TAUREN_MALE"] = { 0, 0.125, 0.25, 0.5 },
+	["SCOURGE_MALE"] = { 0.125, 0.25, 0.25, 0.5 },
+	["TROLL_MALE"] = { 0.25, 0.375, 0.25, 0.5 },
+	["ORC_MALE"] = { 0.375, 0.5, 0.25, 0.5 },
+	["HUMAN_FEMALE"] = { 0, 0.125, 0.5, 0.75 },
+	["DWARF_FEMALE"] = { 0.125, 0.25, 0.5, 0.75 },
+	["GNOME_FEMALE"] = { 0.25, 0.375, 0.5, 0.75 },
+	["NIGHTELF_FEMALE"] = { 0.375, 0.5, 0.5, 0.75 },
+	["TAUREN_FEMALE"] = { 0, 0.125, 0.75, 1.0 },
+	["SCOURGE_FEMALE"] = { 0.125, 0.25, 0.75, 1.0 },
+	["TROLL_FEMALE"] = { 0.25, 0.375, 0.75, 1.0 },
+	["ORC_FEMALE"] = { 0.375, 0.5, 0.75, 1.0 },
+	["BLOODELF_MALE"] = { 0.5, 0.625, 0.25, 0.5 },
+	["BLOODELF_FEMALE"] = { 0.5, 0.625, 0.75, 1.0 },
+	["DRAENEI_MALE"] = { 0.5, 0.625, 0, 0.25 },
+	["DRAENEI_FEMALE"] = { 0.5, 0.625, 0.5, 0.75 },
+}
+
+local function ProfileRaceLabel(raceToken)
+	if not raceToken or raceToken == "" then
+		return "-"
+	end
+	local localized = _G[raceToken]
+	if type(localized) == "string" and localized ~= "" then
+		return localized
+	end
+	return raceToken
+end
+
+local function SetProfileRaceIcon(texture, raceToken, gender)
+	if not texture then
+		return false
+	end
+	if not raceToken or raceToken == "" then
+		texture:Hide()
+		return false
+	end
+	local genderKey = (gender == 3) and "FEMALE" or "MALE"
+	local raceKey = strupper(raceToken) .. "_" .. genderKey
+	local coords = RACE_ICON_TCOORDS[raceKey]
+	if not coords then
+		texture:Hide()
+		return false
+	end
+	texture:SetTexture(RACE_ICON_TEXTURE)
+	texture:SetTexCoord(coords[1], coords[2], coords[3], coords[4])
+	texture:Show()
+	return true
+end
+
+local PROFILE_TABS = {
+	{ id = "opinion", labelKey = "PROFILE_TAB_OPINION" },
+	{ id = "notes", labelKey = "PROFILE_TAB_NOTES" },
+	{ id = "history", labelKey = "PROFILE_TAB_HISTORY" },
+}
+
+local function FormatProfileChangeDetail(change)
+	if type(change) ~= "table" then
+		return "?"
+	end
+	if change.kind == "opinion" then
+		return T("PROFILE_CHANGE_OPINION", OpinionButtonLabel(change.detail))
+	end
+	if change.kind == "tags" then
+		local detail = change.detail
+		if type(detail) ~= "string" or detail == "" then
+			detail = T("RATING_TAGS_NONE")
+		end
+		return T("PROFILE_CHANGE_TAGS", detail)
+	end
+	if change.kind == "notes" then
+		return T("PROFILE_CHANGE_NOTES")
+	end
+	return change.detail or "?"
+end
+
+local function UpdateProfileHistoryPanel(frame, member)
+	if not frame or not frame.historyText or not member then
 		return
 	end
-	local viewport = frame.profileScroll:GetHeight() or 0
-	local content = frame.profileContent:GetHeight() or 0
+	local lines = {}
+	local metZone = (member.metZone and member.metZone ~= "") and member.metZone or "-"
+	lines[#lines + 1] = T("PROFILE_MET", metZone)
+	local metWhen = "-"
+	if Addon.FormatHistoryTime and member.metAt then
+		metWhen = Addon:FormatHistoryTime(member.metAt) or "-"
+	end
+	lines[#lines + 1] = T("PROFILE_WHEN", metWhen)
+	lines[#lines + 1] = ""
+
+	local changes = member.changes
+	if type(changes) ~= "table" or #changes == 0 then
+		lines[#lines + 1] = T("PROFILE_HISTORY_EMPTY")
+	else
+		for index = #changes, 1, -1 do
+			local change = changes[index]
+			local when = Addon.FormatHistoryTime and Addon:FormatHistoryTime(change.at) or "?"
+			lines[#lines + 1] = when .. " — " .. FormatProfileChangeDetail(change)
+		end
+	end
+	frame.historyText:SetText(table.concat(lines, "\n"))
+	local textHeight = frame.historyText:GetStringHeight() or 120
+	if frame.profilePanels and frame.profilePanels.history then
+		frame.profilePanels.history:SetHeight(math.max(120, textHeight + 12))
+	end
+	if frame.selectedProfileTab == "history" and frame.tabContent and frame.profilePanels.history then
+		frame.tabContent:SetHeight(frame.profilePanels.history:GetHeight())
+		UpdateProfileTabScroll(frame)
+	end
+end
+
+local function UpdateProfileTabScroll(frame)
+	if not frame or not frame.tabScroll or not frame.tabContent or not frame.tabVBar then
+		return
+	end
+	local viewport = frame.tabScroll:GetHeight() or 0
+	local content = frame.tabContent:GetHeight() or 0
 	local maxValue = math.max(0, content - viewport)
-	frame.profileVBar:SetMinMaxValues(0, maxValue)
-	local current = frame.profileScroll:GetVerticalScroll() or 0
+	frame.tabVBar:SetMinMaxValues(0, maxValue)
+	local current = frame.tabScroll:GetVerticalScroll() or 0
 	current = math.max(0, math.min(maxValue, current))
-	frame.profileScroll:SetVerticalScroll(current)
-	frame.profileVBar:SetValue(current)
+	frame.tabScroll:SetVerticalScroll(current)
+	frame.tabVBar:SetValue(current)
+end
+
+function Addon:SelectProfileTab(tabId)
+	local frame = self.raidDetailFrame
+	if not frame or not frame.profilePanels then
+		return
+	end
+	frame.selectedProfileTab = tabId
+	for id, panel in pairs(frame.profilePanels) do
+		if id == tabId then
+			panel:Show()
+		else
+			panel:Hide()
+		end
+	end
+	if frame.profileTabButtons then
+		for _, button in ipairs(frame.profileTabButtons) do
+			SetMenuButtonState(button, button.tabId == tabId, false)
+		end
+	end
+	if frame.tabContent and frame.profilePanels[tabId] then
+		frame.tabContent:SetHeight(frame.profilePanels[tabId]:GetHeight() or 1)
+	end
+	UpdateProfileTabScroll(frame)
+end
+
+local function CreateProfileTabButton(parent, tabId, label, width)
+	local button = CreateFrame("Button", nil, parent)
+	button:SetSize(width, UI.PROFILE_TAB_H)
+	ApplyPlainPanel(button, UI.BTN_IDLE)
+	button.tabId = tabId
+
+	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	text:SetPoint("LEFT", 6, 0)
+	text:SetPoint("RIGHT", -6, 0)
+	text:SetJustifyH("CENTER")
+	text:SetText(label)
+	button.label = text
+
+	button:SetScript("OnEnter", function(self)
+		SetMenuButtonState(self, Addon.raidDetailFrame and Addon.raidDetailFrame.selectedProfileTab == tabId, true)
+	end)
+	button:SetScript("OnLeave", function(self)
+		SetMenuButtonState(self, Addon.raidDetailFrame and Addon.raidDetailFrame.selectedProfileTab == tabId, false)
+	end)
+	button:SetScript("OnClick", function()
+		Addon:SelectProfileTab(tabId)
+	end)
+	SetMenuButtonState(button, false, false)
+	return button
 end
 
 local function RatingGroupSummary(member, group)
@@ -2016,6 +2189,20 @@ local function UpdateProfileEditor(frame, member)
 	if not frame or not member then
 		return
 	end
+	if frame.karmaText then
+		frame.karmaText:SetText(FormatOpinionLine(member))
+		SetFontColor(frame.karmaText, RatingOpinionColor(member))
+	end
+	if frame.tagText then
+		local tagSummary = FormatTagLine(member)
+		if tagSummary ~= "" then
+			frame.tagText:SetText(tagSummary)
+			SetFontColor(frame.tagText, UI.TEXT_IDLE)
+		else
+			frame.tagText:SetText(T("RATING_TAGS_NONE"))
+			SetFontColor(frame.tagText, UI.TEXT_DISABLED)
+		end
+	end
 	if frame.ratingSummary and Addon.RatingProfileSummary then
 		frame.ratingSummary:SetText(Addon:RatingProfileSummary(member))
 	end
@@ -2049,6 +2236,7 @@ local function UpdateProfileEditor(frame, member)
 	if frame.communityText then
 		frame.communityText:SetText(T("RATING_COMMUNITY_MOCK"))
 	end
+	UpdateProfileHistoryPanel(frame, member)
 end
 
 function Addon:RefreshRatingViews()
@@ -2192,6 +2380,7 @@ local function CreateRaidCharacterWindow()
 	frame:SetClampedToScreen(true)
 	frame:Hide()
 	ApplyPlainPanel(frame)
+	frame.layoutVersion = PROFILE_LAYOUT_VERSION
 	tinsert(UISpecialFrames, "RaidwiseRaidCharacterFrame")
 
 	local titleBar = CreateFrame("Frame", nil, frame)
@@ -2230,88 +2419,61 @@ local function CreateRaidCharacterWindow()
 	body:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
 	frame.body = body
 
-	local scroll = CreateFrame("ScrollFrame", nil, body)
-	scroll:SetPoint("TOPLEFT", 0, 0)
-	scroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 2), 0)
-	scroll:EnableMouseWheel(true)
-	frame.profileScroll = scroll
-
-	local contentWidth = UI.RAID_DETAIL_W - UI.PAD * 2 - UI.CD_SCROLLBAR_W - 8
-	local content = CreateFrame("Frame", nil, scroll)
-	content:SetSize(contentWidth, 1)
-	scroll:SetScrollChild(content)
-	frame.profileContent = content
-
-	local vBar = CreateCooldownScrollBar(body, "VERTICAL")
-	vBar:SetPoint("TOPRIGHT", 0, 0)
-	vBar:SetPoint("BOTTOMRIGHT", 0, 0)
-	vBar:SetScript("OnValueChanged", function(self)
-		scroll:SetVerticalScroll(self:GetValue() or 0)
-	end)
-	frame.profileVBar = vBar
-
-	scroll:SetScript("OnMouseWheel", function(self, delta)
-		local maxV = math.max(0, (content:GetHeight() or 0) - (self:GetHeight() or 0))
-		local step = UI.CD_ROW_H
-		local nextValue = math.max(0, math.min(maxV, (self:GetVerticalScroll() or 0) - delta * step))
-		self:SetVerticalScroll(nextValue)
-		vBar:SetValue(nextValue)
-	end)
-	scroll:SetScript("OnSizeChanged", function()
-		UpdateProfileScroll(frame)
-	end)
-
-	local function CreateTextLine(anchor, topOffset)
-		local text = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		if anchor then
-			text:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, topOffset or -8)
-		else
-			text:SetPoint("TOPLEFT", 0, 0)
-		end
-		text:SetPoint("RIGHT", content, "RIGHT", 0, 0)
-		text:SetJustifyH("LEFT")
-		SetFontColor(text, UI.TEXT_IDLE)
-		return text
-	end
-
-	local function CreatePairTextLine(anchor, topOffset)
-		local halfWidth = math.floor((contentWidth - 12) / 2)
-		local left = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		left:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, topOffset or -8)
-		left:SetWidth(halfWidth)
-		left:SetJustifyH("LEFT")
-		SetFontColor(left, UI.TEXT_IDLE)
-
-		local right = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		right:SetPoint("TOPLEFT", left, "TOPRIGHT", 12, 0)
-		right:SetWidth(halfWidth)
-		right:SetJustifyH("LEFT")
-		SetFontColor(right, UI.TEXT_IDLE)
-		return left, right
-	end
-
+	local bodyWidth = UI.RAID_DETAIL_W - UI.PAD * 2
 	local columnGap = 12
-	local columnWidth = math.floor((contentWidth - columnGap) / 2)
+	local columnWidth = math.floor((bodyWidth - columnGap) / 2)
 	local iconSize = UI.PROFILE_ICON
 
-	local classIconHost = CreateFrame("Frame", nil, content)
+	local header = CreateFrame("Frame", nil, body)
+	header:SetPoint("TOPLEFT", 0, 0)
+	header:SetPoint("TOPRIGHT", 0, 0)
+	header:SetHeight(iconSize + 22)
+	frame.headerSection = header
+
+	local raceIconHost = CreateFrame("Frame", nil, header)
+	raceIconHost:SetSize(iconSize, iconSize)
+	raceIconHost:SetPoint("TOPLEFT", 0, 0)
+	frame.raceIconHost = raceIconHost
+
+	local raceIcon = raceIconHost:CreateTexture(nil, "ARTWORK")
+	raceIcon:SetAllPoints(raceIconHost)
+	frame.raceIcon = raceIcon
+	raceIconHost:EnableMouse(true)
+	raceIconHost:SetScript("OnEnter", function(self)
+		local member = frame.profileMember
+		if not member then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(ProfileRaceLabel(member.race))
+		local factionText = ProfileFactionText(member.faction)
+		if factionText ~= "-" then
+			GameTooltip:AddLine(factionText, 0.8, 0.8, 0.8)
+		end
+		GameTooltip:Show()
+	end)
+	raceIconHost:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	local classIconHost = CreateFrame("Frame", nil, header)
 	classIconHost:SetSize(iconSize, iconSize)
-	classIconHost:SetPoint("TOPLEFT", 0, 0)
+	classIconHost:SetPoint("LEFT", raceIconHost, "RIGHT", 4, 0)
 	frame.classIconHost = classIconHost
 
 	local classIcon = classIconHost:CreateTexture(nil, "ARTWORK")
 	classIcon:SetAllPoints(classIconHost)
 	frame.classIcon = classIcon
 
-	local classText = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local classText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	classText:SetPoint("TOPLEFT", classIconHost, "TOPRIGHT", 6, 0)
 	classText:SetPoint("BOTTOMLEFT", classIconHost, "BOTTOMRIGHT", 6, 0)
-	classText:SetPoint("RIGHT", content, "LEFT", columnWidth, 0)
+	classText:SetPoint("RIGHT", header, "LEFT", columnWidth, 0)
 	classText:SetJustifyH("LEFT")
 	classText:SetJustifyV("MIDDLE")
 	frame.classText = classText
 
-	local specIconHost = CreateFrame("Frame", nil, content)
+	local specIconHost = CreateFrame("Frame", nil, header)
 	specIconHost:SetSize(iconSize, iconSize)
 	specIconHost:SetPoint("TOPLEFT", columnWidth + columnGap, 0)
 	frame.specIconHost = specIconHost
@@ -2320,47 +2482,151 @@ local function CreateRaidCharacterWindow()
 	specIcon:SetAllPoints(specIconHost)
 	frame.specIcon = specIcon
 
-	local specText = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local specText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	specText:SetPoint("TOPLEFT", specIconHost, "TOPRIGHT", 6, 0)
 	specText:SetPoint("BOTTOMLEFT", specIconHost, "BOTTOMRIGHT", 6, 0)
-	specText:SetPoint("RIGHT", content, "RIGHT", 0, 0)
+	specText:SetPoint("RIGHT", header, "RIGHT", 0, 0)
 	specText:SetJustifyH("LEFT")
 	specText:SetJustifyV("MIDDLE")
 	frame.specText = specText
 
-	frame.gsText, frame.ilvlText = CreatePairTextLine(classIconHost, -10)
-	frame.raceText, frame.factionText = CreatePairTextLine(frame.gsText, -8)
-	frame.guildText = CreateTextLine(frame.raceText, -8)
-	frame.karmaText = CreateTextLine(frame.guildText, -8)
-	frame.tagText = CreateTextLine(frame.karmaText, -8)
-	frame.metZoneText = CreateTextLine(frame.tagText, -8)
-	frame.metAtText = CreateTextLine(frame.metZoneText, -8)
-	frame.guidText = CreateTextLine(frame.metAtText, -8)
-	frame.metRealmText = CreateTextLine(frame.guidText, -4)
+	local gsText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	gsText:SetPoint("TOPLEFT", classIconHost, "BOTTOMLEFT", 0, -4)
+	gsText:SetWidth(columnWidth)
+	gsText:SetJustifyH("LEFT")
+	SetFontColor(gsText, UI.TEXT_IDLE)
+	frame.gsText = gsText
 
-	local ratingHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	ratingHeading:SetPoint("TOPLEFT", frame.guidText, "BOTTOMLEFT", 0, -12)
-	ratingHeading:SetPoint("RIGHT", content, "RIGHT", 0, 0)
+	local ilvlText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	ilvlText:SetPoint("TOPLEFT", specIconHost, "BOTTOMLEFT", 0, -4)
+	ilvlText:SetWidth(columnWidth)
+	ilvlText:SetJustifyH("LEFT")
+	SetFontColor(ilvlText, UI.TEXT_IDLE)
+	frame.ilvlText = ilvlText
+
+	local summary = CreateFrame("Frame", nil, body)
+	summary:SetPoint("TOPLEFT", gsText, "BOTTOMLEFT", 0, -4)
+	summary:SetPoint("TOPRIGHT", ilvlText, "BOTTOMRIGHT", 0, -4)
+	summary:SetHeight(104)
+	frame.summarySection = summary
+
+	local function CreateSummaryLine(parent, anchor, topOffset, width)
+		local text = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		if anchor then
+			text:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, topOffset or -6)
+		else
+			text:SetPoint("TOPLEFT", 0, 0)
+		end
+		text:SetWidth(width)
+		text:SetJustifyH("LEFT")
+		text:SetJustifyV("TOP")
+		SetFontColor(text, UI.TEXT_IDLE)
+		return text
+	end
+
+	frame.karmaText = CreateSummaryLine(summary, nil, 0, columnWidth)
+	frame.tagText = CreateSummaryLine(summary, frame.karmaText, -6, columnWidth)
+	frame.guildText = CreateSummaryLine(summary, frame.tagText, -6, columnWidth)
+	frame.guidText = CreateSummaryLine(summary, frame.guildText, -6, columnWidth)
+	frame.metRealmText = CreateSummaryLine(summary, frame.guidText, -6, columnWidth)
+
+	local communityHeading = summary:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	communityHeading:SetPoint("TOPLEFT", columnWidth + columnGap, 0)
+	communityHeading:SetWidth(columnWidth)
+	communityHeading:SetJustifyH("LEFT")
+	SetFontColor(communityHeading, UI.GOLD)
+	frame.communityHeading = communityHeading
+
+	local communityText = summary:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	communityText:SetPoint("TOPLEFT", communityHeading, "BOTTOMLEFT", 0, -4)
+	communityText:SetWidth(columnWidth)
+	communityText:SetJustifyH("LEFT")
+	communityText:SetJustifyV("TOP")
+	frame.communityText = communityText
+
+	local tabBar = CreateFrame("Frame", nil, body)
+	tabBar:SetPoint("TOPLEFT", summary, "BOTTOMLEFT", 0, -8)
+	tabBar:SetPoint("TOPRIGHT", summary, "BOTTOMRIGHT", 0, -8)
+	tabBar:SetHeight(UI.PROFILE_TAB_H)
+	frame.tabBar = tabBar
+
+	frame.profileTabButtons = {}
+	frame.profilePanels = {}
+	local tabWidth = math.floor((bodyWidth - 16) / #PROFILE_TABS)
+	for index = 1, #PROFILE_TABS do
+		local tab = PROFILE_TABS[index]
+		local button = CreateProfileTabButton(tabBar, tab.id, T(tab.labelKey), tabWidth)
+		if index == 1 then
+			button:SetPoint("LEFT", 0, 0)
+		else
+			button:SetPoint("LEFT", frame.profileTabButtons[index - 1], "RIGHT", 8, 0)
+		end
+		frame.profileTabButtons[index] = button
+	end
+
+	local tabHost = CreateFrame("Frame", nil, body)
+	tabHost:SetPoint("TOPLEFT", tabBar, "BOTTOMLEFT", 0, -8)
+	tabHost:SetPoint("BOTTOMRIGHT", body, "BOTTOMRIGHT", 0, 0)
+	frame.tabHost = tabHost
+
+	local tabScroll = CreateFrame("ScrollFrame", nil, tabHost)
+	tabScroll:SetPoint("TOPLEFT", 0, 0)
+	tabScroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 2), 0)
+	tabScroll:EnableMouseWheel(true)
+	frame.tabScroll = tabScroll
+
+	local tabContent = CreateFrame("Frame", nil, tabScroll)
+	tabContent:SetSize(bodyWidth - UI.CD_SCROLLBAR_W - 8, 1)
+	tabScroll:SetScrollChild(tabContent)
+	frame.tabContent = tabContent
+
+	local tabVBar = CreateCooldownScrollBar(tabHost, "VERTICAL")
+	tabVBar:SetPoint("TOPRIGHT", 0, 0)
+	tabVBar:SetPoint("BOTTOMRIGHT", 0, 0)
+	tabVBar:SetScript("OnValueChanged", function(self)
+		tabScroll:SetVerticalScroll(self:GetValue() or 0)
+	end)
+	frame.tabVBar = tabVBar
+
+	tabScroll:SetScript("OnMouseWheel", function(self, delta)
+		local maxV = math.max(0, (tabContent:GetHeight() or 0) - (self:GetHeight() or 0))
+		local step = UI.CD_ROW_H
+		local nextValue = math.max(0, math.min(maxV, (self:GetVerticalScroll() or 0) - delta * step))
+		self:SetVerticalScroll(nextValue)
+		tabVBar:SetValue(nextValue)
+	end)
+	tabScroll:SetScript("OnSizeChanged", function()
+		UpdateProfileTabScroll(frame)
+	end)
+
+	local opinionPanel = CreateFrame("Frame", nil, tabContent)
+	opinionPanel:SetPoint("TOPLEFT", 0, 0)
+	opinionPanel:SetSize(bodyWidth - UI.CD_SCROLLBAR_W - 8, 1)
+	frame.profilePanels.opinion = opinionPanel
+
+	local ratingHeading = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	ratingHeading:SetPoint("TOPLEFT", 0, 0)
+	ratingHeading:SetPoint("RIGHT", opinionPanel, "RIGHT", 0, 0)
 	ratingHeading:SetJustifyH("LEFT")
 	ratingHeading:SetText(T("RATING_PERSONAL_OPINION_TITLE"))
 	SetFontColor(ratingHeading, UI.GOLD)
 	frame.ratingHeading = ratingHeading
 
-	local summary = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	summary:SetPoint("TOPLEFT", ratingHeading, "BOTTOMLEFT", 0, -6)
-	summary:SetPoint("RIGHT", content, "RIGHT", 0, 0)
-	summary:SetJustifyH("LEFT")
-	summary:SetJustifyV("TOP")
-	frame.ratingSummary = summary
+	local summaryLine = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	summaryLine:SetPoint("TOPLEFT", ratingHeading, "BOTTOMLEFT", 0, -6)
+	summaryLine:SetPoint("RIGHT", opinionPanel, "RIGHT", 0, 0)
+	summaryLine:SetJustifyH("LEFT")
+	summaryLine:SetJustifyV("TOP")
+	frame.ratingSummary = summaryLine
 
 	frame.opinionButtons = {}
 	local opinionOrder = { "positive", "neutral", "negative" }
-	local opinionWidth = math.floor((contentWidth - 16) / 3)
+	local opinionWidth = math.floor((bodyWidth - UI.CD_SCROLLBAR_W - 24) / 3)
 	for index = 1, #opinionOrder do
 		local opinionId = opinionOrder[index]
-		local button = CreateChoiceButton(content, opinionWidth, UI.ACTION_BTN_H, "")
+		local button = CreateChoiceButton(opinionPanel, opinionWidth, UI.ACTION_BTN_H, "")
 		if index == 1 then
-			button:SetPoint("TOPLEFT", summary, "BOTTOMLEFT", 0, -8)
+			button:SetPoint("TOPLEFT", summaryLine, "BOTTOMLEFT", 0, -8)
 		else
 			button:SetPoint("LEFT", frame.opinionButtons[index - 1], "RIGHT", 8, 0)
 		end
@@ -2373,9 +2639,9 @@ local function CreateRaidCharacterWindow()
 		frame.opinionButtons[index] = button
 	end
 
-	local tagsHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local tagsHeading = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	tagsHeading:SetPoint("TOPLEFT", frame.opinionButtons[1], "BOTTOMLEFT", 0, -12)
-	tagsHeading:SetPoint("RIGHT", content, "RIGHT", 0, 0)
+	tagsHeading:SetPoint("RIGHT", opinionPanel, "RIGHT", 0, 0)
 	tagsHeading:SetJustifyH("LEFT")
 	tagsHeading:SetText(T("RATING_TAGS_TITLE"))
 	SetFontColor(tagsHeading, UI.GOLD)
@@ -2386,9 +2652,10 @@ local function CreateRaidCharacterWindow()
 	local groups = GetRatingTagGroups()
 	local labelWidth = 110
 	local resetButtonWidth = 64
+	local dropdownWidth = bodyWidth - UI.CD_SCROLLBAR_W - labelWidth - resetButtonWidth - 30
 	for groupIndex = 1, #groups do
 		local group = groups[groupIndex]
-		local label = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		local label = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
 		label:SetWidth(labelWidth - 4)
 		label:SetJustifyH("LEFT")
@@ -2397,13 +2664,13 @@ local function CreateRaidCharacterWindow()
 		label:SetText(T(group.labelKey))
 
 		local dropdown = CreateTagDropdown(
-			content,
+			opinionPanel,
 			"RaidwiseProfileTagDropdown" .. tostring(groupIndex),
-			contentWidth - labelWidth - resetButtonWidth - 14,
+			dropdownWidth,
 			group
 		)
 		dropdown:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", labelWidth - 16, currentY + 10)
-		local resetBtn = CreatePlainButton(content, resetButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
+		local resetBtn = CreatePlainButton(opinionPanel, resetButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
 		resetBtn:SetPoint("LEFT", dropdown, "RIGHT", 6, 2)
 		resetBtn:SetScript("OnClick", function()
 			Addon:ClearProfileTagGroup(group)
@@ -2416,24 +2683,29 @@ local function CreateRaidCharacterWindow()
 		}
 		currentY = currentY - 32
 	end
+	opinionPanel:SetHeight(math.abs(currentY) + 120)
 
-	local notesHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	notesHeading:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
-	notesHeading:SetPoint("RIGHT", content, "RIGHT", 0, 0)
+	local notesPanel = CreateFrame("Frame", nil, tabContent)
+	notesPanel:SetPoint("TOPLEFT", 0, 0)
+	notesPanel:SetSize(bodyWidth - UI.CD_SCROLLBAR_W - 8, 140)
+	notesPanel:Hide()
+	frame.profilePanels.notes = notesPanel
+
+	local notesHeading = notesPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	notesHeading:SetPoint("TOPLEFT", 0, 0)
+	notesHeading:SetPoint("RIGHT", notesPanel, "RIGHT", 0, 0)
 	notesHeading:SetJustifyH("LEFT")
 	notesHeading:SetText(T("PROFILE_NOTES"))
 	SetFontColor(notesHeading, UI.GOLD)
 	frame.notesHeading = notesHeading
-	currentY = currentY - 24
 
-	local notesHost, notesBox = CreateProfileNotesBox(content, contentWidth, 72)
-	notesHost:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
+	local notesHost, notesBox = CreateProfileNotesBox(notesPanel, bodyWidth - UI.CD_SCROLLBAR_W - 8, 96)
+	notesHost:SetPoint("TOPLEFT", notesHeading, "BOTTOMLEFT", 0, -8)
 	frame.notesHost = notesHost
 	frame.notesBox = notesBox
-	currentY = currentY - 80
 
-	local notesButtonWidth = math.floor((contentWidth - UI.ACTION_BTN_GAP) / 2)
-	local notesSaveBtn = CreatePlainButton(content, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_SAVE"))
+	local notesButtonWidth = math.floor((bodyWidth - UI.CD_SCROLLBAR_W - 8 - UI.ACTION_BTN_GAP) / 2)
+	local notesSaveBtn = CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_SAVE"))
 	notesSaveBtn:SetPoint("TOPLEFT", notesHost, "BOTTOMLEFT", 0, -8)
 	notesSaveBtn:SetScript("OnClick", function()
 		if frame.notesBox then
@@ -2443,30 +2715,28 @@ local function CreateRaidCharacterWindow()
 	end)
 	frame.notesSaveBtn = notesSaveBtn
 
-	local notesResetBtn = CreatePlainButton(content, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
+	local notesResetBtn = CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
 	notesResetBtn:SetPoint("LEFT", notesSaveBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
 	notesResetBtn:SetScript("OnClick", function()
 		Addon:ResetProfileNotes()
 	end)
 	frame.notesResetBtn = notesResetBtn
-	currentY = currentY - UI.ACTION_BTN_H - 8
 
-	local communityHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	communityHeading:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
-	communityHeading:SetPoint("RIGHT", content, "RIGHT", 0, 0)
-	communityHeading:SetJustifyH("LEFT")
-	SetFontColor(communityHeading, UI.GOLD)
-	frame.communityHeading = communityHeading
-	currentY = currentY - 20
+	local historyPanel = CreateFrame("Frame", nil, tabContent)
+	historyPanel:SetPoint("TOPLEFT", 0, 0)
+	historyPanel:SetSize(bodyWidth - UI.CD_SCROLLBAR_W - 8, 200)
+	historyPanel:Hide()
+	frame.profilePanels.history = historyPanel
 
-	local communityText = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	communityText:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
-	communityText:SetPoint("RIGHT", content, "RIGHT", 0, 0)
-	communityText:SetJustifyH("LEFT")
-	communityText:SetJustifyV("TOP")
-	frame.communityText = communityText
+	local historyText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	historyText:SetPoint("TOPLEFT", 0, 0)
+	historyText:SetPoint("RIGHT", historyPanel, "RIGHT", 0, 0)
+	historyText:SetJustifyH("LEFT")
+	historyText:SetJustifyV("TOP")
+	frame.historyText = historyText
 
-	content:SetHeight(math.abs(currentY) + 420)
+	tabContent:SetHeight(opinionPanel:GetHeight())
+	frame.selectedProfileTab = "opinion"
 
 	return frame
 end
@@ -2478,6 +2748,10 @@ function Addon:ShowRaidCharacterWindow(member)
 
 	if self.HistoryProfileForMember then
 		member = self:HistoryProfileForMember(member)
+	end
+
+	if member.unit and UnitExists(member.unit) and UnitSex then
+		member.gender = UnitSex(member.unit)
 	end
 
 	if ProfileFrameNeedsRebuild(self.raidDetailFrame) then
@@ -2531,11 +2805,11 @@ function Addon:ShowRaidCharacterWindow(member)
 		SetFontColor(frame.ilvlText, UI.TEXT_DISABLED)
 	end
 
-	frame.raceText:SetText(T("PROFILE_RACE", ProfileRaceText(member.race)))
-	SetFontColor(frame.raceText, member.race and member.race ~= "" and UI.TEXT_IDLE or UI.TEXT_DISABLED)
-
-	frame.factionText:SetText(T("PROFILE_FACTION", ProfileFactionText(member.faction)))
-	SetFontColor(frame.factionText, member.faction and member.faction ~= "" and UI.TEXT_IDLE or UI.TEXT_DISABLED)
+	if SetProfileRaceIcon(frame.raceIcon, member.race, member.gender) then
+		frame.raceIconHost:Show()
+	else
+		frame.raceIconHost:Hide()
+	end
 
 	frame.guildText:SetText(T("PROFILE_GUILD", FormatGuildDisplay(member.guildName, member.guildRank)))
 	SetFontColor(frame.guildText, UI.TEXT_IDLE)
@@ -2551,21 +2825,12 @@ function Addon:ShowRaidCharacterWindow(member)
 		SetFontColor(frame.tagText, UI.TEXT_DISABLED)
 	end
 
-	if member.metZone and member.metZone ~= "" then
-		frame.metZoneText:SetText(T("PROFILE_MET", member.metZone))
-		SetFontColor(frame.metZoneText, UI.TEXT_IDLE)
+	if member.guid and member.guid ~= "" then
+		frame.guidText:SetText(T("PROFILE_GUID", member.guid))
+		SetFontColor(frame.guidText, UI.TEXT_IDLE)
 	else
-		frame.metZoneText:SetText(T("PROFILE_MET", "-"))
-		SetFontColor(frame.metZoneText, UI.TEXT_DISABLED)
-	end
-
-	local metWhen = (self.FormatHistoryTime and self:FormatHistoryTime(member.metAt)) or "-"
-	if metWhen ~= "-" then
-		frame.metAtText:SetText(T("PROFILE_WHEN", metWhen))
-		SetFontColor(frame.metAtText, UI.TEXT_IDLE)
-	else
-		frame.metAtText:SetText(T("PROFILE_WHEN", "-"))
-		SetFontColor(frame.metAtText, UI.TEXT_DISABLED)
+		frame.guidText:SetText(T("PROFILE_GUID", "-"))
+		SetFontColor(frame.guidText, UI.TEXT_DISABLED)
 	end
 
 	if member.metRealm and member.metRealm ~= "" then
@@ -2576,12 +2841,14 @@ function Addon:ShowRaidCharacterWindow(member)
 		SetFontColor(frame.metRealmText, UI.TEXT_DISABLED)
 	end
 
-	if member.guid and member.guid ~= "" then
-		frame.guidText:SetText(T("PROFILE_GUID", member.guid))
-		SetFontColor(frame.guidText, UI.TEXT_IDLE)
-	else
-		frame.guidText:SetText(T("PROFILE_GUID", "-"))
-		SetFontColor(frame.guidText, UI.TEXT_DISABLED)
+	if frame.profileTabButtons then
+		for index = 1, #PROFILE_TABS do
+			local button = frame.profileTabButtons[index]
+			local tab = PROFILE_TABS[index]
+			if button and button.label and tab then
+				button.label:SetText(T(tab.labelKey))
+			end
+		end
 	end
 
 	if frame.ratingHeading then
@@ -2667,7 +2934,7 @@ function Addon:ShowRaidCharacterWindow(member)
 			frame.notesResetBtn:Disable()
 		end
 	end
-	UpdateProfileScroll(frame)
+	self:SelectProfileTab(frame.selectedProfileTab or "opinion")
 
 	frame:Show()
 	frame:Raise()

@@ -174,61 +174,48 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Character profile
 
-Standalone scrollable window (**430 × 620**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
+Standalone window (**430 × 520**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
 [ Rhee - Character profile                                      X ]
-| (class) Shaman          | (spec) Enhancement                  |
+| (race)(class) Shaman    | (spec) Enhancement                  |
 | GearScore: 6158         | iLvl: 264                           |
-| Race: Draenei           | Faction: Alliance                   |
-[ Guild: MyGuild (Member) ]
-[ Personal opinion: Positive ]
-[ Friendly, Good Tank ]
-[ Met: Icecrown Citadel ]
-[ When: 2026-08-18 18:54 ]
-[ GUID: 0x00000000002a3b4c ]
-[ Realm: Icecrown ]
-        --- scroll if needed ---
-[ Personal opinion ]
+| Personal note: Positive | Community note                      |
+| Friendly, Good Tank     | mock preview text                   |
+| Guild: MyGuild (Member) | (percentages, sample reports)       |
+| GUID: 0x...              |                                    |
+| Realm: Icecrown         |                                     |
+[ Edit note ] [ Edit memo ] [ History ]
+        --- tab content (scroll if needed) ---
+(tab: Edit note)
+[ Personal note ]
 [ Summary: Positive | Tags: Friendly, Good Tank, Prepared ]
 [ Positive ] [ Neutral ] [ Negative ]
-[ Personal tags ]
-[ Organization  [ dropdown summary     ] [ Reset ] ]
-[ Behavior      [ dropdown summary     ] [ Reset ] ]
-[ Trust         [ dropdown summary     ] [ Reset ] ]
-[ Loot          [ dropdown summary     ] [ Reset ] ]
-[ Discipline    [ dropdown summary     ] [ Reset ] ]
-[ Gameplay      [ dropdown summary     ] [ Reset ] ]
-[ Notes ]
-[ multiline edit box                                    ]
+[ Personal tags — six category rows with dropdown + Reset ]
+(tab: Edit memo)
+[ Memo — multiline edit box ]
 [ Save ] [ Reset ]
-[ Community opinion ]
-[ mock preview text (percentages and sample reports)      ]
+(tab: History)
+[ Met: Icecrown Citadel ]
+[ When: 2026-08-18 18:54 ]
+[ change log entries, newest first ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
 | title | `{characterName} - Character profile` |
 | close | **X** (right of title bar); Esc also closes |
-| class / spec | Side-by-side row: class icon + name (class-colored), spec icon + name (`-` until inspect) |
+| class / spec | Side-by-side row: race + class icons + name (class-colored), spec icon + name (`-` until inspect) |
 | GearScore / iLvl | Side-by-side row: `GearScore: {score}` and `iLvl: {average}`; `-` when unknown |
-| Race / Faction | Side-by-side row: `Race: {race}` and `Faction: {Alliance|Horde}`; `-` when unknown |
-| Guild | `Guild: GuildName (Rank)` or `Guild: -` |
-| Personal opinion (read-only line) | `Personal opinion: {Positive|Neutral|Negative}`; color-coded |
-| Tags (read-only line) | Colored tag summary (up to 3); `none` when empty |
-| Met | Raid or dungeon (or zone) where you first grouped with them; `-` if unknown |
-| When | Local date and time of that first meeting (`YYYY-MM-DD HH:MM`) |
-| GUID | `UnitGUID` for this character; `-` when missing |
-| Realm | Realm where the meeting happened; `-` if unknown |
-| Personal opinion (editor) | Gold heading; summary line; three toggle buttons (**Positive**, **Neutral**, **Negative**) |
-| Personal tags | Gold heading; six category rows with multi-select dropdown and **Reset** per category |
-| tag categories | Organization, Behavior, Trust, Loot, Discipline, Gameplay (see `PlayerHistory.lua`) |
-| tag limit | Up to **3** active tags per category; chat message when the limit is reached |
-| tag colors | Fact (gray), Positive (green), Negative (red) |
-| Notes | Multiline EditBox; **Save** writes to `RaidwiseDB.history[guid].notes`; **Reset** clears |
-| Community opinion | Mock preview for a future addon exchange / web app feature (read-only) |
+| Race icon | Character-creation race portrait on the class row (same size as class/spec icons); tooltip shows race name and faction |
+| Summary (left column) | Read-only: personal note, tag summary, guild, GUID, realm |
+| Community note (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
+| Tabs | **Edit note**, **Edit memo**, **History** — switch the panel below the summary |
+| Personal note (editor tab) | Summary line; three toggle buttons; six tag category rows |
+| Memo (editor tab) | Multiline EditBox; **Save** / **Reset** |
+| History tab | **Met** and **When** as first entries, then logged opinion/tag/note changes |
 | editable | Opinion, tags, and notes require a valid GUID; controls are disabled otherwise |
-| persistence | Opinion and tags stored in `RaidwiseDB.history[guid].rating.personal`; saved on this account |
+| persistence | Opinion and tags in `RaidwiseDB.history[guid].rating.personal`; notes in `.notes`; changes in `.changes` |
 
 Changing opinion or tags refreshes Party roster, Raid roster, and History when those tabs are visible.
 

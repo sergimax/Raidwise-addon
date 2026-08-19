@@ -406,10 +406,48 @@ end
 
 function Addon:FormatHistoryTime(timestamp)
 	timestamp = tonumber(timestamp)
-	if not timestamp then
+	if not timestamp or timestamp <= 0 then
 		return "-"
 	end
 	return date("%Y-%m-%d %H:%M", timestamp)
+end
+
+local MAX_PROFILE_HISTORY_CHANGES = 50
+
+local function TagsEqual(left, right)
+	if type(left) ~= "table" or type(right) ~= "table" then
+		return false
+	end
+	if #left ~= #right then
+		return false
+	end
+	local seen = {}
+	for index = 1, #left do
+		seen[left[index]] = (seen[left[index]] or 0) + 1
+	end
+	for index = 1, #right do
+		local tagId = right[index]
+		if not seen[tagId] or seen[tagId] <= 0 then
+			return false
+		end
+		seen[tagId] = seen[tagId] - 1
+	end
+	return true
+end
+
+function Addon:AppendProfileHistoryChange(entry, kind, detail)
+	if type(entry) ~= "table" or not kind or kind == "" then
+		return
+	end
+	EnsureHistoryFields(entry)
+	entry.changes[#entry.changes + 1] = {
+		at = time(),
+		kind = kind,
+		detail = detail or "",
+	}
+	while #entry.changes > MAX_PROFILE_HISTORY_CHANGES do
+		table.remove(entry.changes, 1)
+	end
 end
 
 function Addon:GetHistoryEntry(guid)
@@ -455,6 +493,7 @@ function Addon:EnsureHistoryEntryForGuid(guid, seed)
 			specIcon = (seed and seed.specIcon) or "",
 			race = (seed and seed.race) or "",
 			faction = (seed and seed.faction) or "",
+			gender = seed and seed.gender or nil,
 			gearScore = seed and seed.gearScore or nil,
 			averageIlvl = seed and seed.averageIlvl or nil,
 			guildName = seed and seed.guildName or nil,
@@ -506,6 +545,9 @@ function Addon:UpsertHistoryMember(member)
 	CopyIfValue(entry, member, "specIcon")
 	CopyIfValue(entry, member, "race")
 	CopyIfValue(entry, member, "faction")
+	if member.gender then
+		entry.gender = member.gender
+	end
 	CopyIfValue(entry, member, "guildName")
 	CopyIfValue(entry, member, "guildRank")
 	if CharacterRealm(member) ~= "" then
@@ -623,6 +665,9 @@ function Addon:HistoryProfileForMember(member)
 		if not profile.faction or profile.faction == "" then
 			profile.faction = saved.faction
 		end
+		if not profile.gender and saved.gender then
+			profile.gender = saved.gender
+		end
 		if type(saved.notes) == "string" then
 			profile.notes = saved.notes
 		end
@@ -631,6 +676,9 @@ function Addon:HistoryProfileForMember(member)
 		end
 		if type(saved.links) == "table" then
 			profile.links = saved.links
+		end
+		if type(saved.changes) == "table" then
+			profile.changes = saved.changes
 		end
 		if saved.rating then
 			profile.rating = {
@@ -656,6 +704,11 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds)
 		return nil
 	end
 	local personal = self:EnsurePersonalRating(entry)
+	local previousOpinion = personal.opinion
+	local previousTags = {}
+	for index = 1, #personal.tags do
+		previousTags[index] = personal.tags[index]
+	end
 	if seed then
 		CopyIfValue(entry, seed, "name")
 		CopyIfValue(entry, seed, "class")
@@ -664,6 +717,9 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds)
 		CopyIfValue(entry, seed, "specIcon")
 		CopyIfValue(entry, seed, "race")
 		CopyIfValue(entry, seed, "faction")
+		if seed.gender then
+			entry.gender = seed.gender
+		end
 		CopyIfValue(entry, seed, "guildName")
 		CopyIfValue(entry, seed, "guildRank")
 		if CharacterRealm(seed) ~= "" then
@@ -673,6 +729,13 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds)
 	personal.opinion = self:NormalizePersonalOpinion(opinion)
 	personal.tags = self:NormalizePersonalTags(tagIds)
 	personal.updatedAt = time()
+	if previousOpinion ~= personal.opinion then
+		self:AppendProfileHistoryChange(entry, "opinion", personal.opinion)
+	end
+	if not TagsEqual(previousTags, personal.tags) then
+		local tagSummary = self.RatingTagSummary and self:RatingTagSummary(personal.tags, 5) or ""
+		self:AppendProfileHistoryChange(entry, "tags", tagSummary)
+	end
 	return entry
 end
 
@@ -684,6 +747,7 @@ function Addon:SaveProfileNotesForGuid(guid, seed, notes)
 	if not entry then
 		return nil
 	end
+	local previousNotes = entry.notes or ""
 	if seed then
 		CopyIfValue(entry, seed, "name")
 		CopyIfValue(entry, seed, "class")
@@ -692,6 +756,9 @@ function Addon:SaveProfileNotesForGuid(guid, seed, notes)
 		CopyIfValue(entry, seed, "specIcon")
 		CopyIfValue(entry, seed, "race")
 		CopyIfValue(entry, seed, "faction")
+		if seed.gender then
+			entry.gender = seed.gender
+		end
 		CopyIfValue(entry, seed, "guildName")
 		CopyIfValue(entry, seed, "guildRank")
 		if CharacterRealm(seed) ~= "" then
@@ -699,5 +766,8 @@ function Addon:SaveProfileNotesForGuid(guid, seed, notes)
 		end
 	end
 	entry.notes = type(notes) == "string" and notes or ""
+	if previousNotes ~= entry.notes then
+		self:AppendProfileHistoryChange(entry, "notes", "")
+	end
 	return entry
 end
