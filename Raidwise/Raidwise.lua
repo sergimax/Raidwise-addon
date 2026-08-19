@@ -93,6 +93,9 @@ function Addon:OnInitialize()
 			self:Print("UI failed to load: " .. tostring(err))
 		end
 	end
+	if not self.RatingTagGroups then
+		self:Print("Player rating module failed to load. Update PlayerHistory.lua and /reload.")
+	end
 	self:Print(self:T("CHAT_LOADED", self.version))
 end
 

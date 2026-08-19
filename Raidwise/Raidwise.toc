@@ -15,6 +15,5 @@ CharacterLockouts.lua
 PartyRoster.lua
 RaidRoles.lua
 RaidComposition.lua
-PlayerRating.lua
 PlayerHistory.lua
 ExporterWindow.lua

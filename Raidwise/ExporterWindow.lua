@@ -1289,6 +1289,61 @@ local function FormatTagLine(member)
 	return ""
 end
 
+local function GetRatingTagGroups()
+	if Addon.RatingTagGroups then
+		return Addon:RatingTagGroups()
+	end
+	return {}
+end
+
+local OPINION_LABEL_KEYS = {
+	positive = "RATING_OPINION_POSITIVE",
+	neutral = "RATING_OPINION_NEUTRAL",
+	negative = "RATING_OPINION_NEGATIVE",
+}
+
+local OPINION_FALLBACK_COLORS = {
+	positive = { 0.35, 0.90, 0.35 },
+	neutral = { 0.90, 0.82, 0.35 },
+	negative = { 0.95, 0.35, 0.35 },
+}
+
+local function OpinionButtonLabel(opinionId)
+	if Addon.RatingOpinionLabel then
+		return Addon:RatingOpinionLabel(opinionId)
+	end
+	local labelKey = OPINION_LABEL_KEYS[opinionId]
+	if labelKey then
+		return T(labelKey)
+	end
+	return tostring(opinionId or "")
+end
+
+local function OpinionButtonColor(opinionId)
+	if Addon.RatingOpinionColor then
+		return Addon:RatingOpinionColor(opinionId)
+	end
+	return OPINION_FALLBACK_COLORS[opinionId] or UI.TEXT_IDLE
+end
+
+local function RatingUIReady()
+	return Addon.RatingTagGroups ~= nil and Addon.GetPersonalRating ~= nil
+end
+
+local function ProfileFrameNeedsRebuild(frame)
+	if not frame or not RatingUIReady() then
+		return false
+	end
+	local groups = GetRatingTagGroups()
+	if #groups == 0 then
+		return false
+	end
+	if not frame.tagDropdowns then
+		return true
+	end
+	return #frame.tagDropdowns ~= #groups
+end
+
 local function ShowMemberRatingTooltip(anchor, member)
 	if not member then
 		return
@@ -1744,7 +1799,7 @@ end
 local function SetOpinionButtonState(button, selected, hovering)
 	button.selected = selected and true or false
 	button.hovering = hovering and true or false
-	local opinionColor = Addon.RatingOpinionColor and Addon:RatingOpinionColor(button.opinionId) or UI.TEXT_IDLE
+	local opinionColor = OpinionButtonColor(button.opinionId)
 
 	if not button:IsEnabled() then
 		button:SetBackdropColor(UI.BTN_DISABLED[1], UI.BTN_DISABLED[2], UI.BTN_DISABLED[3], UI.BTN_DISABLED[4])
@@ -1893,7 +1948,10 @@ local function RatingGroupSummary(member, group)
 	if Addon.RatingTagColoredSummary then
 		return Addon:RatingTagColoredSummary(groupTags, 2)
 	end
-	return Addon:RatingTagSummary(groupTags, 2)
+	if Addon.RatingTagSummary then
+		return Addon:RatingTagSummary(groupTags, 2)
+	end
+	return T("RATING_TAGS_NONE")
 end
 
 local function CountSelectedTagsInGroup(personal, group)
@@ -1922,7 +1980,7 @@ local function CreateTagDropdown(parent, name, width, group)
 	UIDropDownMenu_Initialize(dropdown, function(self, level)
 		local frame = Addon.raidDetailFrame
 		local member = frame and frame.profileMember
-		if not member then
+		if not member or not Addon.GetPersonalRating then
 			return
 		end
 		local personal = Addon:GetPersonalRating(member)
@@ -1934,7 +1992,13 @@ local function CreateTagDropdown(parent, name, width, group)
 		for index = 1, #group.tags do
 			local tag = group.tags[index]
 			local info = UIDropDownMenu_CreateInfo()
-			info.text = Addon.RatingTagColoredLabel and Addon:RatingTagColoredLabel(tag.id) or Addon:RatingTagLabel(tag.id)
+			if Addon.RatingTagColoredLabel then
+				info.text = Addon:RatingTagColoredLabel(tag.id)
+			elseif Addon.RatingTagLabel then
+				info.text = Addon:RatingTagLabel(tag.id)
+			else
+				info.text = tostring(tag.id)
+			end
 			info.keepShownOnClick = 1
 			info.isNotRadio = 1
 			info.checked = selected[tag.id] and true or false
@@ -1952,14 +2016,17 @@ local function UpdateProfileEditor(frame, member)
 	if not frame or not member then
 		return
 	end
-	if frame.ratingSummary then
+	if frame.ratingSummary and Addon.RatingProfileSummary then
 		frame.ratingSummary:SetText(Addon:RatingProfileSummary(member))
 	end
 	if frame.opinionButtons then
-		local opinion = Addon:GetPersonalRating(member).opinion
+		local opinion = "neutral"
+		if Addon.GetPersonalRating then
+			opinion = Addon:GetPersonalRating(member).opinion
+		end
 		for _, button in ipairs(frame.opinionButtons) do
 			local selected = button.opinionId == opinion
-			button.label:SetText(Addon:RatingOpinionLabel(button.opinionId))
+			button.label:SetText(OpinionButtonLabel(button.opinionId))
 			SetOpinionButtonState(button, selected, false)
 		end
 	end
@@ -2298,6 +2365,8 @@ local function CreateRaidCharacterWindow()
 			button:SetPoint("LEFT", frame.opinionButtons[index - 1], "RIGHT", 8, 0)
 		end
 		button.opinionId = opinionId
+		button.label:SetText(OpinionButtonLabel(opinionId))
+		SetOpinionButtonState(button, false, false)
 		button:SetScript("OnClick", function(self)
 			Addon:SetProfileOpinion(self.opinionId)
 		end)
@@ -2314,7 +2383,7 @@ local function CreateRaidCharacterWindow()
 
 	frame.tagDropdowns = {}
 	local currentY = -8
-	local groups = Addon:RatingTagGroups() or {}
+	local groups = GetRatingTagGroups()
 	local labelWidth = 110
 	local resetButtonWidth = 64
 	for groupIndex = 1, #groups do
@@ -2409,6 +2478,13 @@ function Addon:ShowRaidCharacterWindow(member)
 
 	if self.HistoryProfileForMember then
 		member = self:HistoryProfileForMember(member)
+	end
+
+	if ProfileFrameNeedsRebuild(self.raidDetailFrame) then
+		if self.raidDetailFrame then
+			self.raidDetailFrame:Hide()
+		end
+		self.raidDetailFrame = nil
 	end
 
 	local frame = self.raidDetailFrame
