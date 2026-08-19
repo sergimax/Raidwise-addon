@@ -18,6 +18,7 @@ local Translations = {
 		BTN_SELECT_ALL = "Select all",
 		BTN_EXPORT_DATA = "Export character data",
 		BTN_RESET = "Reset",
+		BTN_SAVE = "Save",
 
 		EXPORT_DESC = "Export this character's gear, bags, and raid lockouts as JSON.",
 		EXPORT_INCLUDE_NAMES = "Include item names",
@@ -355,6 +356,7 @@ local Translations = {
 		BTN_SELECT_ALL = "Выделить всё",
 		BTN_EXPORT_DATA = "Экспорт персонажа",
 		BTN_RESET = "Сброс",
+		BTN_SAVE = "Сохранить",
 
 		EXPORT_DESC = "Экспорт экипировки, сумок и КД этого персонажа в JSON.",
 		EXPORT_INCLUDE_NAMES = "Включать названия предметов",

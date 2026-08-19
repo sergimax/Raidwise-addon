@@ -1799,13 +1799,6 @@ local function CreateProfileNotesBox(parent, width, height)
 			end
 		end
 	end)
-	box:SetScript("OnEditFocusLost", function(self)
-		if Addon.raidDetailFrame and Addon.raidDetailFrame.isUpdatingNotes then
-			return
-		end
-		Addon:SaveProfileNotes(self:GetText() or "")
-	end)
-
 	host.box = box
 	host.scroll = scroll
 	return host, box
@@ -1998,12 +1991,27 @@ function Addon:SaveProfileNotes(notes)
 		return
 	end
 	frame.profileMember = self:HistoryProfileForMember(member)
-	if frame.notesBox and not frame.notesBox:HasFocus() then
+	if frame.notesBox then
 		frame.isUpdatingNotes = true
 		frame.notesBox:SetText(frame.profileMember.notes or "")
 		frame.isUpdatingNotes = false
 	end
 	self:RefreshRatingViews()
+end
+
+function Addon:ResetProfileNotes()
+	local frame = self.raidDetailFrame
+	local member = frame and frame.profileMember
+	if not member or not member.guid or member.guid == "" then
+		return
+	end
+	if frame.notesBox then
+		frame.isUpdatingNotes = true
+		frame.notesBox:SetText("")
+		frame.notesBox:ClearFocus()
+		frame.isUpdatingNotes = false
+	end
+	self:SaveProfileNotes("")
 end
 
 function Addon:SetProfileOpinion(opinion)
@@ -2323,6 +2331,25 @@ local function CreateRaidCharacterWindow()
 	frame.notesBox = notesBox
 	currentY = currentY - 80
 
+	local notesButtonWidth = math.floor((contentWidth - UI.ACTION_BTN_GAP) / 2)
+	local notesSaveBtn = CreatePlainButton(content, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_SAVE"))
+	notesSaveBtn:SetPoint("TOPLEFT", notesHost, "BOTTOMLEFT", 0, -8)
+	notesSaveBtn:SetScript("OnClick", function()
+		if frame.notesBox then
+			frame.notesBox:ClearFocus()
+			Addon:SaveProfileNotes(frame.notesBox:GetText() or "")
+		end
+	end)
+	frame.notesSaveBtn = notesSaveBtn
+
+	local notesResetBtn = CreatePlainButton(content, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
+	notesResetBtn:SetPoint("LEFT", notesSaveBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
+	notesResetBtn:SetScript("OnClick", function()
+		Addon:ResetProfileNotes()
+	end)
+	frame.notesResetBtn = notesResetBtn
+	currentY = currentY - UI.ACTION_BTN_H - 8
+
 	local communityHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	communityHeading:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
 	communityHeading:SetPoint("RIGHT", content, "RIGHT", 0, 0)
@@ -2514,6 +2541,22 @@ function Addon:ShowRaidCharacterWindow(member)
 			frame.notesBox:EnableKeyboard(false)
 			frame.notesBox:SetTextColor(0.6, 0.6, 0.6)
 			frame.notesHost:SetAlpha(0.6)
+		end
+	end
+	if frame.notesSaveBtn then
+		frame.notesSaveBtn.label:SetText(T("BTN_SAVE"))
+		if editable then
+			frame.notesSaveBtn:Enable()
+		else
+			frame.notesSaveBtn:Disable()
+		end
+	end
+	if frame.notesResetBtn then
+		frame.notesResetBtn.label:SetText(T("BTN_RESET"))
+		if editable then
+			frame.notesResetBtn:Enable()
+		else
+			frame.notesResetBtn:Disable()
 		end
 	end
 	UpdateProfileScroll(frame)
