@@ -98,15 +98,17 @@ Same toolbar as Character cooldowns, plus an averages line, then the scroll tabl
 | Element | Size | Notes |
 |---------|------|-------|
 | Averages line | height **16** | `Average iLvl: {n}     Average GS: {n}`; 8 px gap above and below |
-| Columns | **90 + 28 + 28 + 166 + 52 + 44 + 52 + 100 + 184 = 744** | Name, class, spec, buffs, GS, iLvl, Karma, Tags, Guild |
+| Columns | **90 + 28 + 28 + 166 + 52 + 44 + 60 + 100 + 176 = 744** | Name, class, spec, buffs, GS, iLvl, Opinion, Tags, Guild |
 | Class column | **18** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
 | Spec column | **18** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
 | Buffs column | **166** | Up to **8** raid-buff icons (**18** px, 2 px gap); hover shows the spell name |
-| Karma column | **52**, center | Placeholder `4.3` until karma is implemented |
-| Tags column | **100** | `#tag #tag`; placeholder until tag functions exist |
-| Guild column | **184** | `GuildName (Rank)`; `-` when not in a guild |
+| Opinion column | **60**, center | Symbol `+` / `=` / `-`; color-coded; tooltip shows full label |
+| Tags column | **100** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
+| Guild column | **176** | `GuildName (Rank)`; `-` when not in a guild |
 
-Max **5** rows (player + `party1`–`party4`). Raid members are not listed here.
+Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Character profile. Raid members are not listed here.
+
+UI constant for the opinion column is still named `PARTY_COL_KARMA` in code.
 
 ## Raid roster tab
 
@@ -116,13 +118,14 @@ Same toolbar as Party roster, then two stats lines, then the scroll host. Two st
 |---------|------|-------|
 | Averages line | height **16** | `Average GS: {n}` only (no average iLvl; transmog skews it) |
 | Role averages | height **16** | `Tanks: {n} ({gs} gs)` (and Healers, Melee, Range); `-` when no GS |
-| Player cell | **168 × 106** | Five lines: class+name, role+spec+GS/iLvl, buff icons, karma, tags |
+| Stats block | height **32** | Combined area for both stats lines (`RAID_STATS_H`) |
+| Player cell | **168 × 106** | Five lines: class+name, role+spec+GS/iLvl, buff icons, personal opinion, tags |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Gold number above each party column |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
-| Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3 |
+| Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
 
 ## Raid composition tab
 
@@ -137,16 +140,28 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Character profile
 
-Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Raid roster or History; Esc-close via `UISpecialFrames`.
+Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Party roster, Raid roster, or History; Esc-close via `UISpecialFrames`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Window | **300 × 360** | Centered, offset +40 / +20 from parent center |
+| Window | **430 × 620** | Centered, offset +40 / +20 from parent center |
 | Title bar | height **20** | Drag handle; `{name} - Character profile` |
 | Close button | **16 × 16** | Right of title bar |
 | Body padding | **10** | Same as main shell `PAD` |
-| Icons | **24** | Class then spec, stacked |
-| Line gap | **8** | Between body rows |
+| Scroll area | fills body minus scrollbar | Vertical scroll + mouse wheel; step **34** (`CD_ROW_H`) |
+| Vertical scrollbar | **16** | Right edge of body (`CD_SCROLLBAR_W`) |
+| Scroll content width | **386** | `430 - 10×2 - 16 - 8` |
+| Header icons | **24** | Class and spec side by side (`PROFILE_ICON`); column gap **12** |
+| Pair row gap | **8–10** px | GS/iLvl and Race/Faction rows |
+| Single-line gap | **8** px | Guild, opinion, tags, meeting fields |
+| Opinion buttons | **3 × ~122 × 28** | `(contentWidth - 16) / 3`; gap **8** between |
+| Tag category label | width **110** | Left of each dropdown row |
+| Tag dropdown row step | **32** px | Label + dropdown + **Reset** (**64 × 28**) |
+| Notes box | **386 × 72** | Multiline EditBox with inner scroll |
+| Notes Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
+| Community mock block | below notes | Gold heading + wrapped body text |
+
+Rating editor requires a valid GUID; controls are disabled when GUID is missing.
 
 ## History tab
 
@@ -154,10 +169,17 @@ Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Columns | **90 + 28 + 28 + 52 + 44 + 160 + 130 + 150 = 682** | Name, class, spec, GS, iLvl, Met in, When, Guild |
+| Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 140 + 130 + 120 = 822** | Name, class, spec, Opinion, Tags, GS, iLvl, Met in, When, Guild |
 | Class / spec icons | **18** px | Centered in 28 px columns |
-| Met in | **160** | First meeting instance or zone |
+| Opinion column | **70**, center | Symbol `+` / `=` / `-`; color-coded |
+| Tags column | **120** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
+| Met in | **140** | First meeting instance or zone |
 | When | **130** | `YYYY-MM-DD HH:MM` |
+| Guild | **120** | Last stored `GuildName (Rank)` |
+
+Rows are clickable and open Character profile. Notes are stored on the history record but edited only in Character profile.
+
+UI constant for the opinion column is still named `HISTORY_COL_KARMA` in code.
 
 ## Settings tab
 
@@ -171,10 +193,10 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 | Menu / action buttons | `GameFontNormalSmall` | Idle `{0.8, 0.8, 0.8}` |
 | Version / status / hints | `GameFontNormalSmall` | Idle gray |
 | Checkbox & section labels | `GameFontHighlight` | |
-| Export JSON | `ChatFontNormal` | |
+| Export JSON / profile notes | `ChatFontNormal` | |
 
 ## Changing sizes
 
 1. Edit the `UI` constants at the top of `ExporterWindow.lua`.
-2. Update this document to match.
+2. Update this document and [`UI-Views.md`](UI-Views.md) to match.
 3. Reload the UI (`/reload`) and check `/raidwise show`.

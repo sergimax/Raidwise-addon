@@ -86,8 +86,8 @@ Current 5-player party (you plus up to four others). Solo shows only you. Raid m
         8 px gap
 [ Average iLvl: 264     Average GS: 6158 ]
         8 px gap
-[ Name | (class) | (spec) | (buffs) | GS | iLvl | Karma | Tags | Guild (rank) ]
-[ Rhee |  SH   |  Enh   |  icons  | 6158 | 264 | 4.3 | #tag #tag | MyGuild (Member) ]
+[ Name | (class) | (spec) | (buffs) | GS | iLvl | Opinion | Tags | Guild (rank) ]
+[ Rhee |  SH   |  Enh   |  icons  | 6158 | 264 |   +   | Friendly, Good Tank | MyGuild (Member) ]
 ```
 
 | Block | In-game text / control |
@@ -101,9 +101,13 @@ Current 5-player party (you plus up to four others). Solo shows only you. Raid m
 | Buffs | Spec- and race-specific raid buff icons (hover for name); up to 8 |
 | GS | GearScore when the GearScore addon has scanned the player |
 | iLvl | Average equipped item level (tooltip scan when item cache is cold) |
-| Karma | Placeholder `4.3` until karma is implemented |
-| Tags | `#tag #tag`; placeholder until tag functions exist |
+| Opinion | Saved personal opinion symbol: `+` (Positive), `=` (Neutral), `-` (Negative); color-coded |
+| Tags | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
 | Guild | `GuildName (Rank)` from `GetGuildInfo`; `-` when not in a guild |
+| hover | Tooltip shows full opinion label and tag summary |
+| click | Left-click a row opens **Character profile** |
+
+Personal opinion and tags come from `RaidwiseDB.history` (keyed by GUID). Default opinion is Neutral with no tags.
 
 ## Raid roster
 
@@ -119,8 +123,8 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 [ (class) Rhee   ][ empty slot     ] ...
 [ (role)(spec) 6158gs 264ilvl ]
 [ (buff)(buff)(buff) ]
-[ 4.3 Karma      ]
-[ #tag #tag      ]
+[ Personal opinion: Positive ]
+[ Friendly, Good Tank ]
         12 px gap
 [ 6              ][ 7              ][ 8              ]
 [ player cell    ] ...
@@ -136,8 +140,9 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 | line 1 | Class icon + class-colored name |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
 | line 3 | Spec- and race-specific raid buff icons (hover for name); up to 8 |
-| line 4 | Temporary karma placeholder (`4.3 Karma`) |
-| line 5 | Tags (`#tag #tag`); placeholder until tag functions exist |
+| line 4 | `Personal opinion: {Positive|Neutral|Negative}`; color-coded |
+| line 5 | Colored tag summary (up to 3 labels, then `+N`); dim when none |
+| hover | Tooltip shows full opinion label and tag summary |
 | click | Left-click a filled cell opens **Character profile** |
 
 ## Raid composition
@@ -169,38 +174,63 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Character profile
 
-Standalone window opened from Raid roster or History (left-click a filled player cell or row). Esc or **X** closes it; drag the title bar to move it.
+Standalone scrollable window (**430 × 620**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
 [ Rhee - Character profile                                      X ]
-[ (class) Shaman ]
-[ (spec) Enhancement ]
-[ GearScore: 6158 ]
-[ iLvl: 264 ]
+| (class) Shaman          | (spec) Enhancement                  |
+| GearScore: 6158         | iLvl: 264                           |
+| Race: Draenei           | Faction: Alliance                   |
 [ Guild: MyGuild (Member) ]
-[ 4.3 Karma ]
-[ #tag #tag ]
+[ Personal opinion: Positive ]
+[ Friendly, Good Tank ]
 [ Met: Icecrown Citadel ]
 [ When: 2026-08-18 18:54 ]
-[ Realm: Icecrown ]
 [ GUID: 0x00000000002a3b4c ]
+[ Realm: Icecrown ]
+        --- scroll if needed ---
+[ Personal opinion ]
+[ Summary: Positive | Tags: Friendly, Good Tank, Prepared ]
+[ Positive ] [ Neutral ] [ Negative ]
+[ Personal tags ]
+[ Organization  [ dropdown summary     ] [ Reset ] ]
+[ Behavior      [ dropdown summary     ] [ Reset ] ]
+[ Trust         [ dropdown summary     ] [ Reset ] ]
+[ Loot          [ dropdown summary     ] [ Reset ] ]
+[ Discipline    [ dropdown summary     ] [ Reset ] ]
+[ Gameplay      [ dropdown summary     ] [ Reset ] ]
+[ Notes ]
+[ multiline edit box                                    ]
+[ Save ] [ Reset ]
+[ Community opinion ]
+[ mock preview text (percentages and sample reports)      ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
 | title | `{characterName} - Character profile` |
 | close | **X** (right of title bar); Esc also closes |
-| class | Class icon + localized class name (class-colored) |
-| spec | Talent tree icon + spec name (`-` until inspect) |
-| GearScore | `GearScore: {score}` or `GearScore: -` |
-| iLvl | `iLvl: {average}` or `iLvl: -` |
+| class / spec | Side-by-side row: class icon + name (class-colored), spec icon + name (`-` until inspect) |
+| GearScore / iLvl | Side-by-side row: `GearScore: {score}` and `iLvl: {average}`; `-` when unknown |
+| Race / Faction | Side-by-side row: `Race: {race}` and `Faction: {Alliance|Horde}`; `-` when unknown |
 | Guild | `Guild: GuildName (Rank)` or `Guild: -` |
-| Karma | Placeholder `{value} Karma` (`4.3 Karma`) |
-| Tags | `#tag #tag`; placeholder until tag functions exist |
+| Personal opinion (read-only line) | `Personal opinion: {Positive|Neutral|Negative}`; color-coded |
+| Tags (read-only line) | Colored tag summary (up to 3); `none` when empty |
 | Met | Raid or dungeon (or zone) where you first grouped with them; `-` if unknown |
 | When | Local date and time of that first meeting (`YYYY-MM-DD HH:MM`) |
+| GUID | `UnitGUID` for this character; `-` when missing |
 | Realm | Realm where the meeting happened; `-` if unknown |
-| GUID | `UnitGUID` for this character; shown only here |
+| Personal opinion (editor) | Gold heading; summary line; three toggle buttons (**Positive**, **Neutral**, **Negative**) |
+| Personal tags | Gold heading; six category rows with multi-select dropdown and **Reset** per category |
+| tag categories | Organization, Behavior, Trust, Loot, Discipline, Gameplay (see `PlayerHistory.lua`) |
+| tag limit | Up to **3** active tags per category; chat message when the limit is reached |
+| tag colors | Fact (gray), Positive (green), Negative (red) |
+| Notes | Multiline EditBox; **Save** writes to `RaidwiseDB.history[guid].notes`; **Reset** clears |
+| Community opinion | Mock preview for a future addon exchange / web app feature (read-only) |
+| editable | Opinion, tags, and notes require a valid GUID; controls are disabled otherwise |
+| persistence | Opinion and tags stored in `RaidwiseDB.history[guid].rating.personal`; saved on this account |
+
+Changing opinion or tags refreshes Party roster, Raid roster, and History when those tabs are visible.
 
 ## History
 
@@ -209,8 +239,8 @@ Players you have been in a party or raid with (not yourself). Each GUID is store
 ```text
 [ short description ]                              [ Refresh ]
         8 px gap
-[ Name | (class) | (spec) | GS | iLvl | Met in | When | Guild (rank) ]
-[ Rhee |  SH   |  Enh   | 6158 | 264 | Icecrown Citadel | 2026-08-18 18:54 | MyGuild (Member) ]
+[ Name | (class) | (spec) | Opinion | Tags | GS | iLvl | Met in | When | Guild (rank) ]
+[ Rhee |  SH   |  Enh   |    +    | Friendly, Good Tank | 6158 | 264 | Icecrown Citadel | 2026-08-18 18:54 | MyGuild (Member) ]
 ```
 
 | Block | In-game text / control |
@@ -220,14 +250,17 @@ Players you have been in a party or raid with (not yourself). Each GUID is store
 | Name | Class-colored character name |
 | Class | Class icon; hover shows localized class name |
 | Spec | Primary talent tree icon; hover shows spec name |
+| Opinion | Saved personal opinion symbol: `+`, `=`, or `-`; color-coded |
+| Tags | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
 | GS | Last stored GearScore |
 | iLvl | Last stored average item level |
 | Met in | Raid, dungeon, or zone at first meeting |
 | When | First meeting date and time |
 | Guild | Last stored `GuildName (Rank)` |
+| hover | Tooltip shows full opinion label and tag summary |
 | click | Left-click a row opens **Character profile** |
 
-Notes, tags, links, and a change log are stored empty on each record for later editing; they are not shown on this table yet.
+Notes are stored on each history record (`notes`) and edited in Character profile; they are not shown in this table.
 
 ## Settings
 
@@ -258,7 +291,7 @@ Switching language updates the left menu, page labels, and visible tables withou
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | Raid-prep overview (rosters, composition, history, lockouts, export); what Character cooldowns, Party roster, Raid roster, Raid composition, History, Export gear and CDs, and Settings do; slash commands |
+| descriptions | Raid-prep overview (rosters, player ratings, composition, history, lockouts, export); what Character cooldowns, Party roster, Raid roster, Raid composition, History, Character profile ratings, Export gear and CDs, and Settings do; slash commands |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |
