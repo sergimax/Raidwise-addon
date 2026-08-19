@@ -2168,43 +2168,60 @@ local function CreateRaidCharacterWindow()
 	end
 
 	local function CreatePairTextLine(anchor, topOffset)
+		local halfWidth = math.floor((contentWidth - 12) / 2)
 		local left = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 		left:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, topOffset or -8)
-		left:SetWidth(math.floor((contentWidth - 12) / 2))
+		left:SetWidth(halfWidth)
 		left:SetJustifyH("LEFT")
 		SetFontColor(left, UI.TEXT_IDLE)
 
 		local right = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		right:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, topOffset or -8)
-		right:SetWidth(math.floor((contentWidth - 12) / 2))
+		right:SetPoint("TOPLEFT", left, "TOPRIGHT", 12, 0)
+		right:SetWidth(halfWidth)
 		right:SetJustifyH("LEFT")
 		SetFontColor(right, UI.TEXT_IDLE)
 		return left, right
 	end
 
-	local classIcon = content:CreateTexture(nil, "ARTWORK")
-	classIcon:SetSize(UI.PROFILE_ICON, UI.PROFILE_ICON)
-	classIcon:SetPoint("TOPLEFT", 0, 0)
+	local columnGap = 12
+	local columnWidth = math.floor((contentWidth - columnGap) / 2)
+	local iconSize = UI.PROFILE_ICON
+
+	local classIconHost = CreateFrame("Frame", nil, content)
+	classIconHost:SetSize(iconSize, iconSize)
+	classIconHost:SetPoint("TOPLEFT", 0, 0)
+	frame.classIconHost = classIconHost
+
+	local classIcon = classIconHost:CreateTexture(nil, "ARTWORK")
+	classIcon:SetAllPoints(classIconHost)
 	frame.classIcon = classIcon
 
 	local classText = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	classText:SetPoint("LEFT", classIcon, "RIGHT", 6, 0)
-	classText:SetWidth(math.floor((contentWidth - UI.PROFILE_ICON * 2 - 24) / 2))
+	classText:SetPoint("TOPLEFT", classIconHost, "TOPRIGHT", 6, 0)
+	classText:SetPoint("BOTTOMLEFT", classIconHost, "BOTTOMRIGHT", 6, 0)
+	classText:SetPoint("RIGHT", content, "LEFT", columnWidth, 0)
 	classText:SetJustifyH("LEFT")
+	classText:SetJustifyV("MIDDLE")
 	frame.classText = classText
 
-	local specIcon = content:CreateTexture(nil, "ARTWORK")
-	specIcon:SetSize(UI.PROFILE_ICON, UI.PROFILE_ICON)
-	specIcon:SetPoint("TOPLEFT", classText, "TOPRIGHT", 12, 0)
+	local specIconHost = CreateFrame("Frame", nil, content)
+	specIconHost:SetSize(iconSize, iconSize)
+	specIconHost:SetPoint("TOPLEFT", columnWidth + columnGap, 0)
+	frame.specIconHost = specIconHost
+
+	local specIcon = specIconHost:CreateTexture(nil, "ARTWORK")
+	specIcon:SetAllPoints(specIconHost)
 	frame.specIcon = specIcon
 
 	local specText = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	specText:SetPoint("LEFT", specIcon, "RIGHT", 6, 0)
+	specText:SetPoint("TOPLEFT", specIconHost, "TOPRIGHT", 6, 0)
+	specText:SetPoint("BOTTOMLEFT", specIconHost, "BOTTOMRIGHT", 6, 0)
 	specText:SetPoint("RIGHT", content, "RIGHT", 0, 0)
 	specText:SetJustifyH("LEFT")
+	specText:SetJustifyV("MIDDLE")
 	frame.specText = specText
 
-	frame.gsText, frame.ilvlText = CreatePairTextLine(classIcon, -10)
+	frame.gsText, frame.ilvlText = CreatePairTextLine(classIconHost, -10)
 	frame.raceText, frame.factionText = CreatePairTextLine(frame.gsText, -8)
 	frame.guildText = CreateTextLine(frame.raceText, -8)
 	frame.karmaText = CreateTextLine(frame.guildText, -8)
