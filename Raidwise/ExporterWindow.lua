@@ -1771,6 +1771,61 @@ local function UpdateProfileScroll(frame)
 	frame.profileVBar:SetValue(current)
 end
 
+local function RatingGroupSummary(member, group)
+	if not Addon.GetPersonalRating or not group or type(group.tags) ~= "table" then
+		return T("RATING_TAGS_NONE")
+	end
+	local personal = Addon:GetPersonalRating(member)
+	local selected = {}
+	for index = 1, #personal.tags do
+		selected[personal.tags[index]] = true
+	end
+	local groupTags = {}
+	for index = 1, #group.tags do
+		local tag = group.tags[index]
+		if selected[tag.id] then
+			groupTags[#groupTags + 1] = tag.id
+		end
+	end
+	if #groupTags == 0 then
+		return T("RATING_TAGS_NONE")
+	end
+	return Addon:RatingTagSummary(groupTags, 2)
+end
+
+local function CreateTagDropdown(parent, name, width, group)
+	local dropdown = CreateFrame("Frame", name, parent, "UIDropDownMenuTemplate")
+	dropdown.group = group
+	dropdown:SetWidth(width)
+	UIDropDownMenu_SetWidth(dropdown, width - 28)
+	UIDropDownMenu_JustifyText(dropdown, "LEFT")
+	UIDropDownMenu_Initialize(dropdown, function(self, level)
+		local frame = Addon.raidDetailFrame
+		local member = frame and frame.profileMember
+		if not member then
+			return
+		end
+		local personal = Addon:GetPersonalRating(member)
+		local selected = {}
+		for index = 1, #personal.tags do
+			selected[personal.tags[index]] = true
+		end
+		for index = 1, #group.tags do
+			local tag = group.tags[index]
+			local info = UIDropDownMenu_CreateInfo()
+			info.text = Addon:RatingTagLabel(tag.id)
+			info.keepShownOnClick = 1
+			info.isNotRadio = 1
+			info.checked = selected[tag.id] and true or false
+			info.func = function()
+				Addon:ToggleProfileTag(tag.id)
+			end
+			UIDropDownMenu_AddButton(info, level)
+		end
+	end)
+	return dropdown
+end
+
 local function UpdateProfileEditor(frame, member)
 	if not frame or not member then
 		return
@@ -1786,24 +1841,14 @@ local function UpdateProfileEditor(frame, member)
 			SetChoiceButtonState(button, selected, false)
 		end
 	end
-	if frame.tagButtons then
-		local selectedTags = {}
-		local personal = Addon:GetPersonalRating(member)
-		for index = 1, #personal.tags do
-			selectedTags[personal.tags[index]] = true
-		end
-		for _, button in ipairs(frame.tagButtons) do
-			local tag = Addon:RatingTagById(button.tagId)
-			button.label:SetText(Addon:RatingTagLabel(button.tagId))
-			if tag then
-				SetFontColor(button.label, Addon:RatingMetaColor(tag.meta))
+	if frame.tagDropdowns then
+		for _, entry in ipairs(frame.tagDropdowns) do
+			if entry.label then
+				entry.label:SetText(T(entry.group.labelKey))
 			end
-			SetChoiceButtonState(button, selectedTags[button.tagId], false)
-		end
-	end
-	if frame.tagGroupLabels then
-		for _, label in ipairs(frame.tagGroupLabels) do
-			label:SetText(T(label.labelKey))
+			if entry.dropdown then
+				UIDropDownMenu_SetText(entry.dropdown, RatingGroupSummary(member, entry.group))
+			end
 		end
 	end
 	if frame.communityHeading then
@@ -2039,10 +2084,7 @@ local function CreateRaidCharacterWindow()
 	SetFontColor(tagsHeading, UI.GOLD)
 	frame.tagsHeading = tagsHeading
 
-	frame.tagButtons = {}
-	frame.tagGroupLabels = {}
-
-	local buttonW = math.floor((contentWidth - 8) / 2)
+	frame.tagDropdowns = {}
 	local currentY = -8
 	local groups = Addon:RatingTagGroups() or {}
 	for groupIndex = 1, #groups do
@@ -2051,41 +2093,18 @@ local function CreateRaidCharacterWindow()
 		label:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
 		label:SetPoint("RIGHT", content, "RIGHT", 0, 0)
 		label:SetJustifyH("LEFT")
-		label.labelKey = group.labelKey
 		SetFontColor(label, UI.TEXT_HOVER)
-		frame.tagGroupLabels[#frame.tagGroupLabels + 1] = label
+		label:SetText(T(group.labelKey))
 		currentY = currentY - 18
 
-		for tagIndex = 1, #group.tags do
-			local tag = group.tags[tagIndex]
-			local row = math.floor((tagIndex - 1) / 2)
-			local column = (tagIndex - 1) - row * 2
-			local button = CreateChoiceButton(content, buttonW, 18, "")
-			button:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", column * (buttonW + 8), currentY - row * 22)
-			button.tagId = tag.id
-			button:SetScript("OnClick", function(self)
-				Addon:ToggleProfileTag(self.tagId)
-			end)
-			button:SetScript("OnEnter", function(self)
-				SetChoiceButtonState(self, self.selected, true)
-				local tagInfo = Addon:RatingTagById(self.tagId)
-				if not tagInfo then
-					return
-				end
-				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-				GameTooltip:AddLine(Addon:RatingTagLabel(self.tagId))
-				GameTooltip:AddLine(T(tagInfo.groupLabelKey), 0.8, 0.8, 0.8)
-				GameTooltip:AddLine(T("RATING_META_LINE", T("RATING_META_" .. string.upper(tagInfo.meta))), 0.8, 0.8, 0.8)
-				GameTooltip:Show()
-			end)
-			button:SetScript("OnLeave", function(self)
-				SetChoiceButtonState(self, self.selected, false)
-				GameTooltip:Hide()
-			end)
-			frame.tagButtons[#frame.tagButtons + 1] = button
-		end
-
-		currentY = currentY - math.ceil(#group.tags / 2) * 22 - 10
+		local dropdown = CreateTagDropdown(content, "RaidwiseProfileTagDropdown" .. tostring(groupIndex), contentWidth - 8, group)
+		dropdown:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", -16, currentY)
+		frame.tagDropdowns[#frame.tagDropdowns + 1] = {
+			group = group,
+			label = label,
+			dropdown = dropdown,
+		}
+		currentY = currentY - 44
 	end
 
 	local communityHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -2226,12 +2245,23 @@ function Addon:ShowRaidCharacterWindow(member)
 			end
 		end
 	end
-	if frame.tagButtons then
-		for _, button in ipairs(frame.tagButtons) do
-			if editable then
-				button:Enable()
+	if frame.tagDropdowns then
+		for _, entry in ipairs(frame.tagDropdowns) do
+			local dropdown = entry.dropdown
+			if not dropdown then
+				-- continue
+			elseif editable then
+				if UIDropDownMenu_EnableDropDown then
+					UIDropDownMenu_EnableDropDown(dropdown)
+				end
+				dropdown:EnableMouse(true)
+				dropdown:SetAlpha(1)
 			else
-				button:Disable()
+				if UIDropDownMenu_DisableDropDown then
+					UIDropDownMenu_DisableDropDown(dropdown)
+				end
+				dropdown:EnableMouse(false)
+				dropdown:SetAlpha(0.6)
 			end
 		end
 	end
