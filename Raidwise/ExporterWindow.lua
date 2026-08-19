@@ -2142,24 +2142,25 @@ local function CreateRaidCharacterWindow()
 	frame.tagDropdowns = {}
 	local currentY = -8
 	local groups = Addon:RatingTagGroups() or {}
+	local labelWidth = 110
 	local resetButtonWidth = 64
 	for groupIndex = 1, #groups do
 		local group = groups[groupIndex]
 		local label = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
-		label:SetPoint("RIGHT", content, "RIGHT", 0, 0)
+		label:SetWidth(labelWidth - 4)
 		label:SetJustifyH("LEFT")
+		label:SetJustifyV("MIDDLE")
 		SetFontColor(label, UI.TEXT_HOVER)
 		label:SetText(T(group.labelKey))
-		currentY = currentY - 18
 
 		local dropdown = CreateTagDropdown(
 			content,
 			"RaidwiseProfileTagDropdown" .. tostring(groupIndex),
-			contentWidth - resetButtonWidth - 14,
+			contentWidth - labelWidth - resetButtonWidth - 14,
 			group
 		)
-		dropdown:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", -16, currentY)
+		dropdown:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", labelWidth - 16, currentY + 10)
 		local resetBtn = CreatePlainButton(content, resetButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
 		resetBtn:SetPoint("LEFT", dropdown, "RIGHT", 6, 2)
 		resetBtn:SetScript("OnClick", function()
@@ -2171,7 +2172,7 @@ local function CreateRaidCharacterWindow()
 			dropdown = dropdown,
 			resetBtn = resetBtn,
 		}
-		currentY = currentY - 44
+		currentY = currentY - 32
 	end
 
 	local communityHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
