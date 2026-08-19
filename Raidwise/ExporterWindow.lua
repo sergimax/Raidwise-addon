@@ -1793,6 +1793,23 @@ local function RatingGroupSummary(member, group)
 	return Addon:RatingTagSummary(groupTags, 2)
 end
 
+local function CountSelectedTagsInGroup(personal, group)
+	if type(personal) ~= "table" or type(group) ~= "table" or type(group.tags) ~= "table" then
+		return 0
+	end
+	local selected = {}
+	for index = 1, #personal.tags do
+		selected[personal.tags[index]] = true
+	end
+	local count = 0
+	for index = 1, #group.tags do
+		if selected[group.tags[index].id] then
+			count = count + 1
+		end
+	end
+	return count
+end
+
 local function CreateTagDropdown(parent, name, width, group)
 	local dropdown = CreateFrame("Frame", name, parent, "UIDropDownMenuTemplate")
 	dropdown.group = group
@@ -1810,6 +1827,7 @@ local function CreateTagDropdown(parent, name, width, group)
 		for index = 1, #personal.tags do
 			selected[personal.tags[index]] = true
 		end
+		local selectedCount = CountSelectedTagsInGroup(personal, group)
 		for index = 1, #group.tags do
 			local tag = group.tags[index]
 			local info = UIDropDownMenu_CreateInfo()
@@ -1817,6 +1835,7 @@ local function CreateTagDropdown(parent, name, width, group)
 			info.keepShownOnClick = 1
 			info.isNotRadio = 1
 			info.checked = selected[tag.id] and true or false
+			info.disabled = (not selected[tag.id]) and selectedCount >= 3
 			info.func = function()
 				Addon:ToggleProfileTag(tag.id)
 			end
@@ -1907,6 +1926,7 @@ function Addon:ToggleProfileTag(tagId)
 		return
 	end
 	local personal = self:GetPersonalRating(member)
+	local tag = self.RatingTagById and self:RatingTagById(tagId) or nil
 	local nextTags = {}
 	local seen = false
 	for index = 1, #personal.tags do
@@ -1918,6 +1938,19 @@ function Addon:ToggleProfileTag(tagId)
 		end
 	end
 	if not seen then
+		if tag and tag.groupId then
+			local selectedCount = 0
+			for index = 1, #personal.tags do
+				local currentTag = self:RatingTagById(personal.tags[index])
+				if currentTag and currentTag.groupId == tag.groupId then
+					selectedCount = selectedCount + 1
+				end
+			end
+			if selectedCount >= 3 then
+				self:Print(self:T("RATING_GROUP_LIMIT"))
+				return
+			end
+		end
 		nextTags[#nextTags + 1] = tagId
 	end
 	self:SaveProfilePersonalRating(personal.opinion, nextTags)
