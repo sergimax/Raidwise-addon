@@ -1849,6 +1849,9 @@ local function UpdateProfileEditor(frame, member)
 			if entry.dropdown then
 				UIDropDownMenu_SetText(entry.dropdown, RatingGroupSummary(member, entry.group))
 			end
+			if entry.resetBtn then
+				entry.resetBtn.label:SetText(T("BTN_RESET"))
+			end
 		end
 	end
 	if frame.communityHeading then
@@ -1870,9 +1873,6 @@ function Addon:RefreshRatingViews()
 			self:RefreshHistoryView()
 		end
 	end
-	if self.raidDetailFrame and self.raidDetailFrame:IsShown() and self.raidDetailFrame.profileMember then
-		self:ShowRaidCharacterWindow(self.raidDetailFrame.profileMember)
-	end
 end
 
 function Addon:SaveProfilePersonalRating(opinion, tagIds)
@@ -1886,6 +1886,7 @@ function Addon:SaveProfilePersonalRating(opinion, tagIds)
 		return
 	end
 	frame.profileMember = self:HistoryProfileForMember(member)
+	UpdateProfileEditor(frame, frame.profileMember)
 	self:RefreshRatingViews()
 end
 
@@ -1918,6 +1919,27 @@ function Addon:ToggleProfileTag(tagId)
 	end
 	if not seen then
 		nextTags[#nextTags + 1] = tagId
+	end
+	self:SaveProfilePersonalRating(personal.opinion, nextTags)
+end
+
+function Addon:ClearProfileTagGroup(group)
+	local frame = self.raidDetailFrame
+	local member = frame and frame.profileMember
+	if not member or type(group) ~= "table" or type(group.tags) ~= "table" then
+		return
+	end
+	local blocked = {}
+	for index = 1, #group.tags do
+		blocked[group.tags[index].id] = true
+	end
+	local personal = self:GetPersonalRating(member)
+	local nextTags = {}
+	for index = 1, #personal.tags do
+		local tagId = personal.tags[index]
+		if not blocked[tagId] then
+			nextTags[#nextTags + 1] = tagId
+		end
 	end
 	self:SaveProfilePersonalRating(personal.opinion, nextTags)
 end
@@ -2087,6 +2109,7 @@ local function CreateRaidCharacterWindow()
 	frame.tagDropdowns = {}
 	local currentY = -8
 	local groups = Addon:RatingTagGroups() or {}
+	local resetButtonWidth = 64
 	for groupIndex = 1, #groups do
 		local group = groups[groupIndex]
 		local label = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -2097,12 +2120,23 @@ local function CreateRaidCharacterWindow()
 		label:SetText(T(group.labelKey))
 		currentY = currentY - 18
 
-		local dropdown = CreateTagDropdown(content, "RaidwiseProfileTagDropdown" .. tostring(groupIndex), contentWidth - 8, group)
+		local dropdown = CreateTagDropdown(
+			content,
+			"RaidwiseProfileTagDropdown" .. tostring(groupIndex),
+			contentWidth - resetButtonWidth - 14,
+			group
+		)
 		dropdown:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", -16, currentY)
+		local resetBtn = CreatePlainButton(content, resetButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
+		resetBtn:SetPoint("LEFT", dropdown, "RIGHT", 6, 2)
+		resetBtn:SetScript("OnClick", function()
+			Addon:ClearProfileTagGroup(group)
+		end)
 		frame.tagDropdowns[#frame.tagDropdowns + 1] = {
 			group = group,
 			label = label,
 			dropdown = dropdown,
+			resetBtn = resetBtn,
 		}
 		currentY = currentY - 44
 	end
@@ -2248,6 +2282,7 @@ function Addon:ShowRaidCharacterWindow(member)
 	if frame.tagDropdowns then
 		for _, entry in ipairs(frame.tagDropdowns) do
 			local dropdown = entry.dropdown
+			local resetBtn = entry.resetBtn
 			if not dropdown then
 				-- continue
 			elseif editable then
@@ -2256,12 +2291,18 @@ function Addon:ShowRaidCharacterWindow(member)
 				end
 				dropdown:EnableMouse(true)
 				dropdown:SetAlpha(1)
+				if resetBtn then
+					resetBtn:Enable()
+				end
 			else
 				if UIDropDownMenu_DisableDropDown then
 					UIDropDownMenu_DisableDropDown(dropdown)
 				end
 				dropdown:EnableMouse(false)
 				dropdown:SetAlpha(0.6)
+				if resetBtn then
+					resetBtn:Disable()
+				end
 			end
 		end
 	end
