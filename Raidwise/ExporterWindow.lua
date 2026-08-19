@@ -88,7 +88,7 @@ local UI = {
 	RAID_GROUP_LABEL_H = 16,
 	RAID_BLOCK_GAP = 12,
 	RAID_DETAIL_W = 430,
-	RAID_DETAIL_H = 520,
+	RAID_DETAIL_H = 540,
 	PROFILE_TAB_H = 26,
 	RAID_BUFF_MAX = 8,
 	RAID_BUFF_GAP = 2,
@@ -1916,7 +1916,7 @@ local function ProfileFactionText(faction)
 	return faction
 end
 
-local PROFILE_LAYOUT_VERSION = 4
+local PROFILE_LAYOUT_VERSION = 6
 
 local RACE_ICON_TEXTURE = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Races"
 local RACE_ICON_TCOORDS = {
@@ -2029,24 +2029,6 @@ local function UpdateProfileHistoryPanel(frame, member)
 	if frame.profilePanels and frame.profilePanels.history then
 		frame.profilePanels.history:SetHeight(math.max(120, textHeight + 12))
 	end
-	if frame.selectedProfileTab == "history" and frame.tabContent and frame.profilePanels.history then
-		frame.tabContent:SetHeight(frame.profilePanels.history:GetHeight())
-		UpdateProfileTabScroll(frame)
-	end
-end
-
-local function UpdateProfileTabScroll(frame)
-	if not frame or not frame.tabScroll or not frame.tabContent or not frame.tabVBar then
-		return
-	end
-	local viewport = frame.tabScroll:GetHeight() or 0
-	local content = frame.tabContent:GetHeight() or 0
-	local maxValue = math.max(0, content - viewport)
-	frame.tabVBar:SetMinMaxValues(0, maxValue)
-	local current = frame.tabScroll:GetVerticalScroll() or 0
-	current = math.max(0, math.min(maxValue, current))
-	frame.tabScroll:SetVerticalScroll(current)
-	frame.tabVBar:SetValue(current)
 end
 
 function Addon:SelectProfileTab(tabId)
@@ -2067,10 +2049,6 @@ function Addon:SelectProfileTab(tabId)
 			SetMenuButtonState(button, button.tabId == tabId, false)
 		end
 	end
-	if frame.tabContent and frame.profilePanels[tabId] then
-		frame.tabContent:SetHeight(frame.profilePanels[tabId]:GetHeight() or 1)
-	end
-	UpdateProfileTabScroll(frame)
 end
 
 local function CreateProfileTabButton(parent, tabId, label, width)
@@ -2430,7 +2408,12 @@ local function CreateRaidCharacterWindow()
 	header:SetHeight(iconSize + 22)
 	frame.headerSection = header
 
-	local raceIconHost = CreateFrame("Frame", nil, header)
+	local classCell = CreateFrame("Frame", nil, header)
+	classCell:SetPoint("TOPLEFT", 0, 0)
+	classCell:SetSize(columnWidth, iconSize)
+	frame.classCell = classCell
+
+	local raceIconHost = CreateFrame("Frame", nil, classCell)
 	raceIconHost:SetSize(iconSize, iconSize)
 	raceIconHost:SetPoint("TOPLEFT", 0, 0)
 	frame.raceIconHost = raceIconHost
@@ -2456,19 +2439,19 @@ local function CreateRaidCharacterWindow()
 		GameTooltip:Hide()
 	end)
 
-	local classIconHost = CreateFrame("Frame", nil, header)
+	local classIconHost = CreateFrame("Frame", nil, classCell)
 	classIconHost:SetSize(iconSize, iconSize)
-	classIconHost:SetPoint("LEFT", raceIconHost, "RIGHT", 4, 0)
+	classIconHost:SetPoint("LEFT", raceIconHost, "RIGHT", 2, 0)
 	frame.classIconHost = classIconHost
 
 	local classIcon = classIconHost:CreateTexture(nil, "ARTWORK")
 	classIcon:SetAllPoints(classIconHost)
 	frame.classIcon = classIcon
 
-	local classText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	classText:SetPoint("TOPLEFT", classIconHost, "TOPRIGHT", 6, 0)
-	classText:SetPoint("BOTTOMLEFT", classIconHost, "BOTTOMRIGHT", 6, 0)
-	classText:SetPoint("RIGHT", header, "LEFT", columnWidth, 0)
+	local classText = classCell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	classText:SetPoint("TOPLEFT", classIconHost, "TOPRIGHT", 4, 0)
+	classText:SetPoint("BOTTOMLEFT", classIconHost, "BOTTOMRIGHT", 4, 0)
+	classText:SetPoint("RIGHT", classCell, "RIGHT", 0, 0)
 	classText:SetJustifyH("LEFT")
 	classText:SetJustifyV("MIDDLE")
 	frame.classText = classText
@@ -2491,7 +2474,7 @@ local function CreateRaidCharacterWindow()
 	frame.specText = specText
 
 	local gsText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	gsText:SetPoint("TOPLEFT", classIconHost, "BOTTOMLEFT", 0, -4)
+	gsText:SetPoint("TOPLEFT", classCell, "BOTTOMLEFT", 0, -4)
 	gsText:SetWidth(columnWidth)
 	gsText:SetJustifyH("LEFT")
 	SetFontColor(gsText, UI.TEXT_IDLE)
@@ -2569,39 +2552,15 @@ local function CreateRaidCharacterWindow()
 	tabHost:SetPoint("BOTTOMRIGHT", body, "BOTTOMRIGHT", 0, 0)
 	frame.tabHost = tabHost
 
-	local tabScroll = CreateFrame("ScrollFrame", nil, tabHost)
-	tabScroll:SetPoint("TOPLEFT", 0, 0)
-	tabScroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 2), 0)
-	tabScroll:EnableMouseWheel(true)
-	frame.tabScroll = tabScroll
-
-	local tabContent = CreateFrame("Frame", nil, tabScroll)
-	tabContent:SetSize(bodyWidth - UI.CD_SCROLLBAR_W - 8, 1)
-	tabScroll:SetScrollChild(tabContent)
+	local tabContentWidth = bodyWidth
+	local tabContent = CreateFrame("Frame", nil, tabHost)
+	tabContent:SetPoint("TOPLEFT", 0, 0)
+	tabContent:SetPoint("BOTTOMRIGHT", 0, 0)
 	frame.tabContent = tabContent
-
-	local tabVBar = CreateCooldownScrollBar(tabHost, "VERTICAL")
-	tabVBar:SetPoint("TOPRIGHT", 0, 0)
-	tabVBar:SetPoint("BOTTOMRIGHT", 0, 0)
-	tabVBar:SetScript("OnValueChanged", function(self)
-		tabScroll:SetVerticalScroll(self:GetValue() or 0)
-	end)
-	frame.tabVBar = tabVBar
-
-	tabScroll:SetScript("OnMouseWheel", function(self, delta)
-		local maxV = math.max(0, (tabContent:GetHeight() or 0) - (self:GetHeight() or 0))
-		local step = UI.CD_ROW_H
-		local nextValue = math.max(0, math.min(maxV, (self:GetVerticalScroll() or 0) - delta * step))
-		self:SetVerticalScroll(nextValue)
-		tabVBar:SetValue(nextValue)
-	end)
-	tabScroll:SetScript("OnSizeChanged", function()
-		UpdateProfileTabScroll(frame)
-	end)
 
 	local opinionPanel = CreateFrame("Frame", nil, tabContent)
 	opinionPanel:SetPoint("TOPLEFT", 0, 0)
-	opinionPanel:SetSize(bodyWidth - UI.CD_SCROLLBAR_W - 8, 1)
+	opinionPanel:SetPoint("TOPRIGHT", 0, 0)
 	frame.profilePanels.opinion = opinionPanel
 
 	local ratingHeading = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -2621,7 +2580,7 @@ local function CreateRaidCharacterWindow()
 
 	frame.opinionButtons = {}
 	local opinionOrder = { "positive", "neutral", "negative" }
-	local opinionWidth = math.floor((bodyWidth - UI.CD_SCROLLBAR_W - 24) / 3)
+	local opinionWidth = math.floor((tabContentWidth - 16) / 3)
 	for index = 1, #opinionOrder do
 		local opinionId = opinionOrder[index]
 		local button = CreateChoiceButton(opinionPanel, opinionWidth, UI.ACTION_BTN_H, "")
@@ -2652,7 +2611,7 @@ local function CreateRaidCharacterWindow()
 	local groups = GetRatingTagGroups()
 	local labelWidth = 110
 	local resetButtonWidth = 64
-	local dropdownWidth = bodyWidth - UI.CD_SCROLLBAR_W - labelWidth - resetButtonWidth - 30
+	local dropdownWidth = tabContentWidth - labelWidth - resetButtonWidth - 30
 	for groupIndex = 1, #groups do
 		local group = groups[groupIndex]
 		local label = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -2687,7 +2646,8 @@ local function CreateRaidCharacterWindow()
 
 	local notesPanel = CreateFrame("Frame", nil, tabContent)
 	notesPanel:SetPoint("TOPLEFT", 0, 0)
-	notesPanel:SetSize(bodyWidth - UI.CD_SCROLLBAR_W - 8, 140)
+	notesPanel:SetPoint("TOPRIGHT", 0, 0)
+	notesPanel:SetHeight(140)
 	notesPanel:Hide()
 	frame.profilePanels.notes = notesPanel
 
@@ -2699,12 +2659,12 @@ local function CreateRaidCharacterWindow()
 	SetFontColor(notesHeading, UI.GOLD)
 	frame.notesHeading = notesHeading
 
-	local notesHost, notesBox = CreateProfileNotesBox(notesPanel, bodyWidth - UI.CD_SCROLLBAR_W - 8, 96)
+	local notesHost, notesBox = CreateProfileNotesBox(notesPanel, tabContentWidth, 96)
 	notesHost:SetPoint("TOPLEFT", notesHeading, "BOTTOMLEFT", 0, -8)
 	frame.notesHost = notesHost
 	frame.notesBox = notesBox
 
-	local notesButtonWidth = math.floor((bodyWidth - UI.CD_SCROLLBAR_W - 8 - UI.ACTION_BTN_GAP) / 2)
+	local notesButtonWidth = math.floor((tabContentWidth - UI.ACTION_BTN_GAP) / 2)
 	local notesSaveBtn = CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_SAVE"))
 	notesSaveBtn:SetPoint("TOPLEFT", notesHost, "BOTTOMLEFT", 0, -8)
 	notesSaveBtn:SetScript("OnClick", function()
@@ -2724,7 +2684,8 @@ local function CreateRaidCharacterWindow()
 
 	local historyPanel = CreateFrame("Frame", nil, tabContent)
 	historyPanel:SetPoint("TOPLEFT", 0, 0)
-	historyPanel:SetSize(bodyWidth - UI.CD_SCROLLBAR_W - 8, 200)
+	historyPanel:SetPoint("TOPRIGHT", 0, 0)
+	historyPanel:SetHeight(200)
 	historyPanel:Hide()
 	frame.profilePanels.history = historyPanel
 
@@ -2735,7 +2696,6 @@ local function CreateRaidCharacterWindow()
 	historyText:SetJustifyV("TOP")
 	frame.historyText = historyText
 
-	tabContent:SetHeight(opinionPanel:GetHeight())
 	frame.selectedProfileTab = "opinion"
 
 	return frame
@@ -2807,8 +2767,12 @@ function Addon:ShowRaidCharacterWindow(member)
 
 	if SetProfileRaceIcon(frame.raceIcon, member.race, member.gender) then
 		frame.raceIconHost:Show()
+		frame.classIconHost:ClearAllPoints()
+		frame.classIconHost:SetPoint("LEFT", frame.raceIconHost, "RIGHT", 2, 0)
 	else
 		frame.raceIconHost:Hide()
+		frame.classIconHost:ClearAllPoints()
+		frame.classIconHost:SetPoint("TOPLEFT", frame.classCell, "TOPLEFT", 0, 0)
 	end
 
 	frame.guildText:SetText(T("PROFILE_GUILD", FormatGuildDisplay(member.guildName, member.guildRank)))
