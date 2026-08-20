@@ -185,10 +185,9 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 | Guild: MyGuild (Member) | (percentages, sample reports)       |
 | GUID: 0x...              |                                    |
 | Realm: Icecrown         |                                     |
-[ Edit note ] [ Edit memo ] [ History ]
+[ History ] [ Edit note ] [ Edit memo ]
         --- tab content ---
 (tab: Edit note)
-[ Personal note ]
 [ Summary: Positive | Tags: Friendly, Good Tank, Prepared ]
 ( ) Positive   (*) Neutral   ( ) Negative
 [ Personal tags — category checkboxes (max 3 per category) ]
@@ -199,7 +198,7 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 [ Met: Icecrown Citadel ]
 [ When: 2026-08-18 18:54 ]
 [ change log entries, newest first ]
-```
+[ Update ]```
 
 | Block | In-game text / control |
 |-------|------------------------|
@@ -210,14 +209,15 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 | Race icon | Character-creation race portrait on the class row (same size as class/spec icons); tooltip shows race name and faction |
 | Summary (left column) | Read-only: personal note, tag summary, guild, GUID, realm |
 | Community note (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
-| Tabs | **Edit note**, **Edit memo**, **History** — switch the panel below the summary |
-| Personal note (editor tab) | Summary line; three exclusive radio options (Positive / Neutral / Negative); tag checkboxes by category |
+| Tabs | **History**, **Edit note**, **Edit memo** — switch the panel below the summary |
+| Edit note (editor tab) | Summary line; three exclusive radio options; tag checkboxes by category (draft until **Update**) |
 | Memo (editor tab) | Multiline EditBox; **Save** / **Reset** |
 | History tab | **Met** and **When** as first entries, then logged opinion/tag/note changes |
+| Update | Bottom of window; saves current opinion and tags to `RaidwiseDB` |
 | editable | Opinion, tags, and notes require a valid GUID; controls are disabled otherwise |
 | persistence | Opinion and tags in `RaidwiseDB.history[guid].rating.personal`; notes in `.notes`; changes in `.changes` |
 
-Changing opinion or tags refreshes Party roster, Raid roster, and History when those tabs are visible.
+Changing opinion or tags (via **Update**) refreshes Party roster, Raid roster, and History when the profile closes or Update is pressed.
 
 ## History
 

@@ -256,10 +256,10 @@ local function RatingUIReady()
 	return Addon.RatingTagGroups ~= nil and Addon.GetPersonalRating ~= nil
 end
 
-local PROFILE_LAYOUT_VERSION = 21
+local PROFILE_LAYOUT_VERSION = 22
 
--- Fixed header above the tag scroll (opinion radios live here; scroll starts below).
-local PROFILE_OPINION_HEADER_H = 108
+-- Summary + radios + tags heading only (no "Personal note" title).
+local PROFILE_OPINION_HEADER_H = 72
 local PROFILE_OPINION_RADIO_SIZE = 16
 local PROFILE_OPINION_ROW_H = 22
 
@@ -409,9 +409,9 @@ local function SetProfileRaceIcon(texture, raceToken, gender)
 end
 
 local PROFILE_TABS = {
+	{ id = "history", labelKey = "PROFILE_TAB_HISTORY" },
 	{ id = "opinion", labelKey = "PROFILE_TAB_OPINION" },
 	{ id = "notes", labelKey = "PROFILE_TAB_NOTES" },
-	{ id = "history", labelKey = "PROFILE_TAB_HISTORY" },
 }
 
 local function FormatProfileChangeDetail(change)
@@ -511,6 +511,36 @@ local function CreateProfileTabButton(parent, tabId, label, width)
 	return button
 end
 
+local function CopyTagList(tags)
+	local copy = {}
+	if type(tags) ~= "table" then
+		return copy
+	end
+	for index = 1, #tags do
+		copy[index] = tags[index]
+	end
+	return copy
+end
+
+local function InitProfileDraft(frame, member)
+	if not frame then
+		return
+	end
+	local personal = { opinion = "neutral", tags = {} }
+	if member and Addon.GetPersonalRating then
+		personal = Addon:GetPersonalRating(member)
+	end
+	frame.draftOpinion = personal.opinion or "neutral"
+	frame.draftTags = CopyTagList(personal.tags)
+end
+
+local function GetProfileDraft(frame)
+	if not frame then
+		return "neutral", {}
+	end
+	return frame.draftOpinion or "neutral", frame.draftTags or {}
+end
+
 -- AceConfigDialog / Details radio pattern: exclusive SetChecked on the whole group.
 local function RefreshOpinionRadios(frame, selectedOpinion)
 	if not frame or not frame.opinionButtons then
@@ -593,22 +623,14 @@ local function ApplyOpinionChoice(opinionId)
 	end
 	PlaySound("igMainMenuOptionCheckBoxOn")
 	local frame = Addon.raidDetailFrame
-	local tags = {}
-	if frame and frame.profileMember and Addon.GetPersonalRating then
-		tags = Addon:GetPersonalRating(frame.profileMember).tags
+	if not frame then
+		return
 	end
-	-- Paint exclusivity + labels first (Details RadioOnClick: UI then persist).
+	local _, tags = GetProfileDraft(frame)
+	frame.draftOpinion = opinionId
+	-- Draft only; CommitProfileRating (Update) persists.
 	RefreshOpinionRadios(frame, opinionId)
 	PaintOpinionLabels(frame, opinionId, tags)
-	if frame and frame.profileMember then
-		frame.profileMember.rating = frame.profileMember.rating or {}
-		frame.profileMember.rating.personal = {
-			opinion = opinionId,
-			tags = tags,
-			updatedAt = time(),
-		}
-	end
-	Addon:SetProfileOpinion(opinionId)
 end
 
 local function CreateOpinionRadio(parent, opinionId, columnWidth)
@@ -672,13 +694,13 @@ local function ScheduleRatingViewRefresh()
 	end)
 end
 
-local function CountSelectedTagsInGroup(personal, group)
-	if type(personal) ~= "table" or type(group) ~= "table" or type(group.tags) ~= "table" then
+local function CountSelectedTagsInGroup(tags, group)
+	if type(tags) ~= "table" or type(group) ~= "table" or type(group.tags) ~= "table" then
 		return 0
 	end
 	local selected = {}
-	for index = 1, #personal.tags do
-		selected[personal.tags[index]] = true
+	for index = 1, #tags do
+		selected[tags[index]] = true
 	end
 	local count = 0
 	for index = 1, #group.tags do
@@ -738,19 +760,16 @@ local function RefreshProfileTagCheckboxes(frame, member, editable)
 	end
 
 	local selected = {}
-	local personal
-	if member and Addon.GetPersonalRating then
-		personal = Addon:GetPersonalRating(member)
-		for index = 1, #personal.tags do
-			selected[personal.tags[index]] = true
-		end
+	local _, draftTags = GetProfileDraft(frame)
+	for index = 1, #draftTags do
+		selected[draftTags[index]] = true
 	end
 
 	for _, entry in ipairs(frame.tagGroups) do
 		if entry.label then
 			entry.label:SetText(T(entry.group.labelKey))
 		end
-		local groupCount = personal and CountSelectedTagsInGroup(personal, entry.group) or 0
+		local groupCount = CountSelectedTagsInGroup(draftTags, entry.group)
 		for _, checkbox in ipairs(entry.checkboxes) do
 			local tagId = checkbox.tagId
 			local isSelected = selected[tagId] and true or false
@@ -796,16 +815,13 @@ local function CreateProfileTagCheckbox(parent, tag, group, columnWidth)
 			return
 		end
 		local wantChecked = self:GetChecked()
+		local profileFrame = Addon.raidDetailFrame
+		local _, draftTags = GetProfileDraft(profileFrame)
 		if wantChecked then
-			local profileFrame = Addon.raidDetailFrame
-			local profileMember = profileFrame and profileFrame.profileMember
-			if profileMember and Addon.GetPersonalRating then
-				local currentPersonal = Addon:GetPersonalRating(profileMember)
-				if CountSelectedTagsInGroup(currentPersonal, group) >= 3 then
-					self:SetChecked(false)
-					Addon:Print(Addon:T("RATING_GROUP_LIMIT"))
-					return
-				end
+			if CountSelectedTagsInGroup(draftTags, group) >= 3 then
+				self:SetChecked(false)
+				Addon:Print(Addon:T("RATING_GROUP_LIMIT"))
+				return
 			end
 		end
 		Addon:ToggleProfileTag(self.tagId)
@@ -823,30 +839,9 @@ local function UpdateProfileOpinionControls(frame, member)
 	if not frame or not member then
 		return
 	end
-	if frame.karmaText then
-		frame.karmaText:SetText(FormatOpinionLine(member))
-		SetFontColor(frame.karmaText, RatingOpinionColor(member))
-	end
-	if frame.tagText then
-		local tagSummary = FormatTagLine(member)
-		if tagSummary ~= "" then
-			frame.tagText:SetText(tagSummary)
-			SetFontColor(frame.tagText, UI.TEXT_IDLE)
-		else
-			frame.tagText:SetText(T("RATING_TAGS_NONE"))
-			SetFontColor(frame.tagText, UI.TEXT_DISABLED)
-		end
-	end
-	if frame.ratingSummary and Addon.RatingProfileSummary then
-		frame.ratingSummary:SetText(Addon:RatingProfileSummary(member))
-	end
-	if frame.opinionButtons then
-		local opinion = "neutral"
-		if Addon.GetPersonalRating then
-			opinion = Addon:GetPersonalRating(member).opinion
-		end
-		RefreshOpinionRadios(frame, opinion)
-	end
+	local opinion, tags = GetProfileDraft(frame)
+	PaintOpinionLabels(frame, opinion, tags)
+	RefreshOpinionRadios(frame, opinion)
 end
 
 local function UpdateProfileEditor(frame, member)
@@ -948,27 +943,20 @@ function Addon:ResetProfileNotes()
 end
 
 function Addon:SetProfileOpinion(opinion)
-	local frame = self.raidDetailFrame
-	local member = frame and frame.profileMember
-	if not member then
-		return
-	end
-	local personal = self:GetPersonalRating(member)
-	self:SaveProfilePersonalRating(opinion, personal.tags, { opinionOnly = true, deferViewRefresh = true })
+	ApplyOpinionChoice(opinion)
 end
 
 function Addon:ToggleProfileTag(tagId)
 	local frame = self.raidDetailFrame
-	local member = frame and frame.profileMember
-	if not member then
+	if not frame then
 		return
 	end
-	local personal = self:GetPersonalRating(member)
+	local opinion, draftTags = GetProfileDraft(frame)
 	local tag = self.RatingTagById and self:RatingTagById(tagId) or nil
 	local nextTags = {}
 	local seen = false
-	for index = 1, #personal.tags do
-		local current = personal.tags[index]
+	for index = 1, #draftTags do
+		local current = draftTags[index]
 		if current ~= tagId then
 			nextTags[#nextTags + 1] = current
 		else
@@ -978,8 +966,8 @@ function Addon:ToggleProfileTag(tagId)
 	if not seen then
 		if tag and tag.groupId then
 			local selectedCount = 0
-			for index = 1, #personal.tags do
-				local currentTag = self:RatingTagById(personal.tags[index])
+			for index = 1, #draftTags do
+				local currentTag = self:RatingTagById(draftTags[index])
 				if currentTag and currentTag.groupId == tag.groupId then
 					selectedCount = selectedCount + 1
 				end
@@ -991,7 +979,26 @@ function Addon:ToggleProfileTag(tagId)
 		end
 		nextTags[#nextTags + 1] = tagId
 	end
-	self:SaveProfilePersonalRating(personal.opinion, nextTags, { deferViewRefresh = true, tagsOnly = true })
+	frame.draftTags = nextTags
+	frame.draftOpinion = opinion
+	PaintOpinionLabels(frame, opinion, nextTags)
+	if frame.tagGroups then
+		local member = frame.profileMember
+		local editable = member and member.guid and member.guid ~= ""
+		RefreshProfileTagCheckboxes(frame, member, editable)
+	end
+end
+
+function Addon:CommitProfileRating()
+	local frame = self.raidDetailFrame
+	local member = frame and frame.profileMember
+	if not member or not member.guid or member.guid == "" then
+		return
+	end
+	local opinion, tags = GetProfileDraft(frame)
+	self:SaveProfilePersonalRating(opinion, tags, {})
+	InitProfileDraft(frame, frame.profileMember)
+	UpdateProfileEditor(frame, frame.profileMember)
 end
 
 local function AttachLayoutVersionLabel(titleBar, version)
@@ -1241,8 +1248,16 @@ local function CreateRaidCharacterWindow()
 
 	local tabHost = CreateFrame("Frame", nil, body)
 	tabHost:SetPoint("TOPLEFT", tabBar, "BOTTOMLEFT", 0, -8)
-	tabHost:SetPoint("BOTTOMRIGHT", body, "BOTTOMRIGHT", 0, 0)
+	tabHost:SetPoint("BOTTOMRIGHT", body, "BOTTOMRIGHT", 0, UI.ACTION_BTN_H + 8)
 	frame.tabHost = tabHost
+
+	local updateBtn = CreatePlainButton(body, bodyWidth, UI.ACTION_BTN_H, T("BTN_UPDATE"))
+	updateBtn:SetPoint("BOTTOMLEFT", 0, 0)
+	updateBtn:SetPoint("BOTTOMRIGHT", 0, 0)
+	updateBtn:SetScript("OnClick", function()
+		Addon:CommitProfileRating()
+	end)
+	frame.ratingUpdateBtn = updateBtn
 
 	local tabContentWidth = bodyWidth
 	local tabContent = CreateFrame("Frame", nil, tabHost)
@@ -1264,16 +1279,8 @@ local function CreateRaidCharacterWindow()
 	opinionHeader:SetFrameLevel(opinionPanel:GetFrameLevel() + 40)
 	frame.opinionHeader = opinionHeader
 
-	local ratingHeading = opinionHeader:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	ratingHeading:SetPoint("TOPLEFT", 0, 0)
-	ratingHeading:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
-	ratingHeading:SetJustifyH("LEFT")
-	ratingHeading:SetText(T("RATING_PERSONAL_OPINION_TITLE"))
-	SetFontColor(ratingHeading, UI.GOLD)
-	frame.ratingHeading = ratingHeading
-
 	local summaryLine = opinionHeader:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	summaryLine:SetPoint("TOPLEFT", ratingHeading, "BOTTOMLEFT", 0, -6)
+	summaryLine:SetPoint("TOPLEFT", 0, 0)
 	summaryLine:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
 	summaryLine:SetHeight(16)
 	summaryLine:SetJustifyH("LEFT")
@@ -1282,8 +1289,8 @@ local function CreateRaidCharacterWindow()
 
 	-- Mutually exclusive radios (AceConfigDialog style="radio" / Details RadioOnClick).
 	local opinionRow = CreateFrame("Frame", nil, opinionHeader)
-	opinionRow:SetPoint("TOPLEFT", summaryLine, "BOTTOMLEFT", 0, -8)
-	opinionRow:SetPoint("TOPRIGHT", summaryLine, "BOTTOMRIGHT", 0, -8)
+	opinionRow:SetPoint("TOPLEFT", summaryLine, "BOTTOMLEFT", 0, -6)
+	opinionRow:SetPoint("TOPRIGHT", summaryLine, "BOTTOMRIGHT", 0, -6)
 	opinionRow:SetHeight(PROFILE_OPINION_ROW_H)
 	frame.opinionRow = opinionRow
 
@@ -1302,7 +1309,7 @@ local function CreateRaidCharacterWindow()
 	end
 
 	local tagsHeading = opinionHeader:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	tagsHeading:SetPoint("TOPLEFT", opinionRow, "BOTTOMLEFT", 0, -12)
+	tagsHeading:SetPoint("TOPLEFT", opinionRow, "BOTTOMLEFT", 0, -6)
 	tagsHeading:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
 	tagsHeading:SetJustifyH("LEFT")
 	tagsHeading:SetText(T("RATING_TAGS_TITLE"))
@@ -1314,7 +1321,7 @@ local function CreateRaidCharacterWindow()
 
 	-- Tag list starts strictly below the mouse-blocking header.
 	local tagBody = CreateFrame("Frame", nil, opinionPanel)
-	tagBody:SetPoint("TOPLEFT", opinionHeader, "BOTTOMLEFT", 0, -4)
+	tagBody:SetPoint("TOPLEFT", opinionHeader, "BOTTOMLEFT", 0, -2)
 	tagBody:SetPoint("BOTTOMRIGHT", opinionPanel, "BOTTOMRIGHT", 0, 0)
 	tagBody:SetFrameLevel(opinionPanel:GetFrameLevel() + 1)
 	frame.tagBody = tagBody
@@ -1523,17 +1530,10 @@ function Addon:ShowRaidCharacterWindow(member)
 
 	frame.guildText:SetText(T("PROFILE_GUILD", FormatGuildDisplay(member.guildName, member.guildRank)))
 	SetFontColor(frame.guildText, UI.TEXT_IDLE)
-	frame.karmaText:SetText(FormatOpinionLine(member))
-	SetFontColor(frame.karmaText, RatingOpinionColor(member))
 
-	local tags = FormatTagLine(member)
-	if tags ~= "" then
-		frame.tagText:SetText(tags)
-		SetFontColor(frame.tagText, UI.TEXT_IDLE)
-	else
-		frame.tagText:SetText(T("RATING_TAGS_NONE"))
-		SetFontColor(frame.tagText, UI.TEXT_DISABLED)
-	end
+	InitProfileDraft(frame, member)
+	local draftOpinion, draftTags = GetProfileDraft(frame)
+	PaintOpinionLabels(frame, draftOpinion, draftTags)
 
 	if member.guid and member.guid ~= "" then
 		frame.guidText:SetText(T("PROFILE_GUID", member.guid))
@@ -1561,9 +1561,6 @@ function Addon:ShowRaidCharacterWindow(member)
 		end
 	end
 
-	if frame.ratingHeading then
-		frame.ratingHeading:SetText(T("RATING_PERSONAL_OPINION_TITLE"))
-	end
 	if frame.tagsHeading then
 		frame.tagsHeading:SetText(T("RATING_TAGS_TITLE"))
 	end
@@ -1574,6 +1571,9 @@ function Addon:ShowRaidCharacterWindow(member)
 		frame.isUpdatingNotes = true
 		frame.notesBox:SetText(member.notes or "")
 		frame.isUpdatingNotes = false
+	end
+	if frame.ratingUpdateBtn then
+		frame.ratingUpdateBtn.label:SetText(T("BTN_UPDATE"))
 	end
 
 	UpdateProfileEditor(frame, member)
@@ -1592,14 +1592,17 @@ function Addon:ShowRaidCharacterWindow(member)
 				end
 			end
 		end
-		local opinion = "neutral"
-		if self.GetPersonalRating then
-			opinion = self:GetPersonalRating(member).opinion
-		end
-		RefreshOpinionRadios(frame, opinion)
+		RefreshOpinionRadios(frame, draftOpinion)
 	end
 	if frame.tagGroups then
 		RefreshProfileTagCheckboxes(frame, member, editable)
+	end
+	if frame.ratingUpdateBtn then
+		if editable then
+			frame.ratingUpdateBtn:Enable()
+		else
+			frame.ratingUpdateBtn:Disable()
+		end
 	end
 	if frame.notesBox and frame.notesHost then
 		if editable then
