@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.8.0] - 2026-08-20
+
+### Added
+- Layout version badges (`vN`) on the main window title bar and every content page (Character profile already showed one); mismatched versions rebuild the window without relying on `/reload` alone
+
+### Changed
+- Main UI split into shared widgets (`UIWidgets.lua`), one module per tab (`Page*.lua`), and a thinner shell (`ExporterWindow.lua`)
+
 ## [1.7.0] - 2026-08-20
 
 ### Added

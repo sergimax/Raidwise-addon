@@ -4,7 +4,7 @@
 
 Аддон для подготовки к рейду в **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): составы группы и рейда, анализ состава, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа в JSON.
 
-![](https://img.shields.io/badge/current_version-1.7.0-purple)
+![](https://img.shields.io/badge/current_version-1.8.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--20-blue)
 
 
@@ -130,10 +130,20 @@ Raidwise/
   RaidRoles.lua       # роли и рейд-баффы по спеку / расе
   RaidComposition.lua # покрытие баффов, дебаффов и утилиты в группе / рейде
   PlayerHistory.lua   # список встреч + личные рейтинги
+  UIWidgets.lua       # общие панели, кнопки, иконки, бейджи версии вёрстки
   CharacterProfile.lua # профиль персонажа (мнение, теги, заметки, история)
-  ExporterWindow.lua  # главное окно в игре
+  PageCooldowns.lua   # вкладка Character cooldowns
+  PageExport.lua      # вкладка Export gear and CDs
+  PageParty.lua       # вкладка Party roster
+  PageRaid.lua        # вкладка Raid roster
+  PageComposition.lua # вкладка Raid composition
+  PageHistory.lua     # вкладка History
+  PageSettings.lua    # вкладка Settings
+  PageInfo.lua        # вкладка Info
+  ExporterWindow.lua  # оболочка главного окна (меню, заголовок, статус, вкладки)
 docs/
-  UI-Views.md         # ASCII-схемы каждого вида
+  Architecture.md     # порядок TOC, слои, SavedVariables, API обновления
+  UI-Views.md         # ASCII-схемы каждого вида + таблица layout-версий
   UI-Sizes.md         # размеры окна и элементов
   Raid-Composition.md # классы и спеки, которые проверяет анализ состава
 types/

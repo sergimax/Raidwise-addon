@@ -4,7 +4,7 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.7.0-purple)
+![](https://img.shields.io/badge/current_version-1.8.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--20-blue)
 
 
@@ -129,10 +129,20 @@ Raidwise/
   RaidRoles.lua       # raid role and spec/race buff lookups
   RaidComposition.lua # party/raid buff, debuff, and utility coverage
   PlayerHistory.lua   # saved party/raid encounter list + personal ratings
+  UIWidgets.lua       # shared panels, buttons, icons, layout version badges
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
-  ExporterWindow.lua  # main in-game window
+  PageCooldowns.lua   # Character cooldowns tab
+  PageExport.lua      # Export gear and CDs tab
+  PageParty.lua       # Party roster tab
+  PageRaid.lua        # Raid roster tab
+  PageComposition.lua # Raid composition tab
+  PageHistory.lua     # History tab
+  PageSettings.lua    # Settings tab
+  PageInfo.lua        # Info tab
+  ExporterWindow.lua  # main window shell (menu, title, status, tab wiring)
 docs/
-  UI-Views.md         # ASCII layouts for each view
+  Architecture.md     # TOC order, layers, SavedVariables, refresh API
+  UI-Views.md         # ASCII layouts for each view + layout version table
   UI-Sizes.md         # window / control pixel sizes
   Raid-Composition.md # classes/specs tracked by the Raid composition tab
 types/
