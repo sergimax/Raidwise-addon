@@ -1,8 +1,8 @@
 # Raidwise UI sizes
 
-Reference for the main window (`ExporterWindow.lua`). All units are WoW UI pixels. Values here must stay in sync with the `UI` table in that file.
+Reference for the main window and pages. All units are WoW UI pixels. Shared theme and widgets live in `UIWidgets.lua`; shell sizes in `ExporterWindow.lua`; page-specific columns in each `Page*.lua`. Values here must stay in sync with those tables.
 
-View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md).
+View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture: [`Architecture.md`](Architecture.md).
 
 ## Shell
 
@@ -108,8 +108,6 @@ Same toolbar as Character cooldowns, plus an averages line, then the scroll tabl
 
 Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Character profile. Raid members are not listed here.
 
-UI constant for the opinion column is still named `PARTY_COL_KARMA` in code.
-
 ## Raid roster tab
 
 Same toolbar as Party roster, then two stats lines, then the scroll host. Two stacked blocks inside the scroll child.
@@ -140,21 +138,20 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Character profile
 
-Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Party roster, Raid roster, or History; Esc-close via `UISpecialFrames`. No window scroll — tab panels fill the body below the summary.
+Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Party roster, Raid roster, or History; Esc-close via `UISpecialFrames`. No window scroll — tab panels fill the body below the summary. Layout rebuild gated by `PROFILE_LAYOUT_VERSION` (title-bar badge `vN`).
 
 | Element | Size | Notes |
 |---------|------|-------|
 | Window | **430 × 540** | Centered, offset +40 / +20 from parent center |
-| Title bar | height **20** | Drag handle; `{name} - Character profile` |
+| Title bar | height **20** | Drag handle; `{name} - Character profile`; layout badge `vN` before close |
 | Close button | **16 × 16** | Right of title bar |
 | Body padding | **10** | Same as main shell `PAD` |
 | Content width | **410** | `430 - 10×2` |
 | Header icons | **24** | Race + class in left cell; spec in right cell (`PROFILE_ICON`); column gap **12** |
-| Profile tabs | height **26** | **Edit note**, **Edit memo**, **History** |
+| Profile tabs | height **26** | **History**, **Edit note**, **Edit memo** |
 | Tab host | fills body below tabs | Opinion / memo / history panels swap in place |
-| Opinion buttons | **3 × ~131 × 28** | `(contentWidth - 16) / 3`; gap **8** between |
-| Tag category label | width **110** | Left of each dropdown row |
-| Tag dropdown row step | **32** px | Label + dropdown + **Reset** (**64 × 28**) |
+| Opinion radios | **3 × ~131 × 28** | `(contentWidth - 16) / 3`; gap **8** between; exclusive Positive / Neutral / Negative |
+| Tag checkboxes | scrolling columns by category | Max **3** tags per category; category heading gold |
 | Memo box | **410 × 96** | Multiline EditBox with inner scroll |
 | Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
 | Community mock block | right summary column | Gold heading + wrapped body text |
@@ -177,8 +174,6 @@ Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H
 
 Rows are clickable and open Character profile. Notes are stored on the history record but edited only in Character profile.
 
-UI constant for the opinion column is still named `HISTORY_COL_KARMA` in code.
-
 ## Settings tab
 
 Language heading, hint, then two **120 × 28** locale buttons (**English**, **Русский**) with an 8 px gap. Selected button uses the same gold fill as the left menu.
@@ -195,6 +190,7 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 
 ## Changing sizes
 
-1. Edit the `UI` constants at the top of `ExporterWindow.lua`.
-2. Update this document and [`UI-Views.md`](UI-Views.md) to match.
-3. Reload the UI (`/reload`) and check `/raidwise show`.
+1. Edit the `UI` / theme constants in `UIWidgets.lua`, `ExporterWindow.lua`, or the relevant `Page*.lua`.
+2. Bump that view’s `LAYOUT_VERSION` when structure or named frames change.
+3. Update this document and [`UI-Views.md`](UI-Views.md) to match (include the new `vN`).
+4. Reload the UI (`/reload`) and check `/raidwise show` (layout rebuild should also fire when versions mismatch).

@@ -1,6 +1,8 @@
 # UI view schemes
 
-ASCII layouts for each window and content page. Update this file when a view changes. Pixel sizes live in [`UI-Sizes.md`](UI-Sizes.md) and the `UI` tables in `ExporterWindow.lua` / `CharacterProfile.lua`.
+ASCII layouts for each window and content page. Update this file when a view changes. Pixel sizes live in [`UI-Sizes.md`](UI-Sizes.md). Shared widgets: `UIWidgets.lua`. Page modules and shell: see [`Architecture.md`](Architecture.md).
+
+Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.md`](Architecture.md).
 
 ## Shell
 
@@ -8,10 +10,12 @@ Details-style plain panels: left menu, content page, status bar under both.
 
 ```text
 [ Menu 170 ] 2px [ Content 890 x 690 ]
-                 [ title bar 20      ]
+                 [ title bar 20  v1  X ]
                  [ page body         ]
 [ addon name ] [ current version ]
 ```
+
+Title bar (left to right): **Raidwise** title, layout badge **`v1`** (shell `SHELL_LAYOUT_VERSION`), close **X**. Toolbar pages show their own small **`vN`** badge top-right (see layout table below).
 
 Status bar:
 
@@ -32,6 +36,25 @@ Menu tabs (top to bottom):
 [ Settings ]
 [ Info ]
 ```
+
+## Layout versions
+
+Independent from addon semver (`Addon.version` in the status bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
+
+| View | Constant | File | Badge location |
+|------|----------|------|----------------|
+| Main shell | `SHELL_LAYOUT_VERSION = 1` | `ExporterWindow.lua` | Title bar (left of close) |
+| Character profile | `PROFILE_LAYOUT_VERSION = 22` | `CharacterProfile.lua` | Title bar (left of close) |
+| Cooldowns | `LAYOUT_VERSION = 1` | `PageCooldowns.lua` | Page toolbar top-right |
+| Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Page top-right |
+| Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Page toolbar top-right |
+| Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Page toolbar top-right |
+| Composition | `LAYOUT_VERSION = 1` | `PageComposition.lua` | Page toolbar top-right |
+| History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Page toolbar top-right |
+| Settings | `LAYOUT_VERSION = 1` | `PageSettings.lua` | Page top-right |
+| Info | `LAYOUT_VERSION = 1` | `PageInfo.lua` | Page top-right |
+
+Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
 
 ## Export gear and CDs
 
@@ -177,7 +200,7 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 Standalone window (**430 × 540**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
-[ Rhee - Character profile                                      X ]
+[ Rhee - Character profile                              v22   X ]
 | (race)(class) Shaman    | (spec) Enhancement                  |
 | GearScore: 6158         | iLvl: 264                           |
 | Personal note: Positive | Community note                      |
@@ -203,6 +226,7 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 | Block | In-game text / control |
 |-------|------------------------|
 | title | `{characterName} - Character profile` |
+| layout version | Title-bar badge `v` + `PROFILE_LAYOUT_VERSION` (UI structure; not addon semver) |
 | close | **X** (right of title bar); Esc also closes |
 | class / spec | Side-by-side row: race + class icons + name (class-colored), spec icon + name (`-` until inspect) |
 | GearScore / iLvl | Side-by-side row: `GearScore: {score}` and `iLvl: {average}`; `-` when unknown |
@@ -286,6 +310,10 @@ Switching language updates the left menu, page labels, and visible tables withou
 
 ## Adding a view
 
-1. Add a tab in `PAGES` in `ExporterWindow.lua`.
-2. Paste a new `## Title` scheme here (same `[ block ]` style).
-3. Implement the page and record sizes in `UI-Sizes.md`.
+1. Add a tab in `PAGES` in `ExporterWindow.lua` (shell) and a `Page*.lua` module under `Addon.Pages`.
+2. Give the view a `LAYOUT_VERSION` constant, stamp it on the frame, and show it with `AttachLayoutVersionLabel` (title bar or page toolbar).
+3. Paste a new `## Title` scheme here (same `[ block ]` style) including the layout `vN`.
+4. Implement the page and record sizes in `UI-Sizes.md`.
+5. See [`Architecture.md`](Architecture.md) for load order and the two version concepts (addon semver vs layout).
+
+> **Note:** Shell and per-page layout versions force recreate when constants bump (see Architecture). Named scroll/edit frames use a `V` + layout version suffix.
