@@ -1655,7 +1655,9 @@ function Addon:RefreshPartyView(refreshGearScore)
 		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(UI.CD_HEADER_H + (rowIndex - 1) * UI.CD_ROW_H))
 		row:SetSize(tableW, UI.CD_ROW_H)
 		local stripe = (rowIndex % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
+		row.stripe = stripe
 		row:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+		row.member = member
 
 		row.nameText:SetText(member.name)
 		row.nameText:SetTextColor(ClassColor(member.class))

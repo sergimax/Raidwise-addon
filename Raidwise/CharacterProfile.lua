@@ -1045,6 +1045,10 @@ local function CreateRaidCharacterWindow()
 		tinsert(UISpecialFrames, "RaidwiseRaidCharacterFrame")
 		frame.rwInSpecialFrames = true
 	end
+	-- Esc / X / Hide: push saved opinion, tags, and notes into the open roster/history tab.
+	frame:SetScript("OnHide", function()
+		Addon:RefreshRatingViews()
+	end)
 
 	local titleBar = CreateFrame("Frame", nil, frame)
 	titleBar:SetPoint("TOPLEFT", 1, -1)
