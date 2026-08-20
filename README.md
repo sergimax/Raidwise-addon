@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.6.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--19-blue)
+![](https://img.shields.io/badge/current_version-1.7.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--20-blue)
 
 
 ## Install
@@ -62,8 +62,7 @@ Esc or the title **X** closes the window.
 
 - Two blocks: raid groups **1–5**, then **6–8**
 - Line above the cells: overall average GearScore; second line is per-role count and average GS (`Tanks: 2 (6200 gs)`)
-- Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, karma, and tags
-- Rating lines now show your saved personal opinion and tag summary for known players
+- Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, personal opinion, and tags
 - Role icon matches RaidBuffStatus (tank / healer / melee / ranged)
 - Buff icons are spec- and race-specific raid utilities (hover for the name)
 - Click a filled card to open **Character profile** (`{name} - Character profile`)
@@ -86,10 +85,11 @@ Esc or the title **X** closes the window.
 
 **Player rating** in Character profile:
 
-- Save your **Personal** opinion for a player: **Positive**, **Neutral**, or **Negative**
-- Add short personal tags such as **Friendly**, **Prepared**, **Ninja Looter**, **Good Tank**, and more
-- Party, raid, and History views show your saved opinion and tag summary for that player
-- **Community opinion** is currently a mock preview for a future addon exchange / web app feature
+- Tabs: **History**, **Edit note**, **Edit memo**
+- On **Edit note**, set **Positive** / **Neutral** / **Negative** and personal tags (up to 3 per category); **Update** saves the draft
+- On **Edit memo**, write a free-form note with **Save** / **Reset**
+- Party, Raid, and History show your saved opinion and tag summary; click a row or card to open the profile
+- **Community note** is currently a mock preview for a future addon exchange / web app feature
 
 **Settings** tab:
 
@@ -128,7 +128,8 @@ Raidwise/
   PartyRoster.lua     # party / raid member stats for roster views
   RaidRoles.lua       # raid role and spec/race buff lookups
   RaidComposition.lua # party/raid buff, debuff, and utility coverage
-  PlayerHistory.lua   # saved party/raid encounter list (History tab)
+  PlayerHistory.lua   # saved party/raid encounter list + personal ratings
+  CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view
@@ -142,6 +143,6 @@ types/
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`).
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal`), notes (`.notes`), and change log (`.changes`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`).
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.

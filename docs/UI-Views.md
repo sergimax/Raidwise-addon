@@ -1,6 +1,6 @@
 # UI view schemes
 
-ASCII layouts for each window and content page. Update this file when a view changes. Pixel sizes live in [`UI-Sizes.md`](UI-Sizes.md) and the `UI` table in `ExporterWindow.lua`.
+ASCII layouts for each window and content page. Update this file when a view changes. Pixel sizes live in [`UI-Sizes.md`](UI-Sizes.md) and the `UI` tables in `ExporterWindow.lua` / `CharacterProfile.lua`.
 
 ## Shell
 
