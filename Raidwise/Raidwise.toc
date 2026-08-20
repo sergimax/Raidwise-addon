@@ -16,5 +16,14 @@ PartyRoster.lua
 RaidRoles.lua
 RaidComposition.lua
 PlayerHistory.lua
+UIWidgets.lua
 CharacterProfile.lua
+PageCooldowns.lua
+PageExport.lua
+PageParty.lua
+PageRaid.lua
+PageComposition.lua
+PageHistory.lua
+PageSettings.lua
+PageInfo.lua
 ExporterWindow.lua
