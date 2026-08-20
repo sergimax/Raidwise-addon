@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.7.0] - 2026-08-20
+
+### Added
+- **Personal player ratings**: Positive / Neutral / Negative opinion and personal tags (up to 3 per category), saved in `RaidwiseDB.history[guid].rating.personal`
+- **Character profile** tabs: **History**, **Edit note**, and **Edit memo** — draft opinion/tags with bottom **Update**; memo **Save** / **Reset**
+- Race icon on the Character profile header (with race/faction tooltip)
+- Profile change log for opinion, tag, and note edits
+- Community note mock preview in Character profile (future exchange / web feature)
+- Left-click a **Party roster** row to open Character profile (same as Raid roster and History)
+
+### Changed
+- Party roster, Raid roster, and History show your saved personal opinion and tag summary instead of placeholder karma
+- Character profile is a full rating and notes editor (not only meeting details)
+- Addon list notes and Info about text mention player ratings
+
+### Fixed
+- Closing Character profile refreshes the open Party / Raid / History tab so opinion and tags stay in sync
+
 ## [1.6.0] - 2026-08-19
 
 ### Added

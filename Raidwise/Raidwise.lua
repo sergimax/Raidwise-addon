@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.6.0"
+Addon.version = "1.7.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -92,6 +92,9 @@ function Addon:OnInitialize()
 		if not ok then
 			self:Print("UI failed to load: " .. tostring(err))
 		end
+	end
+	if not self.RatingTagGroups then
+		self:Print("Player rating module failed to load. Update PlayerHistory.lua and /reload.")
 	end
 	self:Print(self:T("CHAT_LOADED", self.version))
 end

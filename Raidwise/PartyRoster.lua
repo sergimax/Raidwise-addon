@@ -361,7 +361,7 @@ end
 local function MinimalPartyMember(unit)
 	local name, realm = UnitName(unit)
 	local localizedClass, classToken = UnitClass(unit)
-	return {
+	local member = {
 		unit = unit,
 		guid = UnitGUID(unit) or "",
 		name = name or "?",
@@ -377,9 +377,11 @@ local function MinimalPartyMember(unit)
 		averageIlvl = nil,
 		guildName = nil,
 		guildRank = nil,
-		karma = nil,
-		tags = nil,
 	}
+	if Addon.MergeRatingIntoMember then
+		Addon:MergeRatingIntoMember(member)
+	end
+	return member
 end
 
 function Addon:CollectPartyMember(unit, refreshGearScore)
@@ -389,12 +391,13 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 	local specName, specIcon, specTab = SpecForUnit(unit)
 	local _, raceToken = UnitRace(unit)
 	local faction = UnitFactionGroup and UnitFactionGroup(unit) or ""
+	local gender = UnitSex and UnitSex(unit) or nil
 	local raidBuffs = {}
 	if self.RaidBuffsForMember then
 		raidBuffs = self:RaidBuffsForMember(classToken, specTab, raceToken, faction)
 	end
 
-	return {
+	local member = {
 		unit = unit,
 		guid = UnitGUID(unit) or "",
 		name = name or "?",
@@ -405,17 +408,18 @@ function Addon:CollectPartyMember(unit, refreshGearScore)
 		specIcon = specIcon or "",
 		specTab = specTab or 0,
 		race = raceToken or "",
+		faction = faction,
+		gender = gender,
 		raidBuffs = raidBuffs,
 		gearScore = GearScoreForUnit(unit, refreshGearScore),
 		averageIlvl = AverageItemLevelForUnit(unit),
 		guildName = guildName,
 		guildRank = guildRankName,
-		karma = 4.3,
-		tags = {
-			{ name = "tag" },
-			{ name = "tag" },
-		},
 	}
+	if self.MergeRatingIntoMember then
+		self:MergeRatingIntoMember(member)
+	end
+	return member
 end
 
 function Addon:BuildPartyRoster(refreshGearScore)
@@ -501,6 +505,7 @@ function Addon:CollectRaidMember(unit, refreshGearScore, raidIndex)
 	local guildName, guildRankName = GuildInfoForUnit(unit)
 	local _, raceToken = UnitRace(unit)
 	local faction = UnitFactionGroup and UnitFactionGroup(unit) or ""
+	local gender = UnitSex and UnitSex(unit) or nil
 	local isMainTank = false
 	if raidIndex and type(GetRaidRosterInfo) == "function" then
 		local _, _, _, _, _, _, _, _, _, raidRole = GetRaidRosterInfo(raidIndex)
@@ -515,7 +520,7 @@ function Addon:CollectRaidMember(unit, refreshGearScore, raidIndex)
 		raidBuffs = self:RaidBuffsForMember(classToken, specTab, raceToken, faction)
 	end
 
-	return {
+	local member = {
 		unit = unit,
 		guid = UnitGUID(unit) or "",
 		name = name or "?",
@@ -526,18 +531,19 @@ function Addon:CollectRaidMember(unit, refreshGearScore, raidIndex)
 		specIcon = specIcon or "",
 		specTab = specTab or 0,
 		race = raceToken or "",
+		faction = faction,
+		gender = gender,
 		role = role,
 		raidBuffs = raidBuffs,
 		gearScore = GearScoreForUnit(unit, refreshGearScore),
 		averageIlvl = AverageItemLevelForUnit(unit),
 		guildName = guildName,
 		guildRank = guildRankName,
-		karma = 4.3,
-		tags = {
-			{ name = "tag" },
-			{ name = "tag" },
-		},
 	}
+	if self.MergeRatingIntoMember then
+		self:MergeRatingIntoMember(member)
+	end
+	return member
 end
 
 function Addon:BuildRaidGroups(refreshGearScore)

@@ -1,10 +1,10 @@
 ## Interface: 30300
 ## Title: |cffff7d0aRaid|rwise
-## Notes: Party and raid rosters, composition checklist, meeting history, lockouts, and character export for Wrath of the Lich King 3.3.5a
-## Notes-ruRU: Составы группы и рейда, анализ состава, история встреч, КД и экспорт персонажа для Wrath of the Lich King 3.3.5a
+## Notes: Party and raid rosters, composition checklist, player ratings, meeting history, lockouts, and character export for Wrath of the Lich King 3.3.5a
+## Notes-ruRU: Составы группы и рейда, анализ состава, рейтинг игроков, история встреч, КД и экспорт персонажа для Wrath of the Lich King 3.3.5a
 ## Author: sergimax
-## Version: 1.6.0
-## X-LastUpdated: 2026-08-19
+## Version: 1.7.0
+## X-LastUpdated: 2026-08-20
 ## OptionalDeps: GearScore
 ## SavedVariables: RaidwiseDB, MrcExporterDB
 
@@ -16,4 +16,5 @@ PartyRoster.lua
 RaidRoles.lua
 RaidComposition.lua
 PlayerHistory.lua
+CharacterProfile.lua
 ExporterWindow.lua

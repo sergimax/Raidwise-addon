@@ -2,10 +2,10 @@
 
 # Raidwise
 
-Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, meeting history, account-wide lockouts, and character JSON export.
+Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.6.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--19-blue)
+![](https://img.shields.io/badge/current_version-1.7.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--20-blue)
 
 
 ## Install
@@ -55,14 +55,14 @@ Esc or the title **X** closes the window.
 
 - Table of the current 5-player party (you alone when not grouped)
 - Line above the table: average item level and average GearScore
-- Columns: name, class icon, spec icon, raid-buff icons, GearScore, average item level, karma, tags, guild with rank
+- Columns: name, class icon, spec icon, raid-buff icons, GearScore, average item level, personal opinion, tags, guild with rank
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
 
 **Raid roster** tab:
 
 - Two blocks: raid groups **1–5**, then **6–8**
 - Line above the cells: overall average GearScore; second line is per-role count and average GS (`Tanks: 2 (6200 gs)`)
-- Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, karma, and tags
+- Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, personal opinion, and tags
 - Role icon matches RaidBuffStatus (tank / healer / melee / ranged)
 - Buff icons are spec- and race-specific raid utilities (hover for the name)
 - Click a filled card to open **Character profile** (`{name} - Character profile`)
@@ -79,9 +79,17 @@ Esc or the title **X** closes the window.
 **History** tab:
 
 - Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
-- Columns: name, class icon, spec icon, GearScore, iLvl, where you met, when, guild
+- Columns: name, class icon, spec icon, personal opinion, tags, GearScore, iLvl, where you met, when, guild
 - Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
 - **Refresh** records the current group again and redraws the list
+
+**Player rating** in Character profile:
+
+- Tabs: **History**, **Edit note**, **Edit memo**
+- On **Edit note**, set **Positive** / **Neutral** / **Negative** and personal tags (up to 3 per category); **Update** saves the draft
+- On **Edit memo**, write a free-form note with **Save** / **Reset**
+- Party, Raid, and History show your saved opinion and tag summary; click a row or card to open the profile
+- **Community note** is currently a mock preview for a future addon exchange / web app feature
 
 **Settings** tab:
 
@@ -120,7 +128,8 @@ Raidwise/
   PartyRoster.lua     # party / raid member stats for roster views
   RaidRoles.lua       # raid role and spec/race buff lookups
   RaidComposition.lua # party/raid buff, debuff, and utility coverage
-  PlayerHistory.lua   # saved party/raid encounter list (History tab)
+  PlayerHistory.lua   # saved party/raid encounter list + personal ratings
+  CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
   ExporterWindow.lua  # main in-game window
 docs/
   UI-Views.md         # ASCII layouts for each view
@@ -134,6 +143,6 @@ types/
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`).
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal`), notes (`.notes`), and change log (`.changes`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`).
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.
