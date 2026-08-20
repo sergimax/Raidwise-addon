@@ -185,6 +185,15 @@ function Addon:GetPersonalRating(entryOrMember)
 	if type(entryOrMember) ~= "table" then
 		return self:RatingDefaultPersonal()
 	end
+	-- Always prefer the live history row by GUID so profile labels are not stuck
+	-- on a stale member.rating snapshot from when the window opened.
+	local guid = entryOrMember.guid
+	if type(guid) == "string" and guid ~= "" and self.GetHistoryEntry then
+		local saved = self:GetHistoryEntry(guid)
+		if type(saved) == "table" and type(saved.rating) == "table" and type(saved.rating.personal) == "table" then
+			entryOrMember = saved
+		end
+	end
 	if type(entryOrMember.rating) == "table" and type(entryOrMember.rating.personal) == "table" then
 		local personal = entryOrMember.rating.personal
 		return {

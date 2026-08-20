@@ -256,7 +256,12 @@ local function RatingUIReady()
 	return Addon.RatingTagGroups ~= nil and Addon.GetPersonalRating ~= nil
 end
 
-local PROFILE_LAYOUT_VERSION = 17
+local PROFILE_LAYOUT_VERSION = 21
+
+-- Fixed header above the tag scroll (opinion radios live here; scroll starts below).
+local PROFILE_OPINION_HEADER_H = 108
+local PROFILE_OPINION_RADIO_SIZE = 16
+local PROFILE_OPINION_ROW_H = 22
 
 local function ProfileFrameNeedsRebuild(frame)
 	if not frame or frame.layoutVersion ~= PROFILE_LAYOUT_VERSION then
@@ -506,42 +511,146 @@ local function CreateProfileTabButton(parent, tabId, label, width)
 	return button
 end
 
-local function CurrentProfileOpinion()
-	local frame = Addon.raidDetailFrame
-	local member = frame and frame.profileMember
-	if member and Addon.GetPersonalRating then
-		return Addon:GetPersonalRating(member).opinion
+-- AceConfigDialog / Details radio pattern: exclusive SetChecked on the whole group.
+local function RefreshOpinionRadios(frame, selectedOpinion)
+	if not frame or not frame.opinionButtons then
+		return
 	end
-	return "neutral"
+	selectedOpinion = selectedOpinion or "neutral"
+	for _, radio in ipairs(frame.opinionButtons) do
+		local checked = radio.opinionId == selectedOpinion
+		radio.isUpdating = true
+		radio:SetChecked(checked)
+		-- Some clients leave CheckedTexture visible after SetChecked(false); force it.
+		local checkedTexture = radio.GetCheckedTexture and radio:GetCheckedTexture()
+		if checkedTexture then
+			if checked then
+				checkedTexture:Show()
+			else
+				checkedTexture:Hide()
+			end
+		end
+		if radio.label then
+			radio.label:SetText(OpinionButtonLabel(radio.opinionId))
+			if radio:IsEnabled() then
+				SetFontColor(radio.label, checked and UI.GOLD or UI.TEXT_IDLE)
+			else
+				SetFontColor(radio.label, UI.TEXT_DISABLED)
+			end
+		end
+		radio.isUpdating = false
+	end
 end
 
--- Same construction as Notes [ Save ] / [ Reset ]: CreatePlainButton + OnClick.
-local function CreateOpinionActionButton(parent, opinionId, width)
-	local button = CreatePlainButton(parent, width, UI.ACTION_BTN_H, OpinionButtonLabel(opinionId))
-	button.opinionId = opinionId
-	button:SetScript("OnClick", function()
-		Addon:SetProfileOpinion(opinionId)
+-- Paint Personal note + Summary from the chosen opinion immediately (same click as radios).
+local function PaintOpinionLabels(frame, opinionId, tags)
+	if not frame then
+		return
+	end
+	opinionId = opinionId or "neutral"
+	tags = tags or {}
+	local label = OpinionButtonLabel(opinionId)
+	local color = UI.TEXT_IDLE
+	if Addon.RatingOpinionColor then
+		color = Addon:RatingOpinionColor(opinionId)
+	end
+	if frame.karmaText then
+		frame.karmaText:SetText(T("RATING_PROFILE_OPINION", label))
+		SetFontColor(frame.karmaText, color)
+	end
+	if frame.tagText then
+		local tagSummary = ""
+		if Addon.RatingTagColoredSummary then
+			tagSummary = Addon:RatingTagColoredSummary(tags, 3) or ""
+		end
+		if tagSummary ~= "" then
+			frame.tagText:SetText(tagSummary)
+			SetFontColor(frame.tagText, UI.TEXT_IDLE)
+		else
+			frame.tagText:SetText(T("RATING_TAGS_NONE"))
+			SetFontColor(frame.tagText, UI.TEXT_DISABLED)
+		end
+	end
+	if frame.ratingSummary then
+		local opinionText = label
+		if Addon.RatingWrapColor then
+			opinionText = Addon:RatingWrapColor(label, color)
+		end
+		local tagPart = T("RATING_TAGS_NONE")
+		if Addon.RatingTagColoredSummary then
+			local colored = Addon:RatingTagColoredSummary(tags, 3)
+			if colored and colored ~= "" then
+				tagPart = colored
+			end
+		end
+		frame.ratingSummary:SetText(T("RATING_PROFILE_SUMMARY", opinionText, tagPart))
+	end
+end
+
+local function ApplyOpinionChoice(opinionId)
+	if not opinionId then
+		return
+	end
+	PlaySound("igMainMenuOptionCheckBoxOn")
+	local frame = Addon.raidDetailFrame
+	local tags = {}
+	if frame and frame.profileMember and Addon.GetPersonalRating then
+		tags = Addon:GetPersonalRating(frame.profileMember).tags
+	end
+	-- Paint exclusivity + labels first (Details RadioOnClick: UI then persist).
+	RefreshOpinionRadios(frame, opinionId)
+	PaintOpinionLabels(frame, opinionId, tags)
+	if frame and frame.profileMember then
+		frame.profileMember.rating = frame.profileMember.rating or {}
+		frame.profileMember.rating.personal = {
+			opinion = opinionId,
+			tags = tags,
+			updatedAt = time(),
+		}
+	end
+	Addon:SetProfileOpinion(opinionId)
+end
+
+local function CreateOpinionRadio(parent, opinionId, columnWidth)
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetSize(columnWidth, PROFILE_OPINION_ROW_H)
+
+	-- UIRadioButtonTemplate: engine owns checked texture (DBM / Blizzard options style).
+	local radio = CreateFrame("CheckButton", nil, host, "UIRadioButtonTemplate")
+	radio:SetSize(PROFILE_OPINION_RADIO_SIZE, PROFILE_OPINION_RADIO_SIZE)
+	radio:SetPoint("LEFT", 0, 0)
+	radio.opinionId = opinionId
+
+	local label = host:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	label:SetPoint("LEFT", radio, "RIGHT", 4, 0)
+	label:SetPoint("RIGHT", host, "RIGHT", 0, 0)
+	label:SetJustifyH("LEFT")
+	label:SetText(OpinionButtonLabel(opinionId))
+	SetFontColor(label, UI.TEXT_IDLE)
+	radio.label = label
+	radio.host = host
+
+	-- Label-only hit target. Do NOT cover the radio or call :Click() — that toggles
+	-- one control without clearing siblings on some 3.3.5 clients.
+	local hit = CreateFrame("Button", nil, host)
+	hit:SetPoint("TOPLEFT", label, "TOPLEFT", 0, 2)
+	hit:SetPoint("BOTTOMRIGHT", host, "BOTTOMRIGHT", 0, -2)
+	hit:SetScript("OnClick", function()
+		if radio:IsEnabled() then
+			ApplyOpinionChoice(radio.opinionId)
+		end
 	end)
-	button:SetScript("OnEnter", function(self)
-		if not self:IsEnabled() then
+	radio.hit = hit
+
+	radio:SetScript("OnClick", function(self)
+		if self.isUpdating then
 			return
 		end
-		SetMenuButtonState(self, CurrentProfileOpinion() == opinionId, true)
+		-- Engine already toggled this button; re-apply exclusive group state.
+		ApplyOpinionChoice(self.opinionId)
 	end)
-	button:SetScript("OnLeave", function(self)
-		if not self:IsEnabled() then
-			SetPlainButtonState(self, "disabled")
-			return
-		end
-		SetMenuButtonState(self, CurrentProfileOpinion() == opinionId, false)
-	end)
-	button:SetScript("OnEnable", function(self)
-		SetMenuButtonState(self, CurrentProfileOpinion() == opinionId, false)
-	end)
-	button:SetScript("OnDisable", function(self)
-		SetPlainButtonState(self, "disabled")
-	end)
-	return button
+
+	return radio
 end
 
 local PROFILE_TAG_ROW_H = 22
@@ -736,15 +845,7 @@ local function UpdateProfileOpinionControls(frame, member)
 		if Addon.GetPersonalRating then
 			opinion = Addon:GetPersonalRating(member).opinion
 		end
-		for _, button in ipairs(frame.opinionButtons) do
-			local selected = button.opinionId == opinion
-			button.label:SetText(OpinionButtonLabel(button.opinionId))
-			if button:IsEnabled() then
-				SetMenuButtonState(button, selected, false)
-			else
-				SetPlainButtonState(button, "disabled")
-			end
-		end
+		RefreshOpinionRadios(frame, opinion)
 	end
 end
 
@@ -789,7 +890,11 @@ function Addon:SaveProfilePersonalRating(opinion, tagIds, options)
 	if not entry then
 		return
 	end
-	frame.profileMember = self:HistoryProfileForMember(member)
+	-- Rebuild from the saved history entry so opinion/tags match the DB on first click.
+	frame.profileMember = self:HistoryProfileForMember(entry)
+	frame.profileMember.rating = {
+		personal = self:GetPersonalRating(entry),
+	}
 	if options and options.opinionOnly then
 		UpdateProfileOpinionControls(frame, frame.profileMember)
 	elseif options and options.tagsOnly then
@@ -1146,41 +1251,55 @@ local function CreateRaidCharacterWindow()
 	opinionPanel:SetPoint("BOTTOMRIGHT", 0, 0)
 	frame.profilePanels.opinion = opinionPanel
 
-	local ratingHeading = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	-- Solid header above the tag list (radios here; scroll never covers them).
+	local opinionHeader = CreateFrame("Frame", nil, opinionPanel)
+	opinionHeader:SetPoint("TOPLEFT", 0, 0)
+	opinionHeader:SetPoint("TOPRIGHT", 0, 0)
+	opinionHeader:SetHeight(PROFILE_OPINION_HEADER_H)
+	opinionHeader:EnableMouse(true)
+	opinionHeader:SetFrameLevel(opinionPanel:GetFrameLevel() + 40)
+	frame.opinionHeader = opinionHeader
+
+	local ratingHeading = opinionHeader:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	ratingHeading:SetPoint("TOPLEFT", 0, 0)
-	ratingHeading:SetPoint("RIGHT", opinionPanel, "RIGHT", 0, 0)
+	ratingHeading:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
 	ratingHeading:SetJustifyH("LEFT")
 	ratingHeading:SetText(T("RATING_PERSONAL_OPINION_TITLE"))
 	SetFontColor(ratingHeading, UI.GOLD)
 	frame.ratingHeading = ratingHeading
 
-	local summaryLine = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local summaryLine = opinionHeader:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	summaryLine:SetPoint("TOPLEFT", ratingHeading, "BOTTOMLEFT", 0, -6)
-	summaryLine:SetPoint("RIGHT", opinionPanel, "RIGHT", 0, 0)
+	summaryLine:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
 	summaryLine:SetHeight(16)
 	summaryLine:SetJustifyH("LEFT")
 	summaryLine:SetJustifyV("MIDDLE")
 	frame.ratingSummary = summaryLine
 
-	-- Same placement pattern as Notes [ Save ] / [ Reset ]: CreatePlainButton on the panel.
+	-- Mutually exclusive radios (AceConfigDialog style="radio" / Details RadioOnClick).
+	local opinionRow = CreateFrame("Frame", nil, opinionHeader)
+	opinionRow:SetPoint("TOPLEFT", summaryLine, "BOTTOMLEFT", 0, -8)
+	opinionRow:SetPoint("TOPRIGHT", summaryLine, "BOTTOMRIGHT", 0, -8)
+	opinionRow:SetHeight(PROFILE_OPINION_ROW_H)
+	frame.opinionRow = opinionRow
+
 	frame.opinionButtons = {}
 	local opinionOrder = { "positive", "neutral", "negative" }
 	local opinionWidth = math.floor((tabContentWidth - UI.ACTION_BTN_GAP * 2) / 3)
 	for index = 1, #opinionOrder do
 		local opinionId = opinionOrder[index]
-		local button = CreateOpinionActionButton(opinionPanel, opinionId, opinionWidth)
-		button:SetFrameLevel(opinionPanel:GetFrameLevel() + 20)
+		local radio = CreateOpinionRadio(opinionRow, opinionId, opinionWidth)
 		if index == 1 then
-			button:SetPoint("TOPLEFT", summaryLine, "BOTTOMLEFT", 0, -8)
+			radio.host:SetPoint("LEFT", opinionRow, "LEFT", 0, 0)
 		else
-			button:SetPoint("LEFT", frame.opinionButtons[index - 1], "RIGHT", UI.ACTION_BTN_GAP, 0)
+			radio.host:SetPoint("LEFT", frame.opinionButtons[index - 1].host, "RIGHT", UI.ACTION_BTN_GAP, 0)
 		end
-		frame.opinionButtons[index] = button
+		frame.opinionButtons[index] = radio
 	end
 
-	local tagsHeading = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	tagsHeading:SetPoint("TOPLEFT", frame.opinionButtons[1], "BOTTOMLEFT", 0, -12)
-	tagsHeading:SetPoint("RIGHT", opinionPanel, "RIGHT", 0, 0)
+	local tagsHeading = opinionHeader:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	tagsHeading:SetPoint("TOPLEFT", opinionRow, "BOTTOMLEFT", 0, -12)
+	tagsHeading:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
 	tagsHeading:SetJustifyH("LEFT")
 	tagsHeading:SetText(T("RATING_TAGS_TITLE"))
 	SetFontColor(tagsHeading, UI.GOLD)
@@ -1189,14 +1308,20 @@ local function CreateRaidCharacterWindow()
 	frame.profileTabContentWidth = tabContentWidth
 	frame.tagGroups = {}
 
-	-- Host keeps the scroll strictly below the tags heading (never over the opinion buttons).
+	-- Tag list starts strictly below the mouse-blocking header.
 	local tagBody = CreateFrame("Frame", nil, opinionPanel)
-	tagBody:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, -8)
+	tagBody:SetPoint("TOPLEFT", opinionHeader, "BOTTOMLEFT", 0, -4)
 	tagBody:SetPoint("BOTTOMRIGHT", opinionPanel, "BOTTOMRIGHT", 0, 0)
 	tagBody:SetFrameLevel(opinionPanel:GetFrameLevel() + 1)
 	frame.tagBody = tagBody
 
 	local tagScrollName = "RaidwiseProfileTagScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
+	local existingScroll = _G[tagScrollName]
+	if existingScroll then
+		existingScroll:Hide()
+		existingScroll:EnableMouse(false)
+		existingScroll:SetParent(nil)
+	end
 	local tagScroll = CreateFrame("ScrollFrame", tagScrollName, tagBody, "UIPanelScrollFrameTemplate")
 	tagScroll:SetPoint("TOPLEFT", 0, 0)
 	tagScroll:SetPoint("BOTTOMRIGHT", -24, 0)
@@ -1453,10 +1578,21 @@ function Addon:ShowRaidCharacterWindow(member)
 		for _, button in ipairs(frame.opinionButtons) do
 			if editable then
 				button:Enable()
+				if button.hit then
+					button.hit:Enable()
+				end
 			else
 				button:Disable()
+				if button.hit then
+					button.hit:Disable()
+				end
 			end
 		end
+		local opinion = "neutral"
+		if self.GetPersonalRating then
+			opinion = self:GetPersonalRating(member).opinion
+		end
+		RefreshOpinionRadios(frame, opinion)
 	end
 	if frame.tagGroups then
 		RefreshProfileTagCheckboxes(frame, member, editable)

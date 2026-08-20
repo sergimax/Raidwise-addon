@@ -190,8 +190,8 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 (tab: Edit note)
 [ Personal note ]
 [ Summary: Positive | Tags: Friendly, Good Tank, Prepared ]
-[ Positive ] [ Neutral ] [ Negative ]
-[ Personal tags — six category rows with dropdown + Reset ]
+( ) Positive   (*) Neutral   ( ) Negative
+[ Personal tags — category checkboxes (max 3 per category) ]
 (tab: Edit memo)
 [ Memo — multiline edit box ]
 [ Save ] [ Reset ]
@@ -211,7 +211,7 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 | Summary (left column) | Read-only: personal note, tag summary, guild, GUID, realm |
 | Community note (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
 | Tabs | **Edit note**, **Edit memo**, **History** — switch the panel below the summary |
-| Personal note (editor tab) | Summary line; three toggle buttons; six tag category rows |
+| Personal note (editor tab) | Summary line; three exclusive radio options (Positive / Neutral / Negative); tag checkboxes by category |
 | Memo (editor tab) | Multiline EditBox; **Save** / **Reset** |
 | History tab | **Met** and **When** as first entries, then logged opinion/tag/note changes |
 | editable | Opinion, tags, and notes require a valid GUID; controls are disabled otherwise |
