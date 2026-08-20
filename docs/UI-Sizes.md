@@ -140,26 +140,24 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Character profile
 
-Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Party roster, Raid roster, or History; Esc-close via `UISpecialFrames`.
+Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Party roster, Raid roster, or History; Esc-close via `UISpecialFrames`. No window scroll — tab panels fill the body below the summary.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Window | **430 × 620** | Centered, offset +40 / +20 from parent center |
+| Window | **430 × 540** | Centered, offset +40 / +20 from parent center |
 | Title bar | height **20** | Drag handle; `{name} - Character profile` |
 | Close button | **16 × 16** | Right of title bar |
 | Body padding | **10** | Same as main shell `PAD` |
-| Scroll area | fills body minus scrollbar | Vertical scroll + mouse wheel; step **34** (`CD_ROW_H`) |
-| Vertical scrollbar | **16** | Right edge of body (`CD_SCROLLBAR_W`) |
-| Scroll content width | **386** | `430 - 10×2 - 16 - 8` |
-| Header icons | **24** | Class and spec side by side (`PROFILE_ICON`); column gap **12** |
-| Pair row gap | **8–10** px | GS/iLvl and Race/Faction rows |
-| Single-line gap | **8** px | Guild, opinion, tags, meeting fields |
-| Opinion buttons | **3 × ~122 × 28** | `(contentWidth - 16) / 3`; gap **8** between |
+| Content width | **410** | `430 - 10×2` |
+| Header icons | **24** | Race + class in left cell; spec in right cell (`PROFILE_ICON`); column gap **12** |
+| Profile tabs | height **26** | **Edit note**, **Edit memo**, **History** |
+| Tab host | fills body below tabs | Opinion / memo / history panels swap in place |
+| Opinion buttons | **3 × ~131 × 28** | `(contentWidth - 16) / 3`; gap **8** between |
 | Tag category label | width **110** | Left of each dropdown row |
 | Tag dropdown row step | **32** px | Label + dropdown + **Reset** (**64 × 28**) |
-| Notes box | **386 × 72** | Multiline EditBox with inner scroll |
-| Notes Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
-| Community mock block | below notes | Gold heading + wrapped body text |
+| Memo box | **410 × 96** | Multiline EditBox with inner scroll |
+| Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
+| Community mock block | right summary column | Gold heading + wrapped body text |
 
 Rating editor requires a valid GUID; controls are disabled when GUID is missing.
 

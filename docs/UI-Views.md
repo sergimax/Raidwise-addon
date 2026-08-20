@@ -174,7 +174,7 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Character profile
 
-Standalone window (**430 × 520**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
+Standalone window (**430 × 540**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
 [ Rhee - Character profile                                      X ]
@@ -186,7 +186,7 @@ Standalone window (**430 × 520**) opened from Party roster, Raid roster, or His
 | GUID: 0x...              |                                    |
 | Realm: Icecrown         |                                     |
 [ Edit note ] [ Edit memo ] [ History ]
-        --- tab content (scroll if needed) ---
+        --- tab content ---
 (tab: Edit note)
 [ Personal note ]
 [ Summary: Positive | Tags: Friendly, Good Tank, Prepared ]

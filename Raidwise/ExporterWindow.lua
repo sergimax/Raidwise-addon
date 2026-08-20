@@ -1303,12 +1303,6 @@ local OPINION_LABEL_KEYS = {
 	negative = "RATING_OPINION_NEGATIVE",
 }
 
-local OPINION_FALLBACK_COLORS = {
-	positive = { 0.35, 0.90, 0.35 },
-	neutral = { 0.90, 0.82, 0.35 },
-	negative = { 0.95, 0.35, 0.35 },
-}
-
 local function OpinionButtonLabel(opinionId)
 	if Addon.RatingOpinionLabel then
 		return Addon:RatingOpinionLabel(opinionId)
@@ -1318,13 +1312,6 @@ local function OpinionButtonLabel(opinionId)
 		return T(labelKey)
 	end
 	return tostring(opinionId or "")
-end
-
-local function OpinionButtonColor(opinionId)
-	if Addon.RatingOpinionColor then
-		return Addon:RatingOpinionColor(opinionId)
-	end
-	return OPINION_FALLBACK_COLORS[opinionId] or UI.TEXT_IDLE
 end
 
 local function RatingUIReady()
@@ -1342,10 +1329,10 @@ local function ProfileFrameNeedsRebuild(frame)
 	if #groups == 0 then
 		return false
 	end
-	if not frame.tagDropdowns then
+	if not frame.tagGroups then
 		return true
 	end
-	return #frame.tagDropdowns ~= #groups
+	return #frame.tagGroups ~= #groups
 end
 
 local function ShowMemberRatingTooltip(anchor, member)
@@ -1790,61 +1777,6 @@ local function RaidContentSize()
 	return width, height
 end
 
-local function BlendColor(base, accent, accentWeight)
-	local weight = accentWeight or 0.3
-	return {
-		base[1] * (1 - weight) + accent[1] * weight,
-		base[2] * (1 - weight) + accent[2] * weight,
-		base[3] * (1 - weight) + accent[3] * weight,
-		base[4] or 1,
-	}
-end
-
-local function SetOpinionButtonState(button, selected, hovering)
-	button.selected = selected and true or false
-	button.hovering = hovering and true or false
-	local opinionColor = OpinionButtonColor(button.opinionId)
-
-	if not button:IsEnabled() then
-		button:SetBackdropColor(UI.BTN_DISABLED[1], UI.BTN_DISABLED[2], UI.BTN_DISABLED[3], UI.BTN_DISABLED[4])
-		SetFontColor(button.label, {
-			opinionColor[1] * 0.45,
-			opinionColor[2] * 0.45,
-			opinionColor[3] * 0.45,
-		})
-		return
-	end
-
-	local backdrop
-	if button.selected then
-		backdrop = BlendColor(UI.BTN_SELECTED, opinionColor, 0.45)
-	elseif button.hovering then
-		backdrop = BlendColor(UI.BTN_HOVER, opinionColor, 0.25)
-	else
-		backdrop = BlendColor(UI.BTN_IDLE, opinionColor, 0.12)
-	end
-	button:SetBackdropColor(backdrop[1], backdrop[2], backdrop[3], backdrop[4])
-	SetFontColor(button.label, opinionColor)
-end
-
-local function CreateChoiceButton(parent, width, height, label)
-	local button = CreatePlainButton(parent, width, height, label)
-	button:SetScript("OnEnter", function(self)
-		SetOpinionButtonState(self, self.selected, true)
-	end)
-	button:SetScript("OnLeave", function(self)
-		SetOpinionButtonState(self, self.selected, false)
-	end)
-	button:SetScript("OnEnable", function(self)
-		SetOpinionButtonState(self, self.selected, false)
-	end)
-	button:SetScript("OnDisable", function(self)
-		SetOpinionButtonState(self, self.selected, false)
-	end)
-	SetOpinionButtonState(button, false, false)
-	return button
-end
-
 local function CreateProfileNotesBox(parent, width, height)
 	local host = CreateFrame("Frame", nil, parent)
 	host:SetSize(width, height)
@@ -1916,7 +1848,7 @@ local function ProfileFactionText(faction)
 	return faction
 end
 
-local PROFILE_LAYOUT_VERSION = 6
+local PROFILE_LAYOUT_VERSION = 16
 
 local RACE_ICON_TEXTURE = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Races"
 local RACE_ICON_TCOORDS = {
@@ -2077,32 +2009,61 @@ local function CreateProfileTabButton(parent, tabId, label, width)
 	return button
 end
 
-local function RatingGroupSummary(member, group)
-	if not Addon.GetPersonalRating or not group or type(group.tags) ~= "table" then
-		return T("RATING_TAGS_NONE")
+local function CurrentProfileOpinion()
+	local frame = Addon.raidDetailFrame
+	local member = frame and frame.profileMember
+	if member and Addon.GetPersonalRating then
+		return Addon:GetPersonalRating(member).opinion
 	end
-	local personal = Addon:GetPersonalRating(member)
-	local selected = {}
-	for index = 1, #personal.tags do
-		selected[personal.tags[index]] = true
-	end
-	local groupTags = {}
-	for index = 1, #group.tags do
-		local tag = group.tags[index]
-		if selected[tag.id] then
-			groupTags[#groupTags + 1] = tag.id
+	return "neutral"
+end
+
+-- Same construction as Notes [ Save ] / [ Reset ]: CreatePlainButton + OnClick.
+local function CreateOpinionActionButton(parent, opinionId, width)
+	local button = CreatePlainButton(parent, width, UI.ACTION_BTN_H, OpinionButtonLabel(opinionId))
+	button.opinionId = opinionId
+	button:SetScript("OnClick", function()
+		Addon:SetProfileOpinion(opinionId)
+	end)
+	button:SetScript("OnEnter", function(self)
+		if not self:IsEnabled() then
+			return
 		end
+		SetMenuButtonState(self, CurrentProfileOpinion() == opinionId, true)
+	end)
+	button:SetScript("OnLeave", function(self)
+		if not self:IsEnabled() then
+			SetPlainButtonState(self, "disabled")
+			return
+		end
+		SetMenuButtonState(self, CurrentProfileOpinion() == opinionId, false)
+	end)
+	button:SetScript("OnEnable", function(self)
+		SetMenuButtonState(self, CurrentProfileOpinion() == opinionId, false)
+	end)
+	button:SetScript("OnDisable", function(self)
+		SetPlainButtonState(self, "disabled")
+	end)
+	return button
+end
+
+local PROFILE_TAG_ROW_H = 22
+local PROFILE_TAG_GROUP_HEADING_H = 18
+local PROFILE_TAG_GROUP_GAP = 8
+local PROFILE_TAG_COL_GAP = 12
+
+local ratingViewRefreshScheduled
+
+local function ScheduleRatingViewRefresh()
+	if ratingViewRefreshScheduled then
+		return
 	end
-	if #groupTags == 0 then
-		return T("RATING_TAGS_NONE")
-	end
-	if Addon.RatingTagColoredSummary then
-		return Addon:RatingTagColoredSummary(groupTags, 2)
-	end
-	if Addon.RatingTagSummary then
-		return Addon:RatingTagSummary(groupTags, 2)
-	end
-	return T("RATING_TAGS_NONE")
+	ratingViewRefreshScheduled = CreateFrame("Frame")
+	ratingViewRefreshScheduled:SetScript("OnUpdate", function(self)
+		self:SetScript("OnUpdate", nil)
+		ratingViewRefreshScheduled = nil
+		Addon:RefreshRatingViews()
+	end)
 end
 
 local function CountSelectedTagsInGroup(personal, group)
@@ -2122,48 +2083,137 @@ local function CountSelectedTagsInGroup(personal, group)
 	return count
 end
 
-local function CreateTagDropdown(parent, name, width, group)
-	local dropdown = CreateFrame("Frame", name, parent, "UIDropDownMenuTemplate")
-	dropdown.group = group
-	dropdown:SetWidth(width)
-	UIDropDownMenu_SetWidth(dropdown, width - 28)
-	UIDropDownMenu_JustifyText(dropdown, "LEFT")
-	UIDropDownMenu_Initialize(dropdown, function(self, level)
-		local frame = Addon.raidDetailFrame
-		local member = frame and frame.profileMember
-		if not member or not Addon.GetPersonalRating then
-			return
+local function TagCheckboxLabel(tagId)
+	if Addon.RatingTagLabel then
+		return Addon:RatingTagLabel(tagId)
+	end
+	return tostring(tagId)
+end
+
+local function TagCheckboxColor(tagId)
+	local tag = Addon.RatingTagById and Addon:RatingTagById(tagId)
+	if tag and Addon.RatingMetaColor then
+		return Addon:RatingMetaColor(tag.meta)
+	end
+	return UI.TEXT_IDLE
+end
+
+local function SetProfileTagCheckboxState(checkbox, checked, enabled)
+	if not checkbox then
+		return
+	end
+	checkbox.isUpdating = true
+	checkbox:SetChecked(checked and true or false)
+	if enabled then
+		checkbox:Enable()
+		checkbox:SetAlpha(1)
+		if checkbox.label then
+			SetFontColor(checkbox.label, checkbox.labelColor or UI.TEXT_IDLE)
 		end
-		local personal = Addon:GetPersonalRating(member)
-		local selected = {}
+		if checkbox.hit then
+			checkbox.hit:Enable()
+		end
+	else
+		checkbox:Disable()
+		checkbox:SetAlpha(0.55)
+		if checkbox.label then
+			SetFontColor(checkbox.label, UI.TEXT_DISABLED)
+		end
+		if checkbox.hit then
+			checkbox.hit:Disable()
+		end
+	end
+	checkbox.isUpdating = false
+end
+
+local function RefreshProfileTagCheckboxes(frame, member, editable)
+	if not frame or not frame.tagGroups then
+		return
+	end
+
+	local selected = {}
+	local personal
+	if member and Addon.GetPersonalRating then
+		personal = Addon:GetPersonalRating(member)
 		for index = 1, #personal.tags do
 			selected[personal.tags[index]] = true
 		end
-		local selectedCount = CountSelectedTagsInGroup(personal, group)
-		for index = 1, #group.tags do
-			local tag = group.tags[index]
-			local info = UIDropDownMenu_CreateInfo()
-			if Addon.RatingTagColoredLabel then
-				info.text = Addon:RatingTagColoredLabel(tag.id)
-			elseif Addon.RatingTagLabel then
-				info.text = Addon:RatingTagLabel(tag.id)
-			else
-				info.text = tostring(tag.id)
-			end
-			info.keepShownOnClick = 1
-			info.isNotRadio = 1
-			info.checked = selected[tag.id] and true or false
-			info.disabled = (not selected[tag.id]) and selectedCount >= 3
-			info.func = function()
-				Addon:ToggleProfileTag(tag.id)
-			end
-			UIDropDownMenu_AddButton(info, level)
+	end
+
+	for _, entry in ipairs(frame.tagGroups) do
+		if entry.label then
+			entry.label:SetText(T(entry.group.labelKey))
 		end
-	end)
-	return dropdown
+		local groupCount = personal and CountSelectedTagsInGroup(personal, entry.group) or 0
+		for _, checkbox in ipairs(entry.checkboxes) do
+			local tagId = checkbox.tagId
+			local isSelected = selected[tagId] and true or false
+			local canUse = editable and (isSelected or groupCount < 3)
+			SetProfileTagCheckboxState(checkbox, isSelected, canUse)
+		end
+	end
 end
 
-local function UpdateProfileEditor(frame, member)
+local function CreateProfileTagCheckbox(parent, tag, group, columnWidth)
+	local check = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
+	check:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
+	local checkName = check:GetName()
+	local templateText = checkName and _G[checkName .. "Text"]
+	if templateText then
+		templateText:SetText("")
+		templateText:Hide()
+	end
+	check.tagId = tag.id
+	check.groupId = group.id
+
+	local label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	label:SetPoint("LEFT", check, "RIGHT", 4, 0)
+	label:SetWidth(columnWidth - UI.CHECK_SIZE - 4)
+	label:SetJustifyH("LEFT")
+	label:SetText(TagCheckboxLabel(tag.id))
+	check.labelColor = TagCheckboxColor(tag.id)
+	SetFontColor(label, check.labelColor)
+	check.label = label
+
+	local hit = CreateFrame("Button", nil, parent)
+	hit:SetPoint("TOPLEFT", check, "TOPLEFT", 0, 0)
+	hit:SetPoint("BOTTOMRIGHT", label, "BOTTOMRIGHT", 0, 0)
+	hit:SetScript("OnClick", function()
+		if check:IsEnabled() then
+			check:Click()
+		end
+	end)
+	check.hit = hit
+
+	check:SetScript("OnClick", function(self)
+		if self.isUpdating then
+			return
+		end
+		local wantChecked = self:GetChecked()
+		if wantChecked then
+			local profileFrame = Addon.raidDetailFrame
+			local profileMember = profileFrame and profileFrame.profileMember
+			if profileMember and Addon.GetPersonalRating then
+				local currentPersonal = Addon:GetPersonalRating(profileMember)
+				if CountSelectedTagsInGroup(currentPersonal, group) >= 3 then
+					self:SetChecked(false)
+					Addon:Print(Addon:T("RATING_GROUP_LIMIT"))
+					return
+				end
+			end
+		end
+		Addon:ToggleProfileTag(self.tagId)
+	end)
+
+	return check
+end
+
+local function ProfileTagGroupHeight(tagCount)
+	local rows = math.ceil(tagCount / 2)
+	return PROFILE_TAG_GROUP_HEADING_H + (rows * PROFILE_TAG_ROW_H) + PROFILE_TAG_GROUP_GAP
+end
+
+local function UpdateProfileOpinionControls(frame, member)
 	if not frame or not member then
 		return
 	end
@@ -2192,21 +2242,23 @@ local function UpdateProfileEditor(frame, member)
 		for _, button in ipairs(frame.opinionButtons) do
 			local selected = button.opinionId == opinion
 			button.label:SetText(OpinionButtonLabel(button.opinionId))
-			SetOpinionButtonState(button, selected, false)
+			if button:IsEnabled() then
+				SetMenuButtonState(button, selected, false)
+			else
+				SetPlainButtonState(button, "disabled")
+			end
 		end
 	end
-	if frame.tagDropdowns then
-		for _, entry in ipairs(frame.tagDropdowns) do
-			if entry.label then
-				entry.label:SetText(T(entry.group.labelKey))
-			end
-			if entry.dropdown then
-				UIDropDownMenu_SetText(entry.dropdown, RatingGroupSummary(member, entry.group))
-			end
-			if entry.resetBtn then
-				entry.resetBtn.label:SetText(T("BTN_RESET"))
-			end
-		end
+end
+
+local function UpdateProfileEditor(frame, member)
+	if not frame or not member then
+		return
+	end
+	UpdateProfileOpinionControls(frame, member)
+	if frame.tagGroups then
+		local editable = member.guid and member.guid ~= ""
+		RefreshProfileTagCheckboxes(frame, member, editable)
 	end
 	if frame.communityHeading then
 		frame.communityHeading:SetText(T("RATING_COMMUNITY_TITLE"))
@@ -2230,7 +2282,7 @@ function Addon:RefreshRatingViews()
 	end
 end
 
-function Addon:SaveProfilePersonalRating(opinion, tagIds)
+function Addon:SaveProfilePersonalRating(opinion, tagIds, options)
 	local frame = self.raidDetailFrame
 	local member = frame and frame.profileMember
 	if not member or not member.guid or member.guid == "" or not self.SavePersonalRatingForGuid then
@@ -2241,8 +2293,22 @@ function Addon:SaveProfilePersonalRating(opinion, tagIds)
 		return
 	end
 	frame.profileMember = self:HistoryProfileForMember(member)
-	UpdateProfileEditor(frame, frame.profileMember)
-	self:RefreshRatingViews()
+	if options and options.opinionOnly then
+		UpdateProfileOpinionControls(frame, frame.profileMember)
+	elseif options and options.tagsOnly then
+		if frame.tagGroups then
+			local editable = frame.profileMember.guid and frame.profileMember.guid ~= ""
+			RefreshProfileTagCheckboxes(frame, frame.profileMember, editable)
+		end
+		UpdateProfileOpinionControls(frame, frame.profileMember)
+	else
+		UpdateProfileEditor(frame, frame.profileMember)
+	end
+	if options and options.deferViewRefresh then
+		ScheduleRatingViewRefresh()
+	else
+		self:RefreshRatingViews()
+	end
 end
 
 function Addon:SaveProfileNotes(notes)
@@ -2286,7 +2352,7 @@ function Addon:SetProfileOpinion(opinion)
 		return
 	end
 	local personal = self:GetPersonalRating(member)
-	self:SaveProfilePersonalRating(opinion, personal.tags)
+	self:SaveProfilePersonalRating(opinion, personal.tags, { opinionOnly = true, deferViewRefresh = true })
 end
 
 function Addon:ToggleProfileTag(tagId)
@@ -2323,32 +2389,31 @@ function Addon:ToggleProfileTag(tagId)
 		end
 		nextTags[#nextTags + 1] = tagId
 	end
-	self:SaveProfilePersonalRating(personal.opinion, nextTags)
+	self:SaveProfilePersonalRating(personal.opinion, nextTags, { deferViewRefresh = true, tagsOnly = true })
 end
 
-function Addon:ClearProfileTagGroup(group)
-	local frame = self.raidDetailFrame
-	local member = frame and frame.profileMember
-	if not member or type(group) ~= "table" or type(group.tags) ~= "table" then
+local function DetachFrameChildren(frame)
+	if not frame or not frame.GetChildren then
 		return
 	end
-	local blocked = {}
-	for index = 1, #group.tags do
-		blocked[group.tags[index].id] = true
-	end
-	local personal = self:GetPersonalRating(member)
-	local nextTags = {}
-	for index = 1, #personal.tags do
-		local tagId = personal.tags[index]
-		if not blocked[tagId] then
-			nextTags[#nextTags + 1] = tagId
+	local children = { frame:GetChildren() }
+	for index = 1, #children do
+		local child = children[index]
+		child:Hide()
+		if child.EnableMouse then
+			child:EnableMouse(false)
 		end
+		if child.EnableMouseWheel then
+			child:EnableMouseWheel(false)
+		end
+		child:SetParent(nil)
 	end
-	self:SaveProfilePersonalRating(personal.opinion, nextTags)
 end
 
 local function CreateRaidCharacterWindow()
 	local frame = CreateFrame("Frame", "RaidwiseRaidCharacterFrame", UIParent)
+	-- Named frames are reused; drop old children so prior layouts cannot steal clicks.
+	DetachFrameChildren(frame)
 	frame:SetSize(UI.RAID_DETAIL_W, UI.RAID_DETAIL_H)
 	frame:SetPoint("CENTER", 40, 20)
 	frame:SetFrameStrata("FULLSCREEN_DIALOG")
@@ -2359,7 +2424,14 @@ local function CreateRaidCharacterWindow()
 	frame:Hide()
 	ApplyPlainPanel(frame)
 	frame.layoutVersion = PROFILE_LAYOUT_VERSION
-	tinsert(UISpecialFrames, "RaidwiseRaidCharacterFrame")
+	frame.opinionButtons = nil
+	frame.profileTabButtons = nil
+	frame.profilePanels = nil
+	frame.tagGroups = nil
+	if not frame.rwInSpecialFrames then
+		tinsert(UISpecialFrames, "RaidwiseRaidCharacterFrame")
+		frame.rwInSpecialFrames = true
+	end
 
 	local titleBar = CreateFrame("Frame", nil, frame)
 	titleBar:SetPoint("TOPLEFT", 1, -1)
@@ -2560,7 +2632,7 @@ local function CreateRaidCharacterWindow()
 
 	local opinionPanel = CreateFrame("Frame", nil, tabContent)
 	opinionPanel:SetPoint("TOPLEFT", 0, 0)
-	opinionPanel:SetPoint("TOPRIGHT", 0, 0)
+	opinionPanel:SetPoint("BOTTOMRIGHT", 0, 0)
 	frame.profilePanels.opinion = opinionPanel
 
 	local ratingHeading = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -2574,27 +2646,24 @@ local function CreateRaidCharacterWindow()
 	local summaryLine = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	summaryLine:SetPoint("TOPLEFT", ratingHeading, "BOTTOMLEFT", 0, -6)
 	summaryLine:SetPoint("RIGHT", opinionPanel, "RIGHT", 0, 0)
+	summaryLine:SetHeight(16)
 	summaryLine:SetJustifyH("LEFT")
-	summaryLine:SetJustifyV("TOP")
+	summaryLine:SetJustifyV("MIDDLE")
 	frame.ratingSummary = summaryLine
 
+	-- Same placement pattern as Notes [ Save ] / [ Reset ]: CreatePlainButton on the panel.
 	frame.opinionButtons = {}
 	local opinionOrder = { "positive", "neutral", "negative" }
-	local opinionWidth = math.floor((tabContentWidth - 16) / 3)
+	local opinionWidth = math.floor((tabContentWidth - UI.ACTION_BTN_GAP * 2) / 3)
 	for index = 1, #opinionOrder do
 		local opinionId = opinionOrder[index]
-		local button = CreateChoiceButton(opinionPanel, opinionWidth, UI.ACTION_BTN_H, "")
+		local button = CreateOpinionActionButton(opinionPanel, opinionId, opinionWidth)
+		button:SetFrameLevel(opinionPanel:GetFrameLevel() + 20)
 		if index == 1 then
 			button:SetPoint("TOPLEFT", summaryLine, "BOTTOMLEFT", 0, -8)
 		else
-			button:SetPoint("LEFT", frame.opinionButtons[index - 1], "RIGHT", 8, 0)
+			button:SetPoint("LEFT", frame.opinionButtons[index - 1], "RIGHT", UI.ACTION_BTN_GAP, 0)
 		end
-		button.opinionId = opinionId
-		button.label:SetText(OpinionButtonLabel(opinionId))
-		SetOpinionButtonState(button, false, false)
-		button:SetScript("OnClick", function(self)
-			Addon:SetProfileOpinion(self.opinionId)
-		end)
 		frame.opinionButtons[index] = button
 	end
 
@@ -2606,43 +2675,79 @@ local function CreateRaidCharacterWindow()
 	SetFontColor(tagsHeading, UI.GOLD)
 	frame.tagsHeading = tagsHeading
 
-	frame.tagDropdowns = {}
-	local currentY = -8
+	frame.profileTabContentWidth = tabContentWidth
+	frame.tagGroups = {}
+
+	-- Host keeps the scroll strictly below the tags heading (never over the opinion buttons).
+	local tagBody = CreateFrame("Frame", nil, opinionPanel)
+	tagBody:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, -8)
+	tagBody:SetPoint("BOTTOMRIGHT", opinionPanel, "BOTTOMRIGHT", 0, 0)
+	tagBody:SetFrameLevel(opinionPanel:GetFrameLevel() + 1)
+	frame.tagBody = tagBody
+
+	local tagScrollName = "RaidwiseProfileTagScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
+	local tagScroll = CreateFrame("ScrollFrame", tagScrollName, tagBody, "UIPanelScrollFrameTemplate")
+	tagScroll:SetPoint("TOPLEFT", 0, 0)
+	tagScroll:SetPoint("BOTTOMRIGHT", -24, 0)
+	frame.tagScroll = tagScroll
+
+	local tagScrollBar = _G[tagScrollName .. "ScrollBar"]
+	if tagScrollBar then
+		tagScrollBar:ClearAllPoints()
+		tagScrollBar:SetPoint("TOPLEFT", tagBody, "TOPRIGHT", -20, -16)
+		tagScrollBar:SetPoint("BOTTOMLEFT", tagBody, "BOTTOMRIGHT", -20, 16)
+	end
+
+	local tagContent = CreateFrame("Frame", nil, tagScroll)
+	tagContent:SetWidth(tabContentWidth - 28)
+	tagScroll:SetScrollChild(tagContent)
+	frame.tagContent = tagContent
+
+	local currentY = 0
 	local groups = GetRatingTagGroups()
-	local labelWidth = 110
-	local resetButtonWidth = 64
-	local dropdownWidth = tabContentWidth - labelWidth - resetButtonWidth - 30
+	local columnWidth = math.floor((tabContentWidth - PROFILE_TAG_COL_GAP - 28) / 2)
 	for groupIndex = 1, #groups do
 		local group = groups[groupIndex]
-		local label = opinionPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		label:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", 0, currentY)
-		label:SetWidth(labelWidth - 4)
+		local label = tagContent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("TOPLEFT", tagContent, "TOPLEFT", 0, -currentY)
+		label:SetPoint("RIGHT", tagContent, "RIGHT", 0, 0)
 		label:SetJustifyH("LEFT")
-		label:SetJustifyV("MIDDLE")
 		SetFontColor(label, UI.TEXT_HOVER)
 		label:SetText(T(group.labelKey))
 
-		local dropdown = CreateTagDropdown(
-			opinionPanel,
-			"RaidwiseProfileTagDropdown" .. tostring(groupIndex),
-			dropdownWidth,
-			group
-		)
-		dropdown:SetPoint("TOPLEFT", tagsHeading, "BOTTOMLEFT", labelWidth - 16, currentY + 10)
-		local resetBtn = CreatePlainButton(opinionPanel, resetButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
-		resetBtn:SetPoint("LEFT", dropdown, "RIGHT", 6, 2)
-		resetBtn:SetScript("OnClick", function()
-			Addon:ClearProfileTagGroup(group)
-		end)
-		frame.tagDropdowns[#frame.tagDropdowns + 1] = {
+		local checkboxes = {}
+		local leftColumn = CreateFrame("Frame", nil, tagContent)
+		leftColumn:SetSize(columnWidth, 1)
+		leftColumn:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -4)
+
+		local rightColumn = CreateFrame("Frame", nil, tagContent)
+		rightColumn:SetSize(columnWidth, 1)
+		rightColumn:SetPoint("TOPLEFT", leftColumn, "TOPRIGHT", PROFILE_TAG_COL_GAP, 0)
+
+		for tagIndex = 1, #group.tags do
+			local tag = group.tags[tagIndex]
+			local column = (tagIndex % 2 == 0) and rightColumn or leftColumn
+			local rowIndex = math.floor((tagIndex - 1) / 2)
+			local checkbox = CreateProfileTagCheckbox(column, tag, group, columnWidth)
+			checkbox:SetPoint("TOPLEFT", column, "TOPLEFT", 0, -(rowIndex * PROFILE_TAG_ROW_H))
+			checkboxes[#checkboxes + 1] = checkbox
+		end
+
+		local rows = math.ceil(#group.tags / 2)
+		local columnHeight = rows * PROFILE_TAG_ROW_H
+		leftColumn:SetHeight(columnHeight)
+		rightColumn:SetHeight(columnHeight)
+
+		frame.tagGroups[#frame.tagGroups + 1] = {
 			group = group,
 			label = label,
-			dropdown = dropdown,
-			resetBtn = resetBtn,
+			leftColumn = leftColumn,
+			rightColumn = rightColumn,
+			checkboxes = checkboxes,
 		}
-		currentY = currentY - 32
+		currentY = currentY + ProfileTagGroupHeight(#group.tags)
 	end
-	opinionPanel:SetHeight(math.abs(currentY) + 120)
+	tagContent:SetHeight(math.max(currentY, 1))
 
 	local notesPanel = CreateFrame("Frame", nil, tabContent)
 	notesPanel:SetPoint("TOPLEFT", 0, 0)
@@ -2717,6 +2822,7 @@ function Addon:ShowRaidCharacterWindow(member)
 	if ProfileFrameNeedsRebuild(self.raidDetailFrame) then
 		if self.raidDetailFrame then
 			self.raidDetailFrame:Hide()
+			self.raidDetailFrame:SetParent(nil)
 		end
 		self.raidDetailFrame = nil
 	end
@@ -2841,32 +2947,8 @@ function Addon:ShowRaidCharacterWindow(member)
 			end
 		end
 	end
-	if frame.tagDropdowns then
-		for _, entry in ipairs(frame.tagDropdowns) do
-			local dropdown = entry.dropdown
-			local resetBtn = entry.resetBtn
-			if not dropdown then
-				-- continue
-			elseif editable then
-				if UIDropDownMenu_EnableDropDown then
-					UIDropDownMenu_EnableDropDown(dropdown)
-				end
-				dropdown:EnableMouse(true)
-				dropdown:SetAlpha(1)
-				if resetBtn then
-					resetBtn:Enable()
-				end
-			else
-				if UIDropDownMenu_DisableDropDown then
-					UIDropDownMenu_DisableDropDown(dropdown)
-				end
-				dropdown:EnableMouse(false)
-				dropdown:SetAlpha(0.6)
-				if resetBtn then
-					resetBtn:Disable()
-				end
-			end
-		end
+	if frame.tagGroups then
+		RefreshProfileTagCheckboxes(frame, member, editable)
 	end
 	if frame.notesBox and frame.notesHost then
 		if editable then
