@@ -1,0 +1,49 @@
+---
+description: Layout version bump rules for Raidwise UI views
+alwaysApply: false
+globs:
+  - Raidwise/**/*.lua
+  - docs/UI-Views.md
+  - docs/UI-Sizes.md
+---
+
+# Layout versions
+
+Raidwise uses **layout versions** (`vN` badges) separate from addon semver (`Addon.version`).
+
+## When to bump
+
+Bump the relevant `*_LAYOUT_VERSION` or page `LAYOUT_VERSION` when you change:
+
+- Frame structure (new/removed panels, tabs, columns)
+- Control layout or geometry (anchors, sizes, scroll areas)
+- Named frames that must be recreated (`RaidwiseExportScroll`, profile tag scroll, etc.)
+- Shared theme sizes in `Addon.UITheme` that affect an existing view
+
+Do **not** bump for:
+
+- Locale / string-only edits (`Locale.lua`, `RefreshLocalizedUI` text)
+- Data-only logic (roster builders, export JSON, lockout math)
+- Color tweaks that do not change layout geometry (prefer semver PATCH if user-visible)
+
+## Where constants live
+
+| View | Constant | Module |
+|------|----------|--------|
+| Main shell | `SHELL_LAYOUT_VERSION` | `ExporterWindow.lua` |
+| Profile popup | `PROFILE_LAYOUT_VERSION` | `CharacterProfile.lua` |
+| Content pages | `LAYOUT_VERSION` on `Addon.Pages.*` | `Page*.lua` |
+
+## After bumping
+
+1. Stamp `frame.layoutVersion` or `page.layoutVersion` in `Create`.
+2. Show badge via `Addon.Widgets.AttachLayoutVersionLabel` (title bar) or `AttachPageLayoutBadge` (page toolbar).
+3. Ensure rebuild logic compares stored version to registered constant (shell + profile already do).
+4. Update the layout table in `docs/UI-Views.md`.
+5. Update affected sizes in `docs/UI-Sizes.md` when pixels change.
+
+## Versioning guidance
+
+- Start new views at `LAYOUT_VERSION = 1`.
+- Increment by 1 per structural change (no semver coupling).
+- Profile layout can jump (currently `22`) when large profile refactors ship; keep one constant per profile window generation.

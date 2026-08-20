@@ -1,15 +1,13 @@
 -- Character profile window (standalone): opinion, tags, notes, history.
 
 local Addon = Raidwise
+local W = Addon.Widgets
 
 local function T(key, ...)
-	if Addon.T then
-		return Addon:T(key, ...)
-	end
-	return tostring(key or "")
+	return W.T(key, ...)
 end
 
--- Profile-local sizes/colors (keep in sync with docs/UI-Sizes.md Character profile).
+-- Profile-local sizes (keep in sync with docs/UI-Sizes.md Character profile).
 local UI = {
 	PAD = 10,
 	TITLE_H = 20,
@@ -33,200 +31,7 @@ local UI = {
 	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
 }
 
-local COPY_BACKDROP = {
-	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-	edgeSize = 16,
-	insets = { left = 4, right = 3, top = 4, bottom = 3 },
-}
-
-local function ApplyPlainPanel(frame, color)
-	color = color or UI.PANEL_BG
-	frame:SetBackdrop({
-		bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-		tile = true,
-		tileSize = 16,
-		insets = { left = 1, right = 1, top = 1, bottom = 1 },
-	})
-	frame:SetBackdropColor(color[1], color[2], color[3], color[4] or 1)
-
-	if frame.rwBorderTop then
-		return
-	end
-
-	local function Edge(layerPointA, relA, layerPointB, relB, width, height)
-		local tex = frame:CreateTexture(nil, "BORDER")
-		tex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
-		tex:SetVertexColor(0, 0, 0, 1)
-		tex:SetPoint(layerPointA, frame, relA)
-		tex:SetPoint(layerPointB, frame, relB)
-		if width then
-			tex:SetWidth(width)
-		end
-		if height then
-			tex:SetHeight(height)
-		end
-		return tex
-	end
-
-	frame.rwBorderTop = Edge("TOPLEFT", "TOPLEFT", "TOPRIGHT", "TOPRIGHT", nil, 1)
-	frame.rwBorderBottom = Edge("BOTTOMLEFT", "BOTTOMLEFT", "BOTTOMRIGHT", "BOTTOMRIGHT", nil, 1)
-	frame.rwBorderLeft = Edge("TOPLEFT", "TOPLEFT", "BOTTOMLEFT", "BOTTOMLEFT", 1, nil)
-	frame.rwBorderRight = Edge("TOPRIGHT", "TOPRIGHT", "BOTTOMRIGHT", "BOTTOMRIGHT", 1, nil)
-end
-
-local function SetFontColor(fontString, color)
-	fontString:SetTextColor(color[1], color[2], color[3], color[4] or 1)
-end
-
-local function SetPlainButtonState(button, state)
-	if state == "selected" then
-		button:SetBackdropColor(UI.BTN_SELECTED[1], UI.BTN_SELECTED[2], UI.BTN_SELECTED[3], UI.BTN_SELECTED[4])
-		SetFontColor(button.label, UI.GOLD)
-	elseif state == "hover" then
-		button:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
-		SetFontColor(button.label, UI.TEXT_HOVER)
-	elseif state == "disabled" then
-		button:SetBackdropColor(UI.BTN_DISABLED[1], UI.BTN_DISABLED[2], UI.BTN_DISABLED[3], UI.BTN_DISABLED[4])
-		SetFontColor(button.label, UI.TEXT_DISABLED)
-	else
-		button:SetBackdropColor(UI.BTN_IDLE[1], UI.BTN_IDLE[2], UI.BTN_IDLE[3], UI.BTN_IDLE[4])
-		SetFontColor(button.label, UI.TEXT_IDLE)
-	end
-end
-
-local function ActionButtonState(button, hovering)
-	if not button:IsEnabled() then
-		return "disabled"
-	end
-	if hovering then
-		return "hover"
-	end
-	return "idle"
-end
-
-local function CreatePlainButton(parent, width, height, label)
-	local button = CreateFrame("Button", nil, parent)
-	button:SetSize(width, height)
-	ApplyPlainPanel(button, UI.BTN_IDLE)
-
-	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	text:SetPoint("CENTER", 0, 0)
-	text:SetText(label)
-	SetFontColor(text, UI.TEXT_IDLE)
-	button.label = text
-
-	button:SetScript("OnEnter", function(self)
-		SetPlainButtonState(self, ActionButtonState(self, true))
-	end)
-	button:SetScript("OnLeave", function(self)
-		SetPlainButtonState(self, ActionButtonState(self, false))
-	end)
-	button:SetScript("OnEnable", function(self)
-		SetPlainButtonState(self, ActionButtonState(self, false))
-	end)
-	button:SetScript("OnDisable", function(self)
-		SetPlainButtonState(self, "disabled")
-	end)
-
-	return button
-end
-
-local function SetMenuButtonState(button, selected, hovering)
-	if selected then
-		SetPlainButtonState(button, "selected")
-	elseif hovering then
-		SetPlainButtonState(button, "hover")
-	else
-		SetPlainButtonState(button, "idle")
-	end
-end
-
-local function AttachDragHandle(handle, target)
-	handle:EnableMouse(true)
-	handle:RegisterForDrag("LeftButton")
-	handle:SetScript("OnDragStart", function()
-		target:StartMoving()
-	end)
-	handle:SetScript("OnDragStop", function()
-		target:StopMovingOrSizing()
-	end)
-end
-
-local function ChatFontLineHeight()
-	local _, fontSize = ChatFontNormal:GetFont()
-	fontSize = tonumber(fontSize) or 14
-	return fontSize + 2
-end
-
-local function ClassColor(classToken)
-	local color = RAID_CLASS_COLORS and RAID_CLASS_COLORS[classToken]
-	if color then
-		return color.r, color.g, color.b
-	end
-	return UI.TEXT_IDLE[1], UI.TEXT_IDLE[2], UI.TEXT_IDLE[3]
-end
-
-local ICON_TEX_INSET = 0.07
-local ICON_TEX_MAX = 1 - ICON_TEX_INSET
-
-local function SetSpecOrClassIcon(texture, specIcon, classToken)
-	if specIcon and specIcon ~= "" then
-		texture:SetTexture(specIcon)
-		texture:SetTexCoord(ICON_TEX_INSET, ICON_TEX_MAX, ICON_TEX_INSET, ICON_TEX_MAX)
-		return
-	end
-	texture:SetTexture("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES")
-	local coords = CLASS_ICON_TCOORDS and classToken and CLASS_ICON_TCOORDS[classToken]
-	if coords then
-		texture:SetTexCoord(coords[1], coords[2], coords[3], coords[4])
-	else
-		texture:SetTexCoord(0, 1, 0, 1)
-	end
-end
-
-local function FormatGuildDisplay(guildName, guildRank)
-	if not guildName or guildName == "" then
-		return "-"
-	end
-	if guildRank and guildRank ~= "" then
-		return guildName .. " (" .. guildRank .. ")"
-	end
-	return guildName
-end
-
-local function RatingOpinion(member)
-	if Addon.GetPersonalRating then
-		local rating = Addon:GetPersonalRating(member)
-		return rating.opinion, rating.tags
-	end
-	return "neutral", {}
-end
-
-local function RatingOpinionColor(member)
-	local opinion = RatingOpinion(member)
-	if Addon.RatingOpinionColor then
-		return Addon:RatingOpinionColor(opinion)
-	end
-	return UI.TEXT_IDLE
-end
-
-local function FormatOpinionLine(member)
-	local opinion = RatingOpinion(member)
-	local label = opinion
-	if Addon.RatingOpinionLabel then
-		label = Addon:RatingOpinionLabel(opinion)
-	end
-	return T("RATING_PROFILE_OPINION", label)
-end
-
-local function FormatTagLine(member)
-	local _, tags = RatingOpinion(member)
-	if Addon.RatingTagColoredSummary then
-		return Addon:RatingTagColoredSummary(tags, 3)
-	end
-	return ""
-end
+local PROFILE_LAYOUT_VERSION = 22
 
 local function GetRatingTagGroups()
 	if Addon.RatingTagGroups then
@@ -256,8 +61,6 @@ local function RatingUIReady()
 	return Addon.RatingTagGroups ~= nil and Addon.GetPersonalRating ~= nil
 end
 
-local PROFILE_LAYOUT_VERSION = 22
-
 -- Summary + radios + tags heading only (no "Personal note" title).
 local PROFILE_OPINION_HEADER_H = 72
 local PROFILE_OPINION_RADIO_SIZE = 16
@@ -283,7 +86,7 @@ end
 local function CreateProfileNotesBox(parent, width, height)
 	local host = CreateFrame("Frame", nil, parent)
 	host:SetSize(width, height)
-	host:SetBackdrop(COPY_BACKDROP)
+	host:SetBackdrop(W.COPY_BACKDROP)
 	host:SetBackdropColor(0, 0, 0, 1)
 	host:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
 
@@ -316,7 +119,7 @@ local function CreateProfileNotesBox(parent, width, height)
 		if y < offset then
 			scroll:SetVerticalScroll(y)
 		else
-			y = y + (cursorHeight or ChatFontLineHeight()) - scroll:GetHeight()
+			y = y + (cursorHeight or W.ChatFontLineHeight()) - scroll:GetHeight()
 			if y > offset then
 				scroll:SetVerticalScroll(y)
 			end
@@ -480,7 +283,7 @@ function Addon:SelectProfileTab(tabId)
 	end
 	if frame.profileTabButtons then
 		for _, button in ipairs(frame.profileTabButtons) do
-			SetMenuButtonState(button, button.tabId == tabId, false)
+			W.SetMenuButtonState(button, button.tabId == tabId, false)
 		end
 	end
 end
@@ -488,7 +291,7 @@ end
 local function CreateProfileTabButton(parent, tabId, label, width)
 	local button = CreateFrame("Button", nil, parent)
 	button:SetSize(width, UI.PROFILE_TAB_H)
-	ApplyPlainPanel(button, UI.BTN_IDLE)
+	W.ApplyPlainPanel(button, UI.BTN_IDLE)
 	button.tabId = tabId
 
 	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -499,15 +302,15 @@ local function CreateProfileTabButton(parent, tabId, label, width)
 	button.label = text
 
 	button:SetScript("OnEnter", function(self)
-		SetMenuButtonState(self, Addon.raidDetailFrame and Addon.raidDetailFrame.selectedProfileTab == tabId, true)
+		W.SetMenuButtonState(self, Addon.raidDetailFrame and Addon.raidDetailFrame.selectedProfileTab == tabId, true)
 	end)
 	button:SetScript("OnLeave", function(self)
-		SetMenuButtonState(self, Addon.raidDetailFrame and Addon.raidDetailFrame.selectedProfileTab == tabId, false)
+		W.SetMenuButtonState(self, Addon.raidDetailFrame and Addon.raidDetailFrame.selectedProfileTab == tabId, false)
 	end)
 	button:SetScript("OnClick", function()
 		Addon:SelectProfileTab(tabId)
 	end)
-	SetMenuButtonState(button, false, false)
+	W.SetMenuButtonState(button, false, false)
 	return button
 end
 
@@ -563,9 +366,9 @@ local function RefreshOpinionRadios(frame, selectedOpinion)
 		if radio.label then
 			radio.label:SetText(OpinionButtonLabel(radio.opinionId))
 			if radio:IsEnabled() then
-				SetFontColor(radio.label, checked and UI.GOLD or UI.TEXT_IDLE)
+				W.SetFontColor(radio.label, checked and UI.GOLD or UI.TEXT_IDLE)
 			else
-				SetFontColor(radio.label, UI.TEXT_DISABLED)
+				W.SetFontColor(radio.label, UI.TEXT_DISABLED)
 			end
 		end
 		radio.isUpdating = false
@@ -584,9 +387,9 @@ local function PaintOpinionLabels(frame, opinionId, tags)
 	if Addon.RatingOpinionColor then
 		color = Addon:RatingOpinionColor(opinionId)
 	end
-	if frame.karmaText then
-		frame.karmaText:SetText(T("RATING_PROFILE_OPINION", label))
-		SetFontColor(frame.karmaText, color)
+	if frame.opinionText then
+		frame.opinionText:SetText(T("RATING_PROFILE_OPINION", label))
+		W.SetFontColor(frame.opinionText, color)
 	end
 	if frame.tagText then
 		local tagSummary = ""
@@ -595,10 +398,10 @@ local function PaintOpinionLabels(frame, opinionId, tags)
 		end
 		if tagSummary ~= "" then
 			frame.tagText:SetText(tagSummary)
-			SetFontColor(frame.tagText, UI.TEXT_IDLE)
+			W.SetFontColor(frame.tagText, UI.TEXT_IDLE)
 		else
 			frame.tagText:SetText(T("RATING_TAGS_NONE"))
-			SetFontColor(frame.tagText, UI.TEXT_DISABLED)
+			W.SetFontColor(frame.tagText, UI.TEXT_DISABLED)
 		end
 	end
 	if frame.ratingSummary then
@@ -648,7 +451,7 @@ local function CreateOpinionRadio(parent, opinionId, columnWidth)
 	label:SetPoint("RIGHT", host, "RIGHT", 0, 0)
 	label:SetJustifyH("LEFT")
 	label:SetText(OpinionButtonLabel(opinionId))
-	SetFontColor(label, UI.TEXT_IDLE)
+	W.SetFontColor(label, UI.TEXT_IDLE)
 	radio.label = label
 	radio.host = host
 
@@ -736,7 +539,7 @@ local function SetProfileTagCheckboxState(checkbox, checked, enabled)
 		checkbox:Enable()
 		checkbox:SetAlpha(1)
 		if checkbox.label then
-			SetFontColor(checkbox.label, checkbox.labelColor or UI.TEXT_IDLE)
+			W.SetFontColor(checkbox.label, checkbox.labelColor or UI.TEXT_IDLE)
 		end
 		if checkbox.hit then
 			checkbox.hit:Enable()
@@ -745,7 +548,7 @@ local function SetProfileTagCheckboxState(checkbox, checked, enabled)
 		checkbox:Disable()
 		checkbox:SetAlpha(0.55)
 		if checkbox.label then
-			SetFontColor(checkbox.label, UI.TEXT_DISABLED)
+			W.SetFontColor(checkbox.label, UI.TEXT_DISABLED)
 		end
 		if checkbox.hit then
 			checkbox.hit:Disable()
@@ -797,7 +600,7 @@ local function CreateProfileTagCheckbox(parent, tag, group, columnWidth)
 	label:SetJustifyH("LEFT")
 	label:SetText(TagCheckboxLabel(tag.id))
 	check.labelColor = TagCheckboxColor(tag.id)
-	SetFontColor(label, check.labelColor)
+	W.SetFontColor(label, check.labelColor)
 	check.label = label
 
 	local hit = CreateFrame("Button", nil, parent)
@@ -1001,39 +804,10 @@ function Addon:CommitProfileRating()
 	UpdateProfileEditor(frame, frame.profileMember)
 end
 
-local function AttachLayoutVersionLabel(titleBar, version)
-	-- Reusable title-bar badge for view layout versions (profile first; other windows later).
-	local label = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	label:SetPoint("RIGHT", -(UI.CLOSE_SIZE + 8), 0)
-	label:SetJustifyH("RIGHT")
-	label:SetText("v" .. tostring(version))
-	SetFontColor(label, UI.TEXT_DISABLED)
-	titleBar.layoutVersionText = label
-	return label
-end
-
-local function DetachFrameChildren(frame)
-	if not frame or not frame.GetChildren then
-		return
-	end
-	local children = { frame:GetChildren() }
-	for index = 1, #children do
-		local child = children[index]
-		child:Hide()
-		if child.EnableMouse then
-			child:EnableMouse(false)
-		end
-		if child.EnableMouseWheel then
-			child:EnableMouseWheel(false)
-		end
-		child:SetParent(nil)
-	end
-end
-
 local function CreateRaidCharacterWindow()
 	local frame = CreateFrame("Frame", "RaidwiseRaidCharacterFrame", UIParent)
 	-- Named frames are reused; drop old children so prior layouts cannot steal clicks.
-	DetachFrameChildren(frame)
+	W.DetachFrameChildren(frame)
 	frame:SetSize(UI.RAID_DETAIL_W, UI.RAID_DETAIL_H)
 	frame:SetPoint("CENTER", 40, 20)
 	frame:SetFrameStrata("FULLSCREEN_DIALOG")
@@ -1042,7 +816,7 @@ local function CreateRaidCharacterWindow()
 	frame:EnableMouse(true)
 	frame:SetClampedToScreen(true)
 	frame:Hide()
-	ApplyPlainPanel(frame)
+	W.ApplyPlainPanel(frame)
 	frame.layoutVersion = PROFILE_LAYOUT_VERSION
 	frame.opinionButtons = nil
 	frame.profileTabButtons = nil
@@ -1061,8 +835,8 @@ local function CreateRaidCharacterWindow()
 	titleBar:SetPoint("TOPLEFT", 1, -1)
 	titleBar:SetPoint("TOPRIGHT", -1, -1)
 	titleBar:SetHeight(UI.TITLE_H)
-	ApplyPlainPanel(titleBar, UI.TITLE_BG)
-	AttachDragHandle(titleBar, frame)
+	W.ApplyPlainPanel(titleBar, UI.TITLE_BG)
+	W.AttachDragHandle(titleBar, frame)
 
 	local close = CreateFrame("Button", nil, titleBar)
 	close:SetSize(UI.CLOSE_SIZE, UI.CLOSE_SIZE)
@@ -1070,25 +844,25 @@ local function CreateRaidCharacterWindow()
 	local closeText = close:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	closeText:SetPoint("CENTER", 1, 1)
 	closeText:SetText("X")
-	SetFontColor(closeText, UI.GOLD)
+	W.SetFontColor(closeText, UI.GOLD)
 	close:SetScript("OnEnter", function()
 		closeText:SetTextColor(1, 0.25, 0.25)
 	end)
 	close:SetScript("OnLeave", function()
-		SetFontColor(closeText, UI.GOLD)
+		W.SetFontColor(closeText, UI.GOLD)
 	end)
 	close:SetScript("OnClick", function()
 		frame:Hide()
 	end)
 
-	local layoutVersionText = AttachLayoutVersionLabel(titleBar, PROFILE_LAYOUT_VERSION)
+	local layoutVersionText = W.AttachLayoutVersionLabel(titleBar, PROFILE_LAYOUT_VERSION, close)
 	frame.layoutVersionText = layoutVersionText
 
 	local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	title:SetPoint("LEFT", 8, 0)
 	title:SetPoint("RIGHT", layoutVersionText, "LEFT", -8, 0)
 	title:SetJustifyH("LEFT")
-	SetFontColor(title, UI.GOLD)
+	W.SetFontColor(title, UI.GOLD)
 	frame.titleText = title
 
 	local body = CreateFrame("Frame", nil, frame)
@@ -1176,14 +950,14 @@ local function CreateRaidCharacterWindow()
 	gsText:SetPoint("TOPLEFT", classCell, "BOTTOMLEFT", 0, -4)
 	gsText:SetWidth(columnWidth)
 	gsText:SetJustifyH("LEFT")
-	SetFontColor(gsText, UI.TEXT_IDLE)
+	W.SetFontColor(gsText, UI.TEXT_IDLE)
 	frame.gsText = gsText
 
 	local ilvlText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	ilvlText:SetPoint("TOPLEFT", specIconHost, "BOTTOMLEFT", 0, -4)
 	ilvlText:SetWidth(columnWidth)
 	ilvlText:SetJustifyH("LEFT")
-	SetFontColor(ilvlText, UI.TEXT_IDLE)
+	W.SetFontColor(ilvlText, UI.TEXT_IDLE)
 	frame.ilvlText = ilvlText
 
 	local summary = CreateFrame("Frame", nil, body)
@@ -1202,12 +976,12 @@ local function CreateRaidCharacterWindow()
 		text:SetWidth(width)
 		text:SetJustifyH("LEFT")
 		text:SetJustifyV("TOP")
-		SetFontColor(text, UI.TEXT_IDLE)
+		W.SetFontColor(text, UI.TEXT_IDLE)
 		return text
 	end
 
-	frame.karmaText = CreateSummaryLine(summary, nil, 0, columnWidth)
-	frame.tagText = CreateSummaryLine(summary, frame.karmaText, -6, columnWidth)
+	frame.opinionText = CreateSummaryLine(summary, nil, 0, columnWidth)
+	frame.tagText = CreateSummaryLine(summary, frame.opinionText, -6, columnWidth)
 	frame.guildText = CreateSummaryLine(summary, frame.tagText, -6, columnWidth)
 	frame.guidText = CreateSummaryLine(summary, frame.guildText, -6, columnWidth)
 	frame.metRealmText = CreateSummaryLine(summary, frame.guidText, -6, columnWidth)
@@ -1216,7 +990,7 @@ local function CreateRaidCharacterWindow()
 	communityHeading:SetPoint("TOPLEFT", columnWidth + columnGap, 0)
 	communityHeading:SetWidth(columnWidth)
 	communityHeading:SetJustifyH("LEFT")
-	SetFontColor(communityHeading, UI.GOLD)
+	W.SetFontColor(communityHeading, UI.GOLD)
 	frame.communityHeading = communityHeading
 
 	local communityText = summary:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -1251,7 +1025,7 @@ local function CreateRaidCharacterWindow()
 	tabHost:SetPoint("BOTTOMRIGHT", body, "BOTTOMRIGHT", 0, UI.ACTION_BTN_H + 8)
 	frame.tabHost = tabHost
 
-	local updateBtn = CreatePlainButton(body, bodyWidth, UI.ACTION_BTN_H, T("BTN_UPDATE"))
+	local updateBtn = W.CreatePlainButton(body, bodyWidth, UI.ACTION_BTN_H, T("BTN_UPDATE"))
 	updateBtn:SetPoint("BOTTOMLEFT", 0, 0)
 	updateBtn:SetPoint("BOTTOMRIGHT", 0, 0)
 	updateBtn:SetScript("OnClick", function()
@@ -1313,7 +1087,7 @@ local function CreateRaidCharacterWindow()
 	tagsHeading:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
 	tagsHeading:SetJustifyH("LEFT")
 	tagsHeading:SetText(T("RATING_TAGS_TITLE"))
-	SetFontColor(tagsHeading, UI.GOLD)
+	W.SetFontColor(tagsHeading, UI.GOLD)
 	frame.tagsHeading = tagsHeading
 
 	frame.profileTabContentWidth = tabContentWidth
@@ -1359,7 +1133,7 @@ local function CreateRaidCharacterWindow()
 		label:SetPoint("TOPLEFT", tagContent, "TOPLEFT", 0, -currentY)
 		label:SetPoint("RIGHT", tagContent, "RIGHT", 0, 0)
 		label:SetJustifyH("LEFT")
-		SetFontColor(label, UI.TEXT_HOVER)
+		W.SetFontColor(label, UI.TEXT_HOVER)
 		label:SetText(T(group.labelKey))
 
 		local checkboxes = {}
@@ -1408,7 +1182,7 @@ local function CreateRaidCharacterWindow()
 	notesHeading:SetPoint("RIGHT", notesPanel, "RIGHT", 0, 0)
 	notesHeading:SetJustifyH("LEFT")
 	notesHeading:SetText(T("PROFILE_NOTES"))
-	SetFontColor(notesHeading, UI.GOLD)
+	W.SetFontColor(notesHeading, UI.GOLD)
 	frame.notesHeading = notesHeading
 
 	local notesHost, notesBox = CreateProfileNotesBox(notesPanel, tabContentWidth, 96)
@@ -1417,7 +1191,7 @@ local function CreateRaidCharacterWindow()
 	frame.notesBox = notesBox
 
 	local notesButtonWidth = math.floor((tabContentWidth - UI.ACTION_BTN_GAP) / 2)
-	local notesSaveBtn = CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_SAVE"))
+	local notesSaveBtn = W.CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_SAVE"))
 	notesSaveBtn:SetPoint("TOPLEFT", notesHost, "BOTTOMLEFT", 0, -8)
 	notesSaveBtn:SetScript("OnClick", function()
 		if frame.notesBox then
@@ -1427,7 +1201,7 @@ local function CreateRaidCharacterWindow()
 	end)
 	frame.notesSaveBtn = notesSaveBtn
 
-	local notesResetBtn = CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
+	local notesResetBtn = W.CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
 	notesResetBtn:SetPoint("LEFT", notesSaveBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
 	notesResetBtn:SetScript("OnClick", function()
 		Addon:ResetProfileNotes()
@@ -1488,34 +1262,34 @@ function Addon:ShowRaidCharacterWindow(member)
 	frame.profileMember = member
 
 	frame.titleText:SetText(T("PROFILE_TITLE", member.name or "?"))
-	SetSpecOrClassIcon(frame.classIcon, nil, member.class)
+	W.SetSpecOrClassIcon(frame.classIcon, nil, member.class)
 	frame.classText:SetText(member.classLabel ~= "" and member.classLabel or "-")
-	frame.classText:SetTextColor(ClassColor(member.class))
+	frame.classText:SetTextColor(W.ClassColor(member.class))
 
 	if member.specIcon and member.specIcon ~= "" then
-		SetSpecOrClassIcon(frame.specIcon, member.specIcon, member.class)
+		W.SetSpecOrClassIcon(frame.specIcon, member.specIcon, member.class)
 		frame.specIcon:Show()
 	else
-		SetSpecOrClassIcon(frame.specIcon, nil, member.class)
+		W.SetSpecOrClassIcon(frame.specIcon, nil, member.class)
 		frame.specIcon:Show()
 	end
 	frame.specText:SetText((member.spec and member.spec ~= "") and member.spec or "-")
-	SetFontColor(frame.specText, UI.TEXT_IDLE)
+	W.SetFontColor(frame.specText, UI.TEXT_IDLE)
 
 	if member.gearScore then
 		frame.gsText:SetText(T("PROFILE_GS", tostring(member.gearScore)))
-		SetFontColor(frame.gsText, UI.GOLD)
+		W.SetFontColor(frame.gsText, UI.GOLD)
 	else
 		frame.gsText:SetText(T("PROFILE_GS", "-"))
-		SetFontColor(frame.gsText, UI.TEXT_DISABLED)
+		W.SetFontColor(frame.gsText, UI.TEXT_DISABLED)
 	end
 
 	if member.averageIlvl then
 		frame.ilvlText:SetText(T("PROFILE_ILVL", tostring(member.averageIlvl)))
-		SetFontColor(frame.ilvlText, UI.TEXT_IDLE)
+		W.SetFontColor(frame.ilvlText, UI.TEXT_IDLE)
 	else
 		frame.ilvlText:SetText(T("PROFILE_ILVL", "-"))
-		SetFontColor(frame.ilvlText, UI.TEXT_DISABLED)
+		W.SetFontColor(frame.ilvlText, UI.TEXT_DISABLED)
 	end
 
 	if SetProfileRaceIcon(frame.raceIcon, member.race, member.gender) then
@@ -1528,8 +1302,8 @@ function Addon:ShowRaidCharacterWindow(member)
 		frame.classIconHost:SetPoint("TOPLEFT", frame.classCell, "TOPLEFT", 0, 0)
 	end
 
-	frame.guildText:SetText(T("PROFILE_GUILD", FormatGuildDisplay(member.guildName, member.guildRank)))
-	SetFontColor(frame.guildText, UI.TEXT_IDLE)
+	frame.guildText:SetText(T("PROFILE_GUILD", W.FormatGuildDisplay(member.guildName, member.guildRank)))
+	W.SetFontColor(frame.guildText, UI.TEXT_IDLE)
 
 	InitProfileDraft(frame, member)
 	local draftOpinion, draftTags = GetProfileDraft(frame)
@@ -1537,18 +1311,18 @@ function Addon:ShowRaidCharacterWindow(member)
 
 	if member.guid and member.guid ~= "" then
 		frame.guidText:SetText(T("PROFILE_GUID", member.guid))
-		SetFontColor(frame.guidText, UI.TEXT_IDLE)
+		W.SetFontColor(frame.guidText, UI.TEXT_IDLE)
 	else
 		frame.guidText:SetText(T("PROFILE_GUID", "-"))
-		SetFontColor(frame.guidText, UI.TEXT_DISABLED)
+		W.SetFontColor(frame.guidText, UI.TEXT_DISABLED)
 	end
 
 	if member.metRealm and member.metRealm ~= "" then
 		frame.metRealmText:SetText(T("PROFILE_REALM", member.metRealm))
-		SetFontColor(frame.metRealmText, UI.TEXT_IDLE)
+		W.SetFontColor(frame.metRealmText, UI.TEXT_IDLE)
 	else
 		frame.metRealmText:SetText(T("PROFILE_REALM", "-"))
-		SetFontColor(frame.metRealmText, UI.TEXT_DISABLED)
+		W.SetFontColor(frame.metRealmText, UI.TEXT_DISABLED)
 	end
 
 	if frame.profileTabButtons then
