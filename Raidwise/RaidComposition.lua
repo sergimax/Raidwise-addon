@@ -111,7 +111,7 @@ local EFFECTS = {
 		section = "buffs",
 		id = "haste_all",
 		labelKey = "COMP_HASTE_ALL",
-		spellId = 53375,
+		spellId = 53648,
 		sources = { Src("PALADIN", 3), Src("DRUID", 1) },
 	},
 	{

@@ -24,7 +24,7 @@ Raid-wide stat and throughput buffs. Spells in the same row **do not stack**.
 | Category | Effect | Who brings it |
 |----------|--------|----------------|
 | 10% stats | Blessing of Kings; Blessing of Sanctuary (Prot) | Any Paladin; Protection Paladin |
-| Mark of the Wild | Flat stats + resistances | Any Druid |
+| Gift of the Wild | Flat stats + resistances | Any Druid |
 | Stamina | Power Word: Fortitude / Prayer of Fortitude | Any Priest |
 | Intellect | Arcane Intellect / Arcane Brilliance; Fel Intelligence | Any Mage; Affliction Warlock |
 | Spirit | Divine Spirit / Prayer of Spirit; Fel Intelligence | Any Priest; Affliction Warlock |
