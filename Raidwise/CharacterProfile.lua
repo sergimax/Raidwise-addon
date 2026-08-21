@@ -221,6 +221,7 @@ local PROFILE_TABS = {
 
 local UpdateProfileEventsPanel
 local RefreshProfileFactCheckboxes
+local UpdateProfileCommitButton
 
 local function FormatProfileChangeDetail(change)
 	if type(change) ~= "table" then
@@ -294,6 +295,36 @@ local function UpdateProfileHistoryPanel(frame, member)
 	end
 end
 
+UpdateProfileCommitButton = function(frame, tabId)
+	if not frame then
+		return
+	end
+	tabId = tabId or frame.selectedProfileTab or "opinion"
+	local showCommit = tabId == "opinion" or tabId == "facts" or tabId == "events"
+	local editable = frame.profileMember and frame.profileMember.guid and frame.profileMember.guid ~= ""
+	if frame.ratingUpdateBtn then
+		if showCommit then
+			frame.ratingUpdateBtn:Show()
+			if editable then
+				frame.ratingUpdateBtn:Enable()
+			else
+				frame.ratingUpdateBtn:Disable()
+			end
+		else
+			frame.ratingUpdateBtn:Hide()
+		end
+	end
+	if frame.tabHost and frame.tabBar and frame.body then
+		frame.tabHost:ClearAllPoints()
+		frame.tabHost:SetPoint("TOPLEFT", frame.tabBar, "BOTTOMLEFT", 0, -8)
+		if showCommit then
+			frame.tabHost:SetPoint("BOTTOMRIGHT", frame.body, "BOTTOMRIGHT", 0, UI.ACTION_BTN_H + 8)
+		else
+			frame.tabHost:SetPoint("BOTTOMRIGHT", frame.body, "BOTTOMRIGHT", 0, 0)
+		end
+	end
+end
+
 function Addon:SelectProfileTab(tabId)
 	local frame = self.raidDetailFrame
 	if not frame or not frame.profilePanels then
@@ -312,6 +343,8 @@ function Addon:SelectProfileTab(tabId)
 			W.SetMenuButtonState(button, button.tabId == tabId, false)
 		end
 	end
+	-- Save and Update commits Note/Facts/Events drafts only; Memo has its own Save/Reset.
+	UpdateProfileCommitButton(frame, tabId)
 	if tabId == "history" and frame.profileMember then
 		UpdateProfileHistoryPanel(frame, frame.profileMember)
 	end
@@ -1620,7 +1653,7 @@ local function CreateRaidCharacterWindow()
 	factLeft:SetHeight(factRows * PROFILE_TAG_ROW_H)
 	factRight:SetHeight(factRows * PROFILE_TAG_ROW_H)
 
-	-- Events tab: pick type + Add (immediate), list with remove.
+	-- Events tab: pick type + draft Add/Remove; commit via Save and Update.
 	local eventsPanel = CreateFrame("Frame", nil, tabContent)
 	eventsPanel:SetPoint("TOPLEFT", 0, 0)
 	eventsPanel:SetPoint("BOTTOMRIGHT", 0, 0)

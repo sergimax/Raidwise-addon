@@ -248,7 +248,7 @@ Standalone window (**460 × 560**) opened from Party roster, Raid roster, or His
 | Events tab | Pick an event type, **Add event** / **Remove** edit a draft list; **Save and Update** persists events with auto zone/instance context on add |
 | Memo (editor tab) | Personal-use hint; multiline EditBox; **Save** / **Reset**. Memo is not written to History |
 | History tab | **Met** and **When** as first entries, then logged opinion/tag/facts/event changes (and any older memo rows if present) |
-| Save and Update | Bottom of window; saves current opinion, tags, facts, and events to `RaidwiseDB`, appends History rows when they change, refreshes roster views |
+| Save and Update | Bottom of window on **Note** / **Facts** / **Events** only; saves opinion, tags, facts, and events. Hidden on **History** and **Memo** (memo uses its own **Save** / **Reset**) |
 | editable | Opinion, tags, facts, events, and notes require a valid GUID; controls are disabled otherwise |
 | persistence | Opinion/tags/facts in `RaidwiseDB.history[guid].rating.personal`; events in `.events`; notes in `.notes`; change log in `.changes` |
 
