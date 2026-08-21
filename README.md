@@ -27,11 +27,8 @@ In-game slash commands:
 
 | Command | Description |
 |---------|-------------|
-| `/raidwise` or `/rw` (also `/rw help`) | Show help |
-| `/raidwise version` | Show addon version |
-| `/raidwise status` | Show load status |
-| `/raidwise show` | Open the main window |
-| `/raidwise hide` | Close the main window |
+| `/raidwise` or `/rw` | Open the main window |
+| `/raidwise close` or `/rw close` | Close the main window |
 
 Plain panels, a **left menu**, and a content page.
 The status bar shows the addon name and version.
@@ -108,13 +105,9 @@ View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Siz
 Consumers can type the export JSON with `types/CharacterExport.ts` and `types/CooldownsExport.ts`.
 
 ## Screenshots:
-Main addon view (`/raidwise show`):
+Main addon view (`/raidwise`):
 
 ![Main addon view](./screenshots/main-view.png)
-
-In-chat menu (`/raidwise help`):
-
-![In-chat menu](./screenshots/in-chat-menu.png)
 
 # Development
 

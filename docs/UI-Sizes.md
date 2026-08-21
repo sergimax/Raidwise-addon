@@ -199,4 +199,4 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 1. Edit the `UI` / theme constants in `UIWidgets.lua`, `ExporterWindow.lua`, or the relevant `Page*.lua`.
 2. Bump that view’s `LAYOUT_VERSION` when structure or named frames change.
 3. Update this document and [`UI-Views.md`](UI-Views.md) to match (include the new `vN`).
-4. Reload the UI (`/reload`) and check `/raidwise show` (layout rebuild should also fire when versions mismatch).
+4. Reload the UI (`/reload`) and check `/raidwise` (layout rebuild should also fire when versions mismatch).

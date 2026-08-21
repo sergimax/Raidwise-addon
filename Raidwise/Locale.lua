@@ -45,7 +45,7 @@ local Translations = {
 			.. "Turn on Include item names to add display names next to item ids. "
 			.. "If the GearScore addon is loaded, the current score is included.\n\n"
 			.. "Settings changes the interface language (English or Russian). The choice is saved on this account.\n\n"
-			.. "Slash commands: /raidwise or /rw (help, version, status, show, hide).",
+			.. "Slash commands: /raidwise or /rw to open; /raidwise close or /rw close to close.",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
 		INFO_REPO_SELECTED = "Selected — press Ctrl+C to copy.",
@@ -351,15 +351,8 @@ local Translations = {
 		LOCALE_EN = "English",
 		LOCALE_RU = "Русский",
 
-		CHAT_LOADED = "loaded (v%s). Type /raidwise for help.",
-		CHAT_HELP_HELP = "/raidwise help    - show this help",
-		CHAT_HELP_VERSION = "/raidwise version - show addon version",
-		CHAT_HELP_STATUS = "/raidwise status  - show addon status",
-		CHAT_HELP_SHOW = "/raidwise show    - open the main window",
-		CHAT_HELP_HIDE = "/raidwise hide    - close the main window",
-		CHAT_VERSION = "version %s",
-		CHAT_STATUS = "v%s | updated=%s | enabled=%s | player=%s",
-		CHAT_UNKNOWN = "Unknown command. Type /raidwise help",
+		CHAT_LOADED = "loaded (v%s). Type /raidwise to open.",
+		CHAT_UNKNOWN = "Unknown command. Use /raidwise or /raidwise close.",
 
 		MONTH_1 = "Jan",
 		MONTH_2 = "Feb",
@@ -416,7 +409,7 @@ local Translations = {
 			.. "Включите «Включать названия предметов», чтобы добавить имена рядом с id. "
 			.. "Если установлен аддон GearScore, в экспорт попадает текущий счёт.\n\n"
 			.. "В Настройках можно сменить язык интерфейса (English или Русский). Выбор сохраняется на аккаунте.\n\n"
-			.. "Команды: /raidwise или /rw (help, version, status, show, hide).",
+			.. "Команды: /raidwise или /rw — открыть; /raidwise close или /rw close — закрыть.",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
 		INFO_REPO_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",
@@ -722,15 +715,8 @@ local Translations = {
 		LOCALE_EN = "English",
 		LOCALE_RU = "Русский",
 
-		CHAT_LOADED = "загружен (v%s). Введите /raidwise для справки.",
-		CHAT_HELP_HELP = "/raidwise help    - эта справка",
-		CHAT_HELP_VERSION = "/raidwise version - версия аддона",
-		CHAT_HELP_STATUS = "/raidwise status  - статус загрузки",
-		CHAT_HELP_SHOW = "/raidwise show    - открыть окно",
-		CHAT_HELP_HIDE = "/raidwise hide    - закрыть окно",
-		CHAT_VERSION = "версия %s",
-		CHAT_STATUS = "v%s | updated=%s | enabled=%s | player=%s",
-		CHAT_UNKNOWN = "Неизвестная команда. Введите /raidwise help",
+		CHAT_LOADED = "загружен (v%s). Введите /raidwise, чтобы открыть.",
+		CHAT_UNKNOWN = "Неизвестная команда. Используйте /raidwise или /raidwise close.",
 
 		MONTH_1 = "янв",
 		MONTH_2 = "фев",

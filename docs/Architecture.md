@@ -27,7 +27,7 @@ Order is the dependency graph: bootstrap → locale → domain → shared widget
 
 | Layer | Files | Role |
 |-------|-------|------|
-| Bootstrap | `Raidwise.lua` | `Addon.db`, lifecycle, slash `/raidwise` |
+| Bootstrap | `Raidwise.lua` | `Addon.db`, lifecycle, slash `/raidwise` / `/rw` (open), `close` (hide) |
 | i18n | `Locale.lua` | Strings; `SetLocale` → `RefreshLocalizedUI` |
 | Domain | Export, Lockouts, PartyRoster, RaidRoles, Composition, History | Data and analysis; no frame creation |
 | Shared UI | `UIWidgets.lua` | Plain panels, buttons, icons, drag, copy box, layout version label |
