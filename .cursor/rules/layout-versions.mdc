@@ -37,8 +37,10 @@ Do **not** bump for:
 ## After bumping
 
 1. Stamp `frame.layoutVersion` or `page.layoutVersion` in `Create`.
-2. Show badge via `Addon.Widgets.AttachLayoutVersionLabel` (title bar) or `AttachPageLayoutBadge` (page toolbar).
-3. Ensure rebuild logic compares stored version to registered constant (shell + profile already do).
+2. Show badge:
+   - Content pages: shell title bar updates via `UpdateShellHeader` in `ExporterWindow.lua` (page name + `vN` next to it). Do **not** attach per-page toolbar badges.
+   - Profile popup: `Addon.Widgets.AttachLayoutVersionLabel` on the profile title bar.
+3. Ensure rebuild logic compares stored version to registered constant (shell + profile already do). Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in the title bar).
 4. Update the layout table in `docs/UI-Views.md`.
 5. Update affected sizes in `docs/UI-Sizes.md` when pixels change.
 

@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 2
+local SHELL_LAYOUT_VERSION = 3
 
 local MENU_ICON_SIZE = 16
 
@@ -19,6 +19,45 @@ local PAGES = {
 	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01" },
 	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark" },
 }
+
+local function PageInfoById(tabId)
+	for index = 1, #PAGES do
+		if PAGES[index].id == tabId then
+			return PAGES[index]
+		end
+	end
+	return nil
+end
+
+local function UpdateShellHeader(frame, tabId)
+	if not frame then
+		return
+	end
+	local pageInfo = PageInfoById(tabId)
+	if frame.titleText then
+		if pageInfo then
+			frame.titleText:SetText(W.T(pageInfo.labelKey))
+		else
+			frame.titleText:SetText("Raidwise")
+		end
+	end
+	if not frame.pageLayoutVersionText then
+		return
+	end
+	local version
+	local page = frame.pages and frame.pages[tabId]
+	if page and page.layoutVersion then
+		version = page.layoutVersion
+	elseif pageInfo and Addon.Pages and Addon.Pages[pageInfo.key] then
+		version = Addon.Pages[pageInfo.key].LAYOUT_VERSION
+	end
+	if version then
+		frame.pageLayoutVersionText:SetText("v" .. tostring(version))
+		frame.pageLayoutVersionText:Show()
+	else
+		frame.pageLayoutVersionText:Hide()
+	end
+end
 
 local function PageLayoutStale(frame)
 	if not frame or not frame.pages then
@@ -93,6 +132,7 @@ function Addon:SelectTab(tabId)
 	for _, button in ipairs(frame.menuButtons) do
 		W.SetMenuButtonState(button, button.tabId == tabId, false)
 	end
+	UpdateShellHeader(frame, tabId)
 
 	if tabId == "cooldowns" then
 		self.pendingLockoutTable = true
@@ -110,13 +150,13 @@ function Addon:SelectTab(tabId)
 	end
 end
 
-local function CreateTitleBar(parent)
-	local titleBar = CreateFrame("Frame", nil, parent)
+local function CreateTitleBar(frame)
+	local titleBar = CreateFrame("Frame", nil, frame)
 	titleBar:SetPoint("TOPLEFT", 1, -1)
 	titleBar:SetPoint("TOPRIGHT", -1, -1)
 	titleBar:SetHeight(UI.TITLE_H)
 	W.ApplyPlainPanel(titleBar, UI.TITLE_BG)
-	W.AttachDragHandle(titleBar, parent)
+	W.AttachDragHandle(titleBar, frame)
 
 	local close = CreateFrame("Button", nil, titleBar)
 	close:SetSize(UI.CLOSE_SIZE, UI.CLOSE_SIZE)
@@ -132,18 +172,24 @@ local function CreateTitleBar(parent)
 		W.SetFontColor(closeText, UI.GOLD)
 	end)
 	close:SetScript("OnClick", function()
-		parent:Hide()
+		frame:Hide()
 	end)
-
-	local layoutVersionText = W.AttachLayoutVersionLabel(titleBar, SHELL_LAYOUT_VERSION, close)
 
 	local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	title:SetPoint("LEFT", 8, 0)
-	title:SetPoint("RIGHT", layoutVersionText, "LEFT", -8, 0)
 	title:SetJustifyH("LEFT")
 	title:SetText("Raidwise")
 	W.SetFontColor(title, UI.GOLD)
 
+	local pageLayoutVersionText = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	pageLayoutVersionText:SetPoint("LEFT", title, "RIGHT", 8, 0)
+	pageLayoutVersionText:SetJustifyH("LEFT")
+	pageLayoutVersionText:SetText("")
+	W.SetFontColor(pageLayoutVersionText, UI.TEXT_DISABLED)
+
+	frame.titleBar = titleBar
+	frame.titleText = title
+	frame.pageLayoutVersionText = pageLayoutVersionText
 	return titleBar
 end
 
@@ -315,6 +361,7 @@ function Addon:RefreshLocalizedUI()
 			W.SetMenuButtonState(button, button.tabId == frame.selectedTab, false)
 		end
 	end
+	UpdateShellHeader(frame, frame.selectedTab)
 
 	local exportPage = frame.pages.export
 	if exportPage then

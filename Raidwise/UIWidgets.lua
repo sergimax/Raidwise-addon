@@ -613,23 +613,6 @@ function W.AttachLayoutVersionLabel(titleBarOrParent, version, anchorRightOf)
 	return label
 end
 
-function W.AttachPageLayoutBadge(page, version, anchorRightOf)
-	local badge = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	badge:SetJustifyH("RIGHT")
-	badge:SetText("v" .. tostring(version))
-	W.SetFontColor(badge, UI.TEXT_DISABLED)
-
-	if anchorRightOf then
-		badge:SetPoint("RIGHT", anchorRightOf, "LEFT", -8, 0)
-		badge:SetPoint("TOP", anchorRightOf, "TOP", 0, 0)
-	else
-		badge:SetPoint("TOPRIGHT", 0, 0)
-	end
-
-	page.layoutVersionBadge = badge
-	return badge
-end
-
 function W.DetachFrameChildren(frame)
 	if not frame or not frame.GetChildren then
 		return

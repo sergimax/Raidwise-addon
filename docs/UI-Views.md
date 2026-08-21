@@ -10,12 +10,12 @@ Details-style plain panels: left menu, content page, status bar under both.
 
 ```text
 [ Menu 170 ] 2px [ Content 890 x 690 ]
-                 [ title bar 20  v2  X ]
+                 [ title bar 20  {page} vN  X ]
                  [ page body         ]
 [ addon name ] [ current version ]
 ```
 
-Title bar (left to right): **Raidwise** title, layout badge **`v2`** (shell `SHELL_LAYOUT_VERSION`), close **X**. Toolbar pages show their own small **`vN`** badge top-right (see layout table below).
+Title bar (left to right): **active menu item name**, that pageâ€™s layout badge **`vN`**, close **X**. Shell `SHELL_LAYOUT_VERSION` is used for rebuild only (not shown). Addon semver stays in the status bar.
 
 Status bar:
 
@@ -44,16 +44,16 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a viewâ€
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 2` | `ExporterWindow.lua` | Title bar (left of close) |
+| Main shell | `SHELL_LAYOUT_VERSION = 3` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 26` | `CharacterProfile.lua` | Title bar (left of close) |
-| Cooldowns | `LAYOUT_VERSION = 1` | `PageCooldowns.lua` | Page toolbar top-right |
-| Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Page top-right |
-| Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Page toolbar top-right |
-| Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Page toolbar top-right |
-| Composition | `LAYOUT_VERSION = 1` | `PageComposition.lua` | Page toolbar top-right |
-| History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Page toolbar top-right |
-| Settings | `LAYOUT_VERSION = 1` | `PageSettings.lua` | Page top-right |
-| Info | `LAYOUT_VERSION = 1` | `PageInfo.lua` | Page top-right |
+| Cooldowns | `LAYOUT_VERSION = 1` | `PageCooldowns.lua` | Shell title bar (next to page name) |
+| Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
+| Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Composition | `LAYOUT_VERSION = 1` | `PageComposition.lua` | Shell title bar (next to page name) |
+| History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 1` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Info | `LAYOUT_VERSION = 1` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
 
@@ -325,7 +325,7 @@ Switching language updates the left menu, page labels, and visible tables withou
 ## Adding a view
 
 1. Add a tab in `PAGES` in `ExporterWindow.lua` (shell) and a `Page*.lua` module under `Addon.Pages`.
-2. Give the view a `LAYOUT_VERSION` constant, stamp it on the frame, and show it with `AttachLayoutVersionLabel` (title bar or page toolbar).
+2. Give the view a `LAYOUT_VERSION` constant, stamp it on the frame, and show it in the shell title bar next to the menu name (pages) or with `AttachLayoutVersionLabel` (profile popup).
 3. Paste a new `## Title` scheme here (same `[ block ]` style) including the layout `vN`.
 4. Implement the page and record sizes in `UI-Sizes.md`.
 5. See [`Architecture.md`](Architecture.md) for load order and the two version concepts (addon semver vs layout).

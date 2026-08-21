@@ -64,7 +64,6 @@ local function CreateInfoPage(parent)
 	page.copyBtn = copyBtn
 	page.repoHost = repoHost
 	page.layoutVersion = LAYOUT_VERSION
-	W.AttachPageLayoutBadge(page, LAYOUT_VERSION)
 	return page
 end
 function Addon:SelectRepoUrl()

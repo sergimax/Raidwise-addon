@@ -13,9 +13,10 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Status bar | height **20** | Spans menu left → content right, 2 px below both; name and version |
 | Status bar padding | 8 px | Left / right |
 | Status bar gap | 12 px | Between name and version |
-| Title bar | height **20** | Top of content; only this (and the menu title) starts a drag |
+| Title bar | height **20** | Top of content; drag handle; **active menu name** + page `vN` + close **X** |
 | Menu title bar | height **20** | Top of menu; drag handle; label “Menu” |
 | Close button | **16 × 16** | Right side of content title bar |
+| Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
 | Panel fill | RGB **0.15** | `ChatFrameBackground`, alpha 0.96 |
 | Title / status fill | RGB **0.20** | Same texture |
 | 1 px border | RGB **0,0,0** | Four edge textures (3.3.5-safe, Details-like) |
