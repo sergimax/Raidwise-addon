@@ -31,7 +31,7 @@ local UI = {
 	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
 }
 
-local PROFILE_LAYOUT_VERSION = 22
+local PROFILE_LAYOUT_VERSION = 23
 
 local function GetRatingTagGroups()
 	if Addon.RatingTagGroups then
@@ -431,7 +431,7 @@ local function ApplyOpinionChoice(opinionId)
 	end
 	local _, tags = GetProfileDraft(frame)
 	frame.draftOpinion = opinionId
-	-- Draft only; CommitProfileRating (Update) persists.
+	-- Draft only; CommitProfileRating (Save) persists.
 	RefreshOpinionRadios(frame, opinionId)
 	PaintOpinionLabels(frame, opinionId, tags)
 end
@@ -1025,7 +1025,7 @@ local function CreateRaidCharacterWindow()
 	tabHost:SetPoint("BOTTOMRIGHT", body, "BOTTOMRIGHT", 0, UI.ACTION_BTN_H + 8)
 	frame.tabHost = tabHost
 
-	local updateBtn = W.CreatePlainButton(body, bodyWidth, UI.ACTION_BTN_H, T("BTN_UPDATE"))
+	local updateBtn = W.CreatePlainButton(body, bodyWidth, UI.ACTION_BTN_H, T("BTN_SAVE"))
 	updateBtn:SetPoint("BOTTOMLEFT", 0, 0)
 	updateBtn:SetPoint("BOTTOMRIGHT", 0, 0)
 	updateBtn:SetScript("OnClick", function()
@@ -1173,7 +1173,7 @@ local function CreateRaidCharacterWindow()
 	local notesPanel = CreateFrame("Frame", nil, tabContent)
 	notesPanel:SetPoint("TOPLEFT", 0, 0)
 	notesPanel:SetPoint("TOPRIGHT", 0, 0)
-	notesPanel:SetHeight(140)
+	notesPanel:SetHeight(190)
 	notesPanel:Hide()
 	frame.profilePanels.notes = notesPanel
 
@@ -1185,8 +1185,17 @@ local function CreateRaidCharacterWindow()
 	W.SetFontColor(notesHeading, UI.GOLD)
 	frame.notesHeading = notesHeading
 
+	local notesHint = notesPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	notesHint:SetPoint("TOPLEFT", notesHeading, "BOTTOMLEFT", 0, -4)
+	notesHint:SetPoint("RIGHT", notesPanel, "RIGHT", 0, 0)
+	notesHint:SetJustifyH("LEFT")
+	notesHint:SetJustifyV("TOP")
+	notesHint:SetText(T("PROFILE_MEMO_HINT"))
+	W.SetFontColor(notesHint, UI.TEXT_IDLE)
+	frame.notesHint = notesHint
+
 	local notesHost, notesBox = CreateProfileNotesBox(notesPanel, tabContentWidth, 96)
-	notesHost:SetPoint("TOPLEFT", notesHeading, "BOTTOMLEFT", 0, -8)
+	notesHost:SetPoint("TOPLEFT", notesHint, "BOTTOMLEFT", 0, -8)
 	frame.notesHost = notesHost
 	frame.notesBox = notesBox
 
@@ -1341,13 +1350,16 @@ function Addon:ShowRaidCharacterWindow(member)
 	if frame.notesHeading then
 		frame.notesHeading:SetText(T("PROFILE_NOTES"))
 	end
+	if frame.notesHint then
+		frame.notesHint:SetText(T("PROFILE_MEMO_HINT"))
+	end
 	if frame.notesBox then
 		frame.isUpdatingNotes = true
 		frame.notesBox:SetText(member.notes or "")
 		frame.isUpdatingNotes = false
 	end
 	if frame.ratingUpdateBtn then
-		frame.ratingUpdateBtn.label:SetText(T("BTN_UPDATE"))
+		frame.ratingUpdateBtn.label:SetText(T("BTN_SAVE"))
 	end
 
 	UpdateProfileEditor(frame, member)

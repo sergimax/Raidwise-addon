@@ -44,7 +44,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 1` | `ExporterWindow.lua` | Title bar (left of close) |
-| Character profile | `PROFILE_LAYOUT_VERSION = 22` | `CharacterProfile.lua` | Title bar (left of close) |
+| Character profile | `PROFILE_LAYOUT_VERSION = 23` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 1` | `PageCooldowns.lua` | Page toolbar top-right |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Page top-right |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Page toolbar top-right |
@@ -200,7 +200,7 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 Standalone window (**430 × 540**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
-[ Rhee - Character profile                              v22   X ]
+[ Rhee - Character profile                              v23   X ]
 | (race)(class) Shaman    | (spec) Enhancement                  |
 | GearScore: 6158         | iLvl: 264                           |
 | Personal note: Positive | Community note                      |
@@ -215,13 +215,15 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 ( ) Positive   (*) Neutral   ( ) Negative
 [ Personal tags — category checkboxes (max 3 per category) ]
 (tab: Edit memo)
+[ Memo ]
+[ Personal memo only. Not shared and not recorded in History. ]
 [ Memo — multiline edit box ]
 [ Save ] [ Reset ]
 (tab: History)
 [ Met: Icecrown Citadel ]
 [ When: 2026-08-18 18:54 ]
 [ change log entries, newest first ]
-[ Update ]```
+[ Save ]```
 
 | Block | In-game text / control |
 |-------|------------------------|
@@ -234,14 +236,14 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 | Summary (left column) | Read-only: personal note, tag summary, guild, GUID, realm |
 | Community note (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
 | Tabs | **History**, **Edit note**, **Edit memo** — switch the panel below the summary |
-| Edit note (editor tab) | Summary line; three exclusive radio options; tag checkboxes by category (draft until **Update**) |
-| Memo (editor tab) | Multiline EditBox; **Save** / **Reset** |
-| History tab | **Met** and **When** as first entries, then logged opinion/tag/note changes |
-| Update | Bottom of window; saves current opinion and tags to `RaidwiseDB` |
+| Edit note (editor tab) | Summary line; three exclusive radio options; tag checkboxes by category (draft until **Save**) |
+| Memo (editor tab) | Personal-use hint; multiline EditBox; **Save** / **Reset**. Memo is not written to History |
+| History tab | **Met** and **When** as first entries, then logged opinion/tag changes (and any older memo rows if present) |
+| Save | Bottom of window; saves current opinion and tags to `RaidwiseDB` and appends History rows when they change |
 | editable | Opinion, tags, and notes require a valid GUID; controls are disabled otherwise |
-| persistence | Opinion and tags in `RaidwiseDB.history[guid].rating.personal`; notes in `.notes`; changes in `.changes` |
+| persistence | Opinion and tags in `RaidwiseDB.history[guid].rating.personal`; notes in `.notes`; change log in `.changes` (opinion/tags only going forward) |
 
-Changing opinion or tags (via **Update**) refreshes Party roster, Raid roster, and History when the profile closes or Update is pressed.
+Changing opinion or tags (via **Save**) refreshes Party roster, Raid roster, and History when the profile closes or Save is pressed.
 
 ## History
 

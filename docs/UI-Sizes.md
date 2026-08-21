@@ -152,11 +152,12 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Pa
 | Tab host | fills body below tabs | Opinion / memo / history panels swap in place |
 | Opinion radios | **3 × ~131 × 28** | `(contentWidth - 16) / 3`; gap **8** between; exclusive Positive / Neutral / Negative |
 | Tag checkboxes | scrolling columns by category | Max **3** tags per category; category heading gold |
+| Memo hint | under heading | `GameFontNormalSmall`; personal-use only (not History) |
 | Memo box | **410 × 96** | Multiline EditBox with inner scroll |
 | Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
 | Community mock block | right summary column | Gold heading + wrapped body text |
 
-Rating editor requires a valid GUID; controls are disabled when GUID is missing.
+Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save** commits Edit note opinion/tags (not memo).
 
 ## History tab
 

@@ -756,7 +756,6 @@ function Addon:SaveProfileNotesForGuid(guid, seed, notes)
 	if not entry then
 		return nil
 	end
-	local previousNotes = entry.notes or ""
 	if seed then
 		CopyIfValue(entry, seed, "name")
 		CopyIfValue(entry, seed, "class")
@@ -775,8 +774,5 @@ function Addon:SaveProfileNotesForGuid(guid, seed, notes)
 		end
 	end
 	entry.notes = type(notes) == "string" and notes or ""
-	if previousNotes ~= entry.notes then
-		self:AppendProfileHistoryChange(entry, "notes", "")
-	end
 	return entry
 end
