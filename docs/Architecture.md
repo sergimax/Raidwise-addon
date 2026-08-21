@@ -43,9 +43,16 @@ TOC: `RaidwiseDB`, `MrcExporterDB` (legacy migrate-only).
 | `includeGearNames` | Export page / `CharacterExport` | JSON export option |
 | `locale` | `Locale.lua` | `enUS` / `ruRU` |
 | `characters` | `CharacterLockouts.lua` | Per-character lockout columns |
-| `history` | `PlayerHistory.lua` | GUID-keyed meetings, ratings, notes |
+| `history` | `PlayerHistory.lua` | GUID-keyed meetings, opinion/tags/facts, events, notes |
 
 Bound as `Addon.db` after `EnsureDB`.
+
+History personal reputation shape (see [Reputation.md](Reputation.md)):
+
+- `history[guid].rating.personal` — `opinion`, `tags`, `facts`, `createdAt`, `updatedAt`, `creatorId`
+- `history[guid].events[]` — typed occurrences with `eventAt` + context
+- `history[guid].notes` — private memo (never shared)
+- `history[guid].changes[]` — local change log (`opinion`, `tags`, `facts`, `event_add`, `event_remove`)
 
 ## Two version concepts
 

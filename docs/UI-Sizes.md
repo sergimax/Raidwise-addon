@@ -142,22 +142,26 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Pa
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Window | **430 × 540** | Centered, offset +40 / +20 from parent center |
+| Window | **460 × 560** | Centered, offset +40 / +20 from parent center |
 | Title bar | height **20** | Drag handle; `{name} - Character profile`; layout badge `vN` before close |
 | Close button | **16 × 16** | Right of title bar |
 | Body padding | **10** | Same as main shell `PAD` |
-| Content width | **410** | `430 - 10×2` |
+| Content width | **440** | `460 - 10×2` |
 | Header icons | **24** | Race + class in left cell; spec in right cell (`PROFILE_ICON`); column gap **12** |
-| Profile tabs | height **26** | **History**, **Edit note**, **Edit memo** |
-| Tab host | fills body below tabs | Opinion / memo / history panels swap in place |
-| Opinion radios | **3 × ~131 × 28** | `(contentWidth - 16) / 3`; gap **8** between; exclusive Positive / Neutral / Negative |
+| Summary | height **122** | Opinion, tags, facts, guild, GUID, realm (+ community column) |
+| Profile tabs | height **26** | **History**, **Note**, **Facts**, **Events**, **Memo**; gap **4** |
+| Tab host | fills body below tabs | Panels swap in place |
+| Opinion radios | **3** equal columns × **22** | Exclusive Positive / Neutral / Negative |
 | Tag checkboxes | scrolling columns by category | Max **3** tags per category; category heading gold |
+| Fact checkboxes | two columns under Facts tab | Max **4** facts |
+| Event type picker | scroll **~96** tall | Two-column type buttons; selected + **Add event** |
+| Event list | fills remaining Events tab | Rows + **Remove**; auto context on add |
 | Memo hint | under heading | `GameFontNormalSmall`; personal-use only (not History) |
-| Memo box | **410 × 96** | Multiline EditBox with inner scroll |
+| Memo box | **440 × 96** | Multiline EditBox with inner scroll |
 | Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
 | Community mock block | right summary column | Gold heading + wrapped body text |
 
-Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** commits Edit note opinion/tags (not memo). Header personal note/tags stay on saved values until that commit.
+Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** commits Note opinion/tags and Facts (not memo; not Events — events save immediately). Header personal note/tags/facts stay on saved values until that commit.
 
 ## History tab
 

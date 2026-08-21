@@ -85,9 +85,11 @@ Esc or the title **X** closes the window.
 
 **Player rating** in Character profile:
 
-- Tabs: **History**, **Edit note**, **Edit memo**
-- On **Edit note**, set **Positive** / **Neutral** / **Negative** and personal tags (up to 3 per category); **Update** saves the draft
-- On **Edit memo**, write a free-form note with **Save** / **Reset**
+- Tabs: **History**, **Note**, **Facts**, **Events**, **Memo**
+- On **Note**, set **Positive** / **Neutral** / **Negative** and personal tags (up to 3 per category); **Save and Update** commits opinion, tags, and facts
+- On **Facts**, set role / identity facts (up to 4)
+- On **Events**, pick a type and **Add event** (saves immediately with zone/instance context); **Remove** deletes a row
+- On **Memo**, write a private free-form note with **Save** / **Reset** (not shared, not logged in History)
 - Party, Raid, and History show your saved opinion and tag summary; click a row or card to open the profile
 - **Community note** is currently a mock preview for a future addon exchange / web app feature
 
@@ -101,7 +103,7 @@ Esc or the title **X** closes the window.
 - What the addon does (rosters, composition, history, lockouts, export) and which slash commands exist
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
-View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
+View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Reputation model: [`docs/Reputation.md`](docs/Reputation.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
 Consumers can type the export JSON with `types/CharacterExport.ts` and `types/CooldownsExport.ts`.
 

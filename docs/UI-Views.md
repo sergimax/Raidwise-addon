@@ -44,7 +44,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 1` | `ExporterWindow.lua` | Title bar (left of close) |
-| Character profile | `PROFILE_LAYOUT_VERSION = 23` | `CharacterProfile.lua` | Title bar (left of close) |
+| Character profile | `PROFILE_LAYOUT_VERSION = 24` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 1` | `PageCooldowns.lua` | Page toolbar top-right |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Page top-right |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Page toolbar top-right |
@@ -197,24 +197,31 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Character profile
 
-Standalone window (**430 × 540**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
+Standalone window (**460 × 560**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
-[ Rhee - Character profile                              v23   X ]
+[ Rhee - Character profile                              v24   X ]
 | (race)(class) Shaman    | (spec) Enhancement                  |
 | GearScore: 6158         | iLvl: 264                           |
 | Personal note: Positive | Community note                      |
 | Friendly, Good Tank     | mock preview text                   |
-| Guild: MyGuild (Member) | (percentages, sample reports)       |
+| Facts: Raid Leader      | (percentages, sample reports)       |
+| Guild: MyGuild (Member) |                                     |
 | GUID: 0x...              |                                    |
 | Realm: Icecrown         |                                     |
-[ History ] [ Edit note ] [ Edit memo ]
+[ History ] [ Note ] [ Facts ] [ Events ] [ Memo ]
         --- tab content ---
-(tab: Edit note)
+(tab: Note)
 [ Summary: Positive | Tags: Friendly, Good Tank, Prepared ]
 ( ) Positive   (*) Neutral   ( ) Negative
 [ Personal tags — category checkboxes (max 3 per category) ]
-(tab: Edit memo)
+(tab: Facts)
+[ Facts — role checkboxes (max 4) ]
+(tab: Events)
+[ Pick type — scrollable type buttons ]
+[ Add event ]
+[ event rows with Remove, newest first ]
+(tab: Memo)
 [ Memo ]
 [ Personal memo only. Not shared and not recorded in History. ]
 [ Memo — multiline edit box ]
@@ -233,17 +240,21 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 | class / spec | Side-by-side row: race + class icons + name (class-colored), spec icon + name (`-` until inspect) |
 | GearScore / iLvl | Side-by-side row: `GearScore: {score}` and `iLvl: {average}`; `-` when unknown |
 | Race icon | Character-creation race portrait on the class row (same size as class/spec icons); tooltip shows race name and faction |
-| Summary (left column) | Read-only: personal note, tag summary, guild, GUID, realm — reflects **saved** values only until **Save and Update** |
+| Summary (left column) | Read-only: personal note, tag summary, facts, guild, GUID, realm — reflects **saved** values only until **Save and Update** |
 | Community note (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
-| Tabs | **History**, **Edit note**, **Edit memo** — switch the panel below the summary |
-| Edit note (editor tab) | Summary line (draft preview); three exclusive radio options; tag checkboxes by category (draft until **Save and Update**) |
+| Tabs | **History**, **Note**, **Facts**, **Events**, **Memo** — switch the panel below the summary |
+| Note (editor tab) | Summary line (draft preview); three exclusive radio options; tag checkboxes by category (draft until **Save and Update**) |
+| Facts (editor tab) | Role / identity checkboxes (draft until **Save and Update**); max **4** |
+| Events tab | Pick an event type, **Add event** appends immediately with `eventAt=now` and auto zone/instance context; **Remove** deletes a row |
 | Memo (editor tab) | Personal-use hint; multiline EditBox; **Save** / **Reset**. Memo is not written to History |
-| History tab | **Met** and **When** as first entries, then logged opinion/tag changes (and any older memo rows if present) |
-| Save and Update | Bottom of window; saves current opinion and tags to `RaidwiseDB`, appends History rows when they change, refreshes roster views |
-| editable | Opinion, tags, and notes require a valid GUID; controls are disabled otherwise |
-| persistence | Opinion and tags in `RaidwiseDB.history[guid].rating.personal`; notes in `.notes`; change log in `.changes` (opinion/tags only going forward) |
+| History tab | **Met** and **When** as first entries, then logged opinion/tag/facts/event changes (and any older memo rows if present) |
+| Save and Update | Bottom of window; saves current opinion, tags, and facts to `RaidwiseDB`, appends History rows when they change, refreshes roster views |
+| editable | Opinion, tags, facts, events, and notes require a valid GUID; controls are disabled otherwise |
+| persistence | Opinion/tags/facts in `RaidwiseDB.history[guid].rating.personal`; events in `.events`; notes in `.notes`; change log in `.changes` |
 
-Changing opinion or tags (via **Save and Update**) refreshes Party roster, Raid roster, and History when the profile closes or Save and Update is pressed.
+Changing opinion, tags, or facts (via **Save and Update**) or adding/removing events refreshes Party roster, Raid roster, and History when the profile closes or after those actions.
+
+See also [Reputation.md](Reputation.md) for entity definitions and future share matrix.
 
 ## History
 
