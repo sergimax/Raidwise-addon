@@ -286,6 +286,9 @@ function Addon:SelectProfileTab(tabId)
 			W.SetMenuButtonState(button, button.tabId == tabId, false)
 		end
 	end
+	if tabId == "history" and frame.profileMember then
+		UpdateProfileHistoryPanel(frame, frame.profileMember)
+	end
 end
 
 local function CreateProfileTabButton(parent, tabId, label, width)
@@ -376,22 +379,26 @@ local function RefreshOpinionRadios(frame, selectedOpinion)
 end
 
 -- Paint Personal note + Summary from the chosen opinion immediately (same click as radios).
-local function PaintOpinionLabels(frame, opinionId, tags)
+local function PaintOpinionLabels(frame, opinionId, tags, targets)
 	if not frame then
 		return
 	end
 	opinionId = opinionId or "neutral"
 	tags = tags or {}
+	targets = targets or "all"
+	local paintHeader = targets == "all" or targets == "header"
+	local paintEditor = targets == "all" or targets == "editor"
+
 	local label = OpinionButtonLabel(opinionId)
 	local color = UI.TEXT_IDLE
 	if Addon.RatingOpinionColor then
 		color = Addon:RatingOpinionColor(opinionId)
 	end
-	if frame.opinionText then
+	if paintHeader and frame.opinionText then
 		frame.opinionText:SetText(T("RATING_PROFILE_OPINION", label))
 		W.SetFontColor(frame.opinionText, color)
 	end
-	if frame.tagText then
+	if paintHeader and frame.tagText then
 		local tagSummary = ""
 		if Addon.RatingTagColoredSummary then
 			tagSummary = Addon:RatingTagColoredSummary(tags, 3) or ""
@@ -404,7 +411,7 @@ local function PaintOpinionLabels(frame, opinionId, tags)
 			W.SetFontColor(frame.tagText, UI.TEXT_DISABLED)
 		end
 	end
-	if frame.ratingSummary then
+	if paintEditor and frame.ratingSummary then
 		local opinionText = label
 		if Addon.RatingWrapColor then
 			opinionText = Addon:RatingWrapColor(label, color)
@@ -420,6 +427,22 @@ local function PaintOpinionLabels(frame, opinionId, tags)
 	end
 end
 
+local function PaintSavedHeaderLabels(frame, member)
+	if not frame or not member or not Addon.GetPersonalRating then
+		return
+	end
+	local personal = Addon:GetPersonalRating(member)
+	PaintOpinionLabels(frame, personal.opinion, personal.tags, "header")
+end
+
+local function PaintDraftEditorLabels(frame)
+	if not frame then
+		return
+	end
+	local opinion, tags = GetProfileDraft(frame)
+	PaintOpinionLabels(frame, opinion, tags, "editor")
+end
+
 local function ApplyOpinionChoice(opinionId)
 	if not opinionId then
 		return
@@ -429,11 +452,10 @@ local function ApplyOpinionChoice(opinionId)
 	if not frame then
 		return
 	end
-	local _, tags = GetProfileDraft(frame)
 	frame.draftOpinion = opinionId
-	-- Draft only; CommitProfileRating (Save) persists.
+	-- Draft only; CommitProfileRating (Save) persists. Header stays on saved values.
 	RefreshOpinionRadios(frame, opinionId)
-	PaintOpinionLabels(frame, opinionId, tags)
+	PaintDraftEditorLabels(frame)
 end
 
 local function CreateOpinionRadio(parent, opinionId, columnWidth)
@@ -643,7 +665,8 @@ local function UpdateProfileOpinionControls(frame, member)
 		return
 	end
 	local opinion, tags = GetProfileDraft(frame)
-	PaintOpinionLabels(frame, opinion, tags)
+	PaintSavedHeaderLabels(frame, member)
+	PaintOpinionLabels(frame, opinion, tags, "editor")
 	RefreshOpinionRadios(frame, opinion)
 end
 
@@ -688,8 +711,11 @@ function Addon:SaveProfilePersonalRating(opinion, tagIds, options)
 	if not entry then
 		return
 	end
-	-- Rebuild from the saved history entry so opinion/tags match the DB on first click.
+	-- Rebuild from the saved history entry so opinion/tags/changes match the DB.
 	frame.profileMember = self:HistoryProfileForMember(entry)
+	if type(entry.changes) == "table" then
+		frame.profileMember.changes = entry.changes
+	end
 	frame.profileMember.rating = {
 		personal = self:GetPersonalRating(entry),
 	}
@@ -784,7 +810,7 @@ function Addon:ToggleProfileTag(tagId)
 	end
 	frame.draftTags = nextTags
 	frame.draftOpinion = opinion
-	PaintOpinionLabels(frame, opinion, nextTags)
+	PaintDraftEditorLabels(frame)
 	if frame.tagGroups then
 		local member = frame.profileMember
 		local editable = member and member.guid and member.guid ~= ""
@@ -1025,7 +1051,7 @@ local function CreateRaidCharacterWindow()
 	tabHost:SetPoint("BOTTOMRIGHT", body, "BOTTOMRIGHT", 0, UI.ACTION_BTN_H + 8)
 	frame.tabHost = tabHost
 
-	local updateBtn = W.CreatePlainButton(body, bodyWidth, UI.ACTION_BTN_H, T("BTN_SAVE"))
+	local updateBtn = W.CreatePlainButton(body, bodyWidth, UI.ACTION_BTN_H, T("BTN_SAVE_AND_UPDATE"))
 	updateBtn:SetPoint("BOTTOMLEFT", 0, 0)
 	updateBtn:SetPoint("BOTTOMRIGHT", 0, 0)
 	updateBtn:SetScript("OnClick", function()
@@ -1315,8 +1341,8 @@ function Addon:ShowRaidCharacterWindow(member)
 	W.SetFontColor(frame.guildText, UI.TEXT_IDLE)
 
 	InitProfileDraft(frame, member)
-	local draftOpinion, draftTags = GetProfileDraft(frame)
-	PaintOpinionLabels(frame, draftOpinion, draftTags)
+	PaintSavedHeaderLabels(frame, member)
+	PaintDraftEditorLabels(frame)
 
 	if member.guid and member.guid ~= "" then
 		frame.guidText:SetText(T("PROFILE_GUID", member.guid))
@@ -1359,7 +1385,7 @@ function Addon:ShowRaidCharacterWindow(member)
 		frame.isUpdatingNotes = false
 	end
 	if frame.ratingUpdateBtn then
-		frame.ratingUpdateBtn.label:SetText(T("BTN_SAVE"))
+		frame.ratingUpdateBtn.label:SetText(T("BTN_SAVE_AND_UPDATE"))
 	end
 
 	UpdateProfileEditor(frame, member)

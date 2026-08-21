@@ -444,6 +444,25 @@ local function TagsEqual(left, right)
 	return true
 end
 
+local function EnsureHistoryFields(entry)
+	if type(entry.notes) ~= "string" then
+		entry.notes = ""
+	end
+	if type(entry.tags) ~= "table" then
+		entry.tags = {}
+	end
+	if type(entry.links) ~= "table" then
+		entry.links = {}
+	end
+	if type(entry.changes) ~= "table" then
+		entry.changes = {}
+	end
+	if Addon.EnsurePersonalRating then
+		Addon:EnsurePersonalRating(entry)
+	end
+	return entry
+end
+
 function Addon:AppendProfileHistoryChange(entry, kind, detail)
 	if type(entry) ~= "table" or not kind or kind == "" then
 		return
@@ -464,25 +483,6 @@ function Addon:GetHistoryEntry(guid)
 		return nil
 	end
 	return self:HistoryStore()[guid]
-end
-
-local function EnsureHistoryFields(entry)
-	if type(entry.notes) ~= "string" then
-		entry.notes = ""
-	end
-	if type(entry.tags) ~= "table" then
-		entry.tags = {}
-	end
-	if type(entry.links) ~= "table" then
-		entry.links = {}
-	end
-	if type(entry.changes) ~= "table" then
-		entry.changes = {}
-	end
-	if Addon.EnsurePersonalRating then
-		Addon:EnsurePersonalRating(entry)
-	end
-	return entry
 end
 
 function Addon:EnsureHistoryEntryForGuid(guid, seed)

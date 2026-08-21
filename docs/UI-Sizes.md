@@ -157,7 +157,7 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Pa
 | Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
 | Community mock block | right summary column | Gold heading + wrapped body text |
 
-Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save** commits Edit note opinion/tags (not memo).
+Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** commits Edit note opinion/tags (not memo). Header personal note/tags stay on saved values until that commit.
 
 ## History tab
 

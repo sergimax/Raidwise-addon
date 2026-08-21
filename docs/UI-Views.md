@@ -223,7 +223,7 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 [ Met: Icecrown Citadel ]
 [ When: 2026-08-18 18:54 ]
 [ change log entries, newest first ]
-[ Save ]```
+[ Save and Update ]```
 
 | Block | In-game text / control |
 |-------|------------------------|
@@ -233,17 +233,17 @@ Standalone window (**430 × 540**) opened from Party roster, Raid roster, or His
 | class / spec | Side-by-side row: race + class icons + name (class-colored), spec icon + name (`-` until inspect) |
 | GearScore / iLvl | Side-by-side row: `GearScore: {score}` and `iLvl: {average}`; `-` when unknown |
 | Race icon | Character-creation race portrait on the class row (same size as class/spec icons); tooltip shows race name and faction |
-| Summary (left column) | Read-only: personal note, tag summary, guild, GUID, realm |
+| Summary (left column) | Read-only: personal note, tag summary, guild, GUID, realm — reflects **saved** values only until **Save and Update** |
 | Community note (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
 | Tabs | **History**, **Edit note**, **Edit memo** — switch the panel below the summary |
-| Edit note (editor tab) | Summary line; three exclusive radio options; tag checkboxes by category (draft until **Save**) |
+| Edit note (editor tab) | Summary line (draft preview); three exclusive radio options; tag checkboxes by category (draft until **Save and Update**) |
 | Memo (editor tab) | Personal-use hint; multiline EditBox; **Save** / **Reset**. Memo is not written to History |
 | History tab | **Met** and **When** as first entries, then logged opinion/tag changes (and any older memo rows if present) |
-| Save | Bottom of window; saves current opinion and tags to `RaidwiseDB` and appends History rows when they change |
+| Save and Update | Bottom of window; saves current opinion and tags to `RaidwiseDB`, appends History rows when they change, refreshes roster views |
 | editable | Opinion, tags, and notes require a valid GUID; controls are disabled otherwise |
 | persistence | Opinion and tags in `RaidwiseDB.history[guid].rating.personal`; notes in `.notes`; change log in `.changes` (opinion/tags only going forward) |
 
-Changing opinion or tags (via **Save**) refreshes Party roster, Raid roster, and History when the profile closes or Save is pressed.
+Changing opinion or tags (via **Save and Update**) refreshes Party roster, Raid roster, and History when the profile closes or Save and Update is pressed.
 
 ## History
 
