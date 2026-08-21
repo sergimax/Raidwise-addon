@@ -44,7 +44,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a viewâ€
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 1` | `ExporterWindow.lua` | Title bar (left of close) |
-| Character profile | `PROFILE_LAYOUT_VERSION = 24` | `CharacterProfile.lua` | Title bar (left of close) |
+| Character profile | `PROFILE_LAYOUT_VERSION = 25` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 1` | `PageCooldowns.lua` | Page toolbar top-right |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Page top-right |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Page toolbar top-right |
@@ -200,7 +200,7 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 Standalone window (**460 Ã— 560**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
-[ Rhee - Character profile                              v24   X ]
+[ Rhee - Character profile                              v25   X ]
 | (race)(class) Shaman    | (spec) Enhancement                  |
 | GearScore: 6158         | iLvl: 264                           |
 | Personal note: Positive | Community note                      |

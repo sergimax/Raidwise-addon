@@ -31,7 +31,7 @@ local UI = {
 	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
 }
 
-local PROFILE_LAYOUT_VERSION = 24
+local PROFILE_LAYOUT_VERSION = 25
 
 local function GetRatingTagGroups()
 	if Addon.RatingTagGroups then
@@ -698,7 +698,7 @@ local function FormatEventContextSuffix(event)
 end
 
 UpdateProfileEventsPanel = function(frame, member)
-	if not frame or not frame.eventsListText then
+	if not frame or not frame.eventsListContent then
 		return
 	end
 	local events = {}
@@ -724,45 +724,63 @@ UpdateProfileEventsPanel = function(frame, member)
 			W.SetMenuButtonState(button, frame.selectedEventType == button.eventTypeId, false)
 		end
 	end
-	local lines = {}
+
+	if frame.eventRows then
+		for _, row in ipairs(frame.eventRows) do
+			row:Hide()
+			row:SetParent(nil)
+		end
+	end
+	frame.eventRows = {}
+	frame.eventRemoveButtons = {}
+
+	local rowHeight = 20
+	local contentWidth = (frame.eventsListContent:GetWidth() or 400)
+	local y = 0
 	if #events == 0 then
-		lines[1] = T("PROFILE_EVENTS_EMPTY")
+		local row = CreateFrame("Frame", nil, frame.eventsListContent)
+		row:SetSize(contentWidth, rowHeight)
+		row:SetPoint("TOPLEFT", frame.eventsListContent, "TOPLEFT", 0, 0)
+		local empty = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		empty:SetPoint("LEFT", 0, 0)
+		empty:SetPoint("RIGHT", 0, 0)
+		empty:SetJustifyH("LEFT")
+		empty:SetText(T("PROFILE_EVENTS_EMPTY"))
+		row.label = empty
+		frame.eventRows[1] = row
+		y = rowHeight
 	else
 		for index = 1, #events do
 			local event = events[index]
 			local when = Addon.FormatHistoryTime and Addon:FormatHistoryTime(event.eventAt) or "?"
 			local label = Addon.EventTypeLabel and Addon:EventTypeLabel(event.type) or tostring(event.type)
-			lines[#lines + 1] = when .. " — " .. label .. FormatEventContextSuffix(event)
-		end
-	end
-	frame.eventsListText:SetText(table.concat(lines, "\n"))
-	-- Rebuild remove buttons for each event
-	if frame.eventRemoveButtons then
-		for _, button in ipairs(frame.eventRemoveButtons) do
-			button:Hide()
-			button:SetParent(nil)
-		end
-	end
-	frame.eventRemoveButtons = {}
-	if frame.eventsRemoveHost and #events > 0 then
-		local y = 0
-		for index = 1, #events do
-			local event = events[index]
-			local button = W.CreatePlainButton(frame.eventsRemoveHost, 70, 18, T("PROFILE_EVENT_REMOVE"))
-			button:SetPoint("TOPRIGHT", frame.eventsRemoveHost, "TOPRIGHT", 0, -y)
+			local line = when .. " — " .. label .. FormatEventContextSuffix(event)
+
+			local row = CreateFrame("Frame", nil, frame.eventsListContent)
+			row:SetSize(contentWidth, rowHeight)
+			row:SetPoint("TOPLEFT", frame.eventsListContent, "TOPLEFT", 0, -y)
+
+			local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+			text:SetPoint("LEFT", 0, 0)
+			text:SetPoint("RIGHT", row, "RIGHT", -76, 0)
+			text:SetJustifyH("LEFT")
+			text:SetJustifyV("MIDDLE")
+			text:SetText(line)
+			row.label = text
+
+			local button = W.CreatePlainButton(row, 70, 18, T("PROFILE_EVENT_REMOVE"))
+			button:SetPoint("RIGHT", row, "RIGHT", 0, 0)
 			button.eventId = event.id
 			button:SetScript("OnClick", function(self)
 				Addon:RemoveProfileEvent(self.eventId)
 			end)
+			row.removeBtn = button
 			frame.eventRemoveButtons[#frame.eventRemoveButtons + 1] = button
-			y = y + 20
+			frame.eventRows[#frame.eventRows + 1] = row
+			y = y + rowHeight
 		end
-		frame.eventsRemoveHost:SetHeight(math.max(y, 1))
 	end
-	local textHeight = frame.eventsListText:GetStringHeight() or 80
-	if frame.eventsListContent then
-		frame.eventsListContent:SetHeight(math.max(textHeight + 8, (frame.eventsRemoveHost and frame.eventsRemoveHost:GetHeight()) or 1, 1))
-	end
+	frame.eventsListContent:SetHeight(math.max(y, 1))
 end
 
 local function CreateProfileFactCheckbox(parent, fact, columnWidth)
@@ -1544,23 +1562,8 @@ local function CreateRaidCharacterWindow()
 	eventsPanel:Hide()
 	frame.profilePanels.events = eventsPanel
 
-	local eventsHeading = eventsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	eventsHeading:SetPoint("TOPLEFT", 0, 0)
-	eventsHeading:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
-	eventsHeading:SetJustifyH("LEFT")
-	eventsHeading:SetText(T("PROFILE_TAB_EVENTS"))
-	W.SetFontColor(eventsHeading, UI.GOLD)
-	frame.eventsHeading = eventsHeading
-
-	local eventsPickLabel = eventsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	eventsPickLabel:SetPoint("TOPLEFT", eventsHeading, "BOTTOMLEFT", 0, -4)
-	eventsPickLabel:SetJustifyH("LEFT")
-	eventsPickLabel:SetText(T("PROFILE_EVENTS_PICK_TYPE"))
-	W.SetFontColor(eventsPickLabel, UI.TEXT_IDLE)
-	frame.eventsPickLabel = eventsPickLabel
-
 	local eventsAddBtn = W.CreatePlainButton(eventsPanel, 110, UI.ACTION_BTN_H, T("PROFILE_EVENTS_ADD"))
-	eventsAddBtn:SetPoint("TOPRIGHT", 0, -20)
+	eventsAddBtn:SetPoint("TOPRIGHT", 0, 0)
 	eventsAddBtn:SetScript("OnClick", function()
 		if frame.selectedEventType then
 			Addon:AddProfileEvent(frame.selectedEventType)
@@ -1568,9 +1571,25 @@ local function CreateRaidCharacterWindow()
 	end)
 	frame.eventsAddBtn = eventsAddBtn
 
+	local eventsHeading = eventsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	eventsHeading:SetPoint("TOPLEFT", 0, 0)
+	eventsHeading:SetPoint("RIGHT", eventsAddBtn, "LEFT", -8, 0)
+	eventsHeading:SetJustifyH("LEFT")
+	eventsHeading:SetText(T("PROFILE_TAB_EVENTS"))
+	W.SetFontColor(eventsHeading, UI.GOLD)
+	frame.eventsHeading = eventsHeading
+
+	local eventsPickLabel = eventsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	eventsPickLabel:SetPoint("TOPLEFT", eventsHeading, "BOTTOMLEFT", 0, -4)
+	eventsPickLabel:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
+	eventsPickLabel:SetJustifyH("LEFT")
+	eventsPickLabel:SetText(T("PROFILE_EVENTS_PICK_TYPE"))
+	W.SetFontColor(eventsPickLabel, UI.TEXT_IDLE)
+	frame.eventsPickLabel = eventsPickLabel
+
 	local typePickerHost = CreateFrame("Frame", nil, eventsPanel)
 	typePickerHost:SetPoint("TOPLEFT", eventsPickLabel, "BOTTOMLEFT", 0, -6)
-	typePickerHost:SetPoint("TOPRIGHT", eventsAddBtn, "BOTTOMRIGHT", 0, -6)
+	typePickerHost:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
 	typePickerHost:SetHeight(96)
 	frame.eventTypePickerHost = typePickerHost
 
@@ -1648,16 +1667,7 @@ local function CreateRaidCharacterWindow()
 	eventsListContent:SetWidth(tabContentWidth - 28)
 	eventsListScroll:SetScrollChild(eventsListContent)
 	frame.eventsListContent = eventsListContent
-	frame.eventsListText = eventsListContent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	frame.eventsListText:SetPoint("TOPLEFT", 0, 0)
-	frame.eventsListText:SetWidth(tabContentWidth - 110)
-	frame.eventsListText:SetJustifyH("LEFT")
-	frame.eventsListText:SetJustifyV("TOP")
-
-	frame.eventsRemoveHost = CreateFrame("Frame", nil, eventsListContent)
-	frame.eventsRemoveHost:SetPoint("TOPRIGHT", 0, 0)
-	frame.eventsRemoveHost:SetWidth(74)
-	frame.eventsRemoveHost:SetHeight(1)
+	frame.eventRows = {}
 	frame.eventRemoveButtons = {}
 
 	local notesPanel = CreateFrame("Frame", nil, tabContent)
