@@ -88,14 +88,14 @@ Self-targeted defensives are marked **hidden** and are omitted from the Raid com
 | Frenzied Regeneration | Feral Druid | hidden |
 | Dispersion | Shadow Priest | hidden |
 | Divine Protection | Any Paladin | hidden |
-| Divine Shield | Any Paladin | |
+| Divine Shield | Any Paladin | hidden |
 | Barkskin | Any Druid | hidden |
 | Ice Block | Any Mage | hidden |
 | Cloak of Shadows | Any Rogue | hidden |
 | Anti-Magic Shell | Any Death Knight | hidden |
 | Lay on Hands | Any Paladin | |
 | Divine Hymn | Any Priest | |
-| Tranquility | Restoration Druid | |
+| Tranquility | Restoration Druid | hidden |
 | Blessing of Sanctuary / Renewed Hope | Protection Paladin; Discipline Priest | |
 | Inspiration / Ancestral Healing | Discipline or Holy Priest; Restoration Shaman | |
 
@@ -105,23 +105,23 @@ Aura Mastery is treated as present for **any Paladin** (the ability exists on th
 
 Boss debuffs. Major and minor armor **do stack with each other**. Moonkin Aura / Elemental Oath are the **raid buff** for 5% spell crit; Improved Shadow Bolt is the **boss debuff** in the same exclusive category as Improved Scorch and Winter’s Chill.
 
-| Category | Effect | Who |
-|----------|--------|-----|
-| Armor (major, 20%) | Sunder Armor; Expose Armor; Acid Spit (worm pet) | Any Warrior; Any Rogue; Beast Mastery Hunter (pet) |
-| Armor (minor, 5%) | Faerie Fire; Curse of Weakness; Sting (wasp pet) | Any Druid; Any Warlock; Any Hunter (pet) |
-| Bleed damage | Mangle; Trauma; Stampede (pet) | Feral Druid; Arms Warrior; Beast Mastery Hunter |
-| Physical damage taken | Blood Frenzy; Savage Combat | Arms Warrior; Combat Rogue |
-| Spell damage taken | Curse of the Elements; Earth and Moon; Ebon Plaguebringer | Any Warlock; Balance Druid; Unholy Death Knight |
-| Spell hit (Misery) | Misery; Improved Faerie Fire | Shadow Priest; Balance Druid |
-| Crit chance taken | Heart of the Crusader; Totem of Wrath; Master Poisoner | Retribution or Protection Paladin; Elemental Shaman; Assassination Rogue |
-| Spell crit taken | Improved Scorch; Winter’s Chill; Improved Shadow Bolt | Fire Mage; Frost Mage; Destruction Warlock |
-| Attack speed slow | Thunder Clap; Icy Touch; Infected Wounds; Judgements of the Just | Any Warrior; Any Death Knight; Feral Druid; Protection Paladin |
-| Attack power down | Demoralizing Shout; Demoralizing Roar; Curse of Weakness; Vindication | Any Warrior; Feral Druid; Any Warlock; Ret/Prot Paladin |
-| Healing reduction | Mortal Strike; Aimed Shot; Wound Poison; Furious Attacks | Arms Warrior; Any Hunter; Any Rogue; Fury Warrior |
-| Cast speed slow | Curse of Tongues; Slow; Mind-numbing Poison; Lava Breath (pet) | Any Warlock; Arcane Mage; Any Rogue; Beast Mastery Hunter |
-| Melee hit reduction | Insect Swarm; Scorpid Sting | Balance Druid; Any Hunter |
-| Judgement of Light | Health return on melee hits | Any Paladin |
-| Judgement of Wisdom | Mana return on melee/spell hits | Any Paladin |
+| Category | Effect | Who | View |
+|----------|--------|-----|------|
+| Armor (major, 20%) | Sunder Armor; Expose Armor; Acid Spit (worm pet) | Any Warrior; Any Rogue; Beast Mastery Hunter (pet) | |
+| Armor (minor, 5%) | Faerie Fire; Curse of Weakness; Sting (wasp pet) | Any Druid; Any Warlock; Any Hunter (pet) | |
+| Bleed damage | Mangle; Trauma; Stampede (pet) | Feral Druid; Arms Warrior; Beast Mastery Hunter | |
+| Physical damage taken | Blood Frenzy; Savage Combat | Arms Warrior; Combat Rogue | |
+| Spell damage taken | Curse of the Elements; Earth and Moon; Ebon Plaguebringer | Any Warlock; Balance Druid; Unholy Death Knight | |
+| Spell hit (Misery) | Misery; Improved Faerie Fire | Shadow Priest; Balance Druid | |
+| Crit chance taken | Heart of the Crusader; Totem of Wrath; Master Poisoner | Retribution or Protection Paladin; Elemental Shaman; Assassination Rogue | |
+| Spell crit taken | Improved Scorch; Winter’s Chill; Improved Shadow Bolt | Fire Mage; Frost Mage; Destruction Warlock | |
+| Attack speed slow | Thunder Clap; Icy Touch; Infected Wounds; Judgements of the Just | Any Warrior; Any Death Knight; Feral Druid; Protection Paladin | |
+| Attack power down | Demoralizing Shout; Demoralizing Roar; Curse of Weakness; Vindication | Any Warrior; Feral Druid; Any Warlock; Ret/Prot Paladin | |
+| Healing reduction | Mortal Strike; Aimed Shot; Wound Poison; Furious Attacks | Arms Warrior; Any Hunter; Any Rogue; Fury Warrior | |
+| Cast speed slow | Curse of Tongues; Slow; Mind-numbing Poison; Lava Breath (pet) | Any Warlock; Arcane Mage; Any Rogue; Beast Mastery Hunter | |
+| Melee hit reduction | Insect Swarm; Scorpid Sting | Balance Druid; Any Hunter | |
+| Judgement of Light | Health return on melee hits | Any Paladin | hidden |
+| Judgement of Wisdom | Mana return on melee/spell hits | Any Paladin | |
 
 Acid Spit, Hunter Sting, Stampede, and Lava Breath depend on the pet. Beast Mastery / any Hunter is listed as a **possible** source.
 

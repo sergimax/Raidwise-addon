@@ -354,6 +354,7 @@ local EFFECTS = {
 		id = "divine_shield",
 		labelKey = "COMP_DIVINE_SHIELD",
 		spellId = 642,
+		hidden = true,
 		sources = { Src("PALADIN") },
 	},
 	{
@@ -407,6 +408,7 @@ local EFFECTS = {
 		id = "tranquility",
 		labelKey = "COMP_TRANQUILITY",
 		spellId = 48447,
+		hidden = true,
 		sources = { Src("DRUID", 3) },
 	},
 	{
@@ -521,6 +523,7 @@ local EFFECTS = {
 		id = "jol",
 		labelKey = "COMP_JOL",
 		spellId = 20185,
+		hidden = true,
 		sources = { Src("PALADIN") },
 	},
 	{
