@@ -72,10 +72,14 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 | Element | Size | Notes |
 |---------|------|-------|
+| Feature icon | **18 × 18** | Same `Interface\Icons\…` as left menu; TexCoord crop `0.07–0.93` |
+| Feature title + `vN` | gold title, disabled version | Version is that page’s `LAYOUT_VERSION` |
+| Gap between feature blocks | **12** px | |
 | Heading → body | 8 px | About / GitHub |
 | Body → next heading | 14 px | |
 | URL copy box | height **28** | Tooltip border; fills row minus Select all |
-| Select all | **110 × 28** | Right of the URL box; 8 px gap |
+| Select all | **130 × 28** | Right of the URL box; 8 px gap |
+| Vertical scroll | **16** | Right of content when sections exceed the page |
 
 ## Character cooldowns tab
 

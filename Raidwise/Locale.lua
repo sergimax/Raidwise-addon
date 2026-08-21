@@ -28,24 +28,25 @@ local Translations = {
 		EXPORT_SELECTED = "Selected — press Ctrl+C to copy.",
 
 		INFO_ABOUT = "About",
-		INFO_BODY = "Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, player ratings, meeting history, account-wide lockouts, and character export.\n\n"
-			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account, "
-			.. "including when each character was last checked. "
-			.. "Log in on each alt to record their lockouts.\n\n"
-			.. "Party roster lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, personal opinion, and tags. "
-			.. "Raid roster shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
-			.. "Click a filled card to open Character profile.\n\n"
-			.. "Raid composition checks the current party or raid for roles and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
-			.. "Gold rows are covered; dim rows are missing. Hover a row to see who brings it.\n\n"
-			.. "History keeps party and raid players you have grouped with, including where and when you met them. "
-			.. "Character profile lets you save a personal positive, neutral, or negative opinion plus short tags. "
-			.. "Community opinion is currently a mock preview for future exchange/web features.\n\n"
-			.. "That list is saved on this account and stays after logout.\n\n"
-			.. "Export gear and CDs builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
-			.. "Turn on Include item names to add display names next to item ids. "
-			.. "If the GearScore addon is loaded, the current score is included.\n\n"
-			.. "Settings changes the interface language (English or Russian). The choice is saved on this account.\n\n"
+		INFO_INTRO = "Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, player ratings, meeting history, account-wide lockouts, and character export.\n\n"
 			.. "Slash commands: /raidwise or /rw to open; /raidwise close or /rw close to close.",
+		INFO_SECTION_COOLDOWNS = "Shows raid and dungeon lockouts for every character saved on this account, "
+			.. "including when each character was last checked. "
+			.. "Log in on each alt to record their lockouts.",
+		INFO_SECTION_EXPORT = "Builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
+			.. "Turn on Include item names to add display names next to item ids. "
+			.. "If the GearScore addon is loaded, the current score is included.",
+		INFO_SECTION_PARTY = "Lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, personal opinion, and tags. "
+			.. "Click a row to open Character profile.",
+		INFO_SECTION_RAID = "Shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
+			.. "Click a filled card to open Character profile.",
+		INFO_SECTION_COMPOSITION = "Checks the current party or raid for roles and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
+			.. "Gold rows are covered; dim rows are missing. Hover a row to see who brings it.",
+		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
+			.. "That list is saved on this account and stays after logout. "
+			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
+			.. "Community opinion is currently a mock preview for future exchange/web features.",
+		INFO_SECTION_SETTINGS = "Changes the interface language (English or Russian). The choice is saved on this account.",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
 		INFO_REPO_SELECTED = "Selected — press Ctrl+C to copy.",
@@ -392,24 +393,25 @@ local Translations = {
 		EXPORT_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",
 
 		INFO_ABOUT = "Об аддоне",
-		INFO_BODY = "Raidwise — аддон для подготовки к рейду в Wrath of the Lich King 3.3.5a: составы группы и рейда, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа.\n\n"
-			.. "КД персонажей показывает рейдовые и подземельные блокировки всех сохранённых персонажей, "
-			.. "включая время последней проверки. "
-			.. "Зайдите на каждого альта, чтобы записать его КД.\n\n"
-			.. "Состав группы — текущая группа из 5 игроков: спек, иконки рейд-баффов, GearScore, средний iLvl, гильдия, личное мнение и теги. "
-			.. "Состав рейда — группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl). "
-			.. "Клик по заполненной карточке открывает профиль персонажа.\n\n"
-			.. "Анализ состава проверяет текущую группу или рейд: роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
-			.. "Золотые строки уже есть, серые — не хватает. Наведите курсор, чтобы увидеть, кто это даёт.\n\n"
-			.. "История хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
-			.. "В профиле персонажа можно сохранить личное положительное, нейтральное или отрицательное мнение и короткие теги. "
-			.. "Мнение сообщества пока показано как мок для будущего обмена и веб-приложения.\n\n"
-			.. "Список сохраняется на аккаунте и остаётся после выхода.\n\n"
-			.. "Экспорт экипировки и КД собирает JSON: имя, класс, спек, надетые вещи, сумки и блокировки. "
-			.. "Включите «Включать названия предметов», чтобы добавить имена рядом с id. "
-			.. "Если установлен аддон GearScore, в экспорт попадает текущий счёт.\n\n"
-			.. "В Настройках можно сменить язык интерфейса (English или Русский). Выбор сохраняется на аккаунте.\n\n"
+		INFO_INTRO = "Raidwise — аддон для подготовки к рейду в Wrath of the Lich King 3.3.5a: составы группы и рейда, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа.\n\n"
 			.. "Команды: /raidwise или /rw — открыть; /raidwise close или /rw close — закрыть.",
+		INFO_SECTION_COOLDOWNS = "Показывает рейдовые и подземельные блокировки всех сохранённых персонажей, "
+			.. "включая время последней проверки. "
+			.. "Зайдите на каждого альта, чтобы записать его КД.",
+		INFO_SECTION_EXPORT = "Собирает JSON: имя, класс, спек, надетые вещи, сумки и блокировки. "
+			.. "Включите «Включать названия предметов», чтобы добавить имена рядом с id. "
+			.. "Если установлен аддон GearScore, в экспорт попадает текущий счёт.",
+		INFO_SECTION_PARTY = "Текущая группа из 5 игроков: спек, иконки рейд-баффов, GearScore, средний iLvl, гильдия, личное мнение и теги. "
+			.. "Клик по строке открывает профиль персонажа.",
+		INFO_SECTION_RAID = "Группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl). "
+			.. "Клик по заполненной карточке открывает профиль персонажа.",
+		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
+			.. "Золотые строки уже есть, серые — не хватает. Наведите курсор, чтобы увидеть, кто это даёт.",
+		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
+			.. "Список сохраняется на аккаунте и остаётся после выхода. "
+			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
+			.. "Мнение сообщества пока показано как мок для будущего обмена и веб-приложения.",
+		INFO_SECTION_SETTINGS = "Смена языка интерфейса (English или Русский). Выбор сохраняется на аккаунте.",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
 		INFO_REPO_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",

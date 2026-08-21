@@ -53,7 +53,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Composition | `LAYOUT_VERSION = 1` | `PageComposition.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 1` | `PageSettings.lua` | Shell title bar (next to page name) |
-| Info | `LAYOUT_VERSION = 1` | `PageInfo.lua` | Shell title bar (next to page name) |
+| Info | `LAYOUT_VERSION = 2` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
 
@@ -307,7 +307,10 @@ Switching language updates the left menu, page labels, and visible tables withou
 
 ```text
 [ about heading ]
-[ descriptions about addon functions ]
+[ short intro + slash commands ]
+[ menu icon ] Menu name  vN
+[ section description ]
+… (one block per menu page except Info)
 [ github heading ]
 [ short hint about copy ]
 [ input for repo URL ] [ select all button ]
@@ -316,11 +319,13 @@ Switching language updates the left menu, page labels, and visible tables withou
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| descriptions | Raid-prep overview (rosters, player ratings, composition, history, lockouts, export); what Character cooldowns, Party roster, Raid roster, Raid composition, History, Character profile ratings, Export gear and CDs, and Settings do; slash commands |
+| intro | Raid-prep overview and slash commands (`/raidwise`, `/rw`, `close`) |
+| feature sections | Same icons as the left menu; title = menu label; **`vN`** = that page’s `LAYOUT_VERSION`; body describes the view |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |
 | select all button | **Select all** — highlights the URL for Ctrl+C |
+| scroll | Vertical scroll when sections exceed the content area |
 
 ## Adding a view
 

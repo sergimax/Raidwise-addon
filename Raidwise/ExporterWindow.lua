@@ -20,6 +20,8 @@ local PAGES = {
 	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark" },
 }
 
+Addon.MenuPages = PAGES
+
 local function PageInfoById(tabId)
 	for index = 1, #PAGES do
 		if PAGES[index].id == tabId then
@@ -405,20 +407,9 @@ function Addon:RefreshLocalizedUI()
 
 	local infoPage = frame.pages.info
 	if infoPage then
-		if infoPage.aboutHeading then
-			infoPage.aboutHeading:SetText(W.T("INFO_ABOUT"))
-		end
-		if infoPage.about then
-			infoPage.about:SetText(W.T("INFO_BODY"))
-		end
-		if infoPage.repoHeading then
-			infoPage.repoHeading:SetText(W.T("INFO_GITHUB"))
-		end
-		if infoPage.repoHint then
-			infoPage.repoHint:SetText(W.T("INFO_REPO_HINT"))
-		end
-		if infoPage.copyBtn then
-			infoPage.copyBtn.label:SetText(W.T("BTN_SELECT_ALL"))
+		local infoModule = Addon.Pages and Addon.Pages.Info
+		if infoModule and infoModule.Refresh then
+			infoModule.Refresh(infoPage)
 		end
 	end
 
