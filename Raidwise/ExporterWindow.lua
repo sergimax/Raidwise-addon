@@ -4,18 +4,62 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 1
+local SHELL_LAYOUT_VERSION = 3
 
+local MENU_ICON_SIZE = 16
+
+-- WotLK Interface\Icons paths (one per left-menu category).
 local PAGES = {
-	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS" },
-	{ id = "export", key = "Export", labelKey = "TAB_EXPORT" },
-	{ id = "party", key = "Party", labelKey = "TAB_PARTY" },
-	{ id = "raid", key = "Raid", labelKey = "TAB_RAID" },
-	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION" },
-	{ id = "history", key = "History", labelKey = "TAB_HISTORY" },
-	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS" },
-	{ id = "info", key = "Info", labelKey = "TAB_INFO" },
+	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01" },
+	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01" },
+	{ id = "party", key = "Party", labelKey = "TAB_PARTY", icon = "Interface\\Icons\\Spell_Holy_PrayerOfFortitude" },
+	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider" },
+	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings" },
+	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11" },
+	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01" },
+	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark" },
 }
+
+Addon.MenuPages = PAGES
+
+local function PageInfoById(tabId)
+	for index = 1, #PAGES do
+		if PAGES[index].id == tabId then
+			return PAGES[index]
+		end
+	end
+	return nil
+end
+
+local function UpdateShellHeader(frame, tabId)
+	if not frame then
+		return
+	end
+	local pageInfo = PageInfoById(tabId)
+	if frame.titleText then
+		if pageInfo then
+			frame.titleText:SetText(W.T(pageInfo.labelKey))
+		else
+			frame.titleText:SetText("Raidwise")
+		end
+	end
+	if not frame.pageLayoutVersionText then
+		return
+	end
+	local version
+	local page = frame.pages and frame.pages[tabId]
+	if page and page.layoutVersion then
+		version = page.layoutVersion
+	elseif pageInfo and Addon.Pages and Addon.Pages[pageInfo.key] then
+		version = Addon.Pages[pageInfo.key].LAYOUT_VERSION
+	end
+	if version then
+		frame.pageLayoutVersionText:SetText("v" .. tostring(version))
+		frame.pageLayoutVersionText:Show()
+	else
+		frame.pageLayoutVersionText:Hide()
+	end
+end
 
 local function PageLayoutStale(frame)
 	if not frame or not frame.pages then
@@ -90,6 +134,7 @@ function Addon:SelectTab(tabId)
 	for _, button in ipairs(frame.menuButtons) do
 		W.SetMenuButtonState(button, button.tabId == tabId, false)
 	end
+	UpdateShellHeader(frame, tabId)
 
 	if tabId == "cooldowns" then
 		self.pendingLockoutTable = true
@@ -107,13 +152,13 @@ function Addon:SelectTab(tabId)
 	end
 end
 
-local function CreateTitleBar(parent)
-	local titleBar = CreateFrame("Frame", nil, parent)
+local function CreateTitleBar(frame)
+	local titleBar = CreateFrame("Frame", nil, frame)
 	titleBar:SetPoint("TOPLEFT", 1, -1)
 	titleBar:SetPoint("TOPRIGHT", -1, -1)
 	titleBar:SetHeight(UI.TITLE_H)
 	W.ApplyPlainPanel(titleBar, UI.TITLE_BG)
-	W.AttachDragHandle(titleBar, parent)
+	W.AttachDragHandle(titleBar, frame)
 
 	local close = CreateFrame("Button", nil, titleBar)
 	close:SetSize(UI.CLOSE_SIZE, UI.CLOSE_SIZE)
@@ -129,30 +174,47 @@ local function CreateTitleBar(parent)
 		W.SetFontColor(closeText, UI.GOLD)
 	end)
 	close:SetScript("OnClick", function()
-		parent:Hide()
+		frame:Hide()
 	end)
-
-	local layoutVersionText = W.AttachLayoutVersionLabel(titleBar, SHELL_LAYOUT_VERSION, close)
 
 	local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	title:SetPoint("LEFT", 8, 0)
-	title:SetPoint("RIGHT", layoutVersionText, "LEFT", -8, 0)
 	title:SetJustifyH("LEFT")
 	title:SetText("Raidwise")
 	W.SetFontColor(title, UI.GOLD)
 
+	local pageLayoutVersionText = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	pageLayoutVersionText:SetPoint("LEFT", title, "RIGHT", 8, 0)
+	pageLayoutVersionText:SetJustifyH("LEFT")
+	pageLayoutVersionText:SetText("")
+	W.SetFontColor(pageLayoutVersionText, UI.TEXT_DISABLED)
+
+	frame.titleBar = titleBar
+	frame.titleText = title
+	frame.pageLayoutVersionText = pageLayoutVersionText
 	return titleBar
 end
 
-local function CreateMenuButton(parent, tabId, label, yOffset)
+local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
 	local button = CreateFrame("Button", nil, parent)
 	button:SetSize(UI.MENU_WIDTH - 12, UI.MENU_BTN_H)
 	button:SetPoint("TOP", 0, yOffset)
 	W.ApplyPlainPanel(button, UI.BTN_IDLE)
 	button.tabId = tabId
 
+	local icon = button:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(MENU_ICON_SIZE, MENU_ICON_SIZE)
+	icon:SetPoint("LEFT", 4, 0)
+	if iconPath and iconPath ~= "" then
+		icon:SetTexture(iconPath)
+		icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+	end
+	button.icon = icon
+
 	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	text:SetPoint("LEFT", 8, 0)
+	text:SetPoint("LEFT", icon, "RIGHT", 5, 0)
+	text:SetPoint("RIGHT", -4, 0)
+	text:SetJustifyH("LEFT")
 	text:SetText(label)
 	W.SetFontColor(text, UI.TEXT_IDLE)
 	button.label = text
@@ -236,7 +298,7 @@ function Addon:CreateMainFrame()
 	local menuY = -(UI.TITLE_H + 8)
 	for index = 1, #PAGES do
 		local pageInfo = PAGES[index]
-		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), menuY)
+		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), menuY, pageInfo.icon)
 		frame.menuButtons[#frame.menuButtons + 1] = button
 		menuY = menuY - UI.MENU_BTN_H - UI.MENU_BTN_GAP
 	end
@@ -301,6 +363,7 @@ function Addon:RefreshLocalizedUI()
 			W.SetMenuButtonState(button, button.tabId == frame.selectedTab, false)
 		end
 	end
+	UpdateShellHeader(frame, frame.selectedTab)
 
 	local exportPage = frame.pages.export
 	if exportPage then
@@ -344,20 +407,9 @@ function Addon:RefreshLocalizedUI()
 
 	local infoPage = frame.pages.info
 	if infoPage then
-		if infoPage.aboutHeading then
-			infoPage.aboutHeading:SetText(W.T("INFO_ABOUT"))
-		end
-		if infoPage.about then
-			infoPage.about:SetText(W.T("INFO_BODY"))
-		end
-		if infoPage.repoHeading then
-			infoPage.repoHeading:SetText(W.T("INFO_GITHUB"))
-		end
-		if infoPage.repoHint then
-			infoPage.repoHint:SetText(W.T("INFO_REPO_HINT"))
-		end
-		if infoPage.copyBtn then
-			infoPage.copyBtn.label:SetText(W.T("BTN_SELECT_ALL"))
+		local infoModule = Addon.Pages and Addon.Pages.Info
+		if infoModule and infoModule.Refresh then
+			infoModule.Refresh(infoPage)
 		end
 	end
 

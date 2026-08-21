@@ -83,7 +83,6 @@ local function CreateExportPage(parent)
 	page.namesLabel = namesLabel
 	page.exportBtn = exportBtn
 	page.layoutVersion = LAYOUT_VERSION
-	W.AttachPageLayoutBadge(page, LAYOUT_VERSION)
 	return page
 end
 -- Focus the export box and highlight all text for Ctrl+C.

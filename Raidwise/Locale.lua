@@ -19,7 +19,7 @@ local Translations = {
 		BTN_EXPORT_DATA = "Export character data",
 		BTN_RESET = "Reset",
 		BTN_SAVE = "Save",
-		BTN_UPDATE = "Update",
+		BTN_SAVE_AND_UPDATE = "Save and Update",
 
 		EXPORT_DESC = "Export this character's gear, bags, and raid lockouts as JSON.",
 		EXPORT_INCLUDE_NAMES = "Include item names",
@@ -28,24 +28,25 @@ local Translations = {
 		EXPORT_SELECTED = "Selected — press Ctrl+C to copy.",
 
 		INFO_ABOUT = "About",
-		INFO_BODY = "Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, player ratings, meeting history, account-wide lockouts, and character export.\n\n"
-			.. "Character cooldowns shows raid and dungeon lockouts for every character saved on this account, "
+		INFO_INTRO = "Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, player ratings, meeting history, account-wide lockouts, and character export.\n\n"
+			.. "Slash commands: /raidwise or /rw to open; /raidwise close or /rw close to close.",
+		INFO_SECTION_COOLDOWNS = "Shows raid and dungeon lockouts for every character saved on this account, "
 			.. "including when each character was last checked. "
-			.. "Log in on each alt to record their lockouts.\n\n"
-			.. "Party roster lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, personal opinion, and tags. "
-			.. "Raid roster shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
-			.. "Click a filled card to open Character profile.\n\n"
-			.. "Raid composition checks the current party or raid for roles and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
-			.. "Gold rows are covered; dim rows are missing. Hover a row to see who brings it.\n\n"
-			.. "History keeps party and raid players you have grouped with, including where and when you met them. "
-			.. "Character profile lets you save a personal positive, neutral, or negative opinion plus short tags. "
-			.. "Community opinion is currently a mock preview for future exchange/web features.\n\n"
-			.. "That list is saved on this account and stays after logout.\n\n"
-			.. "Export gear and CDs builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
+			.. "Log in on each alt to record their lockouts.",
+		INFO_SECTION_EXPORT = "Builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
 			.. "Turn on Include item names to add display names next to item ids. "
-			.. "If the GearScore addon is loaded, the current score is included.\n\n"
-			.. "Settings changes the interface language (English or Russian). The choice is saved on this account.\n\n"
-			.. "Slash commands: /raidwise or /rw (help, version, status, show, hide).",
+			.. "If the GearScore addon is loaded, the current score is included.",
+		INFO_SECTION_PARTY = "Lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, personal opinion, and tags. "
+			.. "Click a row to open Character profile.",
+		INFO_SECTION_RAID = "Shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
+			.. "Click a filled card to open Character profile.",
+		INFO_SECTION_COMPOSITION = "Checks the current party or raid for roles and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
+			.. "Gold rows are covered; dim rows are missing. Hover a row to see who brings it.",
+		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
+			.. "That list is saved on this account and stays after logout. "
+			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
+			.. "Community opinion is currently a mock preview for future exchange/web features.",
+		INFO_SECTION_SETTINGS = "Changes the interface language (English or Russian). The choice is saved on this account.",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
 		INFO_REPO_SELECTED = "Selected — press Ctrl+C to copy.",
@@ -242,21 +243,37 @@ local Translations = {
 		PROFILE_FACTION = "Faction: %s",
 		PROFILE_GUILD = "Guild: %s",
 		PROFILE_NOTES = "Memo",
+		PROFILE_MEMO_HINT = "Personal memo only. Not shared and not recorded in History.",
 		PROFILE_OPINION = "Personal note: %s",
 		PROFILE_MET = "Met: %s",
+		PROFILE_TOGETHER = "Was in the same party: %s",
 		PROFILE_WHEN = "When: %s",
 		PROFILE_REALM = "Realm: %s",
 		PROFILE_GUID = "GUID: %s",
-		PROFILE_TAB_OPINION = "Edit note",
-		PROFILE_TAB_NOTES = "Edit memo",
+		PROFILE_TAB_OPINION = "Note",
+		PROFILE_TAB_FACTS = "Facts",
+		PROFILE_TAB_EVENTS = "Events",
+		PROFILE_TAB_NOTES = "Memo",
 		PROFILE_TAB_HISTORY = "History",
 		PROFILE_HISTORY_EMPTY = "No changes recorded yet.",
 		PROFILE_CHANGE_OPINION = "Note set to %s",
 		PROFILE_CHANGE_TAGS = "Tags updated: %s",
+		PROFILE_CHANGE_FACTS = "Facts updated: %s",
+		PROFILE_CHANGE_EVENT_ADD = "Event added: %s",
+		PROFILE_CHANGE_EVENT_REMOVE = "Event removed: %s",
 		PROFILE_CHANGE_NOTES = "Memo updated",
+		PROFILE_EVENTS_EMPTY = "No events recorded yet.",
+		PROFILE_EVENTS_ADD = "Add event",
+		PROFILE_EVENTS_PICK_TYPE = "Event type",
+		PROFILE_EVENT_REMOVE = "Remove",
 		RATING_PERSONAL_TITLE = "Personal rating",
 		RATING_PERSONAL_OPINION_TITLE = "Personal note",
 		RATING_TAGS_TITLE = "Personal tags",
+		RATING_FACTS_TITLE = "Facts",
+		RATING_FACTS_HINT = "Roles and identity. Max %s.",
+		RATING_FACTS_LIMIT = "Maximum %s facts may be selected.",
+		RATING_FACTS_NONE = "none",
+		RATING_PROFILE_FACTS = "Facts: %s",
 		RATING_PROFILE_OPINION = "Personal note: %s",
 		RATING_PROFILE_SUMMARY = "Summary: %s | Tags: %s",
 		RATING_DISPLAY_WITH_TAGS = "%s (%s)",
@@ -277,10 +294,11 @@ local Translations = {
 		RATING_META_NEGATIVE = "Negative",
 		RATING_META_LINE = "Type: %s",
 		RATING_COMMUNITY_TITLE = "Community note",
-		RATING_COMMUNITY_MOCK = "Positive: 18%\nNinja Looter       32 reports\nLoot Drama         21 reports\nToxic              14 reports\nBad Raid Leader     8 reports\nRaid Leader        11\nWell Organized      7",
-		RATING_TAG_RAID_LEADER = "Raid Leader",
-		RATING_TAG_RAID_ORGANIZER = "Raid Organizer",
-		RATING_TAG_PUG_LEADER = "PUG Leader",
+		RATING_COMMUNITY_MOCK = "Positive: 18%\nNinja Loot       32 reports\nLoot Dispute     21 reports\nToxic              14 reports\nBad Raid Leader     8 reports\nRaid Leader        11\nWell Organized      7",
+		RATING_FACT_RAID_LEADER = "Raid Leader",
+		RATING_FACT_PUG_RAID_LEADER = "PUG Raid Leader",
+		RATING_FACT_GUILD_MASTER = "Guild Master",
+		RATING_FACT_GUILD_OFFICER = "Guild Officer",
 		RATING_TAG_GOOD_RAID_LEADER = "Good Raid Leader",
 		RATING_TAG_WELL_ORGANIZED = "Well Organized",
 		RATING_TAG_POOR_ORGANIZATION = "Poor Organization",
@@ -301,38 +319,41 @@ local Translations = {
 		RATING_TAG_UNTRUSTWORTHY = "Untrustworthy",
 		RATING_TAG_FAIR_LOOT = "Fair Loot",
 		RATING_TAG_GOOD_LOOT_MASTER = "Good Loot Master",
-		RATING_TAG_NINJA_LOOTER = "Ninja Looter",
-		RATING_TAG_LOOT_DRAMA = "Loot Drama",
-		RATING_TAG_UNFAIR_LOOT = "Unfair Loot",
 		RATING_TAG_ON_TIME = "On Time",
 		RATING_TAG_PREPARED = "Prepared",
 		RATING_TAG_FOLLOWS_INSTRUCTIONS = "Follows Instructions",
-		RATING_TAG_LATE = "Late",
-		RATING_TAG_AFK = "AFK",
-		RATING_TAG_LEAVES_EARLY = "Leaves Early",
-		RATING_TAG_RAGE_QUIT = "Rage Quit",
 		RATING_TAG_GOOD_PLAYER = "Good Player",
-		RATING_TAG_EXPERIENCED = "Experienced",
 		RATING_TAG_GOOD_DPS = "Good DPS",
 		RATING_TAG_GOOD_TANK = "Good Tank",
 		RATING_TAG_GOOD_HEALER = "Good Healer",
 		RATING_TAG_POOR_PERFORMANCE = "Poor Performance",
 		RATING_TAG_POOR_MECHANICS = "Poor Mechanics",
+		RATING_EVENT_LEFT_RAID = "Left Raid",
+		RATING_EVENT_LEFT_EARLY = "Left Early",
+		RATING_EVENT_LEFT_GROUP = "Left Group",
+		RATING_EVENT_RAGE_QUIT = "Rage Quit",
+		RATING_EVENT_LATE_ARRIVAL = "Late Arrival",
+		RATING_EVENT_AFK = "AFK",
+		RATING_EVENT_NO_ARRIVAL = "No Arrival",
+		RATING_EVENT_NINJA_LOOT = "Ninja Loot",
+		RATING_EVENT_LOOT_DISPUTE = "Loot Dispute",
+		RATING_EVENT_UNFAIR_LOOT_DISTRIBUTION = "Unfair Loot Distribution",
+		RATING_EVENT_CHANGED_LOOT_RULES = "Changed Loot Rules",
+		RATING_EVENT_LOOT_RESERVATION_VIOLATION = "Loot Reservation Violation",
+		RATING_EVENT_RAID_ABANDONED = "Raid Abandoned",
+		RATING_EVENT_HELPED_PLAYER = "Helped Player",
+		RATING_EVENT_HELPED_WITH_GEAR = "Helped With Gear",
+		RATING_EVENT_EXPLAINED_MECHANICS = "Explained Mechanics",
+		RATING_EVENT_TOXIC_BEHAVIOR = "Toxic Behavior",
+		RATING_EVENT_SCAM = "Scam",
 
 		SETTINGS_LANGUAGE = "Language",
 		SETTINGS_LANGUAGE_HINT = "Interface language. Saved on this account.",
 		LOCALE_EN = "English",
 		LOCALE_RU = "Русский",
 
-		CHAT_LOADED = "loaded (v%s). Type /raidwise for help.",
-		CHAT_HELP_HELP = "/raidwise help    - show this help",
-		CHAT_HELP_VERSION = "/raidwise version - show addon version",
-		CHAT_HELP_STATUS = "/raidwise status  - show addon status",
-		CHAT_HELP_SHOW = "/raidwise show    - open the main window",
-		CHAT_HELP_HIDE = "/raidwise hide    - close the main window",
-		CHAT_VERSION = "version %s",
-		CHAT_STATUS = "v%s | updated=%s | enabled=%s | player=%s",
-		CHAT_UNKNOWN = "Unknown command. Type /raidwise help",
+		CHAT_LOADED = "loaded (v%s). Type /raidwise to open.",
+		CHAT_UNKNOWN = "Unknown command. Use /raidwise or /raidwise close.",
 
 		MONTH_1 = "Jan",
 		MONTH_2 = "Feb",
@@ -363,7 +384,7 @@ local Translations = {
 		BTN_EXPORT_DATA = "Экспорт персонажа",
 		BTN_RESET = "Сброс",
 		BTN_SAVE = "Сохранить",
-		BTN_UPDATE = "Обновить",
+		BTN_SAVE_AND_UPDATE = "Сохранить и обновить",
 
 		EXPORT_DESC = "Экспорт экипировки, сумок и КД этого персонажа в JSON.",
 		EXPORT_INCLUDE_NAMES = "Включать названия предметов",
@@ -372,24 +393,25 @@ local Translations = {
 		EXPORT_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",
 
 		INFO_ABOUT = "Об аддоне",
-		INFO_BODY = "Raidwise — аддон для подготовки к рейду в Wrath of the Lich King 3.3.5a: составы группы и рейда, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа.\n\n"
-			.. "КД персонажей показывает рейдовые и подземельные блокировки всех сохранённых персонажей, "
+		INFO_INTRO = "Raidwise — аддон для подготовки к рейду в Wrath of the Lich King 3.3.5a: составы группы и рейда, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа.\n\n"
+			.. "Команды: /raidwise или /rw — открыть; /raidwise close или /rw close — закрыть.",
+		INFO_SECTION_COOLDOWNS = "Показывает рейдовые и подземельные блокировки всех сохранённых персонажей, "
 			.. "включая время последней проверки. "
-			.. "Зайдите на каждого альта, чтобы записать его КД.\n\n"
-			.. "Состав группы — текущая группа из 5 игроков: спек, иконки рейд-баффов, GearScore, средний iLvl, гильдия, личное мнение и теги. "
-			.. "Состав рейда — группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl). "
-			.. "Клик по заполненной карточке открывает профиль персонажа.\n\n"
-			.. "Анализ состава проверяет текущую группу или рейд: роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
-			.. "Золотые строки уже есть, серые — не хватает. Наведите курсор, чтобы увидеть, кто это даёт.\n\n"
-			.. "История хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
-			.. "В профиле персонажа можно сохранить личное положительное, нейтральное или отрицательное мнение и короткие теги. "
-			.. "Мнение сообщества пока показано как мок для будущего обмена и веб-приложения.\n\n"
-			.. "Список сохраняется на аккаунте и остаётся после выхода.\n\n"
-			.. "Экспорт экипировки и КД собирает JSON: имя, класс, спек, надетые вещи, сумки и блокировки. "
+			.. "Зайдите на каждого альта, чтобы записать его КД.",
+		INFO_SECTION_EXPORT = "Собирает JSON: имя, класс, спек, надетые вещи, сумки и блокировки. "
 			.. "Включите «Включать названия предметов», чтобы добавить имена рядом с id. "
-			.. "Если установлен аддон GearScore, в экспорт попадает текущий счёт.\n\n"
-			.. "В Настройках можно сменить язык интерфейса (English или Русский). Выбор сохраняется на аккаунте.\n\n"
-			.. "Команды: /raidwise или /rw (help, version, status, show, hide).",
+			.. "Если установлен аддон GearScore, в экспорт попадает текущий счёт.",
+		INFO_SECTION_PARTY = "Текущая группа из 5 игроков: спек, иконки рейд-баффов, GearScore, средний iLvl, гильдия, личное мнение и теги. "
+			.. "Клик по строке открывает профиль персонажа.",
+		INFO_SECTION_RAID = "Группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl). "
+			.. "Клик по заполненной карточке открывает профиль персонажа.",
+		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
+			.. "Золотые строки уже есть, серые — не хватает. Наведите курсор, чтобы увидеть, кто это даёт.",
+		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
+			.. "Список сохраняется на аккаунте и остаётся после выхода. "
+			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
+			.. "Мнение сообщества пока показано как мок для будущего обмена и веб-приложения.",
+		INFO_SECTION_SETTINGS = "Смена языка интерфейса (English или Русский). Выбор сохраняется на аккаунте.",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
 		INFO_REPO_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",
@@ -586,21 +608,37 @@ local Translations = {
 		PROFILE_FACTION = "Фракция: %s",
 		PROFILE_GUILD = "Гильдия: %s",
 		PROFILE_NOTES = "Мемо",
+		PROFILE_MEMO_HINT = "Только личное мемо. Не передаётся другим и не пишется в Историю.",
 		PROFILE_OPINION = "Личная заметка: %s",
 		PROFILE_MET = "Встреча: %s",
+		PROFILE_TOGETHER = "Был в одной группе: %s",
 		PROFILE_WHEN = "Когда: %s",
 		PROFILE_REALM = "Реалм: %s",
 		PROFILE_GUID = "GUID: %s",
 		PROFILE_TAB_OPINION = "Заметка",
+		PROFILE_TAB_FACTS = "Факты",
+		PROFILE_TAB_EVENTS = "События",
 		PROFILE_TAB_NOTES = "Мемо",
 		PROFILE_TAB_HISTORY = "История",
 		PROFILE_HISTORY_EMPTY = "Изменений пока нет.",
 		PROFILE_CHANGE_OPINION = "Заметка: %s",
 		PROFILE_CHANGE_TAGS = "Теги обновлены: %s",
+		PROFILE_CHANGE_FACTS = "Факты обновлены: %s",
+		PROFILE_CHANGE_EVENT_ADD = "Событие добавлено: %s",
+		PROFILE_CHANGE_EVENT_REMOVE = "Событие удалено: %s",
 		PROFILE_CHANGE_NOTES = "Мемо обновлено",
+		PROFILE_EVENTS_EMPTY = "Событий пока нет.",
+		PROFILE_EVENTS_ADD = "Добавить событие",
+		PROFILE_EVENTS_PICK_TYPE = "Тип события",
+		PROFILE_EVENT_REMOVE = "Удалить",
 		RATING_PERSONAL_TITLE = "Личный рейтинг",
 		RATING_PERSONAL_OPINION_TITLE = "Личная заметка",
 		RATING_TAGS_TITLE = "Личные теги",
+		RATING_FACTS_TITLE = "Факты",
+		RATING_FACTS_HINT = "Роли и идентичность. Макс. %s.",
+		RATING_FACTS_LIMIT = "Можно выбрать максимум %s фактов.",
+		RATING_FACTS_NONE = "нет",
+		RATING_PROFILE_FACTS = "Факты: %s",
 		RATING_PROFILE_OPINION = "Личная заметка: %s",
 		RATING_PROFILE_SUMMARY = "Сводка: %s | Теги: %s",
 		RATING_DISPLAY_WITH_TAGS = "%s (%s)",
@@ -621,10 +659,11 @@ local Translations = {
 		RATING_META_NEGATIVE = "Отрицательное",
 		RATING_META_LINE = "Тип: %s",
 		RATING_COMMUNITY_TITLE = "Заметка сообщества",
-		RATING_COMMUNITY_MOCK = "Положительное: 18%\nНиндзя-лутер      32 жалобы\nЛут-драма         21 жалоба\nТоксичный         14 жалоб\nПлохой РЛ          8 жалоб\nРейд-лидер        11\nХорошая организация 7",
-		RATING_TAG_RAID_LEADER = "Рейд-лидер",
-		RATING_TAG_RAID_ORGANIZER = "Организатор рейда",
-		RATING_TAG_PUG_LEADER = "Лидер пуг-рейда",
+		RATING_COMMUNITY_MOCK = "Положительное: 18%\nНиндзя-лут        32 жалобы\nСпор о луте       21 жалоба\nТоксичный         14 жалоб\nПлохой РЛ          8 жалоб\nРейд-лидер        11\nХорошая организация 7",
+		RATING_FACT_RAID_LEADER = "Рейд-лидер",
+		RATING_FACT_PUG_RAID_LEADER = "Лидер пуг-рейда",
+		RATING_FACT_GUILD_MASTER = "Глава гильдии",
+		RATING_FACT_GUILD_OFFICER = "Офицер гильдии",
 		RATING_TAG_GOOD_RAID_LEADER = "Хороший рейд-лидер",
 		RATING_TAG_WELL_ORGANIZED = "Хорошая организация",
 		RATING_TAG_POOR_ORGANIZATION = "Плохая организация",
@@ -645,38 +684,41 @@ local Translations = {
 		RATING_TAG_UNTRUSTWORTHY = "Ненадёжный",
 		RATING_TAG_FAIR_LOOT = "Честный лут",
 		RATING_TAG_GOOD_LOOT_MASTER = "Хороший лут-мастер",
-		RATING_TAG_NINJA_LOOTER = "Ниндзя-лутер",
-		RATING_TAG_LOOT_DRAMA = "Лут-драма",
-		RATING_TAG_UNFAIR_LOOT = "Нечестный лут",
 		RATING_TAG_ON_TIME = "Приходит вовремя",
 		RATING_TAG_PREPARED = "Подготовлен",
 		RATING_TAG_FOLLOWS_INSTRUCTIONS = "Следует указаниям",
-		RATING_TAG_LATE = "Опаздывает",
-		RATING_TAG_AFK = "AFK",
-		RATING_TAG_LEAVES_EARLY = "Уходит раньше",
-		RATING_TAG_RAGE_QUIT = "Ливает в ярости",
 		RATING_TAG_GOOD_PLAYER = "Хороший игрок",
-		RATING_TAG_EXPERIENCED = "Опытный",
 		RATING_TAG_GOOD_DPS = "Хороший ДПС",
 		RATING_TAG_GOOD_TANK = "Хороший танк",
 		RATING_TAG_GOOD_HEALER = "Хороший хил",
 		RATING_TAG_POOR_PERFORMANCE = "Слабая игра",
 		RATING_TAG_POOR_MECHANICS = "Плохая механика",
+		RATING_EVENT_LEFT_RAID = "Покинул рейд",
+		RATING_EVENT_LEFT_EARLY = "Ушёл раньше",
+		RATING_EVENT_LEFT_GROUP = "Покинул группу",
+		RATING_EVENT_RAGE_QUIT = "Ливнул в ярости",
+		RATING_EVENT_LATE_ARRIVAL = "Опоздал",
+		RATING_EVENT_AFK = "AFK",
+		RATING_EVENT_NO_ARRIVAL = "Не явился",
+		RATING_EVENT_NINJA_LOOT = "Ниндзя-лут",
+		RATING_EVENT_LOOT_DISPUTE = "Спор о луте",
+		RATING_EVENT_UNFAIR_LOOT_DISTRIBUTION = "Нечестное распределение",
+		RATING_EVENT_CHANGED_LOOT_RULES = "Смена правил лута",
+		RATING_EVENT_LOOT_RESERVATION_VIOLATION = "Нарушение резерва",
+		RATING_EVENT_RAID_ABANDONED = "Рейд брошен",
+		RATING_EVENT_HELPED_PLAYER = "Помог игроку",
+		RATING_EVENT_HELPED_WITH_GEAR = "Помог со снаряжением",
+		RATING_EVENT_EXPLAINED_MECHANICS = "Объяснил механики",
+		RATING_EVENT_TOXIC_BEHAVIOR = "Токсичное поведение",
+		RATING_EVENT_SCAM = "Мошенничество",
 
 		SETTINGS_LANGUAGE = "Язык",
 		SETTINGS_LANGUAGE_HINT = "Язык интерфейса. Сохраняется на этом аккаунте.",
 		LOCALE_EN = "English",
 		LOCALE_RU = "Русский",
 
-		CHAT_LOADED = "загружен (v%s). Введите /raidwise для справки.",
-		CHAT_HELP_HELP = "/raidwise help    - эта справка",
-		CHAT_HELP_VERSION = "/raidwise version - версия аддона",
-		CHAT_HELP_STATUS = "/raidwise status  - статус загрузки",
-		CHAT_HELP_SHOW = "/raidwise show    - открыть окно",
-		CHAT_HELP_HIDE = "/raidwise hide    - закрыть окно",
-		CHAT_VERSION = "версия %s",
-		CHAT_STATUS = "v%s | updated=%s | enabled=%s | player=%s",
-		CHAT_UNKNOWN = "Неизвестная команда. Введите /raidwise help",
+		CHAT_LOADED = "загружен (v%s). Введите /raidwise, чтобы открыть.",
+		CHAT_UNKNOWN = "Неизвестная команда. Используйте /raidwise или /raidwise close.",
 
 		MONTH_1 = "янв",
 		MONTH_2 = "фев",

@@ -64,7 +64,6 @@ local function CreateSettingsPage(parent)
 
 	UpdateLocaleButtons(page)
 	page.layoutVersion = LAYOUT_VERSION
-	W.AttachPageLayoutBadge(page, LAYOUT_VERSION)
 	return page
 end
 

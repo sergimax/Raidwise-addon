@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.8.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--20-blue)
+![](https://img.shields.io/badge/current_version-1.9.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--22-blue)
 
 
 ## Install
@@ -27,11 +27,8 @@ In-game slash commands:
 
 | Command | Description |
 |---------|-------------|
-| `/raidwise` or `/rw` (also `/rw help`) | Show help |
-| `/raidwise version` | Show addon version |
-| `/raidwise status` | Show load status |
-| `/raidwise show` | Open the main window |
-| `/raidwise hide` | Close the main window |
+| `/raidwise` or `/rw` | Open the main window |
+| `/raidwise close` or `/rw close` | Close the main window |
 
 Plain panels, a **left menu**, and a content page.
 The status bar shows the addon name and version.
@@ -85,9 +82,11 @@ Esc or the title **X** closes the window.
 
 **Player rating** in Character profile:
 
-- Tabs: **History**, **Edit note**, **Edit memo**
-- On **Edit note**, set **Positive** / **Neutral** / **Negative** and personal tags (up to 3 per category); **Update** saves the draft
-- On **Edit memo**, write a free-form note with **Save** / **Reset**
+- Tabs: **History**, **Note**, **Facts**, **Events**, **Memo**
+- On **Note**, set **Positive** / **Neutral** / **Negative** and personal tags (up to 3 per category); **Save and Update** commits opinion, tags, facts, and events
+- On **Facts**, set role / identity facts (up to 4)
+- On **Events**, pick a type and **Add event** / **Remove** (draft until **Save and Update**; context captured when adding)
+- On **Memo**, write a private free-form note with **Save** / **Reset** (not shared, not logged in History)
 - Party, Raid, and History show your saved opinion and tag summary; click a row or card to open the profile
 - **Community note** is currently a mock preview for a future addon exchange / web app feature
 
@@ -98,21 +97,17 @@ Esc or the title **X** closes the window.
 
 **Info** tab:
 
-- What the addon does (rosters, composition, history, lockouts, export) and which slash commands exist
+- About overview plus per-menu feature sections (same icons as the left menu, each with that view’s layout `vN`)
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
-View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
+View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Reputation model: [`docs/Reputation.md`](docs/Reputation.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
 Consumers can type the export JSON with `types/CharacterExport.ts` and `types/CooldownsExport.ts`.
 
 ## Screenshots:
-Main addon view (`/raidwise show`):
+Main addon view (`/raidwise`):
 
 ![Main addon view](./screenshots/main-view.png)
-
-In-chat menu (`/raidwise help`):
-
-![In-chat menu](./screenshots/in-chat-menu.png)
 
 # Development
 
@@ -153,6 +148,6 @@ types/
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal`), notes (`.notes`), and change log (`.changes`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`).
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts for the cooldowns table live in `RaidwiseDB.characters`. Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal` with opinion/tags/facts), events (`.events`), notes (`.notes`), change log (`.changes`), and party/raid meet count (`.meetCount`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`).
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.

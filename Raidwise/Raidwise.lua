@@ -3,21 +3,14 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.8.0"
+Addon.version = "1.9.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
 -- Fallback if Locale.lua does not load. Locale.lua replaces Addon.T.
 local FallbackChat = {
-	CHAT_LOADED = "loaded (v%s). Type /raidwise for help.",
-	CHAT_HELP_HELP = "/raidwise help    - show this help",
-	CHAT_HELP_VERSION = "/raidwise version - show addon version",
-	CHAT_HELP_STATUS = "/raidwise status  - show addon status",
-	CHAT_HELP_SHOW = "/raidwise show    - open the main window",
-	CHAT_HELP_HIDE = "/raidwise hide    - close the main window",
-	CHAT_VERSION = "version %s",
-	CHAT_STATUS = "v%s | updated=%s | enabled=%s | player=%s",
-	CHAT_UNKNOWN = "Unknown command. Type /raidwise help",
+	CHAT_LOADED = "loaded (v%s). Type /raidwise to open.",
+	CHAT_UNKNOWN = "Unknown command. Use /raidwise or /raidwise close.",
 }
 
 local function FormatText(text, ...)
@@ -169,42 +162,17 @@ end
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
 
--- Handle /raidwise and /rw (help, version, status, show/hide UI).
+-- /raidwise [close] — open or close the main window.
 SlashCmdList["RAIDWISE"] = function(msg)
 	msg = (msg or ""):match("^%s*(.-)%s*$") or ""
 	msg = msg:lower()
 
-	if msg == "" or msg == "help" then
-		Addon:Print(Addon:T("CHAT_HELP_HELP"))
-		Addon:Print(Addon:T("CHAT_HELP_VERSION"))
-		Addon:Print(Addon:T("CHAT_HELP_STATUS"))
-		Addon:Print(Addon:T("CHAT_HELP_SHOW"))
-		Addon:Print(Addon:T("CHAT_HELP_HIDE"))
-		return
-	end
-
-	if msg == "version" then
-		Addon:Print(Addon:T("CHAT_VERSION", tostring(Addon.version)))
-		return
-	end
-
-	if msg == "status" then
-		Addon:Print(Addon:T(
-			"CHAT_STATUS",
-			Addon.version,
-			tostring(Addon.lastUpdated),
-			tostring(Addon.db and Addon.db.enabled),
-			UnitName("player") or "?"
-		))
-		return
-	end
-
-	if msg == "show" or msg == "ui" then
+	if msg == "" then
 		Addon:ShowMainFrame()
 		return
 	end
 
-	if msg == "hide" then
+	if msg == "close" then
 		Addon:HideMainFrame()
 		return
 	end

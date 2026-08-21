@@ -13,9 +13,10 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Status bar | height **20** | Spans menu left → content right, 2 px below both; name and version |
 | Status bar padding | 8 px | Left / right |
 | Status bar gap | 12 px | Between name and version |
-| Title bar | height **20** | Top of content; only this (and the menu title) starts a drag |
+| Title bar | height **20** | Top of content; drag handle; **active menu name** + page `vN` + close **X** |
 | Menu title bar | height **20** | Top of menu; drag handle; label “Menu” |
 | Close button | **16 × 16** | Right side of content title bar |
+| Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
 | Panel fill | RGB **0.15** | `ChatFrameBackground`, alpha 0.96 |
 | Title / status fill | RGB **0.20** | Same texture |
 | 1 px border | RGB **0,0,0** | Four edge textures (3.3.5-safe, Details-like) |
@@ -24,7 +25,8 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Menu button | **158 × 22** | Width is `MENU_WIDTH - 12` |
+| Menu button | **158 × 22** | Width is `MENU_WIDTH - 12`; **16×16** icon left, label to the right |
+| Menu icon | **16 × 16** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
 | Gap between buttons | 2 px | |
 | First button offset | 8 px below menu title | |
 | Idle fill | RGB **0.18** | Menu + action buttons |
@@ -32,7 +34,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Character cooldowns**, **Export gear and CDs**, **Party roster**, **Raid roster**, **Raid composition**, **History**, **Settings**, **Info**.
+Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Party roster** (Prayer of Fortitude), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **History** (book), **Settings** (gear), **Info** (question mark).
 
 ## Content padding
 
@@ -70,10 +72,14 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 | Element | Size | Notes |
 |---------|------|-------|
+| Feature icon | **18 × 18** | Same `Interface\Icons\…` as left menu; TexCoord crop `0.07–0.93` |
+| Feature title + `vN` | gold title, disabled version | Version is that page’s `LAYOUT_VERSION` |
+| Gap between feature blocks | **12** px | |
 | Heading → body | 8 px | About / GitHub |
 | Body → next heading | 14 px | |
 | URL copy box | height **28** | Tooltip border; fills row minus Select all |
-| Select all | **110 × 28** | Right of the URL box; 8 px gap |
+| Select all | **130 × 28** | Right of the URL box; 8 px gap |
+| Vertical scroll | **16** | Right of content when sections exceed the page |
 
 ## Character cooldowns tab
 
@@ -142,21 +148,27 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Pa
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Window | **430 × 540** | Centered, offset +40 / +20 from parent center |
+| Window | **460 × 560** | Centered, offset +40 / +20 from parent center |
 | Title bar | height **20** | Drag handle; `{name} - Character profile`; layout badge `vN` before close |
 | Close button | **16 × 16** | Right of title bar |
 | Body padding | **10** | Same as main shell `PAD` |
-| Content width | **410** | `430 - 10×2` |
+| Content width | **440** | `460 - 10×2` |
 | Header icons | **24** | Race + class in left cell; spec in right cell (`PROFILE_ICON`); column gap **12** |
-| Profile tabs | height **26** | **History**, **Edit note**, **Edit memo** |
-| Tab host | fills body below tabs | Opinion / memo / history panels swap in place |
-| Opinion radios | **3 × ~131 × 28** | `(contentWidth - 16) / 3`; gap **8** between; exclusive Positive / Neutral / Negative |
+| Summary | height **122** | Opinion, tags, facts, guild, GUID, realm (+ community column) |
+| Profile tabs | height **26** | **History**, **Note**, **Facts**, **Events**, **Memo**; gap **4** |
+| Tab host | fills body below tabs | Panels swap in place |
+| Opinion radios | **3** equal columns × **22** | Exclusive Positive / Neutral / Negative |
 | Tag checkboxes | scrolling columns by category | Max **3** tags per category; category heading gold |
-| Memo box | **410 × 96** | Multiline EditBox with inner scroll |
+| Fact checkboxes | two columns under Facts tab | Max **4** facts |
+| Event type picker | scroll **~96** tall | Full width under pick label; **Add event** top-right with heading |
+| Event list | fills remaining Events tab | Fixed **20** px rows (label + Remove) |
+| Memo hint | under heading | `GameFontNormalSmall`; personal-use only (not History) |
+| Memo box | **440 × 96** | Multiline EditBox with inner scroll |
 | Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
+| History Met / party count | first row of History tab | **Met** left-aligned; **Was in the same party** right-aligned (`meetCount`) |
 | Community mock block | right summary column | Gold heading + wrapped body text |
 
-Rating editor requires a valid GUID; controls are disabled when GUID is missing.
+Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** appears on **Note** / **Facts** / **Events** and commits those drafts (not memo). Hidden on **History** and **Memo**. Header personal note/tags/facts stay on saved values until that commit. Closing without Save discards drafts.
 
 ## History tab
 
@@ -193,4 +205,4 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 1. Edit the `UI` / theme constants in `UIWidgets.lua`, `ExporterWindow.lua`, or the relevant `Page*.lua`.
 2. Bump that view’s `LAYOUT_VERSION` when structure or named frames change.
 3. Update this document and [`UI-Views.md`](UI-Views.md) to match (include the new `vN`).
-4. Reload the UI (`/reload`) and check `/raidwise show` (layout rebuild should also fire when versions mismatch).
+4. Reload the UI (`/reload`) and check `/raidwise` (layout rebuild should also fire when versions mismatch).

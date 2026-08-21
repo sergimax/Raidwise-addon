@@ -184,7 +184,6 @@ local function CreateCompositionPage(parent)
 	page.hint = hint
 	page.refreshBtn = refreshBtn
 	page.layoutVersion = LAYOUT_VERSION
-	W.AttachPageLayoutBadge(page, LAYOUT_VERSION, page.refreshBtn)
 	return page
 end
 

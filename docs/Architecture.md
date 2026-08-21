@@ -27,7 +27,7 @@ Order is the dependency graph: bootstrap → locale → domain → shared widget
 
 | Layer | Files | Role |
 |-------|-------|------|
-| Bootstrap | `Raidwise.lua` | `Addon.db`, lifecycle, slash `/raidwise` |
+| Bootstrap | `Raidwise.lua` | `Addon.db`, lifecycle, slash `/raidwise` / `/rw` (open), `close` (hide) |
 | i18n | `Locale.lua` | Strings; `SetLocale` → `RefreshLocalizedUI` |
 | Domain | Export, Lockouts, PartyRoster, RaidRoles, Composition, History | Data and analysis; no frame creation |
 | Shared UI | `UIWidgets.lua` | Plain panels, buttons, icons, drag, copy box, layout version label |
@@ -43,16 +43,24 @@ TOC: `RaidwiseDB`, `MrcExporterDB` (legacy migrate-only).
 | `includeGearNames` | Export page / `CharacterExport` | JSON export option |
 | `locale` | `Locale.lua` | `enUS` / `ruRU` |
 | `characters` | `CharacterLockouts.lua` | Per-character lockout columns |
-| `history` | `PlayerHistory.lua` | GUID-keyed meetings, ratings, notes |
+| `history` | `PlayerHistory.lua` | GUID-keyed meetings, opinion/tags/facts, events, notes |
 
 Bound as `Addon.db` after `EnsureDB`.
+
+History personal reputation shape (see [Reputation.md](Reputation.md)):
+
+- `history[guid].rating.personal` — `opinion`, `tags`, `facts`, `createdAt`, `updatedAt`, `creatorId`
+- `history[guid].events[]` — typed occurrences with `eventAt` + context
+- `history[guid].notes` — private memo (never shared)
+- `history[guid].changes[]` — local change log (`opinion`, `tags`, `facts`, `event_add`, `event_remove`)
+- `history[guid].meetCount` — party/raid encounters with this character (first meet = 1; +1 after ≥30 min since `lastSeenAt`)
 
 ## Two version concepts
 
 | Kind | Where | Shown | Purpose |
 |------|-------|-------|---------|
 | **Addon semver** | `Addon.version` + TOC `## Version` | Status bar (`v1.7.0`) | Release / changelog |
-| **Layout version** | `*_LAYOUT_VERSION` per view | Title bar or page toolbar badge (`vN`) | Force UI rebuild when structure changes |
+| **Layout version** | `*_LAYOUT_VERSION` per view | Shell title bar next to page name (`vN`); profile title bar; shell constant is rebuild-only | Force UI rebuild when structure changes |
 
 Bump layout versions when sizes, named frames, or control layout change. Do **not** bump for pure locale string edits. Keep docs in sync (`UI-Views.md`, `UI-Sizes.md`).
 

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.9.0] - 2026-08-22
+
+### Added
+- Character profile **Facts** and **Events** tabs (role/identity facts up to 4; typed events with zone/instance context); **Save and Update** commits opinion, tags, facts, and events together
+- Profile History shows **Was in the same party** count (increments after ≥30 minutes since last seen in a group)
+- Left menu category icons for each tab
+- **Info** page feature sections with the same menu icons and each view’s layout `vN`
+- Reputation model docs ([`docs/Reputation.md`](docs/Reputation.md))
+
+### Changed
+- Slash commands: `/raidwise` / `/rw` open the window; `/raidwise close` / `/rw close` close it (removed `help`, `version`, `status`, `show`, `hide`)
+- Main window title shows the active menu name and that page’s layout `vN` (shell layout version is rebuild-only, not shown)
+- Profile tabs renamed to **History** / **Note** / **Facts** / **Events** / **Memo**; memo stays private and is not logged in History
+- Personal rating catalog split into tags, facts, and event types (with one-shot SavedVariables migration)
+
 ## [1.8.0] - 2026-08-20
 
 ### Added

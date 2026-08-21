@@ -16,8 +16,8 @@ local UI = {
 	ACTION_BTN_H = 28,
 	ACTION_BTN_GAP = 8,
 	PROFILE_ICON = 24,
-	RAID_DETAIL_W = 430,
-	RAID_DETAIL_H = 540,
+	RAID_DETAIL_W = 460,
+	RAID_DETAIL_H = 560,
 	PROFILE_TAB_H = 26,
 	GOLD = { 0.890, 0.729, 0.016 },
 	TEXT_IDLE = { 0.80, 0.80, 0.80 },
@@ -31,7 +31,7 @@ local UI = {
 	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
 }
 
-local PROFILE_LAYOUT_VERSION = 22
+local PROFILE_LAYOUT_VERSION = 26
 
 local function GetRatingTagGroups()
 	if Addon.RatingTagGroups then
@@ -214,8 +214,14 @@ end
 local PROFILE_TABS = {
 	{ id = "history", labelKey = "PROFILE_TAB_HISTORY" },
 	{ id = "opinion", labelKey = "PROFILE_TAB_OPINION" },
+	{ id = "facts", labelKey = "PROFILE_TAB_FACTS" },
+	{ id = "events", labelKey = "PROFILE_TAB_EVENTS" },
 	{ id = "notes", labelKey = "PROFILE_TAB_NOTES" },
 }
+
+local UpdateProfileEventsPanel
+local RefreshProfileFactCheckboxes
+local UpdateProfileCommitButton
 
 local function FormatProfileChangeDetail(change)
 	if type(change) ~= "table" then
@@ -231,6 +237,27 @@ local function FormatProfileChangeDetail(change)
 		end
 		return T("PROFILE_CHANGE_TAGS", detail)
 	end
+	if change.kind == "facts" then
+		local detail = change.detail
+		if type(detail) ~= "string" or detail == "" then
+			detail = T("RATING_FACTS_NONE")
+		end
+		return T("PROFILE_CHANGE_FACTS", detail)
+	end
+	if change.kind == "event_add" then
+		local label = change.detail
+		if Addon.EventTypeLabel then
+			label = Addon:EventTypeLabel(change.detail)
+		end
+		return T("PROFILE_CHANGE_EVENT_ADD", label)
+	end
+	if change.kind == "event_remove" then
+		local label = change.detail
+		if Addon.EventTypeLabel then
+			label = Addon:EventTypeLabel(change.detail)
+		end
+		return T("PROFILE_CHANGE_EVENT_REMOVE", label)
+	end
 	if change.kind == "notes" then
 		return T("PROFILE_CHANGE_NOTES")
 	end
@@ -238,12 +265,24 @@ local function FormatProfileChangeDetail(change)
 end
 
 local function UpdateProfileHistoryPanel(frame, member)
-	if not frame or not frame.historyText or not member then
+	if not frame or not member then
+		return
+	end
+	local metZone = (member.metZone and member.metZone ~= "") and member.metZone or "-"
+	local meetCount = tonumber(member.meetCount) or 0
+	if meetCount < 1 and member.metAt and tonumber(member.metAt) and tonumber(member.metAt) > 0 then
+		meetCount = 1
+	end
+	if frame.historyTogetherText then
+		frame.historyTogetherText:SetText(T("PROFILE_TOGETHER", meetCount))
+	end
+	if frame.historyMetText then
+		frame.historyMetText:SetText(T("PROFILE_MET", metZone))
+	end
+	if not frame.historyText then
 		return
 	end
 	local lines = {}
-	local metZone = (member.metZone and member.metZone ~= "") and member.metZone or "-"
-	lines[#lines + 1] = T("PROFILE_MET", metZone)
 	local metWhen = "-"
 	if Addon.FormatHistoryTime and member.metAt then
 		metWhen = Addon:FormatHistoryTime(member.metAt) or "-"
@@ -264,7 +303,37 @@ local function UpdateProfileHistoryPanel(frame, member)
 	frame.historyText:SetText(table.concat(lines, "\n"))
 	local textHeight = frame.historyText:GetStringHeight() or 120
 	if frame.profilePanels and frame.profilePanels.history then
-		frame.profilePanels.history:SetHeight(math.max(120, textHeight + 12))
+		frame.profilePanels.history:SetHeight(math.max(120, textHeight + 28))
+	end
+end
+
+UpdateProfileCommitButton = function(frame, tabId)
+	if not frame then
+		return
+	end
+	tabId = tabId or frame.selectedProfileTab or "opinion"
+	local showCommit = tabId == "opinion" or tabId == "facts" or tabId == "events"
+	local editable = frame.profileMember and frame.profileMember.guid and frame.profileMember.guid ~= ""
+	if frame.ratingUpdateBtn then
+		if showCommit then
+			frame.ratingUpdateBtn:Show()
+			if editable then
+				frame.ratingUpdateBtn:Enable()
+			else
+				frame.ratingUpdateBtn:Disable()
+			end
+		else
+			frame.ratingUpdateBtn:Hide()
+		end
+	end
+	if frame.tabHost and frame.tabBar and frame.body then
+		frame.tabHost:ClearAllPoints()
+		frame.tabHost:SetPoint("TOPLEFT", frame.tabBar, "BOTTOMLEFT", 0, -8)
+		if showCommit then
+			frame.tabHost:SetPoint("BOTTOMRIGHT", frame.body, "BOTTOMRIGHT", 0, UI.ACTION_BTN_H + 8)
+		else
+			frame.tabHost:SetPoint("BOTTOMRIGHT", frame.body, "BOTTOMRIGHT", 0, 0)
+		end
 	end
 end
 
@@ -285,6 +354,17 @@ function Addon:SelectProfileTab(tabId)
 		for _, button in ipairs(frame.profileTabButtons) do
 			W.SetMenuButtonState(button, button.tabId == tabId, false)
 		end
+	end
+	-- Save and Update commits Note/Facts/Events drafts only; Memo has its own Save/Reset.
+	UpdateProfileCommitButton(frame, tabId)
+	if tabId == "history" and frame.profileMember then
+		UpdateProfileHistoryPanel(frame, frame.profileMember)
+	end
+	if tabId == "events" and frame.profileMember then
+		UpdateProfileEventsPanel(frame, frame.profileMember)
+	end
+	if tabId == "facts" and frame.profileMember then
+		RefreshProfileFactCheckboxes(frame, frame.profileMember, frame.profileMember.guid and frame.profileMember.guid ~= "")
 	end
 end
 
@@ -325,23 +405,73 @@ local function CopyTagList(tags)
 	return copy
 end
 
+local function CopyEventList(events)
+	local copy = {}
+	if type(events) ~= "table" then
+		return copy
+	end
+	for index = 1, #events do
+		local event = events[index]
+		if type(event) == "table" then
+			local context = {}
+			if type(event.context) == "table" then
+				for key, value in pairs(event.context) do
+					context[key] = value
+				end
+			end
+			copy[#copy + 1] = {
+				id = event.id,
+				type = event.type,
+				creatorId = event.creatorId,
+				eventAt = event.eventAt,
+				context = context,
+			}
+		end
+	end
+	return copy
+end
+
+local function SortEventsNewestFirst(events)
+	local sorted = CopyEventList(events)
+	table.sort(sorted, function(left, right)
+		return (tonumber(left.eventAt) or 0) > (tonumber(right.eventAt) or 0)
+	end)
+	return sorted
+end
+
 local function InitProfileDraft(frame, member)
 	if not frame then
 		return
 	end
-	local personal = { opinion = "neutral", tags = {} }
+	local personal = { opinion = "neutral", tags = {}, facts = {} }
 	if member and Addon.GetPersonalRating then
 		personal = Addon:GetPersonalRating(member)
 	end
 	frame.draftOpinion = personal.opinion or "neutral"
 	frame.draftTags = CopyTagList(personal.tags)
+	frame.draftFacts = CopyTagList(personal.facts)
+	local events = {}
+	if member and Addon.GetHistoryEvents then
+		events = Addon:GetHistoryEvents(member)
+	elseif member and type(member.events) == "table" then
+		events = member.events
+	end
+	frame.draftEvents = SortEventsNewestFirst(events)
+	frame.draftEventSeq = 0
 end
 
 local function GetProfileDraft(frame)
 	if not frame then
-		return "neutral", {}
+		return "neutral", {}, {}
 	end
-	return frame.draftOpinion or "neutral", frame.draftTags or {}
+	return frame.draftOpinion or "neutral", frame.draftTags or {}, frame.draftFacts or {}
+end
+
+local function GetProfileDraftEvents(frame)
+	if not frame or type(frame.draftEvents) ~= "table" then
+		return {}
+	end
+	return frame.draftEvents
 end
 
 -- AceConfigDialog / Details radio pattern: exclusive SetChecked on the whole group.
@@ -376,22 +506,26 @@ local function RefreshOpinionRadios(frame, selectedOpinion)
 end
 
 -- Paint Personal note + Summary from the chosen opinion immediately (same click as radios).
-local function PaintOpinionLabels(frame, opinionId, tags)
+local function PaintOpinionLabels(frame, opinionId, tags, targets)
 	if not frame then
 		return
 	end
 	opinionId = opinionId or "neutral"
 	tags = tags or {}
+	targets = targets or "all"
+	local paintHeader = targets == "all" or targets == "header"
+	local paintEditor = targets == "all" or targets == "editor"
+
 	local label = OpinionButtonLabel(opinionId)
 	local color = UI.TEXT_IDLE
 	if Addon.RatingOpinionColor then
 		color = Addon:RatingOpinionColor(opinionId)
 	end
-	if frame.opinionText then
+	if paintHeader and frame.opinionText then
 		frame.opinionText:SetText(T("RATING_PROFILE_OPINION", label))
 		W.SetFontColor(frame.opinionText, color)
 	end
-	if frame.tagText then
+	if paintHeader and frame.tagText then
 		local tagSummary = ""
 		if Addon.RatingTagColoredSummary then
 			tagSummary = Addon:RatingTagColoredSummary(tags, 3) or ""
@@ -404,7 +538,7 @@ local function PaintOpinionLabels(frame, opinionId, tags)
 			W.SetFontColor(frame.tagText, UI.TEXT_DISABLED)
 		end
 	end
-	if frame.ratingSummary then
+	if paintEditor and frame.ratingSummary then
 		local opinionText = label
 		if Addon.RatingWrapColor then
 			opinionText = Addon:RatingWrapColor(label, color)
@@ -420,6 +554,35 @@ local function PaintOpinionLabels(frame, opinionId, tags)
 	end
 end
 
+local function PaintSavedHeaderLabels(frame, member)
+	if not frame or not member or not Addon.GetPersonalRating then
+		return
+	end
+	local personal = Addon:GetPersonalRating(member)
+	PaintOpinionLabels(frame, personal.opinion, personal.tags, "header")
+	if frame.factText then
+		local factSummary = ""
+		if Addon.FactColoredSummary then
+			factSummary = Addon:FactColoredSummary(personal.facts, 3) or ""
+		end
+		if factSummary ~= "" then
+			frame.factText:SetText(T("RATING_PROFILE_FACTS", factSummary))
+			W.SetFontColor(frame.factText, UI.TEXT_IDLE)
+		else
+			frame.factText:SetText(T("RATING_PROFILE_FACTS", T("RATING_FACTS_NONE")))
+			W.SetFontColor(frame.factText, UI.TEXT_DISABLED)
+		end
+	end
+end
+
+local function PaintDraftEditorLabels(frame)
+	if not frame then
+		return
+	end
+	local opinion, tags = GetProfileDraft(frame)
+	PaintOpinionLabels(frame, opinion, tags, "editor")
+end
+
 local function ApplyOpinionChoice(opinionId)
 	if not opinionId then
 		return
@@ -429,11 +592,10 @@ local function ApplyOpinionChoice(opinionId)
 	if not frame then
 		return
 	end
-	local _, tags = GetProfileDraft(frame)
 	frame.draftOpinion = opinionId
-	-- Draft only; CommitProfileRating (Update) persists.
+	-- Draft only; CommitProfileRating (Save) persists. Header stays on saved values.
 	RefreshOpinionRadios(frame, opinionId)
-	PaintOpinionLabels(frame, opinionId, tags)
+	PaintDraftEditorLabels(frame)
 end
 
 local function CreateOpinionRadio(parent, opinionId, columnWidth)
@@ -582,6 +744,184 @@ local function RefreshProfileTagCheckboxes(frame, member, editable)
 	end
 end
 
+RefreshProfileFactCheckboxes = function(frame, member, editable)
+	if not frame or not frame.factCheckboxes then
+		return
+	end
+	local selected = {}
+	local _, _, draftFacts = GetProfileDraft(frame)
+	for index = 1, #draftFacts do
+		selected[draftFacts[index]] = true
+	end
+	local maxFacts = (Addon.MaxPersonalFacts and Addon:MaxPersonalFacts()) or 4
+	local selectedCount = #draftFacts
+	if frame.factsHint then
+		frame.factsHint:SetText(T("RATING_FACTS_HINT", maxFacts))
+	end
+	if frame.factsHeading then
+		frame.factsHeading:SetText(T("RATING_FACTS_TITLE"))
+	end
+	for _, checkbox in ipairs(frame.factCheckboxes) do
+		local factId = checkbox.factId
+		local isSelected = selected[factId] and true or false
+		local canUse = editable and (isSelected or selectedCount < maxFacts)
+		if checkbox.label and Addon.FactLabel then
+			checkbox.label:SetText(Addon:FactLabel(factId))
+		end
+		SetProfileTagCheckboxState(checkbox, isSelected, canUse)
+	end
+end
+
+local function FormatEventContextSuffix(event)
+	if type(event) ~= "table" or type(event.context) ~= "table" then
+		return ""
+	end
+	local context = event.context
+	local place = context.instanceName
+	if not place or place == "" then
+		place = context.zoneName
+	end
+	if not place or place == "" then
+		return ""
+	end
+	local suffix = place
+	if context.difficulty and context.difficulty ~= "" then
+		suffix = suffix .. " (" .. tostring(context.difficulty) .. ")"
+	end
+	return " — " .. suffix
+end
+
+UpdateProfileEventsPanel = function(frame, member)
+	if not frame or not frame.eventsListContent then
+		return
+	end
+	local events = SortEventsNewestFirst(GetProfileDraftEvents(frame))
+	if frame.eventsHeading then
+		frame.eventsHeading:SetText(T("PROFILE_TAB_EVENTS"))
+	end
+	if frame.eventsAddBtn and frame.eventsAddBtn.label then
+		frame.eventsAddBtn.label:SetText(T("PROFILE_EVENTS_ADD"))
+	end
+	if frame.eventsPickLabel then
+		frame.eventsPickLabel:SetText(T("PROFILE_EVENTS_PICK_TYPE"))
+	end
+	if frame.eventTypeButtons then
+		for _, button in ipairs(frame.eventTypeButtons) do
+			if button.label and button.eventTypeId and Addon.EventTypeLabel then
+				button.label:SetText(Addon:EventTypeLabel(button.eventTypeId))
+			end
+			W.SetMenuButtonState(button, frame.selectedEventType == button.eventTypeId, false)
+		end
+	end
+
+	if frame.eventRows then
+		for _, row in ipairs(frame.eventRows) do
+			row:Hide()
+			row:SetParent(nil)
+		end
+	end
+	frame.eventRows = {}
+	frame.eventRemoveButtons = {}
+
+	local rowHeight = 20
+	local contentWidth = (frame.eventsListContent:GetWidth() or 400)
+	local y = 0
+	if #events == 0 then
+		local row = CreateFrame("Frame", nil, frame.eventsListContent)
+		row:SetSize(contentWidth, rowHeight)
+		row:SetPoint("TOPLEFT", frame.eventsListContent, "TOPLEFT", 0, 0)
+		local empty = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		empty:SetPoint("LEFT", 0, 0)
+		empty:SetPoint("RIGHT", 0, 0)
+		empty:SetJustifyH("LEFT")
+		empty:SetText(T("PROFILE_EVENTS_EMPTY"))
+		row.label = empty
+		frame.eventRows[1] = row
+		y = rowHeight
+	else
+		for index = 1, #events do
+			local event = events[index]
+			local when = Addon.FormatHistoryTime and Addon:FormatHistoryTime(event.eventAt) or "?"
+			local label = Addon.EventTypeLabel and Addon:EventTypeLabel(event.type) or tostring(event.type)
+			local line = when .. " — " .. label .. FormatEventContextSuffix(event)
+
+			local row = CreateFrame("Frame", nil, frame.eventsListContent)
+			row:SetSize(contentWidth, rowHeight)
+			row:SetPoint("TOPLEFT", frame.eventsListContent, "TOPLEFT", 0, -y)
+
+			local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+			text:SetPoint("LEFT", 0, 0)
+			text:SetPoint("RIGHT", row, "RIGHT", -76, 0)
+			text:SetJustifyH("LEFT")
+			text:SetJustifyV("MIDDLE")
+			text:SetText(line)
+			row.label = text
+
+			local button = W.CreatePlainButton(row, 70, 18, T("PROFILE_EVENT_REMOVE"))
+			button:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+			button.eventId = event.id
+			button:SetScript("OnClick", function(self)
+				Addon:RemoveProfileEvent(self.eventId)
+			end)
+			row.removeBtn = button
+			frame.eventRemoveButtons[#frame.eventRemoveButtons + 1] = button
+			frame.eventRows[#frame.eventRows + 1] = row
+			y = y + rowHeight
+		end
+	end
+	frame.eventsListContent:SetHeight(math.max(y, 1))
+end
+
+local function CreateProfileFactCheckbox(parent, fact, columnWidth)
+	local check = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
+	check:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
+	local checkName = check:GetName()
+	local templateText = checkName and _G[checkName .. "Text"]
+	if templateText then
+		templateText:SetText("")
+		templateText:Hide()
+	end
+	check.factId = fact.id
+
+	local label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	label:SetPoint("LEFT", check, "RIGHT", 4, 0)
+	label:SetWidth(columnWidth - UI.CHECK_SIZE - 4)
+	label:SetJustifyH("LEFT")
+	label:SetText(Addon.FactLabel and Addon:FactLabel(fact.id) or fact.id)
+	check.labelColor = (Addon.RatingMetaColor and Addon:RatingMetaColor("fact")) or UI.TEXT_IDLE
+	W.SetFontColor(label, check.labelColor)
+	check.label = label
+
+	local hit = CreateFrame("Button", nil, parent)
+	hit:SetPoint("TOPLEFT", check, "TOPLEFT", 0, 0)
+	hit:SetPoint("BOTTOMRIGHT", label, "BOTTOMRIGHT", 0, 0)
+	hit:SetScript("OnClick", function()
+		if check:IsEnabled() then
+			check:Click()
+		end
+	end)
+	check.hit = hit
+
+	check:SetScript("OnClick", function(self)
+		if self.isUpdating then
+			return
+		end
+		local wantChecked = self:GetChecked()
+		local _, _, draftFacts = GetProfileDraft(Addon.raidDetailFrame)
+		if wantChecked then
+			local maxFacts = (Addon.MaxPersonalFacts and Addon:MaxPersonalFacts()) or 4
+			if #draftFacts >= maxFacts then
+				self:SetChecked(false)
+				Addon:Print(Addon:T("RATING_FACTS_LIMIT", maxFacts))
+				return
+			end
+		end
+		Addon:ToggleProfileFact(self.factId)
+	end)
+
+	return check
+end
+
 local function CreateProfileTagCheckbox(parent, tag, group, columnWidth)
 	local check = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
 	check:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
@@ -643,7 +983,8 @@ local function UpdateProfileOpinionControls(frame, member)
 		return
 	end
 	local opinion, tags = GetProfileDraft(frame)
-	PaintOpinionLabels(frame, opinion, tags)
+	PaintSavedHeaderLabels(frame, member)
+	PaintOpinionLabels(frame, opinion, tags, "editor")
 	RefreshOpinionRadios(frame, opinion)
 end
 
@@ -656,6 +997,11 @@ local function UpdateProfileEditor(frame, member)
 		local editable = member.guid and member.guid ~= ""
 		RefreshProfileTagCheckboxes(frame, member, editable)
 	end
+	if frame.factCheckboxes then
+		local editable = member.guid and member.guid ~= ""
+		RefreshProfileFactCheckboxes(frame, member, editable)
+	end
+	UpdateProfileEventsPanel(frame, member)
 	if frame.communityHeading then
 		frame.communityHeading:SetText(T("RATING_COMMUNITY_TITLE"))
 	end
@@ -678,18 +1024,24 @@ function Addon:RefreshRatingViews()
 	end
 end
 
-function Addon:SaveProfilePersonalRating(opinion, tagIds, options)
+function Addon:SaveProfilePersonalRating(opinion, tagIds, factIds, options)
 	local frame = self.raidDetailFrame
 	local member = frame and frame.profileMember
 	if not member or not member.guid or member.guid == "" or not self.SavePersonalRatingForGuid then
 		return
 	end
-	local entry = self:SavePersonalRatingForGuid(member.guid, member, opinion, tagIds)
+	local entry = self:SavePersonalRatingForGuid(member.guid, member, opinion, tagIds, factIds)
 	if not entry then
 		return
 	end
-	-- Rebuild from the saved history entry so opinion/tags match the DB on first click.
+	-- Rebuild from the saved history entry so opinion/tags/facts/changes match the DB.
 	frame.profileMember = self:HistoryProfileForMember(entry)
+	if type(entry.changes) == "table" then
+		frame.profileMember.changes = entry.changes
+	end
+	if type(entry.events) == "table" then
+		frame.profileMember.events = entry.events
+	end
 	frame.profileMember.rating = {
 		personal = self:GetPersonalRating(entry),
 	}
@@ -754,7 +1106,7 @@ function Addon:ToggleProfileTag(tagId)
 	if not frame then
 		return
 	end
-	local opinion, draftTags = GetProfileDraft(frame)
+	local opinion, draftTags, draftFacts = GetProfileDraft(frame)
 	local tag = self.RatingTagById and self:RatingTagById(tagId) or nil
 	local nextTags = {}
 	local seen = false
@@ -784,11 +1136,46 @@ function Addon:ToggleProfileTag(tagId)
 	end
 	frame.draftTags = nextTags
 	frame.draftOpinion = opinion
-	PaintOpinionLabels(frame, opinion, nextTags)
+	frame.draftFacts = draftFacts
+	PaintDraftEditorLabels(frame)
 	if frame.tagGroups then
 		local member = frame.profileMember
 		local editable = member and member.guid and member.guid ~= ""
 		RefreshProfileTagCheckboxes(frame, member, editable)
+	end
+end
+
+function Addon:ToggleProfileFact(factId)
+	local frame = self.raidDetailFrame
+	if not frame or not factId then
+		return
+	end
+	local opinion, draftTags, draftFacts = GetProfileDraft(frame)
+	local nextFacts = {}
+	local seen = false
+	for index = 1, #draftFacts do
+		local current = draftFacts[index]
+		if current ~= factId then
+			nextFacts[#nextFacts + 1] = current
+		else
+			seen = true
+		end
+	end
+	if not seen then
+		local maxFacts = (self.MaxPersonalFacts and self:MaxPersonalFacts()) or 4
+		if #draftFacts >= maxFacts then
+			self:Print(self:T("RATING_FACTS_LIMIT", maxFacts))
+			return
+		end
+		nextFacts[#nextFacts + 1] = factId
+	end
+	frame.draftFacts = nextFacts
+	frame.draftOpinion = opinion
+	frame.draftTags = draftTags
+	if frame.factCheckboxes then
+		local member = frame.profileMember
+		local editable = member and member.guid and member.guid ~= ""
+		RefreshProfileFactCheckboxes(frame, member, editable)
 	end
 end
 
@@ -798,10 +1185,71 @@ function Addon:CommitProfileRating()
 	if not member or not member.guid or member.guid == "" then
 		return
 	end
-	local opinion, tags = GetProfileDraft(frame)
-	self:SaveProfilePersonalRating(opinion, tags, {})
+	local opinion, tags, facts = GetProfileDraft(frame)
+	local draftEvents = CopyEventList(GetProfileDraftEvents(frame))
+	self:SaveProfilePersonalRating(opinion, tags, facts, {})
+	if self.SaveHistoryEventsForGuid then
+		local entry = self:SaveHistoryEventsForGuid(member.guid, frame.profileMember or member, draftEvents)
+		if entry then
+			frame.profileMember = self:HistoryProfileForMember(entry)
+			if type(entry.changes) == "table" then
+				frame.profileMember.changes = entry.changes
+			end
+			if type(entry.events) == "table" then
+				frame.profileMember.events = entry.events
+			end
+			frame.profileMember.rating = {
+				personal = self:GetPersonalRating(entry),
+			}
+		end
+	end
 	InitProfileDraft(frame, frame.profileMember)
 	UpdateProfileEditor(frame, frame.profileMember)
+end
+
+function Addon:AddProfileEvent(eventTypeId)
+	local frame = self.raidDetailFrame
+	local member = frame and frame.profileMember
+	if not member or not member.guid or member.guid == "" or not eventTypeId then
+		return
+	end
+	if self.IsValidEventType and not self:IsValidEventType(eventTypeId) then
+		return
+	end
+	if type(frame.draftEvents) ~= "table" then
+		frame.draftEvents = {}
+	end
+	frame.draftEventSeq = (frame.draftEventSeq or 0) + 1
+	local creatorId = ""
+	if type(UnitGUID) == "function" then
+		creatorId = UnitGUID("player") or ""
+	end
+	local event = {
+		id = string.format("draft-%d-%d", time(), frame.draftEventSeq),
+		type = eventTypeId,
+		creatorId = creatorId,
+		eventAt = time(),
+		context = (self.CaptureEventContext and self:CaptureEventContext()) or {},
+	}
+	table.insert(frame.draftEvents, 1, event)
+	UpdateProfileEventsPanel(frame, member)
+end
+
+function Addon:RemoveProfileEvent(eventId)
+	local frame = self.raidDetailFrame
+	if not frame or not eventId or eventId == "" then
+		return
+	end
+	local draft = GetProfileDraftEvents(frame)
+	local nextEvents = {}
+	for index = 1, #draft do
+		local event = draft[index]
+		if type(event) == "table" and event.id ~= eventId then
+			nextEvents[#nextEvents + 1] = event
+		end
+	end
+	frame.draftEvents = nextEvents
+	UpdateProfileEventsPanel(frame, frame.profileMember)
 end
 
 local function CreateRaidCharacterWindow()
@@ -963,7 +1411,7 @@ local function CreateRaidCharacterWindow()
 	local summary = CreateFrame("Frame", nil, body)
 	summary:SetPoint("TOPLEFT", gsText, "BOTTOMLEFT", 0, -4)
 	summary:SetPoint("TOPRIGHT", ilvlText, "BOTTOMRIGHT", 0, -4)
-	summary:SetHeight(104)
+	summary:SetHeight(122)
 	frame.summarySection = summary
 
 	local function CreateSummaryLine(parent, anchor, topOffset, width)
@@ -982,7 +1430,8 @@ local function CreateRaidCharacterWindow()
 
 	frame.opinionText = CreateSummaryLine(summary, nil, 0, columnWidth)
 	frame.tagText = CreateSummaryLine(summary, frame.opinionText, -6, columnWidth)
-	frame.guildText = CreateSummaryLine(summary, frame.tagText, -6, columnWidth)
+	frame.factText = CreateSummaryLine(summary, frame.tagText, -6, columnWidth)
+	frame.guildText = CreateSummaryLine(summary, frame.factText, -6, columnWidth)
 	frame.guidText = CreateSummaryLine(summary, frame.guildText, -6, columnWidth)
 	frame.metRealmText = CreateSummaryLine(summary, frame.guidText, -6, columnWidth)
 
@@ -1008,14 +1457,15 @@ local function CreateRaidCharacterWindow()
 
 	frame.profileTabButtons = {}
 	frame.profilePanels = {}
-	local tabWidth = math.floor((bodyWidth - 16) / #PROFILE_TABS)
+	local tabGap = 4
+	local tabWidth = math.floor((bodyWidth - tabGap * (#PROFILE_TABS - 1)) / #PROFILE_TABS)
 	for index = 1, #PROFILE_TABS do
 		local tab = PROFILE_TABS[index]
 		local button = CreateProfileTabButton(tabBar, tab.id, T(tab.labelKey), tabWidth)
 		if index == 1 then
 			button:SetPoint("LEFT", 0, 0)
 		else
-			button:SetPoint("LEFT", frame.profileTabButtons[index - 1], "RIGHT", 8, 0)
+			button:SetPoint("LEFT", frame.profileTabButtons[index - 1], "RIGHT", tabGap, 0)
 		end
 		frame.profileTabButtons[index] = button
 	end
@@ -1025,7 +1475,7 @@ local function CreateRaidCharacterWindow()
 	tabHost:SetPoint("BOTTOMRIGHT", body, "BOTTOMRIGHT", 0, UI.ACTION_BTN_H + 8)
 	frame.tabHost = tabHost
 
-	local updateBtn = W.CreatePlainButton(body, bodyWidth, UI.ACTION_BTN_H, T("BTN_UPDATE"))
+	local updateBtn = W.CreatePlainButton(body, bodyWidth, UI.ACTION_BTN_H, T("BTN_SAVE_AND_UPDATE"))
 	updateBtn:SetPoint("BOTTOMLEFT", 0, 0)
 	updateBtn:SetPoint("BOTTOMRIGHT", 0, 0)
 	updateBtn:SetScript("OnClick", function()
@@ -1170,10 +1620,170 @@ local function CreateRaidCharacterWindow()
 	end
 	tagContent:SetHeight(math.max(currentY, 1))
 
+	-- Facts tab: role / identity checkboxes (draft until Save and Update).
+	local factsPanel = CreateFrame("Frame", nil, tabContent)
+	factsPanel:SetPoint("TOPLEFT", 0, 0)
+	factsPanel:SetPoint("BOTTOMRIGHT", 0, 0)
+	factsPanel:Hide()
+	frame.profilePanels.facts = factsPanel
+
+	local factsHeading = factsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	factsHeading:SetPoint("TOPLEFT", 0, 0)
+	factsHeading:SetPoint("RIGHT", factsPanel, "RIGHT", 0, 0)
+	factsHeading:SetJustifyH("LEFT")
+	factsHeading:SetText(T("RATING_FACTS_TITLE"))
+	W.SetFontColor(factsHeading, UI.GOLD)
+	frame.factsHeading = factsHeading
+
+	local factsHint = factsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	factsHint:SetPoint("TOPLEFT", factsHeading, "BOTTOMLEFT", 0, -4)
+	factsHint:SetPoint("RIGHT", factsPanel, "RIGHT", 0, 0)
+	factsHint:SetJustifyH("LEFT")
+	local maxFacts = (Addon.MaxPersonalFacts and Addon:MaxPersonalFacts()) or 4
+	factsHint:SetText(T("RATING_FACTS_HINT", maxFacts))
+	W.SetFontColor(factsHint, UI.TEXT_IDLE)
+	frame.factsHint = factsHint
+
+	frame.factCheckboxes = {}
+	local factCatalog = (Addon.FactCatalog and Addon:FactCatalog()) or {}
+	local factColumnWidth = math.floor((tabContentWidth - PROFILE_TAG_COL_GAP) / 2)
+	local factLeft = CreateFrame("Frame", nil, factsPanel)
+	factLeft:SetSize(factColumnWidth, 1)
+	factLeft:SetPoint("TOPLEFT", factsHint, "BOTTOMLEFT", 0, -8)
+	local factRight = CreateFrame("Frame", nil, factsPanel)
+	factRight:SetSize(factColumnWidth, 1)
+	factRight:SetPoint("TOPLEFT", factLeft, "TOPRIGHT", PROFILE_TAG_COL_GAP, 0)
+	for factIndex = 1, #factCatalog do
+		local fact = factCatalog[factIndex]
+		local column = (factIndex % 2 == 0) and factRight or factLeft
+		local rowIndex = math.floor((factIndex - 1) / 2)
+		local checkbox = CreateProfileFactCheckbox(column, fact, factColumnWidth)
+		checkbox:SetPoint("TOPLEFT", column, "TOPLEFT", 0, -(rowIndex * PROFILE_TAG_ROW_H))
+		frame.factCheckboxes[#frame.factCheckboxes + 1] = checkbox
+	end
+	local factRows = math.ceil(math.max(#factCatalog, 1) / 2)
+	factLeft:SetHeight(factRows * PROFILE_TAG_ROW_H)
+	factRight:SetHeight(factRows * PROFILE_TAG_ROW_H)
+
+	-- Events tab: pick type + draft Add/Remove; commit via Save and Update.
+	local eventsPanel = CreateFrame("Frame", nil, tabContent)
+	eventsPanel:SetPoint("TOPLEFT", 0, 0)
+	eventsPanel:SetPoint("BOTTOMRIGHT", 0, 0)
+	eventsPanel:Hide()
+	frame.profilePanels.events = eventsPanel
+
+	local eventsAddBtn = W.CreatePlainButton(eventsPanel, 110, UI.ACTION_BTN_H, T("PROFILE_EVENTS_ADD"))
+	eventsAddBtn:SetPoint("TOPRIGHT", 0, 0)
+	eventsAddBtn:SetScript("OnClick", function()
+		if frame.selectedEventType then
+			Addon:AddProfileEvent(frame.selectedEventType)
+		end
+	end)
+	frame.eventsAddBtn = eventsAddBtn
+
+	local eventsHeading = eventsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	eventsHeading:SetPoint("TOPLEFT", 0, 0)
+	eventsHeading:SetPoint("RIGHT", eventsAddBtn, "LEFT", -8, 0)
+	eventsHeading:SetJustifyH("LEFT")
+	eventsHeading:SetText(T("PROFILE_TAB_EVENTS"))
+	W.SetFontColor(eventsHeading, UI.GOLD)
+	frame.eventsHeading = eventsHeading
+
+	local eventsPickLabel = eventsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	eventsPickLabel:SetPoint("TOPLEFT", eventsHeading, "BOTTOMLEFT", 0, -4)
+	eventsPickLabel:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
+	eventsPickLabel:SetJustifyH("LEFT")
+	eventsPickLabel:SetText(T("PROFILE_EVENTS_PICK_TYPE"))
+	W.SetFontColor(eventsPickLabel, UI.TEXT_IDLE)
+	frame.eventsPickLabel = eventsPickLabel
+
+	local typePickerHost = CreateFrame("Frame", nil, eventsPanel)
+	typePickerHost:SetPoint("TOPLEFT", eventsPickLabel, "BOTTOMLEFT", 0, -6)
+	typePickerHost:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
+	typePickerHost:SetHeight(96)
+	frame.eventTypePickerHost = typePickerHost
+
+	local typeScrollName = "RaidwiseProfileEventTypeScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
+	local existingTypeScroll = _G[typeScrollName]
+	if existingTypeScroll then
+		existingTypeScroll:Hide()
+		existingTypeScroll:SetParent(nil)
+	end
+	local typeScroll = CreateFrame("ScrollFrame", typeScrollName, typePickerHost, "UIPanelScrollFrameTemplate")
+	typeScroll:SetPoint("TOPLEFT", 0, 0)
+	typeScroll:SetPoint("BOTTOMRIGHT", -24, 0)
+
+	local typeContent = CreateFrame("Frame", nil, typeScroll)
+	typeContent:SetWidth(tabContentWidth - 28)
+	typeScroll:SetScrollChild(typeContent)
+	frame.eventTypeButtons = {}
+	frame.selectedEventType = nil
+	local eventTypes = (Addon.EventTypes and Addon:EventTypes()) or {}
+	local typeBtnWidth = math.floor((tabContentWidth - 28 - PROFILE_TAG_COL_GAP) / 2)
+	local typeY = 0
+	for typeIndex = 1, #eventTypes do
+		local eventType = eventTypes[typeIndex]
+		local col = (typeIndex % 2 == 0) and 1 or 0
+		local row = math.floor((typeIndex - 1) / 2)
+		local button = CreateFrame("Button", nil, typeContent)
+		button:SetSize(typeBtnWidth, 20)
+		button:SetPoint("TOPLEFT", typeContent, "TOPLEFT", col * (typeBtnWidth + PROFILE_TAG_COL_GAP), -(row * 22))
+		W.ApplyPlainPanel(button, UI.BTN_IDLE)
+		button.eventTypeId = eventType.id
+		local label = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("LEFT", 6, 0)
+		label:SetPoint("RIGHT", -6, 0)
+		label:SetJustifyH("LEFT")
+		label:SetText(Addon.EventTypeLabel and Addon:EventTypeLabel(eventType.id) or eventType.id)
+		button.label = label
+		button:SetScript("OnEnter", function(self)
+			W.SetMenuButtonState(self, frame.selectedEventType == self.eventTypeId, true)
+		end)
+		button:SetScript("OnLeave", function(self)
+			W.SetMenuButtonState(self, frame.selectedEventType == self.eventTypeId, false)
+		end)
+		button:SetScript("OnClick", function(self)
+			frame.selectedEventType = self.eventTypeId
+			for _, other in ipairs(frame.eventTypeButtons) do
+				W.SetMenuButtonState(other, other.eventTypeId == frame.selectedEventType, false)
+			end
+		end)
+		frame.eventTypeButtons[#frame.eventTypeButtons + 1] = button
+		typeY = math.max(typeY, (row + 1) * 22)
+	end
+	typeContent:SetHeight(math.max(typeY, 1))
+	if #eventTypes > 0 then
+		frame.selectedEventType = eventTypes[1].id
+		W.SetMenuButtonState(frame.eventTypeButtons[1], true, false)
+	end
+
+	local eventsListHost = CreateFrame("Frame", nil, eventsPanel)
+	eventsListHost:SetPoint("TOPLEFT", typePickerHost, "BOTTOMLEFT", 0, -8)
+	eventsListHost:SetPoint("BOTTOMRIGHT", eventsPanel, "BOTTOMRIGHT", 0, 0)
+	frame.eventsListHost = eventsListHost
+
+	local eventsListScrollName = "RaidwiseProfileEventListScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
+	local existingEventListScroll = _G[eventsListScrollName]
+	if existingEventListScroll then
+		existingEventListScroll:Hide()
+		existingEventListScroll:SetParent(nil)
+	end
+	local eventsListScroll = CreateFrame("ScrollFrame", eventsListScrollName, eventsListHost, "UIPanelScrollFrameTemplate")
+	eventsListScroll:SetPoint("TOPLEFT", 0, 0)
+	eventsListScroll:SetPoint("BOTTOMRIGHT", -24, 0)
+	frame.eventsListScroll = eventsListScroll
+
+	local eventsListContent = CreateFrame("Frame", nil, eventsListScroll)
+	eventsListContent:SetWidth(tabContentWidth - 28)
+	eventsListScroll:SetScrollChild(eventsListContent)
+	frame.eventsListContent = eventsListContent
+	frame.eventRows = {}
+	frame.eventRemoveButtons = {}
+
 	local notesPanel = CreateFrame("Frame", nil, tabContent)
 	notesPanel:SetPoint("TOPLEFT", 0, 0)
 	notesPanel:SetPoint("TOPRIGHT", 0, 0)
-	notesPanel:SetHeight(140)
+	notesPanel:SetHeight(190)
 	notesPanel:Hide()
 	frame.profilePanels.notes = notesPanel
 
@@ -1185,8 +1795,17 @@ local function CreateRaidCharacterWindow()
 	W.SetFontColor(notesHeading, UI.GOLD)
 	frame.notesHeading = notesHeading
 
+	local notesHint = notesPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	notesHint:SetPoint("TOPLEFT", notesHeading, "BOTTOMLEFT", 0, -4)
+	notesHint:SetPoint("RIGHT", notesPanel, "RIGHT", 0, 0)
+	notesHint:SetJustifyH("LEFT")
+	notesHint:SetJustifyV("TOP")
+	notesHint:SetText(T("PROFILE_MEMO_HINT"))
+	W.SetFontColor(notesHint, UI.TEXT_IDLE)
+	frame.notesHint = notesHint
+
 	local notesHost, notesBox = CreateProfileNotesBox(notesPanel, tabContentWidth, 96)
-	notesHost:SetPoint("TOPLEFT", notesHeading, "BOTTOMLEFT", 0, -8)
+	notesHost:SetPoint("TOPLEFT", notesHint, "BOTTOMLEFT", 0, -8)
 	frame.notesHost = notesHost
 	frame.notesBox = notesBox
 
@@ -1215,8 +1834,21 @@ local function CreateRaidCharacterWindow()
 	historyPanel:Hide()
 	frame.profilePanels.history = historyPanel
 
+	local historyTogetherText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	historyTogetherText:SetPoint("TOPRIGHT", 0, 0)
+	historyTogetherText:SetJustifyH("RIGHT")
+	historyTogetherText:SetJustifyV("TOP")
+	frame.historyTogetherText = historyTogetherText
+
+	local historyMetText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	historyMetText:SetPoint("TOPLEFT", 0, 0)
+	historyMetText:SetPoint("RIGHT", historyTogetherText, "LEFT", -8, 0)
+	historyMetText:SetJustifyH("LEFT")
+	historyMetText:SetJustifyV("TOP")
+	frame.historyMetText = historyMetText
+
 	local historyText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	historyText:SetPoint("TOPLEFT", 0, 0)
+	historyText:SetPoint("TOPLEFT", historyMetText, "BOTTOMLEFT", 0, -6)
 	historyText:SetPoint("RIGHT", historyPanel, "RIGHT", 0, 0)
 	historyText:SetJustifyH("LEFT")
 	historyText:SetJustifyV("TOP")
@@ -1306,8 +1938,8 @@ function Addon:ShowRaidCharacterWindow(member)
 	W.SetFontColor(frame.guildText, UI.TEXT_IDLE)
 
 	InitProfileDraft(frame, member)
-	local draftOpinion, draftTags = GetProfileDraft(frame)
-	PaintOpinionLabels(frame, draftOpinion, draftTags)
+	PaintSavedHeaderLabels(frame, member)
+	PaintDraftEditorLabels(frame)
 
 	if member.guid and member.guid ~= "" then
 		frame.guidText:SetText(T("PROFILE_GUID", member.guid))
@@ -1341,17 +1973,21 @@ function Addon:ShowRaidCharacterWindow(member)
 	if frame.notesHeading then
 		frame.notesHeading:SetText(T("PROFILE_NOTES"))
 	end
+	if frame.notesHint then
+		frame.notesHint:SetText(T("PROFILE_MEMO_HINT"))
+	end
 	if frame.notesBox then
 		frame.isUpdatingNotes = true
 		frame.notesBox:SetText(member.notes or "")
 		frame.isUpdatingNotes = false
 	end
 	if frame.ratingUpdateBtn then
-		frame.ratingUpdateBtn.label:SetText(T("BTN_UPDATE"))
+		frame.ratingUpdateBtn.label:SetText(T("BTN_SAVE_AND_UPDATE"))
 	end
 
 	UpdateProfileEditor(frame, member)
 	local editable = member.guid and member.guid ~= ""
+	local draftOpinion = GetProfileDraft(frame)
 	if frame.opinionButtons then
 		for _, button in ipairs(frame.opinionButtons) do
 			if editable then
@@ -1370,6 +2006,25 @@ function Addon:ShowRaidCharacterWindow(member)
 	end
 	if frame.tagGroups then
 		RefreshProfileTagCheckboxes(frame, member, editable)
+	end
+	if frame.factCheckboxes then
+		RefreshProfileFactCheckboxes(frame, member, editable)
+	end
+	if frame.eventsAddBtn then
+		if editable then
+			frame.eventsAddBtn:Enable()
+		else
+			frame.eventsAddBtn:Disable()
+		end
+	end
+	if frame.eventTypeButtons then
+		for _, button in ipairs(frame.eventTypeButtons) do
+			if editable then
+				button:Enable()
+			else
+				button:Disable()
+			end
+		end
 	end
 	if frame.ratingUpdateBtn then
 		if editable then
