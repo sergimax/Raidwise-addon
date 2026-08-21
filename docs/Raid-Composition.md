@@ -128,7 +128,7 @@ Boss debuffs. Major and minor armor **do stack with each other**. Moonkin Aura /
 | Cast speed slow | Curse of Tongues; Slow; Mind-numbing Poison; Lava Breath (pet) | Any Warlock; Arcane Mage; Any Rogue; Beast Mastery Hunter | |
 | Melee hit reduction | Insect Swarm; Scorpid Sting | Balance Druid; Any Hunter | |
 | Judgement of Light | Health return on melee hits | Any Paladin | hidden |
-| Judgement of Wisdom | Mana return on melee/spell hits | Any Paladin | |
+| Judgement of Wisdom | Mana return on melee/spell hits | Any Paladin | hidden |
 
 Acid Spit, Hunter Sting, Stampede, and Lava Breath depend on the pet. Beast Mastery / any Hunter is listed as a **possible** source.
 
@@ -142,6 +142,7 @@ Acid Spit, Hunter Sting, Stampede, and Lava Breath depend on the pet. Beast Mast
 | Innervate | Any Druid | |
 | Shadowfiend | Any Priest | hidden |
 | Revitalize | Restoration Druid | |
+| Judgement of Wisdom | Any Paladin | |
 
 One Replenishment source covers 10 people; 25-man raids usually want two.
 

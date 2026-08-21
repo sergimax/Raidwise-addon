@@ -531,6 +531,7 @@ local EFFECTS = {
 		id = "jow",
 		labelKey = "COMP_JOW",
 		spellId = 20186,
+		hidden = true,
 		sources = { Src("PALADIN") },
 	},
 	{
@@ -581,6 +582,13 @@ local EFFECTS = {
 		labelKey = "COMP_REVITALIZE",
 		spellId = 48540,
 		sources = { Src("DRUID", 3) },
+	},
+	{
+		section = "mana",
+		id = "jow_mana",
+		labelKey = "COMP_JOW",
+		spellId = 20186,
+		sources = { Src("PALADIN") },
 	},
 	{
 		section = "health_regen",
