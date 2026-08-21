@@ -765,6 +765,9 @@ local function TagsEqual(left, right)
 	return true
 end
 
+-- Gap since lastSeenAt before another party/raid encounter counts as a new meeting.
+local GROUP_MEETING_GAP_SEC = 30 * 60
+
 local function EnsureHistoryFields(entry)
 	if type(entry.notes) ~= "string" then
 		entry.notes = ""
@@ -780,6 +783,14 @@ local function EnsureHistoryFields(entry)
 	end
 	if type(entry.events) ~= "table" then
 		entry.events = {}
+	end
+	local metAt = tonumber(entry.metAt) or 0
+	local lastSeenAt = tonumber(entry.lastSeenAt) or 0
+	if metAt > 0 and lastSeenAt <= 0 then
+		entry.lastSeenAt = metAt
+	end
+	if type(entry.meetCount) ~= "number" or entry.meetCount < 1 then
+		entry.meetCount = metAt > 0 and 1 or 0
 	end
 	if Addon.EnsurePersonalRating then
 		Addon:EnsurePersonalRating(entry)
@@ -841,6 +852,7 @@ function Addon:EnsureHistoryEntryForGuid(guid, seed)
 			metRealm = "",
 			lastSeenAt = 0,
 			lastSeenZone = "",
+			meetCount = 0,
 		}
 		store[guid] = entry
 	end
@@ -868,10 +880,21 @@ function Addon:UpsertHistoryMember(member)
 		entry.metRealm = metRealm
 		entry.lastSeenAt = now
 		entry.lastSeenZone = zone
+		entry.meetCount = 1
 		return entry
 	end
 
 	EnsureHistoryFields(entry)
+	local previousSeen = tonumber(entry.lastSeenAt) or 0
+	local meetCount = tonumber(entry.meetCount) or 1
+	if meetCount < 1 then
+		meetCount = 1
+	end
+	-- Count another grouping only after a quiet gap (avoids +1 on every roster refresh).
+	if previousSeen <= 0 or (now - previousSeen) >= GROUP_MEETING_GAP_SEC then
+		meetCount = meetCount + 1
+	end
+	entry.meetCount = meetCount
 	CopyIfValue(entry, member, "name")
 	CopyIfValue(entry, member, "class")
 	CopyIfValue(entry, member, "classLabel")
@@ -982,6 +1005,9 @@ function Addon:HistoryProfileForMember(member)
 		end
 		if not profile.metRealm or profile.metRealm == "" then
 			profile.metRealm = saved.metRealm
+		end
+		if type(saved.meetCount) == "number" then
+			profile.meetCount = saved.meetCount
 		end
 		if (not profile.spec or profile.spec == "") and saved.spec and saved.spec ~= "" then
 			profile.spec = saved.spec

@@ -53,6 +53,7 @@ History personal reputation shape (see [Reputation.md](Reputation.md)):
 - `history[guid].events[]` — typed occurrences with `eventAt` + context
 - `history[guid].notes` — private memo (never shared)
 - `history[guid].changes[]` — local change log (`opinion`, `tags`, `facts`, `event_add`, `event_remove`)
+- `history[guid].meetCount` — party/raid encounters with this character (first meet = 1; +1 after ≥30 min since `lastSeenAt`)
 
 ## Two version concepts
 

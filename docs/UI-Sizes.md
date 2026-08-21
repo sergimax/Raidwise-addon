@@ -159,6 +159,7 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Pa
 | Memo hint | under heading | `GameFontNormalSmall`; personal-use only (not History) |
 | Memo box | **440 × 96** | Multiline EditBox with inner scroll |
 | Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
+| History Met / party count | first row of History tab | **Met** left-aligned; **Was in the same party** right-aligned (`meetCount`) |
 | Community mock block | right summary column | Gold heading + wrapped body text |
 
 Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** appears on **Note** / **Facts** / **Events** and commits those drafts (not memo). Hidden on **History** and **Memo**. Header personal note/tags/facts stay on saved values until that commit. Closing without Save discards drafts.

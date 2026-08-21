@@ -31,7 +31,7 @@ local UI = {
 	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
 }
 
-local PROFILE_LAYOUT_VERSION = 25
+local PROFILE_LAYOUT_VERSION = 26
 
 local function GetRatingTagGroups()
 	if Addon.RatingTagGroups then
@@ -265,12 +265,24 @@ local function FormatProfileChangeDetail(change)
 end
 
 local function UpdateProfileHistoryPanel(frame, member)
-	if not frame or not frame.historyText or not member then
+	if not frame or not member then
+		return
+	end
+	local metZone = (member.metZone and member.metZone ~= "") and member.metZone or "-"
+	local meetCount = tonumber(member.meetCount) or 0
+	if meetCount < 1 and member.metAt and tonumber(member.metAt) and tonumber(member.metAt) > 0 then
+		meetCount = 1
+	end
+	if frame.historyTogetherText then
+		frame.historyTogetherText:SetText(T("PROFILE_TOGETHER", meetCount))
+	end
+	if frame.historyMetText then
+		frame.historyMetText:SetText(T("PROFILE_MET", metZone))
+	end
+	if not frame.historyText then
 		return
 	end
 	local lines = {}
-	local metZone = (member.metZone and member.metZone ~= "") and member.metZone or "-"
-	lines[#lines + 1] = T("PROFILE_MET", metZone)
 	local metWhen = "-"
 	if Addon.FormatHistoryTime and member.metAt then
 		metWhen = Addon:FormatHistoryTime(member.metAt) or "-"
@@ -291,7 +303,7 @@ local function UpdateProfileHistoryPanel(frame, member)
 	frame.historyText:SetText(table.concat(lines, "\n"))
 	local textHeight = frame.historyText:GetStringHeight() or 120
 	if frame.profilePanels and frame.profilePanels.history then
-		frame.profilePanels.history:SetHeight(math.max(120, textHeight + 12))
+		frame.profilePanels.history:SetHeight(math.max(120, textHeight + 28))
 	end
 end
 
@@ -1822,8 +1834,21 @@ local function CreateRaidCharacterWindow()
 	historyPanel:Hide()
 	frame.profilePanels.history = historyPanel
 
+	local historyTogetherText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	historyTogetherText:SetPoint("TOPRIGHT", 0, 0)
+	historyTogetherText:SetJustifyH("RIGHT")
+	historyTogetherText:SetJustifyV("TOP")
+	frame.historyTogetherText = historyTogetherText
+
+	local historyMetText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	historyMetText:SetPoint("TOPLEFT", 0, 0)
+	historyMetText:SetPoint("RIGHT", historyTogetherText, "LEFT", -8, 0)
+	historyMetText:SetJustifyH("LEFT")
+	historyMetText:SetJustifyV("TOP")
+	frame.historyMetText = historyMetText
+
 	local historyText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	historyText:SetPoint("TOPLEFT", 0, 0)
+	historyText:SetPoint("TOPLEFT", historyMetText, "BOTTOMLEFT", 0, -6)
 	historyText:SetPoint("RIGHT", historyPanel, "RIGHT", 0, 0)
 	historyText:SetJustifyH("LEFT")
 	historyText:SetJustifyV("TOP")
