@@ -245,14 +245,14 @@ Standalone window (**460 × 560**) opened from Party roster, Raid roster, or His
 | Tabs | **History**, **Note**, **Facts**, **Events**, **Memo** — switch the panel below the summary |
 | Note (editor tab) | Summary line (draft preview); three exclusive radio options; tag checkboxes by category (draft until **Save and Update**) |
 | Facts (editor tab) | Role / identity checkboxes (draft until **Save and Update**); max **4** |
-| Events tab | Pick an event type, **Add event** appends immediately with `eventAt=now` and auto zone/instance context; **Remove** deletes a row |
+| Events tab | Pick an event type, **Add event** / **Remove** edit a draft list; **Save and Update** persists events with auto zone/instance context on add |
 | Memo (editor tab) | Personal-use hint; multiline EditBox; **Save** / **Reset**. Memo is not written to History |
 | History tab | **Met** and **When** as first entries, then logged opinion/tag/facts/event changes (and any older memo rows if present) |
-| Save and Update | Bottom of window; saves current opinion, tags, and facts to `RaidwiseDB`, appends History rows when they change, refreshes roster views |
+| Save and Update | Bottom of window; saves current opinion, tags, facts, and events to `RaidwiseDB`, appends History rows when they change, refreshes roster views |
 | editable | Opinion, tags, facts, events, and notes require a valid GUID; controls are disabled otherwise |
 | persistence | Opinion/tags/facts in `RaidwiseDB.history[guid].rating.personal`; events in `.events`; notes in `.notes`; change log in `.changes` |
 
-Changing opinion, tags, or facts (via **Save and Update**) or adding/removing events refreshes Party roster, Raid roster, and History when the profile closes or after those actions.
+Changing opinion, tags, facts, or events (via **Save and Update**) refreshes Party roster, Raid roster, and History when the profile closes or Save and Update is pressed. Closing without Save discards Note/Facts/Events drafts.
 
 See also [Reputation.md](Reputation.md) for entity definitions and future share matrix.
 

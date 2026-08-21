@@ -86,9 +86,9 @@ Esc or the title **X** closes the window.
 **Player rating** in Character profile:
 
 - Tabs: **History**, **Note**, **Facts**, **Events**, **Memo**
-- On **Note**, set **Positive** / **Neutral** / **Negative** and personal tags (up to 3 per category); **Save and Update** commits opinion, tags, and facts
+- On **Note**, set **Positive** / **Neutral** / **Negative** and personal tags (up to 3 per category); **Save and Update** commits opinion, tags, facts, and events
 - On **Facts**, set role / identity facts (up to 4)
-- On **Events**, pick a type and **Add event** (saves immediately with zone/instance context); **Remove** deletes a row
+- On **Events**, pick a type and **Add event** / **Remove** (draft until **Save and Update**; context captured when adding)
 - On **Memo**, write a private free-form note with **Save** / **Reset** (not shared, not logged in History)
 - Party, Raid, and History show your saved opinion and tag summary; click a row or card to open the profile
 - **Community note** is currently a mock preview for a future addon exchange / web app feature

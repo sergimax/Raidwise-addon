@@ -1100,6 +1100,70 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 	return entry
 end
 
+function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
+	if not guid or guid == "" then
+		return nil
+	end
+	local entry = self:EnsureHistoryEntryForGuid(guid, seed)
+	if not entry then
+		return nil
+	end
+	EnsureHistoryFields(entry)
+	if seed then
+		CopyIfValue(entry, seed, "name")
+		CopyIfValue(entry, seed, "class")
+		CopyIfValue(entry, seed, "classLabel")
+	end
+
+	local previousById = {}
+	for index = 1, #entry.events do
+		local event = entry.events[index]
+		if type(event) == "table" and event.id and event.id ~= "" then
+			previousById[event.id] = event
+		end
+	end
+
+	local nextEvents = {}
+	local draftById = {}
+	local source = type(draftEvents) == "table" and draftEvents or {}
+	for index = 1, #source do
+		local event = source[index]
+		if type(event) == "table" and self:IsValidEventType(event.type) then
+			local eventId = event.id
+			if type(eventId) ~= "string" or eventId == "" then
+				eventId = string.format("%d-%d", time(), #nextEvents + 1)
+			end
+			local context = {}
+			if type(event.context) == "table" then
+				for key, value in pairs(event.context) do
+					context[key] = value
+				end
+			end
+			local stored = {
+				id = eventId,
+				type = event.type,
+				creatorId = (type(event.creatorId) == "string" and event.creatorId ~= "") and event.creatorId or LocalPlayerCreatorId(),
+				eventAt = tonumber(event.eventAt) or time(),
+				context = context,
+			}
+			nextEvents[#nextEvents + 1] = stored
+			draftById[eventId] = stored
+			if not previousById[eventId] then
+				self:AppendProfileHistoryChange(entry, "event_add", stored.type)
+			end
+		end
+	end
+
+	for eventId, previous in pairs(previousById) do
+		if not draftById[eventId] then
+			self:AppendProfileHistoryChange(entry, "event_remove", previous.type)
+		end
+	end
+
+	entry.events = nextEvents
+	return entry
+end
+
 function Addon:AddHistoryEventForGuid(guid, seed, eventTypeId)
 	if not guid or guid == "" or not self:IsValidEventType(eventTypeId) then
 		return nil

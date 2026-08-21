@@ -360,6 +360,40 @@ local function CopyTagList(tags)
 	return copy
 end
 
+local function CopyEventList(events)
+	local copy = {}
+	if type(events) ~= "table" then
+		return copy
+	end
+	for index = 1, #events do
+		local event = events[index]
+		if type(event) == "table" then
+			local context = {}
+			if type(event.context) == "table" then
+				for key, value in pairs(event.context) do
+					context[key] = value
+				end
+			end
+			copy[#copy + 1] = {
+				id = event.id,
+				type = event.type,
+				creatorId = event.creatorId,
+				eventAt = event.eventAt,
+				context = context,
+			}
+		end
+	end
+	return copy
+end
+
+local function SortEventsNewestFirst(events)
+	local sorted = CopyEventList(events)
+	table.sort(sorted, function(left, right)
+		return (tonumber(left.eventAt) or 0) > (tonumber(right.eventAt) or 0)
+	end)
+	return sorted
+end
+
 local function InitProfileDraft(frame, member)
 	if not frame then
 		return
@@ -371,6 +405,14 @@ local function InitProfileDraft(frame, member)
 	frame.draftOpinion = personal.opinion or "neutral"
 	frame.draftTags = CopyTagList(personal.tags)
 	frame.draftFacts = CopyTagList(personal.facts)
+	local events = {}
+	if member and Addon.GetHistoryEvents then
+		events = Addon:GetHistoryEvents(member)
+	elseif member and type(member.events) == "table" then
+		events = member.events
+	end
+	frame.draftEvents = SortEventsNewestFirst(events)
+	frame.draftEventSeq = 0
 end
 
 local function GetProfileDraft(frame)
@@ -378,6 +420,13 @@ local function GetProfileDraft(frame)
 		return "neutral", {}, {}
 	end
 	return frame.draftOpinion or "neutral", frame.draftTags or {}, frame.draftFacts or {}
+end
+
+local function GetProfileDraftEvents(frame)
+	if not frame or type(frame.draftEvents) ~= "table" then
+		return {}
+	end
+	return frame.draftEvents
 end
 
 -- AceConfigDialog / Details radio pattern: exclusive SetChecked on the whole group.
@@ -701,12 +750,7 @@ UpdateProfileEventsPanel = function(frame, member)
 	if not frame or not frame.eventsListContent then
 		return
 	end
-	local events = {}
-	if member and Addon.GetHistoryEvents then
-		events = Addon:GetHistoryEvents(member)
-	elseif member and type(member.events) == "table" then
-		events = member.events
-	end
+	local events = SortEventsNewestFirst(GetProfileDraftEvents(frame))
 	if frame.eventsHeading then
 		frame.eventsHeading:SetText(T("PROFILE_TAB_EVENTS"))
 	end
@@ -1097,7 +1141,23 @@ function Addon:CommitProfileRating()
 		return
 	end
 	local opinion, tags, facts = GetProfileDraft(frame)
+	local draftEvents = CopyEventList(GetProfileDraftEvents(frame))
 	self:SaveProfilePersonalRating(opinion, tags, facts, {})
+	if self.SaveHistoryEventsForGuid then
+		local entry = self:SaveHistoryEventsForGuid(member.guid, frame.profileMember or member, draftEvents)
+		if entry then
+			frame.profileMember = self:HistoryProfileForMember(entry)
+			if type(entry.changes) == "table" then
+				frame.profileMember.changes = entry.changes
+			end
+			if type(entry.events) == "table" then
+				frame.profileMember.events = entry.events
+			end
+			frame.profileMember.rating = {
+				personal = self:GetPersonalRating(entry),
+			}
+		end
+	end
 	InitProfileDraft(frame, frame.profileMember)
 	UpdateProfileEditor(frame, frame.profileMember)
 end
@@ -1105,41 +1165,46 @@ end
 function Addon:AddProfileEvent(eventTypeId)
 	local frame = self.raidDetailFrame
 	local member = frame and frame.profileMember
-	if not member or not member.guid or member.guid == "" or not eventTypeId or not self.AddHistoryEventForGuid then
+	if not member or not member.guid or member.guid == "" or not eventTypeId then
 		return
 	end
-	local entry = self:AddHistoryEventForGuid(member.guid, member, eventTypeId)
-	if not entry then
+	if self.IsValidEventType and not self:IsValidEventType(eventTypeId) then
 		return
 	end
-	frame.profileMember = self:HistoryProfileForMember(entry)
-	if type(entry.changes) == "table" then
-		frame.profileMember.changes = entry.changes
+	if type(frame.draftEvents) ~= "table" then
+		frame.draftEvents = {}
 	end
-	frame.profileMember.events = self:GetHistoryEvents(entry)
-	UpdateProfileEventsPanel(frame, frame.profileMember)
-	UpdateProfileHistoryPanel(frame, frame.profileMember)
-	self:RefreshRatingViews()
+	frame.draftEventSeq = (frame.draftEventSeq or 0) + 1
+	local creatorId = ""
+	if type(UnitGUID) == "function" then
+		creatorId = UnitGUID("player") or ""
+	end
+	local event = {
+		id = string.format("draft-%d-%d", time(), frame.draftEventSeq),
+		type = eventTypeId,
+		creatorId = creatorId,
+		eventAt = time(),
+		context = (self.CaptureEventContext and self:CaptureEventContext()) or {},
+	}
+	table.insert(frame.draftEvents, 1, event)
+	UpdateProfileEventsPanel(frame, member)
 end
 
 function Addon:RemoveProfileEvent(eventId)
 	local frame = self.raidDetailFrame
-	local member = frame and frame.profileMember
-	if not member or not member.guid or member.guid == "" or not eventId or not self.RemoveHistoryEventForGuid then
+	if not frame or not eventId or eventId == "" then
 		return
 	end
-	local entry = self:RemoveHistoryEventForGuid(member.guid, eventId)
-	if not entry then
-		return
+	local draft = GetProfileDraftEvents(frame)
+	local nextEvents = {}
+	for index = 1, #draft do
+		local event = draft[index]
+		if type(event) == "table" and event.id ~= eventId then
+			nextEvents[#nextEvents + 1] = event
+		end
 	end
-	frame.profileMember = self:HistoryProfileForMember(entry)
-	if type(entry.changes) == "table" then
-		frame.profileMember.changes = entry.changes
-	end
-	frame.profileMember.events = self:GetHistoryEvents(entry)
+	frame.draftEvents = nextEvents
 	UpdateProfileEventsPanel(frame, frame.profileMember)
-	UpdateProfileHistoryPanel(frame, frame.profileMember)
-	self:RefreshRatingViews()
 end
 
 local function CreateRaidCharacterWindow()

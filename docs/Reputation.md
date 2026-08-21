@@ -12,7 +12,7 @@ Local player reputation for other characters is stored under `RaidwiseDB.history
 | **Events** | Witnessed occurrences (left raid, late arrival, ninja loot, helped player, …) | `events[]` |
 | **Memo** | Private free text | `notes` |
 
-Caps: max **3** tags per category; max **4** facts. Events are an unbounded list (change log capped at 50 rows).
+Caps: max **3** tags per category; max **4** facts. Events are an unbounded list (change log capped at 50 rows). Opinion, tags, facts, and events are edited as drafts in Character profile until **Save and Update**; memo saves separately and is never logged.
 
 ## Record metadata
 
