@@ -150,7 +150,14 @@ local EFFECTS = {
 		sources = { Src("MAGE", 1) },
 	},
 	{
-		section = "external",
+		section = "aggro",
+		id = "misdirection",
+		labelKey = "COMP_MISDIRECTION",
+		spellId = 34477,
+		sources = { Src("HUNTER") },
+	},
+	{
+		section = "aggro",
 		id = "tricks",
 		labelKey = "COMP_TRICKS",
 		spellId = 57934,
@@ -218,13 +225,6 @@ local EFFECTS = {
 		labelKey = "COMP_GUARDIAN_SPIRIT",
 		spellId = 47788,
 		sources = { Src("PRIEST", 2) },
-	},
-	{
-		section = "external",
-		id = "misdirection",
-		labelKey = "COMP_MISDIRECTION",
-		spellId = 34477,
-		sources = { Src("HUNTER") },
 	},
 	{
 		section = "external",
@@ -615,6 +615,7 @@ local EFFECTS = {
 }
 
 local SECTIONS = {
+	{ id = "aggro", labelKey = "COMP_SECTION_AGGRO" },
 	{ id = "buffs", labelKey = "COMP_SECTION_BUFFS" },
 	{ id = "external", labelKey = "COMP_SECTION_EXTERNAL" },
 	{ id = "damage_reduction", labelKey = "COMP_SECTION_DR" },
@@ -695,7 +696,7 @@ local function EffectLabel(effect)
 		return Addon:T(effect.labelKey)
 	end
 	local section = effect.section
-	if section == "external" or section == "damage_reduction" or section == "mana" or section == "health_regen" then
+	if section == "external" or section == "aggro" or section == "damage_reduction" or section == "mana" or section == "health_regen" then
 		if ClientLocaleMatchesAddon() and type(GetSpellInfo) == "function" and effect.spellId then
 			local name = GetSpellInfo(effect.spellId)
 			if name and name ~= "" then

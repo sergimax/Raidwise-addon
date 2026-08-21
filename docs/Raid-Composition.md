@@ -43,6 +43,15 @@ Raid-wide stat and throughput buffs. Spells in the same row **do not stack**.
 | Bloodlust / Heroism | Raid haste, 10 min CD | Any Shaman |
 | Healing received | Tree of Life; Improved Devotion Aura | Restoration Druid; Holy Paladin |
 
+## Aggro
+
+Threat transfer tools for pulling or recovering aggro onto a tank.
+
+| Spell | Who | View |
+|-------|-----|------|
+| Misdirection | Any Hunter | |
+| Tricks of the Trade | Any Rogue | |
+
 ## External buffs
 
 Single-target (or small-group) spells you put **on an ally**. Count is how many people in the raid can cast it.
@@ -52,7 +61,6 @@ Rows marked **hidden** stay in this list for reference but are omitted from the 
 | Spell | Who | View |
 |-------|-----|------|
 | Focus Magic | Arcane Mage | |
-| Tricks of the Trade | Any Rogue | |
 | Hysteria | Blood Death Knight | |
 | Power Infusion | Discipline Priest | |
 | Innervate | Any Druid | |
@@ -62,7 +70,6 @@ Rows marked **hidden** stay in this list for reference but are omitted from the 
 | Hand of Protection | Any Paladin | |
 | Pain Suppression | Discipline Priest | |
 | Guardian Spirit | Holy Priest | |
-| Misdirection | Any Hunter | |
 | Earth Shield | Restoration Shaman | |
 | Beacon of Light | Holy Paladin | |
 | Sacred Shield | Holy Paladin | hidden |

@@ -176,11 +176,11 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 ```text
 [ short description ]                              [ Refresh ]
         8 px gap
-[ Roles              ] [ Buffs              ] [ External buffs    ]
-[ (icon) Tanks     2 ] [ (icon) 10% stats 1 ] [ (icon) Focus Magic 0 ]
-[ (icon) Healers   6 ] [ (icon) MotW      1 ] ...
-[ Damage reduction   ] [ Debuffs            ] [ Mana regeneration ]
-[ ...                ] [ ...                ] [ Health regeneration ]
+[ Roles              ] [ Aggro              ] [ Buffs              ]
+[ (icon) Tanks     2 ] [ (icon) Misdirect 1 ] [ (icon) 10% stats 1 ]
+[ (icon) Healers   6 ] [ (icon) Tricks    1 ] [ (icon) GotW      1 ]
+[ External buffs     ] [ Damage reduction   ] [ Debuffs            ]
+[ ...                ] [ ...                ] [ Mana / Health regen ]
 ```
 
 | Block | In-game text / control |
@@ -188,7 +188,7 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | short description | “Who is needed, and which raid buffs, debuffs, and utility are already covered.” |
 | Refresh | Re-reads the current group (same inspect/GearScore path as Raid roster) |
 | columns | Three equal columns; sections pack into the shortest column |
-| section heading | Gold: Roles, Buffs, External buffs, Damage reduction, Debuffs, Mana regeneration, Health regeneration |
+| section heading | Gold: Roles, Aggro, Buffs, External buffs, Damage reduction, Debuffs, Mana regeneration, Health regeneration |
 | row | Spell or role icon, name, count of players who can provide it |
 | present | Gold name and count (`> 0`) |
 | missing | Dim name and `0` |
