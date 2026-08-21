@@ -10,12 +10,12 @@ Details-style plain panels: left menu, content page, status bar under both.
 
 ```text
 [ Menu 170 ] 2px [ Content 890 x 690 ]
-                 [ title bar 20  v1  X ]
+                 [ title bar 20  v2  X ]
                  [ page body         ]
 [ addon name ] [ current version ]
 ```
 
-Title bar (left to right): **Raidwise** title, layout badge **`v1`** (shell `SHELL_LAYOUT_VERSION`), close **X**. Toolbar pages show their own small **`vN`** badge top-right (see layout table below).
+Title bar (left to right): **Raidwise** title, layout badge **`v2`** (shell `SHELL_LAYOUT_VERSION`), close **X**. Toolbar pages show their own small **`vN`** badge top-right (see layout table below).
 
 Status bar:
 
@@ -24,27 +24,28 @@ Status bar:
 | addon name | Raidwise |
 | current version | `v` + `Addon.version` |
 
-Menu tabs (top to bottom):
+Menu tabs (top to bottom; each row has a 16×16 category icon + label):
 
 ```text
-[ Character cooldowns ]
-[ Export gear and CDs ]
-[ Party roster ]
-[ Raid roster ]
-[ Raid composition ]
-[ History ]
-[ Settings ]
-[ Info ]
+[ watch ] Character cooldowns
+[ note  ] Export gear and CDs
+[ PoF   ] Party roster
+[ glory ] Raid roster
+[ BoK   ] Raid composition
+[ book  ] History
+[ gear  ] Settings
+[  ?    ] Info
 ```
 
+Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Spell_Holy_PrayerOfFortitude`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
 ## Layout versions
 
 Independent from addon semver (`Addon.version` in the status bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 1` | `ExporterWindow.lua` | Title bar (left of close) |
-| Character profile | `PROFILE_LAYOUT_VERSION = 25` | `CharacterProfile.lua` | Title bar (left of close) |
+| Main shell | `SHELL_LAYOUT_VERSION = 2` | `ExporterWindow.lua` | Title bar (left of close) |
+| Character profile | `PROFILE_LAYOUT_VERSION = 26` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 1` | `PageCooldowns.lua` | Page toolbar top-right |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Page top-right |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Page toolbar top-right |

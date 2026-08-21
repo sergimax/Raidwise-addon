@@ -4,17 +4,20 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 1
+local SHELL_LAYOUT_VERSION = 2
 
+local MENU_ICON_SIZE = 16
+
+-- WotLK Interface\Icons paths (one per left-menu category).
 local PAGES = {
-	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS" },
-	{ id = "export", key = "Export", labelKey = "TAB_EXPORT" },
-	{ id = "party", key = "Party", labelKey = "TAB_PARTY" },
-	{ id = "raid", key = "Raid", labelKey = "TAB_RAID" },
-	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION" },
-	{ id = "history", key = "History", labelKey = "TAB_HISTORY" },
-	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS" },
-	{ id = "info", key = "Info", labelKey = "TAB_INFO" },
+	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01" },
+	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01" },
+	{ id = "party", key = "Party", labelKey = "TAB_PARTY", icon = "Interface\\Icons\\Spell_Holy_PrayerOfFortitude" },
+	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider" },
+	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings" },
+	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11" },
+	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01" },
+	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark" },
 }
 
 local function PageLayoutStale(frame)
@@ -144,15 +147,26 @@ local function CreateTitleBar(parent)
 	return titleBar
 end
 
-local function CreateMenuButton(parent, tabId, label, yOffset)
+local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
 	local button = CreateFrame("Button", nil, parent)
 	button:SetSize(UI.MENU_WIDTH - 12, UI.MENU_BTN_H)
 	button:SetPoint("TOP", 0, yOffset)
 	W.ApplyPlainPanel(button, UI.BTN_IDLE)
 	button.tabId = tabId
 
+	local icon = button:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(MENU_ICON_SIZE, MENU_ICON_SIZE)
+	icon:SetPoint("LEFT", 4, 0)
+	if iconPath and iconPath ~= "" then
+		icon:SetTexture(iconPath)
+		icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+	end
+	button.icon = icon
+
 	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	text:SetPoint("LEFT", 8, 0)
+	text:SetPoint("LEFT", icon, "RIGHT", 5, 0)
+	text:SetPoint("RIGHT", -4, 0)
+	text:SetJustifyH("LEFT")
 	text:SetText(label)
 	W.SetFontColor(text, UI.TEXT_IDLE)
 	button.label = text
@@ -236,7 +250,7 @@ function Addon:CreateMainFrame()
 	local menuY = -(UI.TITLE_H + 8)
 	for index = 1, #PAGES do
 		local pageInfo = PAGES[index]
-		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), menuY)
+		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), menuY, pageInfo.icon)
 		frame.menuButtons[#frame.menuButtons + 1] = button
 		menuY = menuY - UI.MENU_BTN_H - UI.MENU_BTN_GAP
 	end

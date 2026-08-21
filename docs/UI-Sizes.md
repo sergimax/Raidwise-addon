@@ -24,7 +24,8 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Menu button | **158 × 22** | Width is `MENU_WIDTH - 12` |
+| Menu button | **158 × 22** | Width is `MENU_WIDTH - 12`; **16×16** icon left, label to the right |
+| Menu icon | **16 × 16** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
 | Gap between buttons | 2 px | |
 | First button offset | 8 px below menu title | |
 | Idle fill | RGB **0.18** | Menu + action buttons |
@@ -32,7 +33,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
 | Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
 
-Tabs (in order): **Character cooldowns**, **Export gear and CDs**, **Party roster**, **Raid roster**, **Raid composition**, **History**, **Settings**, **Info**.
+Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Party roster** (Prayer of Fortitude), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **History** (book), **Settings** (gear), **Info** (question mark).
 
 ## Content padding
 
