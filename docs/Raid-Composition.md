@@ -4,7 +4,7 @@ What the **Raid composition** tab (**Анализ состава**) checks for W
 
 Only the strongest effect in a category applies to the raid. The tab marks a category **present** if anyone in the current party or raid can bring it, and **missing** otherwise. Spec is the player’s **primary talent tree** (same inspect data as Raid roster). Deep talent points are not read: if the tree is right, the addon assumes the usual raid talent is taken.
 
-**Priority** rows (raid-critical) turn **red** when missing: Misdirection, Tricks of the Trade, 10% stats, Gift of the Wild, Bloodlust / Heroism, Innervate, Divine Sacrifice, Blessing of Sanctuary / Renewed Hope, Spell damage taken, Spell hit (Misery), Replenishment.
+**Priority** effects (raid-critical): Misdirection, Tricks of the Trade, 10% stats, Gift of the Wild, Bloodlust / Heroism, Innervate, Divine Sacrifice, Blessing of Sanctuary / Renewed Hope, Spell damage taken, Spell hit (Misery), Replenishment. If any priority effect in a section is missing, that section’s heading turns **red**. Headings also show **present/total** coverage for the section.
 
 Sources: [Icy Veins buffs and debuffs](https://www.icy-veins.com/wotlk-classic/raid-buffs-and-debuffs), Blizzard’s WotLK exclusive-category list, and the Wowhead composition sections named below.
 

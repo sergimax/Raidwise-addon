@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 4
+local LAYOUT_VERSION = 5
 
 local COMP_COLS = 3
 local COMP_COL_GAP = 12
@@ -70,11 +70,25 @@ local function LayoutCompositionScrollBars(page)
 end
 
 local function CreateCompositionHeading(parent)
-	local heading = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local heading = CreateFrame("Frame", nil, parent)
 	heading:SetHeight(COMP_HEADING_H)
-	heading:SetJustifyH("LEFT")
-	heading:SetJustifyV("MIDDLE")
-	W.SetFontColor(heading, UI.GOLD)
+
+	local count = heading:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	count:SetPoint("RIGHT", -2, 0)
+	count:SetWidth(COMP_COUNT_W)
+	count:SetJustifyH("RIGHT")
+	count:SetJustifyV("MIDDLE")
+	W.SetFontColor(count, UI.GOLD)
+	heading.count = count
+
+	local title = heading:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	title:SetPoint("LEFT", 0, 0)
+	title:SetPoint("RIGHT", count, "LEFT", -4, 0)
+	title:SetJustifyH("LEFT")
+	title:SetJustifyV("MIDDLE")
+	W.SetFontColor(title, UI.GOLD)
+	heading.title = title
+
 	return heading
 end
 
@@ -321,15 +335,22 @@ function Addon:RefreshCompositionView(refreshGearScore)
 	local rolesHeading = NextHeading()
 	rolesHeading:ClearAllPoints()
 	rolesHeading:SetPoint("TOPLEFT", content, "TOPLEFT", 0, yTop)
-	rolesHeading:SetWidth(COMP_ROLES_COL_W)
-	rolesHeading:SetText(W.T("COMP_SECTION_ROLES"))
+	rolesHeading:SetSize(COMP_ROLES_COL_W, COMP_HEADING_H)
+	rolesHeading.title:SetText(W.T("COMP_SECTION_ROLES"))
+	W.SetFontColor(rolesHeading.title, UI.GOLD)
+	rolesHeading.count:SetText("")
+	rolesHeading.count:Hide()
 	rolesHeading:Show()
 
 	local classHeading = NextHeading()
 	classHeading:ClearAllPoints()
 	classHeading:SetPoint("TOPLEFT", content, "TOPLEFT", classesX, yTop)
 	classHeading:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, yTop)
-	classHeading:SetText(W.T("COMP_SECTION_CLASSES"))
+	classHeading:SetHeight(COMP_HEADING_H)
+	classHeading.title:SetText(W.T("COMP_SECTION_CLASSES"))
+	W.SetFontColor(classHeading.title, UI.GOLD)
+	classHeading.count:SetText("")
+	classHeading.count:Hide()
 	classHeading:Show()
 	yTop = yTop - COMP_HEADING_H
 
@@ -421,16 +442,25 @@ function Addon:RefreshCompositionView(refreshGearScore)
 		local block = {
 			headingKey = section.labelKey,
 			rows = {},
+			presentCount = 0,
+			totalCount = 0,
+			priorityMissing = false,
 		}
 		for effectIndex = 1, #section.effects do
 			local effect = section.effects[effectIndex]
+			local count = effect.count or 0
+			block.totalCount = block.totalCount + 1
+			if count > 0 then
+				block.presentCount = block.presentCount + 1
+			elseif effect.priority then
+				block.priorityMissing = true
+			end
 			block.rows[#block.rows + 1] = {
 				name = effect.label or W.T(effect.labelKey),
-				count = effect.count or 0,
+				count = count,
 				icon = SpellTexture(effect.spellId),
 				providers = effect.providers,
 				sources = effect.sourceLabels,
-				priority = effect.priority,
 			}
 		end
 		blocks[#blocks + 1] = block
@@ -470,8 +500,15 @@ function Addon:RefreshCompositionView(refreshGearScore)
 		local heading = NextHeading()
 		heading:ClearAllPoints()
 		heading:SetPoint("TOPLEFT", content, "TOPLEFT", x, y)
-		heading:SetWidth(colW)
-		heading:SetText(W.T(block.headingKey))
+		heading:SetSize(colW, COMP_HEADING_H)
+		heading.title:SetText(W.T(block.headingKey))
+		heading.count:SetText(
+			string.format("%d/%d", block.presentCount or 0, block.totalCount or 0)
+		)
+		heading.count:Show()
+		local headingColor = block.priorityMissing and UI.TEXT_ALERT or UI.GOLD
+		W.SetFontColor(heading.title, headingColor)
+		W.SetFontColor(heading.count, headingColor)
 		heading:Show()
 
 		for itemIndex = 1, #block.rows do
@@ -486,18 +523,13 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			row:SetPoint("TOPLEFT", content, "TOPLEFT", x, y - COMP_HEADING_H - (itemIndex - 1) * COMP_ROW_H)
 			row:SetSize(colW, COMP_ROW_H)
 			row.icon:SetTexture(item.icon)
+			row.icon:SetVertexColor(1, 1, 1, 1)
 			row.name:SetText(item.name)
 			row.count:SetText(tostring(item.count or 0))
 			if (item.count or 0) > 0 then
-				row.icon:SetVertexColor(1, 1, 1, 1)
 				W.SetFontColor(row.name, UI.GOLD)
 				W.SetFontColor(row.count, UI.GOLD)
-			elseif item.priority then
-				row.icon:SetVertexColor(UI.TEXT_ALERT[1], UI.TEXT_ALERT[2], UI.TEXT_ALERT[3], 1)
-				W.SetFontColor(row.name, UI.TEXT_ALERT)
-				W.SetFontColor(row.count, UI.TEXT_ALERT)
 			else
-				row.icon:SetVertexColor(1, 1, 1, 1)
 				W.SetFontColor(row.name, UI.TEXT_DISABLED)
 				W.SetFontColor(row.count, UI.TEXT_DISABLED)
 			end

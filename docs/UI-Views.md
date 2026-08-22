@@ -50,7 +50,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a viewâ€
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
-| Composition | `LAYOUT_VERSION = 4` | `PageComposition.lua` | Shell title bar (next to page name) |
+| Composition | `LAYOUT_VERSION = 5` | `PageComposition.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 1` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 2` | `PageInfo.lua` | Shell title bar (next to page name) |
@@ -191,11 +191,10 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | Roles | Left of top band: role icon + count; tooltip = role name + who / Missing |
 | Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |
 | columns | Three equal columns below; sections pack into the shortest column |
-| section heading | Gold: Aggro, Buffs, External buffs, Damage reduction, Debuffs, Mana regeneration, Health regeneration |
+| section heading | Name left; `present/total` right-aligned above row counts; gold, or **red** if a priority effect is missing |
 | row | Spell icon, name, count of players who can provide it |
 | present | Gold name and count (`> 0`) |
 | missing | Dim name and `0` |
-| priority missing | Red name/count/icon for key raid effects (aggro tools, Kings/MotW, Lust, Misery, etc.) |
 | tooltip | Who in the raid has it, then which classes/specs can bring it |
 
 Spec is the primary talent tree (same as Raid roster). Solo shows only your own coverage.
