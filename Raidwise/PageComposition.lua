@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 6
+local LAYOUT_VERSION = 7
 
 local COMP_COLS = 3
 local COMP_COL_GAP = 12
@@ -208,13 +208,56 @@ local function CreateRoleChip(parent)
 	return chip
 end
 
+local function CompositionChatChannel()
+	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
+	if raidCount > 0 then
+		return "RAID"
+	end
+	local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
+	if partyCount > 0 then
+		return "PARTY"
+	end
+	return nil
+end
+
+local function ReportMissingClassesToChat()
+	if not Addon.AnalyzeRaidComposition or not Addon.CompositionMembers then
+		Addon:Print(W.T("COMP_FAIL"))
+		return
+	end
+	local analysis = Addon:AnalyzeRaidComposition(Addon:CompositionMembers(false))
+	local missing = {}
+	local classes = analysis.classes or {}
+	for classIndex = 1, #classes do
+		local entry = classes[classIndex]
+		if entry and (entry.count or 0) == 0 then
+			missing[#missing + 1] = entry.label or entry.class
+		end
+	end
+
+	local message
+	if #missing == 0 then
+		message = W.T("COMP_CHAT_ALL_PRESENT")
+	else
+		message = W.T("COMP_CHAT_MISSING", table.concat(missing, ", "))
+	end
+
+	local channel = CompositionChatChannel()
+	if not channel then
+		Addon:Print(W.T("COMP_CHAT_NO_GROUP"))
+		Addon:Print(message)
+		return
+	end
+	SendChatMessage(message, channel)
+end
+
 local function CreateCompositionPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
 	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
-	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
+	hint:SetPoint("RIGHT", page, "RIGHT", -220, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
 	hint:SetText(W.T("COMP_HINT"))
@@ -223,6 +266,12 @@ local function CreateCompositionPage(parent)
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
 	refreshBtn:SetScript("OnClick", function()
 		Addon:RefreshPartyData(true)
+	end)
+
+	local reportBtn = W.CreatePlainButton(page, 110, UI.CD_TOOLBAR_H, W.T("BTN_COMP_REPORT"))
+	reportBtn:SetPoint("TOPRIGHT", refreshBtn, "TOPLEFT", -4, 0)
+	reportBtn:SetScript("OnClick", function()
+		ReportMissingClassesToChat()
 	end)
 
 	local tableTop = -W.CooldownTableTopOffset()
@@ -277,6 +326,7 @@ local function CreateCompositionPage(parent)
 
 	page.hint = hint
 	page.refreshBtn = refreshBtn
+	page.reportBtn = reportBtn
 	page.layoutVersion = LAYOUT_VERSION
 	return page
 end

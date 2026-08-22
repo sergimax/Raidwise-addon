@@ -137,6 +137,7 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 | Element | Size | Notes |
 |---------|------|-------|
+| Toolbar | hint left; **Report missing** **110 × 28** then **Refresh** **96 × 28** | 4 px gap between buttons |
 | Top summary | full width | Roles (left) + Classes (right) on one band |
 | Role chip | icon **16** + count, width **34** | Gap **6** px (same as class chips) |
 | Class chip | icon **16** + count, width **34** | Gap **6** px; all 10 classes |

@@ -174,7 +174,7 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 Wowhead-style checklist of the current party or raid: who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered. Tracking list: [`Raid-Composition.md`](Raid-Composition.md).
 
 ```text
-[ short description ]                              [ Refresh ]
+[ short description ]                   [ Report missing ] [ Refresh ]
         8 px gap
 [ Roles ]                    [ Classes ]
 [ (tank)2 (heal)6 (m)12 (r)5 ] [ W2 Pa1 Hu0 Ro1 … Dr0 ]
@@ -187,6 +187,7 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | “Who is needed, and which raid buffs, debuffs, and utility are already covered.” |
+| Report missing | Posts absent classes to raid chat (or party); all present → short “all classes present” line |
 | Refresh | Re-reads the current group (same inspect/GearScore path as Raid roster) |
 | Roles | Left of top band: role icon + count; tooltip = role name + who / Missing |
 | Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |

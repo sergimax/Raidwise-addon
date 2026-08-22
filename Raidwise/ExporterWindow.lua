@@ -461,6 +461,9 @@ function Addon:RefreshLocalizedUI()
 		if compositionPage.refreshBtn then
 			compositionPage.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
 		end
+		if compositionPage.reportBtn then
+			compositionPage.reportBtn.label:SetText(W.T("BTN_COMP_REPORT"))
+		end
 	end
 
 	local historyPage = frame.pages.history
