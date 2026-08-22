@@ -97,18 +97,19 @@ local function ReportEffectRowToChat(row)
 	if not effectName or effectName == "" then
 		return
 	end
-	local spells = row.chatSpells
-	local spellText
-	if spells and #spells > 0 then
-		spellText = table.concat(spells, ", ")
+	local detail
+	if row.tooltipSources and #row.tooltipSources > 0 then
+		detail = table.concat(row.tooltipSources, "; ")
+	elseif row.chatSpells and #row.chatSpells > 0 then
+		detail = table.concat(row.chatSpells, ", ")
 	else
-		spellText = effectName
+		detail = effectName
 	end
 	local message
 	if (row.chatCount or 0) == 0 then
-		message = W.T("COMP_CHAT_EFFECT_NEED", effectName, spellText)
+		message = W.T("COMP_CHAT_EFFECT_NEED", effectName, detail)
 	else
-		message = W.T("COMP_CHAT_EFFECT_HAVE", effectName, spellText)
+		message = W.T("COMP_CHAT_EFFECT_HAVE", effectName, detail)
 	end
 	SendCompositionChat(message)
 end
