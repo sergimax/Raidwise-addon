@@ -196,7 +196,7 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | row | Spell icon, name, count of players who can provide it |
 | present | Gold name and count (`> 0`) |
 | missing | Dim name and `0` |
-| tooltip | Who in the raid has it, then which classes/specs can bring it |
+| tooltip | Who in the raid has it; then **Brought by:** on its own line, then one source class/spec — spell per line |
 
 Spec is the primary talent tree (same as Raid roster). Solo shows only your own coverage.
 

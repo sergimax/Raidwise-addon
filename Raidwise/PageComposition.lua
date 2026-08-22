@@ -126,8 +126,11 @@ local function CreateCompositionRow(parent)
 		if self.tooltipProviders then
 			GameTooltip:AddLine(self.tooltipProviders, 0.8, 0.8, 0.8, true)
 		end
-		if self.tooltipSources then
-			GameTooltip:AddLine(self.tooltipSources, 1, 1, 1, true)
+		if self.tooltipSources and #self.tooltipSources > 0 then
+			GameTooltip:AddLine(W.T("COMP_CAN_BRING"), 1, 1, 1)
+			for sourceIndex = 1, #self.tooltipSources do
+				GameTooltip:AddLine(self.tooltipSources[sourceIndex], 1, 1, 1)
+			end
 		end
 		GameTooltip:Show()
 	end)
@@ -588,8 +591,8 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			else
 				row.tooltipProviders = W.T("COMP_MISSING")
 			end
-			if item.sources then
-				row.tooltipSources = W.T("COMP_CAN_BRING", JoinNames(item.sources))
+			if item.sources and #item.sources > 0 then
+				row.tooltipSources = item.sources
 			else
 				row.tooltipSources = nil
 			end
