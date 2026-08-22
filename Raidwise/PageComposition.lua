@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 8
 
 local COMP_COLS = 3
 local COMP_COL_GAP = 12
@@ -14,7 +14,13 @@ local COMP_SECTION_GAP = 10
 local COMP_HEADING_H = 20
 local COMP_ROW_H = 20
 local COMP_ICON = 16
-local COMP_COUNT_W = 22
+local COMP_COUNT_W = 36
+local COMP_CHIP_GAP = 6
+local COMP_TOP_GAP = 12
+local COMP_CLASS_ICON = 16
+local COMP_CHIP_W = 34
+local COMP_SUMMARY_COL_GAP = 24
+local COMP_ROLES_COL_W = 4 * COMP_CHIP_W + 3 * COMP_CHIP_GAP
 
 local COMP_ROLE_KEYS = {
 	tank = "ROLE_TANKS",
@@ -38,6 +44,74 @@ local function JoinNames(names)
 		return W.T("COMP_NONE")
 	end
 	return table.concat(names, ", ")
+end
+
+local function CompositionChatChannel()
+	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
+	if raidCount > 0 then
+		return "RAID"
+	end
+	local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
+	if partyCount > 0 then
+		return "PARTY"
+	end
+	return nil
+end
+
+local function SendCompositionChat(message)
+	local channel = CompositionChatChannel()
+	if not channel then
+		Addon:Print(W.T("COMP_CHAT_NO_GROUP"))
+		Addon:Print(message)
+		return
+	end
+	SendChatMessage(message, channel)
+end
+
+local function ReportMissingClassesToChat()
+	if not Addon.AnalyzeRaidComposition or not Addon.CompositionMembers then
+		Addon:Print(W.T("COMP_FAIL"))
+		return
+	end
+	local analysis = Addon:AnalyzeRaidComposition(Addon:CompositionMembers(false))
+	local missing = {}
+	local classes = analysis.classes or {}
+	for classIndex = 1, #classes do
+		local entry = classes[classIndex]
+		if entry and (entry.count or 0) == 0 then
+			missing[#missing + 1] = entry.label or entry.class
+		end
+	end
+
+	local message
+	if #missing == 0 then
+		message = W.T("COMP_CHAT_ALL_PRESENT")
+	else
+		message = W.T("COMP_CHAT_MISSING", table.concat(missing, ", "))
+	end
+	SendCompositionChat(message)
+end
+
+local function ReportEffectRowToChat(row)
+	local effectName = row.tooltipTitle
+	if not effectName or effectName == "" then
+		return
+	end
+	local detail
+	if row.tooltipSources and #row.tooltipSources > 0 then
+		detail = table.concat(row.tooltipSources, "; ")
+	elseif row.chatSpells and #row.chatSpells > 0 then
+		detail = table.concat(row.chatSpells, ", ")
+	else
+		detail = effectName
+	end
+	local message
+	if (row.chatCount or 0) == 0 then
+		message = W.T("COMP_CHAT_EFFECT_NEED", effectName, detail)
+	else
+		message = W.T("COMP_CHAT_EFFECT_HAVE", effectName, detail)
+	end
+	SendCompositionChat(message)
 end
 
 local function LayoutCompositionScrollBars(page)
@@ -64,11 +138,26 @@ local function LayoutCompositionScrollBars(page)
 end
 
 local function CreateCompositionHeading(parent)
-	local heading = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local heading = CreateFrame("Frame", nil, parent)
 	heading:SetHeight(COMP_HEADING_H)
-	heading:SetJustifyH("LEFT")
-	heading:SetJustifyV("MIDDLE")
-	W.SetFontColor(heading, UI.GOLD)
+
+	local count = heading:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	count:SetPoint("RIGHT", -2, 0)
+	count:SetWidth(COMP_COUNT_W)
+	count:SetJustifyH("RIGHT")
+	count:SetJustifyV("MIDDLE")
+	count:SetNonSpaceWrap(false)
+	W.SetFontColor(count, UI.GOLD)
+	heading.count = count
+
+	local title = heading:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	title:SetPoint("LEFT", 0, 0)
+	title:SetPoint("RIGHT", count, "LEFT", -4, 0)
+	title:SetJustifyH("LEFT")
+	title:SetJustifyV("MIDDLE")
+	W.SetFontColor(title, UI.GOLD)
+	heading.title = title
+
 	return heading
 end
 
@@ -86,6 +175,7 @@ local function CreateCompositionRow(parent)
 	count:SetPoint("RIGHT", -2, 0)
 	count:SetWidth(COMP_COUNT_W)
 	count:SetJustifyH("RIGHT")
+	count:SetNonSpaceWrap(false)
 	row.count = count
 
 	local name = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -104,16 +194,96 @@ local function CreateCompositionRow(parent)
 		if self.tooltipProviders then
 			GameTooltip:AddLine(self.tooltipProviders, 0.8, 0.8, 0.8, true)
 		end
-		if self.tooltipSources then
-			GameTooltip:AddLine(self.tooltipSources, 1, 1, 1, true)
+		if self.tooltipSources and #self.tooltipSources > 0 then
+			GameTooltip:AddLine(W.T("COMP_CAN_BRING"), 1, 1, 1)
+			for sourceIndex = 1, #self.tooltipSources do
+				GameTooltip:AddLine(self.tooltipSources[sourceIndex], 1, 1, 1)
+			end
 		end
+		GameTooltip:AddLine(W.T("COMP_SHIFT_CHAT"), 0.6, 0.6, 0.6)
 		GameTooltip:Show()
 	end)
 	row:SetScript("OnLeave", function()
 		GameTooltip:Hide()
 	end)
+	row:SetScript("OnMouseUp", function(self, button)
+		if button ~= "LeftButton" or not IsShiftKeyDown() then
+			return
+		end
+		ReportEffectRowToChat(self)
+	end)
 
 	return row
+end
+
+local function CreateClassIconChip(parent)
+	local chip = CreateFrame("Frame", nil, parent)
+	chip:SetSize(COMP_CHIP_W, COMP_ROW_H)
+	chip:EnableMouse(true)
+
+	local icon = chip:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(COMP_CLASS_ICON, COMP_CLASS_ICON)
+	icon:SetPoint("LEFT", 0, 0)
+	chip.icon = icon
+
+	local count = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	count:SetPoint("LEFT", icon, "RIGHT", 2, 0)
+	count:SetPoint("RIGHT", chip, "RIGHT", 0, 0)
+	count:SetJustifyH("LEFT")
+	count:SetJustifyV("MIDDLE")
+	chip.count = count
+
+	chip:SetScript("OnEnter", function(self)
+		if not self.tooltipTitle then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.tooltipTitle)
+		if self.tooltipProviders then
+			GameTooltip:AddLine(self.tooltipProviders, 0.8, 0.8, 0.8, true)
+		end
+		GameTooltip:Show()
+	end)
+	chip:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	return chip
+end
+
+local function CreateRoleChip(parent)
+	local chip = CreateFrame("Frame", nil, parent)
+	chip:SetSize(COMP_CHIP_W, COMP_ROW_H)
+	chip:EnableMouse(true)
+
+	local icon = chip:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(COMP_ICON, COMP_ICON)
+	icon:SetPoint("LEFT", 0, 0)
+	chip.icon = icon
+
+	local count = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	count:SetPoint("LEFT", icon, "RIGHT", 2, 0)
+	count:SetPoint("RIGHT", chip, "RIGHT", 0, 0)
+	count:SetJustifyH("LEFT")
+	count:SetJustifyV("MIDDLE")
+	chip.count = count
+
+	chip:SetScript("OnEnter", function(self)
+		if not self.tooltipTitle then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.tooltipTitle)
+		if self.tooltipProviders then
+			GameTooltip:AddLine(self.tooltipProviders, 0.8, 0.8, 0.8, true)
+		end
+		GameTooltip:Show()
+	end)
+	chip:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	return chip
 end
 
 local function CreateCompositionPage(parent)
@@ -122,7 +292,7 @@ local function CreateCompositionPage(parent)
 
 	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
-	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
+	hint:SetPoint("RIGHT", page, "RIGHT", -220, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
 	hint:SetText(W.T("COMP_HINT"))
@@ -131,6 +301,12 @@ local function CreateCompositionPage(parent)
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
 	refreshBtn:SetScript("OnClick", function()
 		Addon:RefreshPartyData(true)
+	end)
+
+	local reportBtn = W.CreatePlainButton(page, 110, UI.CD_TOOLBAR_H, W.T("BTN_COMP_REPORT"))
+	reportBtn:SetPoint("TOPRIGHT", refreshBtn, "TOPLEFT", -4, 0)
+	reportBtn:SetScript("OnClick", function()
+		ReportMissingClassesToChat()
 	end)
 
 	local tableTop = -W.CooldownTableTopOffset()
@@ -153,6 +329,8 @@ local function CreateCompositionPage(parent)
 	page.tableContent = content
 	page.headings = {}
 	page.rows = {}
+	page.classIcons = {}
+	page.roleChips = {}
 
 	local vBar = W.CreateCooldownScrollBar(tableHost, "VERTICAL")
 	vBar:SetPoint("TOPRIGHT", -1, -1)
@@ -183,6 +361,7 @@ local function CreateCompositionPage(parent)
 
 	page.hint = hint
 	page.refreshBtn = refreshBtn
+	page.reportBtn = reportBtn
 	page.layoutVersion = LAYOUT_VERSION
 	return page
 end
@@ -222,42 +401,156 @@ function Addon:RefreshCompositionView(refreshGearScore)
 		colW = 80
 	end
 
-	local blocks = {
-		{
-			headingKey = "COMP_SECTION_ROLES",
-			rows = {},
-		},
-	}
-	for roleIndex = 1, #analysis.roleOrder do
-		local role = analysis.roleOrder[roleIndex]
-		local bucket = analysis.roles[role] or {}
-		blocks[1].rows[#blocks[1].rows + 1] = {
-			name = W.T(COMP_ROLE_KEYS[role] or "ROLE_UNKNOWN"),
-			count = bucket.count or 0,
-			icon = (self.RaidRoleIcon and self:RaidRoleIcon(role)) or "Interface\\Icons\\INV_Misc_QuestionMark",
-			providers = bucket.names,
-		}
+	page.classIcons = page.classIcons or {}
+	page.roleChips = page.roleChips or {}
+
+	local headingIndex = 0
+	local function NextHeading()
+		headingIndex = headingIndex + 1
+		local heading = page.headings[headingIndex]
+		if not heading then
+			heading = CreateCompositionHeading(content)
+			page.headings[headingIndex] = heading
+		end
+		return heading
 	end
+
+	local yTop = 0
+	local classesX = COMP_ROLES_COL_W + COMP_SUMMARY_COL_GAP
+
+	-- Roles (left) + Classes (right) on one summary band
+	local rolesHeading = NextHeading()
+	rolesHeading:ClearAllPoints()
+	rolesHeading:SetPoint("TOPLEFT", content, "TOPLEFT", 0, yTop)
+	rolesHeading:SetSize(COMP_ROLES_COL_W, COMP_HEADING_H)
+	rolesHeading.title:SetText(W.T("COMP_SECTION_ROLES"))
+	W.SetFontColor(rolesHeading.title, UI.GOLD)
+	rolesHeading.count:SetText("")
+	rolesHeading.count:Hide()
+	rolesHeading:Show()
+
+	local classHeading = NextHeading()
+	classHeading:ClearAllPoints()
+	classHeading:SetPoint("TOPLEFT", content, "TOPLEFT", classesX, yTop)
+	classHeading:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, yTop)
+	classHeading:SetHeight(COMP_HEADING_H)
+	classHeading.title:SetText(W.T("COMP_SECTION_CLASSES"))
+	W.SetFontColor(classHeading.title, UI.GOLD)
+	classHeading.count:SetText("")
+	classHeading.count:Hide()
+	classHeading:Show()
+	yTop = yTop - COMP_HEADING_H
+
+	local roleOrder = analysis.roleOrder or {}
+	W.HidePoolFrom(page.roleChips, #roleOrder + 1)
+	for roleIndex = 1, #roleOrder do
+		local role = roleOrder[roleIndex]
+		local bucket = (analysis.roles and analysis.roles[role]) or {}
+		local count = bucket.count or 0
+		local chip = page.roleChips[roleIndex]
+		if not chip then
+			chip = CreateRoleChip(content)
+			page.roleChips[roleIndex] = chip
+		end
+		chip:ClearAllPoints()
+		chip:SetPoint(
+			"TOPLEFT",
+			content,
+			"TOPLEFT",
+			(roleIndex - 1) * (COMP_CHIP_W + COMP_CHIP_GAP),
+			yTop
+		)
+		chip.icon:SetTexture(
+			(self.RaidRoleIcon and self:RaidRoleIcon(role)) or "Interface\\Icons\\INV_Misc_QuestionMark"
+		)
+		chip.count:SetText(tostring(count))
+		local roleName = W.T(COMP_ROLE_KEYS[role] or "ROLE_UNKNOWN")
+		chip.tooltipTitle = roleName
+		if count > 0 then
+			W.SetFontColor(chip.count, UI.GOLD)
+			chip.icon:SetVertexColor(1, 1, 1, 1)
+			chip.tooltipProviders = W.T("COMP_PROVIDERS", JoinNames(bucket.names))
+		else
+			W.SetFontColor(chip.count, UI.TEXT_DISABLED)
+			chip.icon:SetVertexColor(
+				UI.TEXT_DISABLED[1],
+				UI.TEXT_DISABLED[2],
+				UI.TEXT_DISABLED[3],
+				1
+			)
+			chip.tooltipProviders = W.T("COMP_MISSING")
+		end
+		chip:Show()
+	end
+
+	local classes = analysis.classes or {}
+	W.HidePoolFrom(page.classIcons, #classes + 1)
+	for classIndex = 1, #classes do
+		local entry = classes[classIndex]
+		local count = entry.count or 0
+		local chip = page.classIcons[classIndex]
+		if not chip then
+			chip = CreateClassIconChip(content)
+			page.classIcons[classIndex] = chip
+		end
+		chip:ClearAllPoints()
+		chip:SetPoint(
+			"TOPLEFT",
+			content,
+			"TOPLEFT",
+			classesX + (classIndex - 1) * (COMP_CHIP_W + COMP_CHIP_GAP),
+			yTop
+		)
+		W.SetSpecOrClassIcon(chip.icon, nil, entry.class)
+		chip.count:SetText(tostring(count))
+		chip.tooltipTitle = entry.label or entry.class
+		if entry.present then
+			chip.icon:SetVertexColor(1, 1, 1, 1)
+			W.SetFontColor(chip.count, UI.GOLD)
+			chip.tooltipProviders = W.T("COMP_PROVIDERS", JoinNames(entry.names))
+		else
+			chip.icon:SetVertexColor(
+				UI.TEXT_DISABLED[1],
+				UI.TEXT_DISABLED[2],
+				UI.TEXT_DISABLED[3],
+				1
+			)
+			W.SetFontColor(chip.count, UI.TEXT_DISABLED)
+			chip.tooltipProviders = W.T("COMP_MISSING")
+		end
+		chip:Show()
+	end
+	yTop = yTop - COMP_ROW_H - COMP_TOP_GAP
+
+	-- Masonry effect sections (no Roles)
+	local blocks = {}
 	for sectionIndex = 1, #analysis.sections do
 		local section = analysis.sections[sectionIndex]
 		local block = {
 			headingKey = section.labelKey,
 			rows = {},
+			presentCount = 0,
+			totalCount = 0,
 		}
 		for effectIndex = 1, #section.effects do
 			local effect = section.effects[effectIndex]
+			local count = effect.count or 0
+			block.totalCount = block.totalCount + 1
+			if count > 0 then
+				block.presentCount = block.presentCount + 1
+			end
 			block.rows[#block.rows + 1] = {
 				name = effect.label or W.T(effect.labelKey),
-				count = effect.count or 0,
+				count = count,
 				icon = SpellTexture(effect.spellId),
 				providers = effect.providers,
 				sources = effect.sourceLabels,
+				spells = effect.sourceSpells,
 			}
 		end
 		blocks[#blocks + 1] = block
 	end
 
-	W.HidePoolFrom(page.headings, #blocks + 1)
 	local rowNeeded = 0
 	for blockIndex = 1, #blocks do
 		rowNeeded = rowNeeded + #blocks[blockIndex].rows
@@ -266,10 +559,9 @@ function Addon:RefreshCompositionView(refreshGearScore)
 
 	local colHeights = {}
 	for col = 1, cols do
-		colHeights[col] = 0
+		colHeights[col] = -yTop
 	end
 
-	local headingIndex = 0
 	local rowIndex = 0
 
 	local function PlaceHeight(height)
@@ -290,17 +582,19 @@ function Addon:RefreshCompositionView(refreshGearScore)
 		local blockH = COMP_HEADING_H + #block.rows * COMP_ROW_H
 		local x, y = PlaceHeight(blockH)
 
-		headingIndex = headingIndex + 1
-		local heading = page.headings[headingIndex]
-		if not heading then
-			heading = CreateCompositionHeading(content)
-			page.headings[headingIndex] = heading
-		end
+		local heading = NextHeading()
 		heading:ClearAllPoints()
 		heading:SetPoint("TOPLEFT", content, "TOPLEFT", x, y)
-		heading:SetWidth(colW)
-		heading:SetText(W.T(block.headingKey))
-		heading:Show()
+		heading:SetSize(colW, COMP_HEADING_H)
+		heading.title:SetText(W.T(block.headingKey))
+		heading.count:SetText(
+			string.format("%d/%d", block.presentCount or 0, block.totalCount or 0)
+		)
+		heading.count:Show()
+			local headingColor = ((block.presentCount or 0) == 0) and UI.TEXT_ALERT or UI.GOLD
+			W.SetFontColor(heading.title, headingColor)
+			W.SetFontColor(heading.count, headingColor)
+			heading:Show()
 
 		for itemIndex = 1, #block.rows do
 			rowIndex = rowIndex + 1
@@ -314,6 +608,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			row:SetPoint("TOPLEFT", content, "TOPLEFT", x, y - COMP_HEADING_H - (itemIndex - 1) * COMP_ROW_H)
 			row:SetSize(colW, COMP_ROW_H)
 			row.icon:SetTexture(item.icon)
+			row.icon:SetVertexColor(1, 1, 1, 1)
 			row.name:SetText(item.name)
 			row.count:SetText(tostring(item.count or 0))
 			if (item.count or 0) > 0 then
@@ -324,19 +619,23 @@ function Addon:RefreshCompositionView(refreshGearScore)
 				W.SetFontColor(row.count, UI.TEXT_DISABLED)
 			end
 			row.tooltipTitle = item.name
+			row.chatCount = item.count or 0
+			row.chatSpells = item.spells
 			if (item.count or 0) > 0 then
 				row.tooltipProviders = W.T("COMP_PROVIDERS", JoinNames(item.providers))
 			else
 				row.tooltipProviders = W.T("COMP_MISSING")
 			end
-			if item.sources then
-				row.tooltipSources = W.T("COMP_CAN_BRING", JoinNames(item.sources))
+			if item.sources and #item.sources > 0 then
+				row.tooltipSources = item.sources
 			else
 				row.tooltipSources = nil
 			end
 			row:Show()
 		end
 	end
+
+	W.HidePoolFrom(page.headings, headingIndex + 1)
 
 	local contentH = 0
 	for col = 1, cols do

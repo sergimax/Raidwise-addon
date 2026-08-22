@@ -3,8 +3,14 @@
 
 local Addon = Raidwise
 
-local function Src(class, specTab, race)
-	return { class = class, specTab = specTab, race = race }
+local function Src(class, specTab, spellIdOrRace)
+	local source = { class = class, specTab = specTab }
+	if type(spellIdOrRace) == "string" then
+		source.race = spellIdOrRace
+	elseif type(spellIdOrRace) == "number" then
+		source.spellId = spellIdOrRace
+	end
+	return source
 end
 
 -- specTab 1–3 matches inspect primary tree. Nil specTab = any spec of that class.
@@ -14,6 +20,7 @@ local EFFECTS = {
 		id = "stats_pct",
 		labelKey = "COMP_STATS_PCT",
 		spellId = 20217,
+		priority = true,
 		sources = { Src("PALADIN") },
 	},
 	{
@@ -21,6 +28,7 @@ local EFFECTS = {
 		id = "motw",
 		labelKey = "COMP_MOTW",
 		spellId = 48470,
+		priority = true,
 		sources = { Src("DRUID") },
 	},
 	{
@@ -35,70 +43,70 @@ local EFFECTS = {
 		id = "intellect",
 		labelKey = "COMP_INTELLECT",
 		spellId = 43002,
-		sources = { Src("MAGE"), Src("WARLOCK", 1) },
+		sources = { Src("MAGE", nil, 43002), Src("WARLOCK", 1, 57567) },
 	},
 	{
 		section = "buffs",
 		id = "spirit",
 		labelKey = "COMP_SPIRIT",
 		spellId = 48074,
-		sources = { Src("PRIEST"), Src("WARLOCK", 1) },
+		sources = { Src("PRIEST", nil, 48074), Src("WARLOCK", 1, 57567) },
 	},
 	{
 		section = "buffs",
 		id = "attack_power",
 		labelKey = "COMP_ATTACK_POWER",
 		spellId = 47436,
-		sources = { Src("WARRIOR"), Src("PALADIN") },
+		sources = { Src("WARRIOR", nil, 47436), Src("PALADIN", nil, 48932) },
 	},
 	{
 		section = "buffs",
 		id = "str_agi",
 		labelKey = "COMP_STR_AGI",
 		spellId = 57623,
-		sources = { Src("DEATHKNIGHT"), Src("SHAMAN") },
+		sources = { Src("DEATHKNIGHT", nil, 57623), Src("SHAMAN", nil, 58643) },
 	},
 	{
 		section = "buffs",
 		id = "health",
 		labelKey = "COMP_HEALTH",
 		spellId = 47440,
-		sources = { Src("WARRIOR"), Src("WARLOCK") },
+		sources = { Src("WARRIOR", nil, 47440), Src("WARLOCK", nil, 47982) },
 	},
 	{
 		section = "buffs",
 		id = "mp5",
 		labelKey = "COMP_MP5",
 		spellId = 48936,
-		sources = { Src("PALADIN"), Src("SHAMAN") },
+		sources = { Src("PALADIN", nil, 48936), Src("SHAMAN", nil, 58778) },
 	},
 	{
 		section = "buffs",
 		id = "spell_power",
 		labelKey = "COMP_SPELL_POWER",
 		spellId = 57722,
-		sources = { Src("SHAMAN"), Src("WARLOCK", 2) },
+		sources = { Src("SHAMAN", nil, 58656), Src("WARLOCK", 2, 47240) },
 	},
 	{
 		section = "buffs",
 		id = "melee_crit",
 		labelKey = "COMP_MELEE_CRIT",
 		spellId = 17007,
-		sources = { Src("DRUID", 2), Src("WARRIOR", 2) },
+		sources = { Src("DRUID", 2, 17007), Src("WARRIOR", 2, 29801) },
 	},
 	{
 		section = "buffs",
 		id = "spell_crit",
 		labelKey = "COMP_SPELL_CRIT",
 		spellId = 24907,
-		sources = { Src("DRUID", 1), Src("SHAMAN", 1) },
+		sources = { Src("DRUID", 1, 24907), Src("SHAMAN", 1, 51470) },
 	},
 	{
 		section = "buffs",
 		id = "melee_haste",
 		labelKey = "COMP_MELEE_HASTE",
 		spellId = 55610,
-		sources = { Src("DEATHKNIGHT", 2), Src("SHAMAN") },
+		sources = { Src("DEATHKNIGHT", 2, 55610), Src("SHAMAN", nil, 58834) },
 	},
 	{
 		section = "buffs",
@@ -111,28 +119,29 @@ local EFFECTS = {
 		section = "buffs",
 		id = "haste_all",
 		labelKey = "COMP_HASTE_ALL",
-		spellId = 53375,
-		sources = { Src("PALADIN", 3), Src("DRUID", 1) },
+		spellId = 53648,
+		sources = { Src("PALADIN", 3, 53648), Src("DRUID", 1, 24907) },
 	},
 	{
 		section = "buffs",
 		id = "damage_pct",
 		labelKey = "COMP_DAMAGE_PCT",
 		spellId = 31869,
-		sources = { Src("PALADIN", 3), Src("HUNTER", 1), Src("MAGE", 1) },
+		sources = { Src("PALADIN", 3, 31869), Src("HUNTER", 1, 34460), Src("MAGE", 1, 31583) },
 	},
 	{
 		section = "buffs",
 		id = "ap_pct",
 		labelKey = "COMP_AP_PCT",
 		spellId = 19506,
-		sources = { Src("HUNTER", 2), Src("SHAMAN", 2), Src("DEATHKNIGHT", 1) },
+		sources = { Src("HUNTER", 2, 19506), Src("SHAMAN", 2, 30809), Src("DEATHKNIGHT", 1, 53138) },
 	},
 	{
 		section = "buffs",
 		id = "bloodlust",
 		labelKey = "COMP_BLOODLUST",
 		spellId = 2825,
+		priority = true,
 		sources = { Src("SHAMAN") },
 	},
 	{
@@ -140,7 +149,7 @@ local EFFECTS = {
 		id = "healing_recv",
 		labelKey = "COMP_HEALING_RECV",
 		spellId = 33891,
-		sources = { Src("DRUID", 3), Src("PALADIN", 1) },
+		sources = { Src("DRUID", 3, 33891), Src("PALADIN", 1, 48942) },
 	},
 	{
 		section = "external",
@@ -150,10 +159,19 @@ local EFFECTS = {
 		sources = { Src("MAGE", 1) },
 	},
 	{
-		section = "external",
+		section = "aggro",
+		id = "misdirection",
+		labelKey = "COMP_MISDIRECTION",
+		spellId = 34477,
+		priority = true,
+		sources = { Src("HUNTER") },
+	},
+	{
+		section = "aggro",
 		id = "tricks",
 		labelKey = "COMP_TRICKS",
 		spellId = 57934,
+		priority = true,
 		sources = { Src("ROGUE") },
 	},
 	{
@@ -175,6 +193,8 @@ local EFFECTS = {
 		id = "innervate",
 		labelKey = "COMP_INNERVATE",
 		spellId = 29166,
+		priority = true,
+		hidden = true,
 		sources = { Src("DRUID") },
 	},
 	{
@@ -186,13 +206,6 @@ local EFFECTS = {
 	},
 	{
 		section = "external",
-		id = "hand_sacrifice",
-		labelKey = "COMP_HAND_SACRIFICE",
-		spellId = 6940,
-		sources = { Src("PALADIN") },
-	},
-	{
-		section = "external",
 		id = "hand_freedom",
 		labelKey = "COMP_HAND_FREEDOM",
 		spellId = 1044,
@@ -200,31 +213,10 @@ local EFFECTS = {
 	},
 	{
 		section = "external",
-		id = "hand_protection",
-		labelKey = "COMP_HAND_PROTECTION",
-		spellId = 10278,
-		sources = { Src("PALADIN") },
-	},
-	{
-		section = "external",
-		id = "pain_suppression",
-		labelKey = "COMP_PAIN_SUPPRESSION",
-		spellId = 33206,
-		sources = { Src("PRIEST", 1) },
-	},
-	{
-		section = "external",
 		id = "guardian_spirit",
 		labelKey = "COMP_GUARDIAN_SPIRIT",
 		spellId = 47788,
 		sources = { Src("PRIEST", 2) },
-	},
-	{
-		section = "external",
-		id = "misdirection",
-		labelKey = "COMP_MISDIRECTION",
-		spellId = 34477,
-		sources = { Src("HUNTER") },
 	},
 	{
 		section = "external",
@@ -250,13 +242,6 @@ local EFFECTS = {
 	},
 	{
 		section = "external",
-		id = "divine_sacrifice",
-		labelKey = "COMP_DIVINE_SACRIFICE",
-		spellId = 64205,
-		sources = { Src("PALADIN", 2) },
-	},
-	{
-		section = "external",
 		id = "intervene",
 		labelKey = "COMP_INTERVENE",
 		spellId = 3411,
@@ -277,6 +262,35 @@ local EFFECTS = {
 		labelKey = "COMP_DIVINE_GUARDIAN",
 		spellId = 70940,
 		sources = { Src("PALADIN", 2) },
+	},
+	{
+		section = "damage_reduction",
+		id = "divine_sacrifice",
+		labelKey = "COMP_DIVINE_SACRIFICE",
+		spellId = 64205,
+		priority = true,
+		sources = { Src("PALADIN", 2) },
+	},
+	{
+		section = "damage_reduction",
+		id = "hand_sacrifice",
+		labelKey = "COMP_HAND_SACRIFICE",
+		spellId = 6940,
+		sources = { Src("PALADIN") },
+	},
+	{
+		section = "damage_reduction",
+		id = "hand_protection",
+		labelKey = "COMP_HAND_PROTECTION",
+		spellId = 10278,
+		sources = { Src("PALADIN") },
+	},
+	{
+		section = "damage_reduction",
+		id = "pain_suppression",
+		labelKey = "COMP_PAIN_SUPPRESSION",
+		spellId = 33206,
+		sources = { Src("PRIEST", 1) },
 	},
 	{
 		section = "damage_reduction",
@@ -354,6 +368,7 @@ local EFFECTS = {
 		id = "divine_shield",
 		labelKey = "COMP_DIVINE_SHIELD",
 		spellId = 642,
+		hidden = true,
 		sources = { Src("PALADIN") },
 	},
 	{
@@ -407,6 +422,7 @@ local EFFECTS = {
 		id = "tranquility",
 		labelKey = "COMP_TRANQUILITY",
 		spellId = 48447,
+		hidden = true,
 		sources = { Src("DRUID", 3) },
 	},
 	{
@@ -415,7 +431,8 @@ local EFFECTS = {
 		labelKey = "COMP_SANCTUARY_GRACE",
 		spellId = 20911,
 		comboLabel = true,
-		sources = { Src("PALADIN", 2), Src("PRIEST", 1) },
+		priority = true,
+		sources = { Src("PALADIN", 2, 20911), Src("PRIEST", 1, 57470) },
 	},
 	{
 		section = "damage_reduction",
@@ -423,104 +440,133 @@ local EFFECTS = {
 		labelKey = "COMP_INSPIRATION",
 		spellId = 15359,
 		comboLabel = true,
-		sources = { Src("PRIEST", 1), Src("PRIEST", 2), Src("SHAMAN", 3) },
+		sources = { Src("PRIEST", 1, 15359), Src("PRIEST", 2, 15359), Src("SHAMAN", 3, 16237) },
 	},
 	{
 		section = "debuffs",
 		id = "armor_major",
 		labelKey = "COMP_ARMOR_MAJOR",
 		spellId = 7386,
-		sources = { Src("WARRIOR"), Src("ROGUE"), Src("HUNTER", 1) },
+		sources = { Src("WARRIOR", nil, 47467), Src("ROGUE", nil, 8647), Src("HUNTER", 1, 55754) },
 	},
 	{
 		section = "debuffs",
 		id = "armor_minor",
 		labelKey = "COMP_ARMOR_MINOR",
 		spellId = 770,
-		sources = { Src("DRUID"), Src("WARLOCK"), Src("HUNTER") },
+		sources = { Src("DRUID", nil, 770), Src("WARLOCK", nil, 50511), Src("HUNTER", nil, 56631) },
 	},
 	{
 		section = "debuffs",
 		id = "bleed",
 		labelKey = "COMP_BLEED",
 		spellId = 48566,
-		sources = { Src("DRUID", 2), Src("WARRIOR", 1), Src("HUNTER", 1) },
+		sources = { Src("DRUID", 2, 48566), Src("WARRIOR", 1, 46855), Src("HUNTER", 1, 57393) },
 	},
 	{
 		section = "debuffs",
 		id = "phys_taken",
 		labelKey = "COMP_PHYS_TAKEN",
 		spellId = 29859,
-		sources = { Src("WARRIOR", 1), Src("ROGUE", 2) },
+		sources = { Src("WARRIOR", 1, 29859), Src("ROGUE", 2, 58413) },
 	},
 	{
 		section = "debuffs",
 		id = "spell_taken",
 		labelKey = "COMP_SPELL_TAKEN",
 		spellId = 47865,
-		sources = { Src("WARLOCK"), Src("DRUID", 1), Src("DEATHKNIGHT", 3) },
+		priority = true,
+		sources = { Src("WARLOCK", nil, 47865), Src("DRUID", 1, 48511), Src("DEATHKNIGHT", 3, 51735) },
 	},
 	{
 		section = "debuffs",
 		id = "spell_hit",
 		labelKey = "COMP_SPELL_HIT",
 		spellId = 33191,
-		sources = { Src("PRIEST", 3), Src("DRUID", 1) },
+		priority = true,
+		sources = { Src("PRIEST", 3, 33191), Src("DRUID", 1, 33602) },
 	},
 	{
 		section = "debuffs",
 		id = "crit_taken",
 		labelKey = "COMP_CRIT_TAKEN",
 		spellId = 20337,
-		sources = { Src("PALADIN", 2), Src("PALADIN", 3), Src("SHAMAN", 1), Src("ROGUE", 1) },
+		sources = {
+			Src("PALADIN", 2, 20337),
+			Src("PALADIN", 3, 20337),
+			Src("SHAMAN", 1, 30706),
+			Src("ROGUE", 1, 58410),
+		},
 	},
 	{
 		section = "debuffs",
 		id = "spell_crit_taken",
 		labelKey = "COMP_SPELL_CRIT_TAKEN",
 		spellId = 12873,
-		sources = { Src("MAGE", 2), Src("MAGE", 3), Src("WARLOCK", 3) },
+		sources = { Src("MAGE", 2, 22959), Src("MAGE", 3, 12579), Src("WARLOCK", 3, 17800) },
 	},
 	{
 		section = "debuffs",
 		id = "attack_slow",
 		labelKey = "COMP_ATTACK_SLOW",
 		spellId = 47502,
-		sources = { Src("WARRIOR"), Src("DEATHKNIGHT"), Src("DRUID", 2), Src("PALADIN", 2) },
+		sources = {
+			Src("WARRIOR", nil, 47502),
+			Src("DEATHKNIGHT", nil, 49909),
+			Src("DRUID", 2, 48485),
+			Src("PALADIN", 2, 53696),
+		},
 	},
 	{
 		section = "debuffs",
 		id = "ap_down",
 		labelKey = "COMP_AP_DOWN",
 		spellId = 47437,
-		sources = { Src("WARRIOR"), Src("DRUID", 2), Src("WARLOCK"), Src("PALADIN", 2), Src("PALADIN", 3) },
+		sources = {
+			Src("WARRIOR", nil, 47437),
+			Src("DRUID", 2, 48560),
+			Src("WARLOCK", nil, 50511),
+			Src("PALADIN", 2, 26017),
+			Src("PALADIN", 3, 26017),
+		},
 	},
 	{
 		section = "debuffs",
 		id = "healing_reduce",
 		labelKey = "COMP_HEALING_REDUCE",
 		spellId = 47486,
-		sources = { Src("WARRIOR", 1), Src("WARRIOR", 2), Src("HUNTER"), Src("ROGUE") },
+		sources = {
+			Src("WARRIOR", 1, 47486),
+			Src("WARRIOR", 2, 56112),
+			Src("HUNTER", nil, 49050),
+			Src("ROGUE", nil, 57975),
+		},
 	},
 	{
 		section = "debuffs",
 		id = "cast_slow",
 		labelKey = "COMP_CAST_SLOW",
 		spellId = 11719,
-		sources = { Src("WARLOCK"), Src("MAGE", 1), Src("ROGUE"), Src("HUNTER", 1) },
+		sources = {
+			Src("WARLOCK", nil, 11719),
+			Src("MAGE", 1, 31589),
+			Src("ROGUE", nil, 5761),
+			Src("HUNTER", 1, 58611),
+		},
 	},
 	{
 		section = "debuffs",
 		id = "melee_hit_down",
 		labelKey = "COMP_MELEE_HIT_DOWN",
 		spellId = 3043,
-		sources = { Src("DRUID", 1), Src("HUNTER") },
+		sources = { Src("DRUID", 1, 48468), Src("HUNTER", nil, 3043) },
 	},
 	{
 		section = "debuffs",
 		id = "jol",
 		labelKey = "COMP_JOL",
 		spellId = 20185,
+		hidden = true,
 		sources = { Src("PALADIN") },
 	},
 	{
@@ -528,6 +574,7 @@ local EFFECTS = {
 		id = "jow",
 		labelKey = "COMP_JOW",
 		spellId = 20186,
+		hidden = true,
 		sources = { Src("PALADIN") },
 	},
 	{
@@ -535,12 +582,13 @@ local EFFECTS = {
 		id = "replenishment",
 		labelKey = "COMP_REPLENISHMENT",
 		spellId = 57669,
+		priority = true,
 		sources = {
-			Src("PRIEST", 3),
-			Src("HUNTER", 3),
-			Src("PALADIN", 3),
-			Src("MAGE", 3),
-			Src("WARLOCK", 3),
+			Src("PRIEST", 3, 48160),
+			Src("HUNTER", 3, 53292),
+			Src("PALADIN", 3, 31878),
+			Src("MAGE", 3, 44561),
+			Src("WARLOCK", 3, 54118),
 		},
 	},
 	{
@@ -562,6 +610,7 @@ local EFFECTS = {
 		id = "innervate_mana",
 		labelKey = "COMP_INNERVATE",
 		spellId = 29166,
+		priority = true,
 		sources = { Src("DRUID") },
 	},
 	{
@@ -578,6 +627,13 @@ local EFFECTS = {
 		labelKey = "COMP_REVITALIZE",
 		spellId = 48540,
 		sources = { Src("DRUID", 3) },
+	},
+	{
+		section = "mana",
+		id = "jow_mana",
+		labelKey = "COMP_JOW",
+		spellId = 20186,
+		sources = { Src("PALADIN") },
 	},
 	{
 		section = "health_regen",
@@ -612,6 +668,7 @@ local EFFECTS = {
 }
 
 local SECTIONS = {
+	{ id = "aggro", labelKey = "COMP_SECTION_AGGRO" },
 	{ id = "buffs", labelKey = "COMP_SECTION_BUFFS" },
 	{ id = "external", labelKey = "COMP_SECTION_EXTERNAL" },
 	{ id = "damage_reduction", labelKey = "COMP_SECTION_DR" },
@@ -646,6 +703,19 @@ local CLASS_NAME_KEYS = {
 	DRUID = "COMP_CLASS_DRUID",
 }
 
+local CLASS_ORDER = {
+	"WARRIOR",
+	"PALADIN",
+	"HUNTER",
+	"ROGUE",
+	"PRIEST",
+	"DEATHKNIGHT",
+	"SHAMAN",
+	"MAGE",
+	"WARLOCK",
+	"DRUID",
+}
+
 local ROLE_ORDER = { "tank", "healer", "melee", "ranged" }
 
 local function ClassLabel(class)
@@ -667,15 +737,33 @@ local function SpecLabel(class, specTab)
 	return Addon:T("COMP_SPEC_ANY")
 end
 
-local function FormatSource(source)
+local function ResolveSpellName(spellId)
+	if type(GetSpellInfo) == "function" and spellId then
+		local name = GetSpellInfo(spellId)
+		if name and name ~= "" then
+			return name
+		end
+	end
+	return nil
+end
+
+local function FormatSource(source, fallbackSpellId)
+	local who
 	if source.race == "Draenei" then
-		return Addon:T("COMP_SRC_DRAENEI")
+		who = Addon:T("COMP_SRC_DRAENEI")
+	else
+		local className = ClassLabel(source.class)
+		if source.specTab then
+			who = Addon:T("COMP_SRC_SPEC", className, SpecLabel(source.class, source.specTab))
+		else
+			who = Addon:T("COMP_SRC_ANY", className)
+		end
 	end
-	local className = ClassLabel(source.class)
-	if source.specTab then
-		return Addon:T("COMP_SRC_SPEC", className, SpecLabel(source.class, source.specTab))
+	local spellName = ResolveSpellName(source.spellId or fallbackSpellId)
+	if spellName then
+		return Addon:T("COMP_SRC_SPELL", who, spellName), spellName
 	end
-	return Addon:T("COMP_SRC_ANY", className)
+	return who, nil
 end
 
 local function ClientLocaleMatchesAddon()
@@ -692,7 +780,7 @@ local function EffectLabel(effect)
 		return Addon:T(effect.labelKey)
 	end
 	local section = effect.section
-	if section == "external" or section == "damage_reduction" or section == "mana" or section == "health_regen" then
+	if section == "external" or section == "aggro" or section == "damage_reduction" or section == "mana" or section == "health_regen" then
 		if ClientLocaleMatchesAddon() and type(GetSpellInfo) == "function" and effect.spellId then
 			local name = GetSpellInfo(effect.spellId)
 			if name and name ~= "" then
@@ -768,6 +856,11 @@ function Addon:AnalyzeRaidComposition(members)
 		melee = { count = 0, names = {} },
 		ranged = { count = 0, names = {} },
 	}
+	local classBuckets = {}
+	for classIndex = 1, #CLASS_ORDER do
+		local classToken = CLASS_ORDER[classIndex]
+		classBuckets[classToken] = { count = 0, names = {} }
+	end
 
 	members = members or {}
 	for index = 1, #members do
@@ -779,7 +872,25 @@ function Addon:AnalyzeRaidComposition(members)
 				bucket.count = bucket.count + 1
 				bucket.names[#bucket.names + 1] = member.name or "?"
 			end
+			local classBucket = classBuckets[member.class]
+			if classBucket then
+				classBucket.count = classBucket.count + 1
+				classBucket.names[#classBucket.names + 1] = member.name or "?"
+			end
 		end
+	end
+
+	local classes = {}
+	for classIndex = 1, #CLASS_ORDER do
+		local classToken = CLASS_ORDER[classIndex]
+		local classBucket = classBuckets[classToken]
+		classes[#classes + 1] = {
+			class = classToken,
+			label = ClassLabel(classToken),
+			count = classBucket.count,
+			present = classBucket.count > 0,
+			names = classBucket.names,
+		}
 	end
 
 	local sections = {}
@@ -802,8 +913,15 @@ function Addon:AnalyzeRaidComposition(members)
 					end
 				end
 				local sourceLabels = {}
+				local sourceSpells = {}
+				local seenSpells = {}
 				for sourceIndex = 1, #effect.sources do
-					sourceLabels[#sourceLabels + 1] = FormatSource(effect.sources[sourceIndex])
+					local label, spellName = FormatSource(effect.sources[sourceIndex], effect.spellId)
+					sourceLabels[#sourceLabels + 1] = label
+					if spellName and not seenSpells[spellName] then
+						seenSpells[spellName] = true
+						sourceSpells[#sourceSpells + 1] = spellName
+					end
 				end
 				effects[#effects + 1] = {
 					id = effect.id,
@@ -813,6 +931,8 @@ function Addon:AnalyzeRaidComposition(members)
 					count = #providers,
 					providers = providers,
 					sourceLabels = sourceLabels,
+					sourceSpells = sourceSpells,
+					priority = effect.priority and true or nil,
 				}
 			end
 		end
@@ -826,6 +946,7 @@ function Addon:AnalyzeRaidComposition(members)
 	end
 
 	return {
+		classes = classes,
 		roles = roles,
 		roleOrder = ROLE_ORDER,
 		sections = sections,

@@ -1,14 +1,16 @@
 # Raid composition tracking
 
-What the **Raid composition** tab (**Анализ состава**) checks for Wrath of the Lich King **3.3.5a**. Layout follows the [Wowhead raid composition](https://www.wowhead.com/wotlk/raid-composition) tool: roles, then exclusive buff/debuff/utility categories.
+What the **Raid composition** tab (**Анализ состава**) checks for Wrath of the Lich King **3.3.5a**. Layout: class/role summary on top, then exclusive buff/debuff/utility categories (similar to the [Wowhead raid composition](https://www.wowhead.com/wotlk/raid-composition) tool).
 
-Only the strongest effect in a category applies to the raid. The tab marks a category **present** if anyone in the current party or raid can bring it, and **missing** otherwise. Spec is the player’s **primary talent tree** (same inspect data as Raid roster). Deep talent points are not read: if the tree is right, the addon assumes the usual raid talent is taken.
+Only the strongest effect in a category applies to the raid. The tab marks a category **present** if anyone in the current party or raid can bring it, and **missing** otherwise. Spec is the player’s **primary talent tree** (same inspect data as Raid roster). Deep talent points are not read: if the tree is right, the addon assumes the usual raid talent is taken. Effect-row tooltips list each source class/spec with the **spell name** from `GetSpellInfo` (client language). **Shift-click** a row to post that effect with each provider class/spec and spell to raid or party chat (`need` if missing, `have` if covered).
+
+**Priority** effects (raid-critical): Misdirection, Tricks of the Trade, 10% stats, Gift of the Wild, Bloodlust / Heroism, Innervate, Divine Sacrifice, Blessing of Sanctuary / Renewed Hope, Spell damage taken, Spell hit (Misery), Replenishment. Headings show **present/total** coverage; a section heading turns **red** only when **0** effects in that section are present.
 
 Sources: [Icy Veins buffs and debuffs](https://www.icy-veins.com/wotlk-classic/raid-buffs-and-debuffs), Blizzard’s WotLK exclusive-category list, and the Wowhead composition sections named below.
 
 ## Roles
 
-Already used on Raid roster. Counted here from the same tank / healer / melee / ranged rules (`RaidRoles.lua`).
+Already used on Raid roster. Counted here from the same tank / healer / melee / ranged rules (`RaidRoles.lua`). Shown in the composition top summary as icon + count (horizontal).
 
 | Role | Typical trees |
 |------|----------------|
@@ -17,6 +19,10 @@ Already used on Raid roster. Counted here from the same tank / healer / melee / 
 | Melee DPS | Arms/Fury, Retribution, Combat/Assassination/Subtlety, Unholy/Frost DK, Enhancement, Feral |
 | Ranged DPS | Hunter (all), Mage (all), Warlock (all), Shadow Priest, Elemental, Balance |
 
+## Classes
+
+Top summary (right of Roles) lists all **10** WotLK classes in fixed order with a player count next to each icon. Present classes are full/gold; missing classes are dim (`0`). Tooltip shows who is in the raid for that class, or Missing. **Report missing** posts the absent class names to raid or party chat.
+
 ## Buffs
 
 Raid-wide stat and throughput buffs. Spells in the same row **do not stack**.
@@ -24,7 +30,7 @@ Raid-wide stat and throughput buffs. Spells in the same row **do not stack**.
 | Category | Effect | Who brings it |
 |----------|--------|----------------|
 | 10% stats | Blessing of Kings; Blessing of Sanctuary (Prot) | Any Paladin; Protection Paladin |
-| Mark of the Wild | Flat stats + resistances | Any Druid |
+| Gift of the Wild | Flat stats + resistances | Any Druid |
 | Stamina | Power Word: Fortitude / Prayer of Fortitude | Any Priest |
 | Intellect | Arcane Intellect / Arcane Brilliance; Fel Intelligence | Any Mage; Affliction Warlock |
 | Spirit | Divine Spirit / Prayer of Spirit; Fel Intelligence | Any Priest; Affliction Warlock |
@@ -43,6 +49,15 @@ Raid-wide stat and throughput buffs. Spells in the same row **do not stack**.
 | Bloodlust / Heroism | Raid haste, 10 min CD | Any Shaman |
 | Healing received | Tree of Life; Improved Devotion Aura | Restoration Druid; Holy Paladin |
 
+## Aggro
+
+Threat transfer tools for pulling or recovering aggro onto a tank.
+
+| Spell | Who | View |
+|-------|-----|------|
+| Misdirection | Any Hunter | |
+| Tricks of the Trade | Any Rogue | |
+
 ## External buffs
 
 Single-target (or small-group) spells you put **on an ally**. Count is how many people in the raid can cast it.
@@ -52,26 +67,20 @@ Rows marked **hidden** stay in this list for reference but are omitted from the 
 | Spell | Who | View |
 |-------|-----|------|
 | Focus Magic | Arcane Mage | |
-| Tricks of the Trade | Any Rogue | |
 | Hysteria | Blood Death Knight | |
 | Power Infusion | Discipline Priest | |
-| Innervate | Any Druid | |
+| Innervate | Any Druid | hidden |
 | Hand of Salvation | Any Paladin | |
-| Hand of Sacrifice | Any Paladin | |
 | Hand of Freedom | Any Paladin | |
-| Hand of Protection | Any Paladin | |
-| Pain Suppression | Discipline Priest | |
 | Guardian Spirit | Holy Priest | |
-| Misdirection | Any Hunter | |
 | Earth Shield | Restoration Shaman | |
 | Beacon of Light | Holy Paladin | |
 | Sacred Shield | Holy Paladin | hidden |
-| Divine Sacrifice | Protection Paladin | |
 | Intervene | Any Warrior | hidden |
 
 ## Damage reduction
 
-Raid or personal CDs and passives that cut damage. Pain Suppression, Guardian Spirit, and Hand of Sacrifice are also listed under External buffs.
+Raid or personal CDs and passives that cut damage. Guardian Spirit is also listed under External buffs.
 
 Self-targeted defensives are marked **hidden** and are omitted from the Raid composition tab.
 
@@ -79,6 +88,10 @@ Self-targeted defensives are marked **hidden** and are omitted from the Raid com
 |----------------|-----|------|
 | Anti-Magic Zone | Unholy Death Knight | hidden |
 | Divine Guardian | Protection Paladin | |
+| Divine Sacrifice | Protection Paladin | |
+| Hand of Sacrifice | Any Paladin | |
+| Hand of Protection | Any Paladin | |
+| Pain Suppression | Discipline Priest | |
 | Aura Mastery | Any Paladin (Retribution talent is the usual raid take) | |
 | Shield Wall | Any Warrior | hidden |
 | Last Stand | Protection Warrior | hidden |
@@ -88,14 +101,14 @@ Self-targeted defensives are marked **hidden** and are omitted from the Raid com
 | Frenzied Regeneration | Feral Druid | hidden |
 | Dispersion | Shadow Priest | hidden |
 | Divine Protection | Any Paladin | hidden |
-| Divine Shield | Any Paladin | |
+| Divine Shield | Any Paladin | hidden |
 | Barkskin | Any Druid | hidden |
 | Ice Block | Any Mage | hidden |
 | Cloak of Shadows | Any Rogue | hidden |
 | Anti-Magic Shell | Any Death Knight | hidden |
 | Lay on Hands | Any Paladin | |
 | Divine Hymn | Any Priest | |
-| Tranquility | Restoration Druid | |
+| Tranquility | Restoration Druid | hidden |
 | Blessing of Sanctuary / Renewed Hope | Protection Paladin; Discipline Priest | |
 | Inspiration / Ancestral Healing | Discipline or Holy Priest; Restoration Shaman | |
 
@@ -105,23 +118,23 @@ Aura Mastery is treated as present for **any Paladin** (the ability exists on th
 
 Boss debuffs. Major and minor armor **do stack with each other**. Moonkin Aura / Elemental Oath are the **raid buff** for 5% spell crit; Improved Shadow Bolt is the **boss debuff** in the same exclusive category as Improved Scorch and Winter’s Chill.
 
-| Category | Effect | Who |
-|----------|--------|-----|
-| Armor (major, 20%) | Sunder Armor; Expose Armor; Acid Spit (worm pet) | Any Warrior; Any Rogue; Beast Mastery Hunter (pet) |
-| Armor (minor, 5%) | Faerie Fire; Curse of Weakness; Sting (wasp pet) | Any Druid; Any Warlock; Any Hunter (pet) |
-| Bleed damage | Mangle; Trauma; Stampede (pet) | Feral Druid; Arms Warrior; Beast Mastery Hunter |
-| Physical damage taken | Blood Frenzy; Savage Combat | Arms Warrior; Combat Rogue |
-| Spell damage taken | Curse of the Elements; Earth and Moon; Ebon Plaguebringer | Any Warlock; Balance Druid; Unholy Death Knight |
-| Spell hit (Misery) | Misery; Improved Faerie Fire | Shadow Priest; Balance Druid |
-| Crit chance taken | Heart of the Crusader; Totem of Wrath; Master Poisoner | Retribution or Protection Paladin; Elemental Shaman; Assassination Rogue |
-| Spell crit taken | Improved Scorch; Winter’s Chill; Improved Shadow Bolt | Fire Mage; Frost Mage; Destruction Warlock |
-| Attack speed slow | Thunder Clap; Icy Touch; Infected Wounds; Judgements of the Just | Any Warrior; Any Death Knight; Feral Druid; Protection Paladin |
-| Attack power down | Demoralizing Shout; Demoralizing Roar; Curse of Weakness; Vindication | Any Warrior; Feral Druid; Any Warlock; Ret/Prot Paladin |
-| Healing reduction | Mortal Strike; Aimed Shot; Wound Poison; Furious Attacks | Arms Warrior; Any Hunter; Any Rogue; Fury Warrior |
-| Cast speed slow | Curse of Tongues; Slow; Mind-numbing Poison; Lava Breath (pet) | Any Warlock; Arcane Mage; Any Rogue; Beast Mastery Hunter |
-| Melee hit reduction | Insect Swarm; Scorpid Sting | Balance Druid; Any Hunter |
-| Judgement of Light | Health return on melee hits | Any Paladin |
-| Judgement of Wisdom | Mana return on melee/spell hits | Any Paladin |
+| Category | Effect | Who | View |
+|----------|--------|-----|------|
+| Armor (major, 20%) | Sunder Armor; Expose Armor; Acid Spit (worm pet) | Any Warrior; Any Rogue; Beast Mastery Hunter (pet) | |
+| Armor (minor, 5%) | Faerie Fire; Curse of Weakness; Sting (wasp pet) | Any Druid; Any Warlock; Any Hunter (pet) | |
+| Bleed damage | Mangle; Trauma; Stampede (pet) | Feral Druid; Arms Warrior; Beast Mastery Hunter | |
+| Physical damage taken | Blood Frenzy; Savage Combat | Arms Warrior; Combat Rogue | |
+| Spell damage taken | Curse of the Elements; Earth and Moon; Ebon Plaguebringer | Any Warlock; Balance Druid; Unholy Death Knight | |
+| Spell hit (Misery) | Misery; Improved Faerie Fire | Shadow Priest; Balance Druid | |
+| Crit chance taken | Heart of the Crusader; Totem of Wrath; Master Poisoner | Retribution or Protection Paladin; Elemental Shaman; Assassination Rogue | |
+| Spell crit taken | Improved Scorch; Winter’s Chill; Improved Shadow Bolt | Fire Mage; Frost Mage; Destruction Warlock | |
+| Attack speed slow | Thunder Clap; Icy Touch; Infected Wounds; Judgements of the Just | Any Warrior; Any Death Knight; Feral Druid; Protection Paladin | |
+| Attack power down | Demoralizing Shout; Demoralizing Roar; Curse of Weakness; Vindication | Any Warrior; Feral Druid; Any Warlock; Ret/Prot Paladin | |
+| Healing reduction | Mortal Strike; Aimed Shot; Wound Poison; Furious Attacks | Arms Warrior; Any Hunter; Any Rogue; Fury Warrior | |
+| Cast speed slow | Curse of Tongues; Slow; Mind-numbing Poison; Lava Breath (pet) | Any Warlock; Arcane Mage; Any Rogue; Beast Mastery Hunter | |
+| Melee hit reduction | Insect Swarm; Scorpid Sting | Balance Druid; Any Hunter | |
+| Judgement of Light | Health return on melee hits | Any Paladin | hidden |
+| Judgement of Wisdom | Mana return on melee/spell hits | Any Paladin | hidden |
 
 Acid Spit, Hunter Sting, Stampede, and Lava Breath depend on the pet. Beast Mastery / any Hunter is listed as a **possible** source.
 
@@ -135,6 +148,7 @@ Acid Spit, Hunter Sting, Stampede, and Lava Breath depend on the pet. Beast Mast
 | Innervate | Any Druid | |
 | Shadowfiend | Any Priest | hidden |
 | Revitalize | Restoration Druid | |
+| Judgement of Wisdom | Any Paladin | |
 
 One Replenishment source covers 10 people; 25-man raids usually want two.
 

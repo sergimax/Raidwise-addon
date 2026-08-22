@@ -50,7 +50,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
-| Composition | `LAYOUT_VERSION = 1` | `PageComposition.lua` | Shell title bar (next to page name) |
+| Composition | `LAYOUT_VERSION = 5` | `PageComposition.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 1` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 2` | `PageInfo.lua` | Shell title bar (next to page name) |
@@ -174,25 +174,29 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 Wowhead-style checklist of the current party or raid: who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered. Tracking list: [`Raid-Composition.md`](Raid-Composition.md).
 
 ```text
-[ short description ]                              [ Refresh ]
+[ short description ]                   [ Report missing ] [ Refresh ]
         8 px gap
-[ Roles              ] [ Buffs              ] [ External buffs    ]
-[ (icon) Tanks     2 ] [ (icon) 10% stats 1 ] [ (icon) Focus Magic 0 ]
-[ (icon) Healers   6 ] [ (icon) MotW      1 ] ...
-[ Damage reduction   ] [ Debuffs            ] [ Mana regeneration ]
-[ ...                ] [ ...                ] [ Health regeneration ]
+[ Roles ]                    [ Classes ]
+[ (tank)2 (heal)6 (m)12 (r)5 ] [ W2 Pa1 Hu0 Ro1 … Dr0 ]
+        gap
+[ Aggro              ] [ Buffs              ] [ External buffs    ]
+[ (icon) Misdirect 1 ] [ (icon) 10% stats 1 ] [ (icon) Focus Magic 0 ]
+[ Damage reduction   ] [ Debuffs            ] [ Mana / Health regen ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | “Who is needed, and which raid buffs, debuffs, and utility are already covered.” |
+| Report missing | Posts absent classes to raid chat (or party); all present → short “all classes present” line |
 | Refresh | Re-reads the current group (same inspect/GearScore path as Raid roster) |
-| columns | Three equal columns; sections pack into the shortest column |
-| section heading | Gold: Roles, Buffs, External buffs, Damage reduction, Debuffs, Mana regeneration, Health regeneration |
-| row | Spell or role icon, name, count of players who can provide it |
+| Roles | Left of top band: role icon + count; tooltip = role name + who / Missing |
+| Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |
+| columns | Three equal columns below; sections pack into the shortest column |
+| section heading | Name left; `present/total` right-aligned above row counts; gold, or **red** when present is `0` |
+| row | Spell icon, name, count of players who can provide it; **Shift-click** posts effect + class/spec — spell lines to raid/party chat |
 | present | Gold name and count (`> 0`) |
 | missing | Dim name and `0` |
-| tooltip | Who in the raid has it, then which classes/specs can bring it |
+| tooltip | Who in the raid has it; then **Brought by:** on its own line, then one source class/spec — spell per line; hint for Shift-click |
 
 Spec is the primary talent tree (same as Raid roster). Solo shows only your own coverage.
 

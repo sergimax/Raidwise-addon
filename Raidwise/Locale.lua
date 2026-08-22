@@ -15,6 +15,7 @@ local Translations = {
 		MENU = "Menu",
 
 		BTN_REFRESH = "Refresh",
+		BTN_COMP_REPORT = "Report missing",
 		BTN_SELECT_ALL = "Select all",
 		BTN_EXPORT_DATA = "Export character data",
 		BTN_RESET = "Reset",
@@ -40,8 +41,9 @@ local Translations = {
 			.. "Click a row to open Character profile.",
 		INFO_SECTION_RAID = "Shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
 			.. "Click a filled card to open Character profile.",
-		INFO_SECTION_COMPOSITION = "Checks the current party or raid for roles and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
-			.. "Gold rows are covered; dim rows are missing. Hover a row to see who brings it.",
+		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
+			.. "Gold means covered; dim means missing. Section titles show present/total; red title means nothing in that section is present. "
+			.. "Report missing posts absent classes to raid or party chat. Shift-click an effect row to post that effect with provider classes and spells.",
 		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
 			.. "That list is saved on this account and stays after logout. "
 			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
@@ -74,22 +76,30 @@ local Translations = {
 		RAID_FAIL = "Raid roster module failed to load. Reload UI (/reload).",
 		HISTORY_HINT = "Players from your parties and raids. Saved on this account.",
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
-		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered.",
+		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
 		COMP_FAIL = "Composition module failed to load. Reload UI (/reload).",
 		COMP_EMPTY = "Join a party or raid, or play solo to see your own coverage.",
+		COMP_CHAT_MISSING = "Raidwise: missing classes: %s",
+		COMP_CHAT_ALL_PRESENT = "Raidwise: all classes present.",
+		COMP_CHAT_NO_GROUP = "Join a party or raid to post to chat.",
+		COMP_CHAT_EFFECT_NEED = "Raidwise: need %s — %s",
+		COMP_CHAT_EFFECT_HAVE = "Raidwise: have %s — %s",
+		COMP_SHIFT_CHAT = "Shift-click to post to chat",
 		COMP_SECTION_ROLES = "Roles",
+		COMP_SECTION_CLASSES = "Classes",
 		COMP_SECTION_BUFFS = "Buffs",
 		COMP_SECTION_EXTERNAL = "External buffs",
+		COMP_SECTION_AGGRO = "Aggro",
 		COMP_SECTION_DR = "Damage reduction",
 		COMP_SECTION_DEBUFFS = "Debuffs",
 		COMP_SECTION_MANA = "Mana regeneration",
 		COMP_SECTION_HP = "Health regeneration",
 		COMP_MISSING = "Missing",
 		COMP_PROVIDERS = "In raid: %s",
-		COMP_CAN_BRING = "Brought by: %s",
+		COMP_CAN_BRING = "Brought by:",
 		COMP_NONE = "-",
 		COMP_STATS_PCT = "10% stats",
-		COMP_MOTW = "Mark of the Wild",
+		COMP_MOTW = "Gift of the Wild",
 		COMP_STAMINA = "Stamina",
 		COMP_INTELLECT = "Intellect",
 		COMP_SPIRIT = "Spirit",
@@ -143,7 +153,7 @@ local Translations = {
 		COMP_LAY_ON_HANDS = "Lay on Hands",
 		COMP_DIVINE_HYMN = "Divine Hymn",
 		COMP_TRANQUILITY = "Tranquility",
-		COMP_SANCTUARY_GRACE = "Sanctuary / Renewed Hope",
+		COMP_SANCTUARY_GRACE = "Blessing of Sanctuary / Renewed Hope",
 		COMP_INSPIRATION = "Inspiration / Ancestral Healing",
 		COMP_ARMOR_MAJOR = "Armor (major)",
 		COMP_ARMOR_MINOR = "Armor (minor)",
@@ -207,6 +217,7 @@ local Translations = {
 		COMP_CLASS_DRUID = "Druid",
 		COMP_SRC_ANY = "%s (any)",
 		COMP_SRC_SPEC = "%s (%s)",
+		COMP_SRC_SPELL = "%s — %s",
 		COMP_SRC_DRAENEI = "Draenei",
 
 		COL_NAME = "Name",
@@ -380,6 +391,7 @@ local Translations = {
 		MENU = "Меню",
 
 		BTN_REFRESH = "Обновить",
+		BTN_COMP_REPORT = "Сообщить",
 		BTN_SELECT_ALL = "Выделить всё",
 		BTN_EXPORT_DATA = "Экспорт персонажа",
 		BTN_RESET = "Сброс",
@@ -405,8 +417,9 @@ local Translations = {
 			.. "Клик по строке открывает профиль персонажа.",
 		INFO_SECTION_RAID = "Группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl). "
 			.. "Клик по заполненной карточке открывает профиль персонажа.",
-		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
-			.. "Золотые строки уже есть, серые — не хватает. Наведите курсор, чтобы увидеть, кто это даёт.",
+		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
+			.. "Золотое — есть, серое — не хватает. В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет. "
+			.. "«Сообщить» пишет отсутствующие классы в чат рейда или группы. Shift+клик по эффекту — эффект, классы и заклинания в чат.",
 		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
 			.. "Список сохраняется на аккаунте и остаётся после выхода. "
 			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
@@ -439,19 +452,27 @@ local Translations = {
 		RAID_FAIL = "Модуль состава рейда не загрузился. Перезагрузите интерфейс (/reload).",
 		HISTORY_HINT = "Игроки из ваших групп и рейдов. Сохраняется на этом аккаунте.",
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
-		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде.",
+		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",
 		COMP_FAIL = "Модуль анализа состава не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_EMPTY = "Войдите в группу или рейд — или смотрите покрытие только своего персонажа.",
+		COMP_CHAT_MISSING = "Raidwise: нет классов: %s",
+		COMP_CHAT_ALL_PRESENT = "Raidwise: все классы есть.",
+		COMP_CHAT_NO_GROUP = "Войдите в группу или рейд, чтобы писать в чат.",
+		COMP_CHAT_EFFECT_NEED = "Raidwise: нужно %s — %s",
+		COMP_CHAT_EFFECT_HAVE = "Raidwise: есть %s — %s",
+		COMP_SHIFT_CHAT = "Shift+клик — в чат",
 		COMP_SECTION_ROLES = "Роли",
+		COMP_SECTION_CLASSES = "Классы",
 		COMP_SECTION_BUFFS = "Баффы",
 		COMP_SECTION_EXTERNAL = "Внешние баффы",
+		COMP_SECTION_AGGRO = "Аггро",
 		COMP_SECTION_DR = "Снижение урона",
 		COMP_SECTION_DEBUFFS = "Дебаффы",
 		COMP_SECTION_MANA = "Восполнение маны",
 		COMP_SECTION_HP = "Восполнение здоровья",
 		COMP_MISSING = "Нет",
 		COMP_PROVIDERS = "В рейде: %s",
-		COMP_CAN_BRING = "Дают: %s",
+		COMP_CAN_BRING = "Дают:",
 		COMP_NONE = "-",
 		COMP_STATS_PCT = "10% характеристик",
 		COMP_MOTW = "Дар дикой природы",
@@ -572,6 +593,7 @@ local Translations = {
 		COMP_CLASS_DRUID = "Друид",
 		COMP_SRC_ANY = "%s (любой)",
 		COMP_SRC_SPEC = "%s (%s)",
+		COMP_SRC_SPELL = "%s — %s",
 		COMP_SRC_DRAENEI = "Дреней",
 
 		COL_NAME = "Имя",
