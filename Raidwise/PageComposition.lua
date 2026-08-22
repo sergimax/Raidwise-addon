@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 2
+local LAYOUT_VERSION = 3
 
 local COMP_COLS = 3
 local COMP_COL_GAP = 12
@@ -17,8 +17,11 @@ local COMP_ICON = 16
 local COMP_COUNT_W = 22
 local COMP_CHIP_GAP = 6
 local COMP_TOP_GAP = 12
-local COMP_CLASS_ICON = 20
+local COMP_CLASS_ICON = 16
 local COMP_ROLE_CHIP_W = 44
+local COMP_CLASS_CHIP_W = 34
+local COMP_SUMMARY_COL_GAP = 24
+local COMP_ROLES_COL_W = 4 * COMP_ROLE_CHIP_W + 3 * COMP_CHIP_GAP
 
 local COMP_ROLE_KEYS = {
 	tank = "ROLE_TANKS",
@@ -122,12 +125,20 @@ end
 
 local function CreateClassIconChip(parent)
 	local chip = CreateFrame("Frame", nil, parent)
-	chip:SetSize(COMP_CLASS_ICON, COMP_CLASS_ICON)
+	chip:SetSize(COMP_CLASS_CHIP_W, COMP_ROW_H)
 	chip:EnableMouse(true)
 
 	local icon = chip:CreateTexture(nil, "ARTWORK")
-	icon:SetAllPoints(chip)
+	icon:SetSize(COMP_CLASS_ICON, COMP_CLASS_ICON)
+	icon:SetPoint("LEFT", 0, 0)
 	chip.icon = icon
+
+	local count = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	count:SetPoint("LEFT", icon, "RIGHT", 2, 0)
+	count:SetPoint("RIGHT", chip, "RIGHT", 0, 0)
+	count:SetJustifyH("LEFT")
+	count:SetJustifyV("MIDDLE")
+	chip.count = count
 
 	chip:SetScript("OnEnter", function(self)
 		if not self.tooltipTitle then
@@ -305,58 +316,22 @@ function Addon:RefreshCompositionView(refreshGearScore)
 	end
 
 	local yTop = 0
+	local classesX = COMP_ROLES_COL_W + COMP_SUMMARY_COL_GAP
 
-	-- Missing classes (all 10 icons)
-	local classHeading = NextHeading()
-	classHeading:ClearAllPoints()
-	classHeading:SetPoint("TOPLEFT", content, "TOPLEFT", 0, yTop)
-	classHeading:SetWidth(viewW)
-	classHeading:SetText(W.T("COMP_SECTION_CLASSES"))
-	classHeading:Show()
-	yTop = yTop - COMP_HEADING_H
-
-	local classes = analysis.classes or {}
-	W.HidePoolFrom(page.classIcons, #classes + 1)
-	for classIndex = 1, #classes do
-		local entry = classes[classIndex]
-		local chip = page.classIcons[classIndex]
-		if not chip then
-			chip = CreateClassIconChip(content)
-			page.classIcons[classIndex] = chip
-		end
-		chip:ClearAllPoints()
-		chip:SetPoint(
-			"TOPLEFT",
-			content,
-			"TOPLEFT",
-			(classIndex - 1) * (COMP_CLASS_ICON + COMP_CHIP_GAP),
-			yTop
-		)
-		W.SetSpecOrClassIcon(chip.icon, nil, entry.class)
-		if entry.present then
-			chip.icon:SetVertexColor(1, 1, 1, 1)
-			chip.tooltipProviders = W.T("COMP_PROVIDERS", JoinNames(entry.names))
-		else
-			chip.icon:SetVertexColor(
-				UI.TEXT_DISABLED[1],
-				UI.TEXT_DISABLED[2],
-				UI.TEXT_DISABLED[3],
-				1
-			)
-			chip.tooltipProviders = W.T("COMP_MISSING")
-		end
-		chip.tooltipTitle = entry.label or entry.class
-		chip:Show()
-	end
-	yTop = yTop - COMP_CLASS_ICON - COMP_SECTION_GAP
-
-	-- Roles (icon + count, horizontal)
+	-- Roles (left) + Classes (right) on one summary band
 	local rolesHeading = NextHeading()
 	rolesHeading:ClearAllPoints()
 	rolesHeading:SetPoint("TOPLEFT", content, "TOPLEFT", 0, yTop)
-	rolesHeading:SetWidth(viewW)
+	rolesHeading:SetWidth(COMP_ROLES_COL_W)
 	rolesHeading:SetText(W.T("COMP_SECTION_ROLES"))
 	rolesHeading:Show()
+
+	local classHeading = NextHeading()
+	classHeading:ClearAllPoints()
+	classHeading:SetPoint("TOPLEFT", content, "TOPLEFT", classesX, yTop)
+	classHeading:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, yTop)
+	classHeading:SetText(W.T("COMP_SECTION_CLASSES"))
+	classHeading:Show()
 	yTop = yTop - COMP_HEADING_H
 
 	local roleOrder = analysis.roleOrder or {}
@@ -396,6 +371,44 @@ function Addon:RefreshCompositionView(refreshGearScore)
 				UI.TEXT_DISABLED[3],
 				1
 			)
+			chip.tooltipProviders = W.T("COMP_MISSING")
+		end
+		chip:Show()
+	end
+
+	local classes = analysis.classes or {}
+	W.HidePoolFrom(page.classIcons, #classes + 1)
+	for classIndex = 1, #classes do
+		local entry = classes[classIndex]
+		local count = entry.count or 0
+		local chip = page.classIcons[classIndex]
+		if not chip then
+			chip = CreateClassIconChip(content)
+			page.classIcons[classIndex] = chip
+		end
+		chip:ClearAllPoints()
+		chip:SetPoint(
+			"TOPLEFT",
+			content,
+			"TOPLEFT",
+			classesX + (classIndex - 1) * (COMP_CLASS_CHIP_W + COMP_CHIP_GAP),
+			yTop
+		)
+		W.SetSpecOrClassIcon(chip.icon, nil, entry.class)
+		chip.count:SetText(tostring(count))
+		chip.tooltipTitle = entry.label or entry.class
+		if entry.present then
+			chip.icon:SetVertexColor(1, 1, 1, 1)
+			W.SetFontColor(chip.count, UI.GOLD)
+			chip.tooltipProviders = W.T("COMP_PROVIDERS", JoinNames(entry.names))
+		else
+			chip.icon:SetVertexColor(
+				UI.TEXT_DISABLED[1],
+				UI.TEXT_DISABLED[2],
+				UI.TEXT_DISABLED[3],
+				1
+			)
+			W.SetFontColor(chip.count, UI.TEXT_DISABLED)
 			chip.tooltipProviders = W.T("COMP_MISSING")
 		end
 		chip:Show()

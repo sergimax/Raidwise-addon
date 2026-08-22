@@ -19,7 +19,7 @@ Already used on Raid roster. Counted here from the same tank / healer / melee / 
 
 ## Classes
 
-Top summary row lists all **10** WotLK classes in fixed order. Present classes are full/gold; missing classes are dim. Tooltip shows who is in the raid for that class, or Missing.
+Top summary (right of Roles) lists all **10** WotLK classes in fixed order with a player count next to each icon. Present classes are full/gold; missing classes are dim (`0`). Tooltip shows who is in the raid for that class, or Missing.
 
 ## Buffs
 

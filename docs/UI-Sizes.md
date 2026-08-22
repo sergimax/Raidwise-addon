@@ -137,9 +137,9 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Top summary | full width | Missing classes + Roles above the masonry |
-| Class icon | **20** px | Gap **6** px; all 10 classes on one row |
-| Role chip | icon **16** + count, width ~**44** | Gap **6** px; horizontal |
+| Top summary | full width | Roles (left) + Classes (right) on one band |
+| Role chip | icon **16** + count, width ~**44** | Gap **6** px |
+| Class chip | icon **16** + count, width ~**34** | Gap **6** px; all 10 classes |
 | Gap under summary | **12** px | Before 3-column checklist |
 | Columns | **3** | Equal width; `COMP_COL_GAP` **12** px |
 | Section heading | height **20** | Gold `GameFontNormal` |

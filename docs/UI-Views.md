@@ -50,7 +50,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
-| Composition | `LAYOUT_VERSION = 2` | `PageComposition.lua` | Shell title bar (next to page name) |
+| Composition | `LAYOUT_VERSION = 3` | `PageComposition.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 1` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 2` | `PageInfo.lua` | Shell title bar (next to page name) |
@@ -176,10 +176,8 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 ```text
 [ short description ]                              [ Refresh ]
         8 px gap
-[ Missing classes ]
-[ (class icons × 10; present gold, missing dim) ]
-[ Roles ]
-[ (tank)2  (heal)6  (melee)12  (range)5 ]
+[ Roles ]                    [ Classes ]
+[ (tank)2 (heal)6 (m)12 (r)5 ] [ W2 Pa1 Hu0 Ro1 … Dr0 ]
         gap
 [ Aggro              ] [ Buffs              ] [ External buffs    ]
 [ (icon) Misdirect 1 ] [ (icon) 10% stats 1 ] [ (icon) Focus Magic 0 ]
@@ -190,8 +188,8 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 |-------|------------------------|
 | short description | “Who is needed, and which raid buffs, debuffs, and utility are already covered.” |
 | Refresh | Re-reads the current group (same inspect/GearScore path as Raid roster) |
-| Missing classes | Full-width row: all 10 WotLK class icons; present gold/full, absent dim; tooltip = class + who / Missing |
-| Roles | Full-width row: role icon + count only; tooltip = role name + who / Missing |
+| Roles | Left of top band: role icon + count; tooltip = role name + who / Missing |
+| Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |
 | columns | Three equal columns below; sections pack into the shortest column |
 | section heading | Gold: Aggro, Buffs, External buffs, Damage reduction, Debuffs, Mana regeneration, Health regeneration |
 | row | Spell icon, name, count of players who can provide it |
