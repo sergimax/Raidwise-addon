@@ -658,6 +658,19 @@ local CLASS_NAME_KEYS = {
 	DRUID = "COMP_CLASS_DRUID",
 }
 
+local CLASS_ORDER = {
+	"WARRIOR",
+	"PALADIN",
+	"HUNTER",
+	"ROGUE",
+	"PRIEST",
+	"DEATHKNIGHT",
+	"SHAMAN",
+	"MAGE",
+	"WARLOCK",
+	"DRUID",
+}
+
 local ROLE_ORDER = { "tank", "healer", "melee", "ranged" }
 
 local function ClassLabel(class)
@@ -780,6 +793,11 @@ function Addon:AnalyzeRaidComposition(members)
 		melee = { count = 0, names = {} },
 		ranged = { count = 0, names = {} },
 	}
+	local classBuckets = {}
+	for classIndex = 1, #CLASS_ORDER do
+		local classToken = CLASS_ORDER[classIndex]
+		classBuckets[classToken] = { count = 0, names = {} }
+	end
 
 	members = members or {}
 	for index = 1, #members do
@@ -791,7 +809,25 @@ function Addon:AnalyzeRaidComposition(members)
 				bucket.count = bucket.count + 1
 				bucket.names[#bucket.names + 1] = member.name or "?"
 			end
+			local classBucket = classBuckets[member.class]
+			if classBucket then
+				classBucket.count = classBucket.count + 1
+				classBucket.names[#classBucket.names + 1] = member.name or "?"
+			end
 		end
+	end
+
+	local classes = {}
+	for classIndex = 1, #CLASS_ORDER do
+		local classToken = CLASS_ORDER[classIndex]
+		local classBucket = classBuckets[classToken]
+		classes[#classes + 1] = {
+			class = classToken,
+			label = ClassLabel(classToken),
+			count = classBucket.count,
+			present = classBucket.count > 0,
+			names = classBucket.names,
+		}
 	end
 
 	local sections = {}
@@ -838,6 +874,7 @@ function Addon:AnalyzeRaidComposition(members)
 	end
 
 	return {
+		classes = classes,
 		roles = roles,
 		roleOrder = ROLE_ORDER,
 		sections = sections,

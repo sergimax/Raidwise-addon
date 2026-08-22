@@ -1,6 +1,6 @@
 # Raid composition tracking
 
-What the **Raid composition** tab (**Анализ состава**) checks for Wrath of the Lich King **3.3.5a**. Layout follows the [Wowhead raid composition](https://www.wowhead.com/wotlk/raid-composition) tool: roles, then exclusive buff/debuff/utility categories.
+What the **Raid composition** tab (**Анализ состава**) checks for Wrath of the Lich King **3.3.5a**. Layout: class/role summary on top, then exclusive buff/debuff/utility categories (similar to the [Wowhead raid composition](https://www.wowhead.com/wotlk/raid-composition) tool).
 
 Only the strongest effect in a category applies to the raid. The tab marks a category **present** if anyone in the current party or raid can bring it, and **missing** otherwise. Spec is the player’s **primary talent tree** (same inspect data as Raid roster). Deep talent points are not read: if the tree is right, the addon assumes the usual raid talent is taken.
 
@@ -8,7 +8,7 @@ Sources: [Icy Veins buffs and debuffs](https://www.icy-veins.com/wotlk-classic/r
 
 ## Roles
 
-Already used on Raid roster. Counted here from the same tank / healer / melee / ranged rules (`RaidRoles.lua`).
+Already used on Raid roster. Counted here from the same tank / healer / melee / ranged rules (`RaidRoles.lua`). Shown in the composition top summary as icon + count (horizontal).
 
 | Role | Typical trees |
 |------|----------------|
@@ -16,6 +16,10 @@ Already used on Raid roster. Counted here from the same tank / healer / melee / 
 | Healer | Priest Discipline/Holy, Paladin Holy, Shaman Restoration, Druid Restoration |
 | Melee DPS | Arms/Fury, Retribution, Combat/Assassination/Subtlety, Unholy/Frost DK, Enhancement, Feral |
 | Ranged DPS | Hunter (all), Mage (all), Warlock (all), Shadow Priest, Elemental, Balance |
+
+## Classes
+
+Top summary row lists all **10** WotLK classes in fixed order. Present classes are full/gold; missing classes are dim. Tooltip shows who is in the raid for that class, or Missing.
 
 ## Buffs
 

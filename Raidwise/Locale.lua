@@ -40,8 +40,8 @@ local Translations = {
 			.. "Click a row to open Character profile.",
 		INFO_SECTION_RAID = "Shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
 			.. "Click a filled card to open Character profile.",
-		INFO_SECTION_COMPOSITION = "Checks the current party or raid for roles and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
-			.. "Gold rows are covered; dim rows are missing. Hover a row to see who brings it.",
+		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
+			.. "Gold means covered; dim means missing. Hover for who brings it.",
 		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
 			.. "That list is saved on this account and stays after logout. "
 			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
@@ -78,6 +78,7 @@ local Translations = {
 		COMP_FAIL = "Composition module failed to load. Reload UI (/reload).",
 		COMP_EMPTY = "Join a party or raid, or play solo to see your own coverage.",
 		COMP_SECTION_ROLES = "Roles",
+		COMP_SECTION_CLASSES = "Missing classes",
 		COMP_SECTION_BUFFS = "Buffs",
 		COMP_SECTION_EXTERNAL = "External buffs",
 		COMP_SECTION_AGGRO = "Aggro",
@@ -406,8 +407,8 @@ local Translations = {
 			.. "Клик по строке открывает профиль персонажа.",
 		INFO_SECTION_RAID = "Группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl). "
 			.. "Клик по заполненной карточке открывает профиль персонажа.",
-		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
-			.. "Золотые строки уже есть, серые — не хватает. Наведите курсор, чтобы увидеть, кто это даёт.",
+		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
+			.. "Золотое — есть, серое — не хватает. Наведите курсор, чтобы увидеть, кто это даёт.",
 		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
 			.. "Список сохраняется на аккаунте и остаётся после выхода. "
 			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
@@ -444,6 +445,7 @@ local Translations = {
 		COMP_FAIL = "Модуль анализа состава не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_EMPTY = "Войдите в группу или рейд — или смотрите покрытие только своего персонажа.",
 		COMP_SECTION_ROLES = "Роли",
+		COMP_SECTION_CLASSES = "Нет классов",
 		COMP_SECTION_BUFFS = "Баффы",
 		COMP_SECTION_EXTERNAL = "Внешние баффы",
 		COMP_SECTION_AGGRO = "Аггро",

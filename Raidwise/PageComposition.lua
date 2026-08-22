@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 2
 
 local COMP_COLS = 3
 local COMP_COL_GAP = 12
@@ -15,6 +15,10 @@ local COMP_HEADING_H = 20
 local COMP_ROW_H = 20
 local COMP_ICON = 16
 local COMP_COUNT_W = 22
+local COMP_CHIP_GAP = 6
+local COMP_TOP_GAP = 12
+local COMP_CLASS_ICON = 20
+local COMP_ROLE_CHIP_W = 44
 
 local COMP_ROLE_KEYS = {
 	tank = "ROLE_TANKS",
@@ -116,6 +120,68 @@ local function CreateCompositionRow(parent)
 	return row
 end
 
+local function CreateClassIconChip(parent)
+	local chip = CreateFrame("Frame", nil, parent)
+	chip:SetSize(COMP_CLASS_ICON, COMP_CLASS_ICON)
+	chip:EnableMouse(true)
+
+	local icon = chip:CreateTexture(nil, "ARTWORK")
+	icon:SetAllPoints(chip)
+	chip.icon = icon
+
+	chip:SetScript("OnEnter", function(self)
+		if not self.tooltipTitle then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.tooltipTitle)
+		if self.tooltipProviders then
+			GameTooltip:AddLine(self.tooltipProviders, 0.8, 0.8, 0.8, true)
+		end
+		GameTooltip:Show()
+	end)
+	chip:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	return chip
+end
+
+local function CreateRoleChip(parent)
+	local chip = CreateFrame("Frame", nil, parent)
+	chip:SetSize(COMP_ROLE_CHIP_W, COMP_ROW_H)
+	chip:EnableMouse(true)
+
+	local icon = chip:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(COMP_ICON, COMP_ICON)
+	icon:SetPoint("LEFT", 0, 0)
+	chip.icon = icon
+
+	local count = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	count:SetPoint("LEFT", icon, "RIGHT", 3, 0)
+	count:SetPoint("RIGHT", chip, "RIGHT", 0, 0)
+	count:SetJustifyH("LEFT")
+	count:SetJustifyV("MIDDLE")
+	chip.count = count
+
+	chip:SetScript("OnEnter", function(self)
+		if not self.tooltipTitle then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.tooltipTitle)
+		if self.tooltipProviders then
+			GameTooltip:AddLine(self.tooltipProviders, 0.8, 0.8, 0.8, true)
+		end
+		GameTooltip:Show()
+	end)
+	chip:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+
+	return chip
+end
+
 local function CreateCompositionPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
@@ -153,6 +219,8 @@ local function CreateCompositionPage(parent)
 	page.tableContent = content
 	page.headings = {}
 	page.rows = {}
+	page.classIcons = {}
+	page.roleChips = {}
 
 	local vBar = W.CreateCooldownScrollBar(tableHost, "VERTICAL")
 	vBar:SetPoint("TOPRIGHT", -1, -1)
@@ -222,22 +290,120 @@ function Addon:RefreshCompositionView(refreshGearScore)
 		colW = 80
 	end
 
-	local blocks = {
-		{
-			headingKey = "COMP_SECTION_ROLES",
-			rows = {},
-		},
-	}
-	for roleIndex = 1, #analysis.roleOrder do
-		local role = analysis.roleOrder[roleIndex]
-		local bucket = analysis.roles[role] or {}
-		blocks[1].rows[#blocks[1].rows + 1] = {
-			name = W.T(COMP_ROLE_KEYS[role] or "ROLE_UNKNOWN"),
-			count = bucket.count or 0,
-			icon = (self.RaidRoleIcon and self:RaidRoleIcon(role)) or "Interface\\Icons\\INV_Misc_QuestionMark",
-			providers = bucket.names,
-		}
+	page.classIcons = page.classIcons or {}
+	page.roleChips = page.roleChips or {}
+
+	local headingIndex = 0
+	local function NextHeading()
+		headingIndex = headingIndex + 1
+		local heading = page.headings[headingIndex]
+		if not heading then
+			heading = CreateCompositionHeading(content)
+			page.headings[headingIndex] = heading
+		end
+		return heading
 	end
+
+	local yTop = 0
+
+	-- Missing classes (all 10 icons)
+	local classHeading = NextHeading()
+	classHeading:ClearAllPoints()
+	classHeading:SetPoint("TOPLEFT", content, "TOPLEFT", 0, yTop)
+	classHeading:SetWidth(viewW)
+	classHeading:SetText(W.T("COMP_SECTION_CLASSES"))
+	classHeading:Show()
+	yTop = yTop - COMP_HEADING_H
+
+	local classes = analysis.classes or {}
+	W.HidePoolFrom(page.classIcons, #classes + 1)
+	for classIndex = 1, #classes do
+		local entry = classes[classIndex]
+		local chip = page.classIcons[classIndex]
+		if not chip then
+			chip = CreateClassIconChip(content)
+			page.classIcons[classIndex] = chip
+		end
+		chip:ClearAllPoints()
+		chip:SetPoint(
+			"TOPLEFT",
+			content,
+			"TOPLEFT",
+			(classIndex - 1) * (COMP_CLASS_ICON + COMP_CHIP_GAP),
+			yTop
+		)
+		W.SetSpecOrClassIcon(chip.icon, nil, entry.class)
+		if entry.present then
+			chip.icon:SetVertexColor(1, 1, 1, 1)
+			chip.tooltipProviders = W.T("COMP_PROVIDERS", JoinNames(entry.names))
+		else
+			chip.icon:SetVertexColor(
+				UI.TEXT_DISABLED[1],
+				UI.TEXT_DISABLED[2],
+				UI.TEXT_DISABLED[3],
+				1
+			)
+			chip.tooltipProviders = W.T("COMP_MISSING")
+		end
+		chip.tooltipTitle = entry.label or entry.class
+		chip:Show()
+	end
+	yTop = yTop - COMP_CLASS_ICON - COMP_SECTION_GAP
+
+	-- Roles (icon + count, horizontal)
+	local rolesHeading = NextHeading()
+	rolesHeading:ClearAllPoints()
+	rolesHeading:SetPoint("TOPLEFT", content, "TOPLEFT", 0, yTop)
+	rolesHeading:SetWidth(viewW)
+	rolesHeading:SetText(W.T("COMP_SECTION_ROLES"))
+	rolesHeading:Show()
+	yTop = yTop - COMP_HEADING_H
+
+	local roleOrder = analysis.roleOrder or {}
+	W.HidePoolFrom(page.roleChips, #roleOrder + 1)
+	for roleIndex = 1, #roleOrder do
+		local role = roleOrder[roleIndex]
+		local bucket = (analysis.roles and analysis.roles[role]) or {}
+		local count = bucket.count or 0
+		local chip = page.roleChips[roleIndex]
+		if not chip then
+			chip = CreateRoleChip(content)
+			page.roleChips[roleIndex] = chip
+		end
+		chip:ClearAllPoints()
+		chip:SetPoint(
+			"TOPLEFT",
+			content,
+			"TOPLEFT",
+			(roleIndex - 1) * (COMP_ROLE_CHIP_W + COMP_CHIP_GAP),
+			yTop
+		)
+		chip.icon:SetTexture(
+			(self.RaidRoleIcon and self:RaidRoleIcon(role)) or "Interface\\Icons\\INV_Misc_QuestionMark"
+		)
+		chip.count:SetText(tostring(count))
+		local roleName = W.T(COMP_ROLE_KEYS[role] or "ROLE_UNKNOWN")
+		chip.tooltipTitle = roleName
+		if count > 0 then
+			W.SetFontColor(chip.count, UI.GOLD)
+			chip.icon:SetVertexColor(1, 1, 1, 1)
+			chip.tooltipProviders = W.T("COMP_PROVIDERS", JoinNames(bucket.names))
+		else
+			W.SetFontColor(chip.count, UI.TEXT_DISABLED)
+			chip.icon:SetVertexColor(
+				UI.TEXT_DISABLED[1],
+				UI.TEXT_DISABLED[2],
+				UI.TEXT_DISABLED[3],
+				1
+			)
+			chip.tooltipProviders = W.T("COMP_MISSING")
+		end
+		chip:Show()
+	end
+	yTop = yTop - COMP_ROW_H - COMP_TOP_GAP
+
+	-- Masonry effect sections (no Roles)
+	local blocks = {}
 	for sectionIndex = 1, #analysis.sections do
 		local section = analysis.sections[sectionIndex]
 		local block = {
@@ -257,7 +423,6 @@ function Addon:RefreshCompositionView(refreshGearScore)
 		blocks[#blocks + 1] = block
 	end
 
-	W.HidePoolFrom(page.headings, #blocks + 1)
 	local rowNeeded = 0
 	for blockIndex = 1, #blocks do
 		rowNeeded = rowNeeded + #blocks[blockIndex].rows
@@ -266,10 +431,9 @@ function Addon:RefreshCompositionView(refreshGearScore)
 
 	local colHeights = {}
 	for col = 1, cols do
-		colHeights[col] = 0
+		colHeights[col] = -yTop
 	end
 
-	local headingIndex = 0
 	local rowIndex = 0
 
 	local function PlaceHeight(height)
@@ -290,12 +454,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 		local blockH = COMP_HEADING_H + #block.rows * COMP_ROW_H
 		local x, y = PlaceHeight(blockH)
 
-		headingIndex = headingIndex + 1
-		local heading = page.headings[headingIndex]
-		if not heading then
-			heading = CreateCompositionHeading(content)
-			page.headings[headingIndex] = heading
-		end
+		local heading = NextHeading()
 		heading:ClearAllPoints()
 		heading:SetPoint("TOPLEFT", content, "TOPLEFT", x, y)
 		heading:SetWidth(colW)
@@ -314,6 +473,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			row:SetPoint("TOPLEFT", content, "TOPLEFT", x, y - COMP_HEADING_H - (itemIndex - 1) * COMP_ROW_H)
 			row:SetSize(colW, COMP_ROW_H)
 			row.icon:SetTexture(item.icon)
+			row.icon:SetVertexColor(1, 1, 1, 1)
 			row.name:SetText(item.name)
 			row.count:SetText(tostring(item.count or 0))
 			if (item.count or 0) > 0 then
@@ -337,6 +497,8 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			row:Show()
 		end
 	end
+
+	W.HidePoolFrom(page.headings, headingIndex + 1)
 
 	local contentH = 0
 	for col = 1, cols do
