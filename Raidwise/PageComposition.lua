@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 3
+local LAYOUT_VERSION = 4
 
 local COMP_COLS = 3
 local COMP_COL_GAP = 12
@@ -18,10 +18,9 @@ local COMP_COUNT_W = 22
 local COMP_CHIP_GAP = 6
 local COMP_TOP_GAP = 12
 local COMP_CLASS_ICON = 16
-local COMP_ROLE_CHIP_W = 44
-local COMP_CLASS_CHIP_W = 34
+local COMP_CHIP_W = 34
 local COMP_SUMMARY_COL_GAP = 24
-local COMP_ROLES_COL_W = 4 * COMP_ROLE_CHIP_W + 3 * COMP_CHIP_GAP
+local COMP_ROLES_COL_W = 4 * COMP_CHIP_W + 3 * COMP_CHIP_GAP
 
 local COMP_ROLE_KEYS = {
 	tank = "ROLE_TANKS",
@@ -125,7 +124,7 @@ end
 
 local function CreateClassIconChip(parent)
 	local chip = CreateFrame("Frame", nil, parent)
-	chip:SetSize(COMP_CLASS_CHIP_W, COMP_ROW_H)
+	chip:SetSize(COMP_CHIP_W, COMP_ROW_H)
 	chip:EnableMouse(true)
 
 	local icon = chip:CreateTexture(nil, "ARTWORK")
@@ -160,7 +159,7 @@ end
 
 local function CreateRoleChip(parent)
 	local chip = CreateFrame("Frame", nil, parent)
-	chip:SetSize(COMP_ROLE_CHIP_W, COMP_ROW_H)
+	chip:SetSize(COMP_CHIP_W, COMP_ROW_H)
 	chip:EnableMouse(true)
 
 	local icon = chip:CreateTexture(nil, "ARTWORK")
@@ -169,7 +168,7 @@ local function CreateRoleChip(parent)
 	chip.icon = icon
 
 	local count = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	count:SetPoint("LEFT", icon, "RIGHT", 3, 0)
+	count:SetPoint("LEFT", icon, "RIGHT", 2, 0)
 	count:SetPoint("RIGHT", chip, "RIGHT", 0, 0)
 	count:SetJustifyH("LEFT")
 	count:SetJustifyV("MIDDLE")
@@ -350,7 +349,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			"TOPLEFT",
 			content,
 			"TOPLEFT",
-			(roleIndex - 1) * (COMP_ROLE_CHIP_W + COMP_CHIP_GAP),
+			(roleIndex - 1) * (COMP_CHIP_W + COMP_CHIP_GAP),
 			yTop
 		)
 		chip.icon:SetTexture(
@@ -391,7 +390,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			"TOPLEFT",
 			content,
 			"TOPLEFT",
-			classesX + (classIndex - 1) * (COMP_CLASS_CHIP_W + COMP_CHIP_GAP),
+			classesX + (classIndex - 1) * (COMP_CHIP_W + COMP_CHIP_GAP),
 			yTop
 		)
 		W.SetSpecOrClassIcon(chip.icon, nil, entry.class)
