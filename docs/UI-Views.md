@@ -195,6 +195,7 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | row | Spell icon, name, count of players who can provide it |
 | present | Gold name and count (`> 0`) |
 | missing | Dim name and `0` |
+| priority missing | Red name/count/icon for key raid effects (aggro tools, Kings/MotW, Lust, Misery, etc.) |
 | tooltip | Who in the raid has it, then which classes/specs can bring it |
 
 Spec is the primary talent tree (same as Raid roster). Solo shows only your own coverage.

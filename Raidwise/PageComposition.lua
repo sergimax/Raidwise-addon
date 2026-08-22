@@ -430,6 +430,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 				icon = SpellTexture(effect.spellId),
 				providers = effect.providers,
 				sources = effect.sourceLabels,
+				priority = effect.priority,
 			}
 		end
 		blocks[#blocks + 1] = block
@@ -485,13 +486,18 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			row:SetPoint("TOPLEFT", content, "TOPLEFT", x, y - COMP_HEADING_H - (itemIndex - 1) * COMP_ROW_H)
 			row:SetSize(colW, COMP_ROW_H)
 			row.icon:SetTexture(item.icon)
-			row.icon:SetVertexColor(1, 1, 1, 1)
 			row.name:SetText(item.name)
 			row.count:SetText(tostring(item.count or 0))
 			if (item.count or 0) > 0 then
+				row.icon:SetVertexColor(1, 1, 1, 1)
 				W.SetFontColor(row.name, UI.GOLD)
 				W.SetFontColor(row.count, UI.GOLD)
+			elseif item.priority then
+				row.icon:SetVertexColor(UI.TEXT_ALERT[1], UI.TEXT_ALERT[2], UI.TEXT_ALERT[3], 1)
+				W.SetFontColor(row.name, UI.TEXT_ALERT)
+				W.SetFontColor(row.count, UI.TEXT_ALERT)
 			else
+				row.icon:SetVertexColor(1, 1, 1, 1)
 				W.SetFontColor(row.name, UI.TEXT_DISABLED)
 				W.SetFontColor(row.count, UI.TEXT_DISABLED)
 			end

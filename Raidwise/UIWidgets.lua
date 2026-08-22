@@ -73,6 +73,7 @@ Addon.UITheme = {
 	BTN_DISABLED = { 0.12, 0.12, 0.12, 0.90 },
 	TEXT_HOVER = { 1.00, 1.00, 0.40 },
 	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
+	TEXT_ALERT = { 0.90, 0.20, 0.20 },
 }
 
 Addon.Widgets = {}

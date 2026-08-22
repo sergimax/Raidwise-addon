@@ -14,6 +14,7 @@ local EFFECTS = {
 		id = "stats_pct",
 		labelKey = "COMP_STATS_PCT",
 		spellId = 20217,
+		priority = true,
 		sources = { Src("PALADIN") },
 	},
 	{
@@ -21,6 +22,7 @@ local EFFECTS = {
 		id = "motw",
 		labelKey = "COMP_MOTW",
 		spellId = 48470,
+		priority = true,
 		sources = { Src("DRUID") },
 	},
 	{
@@ -133,6 +135,7 @@ local EFFECTS = {
 		id = "bloodlust",
 		labelKey = "COMP_BLOODLUST",
 		spellId = 2825,
+		priority = true,
 		sources = { Src("SHAMAN") },
 	},
 	{
@@ -154,6 +157,7 @@ local EFFECTS = {
 		id = "misdirection",
 		labelKey = "COMP_MISDIRECTION",
 		spellId = 34477,
+		priority = true,
 		sources = { Src("HUNTER") },
 	},
 	{
@@ -161,6 +165,7 @@ local EFFECTS = {
 		id = "tricks",
 		labelKey = "COMP_TRICKS",
 		spellId = 57934,
+		priority = true,
 		sources = { Src("ROGUE") },
 	},
 	{
@@ -182,6 +187,8 @@ local EFFECTS = {
 		id = "innervate",
 		labelKey = "COMP_INNERVATE",
 		spellId = 29166,
+		priority = true,
+		hidden = true,
 		sources = { Src("DRUID") },
 	},
 	{
@@ -193,31 +200,10 @@ local EFFECTS = {
 	},
 	{
 		section = "external",
-		id = "hand_sacrifice",
-		labelKey = "COMP_HAND_SACRIFICE",
-		spellId = 6940,
-		sources = { Src("PALADIN") },
-	},
-	{
-		section = "external",
 		id = "hand_freedom",
 		labelKey = "COMP_HAND_FREEDOM",
 		spellId = 1044,
 		sources = { Src("PALADIN") },
-	},
-	{
-		section = "external",
-		id = "hand_protection",
-		labelKey = "COMP_HAND_PROTECTION",
-		spellId = 10278,
-		sources = { Src("PALADIN") },
-	},
-	{
-		section = "external",
-		id = "pain_suppression",
-		labelKey = "COMP_PAIN_SUPPRESSION",
-		spellId = 33206,
-		sources = { Src("PRIEST", 1) },
 	},
 	{
 		section = "external",
@@ -250,13 +236,6 @@ local EFFECTS = {
 	},
 	{
 		section = "external",
-		id = "divine_sacrifice",
-		labelKey = "COMP_DIVINE_SACRIFICE",
-		spellId = 64205,
-		sources = { Src("PALADIN", 2) },
-	},
-	{
-		section = "external",
 		id = "intervene",
 		labelKey = "COMP_INTERVENE",
 		spellId = 3411,
@@ -277,6 +256,35 @@ local EFFECTS = {
 		labelKey = "COMP_DIVINE_GUARDIAN",
 		spellId = 70940,
 		sources = { Src("PALADIN", 2) },
+	},
+	{
+		section = "damage_reduction",
+		id = "divine_sacrifice",
+		labelKey = "COMP_DIVINE_SACRIFICE",
+		spellId = 64205,
+		priority = true,
+		sources = { Src("PALADIN", 2) },
+	},
+	{
+		section = "damage_reduction",
+		id = "hand_sacrifice",
+		labelKey = "COMP_HAND_SACRIFICE",
+		spellId = 6940,
+		sources = { Src("PALADIN") },
+	},
+	{
+		section = "damage_reduction",
+		id = "hand_protection",
+		labelKey = "COMP_HAND_PROTECTION",
+		spellId = 10278,
+		sources = { Src("PALADIN") },
+	},
+	{
+		section = "damage_reduction",
+		id = "pain_suppression",
+		labelKey = "COMP_PAIN_SUPPRESSION",
+		spellId = 33206,
+		sources = { Src("PRIEST", 1) },
 	},
 	{
 		section = "damage_reduction",
@@ -417,6 +425,7 @@ local EFFECTS = {
 		labelKey = "COMP_SANCTUARY_GRACE",
 		spellId = 20911,
 		comboLabel = true,
+		priority = true,
 		sources = { Src("PALADIN", 2), Src("PRIEST", 1) },
 	},
 	{
@@ -460,6 +469,7 @@ local EFFECTS = {
 		id = "spell_taken",
 		labelKey = "COMP_SPELL_TAKEN",
 		spellId = 47865,
+		priority = true,
 		sources = { Src("WARLOCK"), Src("DRUID", 1), Src("DEATHKNIGHT", 3) },
 	},
 	{
@@ -467,6 +477,7 @@ local EFFECTS = {
 		id = "spell_hit",
 		labelKey = "COMP_SPELL_HIT",
 		spellId = 33191,
+		priority = true,
 		sources = { Src("PRIEST", 3), Src("DRUID", 1) },
 	},
 	{
@@ -539,6 +550,7 @@ local EFFECTS = {
 		id = "replenishment",
 		labelKey = "COMP_REPLENISHMENT",
 		spellId = 57669,
+		priority = true,
 		sources = {
 			Src("PRIEST", 3),
 			Src("HUNTER", 3),
@@ -566,6 +578,7 @@ local EFFECTS = {
 		id = "innervate_mana",
 		labelKey = "COMP_INNERVATE",
 		spellId = 29166,
+		priority = true,
 		sources = { Src("DRUID") },
 	},
 	{
@@ -861,6 +874,7 @@ function Addon:AnalyzeRaidComposition(members)
 					count = #providers,
 					providers = providers,
 					sourceLabels = sourceLabels,
+					priority = effect.priority and true or nil,
 				}
 			end
 		end
