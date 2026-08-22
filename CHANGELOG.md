@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.10.0] - 2026-08-22
+
+### Added
+- **Raid composition** top summary: Roles and all 10 class icons with counts (present gold, missing dim)
+- **Aggro** section (Misdirection, Tricks of the Trade)
+- **Report missing** posts absent class names to raid or party chat
+- **Shift-click** an effect row to post that effect with provider class/spec and spell names (`need` / `have`)
+- Effect tooltips list each source on its own line with class/spec and spell name from `GetSpellInfo`
+- Section headings show **present/total** coverage; heading turns red only when present is `0`
+- Judgement of Wisdom under Mana regeneration; JoW / JoL stay hidden in Debuffs
+
+### Changed
+- Composition layout: classes/roles on a horizontal band above the three-column checklist
+- Damage reduction includes Hand of Sacrifice, Divine Sacrifice, Hand of Protection, and Pain Suppression
+- Innervate is listed under Mana (hidden as External); Divine Shield and Tranquility are hidden
+- Corrected composition spell labels and IDs (Gift of the Wild, Sanctuary / Renewed Hope, Swift Retribution)
+
+### Fixed
+- Section count columns no longer wrap double-digit `present/total` values
+
 ## [1.9.0] - 2026-08-22
 
 ### Added

@@ -68,9 +68,10 @@ Esc or the title **X** closes the window.
 **Raid composition** tab:
 
 - Checklist of the current party or raid (solo uses only you)
-- Sections: roles, buffs, external buffs, damage reduction, debuffs, mana regeneration, health regeneration
-- Gold rows are already covered; dim rows are missing. Hover for who in the group has it and which class/spec can bring it
-- **Refresh** re-reads the group (same inspect path as Raid roster)
+- Top band: **Roles** and all 10 **Classes** with counts; then sections: Aggro, buffs, external buffs, damage reduction, debuffs, mana regeneration, health regeneration
+- Gold rows are covered; dim rows are missing. Section titles show present/total (red when nothing in the section is present)
+- Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to raid/party chat
+- **Report missing** posts absent classes to raid or party chat; **Refresh** re-reads the group (same inspect path as Raid roster)
 - Full tracking list: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
 
 **History** tab:
