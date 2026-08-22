@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 5
+local LAYOUT_VERSION = 6
 
 local COMP_COLS = 3
 local COMP_COL_GAP = 12
@@ -14,7 +14,7 @@ local COMP_SECTION_GAP = 10
 local COMP_HEADING_H = 20
 local COMP_ROW_H = 20
 local COMP_ICON = 16
-local COMP_COUNT_W = 22
+local COMP_COUNT_W = 36
 local COMP_CHIP_GAP = 6
 local COMP_TOP_GAP = 12
 local COMP_CLASS_ICON = 16
@@ -78,6 +78,7 @@ local function CreateCompositionHeading(parent)
 	count:SetWidth(COMP_COUNT_W)
 	count:SetJustifyH("RIGHT")
 	count:SetJustifyV("MIDDLE")
+	count:SetNonSpaceWrap(false)
 	W.SetFontColor(count, UI.GOLD)
 	heading.count = count
 
@@ -106,6 +107,7 @@ local function CreateCompositionRow(parent)
 	count:SetPoint("RIGHT", -2, 0)
 	count:SetWidth(COMP_COUNT_W)
 	count:SetJustifyH("RIGHT")
+	count:SetNonSpaceWrap(false)
 	row.count = count
 
 	local name = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -444,7 +446,6 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			rows = {},
 			presentCount = 0,
 			totalCount = 0,
-			priorityMissing = false,
 		}
 		for effectIndex = 1, #section.effects do
 			local effect = section.effects[effectIndex]
@@ -452,8 +453,6 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			block.totalCount = block.totalCount + 1
 			if count > 0 then
 				block.presentCount = block.presentCount + 1
-			elseif effect.priority then
-				block.priorityMissing = true
 			end
 			block.rows[#block.rows + 1] = {
 				name = effect.label or W.T(effect.labelKey),
@@ -506,10 +505,10 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			string.format("%d/%d", block.presentCount or 0, block.totalCount or 0)
 		)
 		heading.count:Show()
-		local headingColor = block.priorityMissing and UI.TEXT_ALERT or UI.GOLD
-		W.SetFontColor(heading.title, headingColor)
-		W.SetFontColor(heading.count, headingColor)
-		heading:Show()
+			local headingColor = ((block.presentCount or 0) == 0) and UI.TEXT_ALERT or UI.GOLD
+			W.SetFontColor(heading.title, headingColor)
+			W.SetFontColor(heading.count, headingColor)
+			heading:Show()
 
 		for itemIndex = 1, #block.rows do
 			rowIndex = rowIndex + 1

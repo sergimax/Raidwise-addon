@@ -191,7 +191,7 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | Roles | Left of top band: role icon + count; tooltip = role name + who / Missing |
 | Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |
 | columns | Three equal columns below; sections pack into the shortest column |
-| section heading | Name left; `present/total` right-aligned above row counts; gold, or **red** if a priority effect is missing |
+| section heading | Name left; `present/total` right-aligned above row counts; gold, or **red** when present is `0` |
 | row | Spell icon, name, count of players who can provide it |
 | present | Gold name and count (`> 0`) |
 | missing | Dim name and `0` |

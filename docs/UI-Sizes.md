@@ -143,7 +143,7 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 | Gap under summary | **12** px | Before 3-column checklist |
 | Columns | **3** | Equal width; `COMP_COL_GAP` **12** px |
 | Section heading | height **20** | Gold `GameFontNormal` |
-| Effect row | height **20** | Icon **16** px, name, count width **22** |
+| Effect row | height **20** | Icon **16** px, name, count width **36** (right-aligned, no wrap) |
 | Gap between sections | **10** px | After packing into the shortest column |
 
 ## Character profile
