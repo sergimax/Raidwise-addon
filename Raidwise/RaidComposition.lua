@@ -737,6 +737,16 @@ local function SpecLabel(class, specTab)
 	return Addon:T("COMP_SPEC_ANY")
 end
 
+local function ResolveSpellName(spellId)
+	if type(GetSpellInfo) == "function" and spellId then
+		local name = GetSpellInfo(spellId)
+		if name and name ~= "" then
+			return name
+		end
+	end
+	return nil
+end
+
 local function FormatSource(source, fallbackSpellId)
 	local who
 	if source.race == "Draenei" then
@@ -749,14 +759,11 @@ local function FormatSource(source, fallbackSpellId)
 			who = Addon:T("COMP_SRC_ANY", className)
 		end
 	end
-	local spellId = source.spellId or fallbackSpellId
-	if type(GetSpellInfo) == "function" and spellId then
-		local spellName = GetSpellInfo(spellId)
-		if spellName and spellName ~= "" then
-			return Addon:T("COMP_SRC_SPELL", who, spellName)
-		end
+	local spellName = ResolveSpellName(source.spellId or fallbackSpellId)
+	if spellName then
+		return Addon:T("COMP_SRC_SPELL", who, spellName), spellName
 	end
-	return who
+	return who, nil
 end
 
 local function ClientLocaleMatchesAddon()
@@ -906,8 +913,15 @@ function Addon:AnalyzeRaidComposition(members)
 					end
 				end
 				local sourceLabels = {}
+				local sourceSpells = {}
+				local seenSpells = {}
 				for sourceIndex = 1, #effect.sources do
-					sourceLabels[#sourceLabels + 1] = FormatSource(effect.sources[sourceIndex], effect.spellId)
+					local label, spellName = FormatSource(effect.sources[sourceIndex], effect.spellId)
+					sourceLabels[#sourceLabels + 1] = label
+					if spellName and not seenSpells[spellName] then
+						seenSpells[spellName] = true
+						sourceSpells[#sourceSpells + 1] = spellName
+					end
 				end
 				effects[#effects + 1] = {
 					id = effect.id,
@@ -917,6 +931,7 @@ function Addon:AnalyzeRaidComposition(members)
 					count = #providers,
 					providers = providers,
 					sourceLabels = sourceLabels,
+					sourceSpells = sourceSpells,
 					priority = effect.priority and true or nil,
 				}
 			end

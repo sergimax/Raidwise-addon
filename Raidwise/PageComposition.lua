@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 7
+local LAYOUT_VERSION = 8
 
 local COMP_COLS = 3
 local COMP_COL_GAP = 12
@@ -44,6 +44,73 @@ local function JoinNames(names)
 		return W.T("COMP_NONE")
 	end
 	return table.concat(names, ", ")
+end
+
+local function CompositionChatChannel()
+	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
+	if raidCount > 0 then
+		return "RAID"
+	end
+	local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
+	if partyCount > 0 then
+		return "PARTY"
+	end
+	return nil
+end
+
+local function SendCompositionChat(message)
+	local channel = CompositionChatChannel()
+	if not channel then
+		Addon:Print(W.T("COMP_CHAT_NO_GROUP"))
+		Addon:Print(message)
+		return
+	end
+	SendChatMessage(message, channel)
+end
+
+local function ReportMissingClassesToChat()
+	if not Addon.AnalyzeRaidComposition or not Addon.CompositionMembers then
+		Addon:Print(W.T("COMP_FAIL"))
+		return
+	end
+	local analysis = Addon:AnalyzeRaidComposition(Addon:CompositionMembers(false))
+	local missing = {}
+	local classes = analysis.classes or {}
+	for classIndex = 1, #classes do
+		local entry = classes[classIndex]
+		if entry and (entry.count or 0) == 0 then
+			missing[#missing + 1] = entry.label or entry.class
+		end
+	end
+
+	local message
+	if #missing == 0 then
+		message = W.T("COMP_CHAT_ALL_PRESENT")
+	else
+		message = W.T("COMP_CHAT_MISSING", table.concat(missing, ", "))
+	end
+	SendCompositionChat(message)
+end
+
+local function ReportEffectRowToChat(row)
+	local effectName = row.tooltipTitle
+	if not effectName or effectName == "" then
+		return
+	end
+	local spells = row.chatSpells
+	local spellText
+	if spells and #spells > 0 then
+		spellText = table.concat(spells, ", ")
+	else
+		spellText = effectName
+	end
+	local message
+	if (row.chatCount or 0) == 0 then
+		message = W.T("COMP_CHAT_EFFECT_NEED", effectName, spellText)
+	else
+		message = W.T("COMP_CHAT_EFFECT_HAVE", effectName, spellText)
+	end
+	SendCompositionChat(message)
 end
 
 local function LayoutCompositionScrollBars(page)
@@ -132,10 +199,17 @@ local function CreateCompositionRow(parent)
 				GameTooltip:AddLine(self.tooltipSources[sourceIndex], 1, 1, 1)
 			end
 		end
+		GameTooltip:AddLine(W.T("COMP_SHIFT_CHAT"), 0.6, 0.6, 0.6)
 		GameTooltip:Show()
 	end)
 	row:SetScript("OnLeave", function()
 		GameTooltip:Hide()
+	end)
+	row:SetScript("OnMouseUp", function(self, button)
+		if button ~= "LeftButton" or not IsShiftKeyDown() then
+			return
+		end
+		ReportEffectRowToChat(self)
 	end)
 
 	return row
@@ -209,49 +283,6 @@ local function CreateRoleChip(parent)
 	end)
 
 	return chip
-end
-
-local function CompositionChatChannel()
-	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
-	if raidCount > 0 then
-		return "RAID"
-	end
-	local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
-	if partyCount > 0 then
-		return "PARTY"
-	end
-	return nil
-end
-
-local function ReportMissingClassesToChat()
-	if not Addon.AnalyzeRaidComposition or not Addon.CompositionMembers then
-		Addon:Print(W.T("COMP_FAIL"))
-		return
-	end
-	local analysis = Addon:AnalyzeRaidComposition(Addon:CompositionMembers(false))
-	local missing = {}
-	local classes = analysis.classes or {}
-	for classIndex = 1, #classes do
-		local entry = classes[classIndex]
-		if entry and (entry.count or 0) == 0 then
-			missing[#missing + 1] = entry.label or entry.class
-		end
-	end
-
-	local message
-	if #missing == 0 then
-		message = W.T("COMP_CHAT_ALL_PRESENT")
-	else
-		message = W.T("COMP_CHAT_MISSING", table.concat(missing, ", "))
-	end
-
-	local channel = CompositionChatChannel()
-	if not channel then
-		Addon:Print(W.T("COMP_CHAT_NO_GROUP"))
-		Addon:Print(message)
-		return
-	end
-	SendChatMessage(message, channel)
 end
 
 local function CreateCompositionPage(parent)
@@ -513,6 +544,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 				icon = SpellTexture(effect.spellId),
 				providers = effect.providers,
 				sources = effect.sourceLabels,
+				spells = effect.sourceSpells,
 			}
 		end
 		blocks[#blocks + 1] = block
@@ -586,6 +618,8 @@ function Addon:RefreshCompositionView(refreshGearScore)
 				W.SetFontColor(row.count, UI.TEXT_DISABLED)
 			end
 			row.tooltipTitle = item.name
+			row.chatCount = item.count or 0
+			row.chatSpells = item.spells
 			if (item.count or 0) > 0 then
 				row.tooltipProviders = W.T("COMP_PROVIDERS", JoinNames(item.providers))
 			else

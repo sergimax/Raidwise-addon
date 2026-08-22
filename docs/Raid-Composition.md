@@ -2,7 +2,7 @@
 
 What the **Raid composition** tab (**Анализ состава**) checks for Wrath of the Lich King **3.3.5a**. Layout: class/role summary on top, then exclusive buff/debuff/utility categories (similar to the [Wowhead raid composition](https://www.wowhead.com/wotlk/raid-composition) tool).
 
-Only the strongest effect in a category applies to the raid. The tab marks a category **present** if anyone in the current party or raid can bring it, and **missing** otherwise. Spec is the player’s **primary talent tree** (same inspect data as Raid roster). Deep talent points are not read: if the tree is right, the addon assumes the usual raid talent is taken. Effect-row tooltips list each source class/spec with the **spell name** from `GetSpellInfo` (client language).
+Only the strongest effect in a category applies to the raid. The tab marks a category **present** if anyone in the current party or raid can bring it, and **missing** otherwise. Spec is the player’s **primary talent tree** (same inspect data as Raid roster). Deep talent points are not read: if the tree is right, the addon assumes the usual raid talent is taken. Effect-row tooltips list each source class/spec with the **spell name** from `GetSpellInfo` (client language). **Shift-click** a row to post that effect and its spell name(s) to raid or party chat (`need` if missing, `have` if covered).
 
 **Priority** effects (raid-critical): Misdirection, Tricks of the Trade, 10% stats, Gift of the Wild, Bloodlust / Heroism, Innervate, Divine Sacrifice, Blessing of Sanctuary / Renewed Hope, Spell damage taken, Spell hit (Misery), Replenishment. Headings show **present/total** coverage; a section heading turns **red** only when **0** effects in that section are present.
 

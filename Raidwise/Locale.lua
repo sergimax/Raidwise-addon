@@ -43,7 +43,7 @@ local Translations = {
 			.. "Click a filled card to open Character profile.",
 		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
 			.. "Gold means covered; dim means missing. Section titles show present/total; red title means nothing in that section is present. "
-			.. "Report missing posts absent classes to raid or party chat.",
+			.. "Report missing posts absent classes to raid or party chat. Shift-click an effect row to post that effect and its spells.",
 		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
 			.. "That list is saved on this account and stays after logout. "
 			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
@@ -76,12 +76,15 @@ local Translations = {
 		RAID_FAIL = "Raid roster module failed to load. Reload UI (/reload).",
 		HISTORY_HINT = "Players from your parties and raids. Saved on this account.",
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
-		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered.",
+		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
 		COMP_FAIL = "Composition module failed to load. Reload UI (/reload).",
 		COMP_EMPTY = "Join a party or raid, or play solo to see your own coverage.",
 		COMP_CHAT_MISSING = "Raidwise: missing classes: %s",
 		COMP_CHAT_ALL_PRESENT = "Raidwise: all classes present.",
-		COMP_CHAT_NO_GROUP = "Join a party or raid to report missing classes.",
+		COMP_CHAT_NO_GROUP = "Join a party or raid to post to chat.",
+		COMP_CHAT_EFFECT_NEED = "Raidwise: need %s — %s",
+		COMP_CHAT_EFFECT_HAVE = "Raidwise: have %s — %s",
+		COMP_SHIFT_CHAT = "Shift-click to post to chat",
 		COMP_SECTION_ROLES = "Roles",
 		COMP_SECTION_CLASSES = "Classes",
 		COMP_SECTION_BUFFS = "Buffs",
@@ -416,7 +419,7 @@ local Translations = {
 			.. "Клик по заполненной карточке открывает профиль персонажа.",
 		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
 			.. "Золотое — есть, серое — не хватает. В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет. "
-			.. "«Сообщить» пишет отсутствующие классы в чат рейда или группы.",
+			.. "«Сообщить» пишет отсутствующие классы в чат рейда или группы. Shift+клик по эффекту — эффект и заклинания в чат.",
 		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
 			.. "Список сохраняется на аккаунте и остаётся после выхода. "
 			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
@@ -449,12 +452,15 @@ local Translations = {
 		RAID_FAIL = "Модуль состава рейда не загрузился. Перезагрузите интерфейс (/reload).",
 		HISTORY_HINT = "Игроки из ваших групп и рейдов. Сохраняется на этом аккаунте.",
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
-		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде.",
+		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",
 		COMP_FAIL = "Модуль анализа состава не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_EMPTY = "Войдите в группу или рейд — или смотрите покрытие только своего персонажа.",
 		COMP_CHAT_MISSING = "Raidwise: нет классов: %s",
 		COMP_CHAT_ALL_PRESENT = "Raidwise: все классы есть.",
-		COMP_CHAT_NO_GROUP = "Войдите в группу или рейд, чтобы сообщить о недостающих классах.",
+		COMP_CHAT_NO_GROUP = "Войдите в группу или рейд, чтобы писать в чат.",
+		COMP_CHAT_EFFECT_NEED = "Raidwise: нужно %s — %s",
+		COMP_CHAT_EFFECT_HAVE = "Raidwise: есть %s — %s",
+		COMP_SHIFT_CHAT = "Shift+клик — в чат",
 		COMP_SECTION_ROLES = "Роли",
 		COMP_SECTION_CLASSES = "Классы",
 		COMP_SECTION_BUFFS = "Баффы",
