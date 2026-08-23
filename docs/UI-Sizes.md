@@ -94,7 +94,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`) |
 | Header row | **52** | Title-bar fill; spec icon, name, then last check time |
 | Data row | **34** | Alternate fills RGB **0.18** / **0.14** |
-| Currency rows | **1** fixed | **Currency** / **Валюта**; taller row (**72** px); icon – quantity pairs per character |
+| Currency rows | **1** fixed | **Currency** / **Валюта**; ~**158** px tall; single-column icon+count chips |
 | Vertical scrollbar | **16** | Right of the table; hidden if unused |
 | Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
 

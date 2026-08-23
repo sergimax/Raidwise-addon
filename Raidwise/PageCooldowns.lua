@@ -6,11 +6,22 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 3
+local LAYOUT_VERSION = 5
 
 local CD_INSTANCE_COL_W = 170
 local CD_CHAR_COL_W = 90
-local CD_CURRENCY_ROW_H = 72
+local CD_CURRENCY_ICON = 14
+local CD_CURRENCY_CHIP_H = 16
+local CD_CURRENCY_CHIP_GAP_Y = 1
+local CD_CURRENCY_PAD = 3
+local CD_CURRENCY_ENTRY_COUNT = 9
+local CD_CURRENCY_ROW_H = CD_CURRENCY_PAD * 2
+	+ CD_CURRENCY_ENTRY_COUNT * CD_CURRENCY_CHIP_H
+	+ (CD_CURRENCY_ENTRY_COUNT - 1) * CD_CURRENCY_CHIP_GAP_Y
+
+local function CurrencyChipWidth()
+	return CD_CHAR_COL_W - CD_CURRENCY_PAD * 2
+end
 
 local function FormatLastCheckTime(timestamp)
 	timestamp = tonumber(timestamp)
@@ -110,9 +121,30 @@ local function RowHeight(rowData)
 	return UI.CD_ROW_H
 end
 
+local function CreateCurrencyChip(parent)
+	local chip = CreateFrame("Frame", nil, parent)
+	chip:SetSize(CurrencyChipWidth(), CD_CURRENCY_CHIP_H)
+
+	local icon = chip:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(CD_CURRENCY_ICON, CD_CURRENCY_ICON)
+	icon:SetPoint("LEFT", 0, 0)
+	chip.icon = icon
+
+	local count = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	count:SetPoint("LEFT", icon, "RIGHT", 2, 0)
+	count:SetPoint("RIGHT", chip, "RIGHT", 0, 0)
+	count:SetJustifyH("LEFT")
+	count:SetJustifyV("MIDDLE")
+	count:SetNonSpaceWrap(false)
+	chip.count = count
+
+	return chip
+end
+
 local function CreateCooldownValueCell(parent)
 	local cell = CreateFrame("Frame", nil, parent)
 	cell:SetHeight(UI.CD_ROW_H)
+	cell.chips = {}
 
 	local text = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	text:SetPoint("LEFT", 4, 0)
@@ -146,18 +178,57 @@ local function CreateCooldownValueCell(parent)
 	return cell
 end
 
+local function HideCurrencyChips(cell)
+	if not cell.chips then
+		return
+	end
+	for index = 1, #cell.chips do
+		cell.chips[index]:Hide()
+	end
+end
+
+local function FillCurrencyChips(cell, entries, hasValue)
+	cell.chips = cell.chips or {}
+	local chipW = CurrencyChipWidth()
+	entries = entries or {}
+	W.HidePoolFrom(cell.chips, #entries + 1)
+	for index = 1, #entries do
+		local entry = entries[index]
+		local chip = cell.chips[index]
+		if not chip then
+			chip = CreateCurrencyChip(cell)
+			cell.chips[index] = chip
+		end
+		chip:ClearAllPoints()
+		chip:SetSize(chipW, CD_CURRENCY_CHIP_H)
+		chip:SetPoint(
+			"TOPLEFT",
+			cell,
+			"TOPLEFT",
+			CD_CURRENCY_PAD,
+			-(CD_CURRENCY_PAD + (index - 1) * (CD_CURRENCY_CHIP_H + CD_CURRENCY_CHIP_GAP_Y))
+		)
+		chip.icon:SetTexture(entry.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
+		chip.count:SetText(entry.displayCount or "0")
+		if hasValue then
+			W.SetFontColor(chip.count, UI.GOLD)
+		else
+			W.SetFontColor(chip.count, UI.TEXT_IDLE)
+		end
+		chip:Show()
+	end
+end
+
 local function ConfigureCurrencyCell(cell)
 	cell:SetHeight(CD_CURRENCY_ROW_H)
-	cell.text:ClearAllPoints()
-	cell.text:SetPoint("TOPLEFT", 4, -4)
-	cell.text:SetPoint("BOTTOMRIGHT", -4, 4)
-	cell.text:SetJustifyH("LEFT")
-	cell.text:SetJustifyV("TOP")
-	cell.text:SetWidth(CD_CHAR_COL_W - 8)
+	cell.text:SetText("")
+	cell.text:Hide()
 end
 
 local function ConfigureLockoutCell(cell, rowHeight)
 	cell:SetHeight(rowHeight)
+	HideCurrencyChips(cell)
+	cell.text:Show()
 	cell.text:ClearAllPoints()
 	cell.text:SetPoint("LEFT", 4, 0)
 	cell.text:SetPoint("RIGHT", -4, 0)
@@ -369,15 +440,12 @@ function Addon:RefreshCooldownTable()
 			cell.tooltipBody = nil
 			if rowData.kind == "currency" then
 				ConfigureCurrencyCell(cell)
-				if saved and saved.text then
-					cell.text:SetText(saved.text)
-					if saved.hasValue then
-						W.SetFontColor(cell.text, UI.GOLD)
-					else
-						W.SetFontColor(cell.text, UI.TEXT_IDLE)
-					end
+				if saved and saved.entries then
+					FillCurrencyChips(cell, saved.entries, saved.hasValue)
 					cell.tooltipLines = saved.tooltipLines
 				else
+					HideCurrencyChips(cell)
+					cell.text:Show()
 					cell.text:SetText("-")
 					W.SetFontColor(cell.text, UI.TEXT_DISABLED)
 					cell.tooltipBody = W.T("CD_CURRENCY_NONE")

@@ -74,30 +74,27 @@ local function FilterActiveLockouts(lockouts, now)
 	return kept
 end
 
-local CURRENCY_ICON = 16
-
-local function CurrencyIconTag(icon)
-	icon = icon or "Interface\\Icons\\INV_Misc_QuestionMark"
-	return "|T" .. icon .. ":" .. CURRENCY_ICON .. ":" .. CURRENCY_ICON .. "|t"
-end
-
 local function BuildCurrencyCell(currency)
 	if type(currency) ~= "table" or type(currency.entries) ~= "table" then
 		return nil
 	end
-	local entries = currency.entries
-	if #entries == 0 then
+	local source = currency.entries
+	if #source == 0 then
 		return nil
 	end
 
-	local textParts = {}
+	local entries = {}
 	local tooltipLines = {}
 	local hasValue = false
-	for index = 1, #entries do
-		local entry = entries[index]
+	for index = 1, #source do
+		local entry = source[index]
 		local displayCount = entry.displayCount or tostring(entry.count or 0)
 		local tooltipCount = entry.tooltipCount or displayCount
-		textParts[#textParts + 1] = CurrencyIconTag(entry.icon) .. " - " .. displayCount
+		entries[#entries + 1] = {
+			icon = entry.icon or "Interface\\Icons\\INV_Misc_QuestionMark",
+			displayCount = displayCount,
+			label = entry.label or "?",
+		}
 		tooltipLines[#tooltipLines + 1] = (entry.label or "?") .. ": " .. tooltipCount
 		if (tonumber(entry.count) or 0) > 0 then
 			hasValue = true
@@ -105,7 +102,7 @@ local function BuildCurrencyCell(currency)
 	end
 
 	return {
-		text = table.concat(textParts, " "),
+		entries = entries,
 		tooltipLines = tooltipLines,
 		hasValue = hasValue,
 	}

@@ -286,16 +286,17 @@ end
 -- WotLK 3.3.5 currency entries in Currency-tab order: gold, raid emblems, PvP, other tokens.
 local GOLD_ICON = "Interface\\Icons\\INV_Misc_Coin_01"
 
+-- Hardcoded icons so badges show even when item cache is cold.
 local CURRENCY_ENTRY_DEFS = {
-	{ kind = "gold" },
-	{ kind = "item", itemId = 49426 },
-	{ kind = "item", itemId = 47241 },
+	{ kind = "gold", icon = GOLD_ICON },
+	{ kind = "item", itemId = 49426, icon = "Interface\\Icons\\INV_Misc_FrostEmblem_01" },
+	{ kind = "item", itemId = 47241, icon = "Interface\\Icons\\INV_Misc_Trophy_Argent" },
 	{ kind = "honor" },
 	{ kind = "arena" },
-	{ kind = "item", itemId = 40753 },
-	{ kind = "item", itemId = 40752 },
-	{ kind = "item", itemId = 45624 },
-	{ kind = "item", itemId = 44990 },
+	{ kind = "item", itemId = 40753, icon = "Interface\\Icons\\Spell_Holy_ProclaimChampion_02" },
+	{ kind = "item", itemId = 40752, icon = "Interface\\Icons\\Spell_Holy_ProclaimChampion" },
+	{ kind = "item", itemId = 45624, icon = "Interface\\Icons\\INV_Misc_Coin_17" },
+	{ kind = "item", itemId = 44990, icon = "Interface\\Icons\\Ability_Paladin_ArtofWar" },
 }
 
 local function PvpCurrencyIcon(kind)
@@ -372,22 +373,23 @@ local function ResolveEntryCount(def)
 		if type(GetItemCount) == "function" then
 			count = GetItemCount(def.itemId, true) or 0
 		end
-		return count, tostring(count), tostring(count)
+		return count, FormatBadgeCount(count), tostring(count)
 	end
 	return 0, "0", "0"
 end
 
 local function ResolveEntryIcon(def)
-	if def.kind == "gold" then
-		return GOLD_ICON
-	end
 	if def.kind == "honor" or def.kind == "arena" then
 		return PvpCurrencyIcon(def.kind)
 	end
+	if def.icon and def.icon ~= "" then
+		return def.icon
+	end
+	-- GetItemInfo: texture is the 10th return on 3.3.5a (3rd is quality).
 	if def.kind == "item" and def.itemId and type(GetItemInfo) == "function" then
-		local _, _, icon = GetItemInfo(def.itemId)
-		if icon and icon ~= "" then
-			return icon
+		local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(def.itemId)
+		if texture and texture ~= "" then
+			return texture
 		end
 	end
 	return "Interface\\Icons\\INV_Misc_QuestionMark"
