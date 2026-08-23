@@ -113,12 +113,51 @@ local function AppendCurrencyRow(rows, characters, charList)
 	if Addon.GetCurrencyEntryLabels then
 		entryLabels = Addon:GetCurrencyEntryLabels() or {}
 	end
+
+	local totals = {}
+	local entryIds = {}
+	local maxEntries = #entryLabels
+	for charIndex = 1, #charList do
+		local character = characters[charList[charIndex].key]
+		local currency = character and character.currency
+		local entries = currency and currency.entries
+		if type(entries) == "table" then
+			if #entries > maxEntries then
+				maxEntries = #entries
+			end
+			for entryIndex = 1, #entries do
+				local entry = entries[entryIndex]
+				totals[entryIndex] = (totals[entryIndex] or 0) + (tonumber(entry.count) or 0)
+				if not entryIds[entryIndex] then
+					entryIds[entryIndex] = entry.id
+				end
+			end
+		end
+	end
+
+	local entrySummaries = {}
+	for entryIndex = 1, maxEntries do
+		local label = entryLabels[entryIndex] or "?"
+		local total = totals[entryIndex] or 0
+		local displayTotal = tostring(total)
+		if Addon.FormatCurrencyCount then
+			displayTotal = Addon:FormatCurrencyCount(entryIds[entryIndex], total)
+		end
+		entrySummaries[entryIndex] = {
+			label = label,
+			total = total,
+			displayTotal = displayTotal,
+			text = label .. "  " .. displayTotal,
+		}
+	end
+
 	local row = {
 		kind = "currency",
 		key = "currency",
 		name = Addon:T("CD_CURRENCY"),
 		typeLabel = "",
 		entryLabels = entryLabels,
+		entrySummaries = entrySummaries,
 		cells = {},
 	}
 	for charIndex = 1, #charList do

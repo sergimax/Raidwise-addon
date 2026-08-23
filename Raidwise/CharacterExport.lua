@@ -420,6 +420,15 @@ function Addon:CollectCharacterCurrency()
 	return { entries = entries }
 end
 
+-- Format a summed currency count for the cooldowns label column.
+function Addon:FormatCurrencyCount(entryId, count)
+	count = tonumber(count) or 0
+	if entryId == "gold" then
+		return FormatMoneyShort(count)
+	end
+	return FormatBadgeCount(count)
+end
+
 -- Short labels for the currency row in the cooldowns table (same order as entries).
 function Addon:GetCurrencyEntryLabels()
 	local labels = {}

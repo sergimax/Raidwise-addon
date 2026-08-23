@@ -246,11 +246,12 @@ local function CreateCurrencyRowLabel(parent)
 	return label
 end
 
-local function FillCurrencyRowLabels(row, labels)
+local function FillCurrencyRowLabels(row, summaries)
 	row.labelLines = row.labelLines or {}
-	labels = labels or {}
-	W.HidePoolFrom(row.labelLines, #labels + 1)
-	for index = 1, #labels do
+	summaries = summaries or {}
+	W.HidePoolFrom(row.labelLines, #summaries + 1)
+	for index = 1, #summaries do
+		local summary = summaries[index]
 		local label = row.labelLines[index]
 		if not label then
 			label = CreateCurrencyRowLabel(row)
@@ -259,8 +260,17 @@ local function FillCurrencyRowLabels(row, labels)
 		label:ClearAllPoints()
 		label:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -CurrencyEntryTop(index))
 		label:SetPoint("RIGHT", row, "LEFT", CD_INSTANCE_COL_W - 4, 0)
-		label:SetText(labels[index] or "")
-		W.SetFontColor(label, UI.TEXT_IDLE)
+		if type(summary) == "table" then
+			label:SetText(summary.text or ((summary.label or "") .. "  " .. (summary.displayTotal or "0")))
+			if (tonumber(summary.total) or 0) > 0 then
+				W.SetFontColor(label, UI.GOLD)
+			else
+				W.SetFontColor(label, UI.TEXT_IDLE)
+			end
+		else
+			label:SetText(tostring(summary or ""))
+			W.SetFontColor(label, UI.TEXT_IDLE)
+		end
 		label:Show()
 	end
 end
@@ -276,7 +286,7 @@ local function ConfigureLockoutRowHeading(row)
 	HideCurrencyRowLabels(row)
 end
 
-local function ConfigureCurrencyRowHeading(row, title, labels)
+local function ConfigureCurrencyRowHeading(row, title, summaries)
 	row.instanceName:ClearAllPoints()
 	row.instanceName:SetPoint("TOPLEFT", 6, -CD_CURRENCY_PAD)
 	row.instanceName:SetPoint("RIGHT", row, "LEFT", CD_INSTANCE_COL_W - 4, 0)
@@ -287,7 +297,7 @@ local function ConfigureCurrencyRowHeading(row, title, labels)
 	W.SetFontColor(row.instanceName, UI.GOLD)
 	row.typeLabel:SetText("")
 	row.typeLabel:Hide()
-	FillCurrencyRowLabels(row, labels)
+	FillCurrencyRowLabels(row, summaries)
 end
 
 local function ConfigureCurrencyCell(cell)
@@ -490,7 +500,7 @@ function Addon:RefreshCooldownTable()
 		row.stripe = stripe
 		row:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
 		if rowData.kind == "currency" then
-			ConfigureCurrencyRowHeading(row, rowData.name, rowData.entryLabels)
+			ConfigureCurrencyRowHeading(row, rowData.name, rowData.entrySummaries or rowData.entryLabels)
 		else
 			ConfigureLockoutRowHeading(row)
 			row.instanceName:SetText(rowData.name)

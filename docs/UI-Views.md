@@ -88,8 +88,8 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 [ Icecrown Citadel                               | 2d 4h | -   ]
 [ Raid / 25 Heroic                               |       |     ]
 [ Currency          | (title line — empty in char cols)        ]
-[ Gold              | [icon] 645g  | ...                      ]
-[ Frost             | [icon] 2     | ...                      ]
+[ Gold  12.3kg      | [icon] 645g  | ...                      ]
+[ Frost  47         | [icon] 2     | ...                      ]
 ```
 
 | Block | In-game text / control |
@@ -99,7 +99,7 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 | first column | Instance name, then type (`Raid` / `Dungeon` / size / Heroic); **Currency** row at bottom |
 | character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first |
 | saved cell | Remaining time until reset (gold); tooltip has instance + type |
-| currency cell | Title line + label column (Gold, Frost, …); character columns skip one line, then icon+count chips aligned to labels |
+| currency cell | Title line + label column with account totals (`Gold  12kg`); character columns skip one line, then icon+count chips aligned to labels |
 | empty cell | `-` (not saved) |
 | empty table | “Log in on each character…” if none saved; “No current lockouts.” if columns exist but no lockouts (**Currency** row still shows) |
 
