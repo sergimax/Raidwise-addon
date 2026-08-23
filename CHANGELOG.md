@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.12.0] - 2026-08-23
+
+### Added
+- **Character cooldowns**: **Remove** on non-current character columns drops that alt from `RaidwiseDB.characters` (log in again to restore)
+
+### Changed
+- Lockouts for one instance are a single row; character cells show compact size/mode tags (`10`, `10h`, `25`, `25h`); heroic tags are red; hover shows reset time per variant
+- First column shows instance name with `(Raid)` / `(Dungeon)` instead of separate size/heroic subtype lines
+
+### Fixed
+- Opening `/rw` no longer errors when building united lockout rows (`FormatRemaining` order)
+
 ## [1.11.0] - 2026-08-23
 
 ### Added
