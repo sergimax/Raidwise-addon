@@ -416,7 +416,9 @@ function W.TableIconInset(columnWidth, iconSize)
 end
 
 function W.TableIconTopOffset(iconSize)
-	return -math.floor((UI.CD_ROW_H - iconSize) / 2)
+	local inset = 1
+	local innerH = UI.CD_ROW_H - (inset * 2)
+	return -(inset + math.floor((innerH - iconSize) / 2))
 end
 
 function W.CreateBuffIconHost(parent)
