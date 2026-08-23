@@ -64,7 +64,7 @@ Addon.UITheme = {
 
 	-- Colors — Classic theme (preview/themes.html #classic)
 	GOLD = { 1.000, 0.824, 0.000 },
-	GOLD_DIM = { 0.769, 0.627, 0.290 },
+	GOLD_DIM = { 0.769, 0.627, 0.290 }, -- DELETE candidate: defined but never referenced in Raidwise/.
 	BORDER = { 0.420, 0.341, 0.188, 1 },
 	TEXT_IDLE = { 1.000, 0.933, 0.733 },
 	PANEL_BG = { 0.071, 0.071, 0.110, 0.98 },
@@ -93,6 +93,7 @@ function W.ContentInnerWidth()
 	return UI.CONTENT_WIDTH - (UI.PAD * 2)
 end
 
+-- REFACTOR candidate: inline Edge helper creates four 1px border textures.
 function W.ApplyPlainPanel(frame, color)
 	color = color or UI.PANEL_BG
 	frame:SetBackdrop({
@@ -250,6 +251,7 @@ function W.FitCopyBoxToText(box)
 	box:SetHeight(math.max(UI.COPY_MIN_H, lines * lineHeight + insets))
 end
 
+-- REFACTOR candidate: ScrollFrame + EditBox + cursor/scroll sync + auto-height fitting.
 function W.CreateCopyBox(parent, scrollName, boxName)
 	local host = CreateFrame("Frame", nil, parent)
 
@@ -489,6 +491,7 @@ function W.CreateCooldownScrollBar(parent, orientation)
 	return bar
 end
 
+-- REFACTOR candidate: shared H/V scrollbar visibility for table pages.
 function W.LayoutTableScrollBars(page)
 	local host = page.tableHost
 	local scroll = page.scroll

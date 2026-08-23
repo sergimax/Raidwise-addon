@@ -24,6 +24,7 @@ local SLOT_NAMES = {
 }
 
 -- Escape a string for JSON output.
+-- REFACTOR candidate: duplicate of CharacterLockouts.lua JsonEscape; consolidate shared JSON helpers.
 local function JsonEscape(value)
 	local str = tostring(value or "")
 	str = str:gsub("\\", "\\\\")

@@ -134,6 +134,7 @@ local function RaidContentSize()
 	return width, height
 end
 
+-- REFACTOR candidate: raid grid cell with role/spec/buff/rating sub-layout (~90 lines).
 local function CreateRaidPlayerCell(parent)
 	local cell = CreateFrame("Button", nil, parent)
 	cell:SetSize(RAID_CELL_W, RAID_CELL_H)
@@ -270,6 +271,7 @@ local function CreateRaidBlock(parent, startGroup, endGroup)
 	return block
 end
 
+-- REFACTOR candidate: bind/clear member data across five cell lines.
 local function FillRaidPlayerCell(cell, member, stripe)
 	cell.stripe = stripe
 	cell:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])

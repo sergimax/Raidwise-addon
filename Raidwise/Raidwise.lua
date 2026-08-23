@@ -133,7 +133,7 @@ function Addon:OnUpdateInstanceInfo()
 	end
 end
 
-function Addon:OnInspectTalentReadyEvent(unit)
+function Addon:OnInspectTalentReadyEvent(_unit) -- _unit unused; event always routes to OnInspectTalentReady()
 	if self.OnInspectTalentReady then
 		self:OnInspectTalentReady()
 	end

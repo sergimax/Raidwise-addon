@@ -103,6 +103,7 @@ local function SafeNotifyInspect(unit)
 	return ok
 end
 
+-- REFACTOR candidate: three fallback strategies (GetItemInfo, item ID cache, tooltip scan).
 local function ItemLevelFromLink(itemLink)
 	if not itemLink then
 		return nil
@@ -170,6 +171,7 @@ local function CanScanUnitItemLevels(unit)
 	return inspectPending == unit
 end
 
+-- REFACTOR candidate: inspect-gated scan across INSPECT_SLOTS when inspect allowed.
 local function AverageItemLevelForUnit(unit)
 	local guid = UnitGUID(unit)
 	if CanScanUnitItemLevels(unit) then
@@ -236,6 +238,7 @@ local function GearScoreForUnit(unit, refresh)
 	return nil
 end
 
+-- REFACTOR candidate: talent tab iteration with dual-spec API quirks.
 local function PrimarySpecFromInspectUnit(unit)
 	if not unit or not UnitExists(unit) then
 		return "", ""
@@ -384,6 +387,7 @@ local function MinimalPartyMember(unit)
 	return member
 end
 
+-- REFACTOR candidate: ~80% duplicated with CollectRaidMember; extract shared member snapshot builder.
 function Addon:CollectPartyMember(unit, refreshGearScore)
 	local name, realm = UnitName(unit)
 	local localizedClass, classToken = UnitClass(unit)
@@ -498,6 +502,7 @@ local function AppendRaidMember(groups, groupIndex, member)
 	slots[#slots + 1] = member
 end
 
+-- REFACTOR candidate: ~80% duplicated with CollectPartyMember; extract shared member snapshot builder.
 function Addon:CollectRaidMember(unit, refreshGearScore, raidIndex)
 	local name, realm = UnitName(unit)
 	local localizedClass, classToken = UnitClass(unit)

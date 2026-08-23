@@ -46,6 +46,7 @@ local function HistoryColumnOffset(index)
 	return offset
 end
 
+-- REFACTOR candidate: same column pattern as PageParty CreatePartyRow (no buff column).
 local function CreateHistoryRow(parent)
 	local row = CreateFrame("Button", nil, parent)
 	row:SetHeight(UI.CD_ROW_H)
@@ -241,6 +242,7 @@ local function CreateHistoryPage(parent)
 	return page
 end
 
+-- REFACTOR candidate: standard row-pool refresh pattern shared with PageParty.
 function Addon:RefreshHistoryView()
 	local frame = self.mainFrame
 	local page = frame and frame.pages and frame.pages.history

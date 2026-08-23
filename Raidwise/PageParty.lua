@@ -84,6 +84,7 @@ local function UpdateRosterStatsLabel(page, members)
 	page.statsLabel:SetText(FormatRosterAverages(averageGs, averageIlvl))
 end
 
+-- REFACTOR candidate: wide column factory + tooltips + profile click handler (~100 lines).
 local function CreatePartyRow(parent)
 	local row = CreateFrame("Button", nil, parent)
 	row:SetHeight(UI.CD_ROW_H)
@@ -286,6 +287,7 @@ local function CreatePartyPage(parent)
 	return page
 end
 
+-- REFACTOR candidate: standard row-pool refresh pattern shared with PageHistory.
 function Addon:RefreshPartyView(refreshGearScore)
 	local frame = self.mainFrame
 	local page = frame and frame.pages and frame.pages.party

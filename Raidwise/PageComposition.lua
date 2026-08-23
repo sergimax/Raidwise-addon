@@ -366,6 +366,7 @@ local function CreateCompositionPage(parent)
 	return page
 end
 
+-- REFACTOR candidate: masonry column packing + summary band + effect row pooling (~280 lines).
 function Addon:RefreshCompositionView(refreshGearScore)
 	local frame = self.mainFrame
 	local page = frame and frame.pages and frame.pages.composition

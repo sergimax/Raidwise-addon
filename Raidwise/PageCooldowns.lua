@@ -253,6 +253,7 @@ local function HideCurrencyChips(cell)
 	end
 end
 
+-- REFACTOR candidate: positions pooled currency icon chips with computed Y offsets.
 local function FillCurrencyChips(cell, entries, hasValue)
 	cell.chips = cell.chips or {}
 	local chipW = CurrencyChipWidth()
@@ -306,6 +307,7 @@ local function CreateCurrencyRowLabel(parent)
 	return label
 end
 
+-- REFACTOR candidate: pooled label lines aligned to currency entry indices.
 local function FillCurrencyRowLabels(row, summaries)
 	row.labelLines = row.labelLines or {}
 	summaries = summaries or {}
@@ -480,7 +482,7 @@ local function CreateCooldownsPage(parent)
 	page.layoutVersion = LAYOUT_VERSION
 	return page
 end
--- Rebuild the cooldowns table from account SavedVariables.
+-- REFACTOR candidate: full table relayout — headers, row pool, lockout vs currency cells, scrollbars (~160 lines).
 function Addon:RefreshCooldownTable()
 	local frame = self.mainFrame
 	local page = frame and frame.pages and frame.pages.cooldowns
