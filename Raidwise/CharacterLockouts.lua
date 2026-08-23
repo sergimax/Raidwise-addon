@@ -90,8 +90,19 @@ local function BuildCurrencyCell(currency)
 		local entry = source[index]
 		local displayCount = entry.displayCount or tostring(entry.count or 0)
 		local tooltipCount = entry.tooltipCount or displayCount
+		local entryId = entry.id
+		if entryId == nil and Addon.GetCurrencyEntryIdAt then
+			entryId = Addon:GetCurrencyEntryIdAt(index)
+		end
+		local icon = "Interface\\Icons\\INV_Misc_QuestionMark"
+		if Addon.ResolveCurrencyIcon then
+			icon = Addon:ResolveCurrencyIcon(entryId)
+		elseif type(entry.icon) == "string" and entry.icon ~= "" then
+			icon = entry.icon
+		end
 		entries[#entries + 1] = {
-			icon = entry.icon or "Interface\\Icons\\INV_Misc_QuestionMark",
+			id = entryId,
+			icon = icon,
 			displayCount = displayCount,
 			label = entry.label or "?",
 		}

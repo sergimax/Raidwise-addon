@@ -218,7 +218,11 @@ local function FillCurrencyChips(cell, entries, hasValue)
 			CD_CURRENCY_PAD,
 			-CurrencyEntryTop(index)
 		)
-		chip.icon:SetTexture(entry.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
+		local icon = entry.icon
+		if type(icon) ~= "string" or icon == "" then
+			icon = "Interface\\Icons\\INV_Misc_QuestionMark"
+		end
+		chip.icon:SetTexture(icon)
 		chip.count:SetText(entry.displayCount or "0")
 		if hasValue then
 			W.SetFontColor(chip.count, UI.GOLD)

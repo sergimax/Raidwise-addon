@@ -301,11 +301,14 @@ local CURRENCY_ENTRY_DEFS = {
 
 local function PvpCurrencyIcon(kind)
 	local faction = (UnitFactionGroup and UnitFactionGroup("player")) or "Alliance"
-	local suffix = (faction == "Horde") and "Horde" or "Alliance"
+	-- 3.3.5a PvP frame textures (PVPCurrency-* icon names are not reliable on all clients).
 	if kind == "honor" then
-		return "Interface\\Icons\\PVPCurrency-Honor-" .. suffix
+		if faction == "Horde" then
+			return "Interface\\PVPFrame\\PVP-Currency-Horde"
+		end
+		return "Interface\\PVPFrame\\PVP-Currency-Alliance"
 	end
-	return "Interface\\Icons\\PVPCurrency-Arena-" .. suffix
+	return "Interface\\PVPFrame\\PVP-ArenaPoints-Icon"
 end
 
 local function FormatMoneyShort(copper)
@@ -391,8 +394,32 @@ local function ResolveEntryIcon(def)
 	-- GetItemInfo: texture is the 10th return on 3.3.5a (3rd is quality).
 	if def.kind == "item" and def.itemId and type(GetItemInfo) == "function" then
 		local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(def.itemId)
-		if texture and texture ~= "" then
+		if type(texture) == "string" and texture ~= "" then
 			return texture
+		end
+	end
+	return "Interface\\Icons\\INV_Misc_QuestionMark"
+end
+
+local function EntryIdForDef(def)
+	if def.kind == "item" then
+		return def.itemId
+	end
+	return def.kind
+end
+
+-- Always prefer catalog icons so stale SavedVariables (wrong GetItemInfo returns) never show red squares.
+function Addon:ResolveCurrencyIcon(entryId)
+	if entryId == nil then
+		return "Interface\\Icons\\INV_Misc_QuestionMark"
+	end
+	if entryId == "honor" or entryId == "arena" then
+		return PvpCurrencyIcon(entryId)
+	end
+	for index = 1, #CURRENCY_ENTRY_DEFS do
+		local def = CURRENCY_ENTRY_DEFS[index]
+		if EntryIdForDef(def) == entryId or tostring(EntryIdForDef(def)) == tostring(entryId) then
+			return ResolveEntryIcon(def)
 		end
 	end
 	return "Interface\\Icons\\INV_Misc_QuestionMark"
@@ -418,6 +445,15 @@ function Addon:CollectCharacterCurrency()
 		}
 	end
 	return { entries = entries }
+end
+
+-- Catalog entry id at a 1-based index (same order as CollectCharacterCurrency).
+function Addon:GetCurrencyEntryIdAt(index)
+	local def = CURRENCY_ENTRY_DEFS[index]
+	if not def then
+		return nil
+	end
+	return EntryIdForDef(def)
 end
 
 -- Format a summed currency count for the cooldowns label column.
