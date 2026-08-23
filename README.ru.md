@@ -4,7 +4,7 @@
 
 Аддон для подготовки к рейду в **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): составы группы и рейда, анализ состава, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа в JSON.
 
-![](https://img.shields.io/badge/current_version-1.13.0-purple)
+![](https://img.shields.io/badge/current_version-1.14.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--24-blue)
 
 
