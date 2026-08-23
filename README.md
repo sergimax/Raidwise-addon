@@ -55,6 +55,7 @@ Esc or the title **X** closes the window.
 - Table of the current 5-player party (you alone when not grouped)
 - Line above the table: average item level and average GearScore
 - Columns: name, class icon, spec icon, raid-buff icons, GearScore, average item level, personal opinion, tags, guild with rank
+- Click a row to open **Character profile**
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
 
 **Raid roster** tab:
@@ -107,9 +108,10 @@ Esc or the title **X** closes the window.
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Reputation model: [`docs/Reputation.md`](docs/Reputation.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
-Consumers can type the export JSON with `types/CharacterExport.ts` and `types/CooldownsExport.ts`.
+Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet).
 
-## Screenshots:
+## Screenshots
+
 Main addon view (`/raidwise`):
 
 ![Main addon view](./screenshots/main-view.png)
@@ -145,10 +147,11 @@ docs/
   Architecture.md     # TOC order, layers, SavedVariables, refresh API
   UI-Views.md         # ASCII layouts for each view + layout version table
   UI-Sizes.md         # window / control pixel sizes
+  Reputation.md       # personal rating / events / memo model
   Raid-Composition.md # classes/specs tracked by the Raid composition tab
 types/
-  CharacterExport.ts  # TypeScript types for the character export JSON
-  CooldownsExport.ts  # TypeScript types for the account cooldown export JSON
+  CharacterExport.ts  # TypeScript types for the Export tab JSON
+  CooldownsExport.ts  # TypeScript types for account-wide cooldown JSON shape
 ```
 
 ## Notes
