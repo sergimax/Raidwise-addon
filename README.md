@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.12.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--23-blue)
+![](https://img.shields.io/badge/current_version-1.13.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--24-blue)
 
 
 ## Install
@@ -97,6 +97,8 @@ Esc or the title **X** closes the window.
 
 - Interface language: **English** or **Русский**
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
+- Unit tooltip toggles: hide personal opinion / personal tags / community rating / community tags (`RaidwiseDB.tooltip`)
+- Preview of compact (live) and stacked tooltip layouts
 
 **Info** tab:
 
@@ -127,6 +129,7 @@ Raidwise/
   RaidRoles.lua       # raid role and spec/race buff lookups
   RaidComposition.lua # party/raid buff, debuff, and utility coverage
   PlayerHistory.lua   # saved party/raid encounter list + personal ratings
+  UnitTooltips.lua    # personal/community lines on player unit tooltips
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
   PageCooldowns.lua   # Character cooldowns tab
@@ -151,6 +154,6 @@ types/
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts and currency snapshots for the cooldowns table live in `RaidwiseDB.characters` (`.lockouts`, `.currency`). Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal` with opinion/tags/facts), events (`.events`), notes (`.notes`), change log (`.changes`), and party/raid meet count (`.meetCount`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`).
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts and currency snapshots for the cooldowns table live in `RaidwiseDB.characters` (`.lockouts`, `.currency`). Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal` with opinion/tags/facts), events (`.events`), notes (`.notes`), change log (`.changes`), and party/raid meet count (`.meetCount`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`). Unit tooltip visibility flags live in `RaidwiseDB.tooltip`.
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.

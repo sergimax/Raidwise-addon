@@ -6,7 +6,14 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 2
+
+local CHECK_KEYS = {
+	{ key = "hidePersonal", labelKey = "SETTINGS_TIP_HIDE_PERSONAL" },
+	{ key = "hidePersonalTags", labelKey = "SETTINGS_TIP_HIDE_PERSONAL_TAGS" },
+	{ key = "hideCommunity", labelKey = "SETTINGS_TIP_HIDE_COMMUNITY" },
+	{ key = "hideCommunityTags", labelKey = "SETTINGS_TIP_HIDE_COMMUNITY_TAGS" },
+}
 
 local function UpdateLocaleButtons(page)
 	if not page or not page.enBtn or not page.ruBtn then
@@ -15,6 +22,73 @@ local function UpdateLocaleButtons(page)
 	local locale = Addon:GetLocaleId()
 	W.SetMenuButtonState(page.enBtn, locale == "enUS", false)
 	W.SetMenuButtonState(page.ruBtn, locale == "ruRU", false)
+end
+
+local function CreateSettingsCheck(page, nameSuffix, labelKey, dbKey, anchor)
+	local check = CreateFrame(
+		"CheckButton",
+		"RaidwiseSettingsCheck" .. nameSuffix .. "V" .. tostring(LAYOUT_VERSION),
+		page,
+		"UICheckButtonTemplate"
+	)
+	check:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
+	check:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -6)
+	local tip = Addon:GetTooltipSettings()
+	check:SetChecked(tip[dbKey] and true or false)
+
+	local templateCheckText = _G[check:GetName() .. "Text"]
+	if templateCheckText then
+		templateCheckText:SetText("")
+		templateCheckText:Hide()
+	end
+
+	local label = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	label:SetPoint("LEFT", check, "RIGHT", 4, 0)
+	label:SetText(W.T(labelKey))
+
+	local hit = CreateFrame("Button", nil, page)
+	hit:SetPoint("LEFT", check, "RIGHT", 0, 0)
+	hit:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	hit:SetHeight(UI.OPTIONS_H)
+	hit:SetScript("OnClick", function()
+		check:Click()
+	end)
+
+	check:SetScript("OnClick", function(btn)
+		local settings = Addon:GetTooltipSettings()
+		settings[dbKey] = btn:GetChecked() and true or false
+		if page.RefreshTooltipPreviews then
+			page:RefreshTooltipPreviews()
+		end
+	end)
+
+	return check, label
+end
+
+local function FormatPreviewText(layout)
+	if not Addon.BuildUnitTooltipRatingLines or not Addon.GetTooltipPreviewSample then
+		return ""
+	end
+	local sample = Addon:GetTooltipPreviewSample()
+	local lines = Addon:BuildUnitTooltipRatingLines(
+		sample.personal,
+		sample.community,
+		Addon:GetTooltipSettings(),
+		layout
+	)
+	if #lines == 0 then
+		return W.T("SETTINGS_TIP_PREVIEW_EMPTY")
+	end
+	return table.concat(lines, "\n")
+end
+
+local function RefreshTooltipPreviews(page)
+	if page.previewCompact then
+		page.previewCompact:SetText(FormatPreviewText("compact"))
+	end
+	if page.previewStacked then
+		page.previewStacked:SetText(FormatPreviewText("stacked"))
+	end
 end
 
 local function CreateSettingsPage(parent)
@@ -62,9 +136,110 @@ local function CreateSettingsPage(parent)
 	end)
 	page.ruBtn = ruBtn
 
+	local tipHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	tipHeading:SetPoint("TOPLEFT", enBtn, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
+	tipHeading:SetText(W.T("SETTINGS_TOOLTIP"))
+	W.SetFontColor(tipHeading, UI.GOLD)
+	page.tipHeading = tipHeading
+
+	local tipHint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	tipHint:SetPoint("TOPLEFT", tipHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	tipHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	tipHint:SetJustifyH("LEFT")
+	tipHint:SetText(W.T("SETTINGS_TOOLTIP_HINT"))
+	page.tipHint = tipHint
+
+	page.tipChecks = {}
+	page.tipLabels = {}
+	local checkAnchor = tipHint
+	for index = 1, #CHECK_KEYS do
+		local def = CHECK_KEYS[index]
+		local check, label = CreateSettingsCheck(page, tostring(index), def.labelKey, def.key, checkAnchor)
+		page.tipChecks[index] = check
+		page.tipLabels[index] = label
+		checkAnchor = check
+	end
+
+	local previewHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	previewHeading:SetPoint("TOPLEFT", checkAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
+	previewHeading:SetText(W.T("SETTINGS_TIP_PREVIEW"))
+	W.SetFontColor(previewHeading, UI.GOLD)
+	page.previewHeading = previewHeading
+
+	local compactLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	compactLabel:SetPoint("TOPLEFT", previewHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	compactLabel:SetText(W.T("SETTINGS_TIP_LAYOUT_COMPACT"))
+	W.SetFontColor(compactLabel, UI.TEXT_IDLE)
+	page.compactLabel = compactLabel
+
+	local previewCompact = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	previewCompact:SetPoint("TOPLEFT", compactLabel, "BOTTOMLEFT", 0, -4)
+	previewCompact:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	previewCompact:SetJustifyH("LEFT")
+	previewCompact:SetJustifyV("TOP")
+	previewCompact:SetNonSpaceWrap(true)
+	page.previewCompact = previewCompact
+
+	local stackedLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	stackedLabel:SetPoint("TOPLEFT", previewCompact, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	stackedLabel:SetText(W.T("SETTINGS_TIP_LAYOUT_STACKED"))
+	W.SetFontColor(stackedLabel, UI.TEXT_IDLE)
+	page.stackedLabel = stackedLabel
+
+	local previewStacked = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	previewStacked:SetPoint("TOPLEFT", stackedLabel, "BOTTOMLEFT", 0, -4)
+	previewStacked:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	previewStacked:SetJustifyH("LEFT")
+	previewStacked:SetJustifyV("TOP")
+	previewStacked:SetNonSpaceWrap(true)
+	page.previewStacked = previewStacked
+
+	page.RefreshTooltipPreviews = RefreshTooltipPreviews
 	UpdateLocaleButtons(page)
+	RefreshTooltipPreviews(page)
 	page.layoutVersion = LAYOUT_VERSION
 	return page
+end
+
+local function ApplySettingsLocale(page)
+	if not page then
+		return
+	end
+	if page.heading then
+		page.heading:SetText(W.T("SETTINGS_LANGUAGE"))
+	end
+	if page.hint then
+		page.hint:SetText(W.T("SETTINGS_LANGUAGE_HINT"))
+	end
+	if page.enBtn then
+		page.enBtn.label:SetText(W.T("LOCALE_EN"))
+	end
+	if page.ruBtn then
+		page.ruBtn.label:SetText(W.T("LOCALE_RU"))
+	end
+	if page.tipHeading then
+		page.tipHeading:SetText(W.T("SETTINGS_TOOLTIP"))
+	end
+	if page.tipHint then
+		page.tipHint:SetText(W.T("SETTINGS_TOOLTIP_HINT"))
+	end
+	for index = 1, #CHECK_KEYS do
+		local label = page.tipLabels and page.tipLabels[index]
+		if label then
+			label:SetText(W.T(CHECK_KEYS[index].labelKey))
+		end
+	end
+	if page.previewHeading then
+		page.previewHeading:SetText(W.T("SETTINGS_TIP_PREVIEW"))
+	end
+	if page.compactLabel then
+		page.compactLabel:SetText(W.T("SETTINGS_TIP_LAYOUT_COMPACT"))
+	end
+	if page.stackedLabel then
+		page.stackedLabel:SetText(W.T("SETTINGS_TIP_LAYOUT_STACKED"))
+	end
+	UpdateLocaleButtons(page)
+	RefreshTooltipPreviews(page)
 end
 
 Addon.Pages.Settings = {
@@ -72,4 +247,5 @@ Addon.Pages.Settings = {
 	LAYOUT_VERSION = LAYOUT_VERSION,
 	Create = CreateSettingsPage,
 	UpdateLocaleButtons = UpdateLocaleButtons,
+	ApplyLocale = ApplySettingsLocale,
 }

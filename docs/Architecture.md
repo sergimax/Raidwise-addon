@@ -16,12 +16,13 @@ RaidRoles.lua         role classification, raid buff icons, role GS averages
 RaidComposition.lua   composition effect catalog + AnalyzeRaidComposition
 PlayerHistory.lua     history store + personal rating domain API
 UIWidgets.lua         shared UI helpers (panels, buttons, icons, layout badge)
+UnitTooltips.lua      GameTooltip unit lines for personal/community ratings
 CharacterProfile.lua  character profile popup
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
 ExporterWindow.lua    main shell (menu, title, status, tab wiring)
 ```
 
-Order is the dependency graph: bootstrap → locale → domain → shared widgets → profile → pages → shell.
+Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → pages → shell.
 
 ## Layers
 
@@ -42,6 +43,7 @@ TOC: `RaidwiseDB`, `MrcExporterDB` (legacy migrate-only).
 | `enabled` | `Raidwise.lua` | Addon on/off (status) |
 | `includeGearNames` | Export page / `CharacterExport` | JSON export option |
 | `locale` | `Locale.lua` | `enUS` / `ruRU` |
+| `tooltip` | `UnitTooltips.lua` / Settings | Hide flags for unit tooltip rating lines |
 | `characters` | `CharacterLockouts.lua` | Per-character lockout columns |
 | `history` | `PlayerHistory.lua` | GUID-keyed meetings, opinion/tags/facts, events, notes |
 

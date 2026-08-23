@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.12.0"
+Addon.version = "1.13.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -34,6 +34,12 @@ local defaults = {
 	includeGearNames = true,
 	characters = {},
 	history = {},
+	tooltip = {
+		hidePersonal = false,
+		hidePersonalTags = false,
+		hideCommunity = false,
+		hideCommunityTags = false,
+	},
 }
 
 -- Recursively copy a value (tables become independent copies).

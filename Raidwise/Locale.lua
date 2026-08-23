@@ -51,7 +51,8 @@ local Translations = {
 			.. "That list is saved on this account and stays after logout. "
 			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
 			.. "Community opinion is currently a mock preview for future exchange/web features.",
-		INFO_SECTION_SETTINGS = "Changes the interface language (English or Russian). The choice is saved on this account.",
+		INFO_SECTION_SETTINGS = "Changes the interface language (English or Russian). "
+			.. "Tooltip options control which personal and community rating lines appear on player unit tooltips.",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
 		INFO_REPO_SELECTED = "Selected — press Ctrl+C to copy.",
@@ -375,6 +376,17 @@ local Translations = {
 
 		SETTINGS_LANGUAGE = "Language",
 		SETTINGS_LANGUAGE_HINT = "Interface language. Saved on this account.",
+		SETTINGS_TOOLTIP = "Unit tooltips",
+		SETTINGS_TOOLTIP_HINT = "Add personal and community rating lines to player tooltips (mouseover / target). Community data is a mock preview until exchange is available.",
+		SETTINGS_TIP_HIDE_PERSONAL = "Hide personal opinion",
+		SETTINGS_TIP_HIDE_PERSONAL_TAGS = "Hide personal tags",
+		SETTINGS_TIP_HIDE_COMMUNITY = "Hide community rating",
+		SETTINGS_TIP_HIDE_COMMUNITY_TAGS = "Hide community tags",
+		SETTINGS_TIP_PREVIEW = "Preview",
+		SETTINGS_TIP_LAYOUT_COMPACT = "Compact (live tooltip)",
+		SETTINGS_TIP_LAYOUT_STACKED = "Stacked (variant)",
+		SETTINGS_TIP_PREVIEW_EMPTY = "(nothing shown with current options)",
+		TOOLTIP_COMMUNITY_POSITIVE = "%d %% positive:",
 		LOCALE_EN = "English",
 		LOCALE_RU = "Русский",
 
@@ -442,7 +454,8 @@ local Translations = {
 			.. "Список сохраняется на аккаунте и остаётся после выхода. "
 			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
 			.. "Мнение сообщества пока показано как мок для будущего обмена и веб-приложения.",
-		INFO_SECTION_SETTINGS = "Смена языка интерфейса (English или Русский). Выбор сохраняется на аккаунте.",
+		INFO_SECTION_SETTINGS = "Смена языка интерфейса (English или Русский). "
+			.. "Параметры подсказки управляют строками личного и общественного рейтинга на подсказках игроков.",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
 		INFO_REPO_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",
@@ -766,6 +779,17 @@ local Translations = {
 
 		SETTINGS_LANGUAGE = "Язык",
 		SETTINGS_LANGUAGE_HINT = "Язык интерфейса. Сохраняется на этом аккаунте.",
+		SETTINGS_TOOLTIP = "Подсказки игроков",
+		SETTINGS_TOOLTIP_HINT = "Добавлять личный и общественный рейтинг в подсказки при наведении / цели. Общественные данные пока макет до обмена.",
+		SETTINGS_TIP_HIDE_PERSONAL = "Скрыть личное мнение",
+		SETTINGS_TIP_HIDE_PERSONAL_TAGS = "Скрыть личные теги",
+		SETTINGS_TIP_HIDE_COMMUNITY = "Скрыть общественный рейтинг",
+		SETTINGS_TIP_HIDE_COMMUNITY_TAGS = "Скрыть общественные теги",
+		SETTINGS_TIP_PREVIEW = "Превью",
+		SETTINGS_TIP_LAYOUT_COMPACT = "Компактный (живая подсказка)",
+		SETTINGS_TIP_LAYOUT_STACKED = "Столбиком (вариант)",
+		SETTINGS_TIP_PREVIEW_EMPTY = "(при текущих настройках ничего не показывается)",
+		TOOLTIP_COMMUNITY_POSITIVE = "%d %% положительных:",
 		LOCALE_EN = "English",
 		LOCALE_RU = "Русский",
 

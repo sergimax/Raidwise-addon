@@ -380,6 +380,194 @@ function Addon:GetPersonalRating(entryOrMember)
 	return self:RatingDefaultPersonal()
 end
 
+-- True when the player has a saved personal note (not the empty default).
+function Addon:HasPersonalRatingData(personal)
+	if type(personal) ~= "table" then
+		return false
+	end
+	if (tonumber(personal.updatedAt) or 0) > 0 then
+		return true
+	end
+	if (tonumber(personal.createdAt) or 0) > 0 then
+		return true
+	end
+	if personal.opinion and personal.opinion ~= "neutral" then
+		return true
+	end
+	if type(personal.tags) == "table" and #personal.tags > 0 then
+		return true
+	end
+	return false
+end
+
+-- Community note snapshot (future exchange/web). Mock preview when history exists.
+local COMMUNITY_MOCK_TAGS = { "fair_loot", "good_raid_leader", "good_player" }
+local COMMUNITY_MOCK_PERCENT = 91
+
+function Addon:NormalizeCommunityRating(community)
+	if type(community) ~= "table" then
+		return nil
+	end
+	local percent = tonumber(community.positivePercent)
+	local tags = self:NormalizePersonalTags(community.tags)
+	if not percent and #tags == 0 then
+		return nil
+	end
+	return {
+		positivePercent = percent or 0,
+		tags = tags,
+		isMock = community.isMock and true or false,
+	}
+end
+
+function Addon:GetCommunityRating(entryOrMember)
+	local entry = nil
+	local guid = nil
+	if type(entryOrMember) == "table" then
+		guid = entryOrMember.guid
+		if type(guid) == "string" and guid ~= "" and self.GetHistoryEntry then
+			local saved = self:GetHistoryEntry(guid)
+			if type(saved) == "table" then
+				entry = saved
+			end
+		end
+		-- Resolved history row passed in (e.g. name lookup) — use it directly.
+		if not entry and (entryOrMember.name or entryOrMember.meetCount or type(entryOrMember.rating) == "table") then
+			entry = entryOrMember
+		end
+	elseif type(entryOrMember) == "string" and entryOrMember ~= "" and self.GetHistoryEntry then
+		guid = entryOrMember
+		entry = self:GetHistoryEntry(guid)
+	end
+	if type(entry) ~= "table" then
+		return nil
+	end
+	if type(entry.rating) == "table" then
+		local normalized = self:NormalizeCommunityRating(entry.rating.community)
+		if normalized then
+			return normalized
+		end
+	end
+	-- Mock preview for players already in History (Character profile does the same).
+	local inHistory = false
+	if guid and self.GetHistoryEntry and self:GetHistoryEntry(guid) then
+		inHistory = true
+	elseif entry.meetCount or entry.metAt or entry.name then
+		inHistory = true
+	end
+	if not inHistory then
+		return nil
+	end
+	return {
+		positivePercent = COMMUNITY_MOCK_PERCENT,
+		tags = {
+			COMMUNITY_MOCK_TAGS[1],
+			COMMUNITY_MOCK_TAGS[2],
+			COMMUNITY_MOCK_TAGS[3],
+		},
+		isMock = true,
+	}
+end
+
+function Addon:GetTooltipSettings()
+	if not self.db then
+		return {
+			hidePersonal = false,
+			hidePersonalTags = false,
+			hideCommunity = false,
+			hideCommunityTags = false,
+		}
+	end
+	if type(self.db.tooltip) ~= "table" then
+		self.db.tooltip = {
+			hidePersonal = false,
+			hidePersonalTags = false,
+			hideCommunity = false,
+			hideCommunityTags = false,
+		}
+	end
+	local tip = self.db.tooltip
+	if tip.hidePersonal == nil then
+		tip.hidePersonal = false
+	end
+	if tip.hidePersonalTags == nil then
+		tip.hidePersonalTags = false
+	end
+	if tip.hideCommunity == nil then
+		tip.hideCommunity = false
+	end
+	if tip.hideCommunityTags == nil then
+		tip.hideCommunityTags = false
+	end
+	return tip
+end
+
+-- Sample rows for Settings preview panels (not tied to a real player).
+function Addon:GetTooltipPreviewSample()
+	return {
+		personal = {
+			opinion = "positive",
+			tags = { "good_raid_leader", "fair_loot", "good_player" },
+			updatedAt = 1,
+		},
+		community = {
+			positivePercent = 91,
+			tags = { "fair_loot", "good_raid_leader", "good_player" },
+			isMock = true,
+		},
+	}
+end
+
+-- Build tooltip lines for personal + community ratings.
+-- layout: "compact" (default) or "stacked"
+function Addon:BuildUnitTooltipRatingLines(personal, community, options, layout)
+	options = options or self:GetTooltipSettings()
+	layout = layout or "compact"
+	local lines = {}
+
+	if not options.hidePersonal and self:HasPersonalRatingData(personal) then
+		local opinionText = self:RatingWrapColor(
+			self:RatingOpinionLabel(personal.opinion),
+			self:RatingOpinionColor(personal.opinion)
+		)
+		local tagSummary = ""
+		if not options.hidePersonalTags then
+			tagSummary = self:RatingTagColoredSummary(personal.tags, 3)
+		end
+		if layout == "stacked" then
+			lines[#lines + 1] = opinionText
+			if tagSummary ~= "" then
+				lines[#lines + 1] = tagSummary
+			end
+		elseif tagSummary ~= "" then
+			lines[#lines + 1] = opinionText .. ": " .. tagSummary
+		else
+			lines[#lines + 1] = opinionText
+		end
+	end
+
+	if not options.hideCommunity and type(community) == "table" then
+		local percent = tonumber(community.positivePercent)
+		if percent then
+			lines[#lines + 1] = self:T("TOOLTIP_COMMUNITY_POSITIVE", percent)
+		end
+		if not options.hideCommunityTags then
+			local tagSummary = self:RatingTagColoredSummary(community.tags, 3)
+			if tagSummary ~= "" then
+				lines[#lines + 1] = tagSummary
+			end
+		end
+	end
+
+	return lines
+end
+
+function Addon:BuildUnitTooltipRatingLinesForMember(entryOrMember, options, layout)
+	local personal = self:GetPersonalRating(entryOrMember)
+	local community = self:GetCommunityRating(entryOrMember)
+	return self:BuildUnitTooltipRatingLines(personal, community, options, layout)
+end
+
 function Addon:GetHistoryEvents(entryOrMember)
 	if type(entryOrMember) ~= "table" then
 		return {}

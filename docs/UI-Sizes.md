@@ -196,6 +196,8 @@ Rows are clickable and open Character profile. Notes are stored on the history r
 
 Language heading, hint, then two **120 × 28** locale buttons (**English**, **Русский**) with an 8 px gap. Selected button uses the same gold fill as the left menu.
 
+Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels, then **Preview** with compact + stacked sample blocks (`LAYOUT_VERSION = 2`).
+
 ## Fonts
 
 | Role | Font object | Color |
