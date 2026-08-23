@@ -288,15 +288,15 @@ local GOLD_ICON = "Interface\\Icons\\INV_Misc_Coin_01"
 
 -- Hardcoded icons so badges show even when item cache is cold.
 local CURRENCY_ENTRY_DEFS = {
-	{ kind = "gold", icon = GOLD_ICON },
-	{ kind = "item", itemId = 49426, icon = "Interface\\Icons\\INV_Misc_FrostEmblem_01" },
-	{ kind = "item", itemId = 47241, icon = "Interface\\Icons\\INV_Misc_Trophy_Argent" },
-	{ kind = "honor" },
-	{ kind = "arena" },
-	{ kind = "item", itemId = 40753, icon = "Interface\\Icons\\Spell_Holy_ProclaimChampion_02" },
-	{ kind = "item", itemId = 40752, icon = "Interface\\Icons\\Spell_Holy_ProclaimChampion" },
-	{ kind = "item", itemId = 45624, icon = "Interface\\Icons\\INV_Misc_Coin_17" },
-	{ kind = "item", itemId = 44990, icon = "Interface\\Icons\\Ability_Paladin_ArtofWar" },
+	{ kind = "gold", icon = GOLD_ICON, labelKey = "CD_CURRENCY_GOLD" },
+	{ kind = "item", itemId = 49426, icon = "Interface\\Icons\\INV_Misc_FrostEmblem_01", labelKey = "CD_CURRENCY_FROST" },
+	{ kind = "item", itemId = 47241, icon = "Interface\\Icons\\INV_Misc_Trophy_Argent", labelKey = "CD_CURRENCY_TRIUMPH" },
+	{ kind = "honor", labelKey = "CD_CURRENCY_HONOR" },
+	{ kind = "arena", labelKey = "CD_CURRENCY_ARENA" },
+	{ kind = "item", itemId = 40753, icon = "Interface\\Icons\\Spell_Holy_ProclaimChampion_02", labelKey = "CD_CURRENCY_HEROISM" },
+	{ kind = "item", itemId = 40752, icon = "Interface\\Icons\\Spell_Holy_ProclaimChampion", labelKey = "CD_CURRENCY_VALOR" },
+	{ kind = "item", itemId = 45624, icon = "Interface\\Icons\\INV_Misc_Coin_17", labelKey = "CD_CURRENCY_CONQUEST" },
+	{ kind = "item", itemId = 44990, icon = "Interface\\Icons\\Ability_Paladin_ArtofWar", labelKey = "CD_CURRENCY_CHAMPION" },
 }
 
 local function PvpCurrencyIcon(kind)
@@ -340,6 +340,9 @@ local function FormatBadgeCount(count)
 end
 
 local function ResolveEntryLabel(def, itemName)
+	if def.labelKey then
+		return Addon:T(def.labelKey)
+	end
 	if def.kind == "gold" then
 		return Addon:T("CD_CURRENCY_GOLD")
 	end
@@ -415,6 +418,20 @@ function Addon:CollectCharacterCurrency()
 		}
 	end
 	return { entries = entries }
+end
+
+-- Short labels for the currency row in the cooldowns table (same order as entries).
+function Addon:GetCurrencyEntryLabels()
+	local labels = {}
+	for index = 1, #CURRENCY_ENTRY_DEFS do
+		local def = CURRENCY_ENTRY_DEFS[index]
+		local itemName
+		if def.kind == "item" and def.itemId and type(GetItemInfo) == "function" then
+			itemName = GetItemInfo(def.itemId)
+		end
+		labels[index] = ResolveEntryLabel(def, itemName)
+	end
+	return labels
 end
 
 -- Current character name, english class token, and primary talent tree name.

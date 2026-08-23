@@ -109,11 +109,16 @@ local function BuildCurrencyCell(currency)
 end
 
 local function AppendCurrencyRow(rows, characters, charList)
+	local entryLabels = {}
+	if Addon.GetCurrencyEntryLabels then
+		entryLabels = Addon:GetCurrencyEntryLabels() or {}
+	end
 	local row = {
 		kind = "currency",
 		key = "currency",
 		name = Addon:T("CD_CURRENCY"),
 		typeLabel = "",
+		entryLabels = entryLabels,
 		cells = {},
 	}
 	for charIndex = 1, #charList do

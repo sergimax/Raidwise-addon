@@ -46,7 +46,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 3` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 26` | `CharacterProfile.lua` | Title bar (left of close) |
-| Cooldowns | `LAYOUT_VERSION = 5` | `PageCooldowns.lua` | Shell title bar (next to page name) |
+| Cooldowns | `LAYOUT_VERSION = 6` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
@@ -87,7 +87,9 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
                  | last check                     |            |
 [ Icecrown Citadel                               | 2d 4h | -   ]
 [ Raid / 25 Heroic                               |       |     ]
-[ Currency          | [icon]-1234g [icon]-45 [icon]-12 ... ]
+[ Currency          | (title line — empty in char cols)        ]
+[ Gold              | [icon] 645g  | ...                      ]
+[ Frost             | [icon] 2     | ...                      ]
 ```
 
 | Block | In-game text / control |
@@ -97,7 +99,7 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 | first column | Instance name, then type (`Raid` / `Dungeon` / size / Heroic); **Currency** row at bottom |
 | character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first |
 | saved cell | Remaining time until reset (gold); tooltip has instance + type |
-| currency cell | Single-column list of icon + quantity chips (gold, emblems, honor/arena, tokens); tooltip lists each by name |
+| currency cell | Title line + label column (Gold, Frost, …); character columns skip one line, then icon+count chips aligned to labels |
 | empty cell | `-` (not saved) |
 | empty table | “Log in on each character…” if none saved; “No current lockouts.” if columns exist but no lockouts (**Currency** row still shows) |
 
