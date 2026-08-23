@@ -61,7 +61,7 @@ History personal reputation shape (see [Reputation.md](Reputation.md)):
 
 | Kind | Where | Shown | Purpose |
 |------|-------|-------|---------|
-| **Addon semver** | `Addon.version` + TOC `## Version` | Status bar (`v1.7.0`) | Release / changelog |
+| **Addon semver** | `Addon.version` + TOC `## Version` | Status bar (e.g. `v1.13.0`) | Release / changelog |
 | **Layout version** | `*_LAYOUT_VERSION` per view | Shell title bar next to page name (`vN`); profile title bar; shell constant is rebuild-only | Force UI rebuild when structure changes |
 
 Bump layout versions when sizes, named frames, or control layout change. Do **not** bump for pure locale string edits. Keep docs in sync (`UI-Views.md`, `UI-Sizes.md`).
@@ -72,7 +72,8 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 
 | Method | Defined in | Used by |
 |--------|------------|---------|
-| `CreateMainFrame` / `ShowMainFrame` / `HideMainFrame` | Shell | Bootstrap, slash |
+| `CreateMainFrame` / `ShowMainFrame` / `HideMainFrame` / `ToggleMainFrame` | Shell | Bootstrap, slash |
+| `SelectTab` | Shell | Menu buttons, `RefreshLocalizedUI` |
 | `RefreshLocalizedUI` | Shell | `SetLocale` |
 | `RefreshCooldownTable` | Cooldowns page | Lockout events |
 | `FlushExportToWindow` | Export page | Lockout export path |
@@ -81,7 +82,37 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `RefreshCompositionView` | Composition page | Roster, guild |
 | `RefreshHistoryView` | History page | History record, profile |
 | `ShowRaidCharacterWindow` | Profile | Party / raid / history clicks |
+| `SelectProfileTab` | Profile | Tab bar, open defaults |
+| `CommitProfileRating` | Profile | **Save and Update** button |
+| `RefreshRatingViews` | Profile | After rating save / profile close |
 | `RefreshPartyData` | `PartyRoster.lua` | Fan-out refresh (below) |
+
+## Unit tooltips
+
+`UnitTooltips.lua` registers on `GameTooltip` (`OnTooltipSetUnit`, cleared/hide handlers, Shift refresh). No separate refresh method — lines rebuild on the next tooltip show.
+
+| Method | Defined in | Role |
+|--------|------------|------|
+| `GetTooltipSettings` | `PlayerHistory.lua` | Read `RaidwiseDB.tooltip` hide flags |
+| `BuildUnitTooltipRatingLinesForMember` | `PlayerHistory.lua` | Personal + community lines for a history entry |
+| `GetTooltipPreviewSample` | `PlayerHistory.lua` | Settings preview sample data |
+
+Settings keys: `hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags` (all default `false`).
+
+## Domain API (selected)
+
+Cross-module entry points on `Raidwise` (domain files do not create frames):
+
+| Method | Defined in | Role |
+|--------|------------|------|
+| `BuildPartyRoster` / `BuildRaidGroups` / `BuildHistoryRoster` | `PartyRoster.lua` / `PlayerHistory.lua` | Roster rows for pages |
+| `RefreshPartyData` | `PartyRoster.lua` | Rebuild rosters + fan-out page refresh |
+| `AnalyzeRaidComposition` | `RaidComposition.lua` | Composition checklist for current group |
+| `BuildCooldownTable` | `CharacterLockouts.lua` | Cooldowns tab rows |
+| `HistoryProfileForMember` / `MergeRatingIntoMember` | `PlayerHistory.lua` | Profile + table opinion/tags |
+| `SavePersonalRatingForGuid` / `SaveHistoryEventsForGuid` / `SaveProfileNotesForGuid` | `PlayerHistory.lua` | Persist profile edits |
+| `RecordCurrentGroupHistory` | `PlayerHistory.lua` | History **Refresh** + group events |
+| `FormatEquippedGearExport` | `CharacterExport.lua` | Export tab JSON |
 
 ## Refresh fan-out
 
