@@ -35,11 +35,28 @@ local function IsActiveLockout(entry, now)
 	return (tonumber(entry.reset) or 0) > 0
 end
 
-local function LockoutRowKey(entry)
+local function InstanceRowKey(entry)
 	local kind = entry.isRaid and "R" or "D"
+	return (entry.name or "") .. "|" .. kind
+end
+
+local function InstanceKindLabel(entry)
+	local kind = Addon:T(entry.isRaid and "LOCKOUT_RAID" or "LOCKOUT_DUNGEON")
+	return "(" .. kind .. ")"
+end
+
+local function FormatVariantTag(entry)
 	local size = tonumber(entry.maxPlayers) or 0
-	local heroic = IsHeroicLockout(entry) and "H" or "N"
-	return (entry.name or "") .. "|" .. kind .. "|" .. tostring(size) .. "|" .. heroic
+	if size > 0 then
+		if IsHeroicLockout(entry) then
+			return tostring(size) .. "h"
+		end
+		return tostring(size)
+	end
+	if IsHeroicLockout(entry) then
+		return "h"
+	end
+	return "n"
 end
 
 local function TypeLabel(entry)
@@ -58,6 +75,74 @@ local function TypeLabel(entry)
 		end
 	end
 	return kind .. " / " .. sizeText
+end
+
+local function FormatRemaining(resetAt, now)
+	local remaining = (tonumber(resetAt) or 0) - now
+	if remaining <= 0 then
+		return nil
+	end
+	local days = math.floor(remaining / 86400)
+	remaining = remaining - days * 86400
+	local hours = math.floor(remaining / 3600)
+	remaining = remaining - hours * 3600
+	local minutes = math.floor(remaining / 60)
+	if days > 0 then
+		return Addon:T("TIME_DAYS_HOURS", days, hours)
+	end
+	if hours > 0 then
+		return Addon:T("TIME_HOURS_MINUTES", hours, minutes)
+	end
+	if minutes > 0 then
+		return Addon:T("TIME_MINUTES", minutes)
+	end
+	return Addon:T("TIME_LESS_MINUTE")
+end
+
+local function VariantTooltipLine(entry, now)
+	local remainingText = FormatRemaining(entry.resetAt, now)
+	local label = TypeLabel(entry)
+	if remainingText then
+		return label .. ": " .. remainingText
+	end
+	return label
+end
+
+local function CompareVariants(a, b)
+	if a.maxPlayers ~= b.maxPlayers then
+		return a.maxPlayers < b.maxPlayers
+	end
+	if a.heroic ~= b.heroic then
+		return not a.heroic
+	end
+	return false
+end
+
+local function FinalizeLockoutCell(cellData)
+	if not cellData or type(cellData.variants) ~= "table" or #cellData.variants == 0 then
+		return nil
+	end
+	table.sort(cellData.variants, CompareVariants)
+	local tags = {}
+	local variants = {}
+	local tooltipEntries = {}
+	for index = 1, #cellData.variants do
+		local variant = cellData.variants[index]
+		tags[#tags + 1] = variant.tag
+		variants[#variants + 1] = {
+			tag = variant.tag,
+			heroic = variant.heroic and true or false,
+		}
+		tooltipEntries[#tooltipEntries + 1] = {
+			text = variant.tooltipLine,
+			heroic = variant.heroic and true or false,
+		}
+	end
+	return {
+		displayText = table.concat(tags, " "),
+		variants = variants,
+		tooltipEntries = tooltipEntries,
+	}
 end
 
 local function FilterActiveLockouts(lockouts, now)
@@ -181,28 +266,6 @@ local function AppendCurrencyRow(rows, characters, charList)
 	rows[#rows + 1] = row
 end
 
-local function FormatRemaining(resetAt, now)
-	local remaining = (tonumber(resetAt) or 0) - now
-	if remaining <= 0 then
-		return nil
-	end
-	local days = math.floor(remaining / 86400)
-	remaining = remaining - days * 86400
-	local hours = math.floor(remaining / 3600)
-	remaining = remaining - hours * 3600
-	local minutes = math.floor(remaining / 60)
-	if days > 0 then
-		return Addon:T("TIME_DAYS_HOURS", days, hours)
-	end
-	if hours > 0 then
-		return Addon:T("TIME_HOURS_MINUTES", hours, minutes)
-	end
-	if minutes > 0 then
-		return Addon:T("TIME_MINUTES", minutes)
-	end
-	return Addon:T("TIME_LESS_MINUTE")
-end
-
 local function EnsureCharactersTable()
 	if not Addon.db then
 		return nil
@@ -263,6 +326,24 @@ function Addon:EnsureCurrentCharacterRecord()
 	record.updatedAt = time()
 end
 
+-- Drop a stored character column from the cooldowns table (not the logged-in character).
+-- Logging in on that character again recreates the record.
+function Addon:RemoveCharacterLockouts(characterKey)
+	if type(characterKey) ~= "string" or characterKey == "" then
+		return false
+	end
+	local currentKey = CurrentCharacterKey()
+	if characterKey == currentKey then
+		return false
+	end
+	local characters = EnsureCharactersTable()
+	if not characters or characters[characterKey] == nil then
+		return false
+	end
+	characters[characterKey] = nil
+	return true
+end
+
 -- Snapshot current lockouts into account SavedVariables. Call after UPDATE_INSTANCE_INFO.
 function Addon:SaveCurrentCharacterLockouts()
 	self:EnsureCurrentCharacterRecord()
@@ -304,16 +385,7 @@ local function CompareRows(a, b)
 	if a.isRaid ~= b.isRaid then
 		return a.isRaid
 	end
-	if a.name ~= b.name then
-		return a.name < b.name
-	end
-	if a.maxPlayers ~= b.maxPlayers then
-		return a.maxPlayers < b.maxPlayers
-	end
-	if a.heroic ~= b.heroic then
-		return not a.heroic
-	end
-	return a.key < b.key
+	return a.name < b.name
 end
 
 local function CharacterDisplayName(character, characters)
@@ -329,7 +401,7 @@ local function CharacterDisplayName(character, characters)
 	return character.name
 end
 
--- Rows are unique instance+difficulty; columns are stored account characters.
+-- Rows are unique instance (raid/dungeon); columns are stored account characters.
 function Addon:BuildCooldownTable()
 	self:PruneExpiredCharacterLockouts()
 	local characters = EnsureCharactersTable() or {}
@@ -338,6 +410,7 @@ function Addon:BuildCooldownTable()
 	local rowsByKey = {}
 	local rows = {}
 
+	local currentKey = CurrentCharacterKey()
 	for key, character in pairs(characters) do
 		charList[#charList + 1] = {
 			key = key,
@@ -347,30 +420,35 @@ function Addon:BuildCooldownTable()
 			spec = character.spec or "",
 			specIcon = character.specIcon or "",
 			updatedAt = tonumber(character.updatedAt) or 0,
+			isCurrent = key == currentKey,
 		}
 		local lockouts = character.lockouts or {}
 		for index = 1, #lockouts do
 			local entry = lockouts[index]
 			if IsActiveLockout(entry, now) then
-				local rowKey = LockoutRowKey(entry)
+				local rowKey = InstanceRowKey(entry)
 				local row = rowsByKey[rowKey]
 				if not row then
 					row = {
 						key = rowKey,
 						name = entry.name or "",
 						isRaid = entry.isRaid and true or false,
-						maxPlayers = tonumber(entry.maxPlayers) or 0,
-						heroic = IsHeroicLockout(entry),
-						typeLabel = TypeLabel(entry),
+						typeLabel = InstanceKindLabel(entry),
 						cells = {},
 					}
 					rowsByKey[rowKey] = row
 					rows[#rows + 1] = row
 				end
-				row.cells[key] = {
-					resetAt = entry.resetAt,
-					remainingText = FormatRemaining(entry.resetAt, now),
-					difficultyName = entry.difficultyName or "",
+				local cellData = row.cells[key]
+				if not cellData then
+					cellData = { variants = {} }
+					row.cells[key] = cellData
+				end
+				cellData.variants[#cellData.variants + 1] = {
+					maxPlayers = tonumber(entry.maxPlayers) or 0,
+					heroic = IsHeroicLockout(entry),
+					tag = FormatVariantTag(entry),
+					tooltipLine = VariantTooltipLine(entry, now),
 				}
 			end
 		end
@@ -381,6 +459,14 @@ function Addon:BuildCooldownTable()
 		charList[index].displayName = CharacterDisplayName(charList[index], charList)
 	end
 	table.sort(rows, CompareRows)
+	for rowIndex = 1, #rows do
+		local row = rows[rowIndex]
+		if row.kind ~= "currency" then
+			for characterKey, cellData in pairs(row.cells) do
+				row.cells[characterKey] = FinalizeLockoutCell(cellData)
+			end
+		end
+	end
 	local lockoutRowCount = #rows
 	AppendCurrencyRow(rows, characters, charList)
 

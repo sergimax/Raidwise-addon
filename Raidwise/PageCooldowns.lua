@@ -6,10 +6,13 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 6
+local LAYOUT_VERSION = 8
 
 local CD_INSTANCE_COL_W = 170
 local CD_CHAR_COL_W = 90
+local CD_HEADER_H = 68
+local CD_REMOVE_BTN_H = 16
+local CD_REMOVE_BTN_PAD = 2
 local CD_CURRENCY_ICON = 14
 local CD_CURRENCY_CHIP_H = 16
 local CD_CURRENCY_CHIP_GAP_Y = 1
@@ -57,7 +60,7 @@ end
 
 local function CreateCooldownHeaderCell(parent)
 	local cell = CreateFrame("Frame", nil, parent)
-	cell:SetHeight(UI.CD_HEADER_H)
+	cell:SetHeight(CD_HEADER_H)
 
 	local icon = cell:CreateTexture(nil, "ARTWORK")
 	icon:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
@@ -78,6 +81,30 @@ local function CreateCooldownHeaderCell(parent)
 	lastCheck:SetJustifyH("LEFT")
 	W.SetFontColor(lastCheck, UI.TEXT_DISABLED)
 	cell.lastCheck = lastCheck
+
+	local removeBtn = W.CreatePlainButton(cell, CD_CHAR_COL_W - 8, CD_REMOVE_BTN_H, W.T("BTN_REMOVE"))
+	removeBtn:SetPoint("BOTTOM", 0, CD_REMOVE_BTN_PAD)
+	removeBtn:SetScript("OnClick", function(self)
+		local characterKey = self.characterKey
+		if not characterKey or not Addon.RemoveCharacterLockouts then
+			return
+		end
+		if Addon:RemoveCharacterLockouts(characterKey) then
+			Addon:RefreshCooldownTable()
+		end
+	end)
+	removeBtn:SetScript("OnEnter", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(W.T("CD_REMOVE_TIP"))
+		GameTooltip:Show()
+	end)
+	removeBtn:SetScript("OnLeave", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, false))
+		GameTooltip:Hide()
+	end)
+	removeBtn:Hide()
+	cell.removeBtn = removeBtn
 
 	cell:EnableMouse(true)
 	cell:SetScript("OnEnter", function(self)
@@ -151,6 +178,26 @@ local function CreateCurrencyChip(parent)
 	return chip
 end
 
+local function ColorText(color, text)
+	local red = math.floor((color[1] or 1) * 255 + 0.5)
+	local green = math.floor((color[2] or 1) * 255 + 0.5)
+	local blue = math.floor((color[3] or 1) * 255 + 0.5)
+	return string.format("|cff%02x%02x%02x%s|r", red, green, blue, text)
+end
+
+local function FormatLockoutDisplayText(variants)
+	local parts = {}
+	for index = 1, #variants do
+		local variant = variants[index]
+		if index > 1 then
+			parts[#parts + 1] = " "
+		end
+		local color = variant.heroic and UI.TEXT_ALERT or UI.GOLD
+		parts[#parts + 1] = ColorText(color, variant.tag)
+	end
+	return table.concat(parts)
+end
+
 local function CreateCooldownValueCell(parent)
 	local cell = CreateFrame("Frame", nil, parent)
 	cell:SetHeight(UI.CD_ROW_H)
@@ -172,7 +219,16 @@ local function CreateCooldownValueCell(parent)
 		if self.tooltipType and self.tooltipType ~= "" then
 			GameTooltip:AddLine(self.tooltipType, 0.8, 0.8, 0.8)
 		end
-		if self.tooltipLines then
+		if self.tooltipEntries then
+			for lineIndex = 1, #self.tooltipEntries do
+				local entry = self.tooltipEntries[lineIndex]
+				if entry.heroic then
+					GameTooltip:AddLine(entry.text, UI.TEXT_ALERT[1], UI.TEXT_ALERT[2], UI.TEXT_ALERT[3])
+				else
+					GameTooltip:AddLine(entry.text, 1, 1, 1)
+				end
+			end
+		elseif self.tooltipLines then
 			for lineIndex = 1, #self.tooltipLines do
 				GameTooltip:AddLine(self.tooltipLines[lineIndex], 1, 1, 1)
 			end
@@ -373,7 +429,7 @@ local function CreateCooldownsPage(parent)
 
 	local headerBg = CreateFrame("Frame", nil, content)
 	headerBg:SetPoint("TOPLEFT", 0, 0)
-	headerBg:SetHeight(UI.CD_HEADER_H)
+	headerBg:SetHeight(CD_HEADER_H)
 	W.ApplyPlainPanel(headerBg, UI.TITLE_BG)
 	page.headerBg = headerBg
 
@@ -455,12 +511,12 @@ function Addon:RefreshCooldownTable()
 	page.tableHost:Show()
 
 	local tableW = CD_INSTANCE_COL_W + (#characters * CD_CHAR_COL_W)
-	local tableH = UI.CD_HEADER_H
+	local tableH = CD_HEADER_H
 	for rowIndex = 1, #rows do
 		tableH = tableH + RowHeight(rows[rowIndex])
 	end
-	if tableH <= UI.CD_HEADER_H then
-		tableH = UI.CD_HEADER_H + UI.CD_ROW_H
+	if tableH <= CD_HEADER_H then
+		tableH = CD_HEADER_H + UI.CD_ROW_H
 	end
 	content:SetSize(tableW, tableH)
 	headerBg:SetWidth(tableW)
@@ -483,11 +539,21 @@ function Addon:RefreshCooldownTable()
 		cell.tooltipTitle = character.displayName
 		cell.tooltipSpec = character.spec ~= "" and character.spec or nil
 		cell.tooltipLastCheck = FormatLastCheckTooltip(character.updatedAt)
+		if cell.removeBtn then
+			if character.isCurrent then
+				cell.removeBtn.characterKey = nil
+				cell.removeBtn:Hide()
+			else
+				cell.removeBtn.characterKey = character.key
+				cell.removeBtn.label:SetText(W.T("BTN_REMOVE"))
+				cell.removeBtn:Show()
+			end
+		end
 		cell:Show()
 	end
 
 	W.HidePoolFrom(page.rowFrames, #rows + 1)
-	local yOffset = UI.CD_HEADER_H
+	local yOffset = CD_HEADER_H
 	for rowIndex = 1, #rows do
 		local rowData = rows[rowIndex]
 		local rowHeight = RowHeight(rowData)
@@ -526,6 +592,7 @@ function Addon:RefreshCooldownTable()
 			local saved = rowData.cells[character.key]
 			cell.tooltipTitle = rowData.name
 			cell.tooltipType = rowData.typeLabel
+			cell.tooltipEntries = nil
 			cell.tooltipLines = nil
 			cell.tooltipBody = nil
 			if rowData.kind == "currency" then
@@ -548,10 +615,12 @@ function Addon:RefreshCooldownTable()
 				end
 			else
 				ConfigureLockoutCell(cell, rowHeight)
-				if saved and saved.remainingText then
-					cell.text:SetText(saved.remainingText)
+				if saved and saved.variants and #saved.variants > 0 then
+					cell.text:SetText(FormatLockoutDisplayText(saved.variants))
+					cell.tooltipEntries = saved.tooltipEntries
+				elseif saved and saved.displayText then
+					cell.text:SetText(saved.displayText)
 					W.SetFontColor(cell.text, UI.GOLD)
-					cell.tooltipBody = W.T("CD_SAVED_RESETS", saved.remainingText)
 				else
 					cell.text:SetText("-")
 					W.SetFontColor(cell.text, UI.TEXT_DISABLED)

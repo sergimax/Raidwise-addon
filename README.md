@@ -4,7 +4,7 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.11.0-purple)
+![](https://img.shields.io/badge/current_version-1.12.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--23-blue)
 
 
@@ -37,9 +37,10 @@ Esc or the title **X** closes the window.
 **Character cooldowns** tab:
 
 - Table of raid and dungeon lockouts for every character saved on this account
-- First column is the instance name and type (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40)
+- First column is the instance name and kind (`(Raid)` / `(Dungeon)`); size and mode live in character cells
 - Other columns are characters (class-colored name, spec icon, and last check time); log in on each alt to record them
-- Saved cells show time remaining until reset
+- **Remove** on non-current character columns drops that alt from the table (login again restores it)
+- Saved cells show size/mode tags (`10`, `10h`, `25`, `25h`; heroic in red); hover for time until reset
 - **Currency** row at the bottom: labels with account totals in the first column; each character column shows icon + quantity for gold, emblems, honor/arena, and other tokens (from the in-game Currency tab)
 
 **Export gear and CDs** tab:
