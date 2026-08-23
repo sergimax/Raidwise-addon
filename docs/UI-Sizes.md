@@ -17,9 +17,11 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Menu title bar | height **20** | Top of menu; drag handle; label “Menu” |
 | Close button | **16 × 16** | Right side of content title bar |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
-| Panel fill | RGB **0.15** | `ChatFrameBackground`, alpha 0.96 |
-| Title / status fill | RGB **0.20** | Same texture |
-| 1 px border | RGB **0,0,0** | Four edge textures (3.3.5-safe, Details-like) |
+| Panel fill | **#12121c** ≈ RGB **0.07, 0.07, 0.11** | Classic theme; alpha 0.98 |
+| Title / status fill | **#1c1c2a** ≈ RGB **0.11, 0.11, 0.165** | Same texture |
+| 1 px border | **#6b5730** ≈ RGB **0.42, 0.34, 0.19** | Four edge textures (bronze) |
+| Accent gold | **#ffd200** ≈ RGB **1.00, 0.82, 0.00** | Titles, selected labels |
+| Idle text | **#ffeebb** ≈ RGB **1.00, 0.93, 0.73** | Body / menu idle |
 
 ## Left menu
 
@@ -29,10 +31,10 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Menu icon | **16 × 16** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
 | Gap between buttons | 2 px | |
 | First button offset | 8 px below menu title | |
-| Idle fill | RGB **0.18** | Menu + action buttons |
-| Hover fill | RGB **0.28** | Label `{1, 1, 0.4}` |
-| Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
-| Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
+| Idle fill | **0.125, 0.110, 0.165** | Menu + action buttons |
+| Hover fill | **0.180, 0.150, 0.200** | Label `{1.00, 0.91, 0.55}` |
+| Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
+| Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
 
 Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Party roster** (Prayer of Fortitude), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **History** (book), **Settings** (gear), **Info** (question mark).
 

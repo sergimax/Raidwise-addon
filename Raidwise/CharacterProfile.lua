@@ -8,6 +8,8 @@ local function T(key, ...)
 end
 
 -- Profile-local sizes (keep in sync with docs/UI-Sizes.md Character profile).
+-- Colors come from Addon.UITheme (Classic).
+local Theme = Addon.UITheme
 local UI = {
 	PAD = 10,
 	TITLE_H = 20,
@@ -19,19 +21,20 @@ local UI = {
 	RAID_DETAIL_W = 460,
 	RAID_DETAIL_H = 560,
 	PROFILE_TAB_H = 26,
-	GOLD = { 0.890, 0.729, 0.016 },
-	TEXT_IDLE = { 0.80, 0.80, 0.80 },
-	PANEL_BG = { 0.15, 0.15, 0.15, 0.96 },
-	TITLE_BG = { 0.20, 0.20, 0.20, 1 },
-	BTN_IDLE = { 0.18, 0.18, 0.18, 0.95 },
-	BTN_HOVER = { 0.28, 0.28, 0.28, 1 },
-	BTN_SELECTED = { 0.32, 0.28, 0.12, 1 },
-	BTN_DISABLED = { 0.12, 0.12, 0.12, 0.90 },
-	TEXT_HOVER = { 1.00, 1.00, 0.40 },
-	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
+	GOLD = Theme.GOLD,
+	TEXT_IDLE = Theme.TEXT_IDLE,
+	PANEL_BG = Theme.PANEL_BG,
+	TITLE_BG = Theme.TITLE_BG,
+	BTN_IDLE = Theme.BTN_IDLE,
+	BTN_HOVER = Theme.BTN_HOVER,
+	BTN_SELECTED = Theme.BTN_SELECTED,
+	BTN_DISABLED = Theme.BTN_DISABLED,
+	TEXT_HOVER = Theme.TEXT_HOVER,
+	TEXT_DISABLED = Theme.TEXT_DISABLED,
+	BORDER = Theme.BORDER,
 }
 
-local PROFILE_LAYOUT_VERSION = 26
+local PROFILE_LAYOUT_VERSION = 27
 
 local function GetRatingTagGroups()
 	if Addon.RatingTagGroups then
@@ -88,7 +91,8 @@ local function CreateProfileNotesBox(parent, width, height)
 	host:SetSize(width, height)
 	host:SetBackdrop(W.COPY_BACKDROP)
 	host:SetBackdropColor(0, 0, 0, 1)
-	host:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+	local border = UI.BORDER or { 0.4, 0.4, 0.4, 1 }
+	host:SetBackdropBorderColor(border[1], border[2], border[3], border[4] or 1)
 
 	local scroll = CreateFrame("ScrollFrame", nil, host, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", 6, -6)
