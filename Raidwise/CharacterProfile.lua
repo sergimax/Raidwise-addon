@@ -315,7 +315,7 @@ UpdateProfileCommitButton = function(frame, tabId)
 	if not frame then
 		return
 	end
-	tabId = tabId or frame.selectedProfileTab or "opinion"
+	tabId = tabId or frame.selectedProfileTab or "history"
 	local showCommit = tabId == "opinion" or tabId == "facts" or tabId == "events"
 	local editable = frame.profileMember and frame.profileMember.guid and frame.profileMember.guid ~= ""
 	if frame.ratingUpdateBtn then
@@ -1858,7 +1858,7 @@ local function CreateRaidCharacterWindow()
 	historyText:SetJustifyV("TOP")
 	frame.historyText = historyText
 
-	frame.selectedProfileTab = "opinion"
+	frame.selectedProfileTab = "history"
 
 	return frame
 end
@@ -2067,7 +2067,8 @@ function Addon:ShowRaidCharacterWindow(member)
 			frame.notesResetBtn:Disable()
 		end
 	end
-	self:SelectProfileTab(frame.selectedProfileTab or "opinion")
+	frame.selectedProfileTab = "history"
+	self:SelectProfileTab("history")
 
 	frame:Show()
 	frame:Raise()
