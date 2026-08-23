@@ -46,7 +46,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 3` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 26` | `CharacterProfile.lua` | Title bar (left of close) |
-| Cooldowns | `LAYOUT_VERSION = 1` | `PageCooldowns.lua` | Shell title bar (next to page name) |
+| Cooldowns | `LAYOUT_VERSION = 6` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
@@ -87,17 +87,21 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
                  | last check                     |            |
 [ Icecrown Citadel                               | 2d 4h | -   ]
 [ Raid / 25 Heroic                               |       |     ]
+[ Currency          | (title line — empty in char cols)        ]
+[ Gold  12.3kg      | [icon] 645g  | ...                      ]
+[ Frost  47         | [icon] 2     | ...                      ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Lockouts for every character saved on this account.” |
+| short description | “Lockouts and currency for every character saved on this account.” |
 | Refresh | Requests fresh raid info, then redraws the table |
-| first column | Instance name, then type (`Raid` / `Dungeon` / size / Heroic) |
+| first column | Instance name, then type (`Raid` / `Dungeon` / size / Heroic); **Currency** row at bottom |
 | character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first |
 | saved cell | Remaining time until reset (gold); tooltip has instance + type |
+| currency cell | Title line + label column with account totals (`Gold  12kg`); character columns skip one line, then icon+count chips aligned to labels |
 | empty cell | `-` (not saved) |
-| empty table | “Log in on each character…” if none saved; “No current lockouts.” if columns exist but nothing is saved |
+| empty table | “Log in on each character…” if none saved; “No current lockouts.” if columns exist but no lockouts (**Currency** row still shows) |
 
 Rows come only from current lockouts (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40). Expired lockouts are dropped.
 

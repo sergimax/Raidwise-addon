@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.11.0] - 2026-08-23
+
+### Added
+- **Character cooldowns** **Currency** row: gold, raid emblems (Frost/Triumph), honor/arena, and quest tokens (Heroism, Valor, Conquest, Champion’s Seal) snapped from the in-game Currency tab
+- First column shows each currency label with an **account-wide total**; character columns show icon + quantity chips aligned to those labels
+- Currency snapshots stored in `RaidwiseDB.characters[key].currency` (and included in cooldowns export JSON)
+
+### Fixed
+- Opening `/rw` no longer errors when building the currency row
+- Currency icons no longer show as red squares on alts with older SavedVariables (icons resolve from the catalog at display time)
+
 ## [1.10.0] - 2026-08-22
 
 ### Added

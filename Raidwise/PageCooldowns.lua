@@ -6,10 +6,32 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 6
 
 local CD_INSTANCE_COL_W = 170
 local CD_CHAR_COL_W = 90
+local CD_CURRENCY_ICON = 14
+local CD_CURRENCY_CHIP_H = 16
+local CD_CURRENCY_CHIP_GAP_Y = 1
+local CD_CURRENCY_PAD = 3
+local CD_CURRENCY_LEADER_H = 16
+local CD_CURRENCY_ENTRY_COUNT = 9
+local CD_CURRENCY_ROW_H = CD_CURRENCY_PAD * 2
+	+ CD_CURRENCY_LEADER_H
+	+ CD_CURRENCY_CHIP_GAP_Y
+	+ CD_CURRENCY_ENTRY_COUNT * CD_CURRENCY_CHIP_H
+	+ (CD_CURRENCY_ENTRY_COUNT - 1) * CD_CURRENCY_CHIP_GAP_Y
+
+local function CurrencyChipWidth()
+	return CD_CHAR_COL_W - CD_CURRENCY_PAD * 2
+end
+
+local function CurrencyEntryTop(index)
+	return CD_CURRENCY_PAD
+		+ CD_CURRENCY_LEADER_H
+		+ CD_CURRENCY_CHIP_GAP_Y
+		+ (index - 1) * (CD_CURRENCY_CHIP_H + CD_CURRENCY_CHIP_GAP_Y)
+end
 
 local function FormatLastCheckTime(timestamp)
 	timestamp = tonumber(timestamp)
@@ -102,9 +124,37 @@ local function CreateCooldownRow(parent)
 	return row
 end
 
+local function RowHeight(rowData)
+	if rowData and rowData.kind == "currency" then
+		return CD_CURRENCY_ROW_H
+	end
+	return UI.CD_ROW_H
+end
+
+local function CreateCurrencyChip(parent)
+	local chip = CreateFrame("Frame", nil, parent)
+	chip:SetSize(CurrencyChipWidth(), CD_CURRENCY_CHIP_H)
+
+	local icon = chip:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(CD_CURRENCY_ICON, CD_CURRENCY_ICON)
+	icon:SetPoint("LEFT", 0, 0)
+	chip.icon = icon
+
+	local count = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	count:SetPoint("LEFT", icon, "RIGHT", 2, 0)
+	count:SetPoint("RIGHT", chip, "RIGHT", 0, 0)
+	count:SetJustifyH("LEFT")
+	count:SetJustifyV("MIDDLE")
+	count:SetNonSpaceWrap(false)
+	chip.count = count
+
+	return chip
+end
+
 local function CreateCooldownValueCell(parent)
 	local cell = CreateFrame("Frame", nil, parent)
 	cell:SetHeight(UI.CD_ROW_H)
+	cell.chips = {}
 
 	local text = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	text:SetPoint("LEFT", 4, 0)
@@ -119,10 +169,14 @@ local function CreateCooldownValueCell(parent)
 		end
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 		GameTooltip:AddLine(self.tooltipTitle)
-		if self.tooltipType then
+		if self.tooltipType and self.tooltipType ~= "" then
 			GameTooltip:AddLine(self.tooltipType, 0.8, 0.8, 0.8)
 		end
-		if self.tooltipBody then
+		if self.tooltipLines then
+			for lineIndex = 1, #self.tooltipLines do
+				GameTooltip:AddLine(self.tooltipLines[lineIndex], 1, 1, 1)
+			end
+		elseif self.tooltipBody then
 			GameTooltip:AddLine(self.tooltipBody, 1, 1, 1)
 		end
 		GameTooltip:Show()
@@ -132,6 +186,140 @@ local function CreateCooldownValueCell(parent)
 	end)
 
 	return cell
+end
+
+local function HideCurrencyChips(cell)
+	if not cell.chips then
+		return
+	end
+	for index = 1, #cell.chips do
+		cell.chips[index]:Hide()
+	end
+end
+
+local function FillCurrencyChips(cell, entries, hasValue)
+	cell.chips = cell.chips or {}
+	local chipW = CurrencyChipWidth()
+	entries = entries or {}
+	W.HidePoolFrom(cell.chips, #entries + 1)
+	for index = 1, #entries do
+		local entry = entries[index]
+		local chip = cell.chips[index]
+		if not chip then
+			chip = CreateCurrencyChip(cell)
+			cell.chips[index] = chip
+		end
+		chip:ClearAllPoints()
+		chip:SetSize(chipW, CD_CURRENCY_CHIP_H)
+		chip:SetPoint(
+			"TOPLEFT",
+			cell,
+			"TOPLEFT",
+			CD_CURRENCY_PAD,
+			-CurrencyEntryTop(index)
+		)
+		local icon = entry.icon
+		if type(icon) ~= "string" or icon == "" then
+			icon = "Interface\\Icons\\INV_Misc_QuestionMark"
+		end
+		chip.icon:SetTexture(icon)
+		chip.count:SetText(entry.displayCount or "0")
+		if hasValue then
+			W.SetFontColor(chip.count, UI.GOLD)
+		else
+			W.SetFontColor(chip.count, UI.TEXT_IDLE)
+		end
+		chip:Show()
+	end
+end
+
+local function HideCurrencyRowLabels(row)
+	if not row.labelLines then
+		return
+	end
+	for index = 1, #row.labelLines do
+		row.labelLines[index]:Hide()
+	end
+end
+
+local function CreateCurrencyRowLabel(parent)
+	local label = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	label:SetHeight(CD_CURRENCY_CHIP_H)
+	label:SetJustifyH("LEFT")
+	label:SetJustifyV("MIDDLE")
+	return label
+end
+
+local function FillCurrencyRowLabels(row, summaries)
+	row.labelLines = row.labelLines or {}
+	summaries = summaries or {}
+	W.HidePoolFrom(row.labelLines, #summaries + 1)
+	for index = 1, #summaries do
+		local summary = summaries[index]
+		local label = row.labelLines[index]
+		if not label then
+			label = CreateCurrencyRowLabel(row)
+			row.labelLines[index] = label
+		end
+		label:ClearAllPoints()
+		label:SetPoint("TOPLEFT", row, "TOPLEFT", 6, -CurrencyEntryTop(index))
+		label:SetPoint("RIGHT", row, "LEFT", CD_INSTANCE_COL_W - 4, 0)
+		if type(summary) == "table" then
+			label:SetText(summary.text or ((summary.label or "") .. "  " .. (summary.displayTotal or "0")))
+			if (tonumber(summary.total) or 0) > 0 then
+				W.SetFontColor(label, UI.GOLD)
+			else
+				W.SetFontColor(label, UI.TEXT_IDLE)
+			end
+		else
+			label:SetText(tostring(summary or ""))
+			W.SetFontColor(label, UI.TEXT_IDLE)
+		end
+		label:Show()
+	end
+end
+
+local function ConfigureLockoutRowHeading(row)
+	row.instanceName:ClearAllPoints()
+	row.instanceName:SetPoint("TOPLEFT", 6, -4)
+	row.instanceName:SetPoint("RIGHT", row, "LEFT", CD_INSTANCE_COL_W - 4, 0)
+	row.instanceName:SetJustifyH("LEFT")
+	row.instanceName:SetJustifyV("TOP")
+	row.instanceName:SetFontObject("GameFontHighlight")
+	row.typeLabel:Show()
+	HideCurrencyRowLabels(row)
+end
+
+local function ConfigureCurrencyRowHeading(row, title, summaries)
+	row.instanceName:ClearAllPoints()
+	row.instanceName:SetPoint("TOPLEFT", 6, -CD_CURRENCY_PAD)
+	row.instanceName:SetPoint("RIGHT", row, "LEFT", CD_INSTANCE_COL_W - 4, 0)
+	row.instanceName:SetHeight(CD_CURRENCY_LEADER_H)
+	row.instanceName:SetJustifyH("LEFT")
+	row.instanceName:SetJustifyV("MIDDLE")
+	row.instanceName:SetText(title or "")
+	W.SetFontColor(row.instanceName, UI.GOLD)
+	row.typeLabel:SetText("")
+	row.typeLabel:Hide()
+	FillCurrencyRowLabels(row, summaries)
+end
+
+local function ConfigureCurrencyCell(cell)
+	cell:SetHeight(CD_CURRENCY_ROW_H)
+	cell.text:SetText("")
+	cell.text:Hide()
+end
+
+local function ConfigureLockoutCell(cell, rowHeight)
+	cell:SetHeight(rowHeight)
+	HideCurrencyChips(cell)
+	cell.text:Show()
+	cell.text:ClearAllPoints()
+	cell.text:SetPoint("LEFT", 4, 0)
+	cell.text:SetPoint("RIGHT", -4, 0)
+	cell.text:SetJustifyH("CENTER")
+	cell.text:SetJustifyV("MIDDLE")
+	cell.text:SetWidth(0)
 end
 
 local function CreateCooldownsPage(parent)
@@ -249,6 +437,7 @@ function Addon:RefreshCooldownTable()
 	local model = self:BuildCooldownTable()
 	local characters = model.characters
 	local rows = model.rows
+	local lockoutRowCount = model.lockoutRowCount or 0
 	local content = page.tableContent
 	local headerBg = page.headerBg
 
@@ -266,7 +455,13 @@ function Addon:RefreshCooldownTable()
 	page.tableHost:Show()
 
 	local tableW = CD_INSTANCE_COL_W + (#characters * CD_CHAR_COL_W)
-	local tableH = UI.CD_HEADER_H + math.max(#rows, 1) * UI.CD_ROW_H
+	local tableH = UI.CD_HEADER_H
+	for rowIndex = 1, #rows do
+		tableH = tableH + RowHeight(rows[rowIndex])
+	end
+	if tableH <= UI.CD_HEADER_H then
+		tableH = UI.CD_HEADER_H + UI.CD_ROW_H
+	end
 	content:SetSize(tableW, tableH)
 	headerBg:SetWidth(tableW)
 
@@ -292,21 +487,29 @@ function Addon:RefreshCooldownTable()
 	end
 
 	W.HidePoolFrom(page.rowFrames, #rows + 1)
+	local yOffset = UI.CD_HEADER_H
 	for rowIndex = 1, #rows do
 		local rowData = rows[rowIndex]
+		local rowHeight = RowHeight(rowData)
 		local row = page.rowFrames[rowIndex]
 		if not row then
 			row = CreateCooldownRow(content)
 			page.rowFrames[rowIndex] = row
 		end
 		row:ClearAllPoints()
-		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(UI.CD_HEADER_H + (rowIndex - 1) * UI.CD_ROW_H))
-		row:SetSize(tableW, UI.CD_ROW_H)
+		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -yOffset)
+		row:SetSize(tableW, rowHeight)
+		yOffset = yOffset + rowHeight
 		local stripe = (rowIndex % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
 		row.stripe = stripe
 		row:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
-		row.instanceName:SetText(rowData.name)
-		row.typeLabel:SetText(rowData.typeLabel)
+		if rowData.kind == "currency" then
+			ConfigureCurrencyRowHeading(row, rowData.name, rowData.entrySummaries or rowData.entryLabels)
+		else
+			ConfigureLockoutRowHeading(row)
+			row.instanceName:SetText(rowData.name)
+			row.typeLabel:SetText(rowData.typeLabel)
+		end
 
 		W.HidePoolFrom(row.cells, #characters + 1)
 		for colIndex = 1, #characters do
@@ -323,14 +526,37 @@ function Addon:RefreshCooldownTable()
 			local saved = rowData.cells[character.key]
 			cell.tooltipTitle = rowData.name
 			cell.tooltipType = rowData.typeLabel
-			if saved and saved.remainingText then
-				cell.text:SetText(saved.remainingText)
-				W.SetFontColor(cell.text, UI.GOLD)
-				cell.tooltipBody = W.T("CD_SAVED_RESETS", saved.remainingText)
+			cell.tooltipLines = nil
+			cell.tooltipBody = nil
+			if rowData.kind == "currency" then
+				ConfigureCurrencyCell(cell)
+				if saved and saved.entries then
+					FillCurrencyChips(cell, saved.entries, saved.hasValue)
+					cell.tooltipLines = saved.tooltipLines
+				else
+					HideCurrencyChips(cell)
+					cell.text:Show()
+					cell.text:ClearAllPoints()
+					cell.text:SetPoint("TOPLEFT", CD_CURRENCY_PAD, -CurrencyEntryTop(1))
+					cell.text:SetPoint("RIGHT", cell, "RIGHT", -CD_CURRENCY_PAD, 0)
+					cell.text:SetHeight(CD_CURRENCY_CHIP_H)
+					cell.text:SetJustifyH("CENTER")
+					cell.text:SetJustifyV("MIDDLE")
+					cell.text:SetText("-")
+					W.SetFontColor(cell.text, UI.TEXT_DISABLED)
+					cell.tooltipBody = W.T("CD_CURRENCY_NONE")
+				end
 			else
-				cell.text:SetText("-")
-				W.SetFontColor(cell.text, UI.TEXT_DISABLED)
-				cell.tooltipBody = W.T("CD_NOT_SAVED")
+				ConfigureLockoutCell(cell, rowHeight)
+				if saved and saved.remainingText then
+					cell.text:SetText(saved.remainingText)
+					W.SetFontColor(cell.text, UI.GOLD)
+					cell.tooltipBody = W.T("CD_SAVED_RESETS", saved.remainingText)
+				else
+					cell.text:SetText("-")
+					W.SetFontColor(cell.text, UI.TEXT_DISABLED)
+					cell.tooltipBody = W.T("CD_NOT_SAVED")
+				end
 			end
 			cell:Show()
 		end
@@ -338,7 +564,7 @@ function Addon:RefreshCooldownTable()
 	end
 
 	if page.noRowsLabel then
-		if #rows == 0 then
+		if lockoutRowCount == 0 then
 			page.noRowsLabel:Show()
 		else
 			page.noRowsLabel:Hide()

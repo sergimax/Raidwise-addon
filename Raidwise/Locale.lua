@@ -33,7 +33,8 @@ local Translations = {
 			.. "Slash commands: /raidwise or /rw to open; /raidwise close or /rw close to close.",
 		INFO_SECTION_COOLDOWNS = "Shows raid and dungeon lockouts for every character saved on this account, "
 			.. "including when each character was last checked. "
-			.. "Log in on each alt to record their lockouts.",
+			.. "Log in on each alt to record their lockouts. "
+			.. "A Currency row shows gold and badge icon–quantity pairs from the in-game Currency tab.",
 		INFO_SECTION_EXPORT = "Builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
 			.. "Turn on Include item names to add display names next to item ids. "
 			.. "If the GearScore addon is loaded, the current score is included.",
@@ -53,10 +54,21 @@ local Translations = {
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
 		INFO_REPO_SELECTED = "Selected — press Ctrl+C to copy.",
 
-		CD_HINT = "Lockouts for every character saved on this account.",
+		CD_HINT = "Lockouts and currency for every character saved on this account.",
 		CD_EMPTY = "Log in on each character to record raid and dungeon lockouts.",
 		CD_NO_ROWS = "No current lockouts.",
 		CD_INSTANCE = "Raid / Dungeon",
+		CD_CURRENCY = "Currency",
+		CD_CURRENCY_GOLD = "Gold",
+		CD_CURRENCY_HONOR = "Honor",
+		CD_CURRENCY_ARENA = "Arena",
+		CD_CURRENCY_FROST = "Frost",
+		CD_CURRENCY_TRIUMPH = "Triumph",
+		CD_CURRENCY_HEROISM = "Heroism",
+		CD_CURRENCY_VALOR = "Valor",
+		CD_CURRENCY_CONQUEST = "Conquest",
+		CD_CURRENCY_CHAMPION = "Champion",
+		CD_CURRENCY_NONE = "Not recorded — log in on this character and refresh",
 		CD_LAST_CHECK = "Last check: %s",
 		CD_LAST_CHECK_NONE = "Last check: -",
 		CD_SAVED_RESETS = "Saved - resets in %s",
@@ -409,7 +421,8 @@ local Translations = {
 			.. "Команды: /raidwise или /rw — открыть; /raidwise close или /rw close — закрыть.",
 		INFO_SECTION_COOLDOWNS = "Показывает рейдовые и подземельные блокировки всех сохранённых персонажей, "
 			.. "включая время последней проверки. "
-			.. "Зайдите на каждого альта, чтобы записать его КД.",
+			.. "Зайдите на каждого альта, чтобы записать его КД. "
+			.. "Строка «Валюта» — золото и пары иконка–количество для каждого значка.",
 		INFO_SECTION_EXPORT = "Собирает JSON: имя, класс, спек, надетые вещи, сумки и блокировки. "
 			.. "Включите «Включать названия предметов», чтобы добавить имена рядом с id. "
 			.. "Если установлен аддон GearScore, в экспорт попадает текущий счёт.",
@@ -429,10 +442,21 @@ local Translations = {
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
 		INFO_REPO_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",
 
-		CD_HINT = "КД всех персонажей, сохранённых на этом аккаунте.",
+		CD_HINT = "КД и валюта всех персонажей, сохранённых на этом аккаунте.",
 		CD_EMPTY = "Зайдите на каждого персонажа, чтобы записать рейдовые и подземельные КД.",
 		CD_NO_ROWS = "Нет текущих КД.",
 		CD_INSTANCE = "Рейд / Подземелье",
+		CD_CURRENCY = "Валюта",
+		CD_CURRENCY_GOLD = "Золото",
+		CD_CURRENCY_HONOR = "Честь",
+		CD_CURRENCY_ARENA = "Арена",
+		CD_CURRENCY_FROST = "Лед",
+		CD_CURRENCY_TRIUMPH = "Триумф",
+		CD_CURRENCY_HEROISM = "Героизм",
+		CD_CURRENCY_VALOR = "Доблесть",
+		CD_CURRENCY_CONQUEST = "Завоевание",
+		CD_CURRENCY_CHAMPION = "Чемпион",
+		CD_CURRENCY_NONE = "Не записано — зайдите на персонажа и обновите",
 		CD_LAST_CHECK = "Проверка: %s",
 		CD_LAST_CHECK_NONE = "Проверка: -",
 		CD_SAVED_RESETS = "Сохранён — сброс через %s",

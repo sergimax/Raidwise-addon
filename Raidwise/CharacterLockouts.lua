@@ -74,6 +74,113 @@ local function FilterActiveLockouts(lockouts, now)
 	return kept
 end
 
+local function BuildCurrencyCell(currency)
+	if type(currency) ~= "table" or type(currency.entries) ~= "table" then
+		return nil
+	end
+	local source = currency.entries
+	if #source == 0 then
+		return nil
+	end
+
+	local entries = {}
+	local tooltipLines = {}
+	local hasValue = false
+	for index = 1, #source do
+		local entry = source[index]
+		local displayCount = entry.displayCount or tostring(entry.count or 0)
+		local tooltipCount = entry.tooltipCount or displayCount
+		local entryId = entry.id
+		if entryId == nil and Addon.GetCurrencyEntryIdAt then
+			entryId = Addon:GetCurrencyEntryIdAt(index)
+		end
+		local icon = "Interface\\Icons\\INV_Misc_QuestionMark"
+		if Addon.ResolveCurrencyIcon then
+			icon = Addon:ResolveCurrencyIcon(entryId)
+		elseif type(entry.icon) == "string" and entry.icon ~= "" then
+			icon = entry.icon
+		end
+		entries[#entries + 1] = {
+			id = entryId,
+			icon = icon,
+			displayCount = displayCount,
+			label = entry.label or "?",
+		}
+		tooltipLines[#tooltipLines + 1] = (entry.label or "?") .. ": " .. tooltipCount
+		if (tonumber(entry.count) or 0) > 0 then
+			hasValue = true
+		end
+	end
+
+	return {
+		entries = entries,
+		tooltipLines = tooltipLines,
+		hasValue = hasValue,
+	}
+end
+
+local function AppendCurrencyRow(rows, characters, charList)
+	local entryLabels = {}
+	if Addon.GetCurrencyEntryLabels then
+		entryLabels = Addon:GetCurrencyEntryLabels() or {}
+	end
+
+	local totals = {}
+	local entryIds = {}
+	local maxEntries = #entryLabels
+	for charIndex = 1, #charList do
+		local character = characters[charList[charIndex].key]
+		local currency = character and character.currency
+		local entries = currency and currency.entries
+		if type(entries) == "table" then
+			if #entries > maxEntries then
+				maxEntries = #entries
+			end
+			for entryIndex = 1, #entries do
+				local entry = entries[entryIndex]
+				totals[entryIndex] = (totals[entryIndex] or 0) + (tonumber(entry.count) or 0)
+				if not entryIds[entryIndex] then
+					entryIds[entryIndex] = entry.id
+				end
+			end
+		end
+	end
+
+	local entrySummaries = {}
+	for entryIndex = 1, maxEntries do
+		local label = entryLabels[entryIndex] or "?"
+		local total = totals[entryIndex] or 0
+		local displayTotal = tostring(total)
+		if Addon.FormatCurrencyCount then
+			displayTotal = Addon:FormatCurrencyCount(entryIds[entryIndex], total)
+		end
+		entrySummaries[entryIndex] = {
+			label = label,
+			total = total,
+			displayTotal = displayTotal,
+			text = label .. "  " .. displayTotal,
+		}
+	end
+
+	local row = {
+		kind = "currency",
+		key = "currency",
+		name = Addon:T("CD_CURRENCY"),
+		typeLabel = "",
+		entryLabels = entryLabels,
+		entrySummaries = entrySummaries,
+		cells = {},
+	}
+	for charIndex = 1, #charList do
+		local characterKey = charList[charIndex].key
+		local character = characters[characterKey]
+		if character and character.currency then
+			row.cells[characterKey] = BuildCurrencyCell(character.currency)
+		end
+	end
+	rows[#rows + 1] = row
+end
+
 local function FormatRemaining(resetAt, now)
 	local remaining = (tonumber(resetAt) or 0) - now
 	if remaining <= 0 then
@@ -172,6 +279,9 @@ function Addon:SaveCurrentCharacterLockouts()
 
 	local now = time()
 	record.lockouts = FilterActiveLockouts(self:CollectInstanceLockouts(), now)
+	if self.CollectCharacterCurrency then
+		record.currency = self:CollectCharacterCurrency()
+	end
 	record.updatedAt = now
 	self:PruneExpiredCharacterLockouts()
 end
@@ -271,10 +381,13 @@ function Addon:BuildCooldownTable()
 		charList[index].displayName = CharacterDisplayName(charList[index], charList)
 	end
 	table.sort(rows, CompareRows)
+	local lockoutRowCount = #rows
+	AppendCurrencyRow(rows, characters, charList)
 
 	return {
 		characters = charList,
 		rows = rows,
+		lockoutRowCount = lockoutRowCount,
 	}
 end
 
@@ -360,6 +473,24 @@ function Addon:FormatCooldownsExport()
 		lines[#lines + 1] = '      "class": "' .. JsonEscape(character.class or "") .. '",'
 		lines[#lines + 1] = '      "spec": "' .. JsonEscape(character.spec or "") .. '",'
 		lines[#lines + 1] = '      "updatedAt": ' .. tostring(tonumber(character.updatedAt) or 0) .. ","
+		local currency = character.currency
+		if type(currency) == "table" and type(currency.entries) == "table" then
+			local entries = currency.entries
+			lines[#lines + 1] = '      "currency": {'
+			lines[#lines + 1] = '        "entries": ['
+			for entryIndex = 1, #entries do
+				local entry = entries[entryIndex]
+				local entryComma = (entryIndex < #entries) and "," or ""
+				lines[#lines + 1] = "          {"
+				lines[#lines + 1] = '            "id": "' .. JsonEscape(tostring(entry.id or "")) .. '",'
+				lines[#lines + 1] = '            "label": "' .. JsonEscape(entry.label or "") .. '",'
+				lines[#lines + 1] = '            "icon": "' .. JsonEscape(entry.icon or "") .. '",'
+				lines[#lines + 1] = '            "count": ' .. tostring(tonumber(entry.count) or 0)
+				lines[#lines + 1] = "          }" .. entryComma
+			end
+			lines[#lines + 1] = "        ]"
+			lines[#lines + 1] = "      },"
+		end
 		AppendLockoutObjectsJson(lines, lockouts, "      ")
 		lines[#lines + 1] = "    }" .. comma
 	end

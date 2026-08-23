@@ -283,6 +283,202 @@ function Addon:CollectCurrentGearScore()
 	return nil
 end
 
+-- WotLK 3.3.5 currency entries in Currency-tab order: gold, raid emblems, PvP, other tokens.
+local GOLD_ICON = "Interface\\Icons\\INV_Misc_Coin_01"
+
+-- Hardcoded icons so badges show even when item cache is cold.
+local CURRENCY_ENTRY_DEFS = {
+	{ kind = "gold", icon = GOLD_ICON, labelKey = "CD_CURRENCY_GOLD" },
+	{ kind = "item", itemId = 49426, icon = "Interface\\Icons\\INV_Misc_FrostEmblem_01", labelKey = "CD_CURRENCY_FROST" },
+	{ kind = "item", itemId = 47241, icon = "Interface\\Icons\\INV_Misc_Trophy_Argent", labelKey = "CD_CURRENCY_TRIUMPH" },
+	{ kind = "honor", labelKey = "CD_CURRENCY_HONOR" },
+	{ kind = "arena", labelKey = "CD_CURRENCY_ARENA" },
+	{ kind = "item", itemId = 40753, icon = "Interface\\Icons\\Spell_Holy_ProclaimChampion_02", labelKey = "CD_CURRENCY_HEROISM" },
+	{ kind = "item", itemId = 40752, icon = "Interface\\Icons\\Spell_Holy_ProclaimChampion", labelKey = "CD_CURRENCY_VALOR" },
+	{ kind = "item", itemId = 45624, icon = "Interface\\Icons\\INV_Misc_Coin_17", labelKey = "CD_CURRENCY_CONQUEST" },
+	{ kind = "item", itemId = 44990, icon = "Interface\\Icons\\Ability_Paladin_ArtofWar", labelKey = "CD_CURRENCY_CHAMPION" },
+}
+
+local function PvpCurrencyIcon(kind)
+	local faction = (UnitFactionGroup and UnitFactionGroup("player")) or "Alliance"
+	-- 3.3.5a PvP frame textures (PVPCurrency-* icon names are not reliable on all clients).
+	if kind == "honor" then
+		if faction == "Horde" then
+			return "Interface\\PVPFrame\\PVP-Currency-Horde"
+		end
+		return "Interface\\PVPFrame\\PVP-Currency-Alliance"
+	end
+	return "Interface\\PVPFrame\\PVP-ArenaPoints-Icon"
+end
+
+local function FormatMoneyShort(copper)
+	copper = math.floor(tonumber(copper) or 0)
+	local gold = math.floor(copper / 10000)
+	if gold >= 100000 then
+		return string.format("%.0fkg", gold / 1000)
+	end
+	if gold >= 10000 then
+		return string.format("%.1fkg", gold / 1000)
+	end
+	return tostring(gold) .. "g"
+end
+
+local function FormatMoneyLong(copper)
+	copper = math.floor(tonumber(copper) or 0)
+	local gold = math.floor(copper / 10000)
+	local silver = math.floor((copper % 10000) / 100)
+	local coin = copper % 100
+	return string.format("%dg %ds %dc", gold, silver, coin)
+end
+
+local function FormatBadgeCount(count)
+	count = tonumber(count) or 0
+	if count >= 100000 then
+		return string.format("%.0fk", count / 1000)
+	end
+	if count >= 10000 then
+		return string.format("%.1fk", count / 1000)
+	end
+	return tostring(count)
+end
+
+local function ResolveEntryLabel(def, itemName)
+	if def.labelKey then
+		return Addon:T(def.labelKey)
+	end
+	if def.kind == "gold" then
+		return Addon:T("CD_CURRENCY_GOLD")
+	end
+	if def.kind == "honor" then
+		return Addon:T("CD_CURRENCY_HONOR")
+	end
+	if def.kind == "arena" then
+		return Addon:T("CD_CURRENCY_ARENA")
+	end
+	if itemName and itemName ~= "" then
+		return itemName
+	end
+	return tostring(def.itemId or "?")
+end
+
+local function ResolveEntryCount(def)
+	if def.kind == "gold" then
+		local copper = (type(GetMoney) == "function" and GetMoney()) or 0
+		return copper, FormatMoneyShort(copper), FormatMoneyLong(copper)
+	end
+	if def.kind == "honor" then
+		local honor = (type(GetHonorCurrency) == "function" and GetHonorCurrency()) or 0
+		return honor, FormatBadgeCount(honor), tostring(honor)
+	end
+	if def.kind == "arena" then
+		local arena = (type(GetArenaCurrency) == "function" and GetArenaCurrency()) or 0
+		return arena, FormatBadgeCount(arena), tostring(arena)
+	end
+	if def.kind == "item" and def.itemId then
+		local count = 0
+		if type(GetItemCount) == "function" then
+			count = GetItemCount(def.itemId, true) or 0
+		end
+		return count, FormatBadgeCount(count), tostring(count)
+	end
+	return 0, "0", "0"
+end
+
+local function ResolveEntryIcon(def)
+	if def.kind == "honor" or def.kind == "arena" then
+		return PvpCurrencyIcon(def.kind)
+	end
+	if def.icon and def.icon ~= "" then
+		return def.icon
+	end
+	-- GetItemInfo: texture is the 10th return on 3.3.5a (3rd is quality).
+	if def.kind == "item" and def.itemId and type(GetItemInfo) == "function" then
+		local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(def.itemId)
+		if type(texture) == "string" and texture ~= "" then
+			return texture
+		end
+	end
+	return "Interface\\Icons\\INV_Misc_QuestionMark"
+end
+
+local function EntryIdForDef(def)
+	if def.kind == "item" then
+		return def.itemId
+	end
+	return def.kind
+end
+
+-- Always prefer catalog icons so stale SavedVariables (wrong GetItemInfo returns) never show red squares.
+function Addon:ResolveCurrencyIcon(entryId)
+	if entryId == nil then
+		return "Interface\\Icons\\INV_Misc_QuestionMark"
+	end
+	if entryId == "honor" or entryId == "arena" then
+		return PvpCurrencyIcon(entryId)
+	end
+	for index = 1, #CURRENCY_ENTRY_DEFS do
+		local def = CURRENCY_ENTRY_DEFS[index]
+		if EntryIdForDef(def) == entryId or tostring(EntryIdForDef(def)) == tostring(entryId) then
+			return ResolveEntryIcon(def)
+		end
+	end
+	return "Interface\\Icons\\INV_Misc_QuestionMark"
+end
+
+-- Gold, emblems, honor/arena, and quest tokens for the logged-in character (Currency tab).
+function Addon:CollectCharacterCurrency()
+	local entries = {}
+	for index = 1, #CURRENCY_ENTRY_DEFS do
+		local def = CURRENCY_ENTRY_DEFS[index]
+		local itemName
+		if def.kind == "item" and def.itemId and type(GetItemInfo) == "function" then
+			itemName = GetItemInfo(def.itemId)
+		end
+		local count, displayCount, tooltipCount = ResolveEntryCount(def)
+		entries[#entries + 1] = {
+			id = def.kind == "item" and def.itemId or def.kind,
+			label = ResolveEntryLabel(def, itemName),
+			icon = ResolveEntryIcon(def),
+			count = count,
+			displayCount = displayCount,
+			tooltipCount = tooltipCount,
+		}
+	end
+	return { entries = entries }
+end
+
+-- Catalog entry id at a 1-based index (same order as CollectCharacterCurrency).
+function Addon:GetCurrencyEntryIdAt(index)
+	local def = CURRENCY_ENTRY_DEFS[index]
+	if not def then
+		return nil
+	end
+	return EntryIdForDef(def)
+end
+
+-- Format a summed currency count for the cooldowns label column.
+function Addon:FormatCurrencyCount(entryId, count)
+	count = tonumber(count) or 0
+	if entryId == "gold" then
+		return FormatMoneyShort(count)
+	end
+	return FormatBadgeCount(count)
+end
+
+-- Short labels for the currency row in the cooldowns table (same order as entries).
+function Addon:GetCurrencyEntryLabels()
+	local labels = {}
+	for index = 1, #CURRENCY_ENTRY_DEFS do
+		local def = CURRENCY_ENTRY_DEFS[index]
+		local itemName
+		if def.kind == "item" and def.itemId and type(GetItemInfo) == "function" then
+			itemName = GetItemInfo(def.itemId)
+		end
+		labels[index] = ResolveEntryLabel(def, itemName)
+	end
+	return labels
+end
+
 -- Current character name, english class token, and primary talent tree name.
 function Addon:CollectCharacterInfo()
 	local name = UnitName("player") or ""
