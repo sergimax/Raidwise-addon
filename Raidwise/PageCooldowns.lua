@@ -151,6 +151,26 @@ local function CreateCurrencyChip(parent)
 	return chip
 end
 
+local function ColorText(color, text)
+	local red = math.floor((color[1] or 1) * 255 + 0.5)
+	local green = math.floor((color[2] or 1) * 255 + 0.5)
+	local blue = math.floor((color[3] or 1) * 255 + 0.5)
+	return string.format("|cff%02x%02x%02x%s|r", red, green, blue, text)
+end
+
+local function FormatLockoutDisplayText(variants)
+	local parts = {}
+	for index = 1, #variants do
+		local variant = variants[index]
+		if index > 1 then
+			parts[#parts + 1] = " "
+		end
+		local color = variant.heroic and UI.TEXT_ALERT or UI.GOLD
+		parts[#parts + 1] = ColorText(color, variant.tag)
+	end
+	return table.concat(parts)
+end
+
 local function CreateCooldownValueCell(parent)
 	local cell = CreateFrame("Frame", nil, parent)
 	cell:SetHeight(UI.CD_ROW_H)
@@ -172,7 +192,16 @@ local function CreateCooldownValueCell(parent)
 		if self.tooltipType and self.tooltipType ~= "" then
 			GameTooltip:AddLine(self.tooltipType, 0.8, 0.8, 0.8)
 		end
-		if self.tooltipLines then
+		if self.tooltipEntries then
+			for lineIndex = 1, #self.tooltipEntries do
+				local entry = self.tooltipEntries[lineIndex]
+				if entry.heroic then
+					GameTooltip:AddLine(entry.text, UI.TEXT_ALERT[1], UI.TEXT_ALERT[2], UI.TEXT_ALERT[3])
+				else
+					GameTooltip:AddLine(entry.text, 1, 1, 1)
+				end
+			end
+		elseif self.tooltipLines then
 			for lineIndex = 1, #self.tooltipLines do
 				GameTooltip:AddLine(self.tooltipLines[lineIndex], 1, 1, 1)
 			end
@@ -526,6 +555,7 @@ function Addon:RefreshCooldownTable()
 			local saved = rowData.cells[character.key]
 			cell.tooltipTitle = rowData.name
 			cell.tooltipType = rowData.typeLabel
+			cell.tooltipEntries = nil
 			cell.tooltipLines = nil
 			cell.tooltipBody = nil
 			if rowData.kind == "currency" then
@@ -548,10 +578,12 @@ function Addon:RefreshCooldownTable()
 				end
 			else
 				ConfigureLockoutCell(cell, rowHeight)
-				if saved and saved.displayText then
+				if saved and saved.variants and #saved.variants > 0 then
+					cell.text:SetText(FormatLockoutDisplayText(saved.variants))
+					cell.tooltipEntries = saved.tooltipEntries
+				elseif saved and saved.displayText then
 					cell.text:SetText(saved.displayText)
 					W.SetFontColor(cell.text, UI.GOLD)
-					cell.tooltipLines = saved.tooltipLines
 				else
 					cell.text:SetText("-")
 					W.SetFontColor(cell.text, UI.TEXT_DISABLED)

@@ -124,15 +124,24 @@ local function FinalizeLockoutCell(cellData)
 	end
 	table.sort(cellData.variants, CompareVariants)
 	local tags = {}
-	local tooltipLines = {}
+	local variants = {}
+	local tooltipEntries = {}
 	for index = 1, #cellData.variants do
 		local variant = cellData.variants[index]
 		tags[#tags + 1] = variant.tag
-		tooltipLines[#tooltipLines + 1] = variant.tooltipLine
+		variants[#variants + 1] = {
+			tag = variant.tag,
+			heroic = variant.heroic and true or false,
+		}
+		tooltipEntries[#tooltipEntries + 1] = {
+			text = variant.tooltipLine,
+			heroic = variant.heroic and true or false,
+		}
 	end
 	return {
 		displayText = table.concat(tags, " "),
-		tooltipLines = tooltipLines,
+		variants = variants,
+		tooltipEntries = tooltipEntries,
 	}
 end
 
