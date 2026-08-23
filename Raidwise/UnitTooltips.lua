@@ -1,6 +1,6 @@
 -- Append personal / community rating lines to the default unit GameTooltip.
--- Uses OnTooltipSetUnit (GearScore-style) plus UPDATE_MOUSEOVER_UNIT /
--- PLAYER_TARGET_CHANGED (Reputation-style) for Wrath 3.3.5a reliability.
+-- Only add on a fresh SetUnit fill (OnTooltipSetUnit). Mouseover retries must
+-- not AddLine when switching raid-frame units or lines stack on the same tooltip.
 
 local Addon = Raidwise
 
@@ -40,6 +40,20 @@ local function ClearAppendMarker(tooltip)
 	end
 end
 
+local function ResolveTooltipUnit(tooltip)
+	local _, unit = tooltip:GetUnit()
+	if unit and UnitExists(unit) then
+		return unit
+	end
+	if UnitExists("mouseover") and UnitIsPlayer("mouseover") then
+		return "mouseover"
+	end
+	if UnitExists("target") and UnitIsPlayer("target") then
+		return "target"
+	end
+	return nil
+end
+
 local function AppendRatingLines(tooltip, unit)
 	if not tooltip or not unit or not UnitExists(unit) then
 		return false
@@ -59,10 +73,14 @@ local function AppendRatingLines(tooltip, unit)
 		return false
 	end
 
-	-- Skip only if we already appended for this fill (mouseover retries).
-	-- Shift / SetUnit rebuilds the tooltip without OnHide — marker is cleared there.
-	local lineCount = tooltip.NumLines and tooltip:NumLines() or 0
-	if tooltip.rwRatingGuid == guid and tooltip.rwRatingLineCount and lineCount >= tooltip.rwRatingLineCount then
+	-- Already appended for this exact tooltip fill.
+	if tooltip.rwRatingGuid == guid then
+		return false
+	end
+
+	-- Different unit still showing previous Raidwise block — do not stack.
+	-- Caller must rebuild via SetUnit (OnTooltipSetUnit) instead of AddLine.
+	if tooltip.rwRatingGuid and tooltip.rwRatingGuid ~= guid then
 		return false
 	end
 
@@ -86,30 +104,44 @@ local function AppendRatingLines(tooltip, unit)
 	return true
 end
 
-local function TryAppendFromTooltip(tooltip)
+local rebuilding
+local function RebuildTooltipUnit(tooltip, unit)
+	if rebuilding or not tooltip or not unit then
+		return false
+	end
+	rebuilding = true
+	ClearAppendMarker(tooltip)
+	tooltip:SetUnit(unit)
+	rebuilding = false
+	return true
+end
+
+local function TryAppendFromTooltip(tooltip, opts)
+	opts = opts or {}
 	tooltip = tooltip or GameTooltip
 	if not tooltip or not tooltip.IsShown or not tooltip:IsShown() then
 		return false
 	end
-	local _, unit = tooltip:GetUnit()
-	if not unit then
-		if UnitExists("mouseover") then
-			unit = "mouseover"
-		elseif UnitExists("target") then
-			unit = "target"
-		end
-	end
+	local unit = ResolveTooltipUnit(tooltip)
 	if not unit then
 		return false
 	end
+
+	local guid = UnitGUID(unit) or ""
+	if guid ~= "" and tooltip.rwRatingGuid and tooltip.rwRatingGuid ~= guid then
+		if opts.allowRebuild then
+			return RebuildTooltipUnit(tooltip, unit)
+		end
+		return false
+	end
+
 	return AppendRatingLines(tooltip, unit)
 end
 
 local function OnTooltipSetUnit(tooltip)
-	-- SetUnit rebuilds lines (Shift item compare, inspect refresh, etc.).
-	-- Clear the marker so we re-append like GearScore does every time.
+	-- Fresh SetUnit fill (raid frame hover change, Shift refresh, etc.).
 	ClearAppendMarker(tooltip)
-	TryAppendFromTooltip(tooltip)
+	TryAppendFromTooltip(tooltip, { allowRebuild = false })
 end
 
 local function OnTooltipCleared(tooltip)
@@ -121,38 +153,19 @@ local function OnTooltipHide(tooltip)
 end
 
 local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
-eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
-eventFrame:SetScript("OnEvent", function(_, event, key)
-	if event == "MODIFIER_STATE_CHANGED" then
-		-- Shift often rebuilds the tooltip; re-append only if our block was wiped.
-		if GameTooltip:IsShown() then
-			local lineCount = GameTooltip.NumLines and GameTooltip:NumLines() or 0
-			if GameTooltip.rwRatingLineCount and lineCount < GameTooltip.rwRatingLineCount then
-				ClearAppendMarker(GameTooltip)
-			end
-			TryAppendFromTooltip(GameTooltip)
-		end
+eventFrame:SetScript("OnEvent", function()
+	-- Shift compare often wipes addon lines without a clean remount; rebuild once.
+	if not GameTooltip:IsShown() then
 		return
 	end
-	-- Retry briefly so Blizzard / other addons finish filling the tooltip.
-	eventFrame.elapsed = 0
-	eventFrame.attempts = 0
-	eventFrame.rwTicker = true
-	eventFrame:SetScript("OnUpdate", function(self, elapsed)
-		self.elapsed = (self.elapsed or 0) + elapsed
-		if self.elapsed < 0.05 then
-			return
+	local lineCount = GameTooltip.NumLines and GameTooltip:NumLines() or 0
+	if GameTooltip.rwRatingLineCount and lineCount < GameTooltip.rwRatingLineCount then
+		local unit = ResolveTooltipUnit(GameTooltip)
+		if unit then
+			RebuildTooltipUnit(GameTooltip, unit)
 		end
-		self.elapsed = 0
-		self.attempts = (self.attempts or 0) + 1
-		if TryAppendFromTooltip(GameTooltip) or self.attempts >= 8 then
-			self:SetScript("OnUpdate", nil)
-			self.rwTicker = nil
-			self.attempts = 0
-		end
-	end)
+	end
 end)
 
 local function InstallTooltipHooks()
