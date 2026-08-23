@@ -1,6 +1,6 @@
 -- Append personal / community rating lines to the default unit GameTooltip.
--- Only add on a fresh SetUnit fill (OnTooltipSetUnit). Mouseover retries must
--- not AddLine when switching raid-frame units or lines stack on the same tooltip.
+-- Primary path: OnTooltipSetUnit (must not require IsShown — it often runs before Show).
+-- Fallback: UPDATE_MOUSEOVER_UNIT only when nothing was appended yet, or rebuild on GUID change.
 
 local Addon = Raidwise
 
@@ -75,11 +75,10 @@ local function AppendRatingLines(tooltip, unit)
 
 	-- Already appended for this exact tooltip fill.
 	if tooltip.rwRatingGuid == guid then
-		return false
+		return true
 	end
 
-	-- Different unit still showing previous Raidwise block — do not stack.
-	-- Caller must rebuild via SetUnit (OnTooltipSetUnit) instead of AddLine.
+	-- Different unit still has our previous block — do not stack AddLine.
 	if tooltip.rwRatingGuid and tooltip.rwRatingGuid ~= guid then
 		return false
 	end
@@ -116,12 +115,18 @@ local function RebuildTooltipUnit(tooltip, unit)
 	return true
 end
 
+-- opts.requireShown: mouseover fallback only (SetUnit path must run before Show).
+-- opts.allowRebuild: if GUID changed with stale lines, SetUnit instead of stacking.
 local function TryAppendFromTooltip(tooltip, opts)
 	opts = opts or {}
 	tooltip = tooltip or GameTooltip
-	if not tooltip or not tooltip.IsShown or not tooltip:IsShown() then
+	if not tooltip then
 		return false
 	end
+	if opts.requireShown and (not tooltip.IsShown or not tooltip:IsShown()) then
+		return false
+	end
+
 	local unit = ResolveTooltipUnit(tooltip)
 	if not unit then
 		return false
@@ -139,9 +144,9 @@ local function TryAppendFromTooltip(tooltip, opts)
 end
 
 local function OnTooltipSetUnit(tooltip)
-	-- Fresh SetUnit fill (raid frame hover change, Shift refresh, etc.).
+	-- Fresh SetUnit fill. Do not require IsShown — Blizzard often fires this first.
 	ClearAppendMarker(tooltip)
-	TryAppendFromTooltip(tooltip, { allowRebuild = false })
+	TryAppendFromTooltip(tooltip, { requireShown = false, allowRebuild = false })
 end
 
 local function OnTooltipCleared(tooltip)
@@ -153,19 +158,55 @@ local function OnTooltipHide(tooltip)
 end
 
 local eventFrame = CreateFrame("Frame")
+eventFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
-eventFrame:SetScript("OnEvent", function()
-	-- Shift compare often wipes addon lines without a clean remount; rebuild once.
-	if not GameTooltip:IsShown() then
+eventFrame:SetScript("OnEvent", function(_, event)
+	if event == "MODIFIER_STATE_CHANGED" then
+		if not GameTooltip:IsShown() then
+			return
+		end
+		local lineCount = GameTooltip.NumLines and GameTooltip:NumLines() or 0
+		if GameTooltip.rwRatingLineCount and lineCount < GameTooltip.rwRatingLineCount then
+			local unit = ResolveTooltipUnit(GameTooltip)
+			if unit then
+				RebuildTooltipUnit(GameTooltip, unit)
+			end
+		end
 		return
 	end
-	local lineCount = GameTooltip.NumLines and GameTooltip:NumLines() or 0
-	if GameTooltip.rwRatingLineCount and lineCount < GameTooltip.rwRatingLineCount then
-		local unit = ResolveTooltipUnit(GameTooltip)
-		if unit then
-			RebuildTooltipUnit(GameTooltip, unit)
+
+	-- Fallback when OnTooltipSetUnit ran too early or was skipped: append once
+	-- after Show, or rebuild if the hovered GUID changed (raid frames).
+	eventFrame.elapsed = 0
+	eventFrame.attempts = 0
+	eventFrame:SetScript("OnUpdate", function(self, elapsed)
+		self.elapsed = (self.elapsed or 0) + elapsed
+		if self.elapsed < 0.05 then
+			return
 		end
-	end
+		self.elapsed = 0
+		self.attempts = (self.attempts or 0) + 1
+
+		local tooltip = GameTooltip
+		local done = false
+		if tooltip:IsShown() then
+			local unit = ResolveTooltipUnit(tooltip)
+			local guid = unit and UnitGUID(unit) or ""
+			if guid ~= "" and tooltip.rwRatingGuid and tooltip.rwRatingGuid ~= guid then
+				done = RebuildTooltipUnit(tooltip, unit)
+			elseif not tooltip.rwRatingGuid then
+				done = TryAppendFromTooltip(tooltip, { requireShown = true, allowRebuild = false })
+			else
+				done = true
+			end
+		end
+
+		if done or self.attempts >= 8 then
+			self:SetScript("OnUpdate", nil)
+			self.attempts = 0
+		end
+	end)
 end)
 
 local function InstallTooltipHooks()
