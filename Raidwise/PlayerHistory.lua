@@ -280,6 +280,7 @@ local function AppendMigratedEvent(entry, eventTypeId, eventAt, creatorId)
 	}
 end
 
+-- REFACTOR candidate: one-shot v1→v2 migration routing tags into facts/events/drops.
 local function MigrateLegacyPersonalTags(entry, personal)
 	if personal.reputationV2 then
 		return
@@ -420,6 +421,7 @@ function Addon:NormalizeCommunityRating(community)
 	}
 end
 
+-- REFACTOR candidate: GUID lookup then name/realm scan; mock community fallback is non-obvious.
 function Addon:GetCommunityRating(entryOrMember)
 	local entry = nil
 	local guid = nil
@@ -595,6 +597,7 @@ function Addon:GetHistoryEvents(entryOrMember)
 	return list
 end
 
+-- DELETE candidate: no callers; CharacterProfile hardcodes opinionOrder instead.
 function Addon:RatingOpinions()
 	return OPINION_ORDER, OPINIONS
 end
@@ -615,6 +618,7 @@ function Addon:MaxPersonalFacts()
 	return MAX_PERSONAL_FACTS
 end
 
+-- DELETE candidate: no callers; tag limit hardcoded as 3 in CharacterProfile.
 function Addon:MaxTagsPerGroup()
 	return MAX_TAGS_PER_GROUP
 end
@@ -623,10 +627,12 @@ function Addon:RatingTagById(tagId)
 	return TAGS_BY_ID[tagId]
 end
 
+-- DELETE candidate: no callers; use IsValidPersonalFact / FACTS_BY_ID internally.
 function Addon:FactById(factId)
 	return FACTS_BY_ID[factId]
 end
 
+-- DELETE candidate: no callers; use IsValidEventType / EVENTS_BY_ID internally.
 function Addon:EventTypeById(eventTypeId)
 	return EVENTS_BY_ID[eventTypeId]
 end
@@ -814,6 +820,7 @@ function Addon:RatingTagColoredSummary(tags, limit)
 	return summary
 end
 
+-- DELETE candidate: no callers in Raidwise/ (profile uses PaintOpinionLabels instead).
 function Addon:RatingDisplayText(entryOrMember)
 	local personal = self:GetPersonalRating(entryOrMember)
 	local opinion = self:RatingOpinionLabel(personal.opinion)
@@ -823,6 +830,7 @@ function Addon:RatingDisplayText(entryOrMember)
 	return self:T("RATING_DISPLAY_WITH_TAGS", opinion, tostring(#personal.tags))
 end
 
+-- DELETE candidate: no callers in Raidwise/.
 function Addon:RatingProfileSummary(entryOrMember)
 	local personal = self:GetPersonalRating(entryOrMember)
 	local opinion = self:RatingWrapColor(
@@ -1167,6 +1175,7 @@ function Addon:BuildHistoryRoster()
 	return roster
 end
 
+-- REFACTOR candidate: long field-by-field merge of live roster member vs SavedVariables history.
 function Addon:HistoryProfileForMember(member)
 	if type(member) ~= "table" then
 		return member
@@ -1249,6 +1258,7 @@ function Addon:HistoryProfileForMember(member)
 	return profile
 end
 
+-- REFACTOR candidate: normalize + diff logging for opinion/tags/facts in one function.
 function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 	if not guid or guid == "" then
 		return nil
@@ -1314,6 +1324,7 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 	return entry
 end
 
+-- REFACTOR candidate: diff draft vs stored events, assign IDs, append change log.
 function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 	if not guid or guid == "" then
 		return nil
@@ -1378,6 +1389,7 @@ function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 	return entry
 end
 
+-- DELETE candidate: no callers; events are drafted in profile then committed via SaveHistoryEventsForGuid.
 function Addon:AddHistoryEventForGuid(guid, seed, eventTypeId)
 	if not guid or guid == "" or not self:IsValidEventType(eventTypeId) then
 		return nil
@@ -1399,6 +1411,7 @@ function Addon:AddHistoryEventForGuid(guid, seed, eventTypeId)
 	return entry, event
 end
 
+-- DELETE candidate: no callers; removal is draft-only via RemoveProfileEvent.
 function Addon:RemoveHistoryEventForGuid(guid, eventId)
 	if not guid or guid == "" or not eventId or eventId == "" then
 		return nil

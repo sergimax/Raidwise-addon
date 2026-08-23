@@ -204,6 +204,7 @@ local function BuildCurrencyCell(currency)
 	}
 end
 
+-- REFACTOR candidate: aggregates currency across characters into summary labels + row cells.
 local function AppendCurrencyRow(rows, characters, charList)
 	local entryLabels = {}
 	if Addon.GetCurrencyEntryLabels then
@@ -402,6 +403,7 @@ local function CharacterDisplayName(character, characters)
 end
 
 -- Rows are unique instance (raid/dungeon); columns are stored account characters.
+-- REFACTOR candidate: pivot lockouts + merge variant cells + append currency row (~70 lines).
 function Addon:BuildCooldownTable()
 	self:PruneExpiredCharacterLockouts()
 	local characters = EnsureCharactersTable() or {}
@@ -477,6 +479,7 @@ function Addon:BuildCooldownTable()
 	}
 end
 
+-- REFACTOR candidate: duplicate of CharacterExport.lua JsonEscape; consolidate shared JSON helpers.
 local function JsonEscape(value)
 	local str = tostring(value or "")
 	str = str:gsub("\\", "\\\\")
@@ -494,6 +497,7 @@ local function FormatJsonBoolean(value)
 	return "false"
 end
 
+-- DELETE candidate: only called from FormatCooldownsExport (also unused).
 local function AppendLockoutObjectsJson(lines, lockouts, baseIndent)
 	baseIndent = baseIndent or "      "
 	local entryIndent = baseIndent .. "  "
@@ -533,7 +537,7 @@ local function SortedCharacterKeys(characters)
 	return keys
 end
 
--- JSON export of every stored character and their current lockouts.
+-- DELETE candidate: no callers in Raidwise/; duplicate of per-character export in CharacterExport.lua.
 function Addon:FormatCooldownsExport()
 	self:SaveCurrentCharacterLockouts()
 	self:PruneExpiredCharacterLockouts()

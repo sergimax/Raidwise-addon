@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.13.0"
+Addon.version = "1.14.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -133,7 +133,7 @@ function Addon:OnUpdateInstanceInfo()
 	end
 end
 
-function Addon:OnInspectTalentReadyEvent(unit)
+function Addon:OnInspectTalentReadyEvent(_unit) -- _unit unused; event always routes to OnInspectTalentReady()
 	if self.OnInspectTalentReady then
 		self:OnInspectTalentReady()
 	end

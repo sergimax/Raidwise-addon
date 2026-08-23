@@ -4,6 +4,7 @@
 
 local Addon = Raidwise
 
+-- REFACTOR candidate: GUID lookup then linear scan of entire history store by name/realm.
 local function FindHistoryEntryForUnit(unit)
 	if not unit or not UnitExists(unit) then
 		return nil, nil
@@ -161,6 +162,7 @@ local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
+-- REFACTOR candidate: polling fallback + GUID-change rebuild + Shift refresh (subtle tooltip timing).
 eventFrame:SetScript("OnEvent", function(_, event)
 	if event == "MODIFIER_STATE_CHANGED" then
 		if not GameTooltip:IsShown() then

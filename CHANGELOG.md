@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.14.0] - 2026-08-24
+
+### Changed
+- Main window and Character profile use the Classic theme (navy panels, gold accents, bronze borders)
+- Character profile opens on the **History** tab by default
+- Character profile tab renamed **Note** → **Edit note** (RU: **Изменить заметку**)
+
+### Fixed
+- Party roster and History: class, spec, and buff icons no longer overlap the top row border
+
 ## [1.13.0] - 2026-08-24
 
 ### Added

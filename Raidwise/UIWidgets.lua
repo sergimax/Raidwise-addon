@@ -52,8 +52,8 @@ Addon.UITheme = {
 	PROFILE_ICON = 24,
 	CD_SCROLLBAR_W = 16,
 	CD_HSCROLL_H = 16,
-	CD_ROW_A = { 0.18, 0.18, 0.18, 0.90 },
-	CD_ROW_B = { 0.14, 0.14, 0.14, 0.90 },
+	CD_ROW_A = { 0.094, 0.094, 0.141, 0.95 },
+	CD_ROW_B = { 0.078, 0.078, 0.118, 0.95 },
 
 	-- Raid roster tab
 	RAID_BUFF_ICON = 18,
@@ -62,18 +62,20 @@ Addon.UITheme = {
 	ROSTER_STATS_H = 16,
 	RAID_STATS_H = 32,
 
-	-- Colors
-	GOLD = { 0.890, 0.729, 0.016 },
-	TEXT_IDLE = { 0.80, 0.80, 0.80 },
-	PANEL_BG = { 0.15, 0.15, 0.15, 0.96 },
-	TITLE_BG = { 0.20, 0.20, 0.20, 1 },
-	BTN_IDLE = { 0.18, 0.18, 0.18, 0.95 },
-	BTN_HOVER = { 0.28, 0.28, 0.28, 1 },
-	BTN_SELECTED = { 0.32, 0.28, 0.12, 1 },
-	BTN_DISABLED = { 0.12, 0.12, 0.12, 0.90 },
-	TEXT_HOVER = { 1.00, 1.00, 0.40 },
-	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
-	TEXT_ALERT = { 0.90, 0.20, 0.20 },
+	-- Colors — Classic theme (preview/themes.html #classic)
+	GOLD = { 1.000, 0.824, 0.000 },
+	GOLD_DIM = { 0.769, 0.627, 0.290 }, -- DELETE candidate: defined but never referenced in Raidwise/.
+	BORDER = { 0.420, 0.341, 0.188, 1 },
+	TEXT_IDLE = { 1.000, 0.933, 0.733 },
+	PANEL_BG = { 0.071, 0.071, 0.110, 0.98 },
+	TITLE_BG = { 0.110, 0.110, 0.165, 1 },
+	BTN_IDLE = { 0.125, 0.110, 0.165, 0.98 },
+	BTN_HOVER = { 0.180, 0.150, 0.200, 1 },
+	BTN_SELECTED = { 0.230, 0.188, 0.125, 1 },
+	BTN_DISABLED = { 0.055, 0.055, 0.078, 0.95 },
+	TEXT_HOVER = { 1.000, 0.910, 0.550 },
+	TEXT_DISABLED = { 0.690, 0.627, 0.439 },
+	TEXT_ALERT = { 1.000, 0.251, 0.251 },
 }
 
 Addon.Widgets = {}
@@ -91,6 +93,7 @@ function W.ContentInnerWidth()
 	return UI.CONTENT_WIDTH - (UI.PAD * 2)
 end
 
+-- REFACTOR candidate: inline Edge helper creates four 1px border textures.
 function W.ApplyPlainPanel(frame, color)
 	color = color or UI.PANEL_BG
 	frame:SetBackdrop({
@@ -102,13 +105,15 @@ function W.ApplyPlainPanel(frame, color)
 	frame:SetBackdropColor(color[1], color[2], color[3], color[4] or 1)
 
 	if frame.rwBorderTop then
+		W.ApplyPanelBorderColor(frame)
 		return
 	end
 
 	local function Edge(layerPointA, relA, layerPointB, relB, width, height)
 		local tex = frame:CreateTexture(nil, "BORDER")
 		tex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
-		tex:SetVertexColor(0, 0, 0, 1)
+		local border = UI.BORDER or { 0, 0, 0, 1 }
+		tex:SetVertexColor(border[1], border[2], border[3], border[4] or 1)
 		tex:SetPoint(layerPointA, frame, relA)
 		tex:SetPoint(layerPointB, frame, relB)
 		if width then
@@ -124,6 +129,17 @@ function W.ApplyPlainPanel(frame, color)
 	frame.rwBorderBottom = Edge("BOTTOMLEFT", "BOTTOMLEFT", "BOTTOMRIGHT", "BOTTOMRIGHT", nil, 1)
 	frame.rwBorderLeft = Edge("TOPLEFT", "TOPLEFT", "BOTTOMLEFT", "BOTTOMLEFT", 1, nil)
 	frame.rwBorderRight = Edge("TOPRIGHT", "TOPRIGHT", "BOTTOMRIGHT", "BOTTOMRIGHT", 1, nil)
+end
+
+function W.ApplyPanelBorderColor(frame)
+	local border = UI.BORDER or { 0, 0, 0, 1 }
+	local r, g, b, a = border[1], border[2], border[3], border[4] or 1
+	if frame.rwBorderTop then
+		frame.rwBorderTop:SetVertexColor(r, g, b, a)
+		frame.rwBorderBottom:SetVertexColor(r, g, b, a)
+		frame.rwBorderLeft:SetVertexColor(r, g, b, a)
+		frame.rwBorderRight:SetVertexColor(r, g, b, a)
+	end
 end
 
 function W.SetFontColor(fontString, color)
@@ -235,6 +251,7 @@ function W.FitCopyBoxToText(box)
 	box:SetHeight(math.max(UI.COPY_MIN_H, lines * lineHeight + insets))
 end
 
+-- REFACTOR candidate: ScrollFrame + EditBox + cursor/scroll sync + auto-height fitting.
 function W.CreateCopyBox(parent, scrollName, boxName)
 	local host = CreateFrame("Frame", nil, parent)
 
@@ -243,7 +260,8 @@ function W.CreateCopyBox(parent, scrollName, boxName)
 	scrollBG:SetPoint("BOTTOMRIGHT", -UI.COPY_SCROLLBAR_W, 0)
 	scrollBG:SetBackdrop(W.COPY_BACKDROP)
 	scrollBG:SetBackdropColor(0, 0, 0, 1)
-	scrollBG:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+	local border = UI.BORDER or { 0.4, 0.4, 0.4, 1 }
+	scrollBG:SetBackdropBorderColor(border[1], border[2], border[3], border[4] or 1)
 
 	local scroll = CreateFrame("ScrollFrame", scrollName, host, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", scrollBG, "TOPLEFT", UI.COPY_PAD_L, -UI.COPY_PAD_T)
@@ -315,7 +333,8 @@ function W.CreateLineCopyBox(parent, boxName)
 	host:SetHeight(UI.URL_BOX_H)
 	host:SetBackdrop(W.COPY_BACKDROP)
 	host:SetBackdropColor(0, 0, 0, 1)
-	host:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+	local border = UI.BORDER or { 0.4, 0.4, 0.4, 1 }
+	host:SetBackdropBorderColor(border[1], border[2], border[3], border[4] or 1)
 
 	local box = CreateFrame("EditBox", boxName, host)
 	box:SetPoint("TOPLEFT", 8, -4)
@@ -399,7 +418,9 @@ function W.TableIconInset(columnWidth, iconSize)
 end
 
 function W.TableIconTopOffset(iconSize)
-	return -math.floor((UI.CD_ROW_H - iconSize) / 2)
+	local inset = 1
+	local innerH = UI.CD_ROW_H - (inset * 2)
+	return -(inset + math.floor((innerH - iconSize) / 2))
 end
 
 function W.CreateBuffIconHost(parent)
@@ -470,6 +491,7 @@ function W.CreateCooldownScrollBar(parent, orientation)
 	return bar
 end
 
+-- REFACTOR candidate: shared H/V scrollbar visibility for table pages.
 function W.LayoutTableScrollBars(page)
 	local host = page.tableHost
 	local scroll = page.scroll

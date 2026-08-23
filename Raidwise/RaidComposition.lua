@@ -849,6 +849,7 @@ function Addon:CompositionMembers(refreshGearScore)
 	return members
 end
 
+-- REFACTOR candidate: triple-nested scan of EFFECTS catalog vs roster members (~100 lines).
 function Addon:AnalyzeRaidComposition(members)
 	local roles = {
 		tank = { count = 0, names = {} },

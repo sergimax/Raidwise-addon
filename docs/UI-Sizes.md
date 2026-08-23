@@ -17,9 +17,11 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Menu title bar | height **20** | Top of menu; drag handle; label “Menu” |
 | Close button | **16 × 16** | Right side of content title bar |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
-| Panel fill | RGB **0.15** | `ChatFrameBackground`, alpha 0.96 |
-| Title / status fill | RGB **0.20** | Same texture |
-| 1 px border | RGB **0,0,0** | Four edge textures (3.3.5-safe, Details-like) |
+| Panel fill | **#12121c** ≈ RGB **0.07, 0.07, 0.11** | Classic theme; alpha 0.98 |
+| Title / status fill | **#1c1c2a** ≈ RGB **0.11, 0.11, 0.165** | Same texture |
+| 1 px border | **#6b5730** ≈ RGB **0.42, 0.34, 0.19** | Four edge textures (bronze) |
+| Accent gold | **#ffd200** ≈ RGB **1.00, 0.82, 0.00** | Titles, selected labels |
+| Idle text | **#ffeebb** ≈ RGB **1.00, 0.93, 0.73** | Body / menu idle |
 
 ## Left menu
 
@@ -29,10 +31,10 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Menu icon | **16 × 16** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
 | Gap between buttons | 2 px | |
 | First button offset | 8 px below menu title | |
-| Idle fill | RGB **0.18** | Menu + action buttons |
-| Hover fill | RGB **0.28** | Label `{1, 1, 0.4}` |
-| Selected fill | **0.32, 0.28, 0.12** | Gold label `{0.89, 0.73, 0.016}` |
-| Disabled fill | RGB **0.12** | Label `{0.45, 0.45, 0.45}` |
+| Idle fill | **0.125, 0.110, 0.165** | Menu + action buttons |
+| Hover fill | **0.180, 0.150, 0.200** | Label `{1.00, 0.91, 0.55}` |
+| Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
+| Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
 
 Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Party roster** (Prayer of Fortitude), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **History** (book), **Settings** (gear), **Info** (question mark).
 
@@ -92,18 +94,19 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Refresh | **96 × 28** | Top-right of the page |
 | Instance column | **170** | Name + type stacked |
 | Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`), **Remove** **82 × 16** on non-current characters |
-| Header row | **68** | Title-bar fill; spec icon, name, last check, optional Remove |
-| Data row | **34** | Alternate fills RGB **0.18** / **0.14** |
+| Header row | **68** | Page-local in `PageCooldowns.lua` (taller: spec icon, name, last check, Remove) |
+| Data row | **34** | Alternate fills **0.094 / 0.078** (Classic `CD_ROW_A` / `CD_ROW_B`) |
 | Currency rows | **1** fixed | **Currency** / **Валюта** title + label column; ~**175** px tall; aligned icon+count chips |
 | Vertical scrollbar | **16** | Right of the table; hidden if unused |
 | Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
 
 ## Party roster tab
 
-Same toolbar as Character cooldowns, plus an averages line, then the scroll table (`CD_TOOLBAR_H`, `CD_HEADER_H`, `CD_ROW_H`, scrollbars).
+Same toolbar as Character cooldowns, plus an averages line, then the scroll table (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars).
 
 | Element | Size | Notes |
 |---------|------|-------|
+| Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
 | Averages line | height **16** | `Average iLvl: {n}     Average GS: {n}`; 8 px gap above and below |
 | Columns | **90 + 28 + 28 + 166 + 52 + 44 + 60 + 100 + 176 = 744** | Name, class, spec, buffs, GS, iLvl, Opinion, Tags, Guild |
 | Class column | **18** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
@@ -161,7 +164,7 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Pa
 | Content width | **440** | `460 - 10×2` |
 | Header icons | **24** | Race + class in left cell; spec in right cell (`PROFILE_ICON`); column gap **12** |
 | Summary | height **122** | Opinion, tags, facts, guild, GUID, realm (+ community column) |
-| Profile tabs | height **26** | **History**, **Note**, **Facts**, **Events**, **Memo**; gap **4** |
+| Profile tabs | height **26** | **History**, **Edit note**, **Facts**, **Events**, **Memo**; gap **4**; **History** opens by default |
 | Tab host | fills body below tabs | Panels swap in place |
 | Opinion radios | **3** equal columns × **22** | Exclusive Positive / Neutral / Negative |
 | Tag checkboxes | scrolling columns by category | Max **3** tags per category; category heading gold |
@@ -174,14 +177,15 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Pa
 | History Met / party count | first row of History tab | **Met** left-aligned; **Was in the same party** right-aligned (`meetCount`) |
 | Community mock block | right summary column | Gold heading + wrapped body text |
 
-Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** appears on **Note** / **Facts** / **Events** and commits those drafts (not memo). Hidden on **History** and **Memo**. Header personal note/tags/facts stay on saved values until that commit. Closing without Save discards drafts.
+Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** appears on **Edit note** / **Facts** / **Events** and commits those drafts (not memo). Hidden on **History** and **Memo**. Header personal note/tags/facts stay on saved values until that commit. Closing without Save discards drafts.
 
 ## History tab
 
-Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `CD_HEADER_H`, `CD_ROW_H`, scrollbars). No averages line.
+Same toolbar + scroll table as Party roster (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
 
 | Element | Size | Notes |
 |---------|------|-------|
+| Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
 | Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 140 + 130 + 120 = 822** | Name, class, spec, Opinion, Tags, GS, iLvl, Met in, When, Guild |
 | Class / spec icons | **18** px | Centered in 28 px columns |
 | Opinion column | **70**, center | Symbol `+` / `=` / `-`; color-coded |
@@ -202,11 +206,25 @@ Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels
 
 | Role | Font object | Color |
 |------|-------------|-------|
-| Window / menu titles | `GameFontNormal` | Gold `{0.89, 0.73, 0.016}` |
-| Menu / action buttons | `GameFontNormalSmall` | Idle `{0.8, 0.8, 0.8}` |
-| Version / status / hints | `GameFontNormalSmall` | Idle gray |
+| Window / menu titles | `GameFontNormal` | Gold `{1.00, 0.82, 0.00}` |
+| Menu / action buttons | `GameFontNormalSmall` | Idle `{1.00, 0.93, 0.73}`; hover `{1.00, 0.91, 0.55}`; selected gold |
+| Version / status / hints | `GameFontNormalSmall` | Idle text / `TEXT_DISABLED` |
 | Checkbox & section labels | `GameFontHighlight` | |
 | Export JSON / profile notes | `ChatFontNormal` | |
+
+## Shared widgets (`UIWidgets.lua`)
+
+Key helpers used across pages (not on `Raidwise` directly):
+
+| Helper | Role |
+|--------|------|
+| `ApplyPlainPanel` / `ApplyPanelBorderColor` | Backdrop fill + 1 px bronze edge |
+| `CreatePlainButton` / `SetPlainButtonState` / `SetMenuButtonState` | Menu and action buttons |
+| `CreateCopyBox` / `CreateLineCopyBox` | Export and URL copy areas |
+| `SetSpecOrClassIcon` / `SetSpellIconTexture` / `CreateBuffIconHost` | Class, spec, buff icons |
+| `TableIconInset` / `TableIconTopOffset` | Center icons in table rows |
+| `AttachLayoutVersionLabel` | Profile title-bar `vN` badge |
+| `RatingOpinionSymbol` / `RatingOpinionColor` / `ShowMemberRatingTooltip` | Opinion display in roster tables |
 
 ## Changing sizes
 

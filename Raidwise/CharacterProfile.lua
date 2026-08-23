@@ -8,6 +8,8 @@ local function T(key, ...)
 end
 
 -- Profile-local sizes (keep in sync with docs/UI-Sizes.md Character profile).
+-- Colors come from Addon.UITheme (Classic).
+local Theme = Addon.UITheme
 local UI = {
 	PAD = 10,
 	TITLE_H = 20,
@@ -19,19 +21,21 @@ local UI = {
 	RAID_DETAIL_W = 460,
 	RAID_DETAIL_H = 560,
 	PROFILE_TAB_H = 26,
-	GOLD = { 0.890, 0.729, 0.016 },
-	TEXT_IDLE = { 0.80, 0.80, 0.80 },
-	PANEL_BG = { 0.15, 0.15, 0.15, 0.96 },
-	TITLE_BG = { 0.20, 0.20, 0.20, 1 },
-	BTN_IDLE = { 0.18, 0.18, 0.18, 0.95 },
-	BTN_HOVER = { 0.28, 0.28, 0.28, 1 },
-	BTN_SELECTED = { 0.32, 0.28, 0.12, 1 },
-	BTN_DISABLED = { 0.12, 0.12, 0.12, 0.90 },
-	TEXT_HOVER = { 1.00, 1.00, 0.40 },
-	TEXT_DISABLED = { 0.45, 0.45, 0.45 },
+	GOLD = Theme.GOLD,
+	TEXT_IDLE = Theme.TEXT_IDLE,
+	PANEL_BG = Theme.PANEL_BG,
+	TITLE_BG = Theme.TITLE_BG,
+	BTN_IDLE = Theme.BTN_IDLE,
+	BTN_HOVER = Theme.BTN_HOVER,
+	BTN_SELECTED = Theme.BTN_SELECTED,
+	BTN_DISABLED = Theme.BTN_DISABLED,
+	TEXT_HOVER = Theme.TEXT_HOVER,
+	TEXT_DISABLED = Theme.TEXT_DISABLED,
+	BORDER = Theme.BORDER,
+	-- DELETE candidate: PANEL_BG, BTN_HOVER, BTN_SELECTED, BTN_DISABLED copied but unused (W.ApplyPlainPanel uses Theme directly).
 }
 
-local PROFILE_LAYOUT_VERSION = 26
+local PROFILE_LAYOUT_VERSION = 27
 
 local function GetRatingTagGroups()
 	if Addon.RatingTagGroups then
@@ -88,7 +92,8 @@ local function CreateProfileNotesBox(parent, width, height)
 	host:SetSize(width, height)
 	host:SetBackdrop(W.COPY_BACKDROP)
 	host:SetBackdropColor(0, 0, 0, 1)
-	host:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+	local border = UI.BORDER or { 0.4, 0.4, 0.4, 1 }
+	host:SetBackdropBorderColor(border[1], border[2], border[3], border[4] or 1)
 
 	local scroll = CreateFrame("ScrollFrame", nil, host, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", 6, -6)
@@ -137,6 +142,7 @@ local function ProfileFieldValue(value)
 	return tostring(value)
 end
 
+-- DELETE candidate: never called; race display uses ProfileRaceLabel + SetProfileRaceIcon.
 local function ProfileRaceText(race)
 	return ProfileFieldValue(race)
 end
@@ -259,6 +265,7 @@ local function FormatProfileChangeDetail(change)
 		return T("PROFILE_CHANGE_EVENT_REMOVE", label)
 	end
 	if change.kind == "notes" then
+		-- Legacy change-log rows only; notes saves no longer append history entries.
 		return T("PROFILE_CHANGE_NOTES")
 	end
 	return change.detail or "?"
@@ -311,7 +318,7 @@ UpdateProfileCommitButton = function(frame, tabId)
 	if not frame then
 		return
 	end
-	tabId = tabId or frame.selectedProfileTab or "opinion"
+	tabId = tabId or frame.selectedProfileTab or "history"
 	local showCommit = tabId == "opinion" or tabId == "facts" or tabId == "events"
 	local editable = frame.profileMember and frame.profileMember.guid and frame.profileMember.guid ~= ""
 	if frame.ratingUpdateBtn then
@@ -791,6 +798,7 @@ local function FormatEventContextSuffix(event)
 	return " — " .. suffix
 end
 
+-- REFACTOR candidate: destroys/recreates event rows each refresh; split row factory from localization.
 UpdateProfileEventsPanel = function(frame, member)
 	if not frame or not frame.eventsListContent then
 		return
@@ -872,6 +880,7 @@ UpdateProfileEventsPanel = function(frame, member)
 	frame.eventsListContent:SetHeight(math.max(y, 1))
 end
 
+-- REFACTOR candidate: near-duplicate of CreateProfileTagCheckbox; extract shared draft-checkbox factory.
 local function CreateProfileFactCheckbox(parent, fact, columnWidth)
 	local check = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
 	check:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
@@ -922,6 +931,7 @@ local function CreateProfileFactCheckbox(parent, fact, columnWidth)
 	return check
 end
 
+-- REFACTOR candidate: near-duplicate of CreateProfileFactCheckbox; extract shared draft-checkbox factory.
 local function CreateProfileTagCheckbox(parent, tag, group, columnWidth)
 	local check = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
 	check:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
@@ -1024,6 +1034,7 @@ function Addon:RefreshRatingViews()
 	end
 end
 
+-- REFACTOR candidate: options.opinionOnly / tagsOnly / deferViewRefresh are never passed (unreachable branches).
 function Addon:SaveProfilePersonalRating(opinion, tagIds, factIds, options)
 	local frame = self.raidDetailFrame
 	local member = frame and frame.profileMember
@@ -1097,6 +1108,7 @@ function Addon:ResetProfileNotes()
 	self:SaveProfileNotes("")
 end
 
+-- DELETE candidate: no callers; opinion changes go through ApplyOpinionChoice / radio handlers.
 function Addon:SetProfileOpinion(opinion)
 	ApplyOpinionChoice(opinion)
 end
@@ -1252,6 +1264,7 @@ function Addon:RemoveProfileEvent(eventId)
 	UpdateProfileEventsPanel(frame, frame.profileMember)
 end
 
+-- REFACTOR candidate: ~600 lines — split into header, tab bar, and per-tab panel builders.
 local function CreateRaidCharacterWindow()
 	local frame = CreateFrame("Frame", "RaidwiseRaidCharacterFrame", UIParent)
 	-- Named frames are reused; drop old children so prior layouts cannot steal clicks.
@@ -1449,6 +1462,7 @@ local function CreateRaidCharacterWindow()
 	communityText:SetJustifyV("TOP")
 	frame.communityText = communityText
 
+	-- Tab bar + panels (opinion, facts, events, notes, history).
 	local tabBar = CreateFrame("Frame", nil, body)
 	tabBar:SetPoint("TOPLEFT", summary, "BOTTOMLEFT", 0, -8)
 	tabBar:SetPoint("TOPRIGHT", summary, "BOTTOMRIGHT", 0, -8)
@@ -1854,11 +1868,12 @@ local function CreateRaidCharacterWindow()
 	historyText:SetJustifyV("TOP")
 	frame.historyText = historyText
 
-	frame.selectedProfileTab = "opinion"
+	frame.selectedProfileTab = "history"
 
 	return frame
 end
 
+-- REFACTOR candidate: long populate path + repetitive enable/disable gates for every control group.
 function Addon:ShowRaidCharacterWindow(member)
 	if not member then
 		return
@@ -2063,7 +2078,8 @@ function Addon:ShowRaidCharacterWindow(member)
 			frame.notesResetBtn:Disable()
 		end
 	end
-	self:SelectProfileTab(frame.selectedProfileTab or "opinion")
+	frame.selectedProfileTab = "history"
+	self:SelectProfileTab("history")
 
 	frame:Show()
 	frame:Raise()

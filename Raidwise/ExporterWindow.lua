@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 3
+local SHELL_LAYOUT_VERSION = 4
 
 local MENU_ICON_SIZE = 16
 
@@ -244,6 +244,7 @@ local function ApplyPageHeaders(page)
 	end
 end
 
+-- REFACTOR candidate: shell rebuild — menu, status bar, all pages, layout-version checks.
 function Addon:CreateMainFrame()
 	if self.mainFrame and not ShellNeedsRebuild(self.mainFrame) then
 		return self.mainFrame
@@ -347,6 +348,7 @@ function Addon:CreateMainFrame()
 	return frame
 end
 
+-- REFACTOR candidate: repetitive per-page string refresh; easy to miss a tab when adding pages.
 function Addon:RefreshLocalizedUI()
 	local frame = self.mainFrame
 	if not frame then
@@ -515,6 +517,7 @@ function Addon:HideMainFrame()
 	end
 end
 
+-- DELETE candidate: no callers; slash handler uses ShowMainFrame / HideMainFrame directly.
 function Addon:ToggleMainFrame()
 	if self.mainFrame and self.mainFrame:IsShown() then
 		self:HideMainFrame()

@@ -84,6 +84,7 @@ local function UpdateRosterStatsLabel(page, members)
 	page.statsLabel:SetText(FormatRosterAverages(averageGs, averageIlvl))
 end
 
+-- REFACTOR candidate: wide column factory + tooltips + profile click handler (~100 lines).
 local function CreatePartyRow(parent)
 	local row = CreateFrame("Button", nil, parent)
 	row:SetHeight(UI.CD_ROW_H)
@@ -105,7 +106,7 @@ local function CreatePartyRow(parent)
 	row.classIconHost = CreateFrame("Frame", nil, row)
 	row.classIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
 	row.classIconHost:SetPoint(
-		"LEFT",
+		"TOPLEFT",
 		row,
 		"TOPLEFT",
 		PartyColumnOffset(2) + W.TableIconInset(PARTY_COL_CLASS, UI.ROSTER_ICON),
@@ -117,7 +118,7 @@ local function CreatePartyRow(parent)
 	row.specIconHost = CreateFrame("Frame", nil, row)
 	row.specIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
 	row.specIconHost:SetPoint(
-		"LEFT",
+		"TOPLEFT",
 		row,
 		"TOPLEFT",
 		PartyColumnOffset(3) + W.TableIconInset(PARTY_COL_SPEC, UI.ROSTER_ICON),
@@ -130,7 +131,7 @@ local function CreatePartyRow(parent)
 	for buffIndex = 1, UI.RAID_BUFF_MAX do
 		local host = W.CreateBuffIconHost(row)
 		local x = PartyColumnOffset(4) + 4 + (buffIndex - 1) * (UI.RAID_BUFF_ICON + UI.RAID_BUFF_GAP)
-		host:SetPoint("LEFT", row, "TOPLEFT", x, W.TableIconTopOffset(UI.RAID_BUFF_ICON))
+		host:SetPoint("TOPLEFT", row, "TOPLEFT", x, W.TableIconTopOffset(UI.RAID_BUFF_ICON))
 		row.buffHosts[buffIndex] = host
 	end
 
@@ -286,6 +287,7 @@ local function CreatePartyPage(parent)
 	return page
 end
 
+-- REFACTOR candidate: standard row-pool refresh pattern shared with PageHistory.
 function Addon:RefreshPartyView(refreshGearScore)
 	local frame = self.mainFrame
 	local page = frame and frame.pages and frame.pages.party

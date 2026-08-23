@@ -40,7 +40,21 @@ One-shot per history entry (`personal.reputationV2`):
 | Events | yes | yes |
 | Memo | never | never |
 
-Roster views continue to show opinion + tags only; facts appear in the profile header; events are listed on the Events / History tabs.
+Roster views continue to show opinion + tags only; facts appear in the profile header; events are listed on the Events / History tabs. Character profile opens on the **History** tab by default; opinion/tags are edited on **Edit note**.
+
+## Display helpers (`PlayerHistory.lua`)
+
+Used by roster pages, Character profile, and unit tooltips:
+
+| Method | Role |
+|--------|------|
+| `MergeRatingIntoMember` | Attach saved opinion/tags/facts to a roster row |
+| `RatingOpinionSymbol` / `RatingOpinionLabel` / `RatingOpinionColor` | Opinion column and tooltips |
+| `RatingTagColoredSummary` / `RatingTagSummary` | Tag column and tooltips |
+| `FactColoredSummary` / `FactSummary` | Profile header facts line |
+| `FormatHistoryTime` | History tab and change-log timestamps |
+| `GetHistoryEvents` | Events tab and profile drafts |
+| `BuildUnitTooltipRatingLinesForMember` | Unit tooltip lines (via `UnitTooltips.lua`) |
 
 ## Unit tooltips
 

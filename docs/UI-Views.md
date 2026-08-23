@@ -6,7 +6,7 @@ Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.m
 
 ## Shell
 
-Details-style plain panels: left menu, content page, status bar under both.
+Classic-theme plain panels: left menu, content page, status bar under both.
 
 ```text
 [ Menu 170 ] 2px [ Content 890 x 690 ]
@@ -44,13 +44,13 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 3` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
-| Character profile | `PROFILE_LAYOUT_VERSION = 26` | `CharacterProfile.lua` | Title bar (left of close) |
+| Main shell | `SHELL_LAYOUT_VERSION = 4` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Character profile | `PROFILE_LAYOUT_VERSION = 27` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
-| Composition | `LAYOUT_VERSION = 5` | `PageComposition.lua` | Shell title bar (next to page name) |
+| Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 2` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 2` | `PageInfo.lua` | Shell title bar (next to page name) |
@@ -210,7 +210,7 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 Standalone window (**460 × 560**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
-[ Rhee - Character profile                              v25   X ]
+[ Rhee - Character profile                              v27   X ]
 | (race)(class) Shaman    | (spec) Enhancement                  |
 | GearScore: 6158         | iLvl: 264                           |
 | Personal note: Positive | Community note                      |
@@ -219,9 +219,9 @@ Standalone window (**460 × 560**) opened from Party roster, Raid roster, or His
 | Guild: MyGuild (Member) |                                     |
 | GUID: 0x...              |                                    |
 | Realm: Icecrown         |                                     |
-[ History ] [ Note ] [ Facts ] [ Events ] [ Memo ]
-        --- tab content ---
-(tab: Note)
+[ History ] [ Edit note ] [ Facts ] [ Events ] [ Memo ]
+        --- tab content (History selected by default) ---
+(tab: Edit note)
 [ Summary: Positive | Tags: Friendly, Good Tank, Prepared ]
 ( ) Positive   (*) Neutral   ( ) Negative
 [ Personal tags — category checkboxes (max 3 per category) ]
@@ -252,17 +252,17 @@ Standalone window (**460 × 560**) opened from Party roster, Raid roster, or His
 | Race icon | Character-creation race portrait on the class row (same size as class/spec icons); tooltip shows race name and faction |
 | Summary (left column) | Read-only: personal note, tag summary, facts, guild, GUID, realm — reflects **saved** values only until **Save and Update** |
 | Community note (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
-| Tabs | **History**, **Note**, **Facts**, **Events**, **Memo** — switch the panel below the summary |
-| Note (editor tab) | Summary line (draft preview); three exclusive radio options; tag checkboxes by category (draft until **Save and Update**) |
+| Tabs | **History**, **Edit note**, **Facts**, **Events**, **Memo** — **History** opens by default |
+| Edit note (editor tab) | Summary line (draft preview); three exclusive radio options; tag checkboxes by category (draft until **Save and Update**) |
 | Facts (editor tab) | Role / identity checkboxes (draft until **Save and Update**); max **4** |
 | Events tab | Pick an event type, **Add event** / **Remove** edit a draft list; **Save and Update** persists events with auto zone/instance context on add |
 | Memo (editor tab) | Personal-use hint; multiline EditBox; **Save** / **Reset**. Memo is not written to History |
 | History tab | **Met** (left) and **Was in the same party** count (right) on the first row, then **When**, then logged opinion/tag/facts/event changes (and any older memo rows if present) |
-| Save and Update | Bottom of window on **Note** / **Facts** / **Events** only; saves opinion, tags, facts, and events. Hidden on **History** and **Memo** (memo uses its own **Save** / **Reset**) |
+| Save and Update | Bottom of window on **Edit note** / **Facts** / **Events** only; saves opinion, tags, facts, and events. Hidden on **History** and **Memo** (memo uses its own **Save** / **Reset**) |
 | editable | Opinion, tags, facts, events, and notes require a valid GUID; controls are disabled otherwise |
 | persistence | Opinion/tags/facts in `RaidwiseDB.history[guid].rating.personal`; events in `.events`; notes in `.notes`; change log in `.changes`; `meetCount` for party/raid encounters |
 
-Changing opinion, tags, facts, or events (via **Save and Update**) refreshes Party roster, Raid roster, and History when the profile closes or Save and Update is pressed. Closing without Save discards Note/Facts/Events drafts.
+Changing opinion, tags, facts, or events (via **Save and Update**) refreshes Party roster, Raid roster, and History when the profile closes or Save and Update is pressed. Closing without Save discards Edit note / Facts / Events drafts.
 
 See also [Reputation.md](Reputation.md) for entity definitions and future share matrix.
 
