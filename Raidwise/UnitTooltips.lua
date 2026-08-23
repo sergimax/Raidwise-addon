@@ -33,6 +33,13 @@ local function FindHistoryEntryForUnit(unit)
 	return nil, guid
 end
 
+local function ClearAppendMarker(tooltip)
+	if tooltip then
+		tooltip.rwRatingGuid = nil
+		tooltip.rwRatingLineCount = nil
+	end
+end
+
 local function AppendRatingLines(tooltip, unit)
 	if not tooltip or not unit or not UnitExists(unit) then
 		return false
@@ -52,8 +59,10 @@ local function AppendRatingLines(tooltip, unit)
 		return false
 	end
 
-	-- Avoid stacking the same block when multiple hooks fire for one tooltip.
-	if tooltip.rwRatingGuid == guid then
+	-- Skip only if we already appended for this fill (mouseover retries).
+	-- Shift / SetUnit rebuilds the tooltip without OnHide — marker is cleared there.
+	local lineCount = tooltip.NumLines and tooltip:NumLines() or 0
+	if tooltip.rwRatingGuid == guid and tooltip.rwRatingLineCount and lineCount >= tooltip.rwRatingLineCount then
 		return false
 	end
 
@@ -67,11 +76,12 @@ local function AppendRatingLines(tooltip, unit)
 		return false
 	end
 
-	tooltip.rwRatingGuid = guid
 	tooltip:AddLine(" ")
 	for index = 1, #lines do
 		tooltip:AddLine(lines[index], 1, 1, 1, true)
 	end
+	tooltip.rwRatingGuid = guid
+	tooltip.rwRatingLineCount = tooltip.NumLines and tooltip:NumLines() or 0
 	tooltip:Show()
 	return true
 end
@@ -96,17 +106,36 @@ local function TryAppendFromTooltip(tooltip)
 end
 
 local function OnTooltipSetUnit(tooltip)
+	-- SetUnit rebuilds lines (Shift item compare, inspect refresh, etc.).
+	-- Clear the marker so we re-append like GearScore does every time.
+	ClearAppendMarker(tooltip)
 	TryAppendFromTooltip(tooltip)
 end
 
+local function OnTooltipCleared(tooltip)
+	ClearAppendMarker(tooltip)
+end
+
 local function OnTooltipHide(tooltip)
-	tooltip.rwRatingGuid = nil
+	ClearAppendMarker(tooltip)
 end
 
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
-eventFrame:SetScript("OnEvent", function()
+eventFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
+eventFrame:SetScript("OnEvent", function(_, event, key)
+	if event == "MODIFIER_STATE_CHANGED" then
+		-- Shift often rebuilds the tooltip; re-append only if our block was wiped.
+		if GameTooltip:IsShown() then
+			local lineCount = GameTooltip.NumLines and GameTooltip:NumLines() or 0
+			if GameTooltip.rwRatingLineCount and lineCount < GameTooltip.rwRatingLineCount then
+				ClearAppendMarker(GameTooltip)
+			end
+			TryAppendFromTooltip(GameTooltip)
+		end
+		return
+	end
 	-- Retry briefly so Blizzard / other addons finish filling the tooltip.
 	eventFrame.elapsed = 0
 	eventFrame.attempts = 0
@@ -135,6 +164,9 @@ local function InstallTooltipHooks()
 	if GameTooltip.HookScript then
 		pcall(function()
 			GameTooltip:HookScript("OnTooltipSetUnit", OnTooltipSetUnit)
+		end)
+		pcall(function()
+			GameTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
 		end)
 		pcall(function()
 			GameTooltip:HookScript("OnHide", OnTooltipHide)
