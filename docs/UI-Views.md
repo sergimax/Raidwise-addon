@@ -52,7 +52,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 5` | `PageComposition.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 1` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 2` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 2` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
@@ -302,6 +302,21 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 [ language heading ]
 [ short hint ]
 [ English button ] [ Русский button ]
+
+[ Unit tooltips heading ]
+[ short hint ]
+[ ] Hide personal opinion
+[ ] Hide personal tags
+[ ] Hide community rating
+[ ] Hide community tags
+
+[ Preview ]
+Compact (live tooltip)
+Positive: Good Raid Leader, Fair Loot, Good player
+91 % positive:
+Fair Loot, Good Raid Leader, Good player
+Stacked (variant)
+…
 ```
 
 | Block | In-game text / control |
@@ -309,8 +324,10 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 | language heading | Language |
 | short hint | “Interface language. Saved on this account.” |
 | English / Русский | Menu-style buttons; the active locale is selected. Choice is stored in `RaidwiseDB.locale` (`enUS` / `ruRU`). Default is the client locale. |
+| Unit tooltips | Checkboxes stored in `RaidwiseDB.tooltip` (`hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags`); default all shown |
+| Preview | Sample compact (live) and stacked layout lines; updates when checkboxes change |
 
-Switching language updates the left menu, page labels, and visible tables without `/reload`.
+Switching language updates the left menu, page labels, and visible tables without `/reload`. Player unit tooltips (mouseover/target) append personal opinion + top 3 tags and, for players in History, community mock percent + top 3 tags (`UnitTooltips.lua`).
 
 ## Info
 

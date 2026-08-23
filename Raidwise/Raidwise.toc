@@ -17,6 +17,7 @@ RaidRoles.lua
 RaidComposition.lua
 PlayerHistory.lua
 UIWidgets.lua
+UnitTooltips.lua
 CharacterProfile.lua
 PageCooldowns.lua
 PageExport.lua

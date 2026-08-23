@@ -34,6 +34,12 @@ local defaults = {
 	includeGearNames = true,
 	characters = {},
 	history = {},
+	tooltip = {
+		hidePersonal = false,
+		hidePersonalTags = false,
+		hideCommunity = false,
+		hideCommunityTags = false,
+	},
 }
 
 -- Recursively copy a value (tables become independent copies).

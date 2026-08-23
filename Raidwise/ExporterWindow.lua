@@ -387,21 +387,25 @@ function Addon:RefreshLocalizedUI()
 
 	local settingsPage = frame.pages.settings
 	if settingsPage then
-		if settingsPage.heading then
-			settingsPage.heading:SetText(W.T("SETTINGS_LANGUAGE"))
-		end
-		if settingsPage.hint then
-			settingsPage.hint:SetText(W.T("SETTINGS_LANGUAGE_HINT"))
-		end
-		if settingsPage.enBtn then
-			settingsPage.enBtn.label:SetText(W.T("LOCALE_EN"))
-		end
-		if settingsPage.ruBtn then
-			settingsPage.ruBtn.label:SetText(W.T("LOCALE_RU"))
-		end
 		local settingsModule = Addon.Pages and Addon.Pages.Settings
-		if settingsModule and settingsModule.UpdateLocaleButtons then
-			settingsModule.UpdateLocaleButtons(settingsPage)
+		if settingsModule and settingsModule.ApplyLocale then
+			settingsModule.ApplyLocale(settingsPage)
+		else
+			if settingsPage.heading then
+				settingsPage.heading:SetText(W.T("SETTINGS_LANGUAGE"))
+			end
+			if settingsPage.hint then
+				settingsPage.hint:SetText(W.T("SETTINGS_LANGUAGE_HINT"))
+			end
+			if settingsPage.enBtn then
+				settingsPage.enBtn.label:SetText(W.T("LOCALE_EN"))
+			end
+			if settingsPage.ruBtn then
+				settingsPage.ruBtn.label:SetText(W.T("LOCALE_RU"))
+			end
+			if settingsModule and settingsModule.UpdateLocaleButtons then
+				settingsModule.UpdateLocaleButtons(settingsPage)
+			end
 		end
 	end
 
