@@ -283,6 +283,138 @@ function Addon:CollectCurrentGearScore()
 	return nil
 end
 
+-- WotLK 3.3.5 currency entries in Currency-tab order: gold, raid emblems, PvP, other tokens.
+local GOLD_ICON = "Interface\\Icons\\INV_Misc_Coin_01"
+
+local CURRENCY_ENTRY_DEFS = {
+	{ kind = "gold" },
+	{ kind = "item", itemId = 49426 },
+	{ kind = "item", itemId = 47241 },
+	{ kind = "honor" },
+	{ kind = "arena" },
+	{ kind = "item", itemId = 40753 },
+	{ kind = "item", itemId = 40752 },
+	{ kind = "item", itemId = 45624 },
+	{ kind = "item", itemId = 44990 },
+}
+
+local function PvpCurrencyIcon(kind)
+	local faction = (UnitFactionGroup and UnitFactionGroup("player")) or "Alliance"
+	local suffix = (faction == "Horde") and "Horde" or "Alliance"
+	if kind == "honor" then
+		return "Interface\\Icons\\PVPCurrency-Honor-" .. suffix
+	end
+	return "Interface\\Icons\\PVPCurrency-Arena-" .. suffix
+end
+
+local function FormatMoneyShort(copper)
+	copper = math.floor(tonumber(copper) or 0)
+	local gold = math.floor(copper / 10000)
+	if gold >= 100000 then
+		return string.format("%.0fkg", gold / 1000)
+	end
+	if gold >= 10000 then
+		return string.format("%.1fkg", gold / 1000)
+	end
+	return tostring(gold) .. "g"
+end
+
+local function FormatMoneyLong(copper)
+	copper = math.floor(tonumber(copper) or 0)
+	local gold = math.floor(copper / 10000)
+	local silver = math.floor((copper % 10000) / 100)
+	local coin = copper % 100
+	return string.format("%dg %ds %dc", gold, silver, coin)
+end
+
+local function FormatBadgeCount(count)
+	count = tonumber(count) or 0
+	if count >= 100000 then
+		return string.format("%.0fk", count / 1000)
+	end
+	if count >= 10000 then
+		return string.format("%.1fk", count / 1000)
+	end
+	return tostring(count)
+end
+
+local function ResolveEntryLabel(def, itemName)
+	if def.kind == "gold" then
+		return Addon:T("CD_CURRENCY_GOLD")
+	end
+	if def.kind == "honor" then
+		return Addon:T("CD_CURRENCY_HONOR")
+	end
+	if def.kind == "arena" then
+		return Addon:T("CD_CURRENCY_ARENA")
+	end
+	if itemName and itemName ~= "" then
+		return itemName
+	end
+	return tostring(def.itemId or "?")
+end
+
+local function ResolveEntryCount(def)
+	if def.kind == "gold" then
+		local copper = (type(GetMoney) == "function" and GetMoney()) or 0
+		return copper, FormatMoneyShort(copper), FormatMoneyLong(copper)
+	end
+	if def.kind == "honor" then
+		local honor = (type(GetHonorCurrency) == "function" and GetHonorCurrency()) or 0
+		return honor, FormatBadgeCount(honor), tostring(honor)
+	end
+	if def.kind == "arena" then
+		local arena = (type(GetArenaCurrency) == "function" and GetArenaCurrency()) or 0
+		return arena, FormatBadgeCount(arena), tostring(arena)
+	end
+	if def.kind == "item" and def.itemId then
+		local count = 0
+		if type(GetItemCount) == "function" then
+			count = GetItemCount(def.itemId, true) or 0
+		end
+		return count, tostring(count), tostring(count)
+	end
+	return 0, "0", "0"
+end
+
+local function ResolveEntryIcon(def)
+	if def.kind == "gold" then
+		return GOLD_ICON
+	end
+	if def.kind == "honor" or def.kind == "arena" then
+		return PvpCurrencyIcon(def.kind)
+	end
+	if def.kind == "item" and def.itemId and type(GetItemInfo) == "function" then
+		local _, _, icon = GetItemInfo(def.itemId)
+		if icon and icon ~= "" then
+			return icon
+		end
+	end
+	return "Interface\\Icons\\INV_Misc_QuestionMark"
+end
+
+-- Gold, emblems, honor/arena, and quest tokens for the logged-in character (Currency tab).
+function Addon:CollectCharacterCurrency()
+	local entries = {}
+	for index = 1, #CURRENCY_ENTRY_DEFS do
+		local def = CURRENCY_ENTRY_DEFS[index]
+		local itemName
+		if def.kind == "item" and def.itemId and type(GetItemInfo) == "function" then
+			itemName = GetItemInfo(def.itemId)
+		end
+		local count, displayCount, tooltipCount = ResolveEntryCount(def)
+		entries[#entries + 1] = {
+			id = def.kind == "item" and def.itemId or def.kind,
+			label = ResolveEntryLabel(def, itemName),
+			icon = ResolveEntryIcon(def),
+			count = count,
+			displayCount = displayCount,
+			tooltipCount = tooltipCount,
+		}
+	end
+	return { entries = entries }
+end
+
 -- Current character name, english class token, and primary talent tree name.
 function Addon:CollectCharacterInfo()
 	local name = UnitName("player") or ""

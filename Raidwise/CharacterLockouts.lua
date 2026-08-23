@@ -74,6 +74,61 @@ local function FilterActiveLockouts(lockouts, now)
 	return kept
 end
 
+local CURRENCY_ICON = 16
+
+local function CurrencyIconTag(icon)
+	icon = icon or "Interface\\Icons\\INV_Misc_QuestionMark"
+	return "|T" .. icon .. ":" .. CURRENCY_ICON .. ":" .. CURRENCY_ICON .. "|t"
+end
+
+local function BuildCurrencyCell(currency)
+	if type(currency) ~= "table" or type(currency.entries) ~= "table" then
+		return nil
+	end
+	local entries = currency.entries
+	if #entries == 0 then
+		return nil
+	end
+
+	local textParts = {}
+	local tooltipLines = {}
+	local hasValue = false
+	for index = 1, #entries do
+		local entry = entries[index]
+		local displayCount = entry.displayCount or tostring(entry.count or 0)
+		local tooltipCount = entry.tooltipCount or displayCount
+		textParts[#textParts + 1] = CurrencyIconTag(entry.icon) .. " - " .. displayCount
+		tooltipLines[#tooltipLines + 1] = (entry.label or "?") .. ": " .. tooltipCount
+		if (tonumber(entry.count) or 0) > 0 then
+			hasValue = true
+		end
+	end
+
+	return {
+		text = table.concat(textParts, " "),
+		tooltipLines = tooltipLines,
+		hasValue = hasValue,
+	}
+end
+
+local function AppendCurrencyRow(rows, characters, charList)
+	local row = {
+		kind = "currency",
+		key = "currency",
+		name = Addon:T("CD_CURRENCY"),
+		typeLabel = "",
+		cells = {},
+	}
+	for charIndex = 1, #charList do
+		local characterKey = charList[charIndex].key
+		local character = characters[characterKey]
+		if character and character.currency then
+			row.cells[characterKey] = BuildCurrencyCell(character.currency)
+		end
+	end
+	rows[#rows + 1] = row
+end
+
 local function FormatRemaining(resetAt, now)
 	local remaining = (tonumber(resetAt) or 0) - now
 	if remaining <= 0 then
@@ -172,6 +227,9 @@ function Addon:SaveCurrentCharacterLockouts()
 
 	local now = time()
 	record.lockouts = FilterActiveLockouts(self:CollectInstanceLockouts(), now)
+	if self.CollectCharacterCurrency then
+		record.currency = self:CollectCharacterCurrency()
+	end
 	record.updatedAt = now
 	self:PruneExpiredCharacterLockouts()
 end
@@ -271,10 +329,13 @@ function Addon:BuildCooldownTable()
 		charList[index].displayName = CharacterDisplayName(charList[index], charList)
 	end
 	table.sort(rows, CompareRows)
+	local lockoutRowCount = #rows
+	AppendCurrencyRow(rows, characters, charList)
 
 	return {
 		characters = charList,
 		rows = rows,
+		lockoutRowCount = lockoutRowCount,
 	}
 end
 
@@ -360,6 +421,24 @@ function Addon:FormatCooldownsExport()
 		lines[#lines + 1] = '      "class": "' .. JsonEscape(character.class or "") .. '",'
 		lines[#lines + 1] = '      "spec": "' .. JsonEscape(character.spec or "") .. '",'
 		lines[#lines + 1] = '      "updatedAt": ' .. tostring(tonumber(character.updatedAt) or 0) .. ","
+		local currency = character.currency
+		if type(currency) == "table" and type(currency.entries) == "table" then
+			local entries = currency.entries
+			lines[#lines + 1] = '      "currency": {'
+			lines[#lines + 1] = '        "entries": ['
+			for entryIndex = 1, #entries do
+				local entry = entries[entryIndex]
+				local entryComma = (entryIndex < #entries) and "," or ""
+				lines[#lines + 1] = "          {"
+				lines[#lines + 1] = '            "id": "' .. JsonEscape(tostring(entry.id or "")) .. '",'
+				lines[#lines + 1] = '            "label": "' .. JsonEscape(entry.label or "") .. '",'
+				lines[#lines + 1] = '            "icon": "' .. JsonEscape(entry.icon or "") .. '",'
+				lines[#lines + 1] = '            "count": ' .. tostring(tonumber(entry.count) or 0)
+				lines[#lines + 1] = "          }" .. entryComma
+			end
+			lines[#lines + 1] = "        ]"
+			lines[#lines + 1] = "      },"
+		end
 		AppendLockoutObjectsJson(lines, lockouts, "      ")
 		lines[#lines + 1] = "    }" .. comma
 	end
