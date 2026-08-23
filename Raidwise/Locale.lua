@@ -16,6 +16,7 @@ local Translations = {
 
 		BTN_REFRESH = "Refresh",
 		BTN_COMP_REPORT = "Report missing",
+		BTN_REMOVE = "Remove",
 		BTN_SELECT_ALL = "Select all",
 		BTN_EXPORT_DATA = "Export character data",
 		BTN_RESET = "Reset",
@@ -34,6 +35,7 @@ local Translations = {
 		INFO_SECTION_COOLDOWNS = "Shows raid and dungeon lockouts for every character saved on this account, "
 			.. "including when each character was last checked. "
 			.. "Log in on each alt to record their lockouts. "
+			.. "Use Remove on other character columns to drop obsolete alts; logging in again restores them. "
 			.. "A Currency row shows gold and badge icon–quantity pairs from the in-game Currency tab.",
 		INFO_SECTION_EXPORT = "Builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
 			.. "Turn on Include item names to add display names next to item ids. "
@@ -71,6 +73,7 @@ local Translations = {
 		CD_CURRENCY_NONE = "Not recorded — log in on this character and refresh",
 		CD_LAST_CHECK = "Last check: %s",
 		CD_LAST_CHECK_NONE = "Last check: -",
+		CD_REMOVE_TIP = "Remove this character column from the table. Log in on that character again to restore it.",
 		CD_SAVED_RESETS = "Saved - resets in %s",
 		CD_NOT_SAVED = "Not saved",
 		LOCKOUT_RAID = "Raid",
@@ -404,6 +407,7 @@ local Translations = {
 
 		BTN_REFRESH = "Обновить",
 		BTN_COMP_REPORT = "Сообщить",
+		BTN_REMOVE = "Удалить",
 		BTN_SELECT_ALL = "Выделить всё",
 		BTN_EXPORT_DATA = "Экспорт персонажа",
 		BTN_RESET = "Сброс",
@@ -422,6 +426,7 @@ local Translations = {
 		INFO_SECTION_COOLDOWNS = "Показывает рейдовые и подземельные блокировки всех сохранённых персонажей, "
 			.. "включая время последней проверки. "
 			.. "Зайдите на каждого альта, чтобы записать его КД. "
+			.. "Кнопка «Удалить» убирает устаревшие колонки других персонажей; повторный вход восстанавливает данные. "
 			.. "Строка «Валюта» — золото и пары иконка–количество для каждого значка.",
 		INFO_SECTION_EXPORT = "Собирает JSON: имя, класс, спек, надетые вещи, сумки и блокировки. "
 			.. "Включите «Включать названия предметов», чтобы добавить имена рядом с id. "
@@ -459,6 +464,7 @@ local Translations = {
 		CD_CURRENCY_NONE = "Не записано — зайдите на персонажа и обновите",
 		CD_LAST_CHECK = "Проверка: %s",
 		CD_LAST_CHECK_NONE = "Проверка: -",
+		CD_REMOVE_TIP = "Убрать колонку этого персонажа из таблицы. Зайдите на него снова, чтобы восстановить данные.",
 		CD_SAVED_RESETS = "Сохранён — сброс через %s",
 		CD_NOT_SAVED = "Не сохранён",
 		LOCKOUT_RAID = "Рейд",

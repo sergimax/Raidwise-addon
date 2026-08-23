@@ -46,7 +46,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 3` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 26` | `CharacterProfile.lua` | Title bar (left of close) |
-| Cooldowns | `LAYOUT_VERSION = 7` | `PageCooldowns.lua` | Shell title bar (next to page name) |
+| Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
@@ -84,7 +84,8 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 [ short description ]                              [ Refresh ]
         8 px gap
 [ Raid / Dungeon | Char (class color + spec icon) | Char | ... ]
-                 | last check                     |            |
+                 | last check                     | last check |
+                 |                                | [ Remove ] |
 [ Icecrown Citadel                               | 10 10h 25 25h | -   ]
 [ (Raid)                                         |               |     ]
 [ Currency          | (title line — empty in char cols)        ]
@@ -97,7 +98,7 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 | short description | “Lockouts and currency for every character saved on this account.” |
 | Refresh | Requests fresh raid info, then redraws the table |
 | first column | Instance name, then kind in parentheses (`(Raid)` / `(Dungeon)`); **Currency** row at bottom |
-| character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first |
+| character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first; **Remove** on other columns deletes that character from `RaidwiseDB.characters` (login again restores) |
 | saved cell | Compact size/mode tags (`10`, `10h`, `25`, `25h`, …); tooltip lists each variant with time until reset |
 | currency cell | Title line + label column with account totals (`Gold  12kg`); character columns skip one line, then icon+count chips aligned to labels |
 | empty cell | `-` (not saved) |

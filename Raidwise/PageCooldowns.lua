@@ -6,10 +6,13 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 7
+local LAYOUT_VERSION = 8
 
 local CD_INSTANCE_COL_W = 170
 local CD_CHAR_COL_W = 90
+local CD_HEADER_H = 68
+local CD_REMOVE_BTN_H = 16
+local CD_REMOVE_BTN_PAD = 2
 local CD_CURRENCY_ICON = 14
 local CD_CURRENCY_CHIP_H = 16
 local CD_CURRENCY_CHIP_GAP_Y = 1
@@ -57,7 +60,7 @@ end
 
 local function CreateCooldownHeaderCell(parent)
 	local cell = CreateFrame("Frame", nil, parent)
-	cell:SetHeight(UI.CD_HEADER_H)
+	cell:SetHeight(CD_HEADER_H)
 
 	local icon = cell:CreateTexture(nil, "ARTWORK")
 	icon:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
@@ -78,6 +81,30 @@ local function CreateCooldownHeaderCell(parent)
 	lastCheck:SetJustifyH("LEFT")
 	W.SetFontColor(lastCheck, UI.TEXT_DISABLED)
 	cell.lastCheck = lastCheck
+
+	local removeBtn = W.CreatePlainButton(cell, CD_CHAR_COL_W - 8, CD_REMOVE_BTN_H, W.T("BTN_REMOVE"))
+	removeBtn:SetPoint("BOTTOM", 0, CD_REMOVE_BTN_PAD)
+	removeBtn:SetScript("OnClick", function(self)
+		local characterKey = self.characterKey
+		if not characterKey or not Addon.RemoveCharacterLockouts then
+			return
+		end
+		if Addon:RemoveCharacterLockouts(characterKey) then
+			Addon:RefreshCooldownTable()
+		end
+	end)
+	removeBtn:SetScript("OnEnter", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(W.T("CD_REMOVE_TIP"))
+		GameTooltip:Show()
+	end)
+	removeBtn:SetScript("OnLeave", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, false))
+		GameTooltip:Hide()
+	end)
+	removeBtn:Hide()
+	cell.removeBtn = removeBtn
 
 	cell:EnableMouse(true)
 	cell:SetScript("OnEnter", function(self)
@@ -402,7 +429,7 @@ local function CreateCooldownsPage(parent)
 
 	local headerBg = CreateFrame("Frame", nil, content)
 	headerBg:SetPoint("TOPLEFT", 0, 0)
-	headerBg:SetHeight(UI.CD_HEADER_H)
+	headerBg:SetHeight(CD_HEADER_H)
 	W.ApplyPlainPanel(headerBg, UI.TITLE_BG)
 	page.headerBg = headerBg
 
@@ -484,12 +511,12 @@ function Addon:RefreshCooldownTable()
 	page.tableHost:Show()
 
 	local tableW = CD_INSTANCE_COL_W + (#characters * CD_CHAR_COL_W)
-	local tableH = UI.CD_HEADER_H
+	local tableH = CD_HEADER_H
 	for rowIndex = 1, #rows do
 		tableH = tableH + RowHeight(rows[rowIndex])
 	end
-	if tableH <= UI.CD_HEADER_H then
-		tableH = UI.CD_HEADER_H + UI.CD_ROW_H
+	if tableH <= CD_HEADER_H then
+		tableH = CD_HEADER_H + UI.CD_ROW_H
 	end
 	content:SetSize(tableW, tableH)
 	headerBg:SetWidth(tableW)
@@ -512,11 +539,21 @@ function Addon:RefreshCooldownTable()
 		cell.tooltipTitle = character.displayName
 		cell.tooltipSpec = character.spec ~= "" and character.spec or nil
 		cell.tooltipLastCheck = FormatLastCheckTooltip(character.updatedAt)
+		if cell.removeBtn then
+			if character.isCurrent then
+				cell.removeBtn.characterKey = nil
+				cell.removeBtn:Hide()
+			else
+				cell.removeBtn.characterKey = character.key
+				cell.removeBtn.label:SetText(W.T("BTN_REMOVE"))
+				cell.removeBtn:Show()
+			end
+		end
 		cell:Show()
 	end
 
 	W.HidePoolFrom(page.rowFrames, #rows + 1)
-	local yOffset = UI.CD_HEADER_H
+	local yOffset = CD_HEADER_H
 	for rowIndex = 1, #rows do
 		local rowData = rows[rowIndex]
 		local rowHeight = RowHeight(rowData)

@@ -326,6 +326,24 @@ function Addon:EnsureCurrentCharacterRecord()
 	record.updatedAt = time()
 end
 
+-- Drop a stored character column from the cooldowns table (not the logged-in character).
+-- Logging in on that character again recreates the record.
+function Addon:RemoveCharacterLockouts(characterKey)
+	if type(characterKey) ~= "string" or characterKey == "" then
+		return false
+	end
+	local currentKey = CurrentCharacterKey()
+	if characterKey == currentKey then
+		return false
+	end
+	local characters = EnsureCharactersTable()
+	if not characters or characters[characterKey] == nil then
+		return false
+	end
+	characters[characterKey] = nil
+	return true
+end
+
 -- Snapshot current lockouts into account SavedVariables. Call after UPDATE_INSTANCE_INFO.
 function Addon:SaveCurrentCharacterLockouts()
 	self:EnsureCurrentCharacterRecord()
@@ -392,6 +410,7 @@ function Addon:BuildCooldownTable()
 	local rowsByKey = {}
 	local rows = {}
 
+	local currentKey = CurrentCharacterKey()
 	for key, character in pairs(characters) do
 		charList[#charList + 1] = {
 			key = key,
@@ -401,6 +420,7 @@ function Addon:BuildCooldownTable()
 			spec = character.spec or "",
 			specIcon = character.specIcon or "",
 			updatedAt = tonumber(character.updatedAt) or 0,
+			isCurrent = key == currentKey,
 		}
 		local lockouts = character.lockouts or {}
 		for index = 1, #lockouts do
