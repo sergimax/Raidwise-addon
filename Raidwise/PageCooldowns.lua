@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 6
+local LAYOUT_VERSION = 7
 
 local CD_INSTANCE_COL_W = 170
 local CD_CHAR_COL_W = 90
@@ -548,10 +548,10 @@ function Addon:RefreshCooldownTable()
 				end
 			else
 				ConfigureLockoutCell(cell, rowHeight)
-				if saved and saved.remainingText then
-					cell.text:SetText(saved.remainingText)
+				if saved and saved.displayText then
+					cell.text:SetText(saved.displayText)
 					W.SetFontColor(cell.text, UI.GOLD)
-					cell.tooltipBody = W.T("CD_SAVED_RESETS", saved.remainingText)
+					cell.tooltipLines = saved.tooltipLines
 				else
 					cell.text:SetText("-")
 					W.SetFontColor(cell.text, UI.TEXT_DISABLED)
