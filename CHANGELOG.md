@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.13.0] - 2026-08-24
+
+### Added
+- Player unit tooltips show personal opinion + top tags, and community rating + tags for players in History (`UnitTooltips.lua`)
+- **Settings → Unit tooltips**: hide personal / personal tags / community / community tags (`RaidwiseDB.tooltip`), with compact and stacked layout previews
+
+### Fixed
+- Tooltip lines no longer disappear when holding Shift (rebuild with GearScore)
+- Raid/party frame hover no longer stacks duplicate Raidwise lines when moving between players
+
 ## [1.12.0] - 2026-08-23
 
 ### Added
