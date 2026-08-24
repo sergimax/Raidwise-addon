@@ -1202,6 +1202,38 @@ function Addon:GearCheckRulesSelfTest()
 	Check("ret cloak Major Agility → not ENCHANT_NOT_CHECKABLE", not HasCode(fRet, "ENCHANT_NOT_CHECKABLE"))
 	Check("ret cloak Major Agility → not ENCHANT_LOWER_LEVEL", not HasCode(fRet, "ENCHANT_LOWER_LEVEL"))
 
+	-- Blood DK: Pinnacle shoulders + armor cloak/gloves must not false-flag
+	local bloodTank = {
+		character = { classFile = "DEATHKNIGHT", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("shoulder", "ShoulderSlot", MakeItem({
+				itemId = 40,
+				category = "armor",
+				armorType = "plate",
+				stats = { stamina = 80, defenseRating = 40, dodgeRating = 30, strength = 40 },
+				enchant = { enchantId = 3811, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("back", "BackSlot", MakeItem({
+				itemId = 41,
+				category = "armor",
+				armorType = "cloth",
+				stats = { stamina = 60, defenseRating = 40, strength = 30 },
+				enchant = { enchantId = 3294, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("hands", "HandsSlot", MakeItem({
+				itemId = 42,
+				category = "armor",
+				armorType = "plate",
+				stats = { stamina = 70, defenseRating = 40, strength = 35 },
+				enchant = { enchantId = 3860, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fBlood = self:EvaluateGearCheck(bloodTank)
+	Check("blood Pinnacle → not ENCHANT_BAD_STAT", not HasCode(fBlood, "ENCHANT_BAD_STAT"))
+	Check("blood Mighty Armor cloak → not ENCHANT_BAD_STAT", not HasCode(fBlood, "ENCHANT_BAD_STAT"))
+	Check("blood Armor Webbing → not ENCHANT_NOT_CHECKABLE", not HasCode(fBlood, "ENCHANT_NOT_CHECKABLE"))
+
 	-- Phase 8: unknown gem → not-checkable (info), not false GEM_LOWER_LEVEL
 	local unkGem = {
 		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },

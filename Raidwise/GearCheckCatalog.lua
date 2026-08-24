@@ -15,7 +15,8 @@ local ENCHANTS = {
 	-- Cloak
 	[3831] = { name = "Greater Speed", maxLevel = true, stats = { hasteRating = 23 } },
 	[1099] = { name = "Major Agility", maxLevel = true, stats = { agility = 22 } },
-	[3294] = { name = "Wisdom", maxLevel = true, stats = { spirit = 10 } },
+	[3294] = { name = "Mighty Armor", maxLevel = true, stats = { armor = 225 } },
+	[3296] = { name = "Wisdom", maxLevel = true, stats = { spirit = 10 } },
 	[1951] = { name = "Titanweave", maxLevel = true, stats = { defenseRating = 16 } },
 	[3243] = { name = "Spell Penetration", maxLevel = false, stats = { spellPenetration = 35 } },
 	[3825] = { name = "Speed", maxLevel = false, stats = { hasteRating = 15 } },
@@ -68,6 +69,7 @@ local ENCHANTS = {
 	[3605] = { name = "Flexweave Underlay", maxLevel = true, stats = { agility = 23 } },
 	[3606] = { name = "Nitro Boosts", maxLevel = true, stats = { critRating = 24 } },
 	[3601] = { name = "Frag Belt", maxLevel = true, stats = {} },
+	[3860] = { name = "Reticulated Armor Webbing", maxLevel = true, stats = { armor = 885 } },
 	-- Extra weapon enchants (melee / caster commons)
 	[2673] = { name = "Mongoose", maxLevel = true, stats = {} },
 	[3225] = { name = "Executioner", maxLevel = true, stats = {} },
@@ -96,8 +98,8 @@ local ENCHANTS = {
 	[3816] = { name = "Arcanum of the Savage Gladiator", maxLevel = true, stats = { stamina = 30, resilience = 25 } },
 	[3808] = { name = "Greater Inscription of the Axe", maxLevel = true, stats = { attackPower = 40, critRating = 15 } },
 	[3809] = { name = "Greater Inscription of the Crag", maxLevel = true, stats = { spellPower = 24, mp5 = 8 } },
-	[3810] = { name = "Greater Inscription of the Pinnacle", maxLevel = true, stats = { dodgeRating = 20, defenseRating = 15 } },
-	[3811] = { name = "Greater Inscription of the Storm", maxLevel = true, stats = { spellPower = 24, critRating = 15 } },
+	[3810] = { name = "Greater Inscription of the Storm", maxLevel = true, stats = { spellPower = 24, critRating = 15 } },
+	[3811] = { name = "Greater Inscription of the Pinnacle", maxLevel = true, stats = { dodgeRating = 20, defenseRating = 15 } },
 	[3875] = { name = "Greater Inscription of the Axe", maxLevel = false, stats = { attackPower = 30, critRating = 10 } },
 	[3876] = { name = "Greater Inscription of the Crag", maxLevel = false, stats = { spellPower = 18, mp5 = 5 } },
 }
