@@ -200,6 +200,7 @@ local T_CASTER = {
 	-- Entry / mid-tier
 	40682, -- Sundial of the Exiled
 	47726, -- Talisman of Volatile Power
+	37835, -- Je'Tze's Bell
 }
 local T_HEALER = {
 	54573, 54589, -- Glowing Twilight Scale
@@ -209,6 +210,8 @@ local T_HEALER = {
 	48724, -- Talisman of Resurgence
 	46051, -- Meteorite Crystal
 	54572, 54588, -- Charred (Holy Pal 2nd sometimes)
+	-- Entry / mid-tier
+	37835, -- Je'Tze's Bell
 }
 local T_TANK = {
 	50361, 50364, -- Sindragosa's Flawless Fang

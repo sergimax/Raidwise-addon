@@ -805,7 +805,8 @@ local function TypeQualifiesForGood(profile, slot)
 			return true
 		end
 		-- Acceptable offset pieces (e.g. Umbrage Armbands on Ret) still qualify for GOOD.
-		if rank == "acceptable" and GOOD_OFFSET_SLOTS[slot.key] then
+		-- Acceptable cloth (Resto Druid BiS chests) also qualifies — only A_LEATHER_HEAL lists cloth.
+		if rank == "acceptable" and (GOOD_OFFSET_SLOTS[slot.key] or armorType == "cloth") then
 			return true
 		end
 		return false
@@ -1427,6 +1428,30 @@ function Addon:GearCheckRulesSelfTest()
 	local fEnhWrist = self:EvaluateGearCheck(enhLeather)
 	Check("enh leather wrist → not ARMOR_DISCOURAGED", not HasCode(fEnhWrist, "ARMOR_DISCOURAGED"))
 	Check("enh leather wrist → GOOD (BiS offset)", enhLeather.equipment[1].verdict == "GOOD")
+
+	-- Resto Druid: cloth chest is BiS-acceptable and should be GOOD
+	local restoCloth = {
+		character = { classFile = "DRUID", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 51379,
+				category = "armor",
+				armorType = "cloth",
+				stats = { intellect = 80, spellPower = 100, spirit = 60, hasteRating = 50 },
+				enchant = { enchantId = 3832, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("trinket1", "Trinket0Slot", MakeItem({
+				itemId = 37835,
+				category = "armor",
+				armorType = "misc",
+				stats = { spellPower = 74 },
+			})),
+		},
+	}
+	local fResto = self:EvaluateGearCheck(restoCloth)
+	Check("resto cloth chest → not ARMOR_DISCOURAGED", not HasCode(fResto, "ARMOR_DISCOURAGED"))
+	Check("resto cloth chest → GOOD", restoCloth.equipment[1].verdict == "GOOD")
+	Check("resto Je'Tze's Bell → not TRINKET_NOT_PREFERRED", not HasCode(fResto, "TRINKET_NOT_PREFERRED"))
 
 	-- Blood DK: Pinnacle shoulders + armor cloak/gloves must not false-flag
 	local bloodTank = {
