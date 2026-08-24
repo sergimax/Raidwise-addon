@@ -934,7 +934,7 @@ local function CreateGearCheckTargetPage(parent)
 	end)
 	page.debugBtn = debugBtn
 
-	-- Right sidebar: save, saved list, delete (aligned with breakdown)
+	-- Right sidebar: save, delete, saved list (aligned with breakdown)
 	local rightSidebar = CreateFrame("Frame", nil, page)
 	rightSidebar:SetPoint("TOPLEFT", filterHost, "BOTTOMLEFT", leftW + COL_GAP, -6)
 	rightSidebar:SetPoint("BOTTOMRIGHT", bottomHost, "TOPRIGHT", 0, 4)
@@ -950,8 +950,8 @@ local function CreateGearCheckTargetPage(parent)
 	page.saveBtn = saveBtn
 
 	local savedDeleteBtn = W.CreatePlainButton(rightSidebar, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVED_DELETE"))
-	savedDeleteBtn:SetPoint("BOTTOMLEFT", 0, 0)
-	savedDeleteBtn:SetPoint("BOTTOMRIGHT", rightSidebar, "BOTTOMRIGHT", 0, 0)
+	savedDeleteBtn:SetPoint("TOPLEFT", saveBtn, "BOTTOMLEFT", 0, -6)
+	savedDeleteBtn:SetPoint("TOPRIGHT", saveBtn, "BOTTOMRIGHT", 0, -6)
 	savedDeleteBtn:Disable()
 	savedDeleteBtn:SetScript("OnClick", function()
 		DeleteViewingSaved(page)
@@ -960,9 +960,8 @@ local function CreateGearCheckTargetPage(parent)
 
 	-- Saved reports (scrollable list)
 	local savedHost = CreateFrame("Frame", nil, rightSidebar)
-	savedHost:SetPoint("TOPLEFT", saveBtn, "BOTTOMLEFT", 0, -6)
-	savedHost:SetPoint("BOTTOMLEFT", savedDeleteBtn, "TOPLEFT", 0, 4)
-	savedHost:SetPoint("BOTTOMRIGHT", savedDeleteBtn, "TOPRIGHT", 0, 4)
+	savedHost:SetPoint("TOPLEFT", savedDeleteBtn, "BOTTOMLEFT", 0, -6)
+	savedHost:SetPoint("BOTTOMRIGHT", rightSidebar, "BOTTOMRIGHT", 0, 0)
 	W.ApplyPlainPanel(savedHost, UI.PANEL_BG)
 	page.savedHost = savedHost
 

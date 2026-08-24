@@ -153,7 +153,7 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
-Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right: status + **Scan** (top band), then **Save report**, scrollable saved list, **Delete selected**, **Show as a text**, **Select all**. Text view replaces both columns with multiline dump. `LAYOUT_VERSION = 8`.
+Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right: status + **Scan** (top band), then **Save report**, **Delete selected**, scrollable saved list, **Show as a text**, **Select all**. Text view replaces both columns with multiline dump. `LAYOUT_VERSION = 8`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -162,7 +162,7 @@ Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW �
 | Summary (left) | height **124** | Aligns vertically with status/Scan band |
 | Report / filter rows | left width only | Five equal buttons each |
 | Breakdown | left, fills height | Slot groups with verdict color |
-| Saved list | right sidebar middle | Scroll + vertical bar; all entries (not capped) |
+| Saved list | right sidebar below delete | Scroll + vertical bar; all entries (not capped) |
 | Sidebar bottom | **2 ×** button height + gap | Show as a text, then Select all |
 
 ## Gear check (raid) tab

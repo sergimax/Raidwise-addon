@@ -211,7 +211,7 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Gear check (target)
 
-Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, Scan, Save report, scrollable saved list, Delete selected, Show as a text, Select all. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
+Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, Scan, Save report, Delete selected, scrollable saved list, Show as a text, Select all. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
 
 ```text
 [ short description — full width ]
@@ -226,8 +226,8 @@ LEFT (~670px)                          RIGHT (~220px)
 [ All | Items | Enchants | Gems | OK ]
 
 [ scrollable findings by slot ]         [ Save report ]
-                                        [ Saved reports (~14 days) — scroll ]
                                         [ Delete selected ]
+                                        [ Saved reports (~14 days) — scroll ]
                                         [ Show as a text ]
                                         [ Select all ]
 
@@ -241,12 +241,12 @@ LEFT (~670px)                          RIGHT (~220px)
 | summary (left) | Overall status (colored), character line, GearScore / avg iLvl, issue counts, meta, sets |
 | status (right) | Multi-line hint or scan result (`\n` breaks + word wrap); sits above Scan |
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI |
-| Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved |
 | report buttons | Print to **self chat only** (`[GearCheck]` lines) |
 | filters | All / Items / Enchants / Gems / **OK** |
 | breakdown (left) | Active filter name as gold header (except **All**); then `[VERDICT] Slot — Item` plus finding bullets |
-| saved panel (right) | Scrollable list of all saved entries; click loads frozen snapshot |
+| Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved |
 | Delete selected | Removes the currently viewed saved entry |
+| saved panel (right) | Scrollable list of all saved entries; click loads frozen snapshot |
 | Show as a text | Toggles raw dump (replaces both columns) |
 | Select all | Enabled in text view when dump has text |
 
