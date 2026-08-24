@@ -234,6 +234,6 @@ Empty or thin sections in the example files (do not invent BiS):
 
 1. ~~**Profiles:** Fury weapons → prefer 2H; Arms/Fury/Hunter/Enh armor → leather acceptable; tank profiles stay strict.~~ **Done** in `GearCheckProfiles.lua`.
 2. ~~**Weapon combos:** enforce setups from §2 (empty OH on DW specs, etc.).~~ **Done** (`weaponSetup` + `WEAPON_SETUP`).
-3. ~~**Trinkets:** allowlists from §3.~~ **Done** (soft `TRINKET_NOT_PREFERRED`); expand IDs when reports appear.
+3. ~~**Trinkets:** allowlists from §3.~~ **Done** — `GearCheckTrinkets.lua`: **preferred** (ICC/RS BiS → GOOD) + **allowed** (+ ToC/Ulduar/badge progression → OK); per-spec `trinketPool` on profiles; expand IDs when reports appear.
 4. Keep this file updated when BiS example lists change; do not auto-score “closeness to BiS.”
 5. Optional: “must have ranged” for hunters/warriors; richer 1h_oh caster checks.

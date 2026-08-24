@@ -21,7 +21,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | Overall status | Worst wins; BAD/REPLACE summaries note that items have those statuses |
 | Resilience (PvE) | 1 item with Resilience → overall **REPLACE**; 2+ → **BAD** |
 | Catalogs | Seed from AtlasLoot lists + hand-built enchantId map; unknown IDs → **not-checkable** (no false BAD) |
-| Trinkets / relics / shirt / tabard | Relics / shirt / tabard ignored; **trinkets CHECKED** vs surface allowlists (soft not-preferred) |
+| Trinkets / relics / shirt / tabard | Relics / shirt / tabard ignored; **trinkets CHECKED** vs per-spec pools (`preferred` / `allowed`) |
 | Finding locale | English only for now (RU later) |
 | Saved reports | Manual save only; ~14-day retention; `rulesetVersion` + `dataVersion` on each snapshot |
 | Profile stat tuning | Per-spec `S_*` templates in `GearCheckProfiles.lua`; matrix editor at `gear-check-debug/stats-matrix.html` |
@@ -42,7 +42,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 8 | Ruleset expansion | **done** | Enh intellect; gem not-checkable policy; leg/Engi/weapon catalogs |
 | — | Raid-wide gear check | **backlog** | Menu stub only |
 | — | Saved reports | **done** | Manual save/load/delete in target UI; 14-day prune |
-| — | Trinket analysis | **done** (surface) | Allowlists from BiS examples; soft `TRINKET_NOT_PREFERRED`; not BiS scoring |
+| — | Trinket analysis | **done** | Per-spec pools in `GearCheckTrinkets.lua`: BiS **preferred** (GOOD) + progression **allowed** (OK); soft `TRINKET_NOT_PREFERRED` outside allowed |
 | — | Catalog / profile false positives | **backlog** | New reports after Phase 8 polish (Rhee items addressed) |
 
 ---
@@ -57,8 +57,6 @@ Features from the spec or locked decisions that are **not done** yet (or only pa
 |------|----------------|
 | Raid-wide gear check | Menu stub only (`PageGearCheckRaid.lua`) |
 | Finding messages in RU | Chrome localized; finding `message` strings EN only |
-| Full trinket BiS scoring | Surface allowlists only; expand IDs when false positives appear |
-| Warrior stat profiles | `S_WARRIOR_DPS` (Arms/Fury), `S_WARRIOR_PROT` (Protection); class fallback still `S_PHYS_MELEE` |
 
 ### Spec in-scope, only partial
 
@@ -72,7 +70,7 @@ Features from the spec or locked decisions that are **not done** yet (or only pa
 | Slot policy naming | §9 | Spec `UNSUPPORTED`; unused for trinkets (now CHECKED) |
 | Unknown / not-checkable UI | §8 | Info findings exist; All-filter hides pure info → easy to miss “cannot evaluate” |
 | Catalog / profile completeness | Phase 8+ | Seeded + “being maintained”; 27/30 specs use dedicated stat templates; expand on false-positive reports |
-| Surface rules from BiS examples | — | Wired into profiles + `WEAPON_SETUP` / `TRINKET_NOT_PREFERRED`; see `docs/Gear-Check-Surface-From-BiS.md` |
+| Surface rules from BiS examples | Wired into profiles + `WEAPON_SETUP` / trinket pools; see `docs/Gear-Check-Surface-From-BiS.md` + `GearCheckTrinkets.lua` |
 
 ### Explicitly out of scope (do not treat as incomplete)
 
@@ -416,6 +414,26 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 2. `/reload` → open Gear check → saved row still listed → click loads snapshot.
 3. **Delete selected report** removes entry; live scan unchanged.
 4. `/rw gearcheck test` — saved-report checks pass.
+
+---
+
+## Trinket pools (maintenance)
+
+**Goal:** Per-spec trinket allowlists from BiS examples — **preferred** (ICC/RS endgame → GOOD) and **allowed** (+ ToC/Ulduar/badge progression → OK, no soft finding).
+
+**Status: done** (`GearCheckTrinkets.lua` + `trinketPool` on each profile)
+
+| Pool | Specs | preferred (BiS) | allowed adds |
+|------|-------|-------------------|--------------|
+| `phys` | Arms/Fury, Rogue, Frost/UH DK, Feral | DBW, Sharpened Scale | ToC verdicts, Needle, Mirror, Ulduar phys, … |
+| `ret` | Ret Paladin | + Tiny Abomination | same as phys allowed |
+| `hunter` | BM/MM/SV | DBW, Sharpened | ToC, Needle, Mirror, Banner |
+| `caster` | Ele, Shadow, Mage, Lock, Balance | Charred, Phylactery, Dislodged | Reign, Sundial, Je'Tze, … |
+| `healer` | Disc/Holy Priest, Holy Pal, Resto Shaman/Druid | Glowing, Althor's, Solace, … | Charred (Holy Pal), Scale of Fates, … |
+| `tank` | Prot Warrior/Pal, Blood DK | Fang, Petrified, Skeleton Key, … | Ick's Thumb, Glyph, entry tank, … |
+| `enhance` | Enh Shaman | phys ICC + Herkuml + caster ICC | full phys + caster progression |
+
+Outside **allowed** → soft `TRINKET_NOT_PREFERRED`. Inside allowed but outside preferred → **OK** (“progression pool, not endgame BiS”). Expand IDs in `GearCheckTrinkets.lua` when false positives are reported.
 
 ---
 

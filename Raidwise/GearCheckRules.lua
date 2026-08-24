@@ -312,6 +312,13 @@ local function EvaluateWeaponSetup(findings, profile, equipment)
 	end
 end
 
+local function TrinketInSet(setTable, itemId)
+	if type(setTable) ~= "table" or not next(setTable) then
+		return false
+	end
+	return setTable[tonumber(itemId)] == true
+end
+
 local function EvaluateTrinket(findings, profile, slot)
 	if slot.key ~= "trinket1" and slot.key ~= "trinket2" then
 		return
@@ -841,9 +848,14 @@ local GOOD_OFFSET_SLOTS = {
 local function TypeQualifiesForGood(profile, slot)
 	local item = slot.item
 	if slot.key == "trinket1" or slot.key == "trinket2" then
+		local itemId = item and tonumber(item.itemId)
+		local preferred = profile.trinketsPreferred
+		if type(preferred) == "table" and next(preferred) then
+			return TrinketInSet(preferred, itemId)
+		end
 		local allowed = profile.trinketsAllowed
 		if type(allowed) == "table" and next(allowed) then
-			return allowed[tonumber(item.itemId)] == true
+			return TrinketInSet(allowed, itemId)
 		end
 		return true
 	end
@@ -896,7 +908,14 @@ local function CollectNotGoodReasons(profile, slot, findings)
 		return reasons
 	end
 	if not TypeQualifiesForGood(profile, slot) then
-		if item.category == "armor" and item.armorType and item.armorType ~= "misc" then
+		if slot.key == "trinket1" or slot.key == "trinket2" then
+			local itemId = item and tonumber(item.itemId)
+			if TrinketInSet(profile.trinketsAllowed, itemId) then
+				reasons[#reasons + 1] = "Trinket is in progression pool, not endgame BiS."
+			else
+				reasons[#reasons + 1] = "Trinket is not preferred for this specialization."
+			end
+		elseif item.category == "armor" and item.armorType and item.armorType ~= "misc" then
 			reasons[#reasons + 1] = string.format(
 				"Armor type %s is not preferred for this specialization.",
 				tostring(item.armorType)
@@ -1699,6 +1718,35 @@ function Addon:GearCheckRulesSelfTest()
 	Check("fury axe2h → not WEAPON_UNWANTED", not HasCode(fFury, "WEAPON_UNWANTED"))
 	Check("fury DBW trinket → not TRINKET_NOT_PREFERRED", not HasCodeOnSlot(fFury, "TRINKET_NOT_PREFERRED", "trinket1"))
 	Check("fury glowing scale → TRINKET_NOT_PREFERRED", HasCodeOnSlot(fFury, "TRINKET_NOT_PREFERRED", "trinket2"))
+
+	local furyToC = {
+		character = { classFile = "WARRIOR", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("trinket1", "Trinket0Slot", MakeItem({
+				itemId = 47464,
+				category = "armor",
+				armorType = "misc",
+				stats = {},
+			})),
+		},
+	}
+	local fFuryToC = self:EvaluateGearCheck(furyToC)
+	Check("fury Death's Choice → not TRINKET_NOT_PREFERRED", not HasCode(fFuryToC, "TRINKET_NOT_PREFERRED"))
+	Check("fury Death's Choice → OK not GOOD", furyToC.equipment[1].verdict == "OK")
+
+	local retAbom = {
+		character = { classFile = "PALADIN", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("trinket1", "Trinket0Slot", MakeItem({
+				itemId = 50706,
+				category = "armor",
+				armorType = "misc",
+				stats = {},
+			})),
+		},
+	}
+	local fRetAbom = self:EvaluateGearCheck(retAbom)
+	Check("ret Tiny Abom → not TRINKET_NOT_PREFERRED", not HasCode(fRetAbom, "TRINKET_NOT_PREFERRED"))
 
 	-- Tank leather stays unwanted
 	local tankLeather = {

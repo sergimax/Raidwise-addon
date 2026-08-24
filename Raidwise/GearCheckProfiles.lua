@@ -285,68 +285,25 @@ local W_FERAL = Weapons(
 	{ "bow", "gun", "crossbow", "wand", "fishingPole" }
 )
 
--- Trinket allowlists (normal + heroic ICC/RS IDs where known). Absence ≠ BAD; soft not-preferred only.
-local T_PHYS = {
-	50362, 50363, -- Deathbringer's Will
-	54569, 54590, -- Sharpened Twilight Scale
-	50706, -- Tiny Abomination in a Jar
-	50355, -- Herkuml War Token
-	47131, 47464, -- Death's Choice / Verdict (ToC)
-	47303, 47115, -- Death's Verdict variants
-	-- Entry / mid-tier
-	50198, -- Needle-Encrusted Scorpion
-}
-local T_HUNTER = {
-	50362, 50363,
-	54569, 54590,
-	47131, 47464,
-}
-local T_CASTER = {
-	54572, 54588, -- Charred Twilight Scale
-	50360, 50365, -- Phylactery of the Nameless Lich
-	50348, 50353, -- Dislodged Foreign Object
-	47316, 47182, -- Reign of the Dead / Unliving
-	-- Entry / mid-tier
-	40682, -- Sundial of the Exiled
-	47726, -- Talisman of Volatile Power
-	37835, -- Je'Tze's Bell
-	48724, -- Talisman of Resurgence
-	48722, -- Shard of the Crystal Heart
-}
-local T_HEALER = {
-	54573, 54589, -- Glowing Twilight Scale
-	50359, 50366, -- Althor's Abacus
-	50358, -- Purified Lunar Dust
-	47041, 47059, 47271, 47432, -- Solace of the Fallen / Defeated
-	48724, -- Talisman of Resurgence
-	46051, -- Meteorite Crystal
-	54572, 54588, -- Charred (Holy Pal 2nd sometimes)
-	-- Entry / mid-tier
-	37835, -- Je'Tze's Bell
-}
-local T_TANK = {
-	50361, 50364, -- Sindragosa's Flawless Fang
-	54571, 54591, -- Petrified Twilight Scale
-	50356, -- Corroded Skeleton Key
-	47080, 47088, -- Satrina's Impeding Scarab
-	47290, 47451, -- Juggernaut's Vitality
-	48021, -- Eitrigg's Oath
-	-- Entry / mid-tier
-	50235, -- Ick's Rotting Thumb
-	47735, -- Glyph of Indomitability
-	47216, -- The Black Heart
-	37220, -- Essence of Gossamer
-	50344, -- Dark Matter
-}
--- Enhancement AP + SP lists both appear in sources.
-local T_ENHANCE = {
-	50362, 50363, 54569, 54590, 50355,
-	54572, 54588, 50360, 50365,
-	50198, -- Needle-Encrusted Scorpion
-}
+-- Trinket pools: see GearCheckTrinkets.lua (preferred = BiS; allowed = + progression).
+
+local TRINKET_POOLS = Addon.GearCheckTrinketPools or {}
+
+local function ResolveTrinketSets(opts)
+	opts = opts or {}
+	if opts.trinketPool then
+		local pool = TRINKET_POOLS[opts.trinketPool]
+		if pool then
+			return Set(pool.preferred or {}), Set(pool.allowed or {})
+		end
+	end
+	local legacy = Set(opts.trinkets or {})
+	return legacy, legacy
+end
 
 local function Profile(name, armor, stats, weapons, metaPreferred, opts)
 	opts = opts or {}
+	local trinketsPreferred, trinketsAllowed = ResolveTrinketSets(opts)
 	return {
 		name = name,
 		armor = armor,
@@ -355,72 +312,73 @@ local function Profile(name, armor, stats, weapons, metaPreferred, opts)
 		metaPreferred = Set(metaPreferred or {}),
 		-- dw | 2h | 1h_shield | 1h_shield_or_oh | 1h_oh | any
 		weaponSetup = opts.weaponSetup or "any",
-		trinketsAllowed = Set(opts.trinkets or {}),
+		trinketsPreferred = trinketsPreferred,
+		trinketsAllowed = trinketsAllowed,
 	}
 end
 
 local PROFILES = {
 	-- Class fallbacks (spec unknown).
-	WARRIOR = Profile("Warrior", A_PLATE_DPS, S_PHYS_MELEE, W_2H_MELEE, { 41398, 41397, 41396 }, { weaponSetup = "any", trinkets = T_PHYS }),
-	PALADIN = Profile("Paladin", A_PLATE_DPS, S_PHYS_MELEE, W_1H_SHIELD, { 41398, 41395, 41396 }, { weaponSetup = "any", trinkets = T_PHYS }),
-	HUNTER = Profile("Hunter", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_HUNTER }),
-	ROGUE = Profile("Rogue", A_LEATHER, S_PHYS_MELEE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
-	PRIEST = Profile("Priest", A_CLOTH, S_HEALER, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
-	DEATHKNIGHT = Profile("Death Knight", A_PLATE_DPS, S_PHYS_MELEE, W_DK, { 41398, 41397, 41396 }, { weaponSetup = "any", trinkets = T_PHYS }),
-	SHAMAN = Profile("Shaman", A_MAIL, S_CASTER, W_ELE_RESTO_SHAMAN, { 41398, 41395, 41401 }, { weaponSetup = "any", trinkets = T_CASTER }),
-	MAGE = Profile("Mage", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	WARLOCK = Profile("Warlock", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	DRUID = Profile("Druid", A_LEATHER, S_CASTER, W_FERAL, { 41398, 41401, 41376 }, { weaponSetup = "any", trinkets = T_CASTER }),
+	WARRIOR = Profile("Warrior", A_PLATE_DPS, S_PHYS_MELEE, W_2H_MELEE, { 41398, 41397, 41396 }, { weaponSetup = "any", trinketPool = "phys" }),
+	PALADIN = Profile("Paladin", A_PLATE_DPS, S_PHYS_MELEE, W_1H_SHIELD, { 41398, 41395, 41396 }, { weaponSetup = "any", trinketPool = "phys" }),
+	HUNTER = Profile("Hunter", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "hunter" }),
+	ROGUE = Profile("Rogue", A_LEATHER, S_PHYS_MELEE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinketPool = "phys" }),
+	PRIEST = Profile("Priest", A_CLOTH, S_HEALER, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinketPool = "healer" }),
+	DEATHKNIGHT = Profile("Death Knight", A_PLATE_DPS, S_PHYS_MELEE, W_DK, { 41398, 41397, 41396 }, { weaponSetup = "any", trinketPool = "phys" }),
+	SHAMAN = Profile("Shaman", A_MAIL, S_CASTER, W_ELE_RESTO_SHAMAN, { 41398, 41395, 41401 }, { weaponSetup = "any", trinketPool = "caster" }),
+	MAGE = Profile("Mage", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
+	WARLOCK = Profile("Warlock", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
+	DRUID = Profile("Druid", A_LEATHER, S_CASTER, W_FERAL, { 41398, 41401, 41376 }, { weaponSetup = "any", trinketPool = "caster" }),
 
 	-- Warrior
-	["WARRIOR-1"] = Profile("Arms", A_PLATE_DPS, S_WARRIOR_DPS, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
-	["WARRIOR-2"] = Profile("Fury", A_PLATE_DPS, S_WARRIOR_DPS, W_FURY, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
-	["WARRIOR-3"] = Profile("Protection", A_PLATE_TANK, S_WARRIOR_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinkets = T_TANK }),
+	["WARRIOR-1"] = Profile("Arms", A_PLATE_DPS, S_WARRIOR_DPS, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "phys" }),
+	["WARRIOR-2"] = Profile("Fury", A_PLATE_DPS, S_WARRIOR_DPS, W_FURY, { 41398, 41285 }, { weaponSetup = "dw", trinketPool = "phys" }),
+	["WARRIOR-3"] = Profile("Protection", A_PLATE_TANK, S_WARRIOR_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinketPool = "tank" }),
 
 	-- Paladin
-	["PALADIN-1"] = Profile("Holy", A_PLATE_DPS, S_PALADIN_HOLY, W_1H_SHIELD, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield", trinkets = T_HEALER }),
-	["PALADIN-2"] = Profile("Protection", A_PLATE_TANK, S_PALADIN_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinkets = T_TANK }),
-	["PALADIN-3"] = Profile("Retribution", A_PLATE_DPS, S_PALADIN_RET, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
+	["PALADIN-1"] = Profile("Holy", A_PLATE_DPS, S_PALADIN_HOLY, W_1H_SHIELD, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield", trinketPool = "healer" }),
+	["PALADIN-2"] = Profile("Protection", A_PLATE_TANK, S_PALADIN_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinketPool = "tank" }),
+	["PALADIN-3"] = Profile("Retribution", A_PLATE_DPS, S_PALADIN_RET, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "ret" }),
 
 	-- Hunter
-	["HUNTER-1"] = Profile("Beast Mastery", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_HUNTER }),
-	["HUNTER-2"] = Profile("Marksmanship", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_HUNTER }),
-	["HUNTER-3"] = Profile("Survival", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_HUNTER }),
+	["HUNTER-1"] = Profile("Beast Mastery", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "hunter" }),
+	["HUNTER-2"] = Profile("Marksmanship", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "hunter" }),
+	["HUNTER-3"] = Profile("Survival", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "hunter" }),
 
 	-- Rogue
-	["ROGUE-1"] = Profile("Assassination", A_LEATHER, S_ROGUE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
-	["ROGUE-2"] = Profile("Combat", A_LEATHER, S_ROGUE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
-	["ROGUE-3"] = Profile("Subtlety", A_LEATHER, S_ROGUE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
+	["ROGUE-1"] = Profile("Assassination", A_LEATHER, S_ROGUE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinketPool = "phys" }),
+	["ROGUE-2"] = Profile("Combat", A_LEATHER, S_ROGUE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinketPool = "phys" }),
+	["ROGUE-3"] = Profile("Subtlety", A_LEATHER, S_ROGUE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinketPool = "phys" }),
 
 	-- Priest
-	["PRIEST-1"] = Profile("Discipline", A_CLOTH, S_PRIEST_DISC, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
-	["PRIEST-2"] = Profile("Holy", A_CLOTH, S_PRIEST_HOLY, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
-	["PRIEST-3"] = Profile("Shadow", A_CLOTH, S_PRIEST_SHADOW, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["PRIEST-1"] = Profile("Discipline", A_CLOTH, S_PRIEST_DISC, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinketPool = "healer" }),
+	["PRIEST-2"] = Profile("Holy", A_CLOTH, S_PRIEST_HOLY, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinketPool = "healer" }),
+	["PRIEST-3"] = Profile("Shadow", A_CLOTH, S_PRIEST_SHADOW, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
 
 	-- Death Knight
-	["DEATHKNIGHT-1"] = Profile("Blood", A_PLATE_TANK, S_DK_BLOOD, W_DK_2H, { 41397, 41396, 41380 }, { weaponSetup = "2h", trinkets = T_TANK }),
-	["DEATHKNIGHT-2"] = Profile("Frost", A_PLATE_DPS, S_DK_DPS, W_DK_DW, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
-	["DEATHKNIGHT-3"] = Profile("Unholy", A_PLATE_DPS, S_DK_DPS, W_DK_2H, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
+	["DEATHKNIGHT-1"] = Profile("Blood", A_PLATE_TANK, S_DK_BLOOD, W_DK_2H, { 41397, 41396, 41380 }, { weaponSetup = "2h", trinketPool = "tank" }),
+	["DEATHKNIGHT-2"] = Profile("Frost", A_PLATE_DPS, S_DK_DPS, W_DK_DW, { 41398, 41285 }, { weaponSetup = "dw", trinketPool = "phys" }),
+	["DEATHKNIGHT-3"] = Profile("Unholy", A_PLATE_DPS, S_DK_DPS, W_DK_2H, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "phys" }),
 
 	-- Shaman
-	["SHAMAN-1"] = Profile("Elemental", A_MAIL, S_SHAMAN_ELEMENTAL, W_ELE_RESTO_SHAMAN, { 41285, 41333, 41401 }, { weaponSetup = "1h_shield", trinkets = T_CASTER }),
-	["SHAMAN-2"] = Profile("Enhancement", A_MAIL, S_ENHANCE, W_ENHANCE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_ENHANCE }),
-	["SHAMAN-3"] = Profile("Restoration", A_MAIL, S_SHAMAN_RESTO, W_ELE_RESTO_SHAMAN, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield_or_oh", trinkets = T_HEALER }),
+	["SHAMAN-1"] = Profile("Elemental", A_MAIL, S_SHAMAN_ELEMENTAL, W_ELE_RESTO_SHAMAN, { 41285, 41333, 41401 }, { weaponSetup = "1h_shield", trinketPool = "caster" }),
+	["SHAMAN-2"] = Profile("Enhancement", A_MAIL, S_ENHANCE, W_ENHANCE, { 41398, 41285 }, { weaponSetup = "dw", trinketPool = "enhance" }),
+	["SHAMAN-3"] = Profile("Restoration", A_MAIL, S_SHAMAN_RESTO, W_ELE_RESTO_SHAMAN, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield_or_oh", trinketPool = "healer" }),
 
 	-- Mage
-	["MAGE-1"] = Profile("Arcane", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	["MAGE-2"] = Profile("Fire", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	["MAGE-3"] = Profile("Frost", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["MAGE-1"] = Profile("Arcane", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
+	["MAGE-2"] = Profile("Fire", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
+	["MAGE-3"] = Profile("Frost", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
 
 	-- Warlock
-	["WARLOCK-1"] = Profile("Affliction", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	["WARLOCK-2"] = Profile("Demonology", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	["WARLOCK-3"] = Profile("Destruction", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["WARLOCK-1"] = Profile("Affliction", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
+	["WARLOCK-2"] = Profile("Demonology", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
+	["WARLOCK-3"] = Profile("Destruction", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
 
 	-- Druid
-	["DRUID-1"] = Profile("Balance", A_LEATHER, S_DRUID_BALANCE, W_FERAL, { 41285, 41333, 41401 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	["DRUID-2"] = Profile("Feral", A_LEATHER, S_DRUID_FERAL, W_FERAL, { 41398, 41397, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
-	["DRUID-3"] = Profile("Restoration", A_LEATHER_HEAL, S_DRUID_RESTO, W_FERAL, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
+	["DRUID-1"] = Profile("Balance", A_LEATHER, S_DRUID_BALANCE, W_FERAL, { 41285, 41333, 41401 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
+	["DRUID-2"] = Profile("Feral", A_LEATHER, S_DRUID_FERAL, W_FERAL, { 41398, 41397, 41285 }, { weaponSetup = "2h", trinketPool = "phys" }),
+	["DRUID-3"] = Profile("Restoration", A_LEATHER_HEAL, S_DRUID_RESTO, W_FERAL, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinketPool = "healer" }),
 }
 
 -- Blood DK tank tab is 1 in RaidRoles.

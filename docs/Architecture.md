@@ -20,6 +20,7 @@ UnitTooltips.lua      GameTooltip unit lines for personal/community ratings
 CharacterProfile.lua  character profile popup
 GearCheckCatalog.lua  enchant / gem seed catalogs
 GearCheckSets.lua     T9/T10 set-piece ids (informational)
+GearCheckTrinkets.lua per-role BiS + progression trinket id pools
 GearCheckProfiles.lua class + 30-spec rule profiles
 GearCheckRules.lua    findings engine + item verdicts + overall (EvaluateGearCheck)
 GearCheckSavedReports.lua  manual save / load / prune (~14 days)

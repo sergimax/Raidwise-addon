@@ -21,6 +21,7 @@ UnitTooltips.lua
 CharacterProfile.lua
 GearCheckCatalog.lua
 GearCheckSets.lua
+GearCheckTrinkets.lua
 GearCheckProfiles.lua
 GearCheckRules.lua
 GearCheckSavedReports.lua
