@@ -80,10 +80,10 @@ Esc or the title **X** closes the window.
 
 **Gear check (target)** tab:
 
-- Phase 3: **Scan** builds the normalized gear model and runs the rules engine; dump shows equipment plus **findings** (`hard` / `soft` / `info`). No OK/REPLACE/BAD yet
+- Phase 4: **Scan** builds the model, runs rules, and shows per-slot **OK / REPLACE / BAD** (plus findings). Overall gear status comes later
 - Surface-level disclaimer; class/spec rules are being maintained
 - `/rw gearcheck` opens this tab and runs a scan; `/rw gearcheck test` runs offline rule fixtures
-- Progress tracker: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
+- Known catalog/profile false positives are tracked in [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md) (backlog)
 
 **Gear check (raid)** tab:
 

@@ -1,4 +1,4 @@
--- PageGearCheckTarget — Phase 3 dump (findings; verdicts later).
+-- PageGearCheckTarget — Phase 4 dump (per-slot verdicts; overall status later).
 
 local Addon = Raidwise
 local W = Addon.Widgets

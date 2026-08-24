@@ -20,7 +20,7 @@ UnitTooltips.lua      GameTooltip unit lines for personal/community ratings
 CharacterProfile.lua  character profile popup
 GearCheckCatalog.lua  enchant / gem seed catalogs
 GearCheckProfiles.lua class + 30-spec rule profiles
-GearCheckRules.lua    findings engine (EvaluateGearCheck)
+GearCheckRules.lua    findings engine + item verdicts (EvaluateGearCheck)
 GearCheck.lua         collector + normalize (schemaVersion 2) + evaluate hook + dump
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
 ExporterWindow.lua    main shell (menu, title, status, tab wiring)

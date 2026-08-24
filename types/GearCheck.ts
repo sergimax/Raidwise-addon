@@ -211,6 +211,8 @@ export type GearCheckItem = {
   gaps: GearCheckGap[];
 };
 
+export type GearCheckItemVerdict = "OK" | "REPLACE" | "BAD";
+
 export type GearCheckSlot = {
   key: string;
   slotName: string;
@@ -220,6 +222,15 @@ export type GearCheckSlot = {
   empty: boolean;
   item?: GearCheckItem;
   gaps: GearCheckGap[];
+  /** Phase 4: set on CHECKED filled slots after aggregate. */
+  verdict?: GearCheckItemVerdict;
+};
+
+export type GearCheckVerdictSummary = {
+  ok: number;
+  replace: number;
+  bad: number;
+  skipped: number;
 };
 
 export type GearCheckCharacter = {
@@ -259,7 +270,8 @@ export type GearCheckCollection = {
 /**
  * Frozen Gear Check report.
  * Rules read `character` + `equipment` (+ top-level `gaps`). Ignore `collection`.
- * After Phase 3 evaluate: `findings` + `profile` are attached (still no verdicts).
+ * After Phase 3 evaluate: `findings` + `profile`.
+ * After Phase 4 aggregate: per-slot `verdict` + `verdicts` counts (no GOOD yet).
  *
  * Convenience aliases (`name`, `isSelf`, `inspect`, `slots`, …) may also be present
  * for UI/inspect orchestration; prefer the nested fields in new code.
@@ -272,4 +284,5 @@ export type GearCheckReport = {
   collection: GearCheckCollection;
   findings?: GearCheckFinding[];
   profile?: GearCheckProfileRef;
+  verdicts?: GearCheckVerdictSummary;
 };

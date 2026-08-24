@@ -771,7 +771,7 @@ function Addon:CollectGearCheck(unit)
 				filledCheckedSlots = filled,
 			},
 		},
-		phase = 3,
+		phase = 4,
 		name = name,
 		isSelf = isSelf,
 		specKnown = identity.specKnown,
@@ -799,11 +799,12 @@ function Addon:FormatGearCheckDump(report)
 	local equipment = report.equipment or report.slots or {}
 	local findings = report.findings or {}
 	local profile = report.profile
+	local verdicts = report.verdicts
 
 	local lines = {}
-	lines[#lines + 1] = "Raidwise Gear Check — Phase 3 snapshot (findings; no OK/REPLACE/BAD yet)"
+	lines[#lines + 1] = "Raidwise Gear Check — Phase 4 snapshot (per-slot OK / REPLACE / BAD)"
 	lines[#lines + 1] = "schemaVersion=" .. tostring(report.schemaVersion or "?")
-	lines[#lines + 1] = "Rules produce findings only. Item level is informational and must not affect verdicts."
+	lines[#lines + 1] = "Verdicts aggregate findings (hard→BAD, soft→REPLACE, info-only→OK). Item level must not affect verdicts."
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = string.format(
 		"Unit: %s (%s)%s",
@@ -853,6 +854,15 @@ function Addon:FormatGearCheckDump(report)
 	elseif inspect.needed then
 		lines[#lines + 1] = "Inspect: ok"
 	end
+	if verdicts then
+		lines[#lines + 1] = string.format(
+			"Item verdicts: OK=%d  REPLACE=%d  BAD=%d  (skipped=%d)",
+			verdicts.ok or 0,
+			verdicts.replace or 0,
+			verdicts.bad or 0,
+			verdicts.skipped or 0
+		)
+	end
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "Equipment:"
 
@@ -871,14 +881,16 @@ function Addon:FormatGearCheckDump(report)
 			local item = slot.item
 			local name = item.name or (item.pendingLink and "(link pending)" or "unknown")
 			local ilvl = item.itemLevel and tostring(item.itemLevel) or "-"
+			local verdict = slot.verdict and ("  verdict=" .. slot.verdict) or ""
 			lines[#lines + 1] = string.format(
-				"  [%s%s] %s — id=%s  ilvl=%s  %s",
+				"  [%s%s] %s — id=%s  ilvl=%s  %s%s",
 				policy,
 				note,
 				slot.slotName,
 				tostring(item.itemId),
 				ilvl,
-				name
+				name,
+				verdict
 			)
 			lines[#lines + 1] = string.format(
 				"      category=%s  armorType=%s  weaponType=%s  relic=%s  equipLoc=%s",

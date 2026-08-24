@@ -33,7 +33,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 1 | Data collection | **done** | Target/self unit, slots, item/enchant/gem IDs, class/spec; Phase 1 dump UI |
 | 2 | Normalized gear model | **done** | `schemaVersion = 2`; `types/GearCheck.ts`; dump shows stats/types/gaps |
 | 3 | Rules engine | **done** | Hard/soft/info findings; catalogs + 30-spec profiles; `/rw gearcheck test` |
-| 4 | Item verdicts | planned | Aggregate findings → OK / REPLACE / BAD |
+| 4 | Item verdicts | **done** | Per-slot OK / REPLACE / BAD from findings (info ≠ BAD) |
 | 5 | Gear-level evaluation | planned | Overall status, meta activation, set counts, counters |
 | 6 | UI | planned | Breakdown screens beyond Phase 1 dump |
 | 7 | Chat output | planned | `/rw gearcheck` reports (summary / items / enchants / gems) |
@@ -41,6 +41,23 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | — | Raid-wide gear check | **backlog** | Menu stub only |
 | — | Saved reports | **backlog** | Spec §25 |
 | — | Trinket analysis | **backlog** | Slot policy PLANNED |
+| — | Catalog / profile false positives | **backlog** | See [Known false positives](#known-false-positives--ruleset-gaps) (fix after Phase 8 polish) |
+
+---
+
+## Known false positives / ruleset gaps
+
+Observed on **Rhee (Enhancement Shaman)** during Phase 3. Do **not** chase these mid-phase; revisit after Phases 4–7, preferably during **Phase 8** (ruleset expansion / catalog polish).
+
+| Area | Symptom | Likely cause | Fix direction |
+|------|---------|--------------|---------------|
+| Gems | Epic (max-level) gems flagged `GEM_LOWER_LEVEL` | Seed catalog incomplete; gems known via `GetItemInfo` but missing from `GEMS` (or treated as non-max) are soft-flagged as lower | Expand Northrend epic gem catalog; only flag lower when catalog entry exists with `maxLevel = false`, or quality-based heuristic |
+| Stats (Enhancement) | `intellect` → `STAT_DISCOURAGED` on gear | `S_PHYS_MELEE` / Enh profile lists intellect as discouraged; for Enh it is a primary (hard to avoid) mail stat | Add Enhancement-specific stats (prefer intellect; keep spellPower soft/forbidden as appropriate) |
+| Legs enchants | Tailoring / Leatherworking leg kits treated as unknown or wrong | Leg armor / spellthread ids not fully seeded as max-level “enchants” | Map common LW/Tailoring leg enchant ids into catalog as `maxLevel` |
+| Feet / hands | Engineering tinker improvements unknown or wrong | Engi boot/glove enchant ids missing from catalog | Seed Engineering feet/hands enchant ids |
+| Weapons | Some weapon enchants unknown (`ENCHANT_NOT_CHECKABLE` / unmapped) | Incomplete weapon enchantId map (incl. shaman / melee commons) | Expand weapon enchant catalog from live links |
+
+**Policy reminder:** unknown catalog ids must stay **not-checkable** (info), never false **BAD**. False **REPLACE** from incomplete catalogs is still a ruleset bug to fix in backlog/Phase 8.
 
 ---
 
@@ -182,9 +199,36 @@ Item verdicts, overall status, chat report modes, meta activation across full se
 
 **Goal:** Per-slot OK / REPLACE / BAD from findings (no GOOD yet).
 
+**Status: done** (2026-08-24)
+
+### Checklist
+
+- [x] Aggregate findings → slot `verdict` (`AggregateGearCheckVerdicts`)
+- [x] hard → **BAD**; soft → **REPLACE**; none / info-only → **OK** (no false BAD)
+- [x] Dump shows `verdict=` per filled checked slot + `Item verdicts: OK=… REPLACE=… BAD=…`
+- [x] Self-test covers verdicts (`/rw gearcheck test`)
+- [x] Types: `GearCheckItemVerdict`, `verdicts` summary
+
+### Aggregation
+
+```text
+any hard finding on slot  → BAD
+else any soft finding     → REPLACE
+else                      → OK   (info-only / not-checkable does not demote)
+IGNORED / PLANNED / empty → no verdict (counted as skipped)
+```
+
+Overall gear status is **Phase 5** (worst-wins + resilience counts).
+
 ### How to test
 
-Same fixtures; each slot shows verdict + explainable findings.
+1. `/rw gearcheck test` → all checks pass (findings + verdicts).
+2. `/rw gearcheck` → each filled checked slot shows `verdict=OK|REPLACE|BAD`.
+3. Same fixtures: cloth/prot → BAD; resilience → REPLACE; missing enchant → REPLACE; SP/fury → BAD.
+
+### Out of scope this phase
+
+Overall status, meta activation across full set, chat reports, catalog false-positive fixes (see backlog).
 
 ---
 

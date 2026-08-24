@@ -360,6 +360,7 @@ function Addon:EvaluateGearCheck(report)
 	if not profile then
 		AddFinding(findings, "PROFILE_MISSING", "info", "character", nil, Msg("PROFILE_MISSING"))
 		report.findings = findings
+		self:AggregateGearCheckVerdicts(report)
 		return findings
 	end
 
@@ -374,7 +375,67 @@ function Addon:EvaluateGearCheck(report)
 	end
 
 	report.findings = findings
+	self:AggregateGearCheckVerdicts(report)
 	return findings
+end
+
+-- Aggregate per-slot findings → OK / REPLACE / BAD (no GOOD in v1).
+-- info-only findings do not demote an item (unknown stays OK, never false BAD).
+function Addon:AggregateGearCheckVerdicts(report)
+	local summary = { ok = 0, replace = 0, bad = 0, skipped = 0 }
+	if not report then
+		return summary
+	end
+
+	local bySlot = {}
+	local findings = report.findings or {}
+	for index = 1, #findings do
+		local finding = findings[index]
+		local slotKey = finding.slot
+		if slotKey then
+			local bucket = bySlot[slotKey]
+			if not bucket then
+				bucket = { hard = false, soft = false, count = 0 }
+				bySlot[slotKey] = bucket
+			end
+			bucket.count = bucket.count + 1
+			if finding.severity == "hard" then
+				bucket.hard = true
+			elseif finding.severity == "soft" then
+				bucket.soft = true
+			end
+		end
+	end
+
+	local equipment = report.equipment or report.slots or {}
+	for index = 1, #equipment do
+		local slot = equipment[index]
+		slot.verdict = nil
+		if slot.policy ~= "CHECKED" or slot.empty or not slot.item then
+			summary.skipped = summary.skipped + 1
+		else
+			local bucket = bySlot[slot.key]
+			local verdict = "OK"
+			if bucket then
+				if bucket.hard then
+					verdict = "BAD"
+				elseif bucket.soft then
+					verdict = "REPLACE"
+				end
+			end
+			slot.verdict = verdict
+			if verdict == "BAD" then
+				summary.bad = summary.bad + 1
+			elseif verdict == "REPLACE" then
+				summary.replace = summary.replace + 1
+			else
+				summary.ok = summary.ok + 1
+			end
+		end
+	end
+
+	report.verdicts = summary
+	return summary
 end
 
 local function MakeSlot(key, slotName, item)
@@ -431,6 +492,7 @@ function Addon:GearCheckRulesSelfTest()
 	}
 	local f1 = self:EvaluateGearCheck(clothProt)
 	Check("cloth on prot warrior → ARMOR_FORBIDDEN", HasCode(f1, "ARMOR_FORBIDDEN"))
+	Check("cloth on prot warrior → chest BAD", clothProt.equipment[1].verdict == "BAD")
 
 	-- Resilience ring → RESILIENCE_PVE
 	local resRing = {
@@ -446,6 +508,7 @@ function Addon:GearCheckRulesSelfTest()
 	}
 	local f2 = self:EvaluateGearCheck(resRing)
 	Check("resilience ring → RESILIENCE_PVE", HasCode(f2, "RESILIENCE_PVE"))
+	Check("resilience ring → finger1 REPLACE", resRing.equipment[1].verdict == "REPLACE")
 
 	-- Missing chest enchant → MISSING_ENCHANT
 	local missing = {
@@ -462,6 +525,7 @@ function Addon:GearCheckRulesSelfTest()
 	}
 	local f3 = self:EvaluateGearCheck(missing)
 	Check("missing chest enchant → MISSING_ENCHANT", HasCode(f3, "MISSING_ENCHANT"))
+	Check("missing chest enchant → chest REPLACE", missing.equipment[1].verdict == "REPLACE")
 
 	-- Spell Power on Fury → STAT_FORBIDDEN
 	local spFury = {
@@ -478,6 +542,40 @@ function Addon:GearCheckRulesSelfTest()
 	}
 	local f4 = self:EvaluateGearCheck(spFury)
 	Check("spell power on fury → STAT_FORBIDDEN", HasCode(f4, "STAT_FORBIDDEN"))
+	Check("spell power on fury → chest BAD", spFury.equipment[1].verdict == "BAD")
+
+	-- Clean plate chest on Arms → OK (enchant with no inappropriate stats)
+	local clean = {
+		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 5,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 40, stamina = 50 },
+				enchant = { enchantId = 3297, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	self:EvaluateGearCheck(clean)
+	Check("clean plate chest → OK", clean.equipment[1].verdict == "OK")
+
+	-- Info-only (unknown enchant) → still OK
+	local unmapped = {
+		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 6,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 40, stamina = 50 },
+				enchant = { enchantId = 999999, present = true, known = false, gaps = {} },
+			})),
+		},
+	}
+	local fInfo = self:EvaluateGearCheck(unmapped)
+	Check("unknown enchant → ENCHANT_NOT_CHECKABLE", HasCode(fInfo, "ENCHANT_NOT_CHECKABLE"))
+	Check("unknown enchant → still OK (no false BAD)", unmapped.equipment[1].verdict == "OK")
 
 	local passed = 0
 	for index = 1, #results do
