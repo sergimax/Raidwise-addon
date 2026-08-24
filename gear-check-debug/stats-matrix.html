@@ -367,10 +367,22 @@
       forbidden: ["spellPower", "mp5"]
     },
     S_ENHANCE: {
-      preferred: ["agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "intellect", "strength"],
+      preferred: ["agility", "intellect", "attackPower", "spellPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration"],
       acceptable: ["stamina"],
-      unwanted: ["spirit", "spellPower", "defenseRating", "dodgeRating", "parryRating", "mp5", "spellPenetration"],
-      forbidden: []
+      unwanted: ["mp5"],
+      forbidden: ["strength", "spirit", "spellPenetration", "defenseRating", "dodgeRating", "parryRating"]
+    },
+    S_SHAMAN_ELEMENTAL: {
+      preferred: ["intellect", "spellPower", "hitRating", "critRating", "hasteRating"],
+      acceptable: ["stamina", "mp5"],
+      unwanted: ["agility", "spirit", "spellPenetration"],
+      forbidden: ["strength", "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating"]
+    },
+    S_SHAMAN_RESTO: {
+      preferred: ["intellect", "spellPower", "critRating", "hasteRating", "mp5"],
+      acceptable: ["stamina"],
+      unwanted: ["agility", "spirit", "hitRating"],
+      forbidden: ["strength", "attackPower", "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating"]
     },
     S_DRUID_BALANCE: {
       preferred: ["intellect", "spirit", "spellPower", "hitRating", "critRating", "hasteRating", "spellPenetration"],
@@ -425,9 +437,9 @@
     { key: "DEATHKNIGHT-3", name: "Unholy", template: "S_PHYS_MELEE", kind: "spec", classFile: "DEATHKNIGHT" },
 
     { key: "SHAMAN", name: "Shaman (class)", template: "S_CASTER", kind: "class" },
-    { key: "SHAMAN-1", name: "Elemental", template: "S_CASTER", kind: "spec", classFile: "SHAMAN" },
+    { key: "SHAMAN-1", name: "Elemental", template: "S_SHAMAN_ELEMENTAL", kind: "spec", classFile: "SHAMAN" },
     { key: "SHAMAN-2", name: "Enhancement", template: "S_ENHANCE", kind: "spec", classFile: "SHAMAN" },
-    { key: "SHAMAN-3", name: "Restoration", template: "S_HEALER", kind: "spec", classFile: "SHAMAN" },
+    { key: "SHAMAN-3", name: "Restoration", template: "S_SHAMAN_RESTO", kind: "spec", classFile: "SHAMAN" },
 
     { key: "MAGE", name: "Mage (class)", template: "S_CASTER", kind: "class" },
     { key: "MAGE-1", name: "Arcane", template: "S_DRUID_BALANCE", kind: "spec", classFile: "MAGE" },

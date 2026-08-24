@@ -92,12 +92,25 @@ local S_HUNTER = Stats(
 	{ "spirit", "defenseRating", "dodgeRating", "parryRating" },
 	{ "spellPower", "mp5" }
 )
--- Enhancement: intellect is a primary mail/hybrid stat (hard to avoid); spellPower is soft waste.
+-- Enhancement: intellect and spellPower on hybrid mail pieces; mp5 is soft waste.
 local S_ENHANCE = Stats(
-	{ "agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "intellect", "strength" },
+	{ "agility", "intellect", "attackPower", "spellPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration" },
 	{ "stamina" },
-	{ "spirit", "spellPower", "defenseRating", "dodgeRating", "parryRating", "mp5", "spellPenetration" },
-	{}
+	{ "mp5" },
+	{ "strength", "spirit", "spellPenetration", "defenseRating", "dodgeRating", "parryRating" }
+)
+-- Shaman specs: tighter stat gradation than shared caster/healer templates.
+local S_SHAMAN_ELEMENTAL = Stats(
+	{ "intellect", "spellPower", "hitRating", "critRating", "hasteRating" },
+	{ "stamina", "mp5" },
+	{ "agility", "spirit", "spellPenetration" },
+	{ "strength", "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating" }
+)
+local S_SHAMAN_RESTO = Stats(
+	{ "intellect", "spellPower", "critRating", "hasteRating", "mp5" },
+	{ "stamina" },
+	{ "agility", "spirit", "hitRating" },
+	{ "strength", "attackPower", "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating" }
 )
 -- Druid specs: tighter stat gradation than shared caster/melee/healer templates.
 local S_DRUID_BALANCE = Stats(
@@ -319,9 +332,9 @@ local PROFILES = {
 	["DEATHKNIGHT-3"] = Profile("Unholy", A_PLATE_DPS, S_PHYS_MELEE, W_DK_2H, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
 
 	-- Shaman
-	["SHAMAN-1"] = Profile("Elemental", A_MAIL, S_CASTER, W_ELE_RESTO_SHAMAN, { 41285, 41333, 41401 }, { weaponSetup = "1h_shield", trinkets = T_CASTER }),
+	["SHAMAN-1"] = Profile("Elemental", A_MAIL, S_SHAMAN_ELEMENTAL, W_ELE_RESTO_SHAMAN, { 41285, 41333, 41401 }, { weaponSetup = "1h_shield", trinkets = T_CASTER }),
 	["SHAMAN-2"] = Profile("Enhancement", A_MAIL, S_ENHANCE, W_ENHANCE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_ENHANCE }),
-	["SHAMAN-3"] = Profile("Restoration", A_MAIL, S_HEALER, W_ELE_RESTO_SHAMAN, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield_or_oh", trinkets = T_HEALER }),
+	["SHAMAN-3"] = Profile("Restoration", A_MAIL, S_SHAMAN_RESTO, W_ELE_RESTO_SHAMAN, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield_or_oh", trinkets = T_HEALER }),
 
 	-- Mage
 	["MAGE-1"] = Profile("Arcane", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
