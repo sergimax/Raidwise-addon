@@ -586,19 +586,38 @@ local function NormalizeItem(parsed, itemLink, info)
 		end
 	end
 
-	-- GetItemStats EMPTY_SOCKET_* counts remaining empty sockets only.
-	if sockets.total == 0 and itemLink then
-		local fromTip = CountEmptySocketsFromTooltip(itemLink)
-		if fromTip.total > 0 then
-			sockets.meta = fromTip.meta
-			sockets.red = fromTip.red
-			sockets.yellow = fromTip.yellow
-			sockets.blue = fromTip.blue
-			sockets.prismatic = fromTip.prismatic
-			sockets.total = fromTip.total
-		end
+	-- Resolve socket totals carefully:
+	-- On many 3.3.5a clients GetItemStats EMPTY_SOCKET_* is the item's socket
+	-- *layout* (still reported when gems are present), not remaining empties.
+	-- Tooltip "Red Socket" / etc. lines are the reliable remaining-empty signal.
+	local fromStats = sockets.total
+	local fromTip = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 0 }
+	if itemLink then
+		fromTip = CountEmptySocketsFromTooltip(itemLink)
 	end
-	sockets.total = sockets.total + #gems
+
+	local remainingEmpty = fromTip.total
+	if remainingEmpty == 0 and #gems == 0 and fromStats > 0 then
+		-- No gems and tip found nothing — treat stats as empty sockets.
+		remainingEmpty = fromStats
+	end
+
+	local socketTotal = #gems + remainingEmpty
+	if fromStats > socketTotal then
+		-- Stats look like a full layout larger than gems+tip empties.
+		socketTotal = fromStats
+		remainingEmpty = math.max(remainingEmpty, fromStats - #gems)
+	end
+
+	if fromTip.total > 0 and fromStats == 0 then
+		sockets.meta = fromTip.meta
+		sockets.red = fromTip.red
+		sockets.yellow = fromTip.yellow
+		sockets.blue = fromTip.blue
+		sockets.prismatic = fromTip.prismatic
+	end
+	sockets.total = socketTotal
+	sockets.empty = remainingEmpty
 
 	return {
 		itemId = parsed.itemId,
@@ -1057,8 +1076,9 @@ function Addon:FormatGearCheckDump(report)
 			lines[#lines + 1] = "      stats: " .. FormatStatsBrief(item.stats)
 			local sockets = item.sockets or {}
 			lines[#lines + 1] = string.format(
-				"      sockets: total=%s meta=%s red=%s yellow=%s blue=%s prismatic=%s",
+				"      sockets: total=%s empty=%s meta=%s red=%s yellow=%s blue=%s prismatic=%s",
 				tostring(sockets.total or 0),
+				tostring(sockets.empty or 0),
 				tostring(sockets.meta or 0),
 				tostring(sockets.red or 0),
 				tostring(sockets.yellow or 0),

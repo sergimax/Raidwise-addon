@@ -267,14 +267,18 @@ local function EvaluateGems(findings, profile, slot)
 	local sockets = item.sockets or {}
 	local gems = item.gems or {}
 	local socketTotal = tonumber(sockets.total) or 0
-	if socketTotal > #gems then
+	local emptySockets = tonumber(sockets.empty)
+	if emptySockets == nil then
+		emptySockets = math.max(0, socketTotal - #gems)
+	end
+	if emptySockets > 0 then
 		AddFinding(
 			findings,
 			"MISSING_GEM",
 			"soft",
 			"gem",
 			slot.key,
-			Msg("MISSING_GEM", string.format("%d/%d", #gems, socketTotal))
+			Msg("MISSING_GEM", string.format("%d/%d", #gems, math.max(socketTotal, #gems + emptySockets)))
 		)
 	end
 
