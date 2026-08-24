@@ -43,6 +43,7 @@ TOC: `RaidwiseDB`, `MrcExporterDB` (legacy migrate-only).
 | `enabled` | `Raidwise.lua` | Addon on/off (status) |
 | `includeGearNames` | Export page / `CharacterExport` | JSON export option |
 | `locale` | `Locale.lua` | `enUS` / `ruRU` |
+| `startupTab` | Settings / shell | Left-menu page id opened on `/raidwise` (default `cooldowns`) |
 | `tooltip` | `UnitTooltips.lua` / Settings | Hide flags for unit tooltip rating lines |
 | `characters` | `CharacterLockouts.lua` | Per-character lockout columns |
 | `history` | `PlayerHistory.lua` | GUID-keyed meetings, opinion/tags/facts, events, notes |
@@ -73,6 +74,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | Method | Defined in | Used by |
 |--------|------------|---------|
 | `CreateMainFrame` / `ShowMainFrame` / `HideMainFrame` / `ToggleMainFrame` | Shell | Bootstrap, slash |
+| `GetStartupTab` / `SetStartupTab` | Shell | Settings startup page (`RaidwiseDB.startupTab`) |
 | `SelectTab` | Shell | Menu buttons, `RefreshLocalizedUI` |
 | `RefreshLocalizedUI` | Shell | `SetLocale` |
 | `RefreshCooldownTable` | Cooldowns page | Lockout events |

@@ -6,7 +6,10 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 2
+local LAYOUT_VERSION = 3
+
+local STARTUP_COLS = 4
+local STARTUP_BTN_GAP = UI.ACTION_BTN_GAP
 
 local CHECK_KEYS = {
 	{ key = "hidePersonal", labelKey = "SETTINGS_TIP_HIDE_PERSONAL" },
@@ -22,6 +25,17 @@ local function UpdateLocaleButtons(page)
 	local locale = Addon:GetLocaleId()
 	W.SetMenuButtonState(page.enBtn, locale == "enUS", false)
 	W.SetMenuButtonState(page.ruBtn, locale == "ruRU", false)
+end
+
+local function UpdateStartupButtons(page)
+	if not page or not page.startupButtons then
+		return
+	end
+	local selected = Addon.GetStartupTab and Addon:GetStartupTab() or "cooldowns"
+	for index = 1, #page.startupButtons do
+		local button = page.startupButtons[index]
+		W.SetMenuButtonState(button, button.tabId == selected, false)
+	end
 end
 
 local function CreateSettingsCheck(page, nameSuffix, labelKey, dbKey, anchor)
@@ -91,6 +105,58 @@ local function RefreshTooltipPreviews(page)
 	end
 end
 
+local function CreateStartupTabButtons(page, anchor)
+	local menuPages = Addon.MenuPages or {}
+	page.startupButtons = {}
+	if #menuPages == 0 then
+		return anchor
+	end
+
+	local innerWidth = W.ContentInnerWidth()
+	local btnWidth = math.floor((innerWidth - STARTUP_BTN_GAP * (STARTUP_COLS - 1)) / STARTUP_COLS)
+	local firstBtn = nil
+	local lastBtn = nil
+
+	for index = 1, #menuPages do
+		local pageInfo = menuPages[index]
+		local button = W.CreatePlainButton(page, btnWidth, UI.ACTION_BTN_H, W.T(pageInfo.labelKey))
+		button.tabId = pageInfo.id
+		button.labelKey = pageInfo.labelKey
+
+		local col = (index - 1) % STARTUP_COLS
+		local row = math.floor((index - 1) / STARTUP_COLS)
+		if row == 0 and col == 0 then
+			button:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
+			firstBtn = button
+		elseif col == 0 then
+			button:SetPoint("TOPLEFT", page.startupButtons[index - STARTUP_COLS], "BOTTOMLEFT", 0, -STARTUP_BTN_GAP)
+		else
+			button:SetPoint("LEFT", page.startupButtons[index - 1], "RIGHT", STARTUP_BTN_GAP, 0)
+		end
+
+		button:SetScript("OnEnter", function(self)
+			local selected = Addon.GetStartupTab and Addon:GetStartupTab() or "cooldowns"
+			W.SetMenuButtonState(self, self.tabId == selected, true)
+		end)
+		button:SetScript("OnLeave", function(self)
+			local selected = Addon.GetStartupTab and Addon:GetStartupTab() or "cooldowns"
+			W.SetMenuButtonState(self, self.tabId == selected, false)
+		end)
+		button:SetScript("OnClick", function(self)
+			if Addon.SetStartupTab then
+				Addon:SetStartupTab(self.tabId)
+			end
+			UpdateStartupButtons(page)
+		end)
+
+		page.startupButtons[index] = button
+		lastBtn = button
+	end
+
+	UpdateStartupButtons(page)
+	return lastBtn or firstBtn or anchor
+end
+
 local function CreateSettingsPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
@@ -136,8 +202,23 @@ local function CreateSettingsPage(parent)
 	end)
 	page.ruBtn = ruBtn
 
+	local startupHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	startupHeading:SetPoint("TOPLEFT", enBtn, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
+	startupHeading:SetText(W.T("SETTINGS_STARTUP_TAB"))
+	W.SetFontColor(startupHeading, UI.GOLD)
+	page.startupHeading = startupHeading
+
+	local startupHint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	startupHint:SetPoint("TOPLEFT", startupHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	startupHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	startupHint:SetJustifyH("LEFT")
+	startupHint:SetText(W.T("SETTINGS_STARTUP_TAB_HINT"))
+	page.startupHint = startupHint
+
+	local startupAnchor = CreateStartupTabButtons(page, startupHint)
+
 	local tipHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	tipHeading:SetPoint("TOPLEFT", enBtn, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
+	tipHeading:SetPoint("TOPLEFT", startupAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
 	tipHeading:SetText(W.T("SETTINGS_TOOLTIP"))
 	W.SetFontColor(tipHeading, UI.GOLD)
 	page.tipHeading = tipHeading
@@ -217,6 +298,20 @@ local function ApplySettingsLocale(page)
 	if page.ruBtn then
 		page.ruBtn.label:SetText(W.T("LOCALE_RU"))
 	end
+	if page.startupHeading then
+		page.startupHeading:SetText(W.T("SETTINGS_STARTUP_TAB"))
+	end
+	if page.startupHint then
+		page.startupHint:SetText(W.T("SETTINGS_STARTUP_TAB_HINT"))
+	end
+	if page.startupButtons then
+		for index = 1, #page.startupButtons do
+			local button = page.startupButtons[index]
+			if button.label and button.labelKey then
+				button.label:SetText(W.T(button.labelKey))
+			end
+		end
+	end
 	if page.tipHeading then
 		page.tipHeading:SetText(W.T("SETTINGS_TOOLTIP"))
 	end
@@ -239,6 +334,7 @@ local function ApplySettingsLocale(page)
 		page.stackedLabel:SetText(W.T("SETTINGS_TIP_LAYOUT_STACKED"))
 	end
 	UpdateLocaleButtons(page)
+	UpdateStartupButtons(page)
 	RefreshTooltipPreviews(page)
 end
 
@@ -247,5 +343,6 @@ Addon.Pages.Settings = {
 	LAYOUT_VERSION = LAYOUT_VERSION,
 	Create = CreateSettingsPage,
 	UpdateLocaleButtons = UpdateLocaleButtons,
+	UpdateStartupButtons = UpdateStartupButtons,
 	ApplyLocale = ApplySettingsLocale,
 }

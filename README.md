@@ -98,6 +98,7 @@ Esc or the title **X** closes the window.
 
 - Interface language: **English** or **Русский**
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
+- **Startup page**: which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns)
 - Unit tooltip toggles: hide personal opinion / personal tags / community rating / community tags (`RaidwiseDB.tooltip`)
 - Preview of compact (live) and stacked tooltip layouts
 
@@ -157,6 +158,6 @@ types/
 ## Notes
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts and currency snapshots for the cooldowns table live in `RaidwiseDB.characters` (`.lockouts`, `.currency`). Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal` with opinion/tags/facts), events (`.events`), notes (`.notes`), change log (`.changes`), and party/raid meet count (`.meetCount`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`). Unit tooltip visibility flags live in `RaidwiseDB.tooltip`.
+- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts and currency snapshots for the cooldowns table live in `RaidwiseDB.characters` (`.lockouts`, `.currency`). Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal` with opinion/tags/facts), events (`.events`), notes (`.notes`), change log (`.changes`), and party/raid meet count (`.meetCount`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`). Startup left-menu page is `RaidwiseDB.startupTab`. Unit tooltip visibility flags live in `RaidwiseDB.tooltip`.
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.

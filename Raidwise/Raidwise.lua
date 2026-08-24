@@ -32,6 +32,7 @@ end
 local defaults = {
 	enabled = true,
 	includeGearNames = true,
+	startupTab = "cooldowns",
 	characters = {},
 	history = {},
 	tooltip = {
