@@ -69,6 +69,8 @@ local ENCHANTS = {
 	[3603] = { name = "Hand-Mounted Pyro Rocket", maxLevel = true, stats = {} },
 	[3604] = { name = "Hyperspeed Accelerators", maxLevel = true, stats = {} },
 	[3605] = { name = "Flexweave Underlay", maxLevel = true, stats = { agility = 23 } },
+	-- Some 3.3.5a clients / realms report Flexweave as 3859 on the item link.
+	[3859] = { name = "Flexweave Underlay", maxLevel = true, stats = { agility = 23 } },
 	[3606] = { name = "Nitro Boosts", maxLevel = true, stats = { critRating = 24 } },
 	[3601] = { name = "Frag Belt", maxLevel = true, stats = {} },
 	[3860] = { name = "Reticulated Armor Webbing", maxLevel = true, stats = { armor = 885 } },

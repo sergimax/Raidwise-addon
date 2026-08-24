@@ -762,6 +762,14 @@ local function GemsQualifyForGood(item)
 	return true
 end
 
+-- BiS lists often use leather/mail on wrist/hands/waist/feet for plate DPS.
+local GOOD_OFFSET_SLOTS = {
+	wrist = true,
+	hands = true,
+	waist = true,
+	feet = true,
+}
+
 local function TypeQualifiesForGood(profile, slot)
 	local item = slot.item
 	if slot.key == "trinket1" or slot.key == "trinket2" then
@@ -782,10 +790,19 @@ local function TypeQualifiesForGood(profile, slot)
 		if armorType == "shield" or armorType == "offhand" then
 			return RankWeapon(profile, armorType) == "preferred"
 		end
-		return RankArmor(profile, armorType) == "preferred"
+		local rank = RankArmor(profile, armorType)
+		if rank == "preferred" then
+			return true
+		end
+		-- Acceptable offset pieces (e.g. Umbrage Armbands on Ret) still qualify for GOOD.
+		if rank == "acceptable" and GOOD_OFFSET_SLOTS[slot.key] then
+			return true
+		end
+		return false
 	end
 	if item.category == "weapon" then
-		return RankWeapon(profile, item.weaponType) == "preferred"
+		local rank = RankWeapon(profile, item.weaponType)
+		return rank == "preferred" or rank == "acceptable"
 	end
 	return true
 end
@@ -1380,6 +1397,7 @@ function Addon:GearCheckRulesSelfTest()
 	Check("ret mail intellect → not STAT_DISCOURAGED", not HasCode(fRet, "STAT_DISCOURAGED"))
 	Check("ret cloak Major Agility → not ENCHANT_NOT_CHECKABLE", not HasCode(fRet, "ENCHANT_NOT_CHECKABLE"))
 	Check("ret cloak Major Agility → not ENCHANT_LOWER_LEVEL", not HasCode(fRet, "ENCHANT_LOWER_LEVEL"))
+	Check("ret leather wrist → GOOD (BiS offset)", retLeather.equipment[1].verdict == "GOOD")
 
 	-- Blood DK: Pinnacle shoulders + armor cloak/gloves must not false-flag
 	local bloodTank = {
