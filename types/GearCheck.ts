@@ -213,7 +213,7 @@ export type GearCheckItem = {
   gaps: GearCheckGap[];
 };
 
-export type GearCheckItemVerdict = "OK" | "REPLACE" | "BAD";
+export type GearCheckItemVerdict = "GOOD" | "OK" | "REPLACE" | "BAD";
 
 export type GearCheckSlot = {
   key: string;
@@ -229,6 +229,7 @@ export type GearCheckSlot = {
 };
 
 export type GearCheckVerdictSummary = {
+  good: number;
   ok: number;
   replace: number;
   bad: number;
@@ -304,7 +305,7 @@ export type GearCheckCollection = {
  * Frozen Gear Check report.
  * Rules read `character` + `equipment` (+ top-level `gaps`). Ignore `collection`.
  * After Phase 3 evaluate: `findings` + `profile`.
- * After Phase 4 aggregate: per-slot `verdict` + `verdicts` counts (no GOOD yet).
+ * After Phase 4 aggregate: per-slot `verdict` + `verdicts` counts (GOOD / OK / REPLACE / BAD).
  * After Phase 5: `overall`, `meta` activation, informational `sets`.
  *
  * Convenience aliases (`name`, `isSelf`, `inspect`, `slots`, …) may also be present

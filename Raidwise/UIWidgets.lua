@@ -67,6 +67,7 @@ Addon.UITheme = {
 	GOLD_DIM = { 0.769, 0.627, 0.290 }, -- DELETE candidate: defined but never referenced in Raidwise/.
 	BORDER = { 0.420, 0.341, 0.188, 1 },
 	TEXT_IDLE = { 1.000, 0.933, 0.733 },
+	TEXT_GOOD = { 0.350, 0.850, 0.400 },
 	PANEL_BG = { 0.071, 0.071, 0.110, 0.98 },
 	TITLE_BG = { 0.110, 0.110, 0.165, 1 },
 	BTN_IDLE = { 0.125, 0.110, 0.165, 0.98 },

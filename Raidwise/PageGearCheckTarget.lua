@@ -62,6 +62,9 @@ local function VerdictColor(verdict)
 	if verdict == "REPLACE" then
 		return UI.GOLD
 	end
+	if verdict == "GOOD" then
+		return UI.TEXT_GOOD
+	end
 	return UI.TEXT_IDLE
 end
 
@@ -154,10 +157,7 @@ local function BuildBreakdownGroups(report, filterId)
 				if severity == "hard" then
 					group.verdict = "BAD"
 				elseif severity == "soft" and group.verdict ~= "BAD" then
-					group.verdict = group.verdict or "REPLACE"
-					if group.verdict == "OK" then
-						group.verdict = "REPLACE"
-					end
+					group.verdict = "REPLACE"
 				end
 			end
 		end
@@ -324,6 +324,8 @@ local function ApplySummary(page, report)
 		"GEAR_CHECK_ISSUES",
 		verdicts.bad or 0,
 		verdicts.replace or 0,
+		verdicts.ok or 0,
+		verdicts.good or 0,
 		issues.enchants or 0,
 		issues.gems or 0,
 		(issues.meta or 0) == 0 and W.T("GEAR_CHECK_META_OK_SHORT") or tostring(issues.meta or 0)

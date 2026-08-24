@@ -1,4 +1,4 @@
--- Gear Check rules: findings, item verdicts, overall status (no GOOD in v1).
+-- Gear Check rules: findings, item verdicts (OK / GOOD / REPLACE / BAD), overall status.
 
 local Addon = Raidwise
 
@@ -602,10 +602,112 @@ function Addon:EvaluateGearCheck(report)
 	return findings
 end
 
--- Aggregate per-slot findings → OK / REPLACE / BAD (no GOOD in v1).
+-- Promote clean OK slots to GOOD when the piece looks highly appropriate (not BiS).
+-- Blocked by any hard/soft finding, or by info findings that mean incomplete data.
+local GOOD_BLOCKING_INFO = {
+	ITEM_NOT_CHECKABLE = true,
+	ENCHANT_NOT_CHECKABLE = true,
+	GEM_NOT_CHECKABLE = true,
+	META_NOT_CHECKABLE = true,
+}
+
+local function SlotHasBlockingInfo(findings, slotKey)
+	for index = 1, #findings do
+		local finding = findings[index]
+		if finding.slot == slotKey and finding.severity == "info" and GOOD_BLOCKING_INFO[finding.code] then
+			return true
+		end
+	end
+	return false
+end
+
+local function EnchantIsMaxLevel(enchant)
+	if not enchant or not enchant.present then
+		return false
+	end
+	local info = Addon.GetGearCheckEnchantInfo and Addon:GetGearCheckEnchantInfo(enchant.enchantId)
+	return info and info.maxLevel == true
+end
+
+local function GemsQualifyForGood(item)
+	local sockets = item.sockets or {}
+	local gems = item.gems or {}
+	local socketTotal = tonumber(sockets.total) or 0
+	local empty = tonumber(sockets.empty)
+	if empty == nil then
+		empty = math.max(0, socketTotal - #gems)
+	end
+	if empty > 0 then
+		return false
+	end
+	if socketTotal <= 0 and #gems == 0 then
+		return true
+	end
+	for index = 1, #gems do
+		local gem = gems[index]
+		local catalog = Addon.GetGearCheckGemInfo and Addon:GetGearCheckGemInfo(gem.itemId)
+		if not catalog then
+			return false
+		end
+		if catalog.maxLevel ~= true and not catalog.allStats then
+			return false
+		end
+	end
+	return true
+end
+
+local function TypeQualifiesForGood(profile, slot)
+	local item = slot.item
+	if slot.key == "back" or slot.key == "neck" or slot.key == "finger1" or slot.key == "finger2" then
+		return true
+	end
+	if item.category == "armor" and not item.isRelic then
+		local armorType = item.armorType
+		if armorType == "misc" then
+			return true
+		end
+		if armorType == "shield" or armorType == "offhand" then
+			return RankWeapon(profile, armorType) == "preferred"
+		end
+		return RankArmor(profile, armorType) == "preferred"
+	end
+	if item.category == "weapon" then
+		return RankWeapon(profile, item.weaponType) == "preferred"
+	end
+	return true
+end
+
+local function SlotQualifiesForGood(profile, slot, findings)
+	local item = slot.item
+	if not profile or not item then
+		return false
+	end
+	if SlotHasBlockingInfo(findings, slot.key) then
+		return false
+	end
+	if not TypeQualifiesForGood(profile, slot) then
+		return false
+	end
+	if ENCHANTABLE[slot.key] then
+		if not EnchantIsMaxLevel(item.enchant) then
+			return false
+		end
+	elseif ENCHANT_OPTIONAL[slot.key] and item.enchant and item.enchant.present then
+		if not EnchantIsMaxLevel(item.enchant) then
+			return false
+		end
+	end
+	if not GemsQualifyForGood(item) then
+		return false
+	end
+	return true
+end
+
+-- Aggregate per-slot findings → BAD / REPLACE / OK / GOOD.
 -- info-only findings do not demote an item (unknown stays OK, never false BAD).
+-- GOOD requires preferred type + max-level enchant (when required) + max-level gems.
 function Addon:AggregateGearCheckVerdicts(report)
-	local summary = { ok = 0, replace = 0, bad = 0, skipped = 0 }
+	local summary = { good = 0, ok = 0, replace = 0, bad = 0, skipped = 0 }
 	if not report then
 		return summary
 	end
@@ -630,6 +732,15 @@ function Addon:AggregateGearCheckVerdicts(report)
 		end
 	end
 
+	local profile = nil
+	if report.character then
+		profile = self:GetGearCheckProfile(
+			report.character.classFile,
+			report.character.specTab,
+			report.character.specKnown
+		)
+	end
+
 	local equipment = report.equipment or report.slots or {}
 	for index = 1, #equipment do
 		local slot = equipment[index]
@@ -646,11 +757,16 @@ function Addon:AggregateGearCheckVerdicts(report)
 					verdict = "REPLACE"
 				end
 			end
+			if verdict == "OK" and SlotQualifiesForGood(profile, slot, findings) then
+				verdict = "GOOD"
+			end
 			slot.verdict = verdict
 			if verdict == "BAD" then
 				summary.bad = summary.bad + 1
 			elseif verdict == "REPLACE" then
 				summary.replace = summary.replace + 1
+			elseif verdict == "GOOD" then
+				summary.good = summary.good + 1
 			else
 				summary.ok = summary.ok + 1
 			end
@@ -663,6 +779,7 @@ end
 
 -- Overall status: worst item verdict, then Resilience count (1 → REPLACE, 2+ → BAD).
 -- Set-piece counts are informational and must not change this result.
+-- Overall GOOD only when every filled checked slot is GOOD (and no soft/hard issues).
 function Addon:AggregateGearCheckOverall(report)
 	local overall = {
 		status = "OK",
@@ -676,7 +793,7 @@ function Addon:AggregateGearCheckOverall(report)
 	end
 
 	local findings = report.findings or {}
-	local verdicts = report.verdicts or { ok = 0, replace = 0, bad = 0 }
+	local verdicts = report.verdicts or { good = 0, ok = 0, replace = 0, bad = 0 }
 	local issues = CountIssueGroups(findings)
 	local resilienceItems = CountResilienceItems(findings)
 	overall.issues = issues
@@ -714,9 +831,18 @@ function Addon:AggregateGearCheckOverall(report)
 	if resilienceItems >= 2 then
 		status = "BAD"
 		reason = "resilience"
-	elseif resilienceItems == 1 and status == "OK" then
+	elseif resilienceItems == 1 and (status == "OK" or status == "GOOD") then
 		status = "REPLACE"
 		reason = "resilience"
+	end
+
+	if status == "OK" then
+		local good = verdicts.good or 0
+		local ok = verdicts.ok or 0
+		if good > 0 and ok == 0 then
+			status = "GOOD"
+			reason = "all_good"
+		end
 	end
 
 	overall.status = status
@@ -733,6 +859,8 @@ function Addon:AggregateGearCheckOverall(report)
 		else
 			overall.summary = string.format("%d item(s) are REPLACE.", verdicts.replace or 0)
 		end
+	elseif status == "GOOD" then
+		overall.summary = string.format("%d item(s) are GOOD.", verdicts.good or 0)
 	end
 
 	report.overall = overall
@@ -845,7 +973,7 @@ function Addon:GearCheckRulesSelfTest()
 	Check("spell power on fury → STAT_FORBIDDEN", HasCode(f4, "STAT_FORBIDDEN"))
 	Check("spell power on fury → chest BAD", spFury.equipment[1].verdict == "BAD")
 
-	-- Clean plate chest on Arms → OK (enchant with no inappropriate stats)
+	-- Clean plate chest on Arms → GOOD (preferred plate + max-level enchant)
 	local clean = {
 		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
 		equipment = {
@@ -859,7 +987,25 @@ function Addon:GearCheckRulesSelfTest()
 		},
 	}
 	self:EvaluateGearCheck(clean)
-	Check("clean plate chest → OK", clean.equipment[1].verdict == "OK")
+	Check("clean plate chest → GOOD", clean.equipment[1].verdict == "GOOD")
+	Check("clean plate chest → overall GOOD", clean.overall and clean.overall.status == "GOOD")
+
+	-- Acceptable-but-not-preferred stays OK (mail on Arms with max enchant)
+	local mailArms = {
+		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 5,
+				category = "armor",
+				armorType = "mail",
+				stats = { strength = 40, stamina = 50 },
+				enchant = { enchantId = 3297, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	self:EvaluateGearCheck(mailArms)
+	Check("mail on arms (acceptable) → OK not GOOD", mailArms.equipment[1].verdict == "OK")
+	Check("mail on arms → overall OK", mailArms.overall and mailArms.overall.status == "OK")
 
 	-- Info-only (unknown enchant) → still OK
 	local unmapped = {
@@ -1021,7 +1167,7 @@ function Addon:GearCheckRulesSelfTest()
 	}
 	local fEnh = self:EvaluateGearCheck(enhInt)
 	Check("enhancement intellect → not STAT_DISCOURAGED", not HasCode(fEnh, "STAT_DISCOURAGED"))
-	Check("enhancement intellect chest → OK", enhInt.equipment[1].verdict == "OK")
+	Check("enhancement intellect chest → GOOD", enhInt.equipment[1].verdict == "GOOD")
 
 	-- Phase 8: unknown gem → not-checkable (info), not false GEM_LOWER_LEVEL
 	local unkGem = {

@@ -939,7 +939,7 @@ function Addon:FormatGearCheckDump(report)
 	local lines = {}
 	lines[#lines + 1] = "Raidwise Gear Check — Phase 5 snapshot (overall + meta + sets)"
 	lines[#lines + 1] = "schemaVersion=" .. tostring(report.schemaVersion or "?")
-	lines[#lines + 1] = "Overall is worst-wins of item verdicts; Resilience 1→REPLACE, 2+→BAD. Set counts are informational."
+	lines[#lines + 1] = "Overall is worst-wins of item verdicts (GOOD < OK < REPLACE < BAD); Resilience 1→REPLACE, 2+→BAD. Set counts are informational."
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = string.format(
 		"Unit: %s (%s)%s",
@@ -991,7 +991,8 @@ function Addon:FormatGearCheckDump(report)
 	end
 	if verdicts then
 		lines[#lines + 1] = string.format(
-			"Item verdicts: OK=%d  REPLACE=%d  BAD=%d  (skipped=%d)",
+			"Item verdicts: GOOD=%d  OK=%d  REPLACE=%d  BAD=%d  (skipped=%d)",
+			verdicts.good or 0,
 			verdicts.ok or 0,
 			verdicts.replace or 0,
 			verdicts.bad or 0,
@@ -1370,6 +1371,14 @@ function Addon:FormatGearCheckChatReport(report, mode)
 		end
 		if replace > 0 then
 			parts[#parts + 1] = string.format("%d REPLACE", replace)
+		end
+		local good = verdicts.good or 0
+		local ok = verdicts.ok or 0
+		if good > 0 then
+			parts[#parts + 1] = string.format("%d GOOD", good)
+		end
+		if ok > 0 then
+			parts[#parts + 1] = string.format("%d OK", ok)
 		end
 		if enchantN > 0 then
 			parts[#parts + 1] = string.format("%d enchant issue%s", enchantN, enchantN == 1 and "" or "s")

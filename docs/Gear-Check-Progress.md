@@ -16,7 +16,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | Unknown spec | Class-only rules **and** a “spec unknown” banner |
 | Self-check | Yes — use player when there is no friendly player target |
 | Chat reports | Self / default chat only (for now) |
-| Verdicts (v1) | **OK / REPLACE / BAD** only (no GOOD yet) |
+| Verdicts | **OK / GOOD / REPLACE / BAD** (GOOD = highly appropriate, not BiS) |
 | Overall status | Worst wins; BAD/REPLACE summaries note that items have those statuses |
 | Resilience (PvE) | 1 item with Resilience → overall **REPLACE**; 2+ → **BAD** |
 | Catalogs | Seed from AtlasLoot lists + hand-built enchantId map; unknown IDs → **not-checkable** (no false BAD) |
@@ -33,7 +33,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 1 | Data collection | **done** | Target/self unit, slots, item/enchant/gem IDs, class/spec; Phase 1 dump UI |
 | 2 | Normalized gear model | **done** | `schemaVersion = 2`; `types/GearCheck.ts`; dump shows stats/types/gaps |
 | 3 | Rules engine | **done** | Hard/soft/info findings; catalogs + 30-spec profiles; `/rw gearcheck test` |
-| 4 | Item verdicts | **done** | Per-slot OK / REPLACE / BAD from findings (info ≠ BAD) |
+| 4 | Item verdicts | **done** | Per-slot OK / GOOD / REPLACE / BAD from findings (info ≠ BAD) |
 | 5 | Gear-level evaluation | **done** | Overall worst-wins; resilience 1/2+; meta activation; T9/T10 counts |
 | 6 | UI | **done** | Summary + Items/Enchants/Gems filters; dump behind Debug |
 | 7 | Chat output | **done** | Self-chat summary/items/enchants/gems; UI + slash |
@@ -42,6 +42,40 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | — | Saved reports | **backlog** | Spec §25 |
 | — | Trinket analysis | **backlog** | Slot policy PLANNED |
 | — | Catalog / profile false positives | **backlog** | New reports after Phase 8 polish (Rhee items addressed) |
+
+---
+
+## Incomplete / remaining work
+
+Features from the spec or locked decisions that are **not done** yet (or only partial). Use this as the leftover checklist.
+
+### Product backlog
+
+| Item | Spec / notes |
+|------|----------------|
+| Raid-wide gear check | Menu stub only (`PageGearCheckRaid.lua`) |
+| Trinket analysis | Slots marked **PLANNED**; not evaluated |
+| Saved reports | Spec §25 — manual save, ~14-day retention; no auto-persist |
+| Ruleset versioning | Spec §26 — with saved reports |
+| Data versioning | Spec §27 — with saved reports |
+| Finding messages in RU | Chrome localized; finding `message` strings EN only |
+
+### Spec in-scope, only partial
+
+| Item | Spec | Current state |
+|------|------|----------------|
+| Weapon combinations | §12 | Weapon **type** ranks only; no MH/OH combo (1H+1H vs 2H), hand-usage, or “must have ranged” checks |
+| Preferred / allowed enchants | §13, §19 | Catalog `maxLevel` + bad-stat checks; no per-spec preferred enchant lists |
+| Preferred / allowed gems | §14, §19 | Same for gems (beyond `metaPreferred`) |
+| Meta allowed / forbidden set | §16 | Soft `META_NOT_PREFERRED` vs profile list; not a full allowed/forbidden matrix |
+| Set 2pc / 4pc milestones | §17 | Informational **T9/T10 X/5** counts only |
+| Slot policy naming | §9 | Spec `UNSUPPORTED`; addon uses **PLANNED** for trinkets |
+| Unknown / not-checkable UI | §8 | Info findings exist; All-filter hides pure info → easy to miss “cannot evaluate” |
+| Catalog / profile completeness | Phase 8 | Seeded + “being maintained”; expand on false-positive reports |
+
+### Explicitly out of scope (do not treat as incomplete)
+
+BiS / stat weights / socket-bonus optimization / build-specific gearing / 2pc vs 4pc advice / ilvl scoring / auto history / web-style optimization (spec §§4, 15, 28).
 
 ---
 
@@ -204,8 +238,8 @@ Item verdicts, overall status, chat report modes, meta activation across full se
 ### Checklist
 
 - [x] Aggregate findings → slot `verdict` (`AggregateGearCheckVerdicts`)
-- [x] hard → **BAD**; soft → **REPLACE**; none / info-only → **OK** (no false BAD)
-- [x] Dump shows `verdict=` per filled checked slot + `Item verdicts: OK=… REPLACE=… BAD=…`
+- [x] hard → **BAD**; soft → **REPLACE**; clean preferred + max enchant/gems → **GOOD**; else **OK** (info ≠ BAD)
+- [x] Dump shows `verdict=` per filled checked slot + `Item verdicts: GOOD=… OK=… REPLACE=… BAD=…`
 - [x] Self-test covers verdicts (`/rw gearcheck test`)
 - [x] Types: `GearCheckItemVerdict`, `verdicts` summary
 
@@ -214,11 +248,12 @@ Item verdicts, overall status, chat report modes, meta activation across full se
 ```text
 any hard finding on slot  → BAD
 else any soft finding     → REPLACE
-else                      → OK   (info-only / not-checkable does not demote)
+else preferred type + max-level enchant (if required) + max-level gems → GOOD
+else                      → OK   (info-only / not-checkable / acceptable type do not demote)
 IGNORED / PLANNED / empty → no verdict (counted as skipped)
 ```
 
-Overall gear status is **Phase 5** (worst-wins + resilience counts).
+Overall gear status is **Phase 5** (worst-wins + resilience counts; all-GOOD → overall GOOD).
 
 ### How to test
 
