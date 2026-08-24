@@ -18,6 +18,7 @@ PlayerHistory.lua     history store + personal rating domain API
 UIWidgets.lua         shared UI helpers (panels, buttons, icons, layout badge)
 UnitTooltips.lua      GameTooltip unit lines for personal/community ratings
 CharacterProfile.lua  character profile popup
+GearCheck.lua         gear check collector (target/self)
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
 ExporterWindow.lua    main shell (menu, title, status, tab wiring)
 ```
@@ -30,7 +31,7 @@ Order is the dependency graph: bootstrap → locale → domain → shared widget
 |-------|-------|------|
 | Bootstrap | `Raidwise.lua` | `Addon.db`, lifecycle, slash `/raidwise` / `/rw` (open), `close` (hide) |
 | i18n | `Locale.lua` | Strings; `SetLocale` → `RefreshLocalizedUI` |
-| Domain | Export, Lockouts, PartyRoster, RaidRoles, Composition, History | Data and analysis; no frame creation |
+| Domain | Export, Lockouts, PartyRoster, RaidRoles, Composition, History, GearCheck | Data and analysis; no frame creation |
 | Shared UI | `UIWidgets.lua` | Plain panels, buttons, icons, drag, copy box, layout version label |
 | UI | Profile + pages + shell | Frames, refresh, localization refresh |
 
@@ -88,6 +89,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `CommitProfileRating` | Profile | **Save and Update** button |
 | `RefreshRatingViews` | Profile | After rating save / profile close |
 | `RefreshPartyData` | `PartyRoster.lua` | Fan-out refresh (below) |
+| `OpenGearCheckTarget` / `RefreshGearCheckTargetView` / `StartGearCheckScan` | GearCheck + target page | `/rw gearcheck`, Scan button |
 
 ## Unit tooltips
 

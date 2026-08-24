@@ -53,7 +53,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 1` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 2` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | Gear check (raid) | `LAYOUT_VERSION = 1` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -211,15 +211,25 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Gear check (target)
 
-Placeholder for one-player Gear Check (current target or self). See the Gear Check specification in `docs/`. Class/spec rules are being maintained.
+Phase 1 collection UI for one player (current target or self). No suitability rules yet. Spec / progress: `docs/RaidWise Addon — Gear Check Specification.md`, `docs/Gear-Check-Progress.md`.
 
 ```text
 [ short description ]
+[ surface-level limitation ]
+[ Scan ] [ Select all ]
+[ status ]
+[ Phase 1 dump (copy box) ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | Surface-level PvE check; not BiS; rules being maintained |
+| limitation | Spec disclaimer + “Phase 1 shows a collection dump only” |
+| Scan | Resolves target or self, inspects if needed, fills dump |
+| Select all | Highlights dump for Ctrl+C |
+| dump | Item / enchant / gem IDs per slot; policy CHECKED / IGNORED / PLANNED |
+
+`LAYOUT_VERSION = 2`. Slash: `/rw gearcheck`.
 
 ## Gear check (raid)
 

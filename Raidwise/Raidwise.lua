@@ -10,7 +10,7 @@ Addon.lastUpdated = ""
 -- Fallback if Locale.lua does not load. Locale.lua replaces Addon.T.
 local FallbackChat = {
 	CHAT_LOADED = "loaded (v%s). Type /raidwise to open.",
-	CHAT_UNKNOWN = "Unknown command. Use /raidwise or /raidwise close.",
+	CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, or /raidwise gearcheck.",
 }
 
 local function FormatText(text, ...)
@@ -169,7 +169,7 @@ end
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
 
--- /raidwise [close] — open or close the main window.
+-- /raidwise [close|gearcheck] — open, close, or open Gear Check scan.
 SlashCmdList["RAIDWISE"] = function(msg)
 	msg = (msg or ""):match("^%s*(.-)%s*$") or ""
 	msg = msg:lower()
@@ -181,6 +181,15 @@ SlashCmdList["RAIDWISE"] = function(msg)
 
 	if msg == "close" then
 		Addon:HideMainFrame()
+		return
+	end
+
+	if msg == "gearcheck" or msg == "gear" then
+		if Addon.OpenGearCheckTarget then
+			Addon:OpenGearCheckTarget(true)
+		else
+			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
+		end
 		return
 	end
 

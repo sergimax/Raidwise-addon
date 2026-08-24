@@ -153,11 +153,11 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
-Empty placeholder. One left-aligned description at the top of the content area (`GameFontHighlight`, inner width **870**). `LAYOUT_VERSION = 1`.
+Phase 1: description + limitation, then **Scan** / **Select all** (**120**-style half-width buttons via `(innerW - gap) / 2`), status line, multiline copy box (same widget as Export). `LAYOUT_VERSION = 2`.
 
 ## Gear check (raid) tab
 
-Empty placeholder. Same description layout as Gear check (target). `LAYOUT_VERSION = 1`.
+Empty placeholder. Same description layout as before. `LAYOUT_VERSION = 1`.
 
 ## Character profile
 

@@ -29,6 +29,7 @@ In-game slash commands:
 |---------|-------------|
 | `/raidwise` or `/rw` | Open the main window |
 | `/raidwise close` or `/rw close` | Close the main window |
+| `/raidwise gearcheck` or `/rw gearcheck` | Open Gear check (target) and scan |
 
 Plain panels, a **left menu**, and a content page.
 The status bar shows the addon name and version.
@@ -79,11 +80,14 @@ Esc or the title **X** closes the window.
 
 **Gear check (target)** tab:
 
-- Placeholder: “Gear check of target player”
+- Phase 1: **Scan** collects equipped gear for the current player target (or yourself) and shows a copyable dump (item / enchant / gem IDs)
+- Surface-level disclaimer; class/spec rules are being maintained (evaluation rules come in later phases)
+- `/rw gearcheck` opens this tab and runs a scan
+- Progress tracker: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
 
 **Gear check (raid)** tab:
 
-- Placeholder: “Gear check of raid”
+- Placeholder: planned; not available yet
 
 **History** tab:
 
@@ -143,6 +147,7 @@ Raidwise/
   UnitTooltips.lua    # personal/community lines on player unit tooltips
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
+  GearCheck.lua       # gear check collector (target / self)
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
   PageParty.lua       # Party roster tab
@@ -158,6 +163,7 @@ docs/
   Architecture.md     # TOC order, layers, SavedVariables, refresh API
   UI-Views.md         # ASCII layouts for each view + layout version table
   UI-Sizes.md         # window / control pixel sizes
+  Gear-Check-Progress.md # Gear Check phase board (planned / done / test steps)
   Reputation.md       # personal rating / events / memo model
   Raid-Composition.md # classes/specs tracked by the Raid composition tab
 types/

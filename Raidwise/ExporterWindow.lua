@@ -178,6 +178,10 @@ function Addon:SelectTab(tabId)
 		elseif self.RefreshHistoryView then
 			self:RefreshHistoryView()
 		end
+	elseif tabId == "geartarget" then
+		if self.RefreshGearCheckTargetView then
+			self:RefreshGearCheckTargetView(false)
+		end
 	end
 end
 
