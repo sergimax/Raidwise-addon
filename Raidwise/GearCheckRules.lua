@@ -677,30 +677,86 @@ local function TypeQualifiesForGood(profile, slot)
 	return true
 end
 
-local function SlotQualifiesForGood(profile, slot, findings)
-	local item = slot.item
+local function CollectNotGoodReasons(profile, slot, findings)
+	local reasons = {}
+	local item = slot and slot.item
 	if not profile or not item then
-		return false
+		reasons[#reasons + 1] = "Cannot confirm GOOD without a profile or item data."
+		return reasons
 	end
 	if SlotHasBlockingInfo(findings, slot.key) then
-		return false
+		for index = 1, #findings do
+			local finding = findings[index]
+			if finding.slot == slot.key and finding.severity == "info" and GOOD_BLOCKING_INFO[finding.code] then
+				reasons[#reasons + 1] = finding.message or finding.code
+			end
+		end
+		if #reasons == 0 then
+			reasons[#reasons + 1] = "Incomplete or unknown data blocks GOOD."
+		end
+		return reasons
 	end
 	if not TypeQualifiesForGood(profile, slot) then
-		return false
+		if item.category == "armor" and item.armorType and item.armorType ~= "misc" then
+			reasons[#reasons + 1] = string.format(
+				"Armor type %s is not preferred for this specialization.",
+				tostring(item.armorType)
+			)
+		elseif item.category == "weapon" then
+			reasons[#reasons + 1] = string.format(
+				"Weapon type %s is not preferred for this specialization.",
+				tostring(item.weaponType or "?")
+			)
+		else
+			reasons[#reasons + 1] = "Item type is not preferred for this specialization."
+		end
 	end
 	if ENCHANTABLE[slot.key] then
-		if not EnchantIsMaxLevel(item.enchant) then
-			return false
+		if not item.enchant or not item.enchant.present then
+			reasons[#reasons + 1] = "Missing a max-level enchant (required for GOOD)."
+		elseif not EnchantIsMaxLevel(item.enchant) then
+			reasons[#reasons + 1] = "Enchant is not a recognized max-level enchant."
 		end
 	elseif ENCHANT_OPTIONAL[slot.key] and item.enchant and item.enchant.present then
 		if not EnchantIsMaxLevel(item.enchant) then
-			return false
+			reasons[#reasons + 1] = "Optional enchant is present but not max-level."
 		end
 	end
 	if not GemsQualifyForGood(item) then
-		return false
+		local sockets = item.sockets or {}
+		local gems = item.gems or {}
+		local empty = tonumber(sockets.empty)
+		if empty == nil then
+			empty = math.max(0, (tonumber(sockets.total) or 0) - #gems)
+		end
+		if empty > 0 then
+			reasons[#reasons + 1] = "Empty sockets block GOOD."
+		else
+			reasons[#reasons + 1] = "One or more gems are not recognized as max-level."
+		end
 	end
-	return true
+	return reasons
+end
+
+local function SlotQualifiesForGood(profile, slot, findings)
+	return #CollectNotGoodReasons(profile, slot, findings) == 0
+end
+
+--- Reasons a CHECKED slot stayed OK instead of GOOD (empty if not OK / already GOOD).
+function Addon:ExplainGearCheckNotGood(report, slot)
+	local reasons = {}
+	if not report or not slot or slot.verdict ~= "OK" or not slot.item then
+		return reasons
+	end
+	local profile = nil
+	if report.character then
+		profile = self:GetGearCheckProfile(
+			report.character.classFile,
+			report.character.specTab,
+			report.character.specKnown
+		)
+	end
+	return CollectNotGoodReasons(profile, slot, report.findings or {})
 end
 
 -- Aggregate per-slot findings → BAD / REPLACE / OK / GOOD.

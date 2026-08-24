@@ -10,7 +10,7 @@ Addon.lastUpdated = ""
 -- Fallback if Locale.lua does not load. Locale.lua replaces Addon.T.
 local FallbackChat = {
 	CHAT_LOADED = "loaded (v%s). Type /raidwise to open.",
-	CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, or /raidwise gearcheck [summary|items|enchants|gems|test].",
+	CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, or /raidwise gearcheck [summary|items|enchants|gems|ok|test].",
 }
 
 local function FormatText(text, ...)
@@ -209,6 +209,7 @@ SlashCmdList["RAIDWISE"] = function(msg)
 	local reportMode = msg:match("^gearcheck%s+(%S+)$") or msg:match("^gear%s+(%S+)$")
 	if reportMode == "summary" or reportMode == "report"
 		or reportMode == "items" or reportMode == "enchants" or reportMode == "gems"
+		or reportMode == "ok"
 	then
 		if reportMode == "report" then
 			reportMode = "summary"

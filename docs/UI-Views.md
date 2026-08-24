@@ -53,7 +53,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a viewâ€
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 4` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 5` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | Gear check (raid) | `LAYOUT_VERSION = 1` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -237,7 +237,7 @@ Phase 7 UI for one player (current target or self): summary, filtered findings, 
 | filters | All / Items / Enchants / Gems |
 | breakdown | `[VERDICT] Slot â€” Item` plus finding bullets |
 
-`LAYOUT_VERSION = 4`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems`; `/rw gearcheck test`.
+`LAYOUT_VERSION = 5`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
 
 ## Gear check (raid)
 

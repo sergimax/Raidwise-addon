@@ -1,4 +1,4 @@
--- PageGearCheckTarget — Phase 7 UI (summary, breakdown, self-chat reports; dump behind Debug).
+-- PageGearCheckTarget — summary, breakdown (incl. OK-not-GOOD), self-chat reports; dump behind Debug.
 
 local Addon = Raidwise
 local W = Addon.Widgets
@@ -6,13 +6,14 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 4
+local LAYOUT_VERSION = 5
 
 local FILTERS = {
 	{ id = "all", labelKey = "GEAR_CHECK_FILTER_ALL" },
 	{ id = "items", labelKey = "GEAR_CHECK_FILTER_ITEMS" },
 	{ id = "enchants", labelKey = "GEAR_CHECK_FILTER_ENCHANTS" },
 	{ id = "gems", labelKey = "GEAR_CHECK_FILTER_GEMS" },
+	{ id = "ok", labelKey = "GEAR_CHECK_FILTER_OK" },
 }
 
 local REPORT_BUTTONS = {
@@ -20,6 +21,7 @@ local REPORT_BUTTONS = {
 	{ mode = "items", labelKey = "GEAR_CHECK_REPORT_ITEMS" },
 	{ mode = "enchants", labelKey = "GEAR_CHECK_REPORT_ENCHANTS" },
 	{ mode = "gems", labelKey = "GEAR_CHECK_REPORT_GEMS" },
+	{ mode = "ok", labelKey = "GEAR_CHECK_REPORT_OK" },
 }
 
 local ITEM_CATEGORIES = {
@@ -118,6 +120,7 @@ local function SlotVerdict(report, slotKey)
 end
 
 -- Group hard/soft findings (and info not-checkable) by slot for the active filter.
+-- All / OK also list slots that stayed OK (not GOOD), with why.
 local function BuildBreakdownGroups(report, filterId)
 	local findings = report.findings or {}
 	local groups = {}
@@ -139,27 +142,61 @@ local function BuildBreakdownGroups(report, filterId)
 		return group
 	end
 
-	for index = 1, #findings do
-		local finding = findings[index]
-		if FindingMatchesFilter(finding, filterId) then
-			local severity = finding.severity
-			if severity == "hard" or severity == "soft"
-				or finding.code == "ITEM_NOT_CHECKABLE"
-				or finding.code == "ENCHANT_NOT_CHECKABLE"
-				or finding.code == "GEM_NOT_CHECKABLE"
-				or finding.code == "META_NOT_CHECKABLE"
-			then
-				local group = EnsureGroup(finding.slot)
-				group.lines[#group.lines + 1] = {
-					severity = severity,
-					message = finding.message or finding.code or "?",
-				}
-				if severity == "hard" then
-					group.verdict = "BAD"
-				elseif severity == "soft" and group.verdict ~= "BAD" then
-					group.verdict = "REPLACE"
+	local function AppendOkSlots()
+		local equipment = report.equipment or report.slots or {}
+		for index = 1, #equipment do
+			local slot = equipment[index]
+			if slot.policy == "CHECKED" and slot.item and slot.verdict == "OK" then
+				local group = EnsureGroup(slot.key)
+				group.verdict = "OK"
+				if #group.lines == 0 then
+					local reasons = Addon.ExplainGearCheckNotGood and Addon:ExplainGearCheckNotGood(report, slot) or {}
+					if #reasons == 0 then
+						group.lines[1] = {
+							severity = "info",
+							message = W.T("GEAR_CHECK_OK_REASON_GENERIC"),
+						}
+					else
+						for reasonIndex = 1, #reasons do
+							group.lines[#group.lines + 1] = {
+								severity = "info",
+								message = reasons[reasonIndex],
+							}
+						end
+					end
 				end
 			end
+		end
+	end
+
+	if filterId == "ok" then
+		AppendOkSlots()
+	else
+		for index = 1, #findings do
+			local finding = findings[index]
+			if FindingMatchesFilter(finding, filterId) then
+				local severity = finding.severity
+				if severity == "hard" or severity == "soft"
+					or finding.code == "ITEM_NOT_CHECKABLE"
+					or finding.code == "ENCHANT_NOT_CHECKABLE"
+					or finding.code == "GEM_NOT_CHECKABLE"
+					or finding.code == "META_NOT_CHECKABLE"
+				then
+					local group = EnsureGroup(finding.slot)
+					group.lines[#group.lines + 1] = {
+						severity = severity,
+						message = finding.message or finding.code or "?",
+					}
+					if severity == "hard" then
+						group.verdict = "BAD"
+					elseif severity == "soft" and group.verdict ~= "BAD" then
+						group.verdict = "REPLACE"
+					end
+				end
+			end
+		end
+		if filterId == "all" then
+			AppendOkSlots()
 		end
 	end
 
@@ -359,7 +396,11 @@ local function ApplyBreakdown(page, report)
 	local emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_SCAN")
 	if report then
 		if #groups == 0 then
-			emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_FILTER")
+			if filterId == "ok" then
+				emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_OK")
+			else
+				emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_FILTER")
+			end
 		end
 	end
 

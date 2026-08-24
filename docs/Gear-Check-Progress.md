@@ -349,7 +349,7 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 - [x] Slash: `/rw gearcheck summary|items|enchants|gems` (alias `report` → summary)
 - [x] Scans first when no cached report
 - [x] Detail lines capped (15) with “… and N more”
-- [x] `LAYOUT_VERSION = 4`
+- [x] `LAYOUT_VERSION = 5` (OK filter + report)
 
 ### How to test
 

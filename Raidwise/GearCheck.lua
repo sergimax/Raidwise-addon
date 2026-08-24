@@ -1314,8 +1314,26 @@ local function ChatFindingMatches(finding, mode)
 end
 
 local function ChatDetailLines(report, mode)
-	local findings = report.findings or {}
 	local lines = {}
+
+	if mode == "ok" then
+		local equipment = report.equipment or report.slots or {}
+		for index = 1, #equipment do
+			local slot = equipment[index]
+			if slot.policy == "CHECKED" and slot.item and slot.verdict == "OK" then
+				local slotName = slot.slotName or slot.key
+				local reasons = Addon.ExplainGearCheckNotGood and Addon:ExplainGearCheckNotGood(report, slot) or {}
+				local detail = reasons[1] or "Usable, but not GOOD."
+				if #reasons > 1 then
+					detail = detail .. " (+" .. tostring(#reasons - 1) .. " more)"
+				end
+				lines[#lines + 1] = string.format("%s: %s", slotName, detail)
+			end
+		end
+		return lines
+	end
+
+	local findings = report.findings or {}
 	local bySlot = {}
 	local order = {}
 
@@ -1408,12 +1426,18 @@ function Addon:FormatGearCheckChatReport(report, mode)
 		title = "Enchants"
 	elseif mode == "gems" then
 		title = "Gems"
+	elseif mode == "ok" then
+		title = "OK (not GOOD)"
 	end
 	lines[#lines + 1] = string.format("%s — %s:", name, title)
 
 	local details = ChatDetailLines(report, mode)
 	if #details == 0 then
-		lines[#lines + 1] = "No issues in this category."
+		if mode == "ok" then
+			lines[#lines + 1] = "No OK items (all checked slots are GOOD, or none scanned)."
+		else
+			lines[#lines + 1] = "No issues in this category."
+		end
 		return lines
 	end
 	local limit = math.min(#details, CHAT_MAX_DETAIL)
