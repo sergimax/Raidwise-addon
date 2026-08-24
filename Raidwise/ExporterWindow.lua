@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 4
+local SHELL_LAYOUT_VERSION = 5
 
 local MENU_ICON_SIZE = 16
 
@@ -15,6 +15,8 @@ local PAGES = {
 	{ id = "party", key = "Party", labelKey = "TAB_PARTY", icon = "Interface\\Icons\\Spell_Holy_PrayerOfFortitude" },
 	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider" },
 	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings" },
+	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03" },
+	{ id = "gearraid", key = "GearCheckRaid", labelKey = "TAB_GEAR_CHECK_RAID", icon = "Interface\\Icons\\INV_Chest_Plate_23" },
 	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11" },
 	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01" },
 	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark" },
@@ -496,6 +498,22 @@ function Addon:RefreshLocalizedUI()
 		end
 		if compositionPage.reportBtn then
 			compositionPage.reportBtn.label:SetText(W.T("BTN_COMP_REPORT"))
+		end
+	end
+
+	local gearTargetPage = frame.pages.geartarget
+	if gearTargetPage then
+		local gearTargetModule = Addon.Pages and Addon.Pages.GearCheckTarget
+		if gearTargetModule and gearTargetModule.ApplyLocale then
+			gearTargetModule.ApplyLocale(gearTargetPage)
+		end
+	end
+
+	local gearRaidPage = frame.pages.gearraid
+	if gearRaidPage then
+		local gearRaidModule = Addon.Pages and Addon.Pages.GearCheckRaid
+		if gearRaidModule and gearRaidModule.ApplyLocale then
+			gearRaidModule.ApplyLocale(gearRaidPage)
 		end
 	end
 

@@ -77,6 +77,14 @@ Esc или **X** в заголовке закрывает окно.
 - **Сообщить** — отсутствующие классы в чат; **Обновить** заново считывает группу (тот же осмотр, что у состава рейда)
 - Полный список: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
 
+Вкладка **Проверка экипа (цель)**:
+
+- Заглушка: «Проверка экипировки целевого игрока»
+
+Вкладка **Проверка экипа (рейд)**:
+
+- Заглушка: «Проверка экипировки рейда»
+
 Вкладка **История**:
 
 - Таблица игроков, с которыми вы были в группе или рейде (хранится в `RaidwiseDB.history`, остаётся после выхода)
@@ -140,6 +148,8 @@ Raidwise/
   PageParty.lua       # вкладка Party roster
   PageRaid.lua        # вкладка Raid roster
   PageComposition.lua # вкладка Raid composition
+  PageGearCheckTarget.lua # вкладка Gear check (target)
+  PageGearCheckRaid.lua   # вкладка Gear check (raid)
   PageHistory.lua     # вкладка History
   PageSettings.lua    # вкладка Settings
   PageInfo.lua        # вкладка Info

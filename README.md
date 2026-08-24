@@ -77,6 +77,14 @@ Esc or the title **X** closes the window.
 - **Report missing** posts absent classes to raid or party chat; **Refresh** re-reads the group (same inspect path as Raid roster)
 - Full tracking list: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
 
+**Gear check (target)** tab:
+
+- Placeholder: “Gear check of target player”
+
+**Gear check (raid)** tab:
+
+- Placeholder: “Gear check of raid”
+
 **History** tab:
 
 - Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
@@ -140,6 +148,8 @@ Raidwise/
   PageParty.lua       # Party roster tab
   PageRaid.lua        # Raid roster tab
   PageComposition.lua # Raid composition tab
+  PageGearCheckTarget.lua # Gear check (target) tab
+  PageGearCheckRaid.lua   # Gear check (raid) tab
   PageHistory.lua     # History tab
   PageSettings.lua    # Settings tab
   PageInfo.lua        # Info tab

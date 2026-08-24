@@ -32,28 +32,32 @@ Menu tabs (top to bottom; each row has a 16×16 category icon + label):
 [ PoF   ] Party roster
 [ glory ] Raid roster
 [ BoK   ] Raid composition
+[ scope ] Gear check (target)
+[ plate ] Gear check (raid)
 [ book  ] History
 [ gear  ] Settings
 [  ?    ] Info
 ```
 
-Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Spell_Holy_PrayerOfFortitude`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
+Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Spell_Holy_PrayerOfFortitude`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Chest_Plate_23`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
 ## Layout versions
 
 Independent from addon semver (`Addon.version` in the status bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 4` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 5` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 27` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 1` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| Gear check (raid) | `LAYOUT_VERSION = 1` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 5` | `PageSettings.lua` | Shell title bar (next to page name) |
-| Info | `LAYOUT_VERSION = 2` | `PageInfo.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Info | `LAYOUT_VERSION = 3` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
 
@@ -205,6 +209,30 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 
 Spec is the primary talent tree (same as Raid roster). Solo shows only your own coverage.
 
+## Gear check (target)
+
+Placeholder page for inspecting the current target’s gear.
+
+```text
+[ short description ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | “Gear check of target player” |
+
+## Gear check (raid)
+
+Placeholder page for inspecting raid members’ gear.
+
+```text
+[ short description ]
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | “Gear check of raid” |
+
 ## Character profile
 
 Standalone window (**460 × 560**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
@@ -305,8 +333,9 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 
 [ Startup page heading ]
 [ short hint ]
-( ) Cooldowns   ( ) Export   ( ) Party   ( ) Raid
-( ) Composition ( ) History  ( ) Settings
+( ) Cooldowns   ( ) Export      ( ) Party       ( ) Raid
+( ) Composition ( ) Gear target ( ) Gear raid   ( ) History
+( ) Settings
 
 [ Unit tooltips heading ]
 [ short hint ]
