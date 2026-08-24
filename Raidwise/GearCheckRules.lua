@@ -762,7 +762,8 @@ local function GemsQualifyForGood(item)
 	return true
 end
 
--- BiS lists often use leather/mail on wrist/hands/waist/feet for plate DPS.
+-- BiS lists often use lower armor on wrist/hands/waist/feet (plate DPS leather/mail;
+-- Enhancement/Hunter leather bracers/boots; etc.). Acceptable there still qualifies for GOOD.
 local GOOD_OFFSET_SLOTS = {
 	wrist = true,
 	hands = true,
@@ -1398,6 +1399,25 @@ function Addon:GearCheckRulesSelfTest()
 	Check("ret cloak Major Agility → not ENCHANT_NOT_CHECKABLE", not HasCode(fRet, "ENCHANT_NOT_CHECKABLE"))
 	Check("ret cloak Major Agility → not ENCHANT_LOWER_LEVEL", not HasCode(fRet, "ENCHANT_LOWER_LEVEL"))
 	Check("ret leather wrist → GOOD (BiS offset)", retLeather.equipment[1].verdict == "GOOD")
+
+	-- Enhancement: Umbrage Armbands (leather wrist) are BiS offsets on mail
+	local enhLeather = {
+		character = { classFile = "SHAMAN", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("wrist", "WristSlot", MakeItem({
+				itemId = 53126,
+				category = "armor",
+				armorType = "leather",
+				stats = { agility = 96, attackPower = 96, critRating = 64, hasteRating = 64, stamina = 96 },
+				enchant = { enchantId = 3845, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 1, yellow = 0, blue = 0, prismatic = 0, total = 1, empty = 0 },
+				gems = { { itemId = 40118, color = "red", isMeta = false } },
+			})),
+		},
+	}
+	local fEnhWrist = self:EvaluateGearCheck(enhLeather)
+	Check("enh leather wrist → not ARMOR_DISCOURAGED", not HasCode(fEnhWrist, "ARMOR_DISCOURAGED"))
+	Check("enh leather wrist → GOOD (BiS offset)", enhLeather.equipment[1].verdict == "GOOD")
 
 	-- Blood DK: Pinnacle shoulders + armor cloak/gloves must not false-flag
 	local bloodTank = {
