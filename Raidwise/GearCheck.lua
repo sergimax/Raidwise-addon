@@ -135,6 +135,8 @@ local scanToken = 0
 local pendingUnit = nil
 local pendingCallback = nil
 local pendingInspectReady = false
+local pendingSpecRetry = false
+local pendingGemRetry = false
 local retryElapsed = 0
 local retryBudget = 0
 local lastReport = nil
@@ -726,23 +728,33 @@ local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey)
 	-- Resolve socket totals carefully:
 	-- GetItemStats EMPTY_SOCKET_* is layout (still present when gemmed).
 	-- When gems are detected, derive empties from layout − gem count (ignore tooltip).
-	-- Tooltip empty lines are only used when no gems were detected.
+	-- Tooltip empty lines are reliable for self; on inspect they often show layout
+	-- as "empty" before gem ids arrive — never treat that as confirmed missing.
+	local isSelf = unit and type(UnitIsUnit) == "function" and UnitIsUnit(unit, "player")
 	local fromStats = sockets.total
 	local layoutTotal = fromStats
 	local remainingEmpty = 0
 	local emptyConfirmed = false
+	local gemDataUncertain = false
 
 	if #gems > 0 then
 		layoutTotal = math.max(fromStats, #gems)
 		remainingEmpty = math.max(0, layoutTotal - #gems)
 		emptyConfirmed = remainingEmpty > 0
-	elseif fromTip.total > 0 then
+	elseif fromTip.total > 0 and isSelf then
 		remainingEmpty = fromTip.total
 		layoutTotal = math.max(fromStats, fromTip.total)
+		emptyConfirmed = true
+	elseif fromTip.total > 0 and fromStats == 0 then
+		remainingEmpty = fromTip.total
+		layoutTotal = fromTip.total
 		emptyConfirmed = true
 	elseif fromStats > 0 then
 		layoutTotal = fromStats
 		remainingEmpty = 0
+		emptyConfirmed = false
+		-- Inspect: layout present, no gem ids yet (or tip lied about empties).
+		gemDataUncertain = not isSelf
 	else
 		layoutTotal = fromTip.total
 		remainingEmpty = fromTip.total
@@ -759,7 +771,7 @@ local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey)
 	sockets.total = layoutTotal
 	sockets.empty = remainingEmpty
 	sockets.emptyConfirmed = emptyConfirmed
-	sockets.gemDataUncertain = fromStats > 0 and #gems == 0 and remainingEmpty == 0
+	sockets.gemDataUncertain = gemDataUncertain
 
 	return {
 		itemId = parsed.itemId,
@@ -863,7 +875,7 @@ local function CollectSlot(unit, def)
 	return entry
 end
 
-local function CollectClassSpec(unit)
+local function CollectClassSpec(unit, inspectReady)
 	local className, classFile = UnitClass(unit)
 	local specName, specIcon, specTab = "", "", 0
 	local specKnown = false
@@ -871,44 +883,44 @@ local function CollectClassSpec(unit)
 
 	if UnitIsUnit(unit, "player") and Addon.CollectPrimarySpec then
 		specName, specIcon, specTab = Addon:CollectPrimarySpec()
-	else
-		if Addon.GetCachedSpecForUnit then
-			local cachedName, cachedIcon, cachedTab = Addon:GetCachedSpecForUnit(unit)
-			if (cachedName and cachedName ~= "") or (cachedTab and cachedTab > 0) then
-				specName = cachedName or ""
-				specIcon = cachedIcon or ""
-				specTab = cachedTab or 0
-				specKnown = true
+	elseif inspectReady then
+		-- Only read inspect talent APIs after INSPECT_TALENT_READY for this unit.
+		-- Calling them earlier returns the previous inspect target's tree (e.g. Prot on a Priest).
+		local isInspect = true
+		local talentGroup = 1
+		if type(GetActiveTalentGroup) == "function" then
+			talentGroup = GetActiveTalentGroup(isInspect) or 1
+		end
+		local tabCount = 3
+		if type(GetNumTalentTabs) == "function" then
+			tabCount = GetNumTalentTabs(isInspect) or 3
+		end
+		local bestPoints = -1
+		for tab = 1, tabCount do
+			local name, icon, pointsSpent = GetTalentTabInfo(tab, isInspect, nil, talentGroup)
+			pointsSpent = tonumber(pointsSpent) or 0
+			if pointsSpent > bestPoints then
+				bestPoints = pointsSpent
+				specName = name or ""
+				specIcon = icon or ""
+				specTab = tab
 			end
 		end
-
-		if not specKnown then
-			local isInspect = true
-			local talentGroup = 1
-			if type(GetActiveTalentGroup) == "function" then
-				talentGroup = GetActiveTalentGroup(isInspect) or 1
-			end
-			local tabCount = 3
-			if type(GetNumTalentTabs) == "function" then
-				tabCount = GetNumTalentTabs(isInspect) or 3
-			end
-			local bestPoints = -1
-			for tab = 1, tabCount do
-				local name, icon, pointsSpent = GetTalentTabInfo(tab, isInspect, nil, talentGroup)
-				pointsSpent = tonumber(pointsSpent) or 0
-				if pointsSpent > bestPoints then
-					bestPoints = pointsSpent
-					specName = name or ""
-					specIcon = icon or ""
-					specTab = tab
-				end
-			end
+		if bestPoints <= 0 then
+			specName, specIcon, specTab = "", "", 0
+		end
+	elseif Addon.GetCachedSpecForUnit then
+		local cachedName, cachedIcon, cachedTab = Addon:GetCachedSpecForUnit(unit)
+		if (cachedName and cachedName ~= "") or (cachedTab and cachedTab > 0) then
+			specName = cachedName or ""
+			specIcon = cachedIcon or ""
+			specTab = cachedTab or 0
 		end
 	end
 
 	if (specName and specName ~= "") or (specTab and specTab > 0) then
 		specKnown = true
-		if not UnitIsUnit(unit, "player") and Addon.StoreSpecCacheForUnit then
+		if not UnitIsUnit(unit, "player") and inspectReady and Addon.StoreSpecCacheForUnit then
 			Addon:StoreSpecCacheForUnit(unit, specName, specIcon, specTab)
 		end
 	else
@@ -1062,8 +1074,10 @@ function Addon:CollectGearCheck(unit)
 		return nil
 	end
 
+	local inspectReady = UnitIsUnit(unit, "player")
+		or (pendingUnit and pendingInspectReady and UnitIsUnit(unit, pendingUnit))
 	local name, realm = UnitName(unit)
-	local identity = CollectClassSpec(unit)
+	local identity = CollectClassSpec(unit, inspectReady)
 	local equipment = {}
 	for index = 1, #SLOT_DEFS do
 		equipment[#equipment + 1] = CollectSlot(unit, SLOT_DEFS[index])
@@ -1462,6 +1476,8 @@ local function FinishScan(report, status)
 	pendingCallback = nil
 	pendingUnit = nil
 	pendingInspectReady = false
+	pendingSpecRetry = false
+	pendingGemRetry = false
 	retryFrame:Hide()
 	retryElapsed = 0
 	retryBudget = 0
@@ -1474,6 +1490,21 @@ local function FinishScan(report, status)
 	elseif not pendingUnit and not (raidQueue and raidQueue.active) then
 		MaybeResumePartyInspects()
 	end
+end
+
+local function EquipmentHasUncertainGems(equipment)
+	if type(equipment) ~= "table" then
+		return false
+	end
+	for index = 1, #equipment do
+		local slot = equipment[index]
+		if slot.policy == "CHECKED" and slot.item and slot.item.sockets then
+			if slot.item.sockets.gemDataUncertain then
+				return true
+			end
+		end
+	end
+	return false
 end
 
 local function TryCollectPending(forceComplete)
@@ -1491,7 +1522,8 @@ local function TryCollectPending(forceComplete)
 	end
 	local filled = (report.collection and report.collection.counts and report.collection.counts.filledCheckedSlots) or 0
 	local specKnown = report.character and report.character.specKnown
-	if filled > 0 and specKnown and pendingInspectReady then
+	local gemsReady = not EquipmentHasUncertainGems(report.equipment)
+	if filled > 0 and specKnown and pendingInspectReady and gemsReady then
 		if report.inspect then
 			report.inspect.complete = true
 		end
@@ -1499,14 +1531,27 @@ local function TryCollectPending(forceComplete)
 		return
 	end
 	if forceComplete then
-		local inspect = report.inspect or {}
-		if filled > 0 and not specKnown and not inspect.specRetry then
-			inspect.specRetry = true
+		if filled > 0 and not specKnown and not pendingSpecRetry then
+			pendingSpecRetry = true
 			retryBudget = retryBudget + 2.0
 			retryElapsed = 0
 			if type(NotifyInspect) == "function" then
 				pcall(NotifyInspect, pendingUnit)
 			end
+			return
+		end
+		-- One more inspect pulse when gems still look stripped.
+		if filled > 0 and pendingInspectReady and not gemsReady and not pendingGemRetry then
+			pendingGemRetry = true
+			retryBudget = retryBudget + 2.0
+			retryElapsed = 0
+			if type(ClearInspectPlayer) == "function" then
+				pcall(ClearInspectPlayer)
+			end
+			if type(NotifyInspect) == "function" then
+				pcall(NotifyInspect, pendingUnit)
+			end
+			pendingInspectReady = false
 			return
 		end
 		if report.inspect then
@@ -1589,8 +1634,13 @@ function Addon:StartGearCheckUnitScan(unit, callback)
 
 	pendingUnit = unit
 	pendingInspectReady = false
+	pendingSpecRetry = false
+	pendingGemRetry = false
 	retryElapsed = 0
 	retryBudget = 4.0
+	if Addon.ClearCachedSpecForUnit then
+		Addon:ClearCachedSpecForUnit(unit)
+	end
 	if Addon.ClearPartyInspectForGearCheck then
 		Addon:ClearPartyInspectForGearCheck()
 	end
@@ -1601,7 +1651,7 @@ function Addon:StartGearCheckUnitScan(unit, callback)
 		local ok = pcall(NotifyInspect, unit)
 		inspect.notified = ok and true or false
 	end
-	TryCollectPending(false)
+	-- Do not collect until INSPECT_TALENT_READY — early GetTalentTabInfo is the previous unit.
 	if pendingUnit then
 		retryFrame:Show()
 	end

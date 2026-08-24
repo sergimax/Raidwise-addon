@@ -168,17 +168,21 @@ Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW �
 
 ## Gear check (raid) tab
 
-Toolbar + scroll table (same chrome as Party roster). `LAYOUT_VERSION = 2`.
+Same party-column grid as **Raid roster** (groups 1–5 / 6–8). `LAYOUT_VERSION = 3`.
 
 | Element | Size | Notes |
 |---------|------|-------|
 | Hint + Scan | toolbar **28** | Scan button **104 × 28** top-right |
 | Status hint | under description | `GameFontNormalSmall` |
 | Summary line | height **20** | `ROSTER_STATS_H`; BAD/REPLACE/OK/GOOD/Failed counts |
-| Header row | **52** | `UI.CD_HEADER_H` |
-| Columns | **100 + 28 + 28 + 64 + 36 + 44 + 52 = 352** | Name, class, spec, Overall, BAD, Repl., Issues |
-| Class / spec icons | **18** px | Centered in 28 px columns |
-| Rows | **20** px | Click opens **Gear check (target)** with frozen report |
+| Cell | **168 × 68** | Gap **2**; pad **4**; icons **18** |
+| Group label | height **16** | Centered group number |
+| Line 1 | class icon + name | Class-colored |
+| Line 2 | spec icon + overall | Verdict color or dim fail / not scanned |
+| Line 3 | counts | `BAD N · Repl. N · Iss. N` |
+| Top block | groups **1–5** | Width **5×168 + 4×2** |
+| Bottom block | groups **6–8** | **12** px gap below top block |
+| Scroll | v + h bars | Same chrome as Raid roster |
 
 Inspect queue runs sequentially; target scan blocked while raid scan is active.
 

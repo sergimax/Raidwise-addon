@@ -1,4 +1,5 @@
--- PageGearCheckRaid — scan party/raid roster; row click opens Gear check (target).
+-- PageGearCheckRaid — scan party/raid; grid by groups 1–5 / 6–8 (Raid roster layout).
+-- Cell click opens Gear check (target) with the frozen report.
 
 local Addon = Raidwise
 local W = Addon.Widgets
@@ -6,41 +7,16 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 2
+local LAYOUT_VERSION = 3
 
-local COL_NAME = 100
-local COL_CLASS = 28
-local COL_SPEC = 28
-local COL_OVERALL = 64
-local COL_BAD = 36
-local COL_REPLACE = 44
-local COL_ISSUES = 52
-
-local COLUMN_WIDTHS = {
-	COL_NAME,
-	COL_CLASS,
-	COL_SPEC,
-	COL_OVERALL,
-	COL_BAD,
-	COL_REPLACE,
-	COL_ISSUES,
-}
-
-local function TableWidth()
-	local width = 0
-	for index = 1, #COLUMN_WIDTHS do
-		width = width + COLUMN_WIDTHS[index]
-	end
-	return width
-end
-
-local function ColumnOffset(index)
-	local offset = 0
-	for column = 1, index - 1 do
-		offset = offset + COLUMN_WIDTHS[column]
-	end
-	return offset
-end
+local CELL_W = 168
+local CELL_H = 68
+local CELL_GAP = 2
+local CELL_PAD = 4
+local LINE_H = 14
+local ICON = 18
+local GROUP_LABEL_H = 16
+local BLOCK_GAP = 12
 
 local function OverallColor(status)
 	if status == "BAD" then
@@ -69,7 +45,10 @@ local function StatusLabelForEntry(entry)
 		if entry and entry.status == "empty" then
 			return W.T("GEAR_CHECK_RAID_CELL_EMPTY")
 		end
-		return W.T("GEAR_CHECK_RAID_ROW_FAIL")
+		if entry then
+			return W.T("GEAR_CHECK_RAID_ROW_FAIL")
+		end
+		return W.T("GEAR_CHECK_RAID_NOT_SCANNED")
 	end
 	local overall = entry.report.overall or {}
 	return overall.status or "OK"
@@ -113,145 +92,242 @@ local function FormatSummaryLine(results)
 	)
 end
 
-local function CreateRaidRow(parent)
-	local row = CreateFrame("Button", nil, parent)
-	row:SetHeight(UI.CD_ROW_H)
-	W.ApplyPlainPanel(row, UI.CD_ROW_A)
-	row:EnableMouse(true)
-	row:RegisterForClicks("LeftButtonUp")
-
-	local function AddTextColumn(columnIndex, justify)
-		local text = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		text:SetPoint("TOPLEFT", row, "TOPLEFT", ColumnOffset(columnIndex) + 4, -4)
-		text:SetWidth(COLUMN_WIDTHS[columnIndex] - 8)
-		text:SetJustifyH(justify or "LEFT")
-		text:SetJustifyV("TOP")
-		return text
+local function FormatCellCounts(report)
+	if not report then
+		return ""
 	end
-
-	row.nameText = AddTextColumn(1, "LEFT")
-
-	row.classIconHost = CreateFrame("Frame", nil, row)
-	row.classIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
-	row.classIconHost:SetPoint(
-		"TOPLEFT",
-		row,
-		"TOPLEFT",
-		ColumnOffset(2) + W.TableIconInset(COL_CLASS, UI.ROSTER_ICON),
-		W.TableIconTopOffset(UI.ROSTER_ICON)
+	local verdicts = report.verdicts or {}
+	local issues = (report.overall and report.overall.issues) or {}
+	local issueTotal = (issues.enchants or 0) + (issues.gems or 0) + (issues.meta or 0)
+	return W.T(
+		"GEAR_CHECK_RAID_CELL_COUNTS",
+		verdicts.bad or 0,
+		verdicts.replace or 0,
+		issueTotal
 	)
-	row.classIcon = row.classIconHost:CreateTexture(nil, "ARTWORK")
-	row.classIcon:SetAllPoints(row.classIconHost)
+end
 
-	row.specIconHost = CreateFrame("Frame", nil, row)
-	row.specIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
-	row.specIconHost:SetPoint(
-		"TOPLEFT",
-		row,
-		"TOPLEFT",
-		ColumnOffset(3) + W.TableIconInset(COL_SPEC, UI.ROSTER_ICON),
-		W.TableIconTopOffset(UI.ROSTER_ICON)
-	)
-	row.specIcon = row.specIconHost:CreateTexture(nil, "ARTWORK")
-	row.specIcon:SetAllPoints(row.specIconHost)
+local function IndexResults(results)
+	local byGuid = {}
+	local byName = {}
+	if type(results) ~= "table" then
+		return byGuid, byName
+	end
+	for index = 1, #results do
+		local entry = results[index]
+		local member = entry and entry.member or {}
+		local character = entry and entry.report and entry.report.character or {}
+		local guid = member.guid or character.guid
+		if type(guid) == "string" and guid ~= "" then
+			byGuid[guid] = entry
+		end
+		local name = member.name or character.name
+		if type(name) == "string" and name ~= "" then
+			byName[name] = entry
+		end
+	end
+	return byGuid, byName
+end
 
-	row.overallText = AddTextColumn(4, "CENTER")
-	row.badText = AddTextColumn(5, "CENTER")
-	row.replaceText = AddTextColumn(6, "CENTER")
-	row.issuesText = AddTextColumn(7, "CENTER")
+local function EntryForMember(member, byGuid, byName)
+	if not member then
+		return nil
+	end
+	if member.guid and byGuid[member.guid] then
+		return byGuid[member.guid]
+	end
+	if member.name and byName[member.name] then
+		return byName[member.name]
+	end
+	return nil
+end
 
-	row.classIconHost:EnableMouse(true)
-	row.classIconHost:SetScript("OnEnter", function(self)
-		if not row.classLabel or row.classLabel == "" then
+local function ColumnOffset(columnIndex)
+	return (columnIndex - 1) * (CELL_W + CELL_GAP)
+end
+
+local function BlockHeight()
+	return GROUP_LABEL_H + CELL_H * 5 + CELL_GAP * 4
+end
+
+local function ContentSize()
+	local width = CELL_W * 5 + CELL_GAP * 4
+	local height = BlockHeight() * 2 + BLOCK_GAP
+	return width, height
+end
+
+local function CreatePlayerCell(parent)
+	local cell = CreateFrame("Button", nil, parent)
+	cell:SetSize(CELL_W, CELL_H)
+	W.ApplyPlainPanel(cell, UI.CD_ROW_A)
+	cell:EnableMouse(true)
+	cell:RegisterForClicks("LeftButtonUp")
+
+	cell.classIconHost = CreateFrame("Frame", nil, cell)
+	cell.classIconHost:SetSize(ICON, ICON)
+	cell.classIconHost:SetPoint("TOPLEFT", CELL_PAD, -CELL_PAD)
+	cell.classIcon = cell.classIconHost:CreateTexture(nil, "ARTWORK")
+	cell.classIcon:SetAllPoints(cell.classIconHost)
+
+	cell.nameText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.nameText:SetPoint("LEFT", cell.classIconHost, "RIGHT", 4, 0)
+	cell.nameText:SetPoint("RIGHT", cell, "RIGHT", -CELL_PAD, 0)
+	cell.nameText:SetHeight(LINE_H)
+	cell.nameText:SetJustifyH("LEFT")
+	cell.nameText:SetJustifyV("MIDDLE")
+
+	cell.specIconHost = CreateFrame("Frame", nil, cell)
+	cell.specIconHost:SetSize(ICON, ICON)
+	cell.specIconHost:SetPoint("TOPLEFT", cell.classIconHost, "BOTTOMLEFT", 0, -3)
+	cell.specIcon = cell.specIconHost:CreateTexture(nil, "ARTWORK")
+	cell.specIcon:SetAllPoints(cell.specIconHost)
+
+	cell.overallText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.overallText:SetPoint("LEFT", cell.specIconHost, "RIGHT", 4, 0)
+	cell.overallText:SetPoint("RIGHT", cell, "RIGHT", -CELL_PAD, 0)
+	cell.overallText:SetHeight(LINE_H)
+	cell.overallText:SetJustifyH("LEFT")
+	cell.overallText:SetJustifyV("MIDDLE")
+
+	cell.countsText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.countsText:SetPoint("TOPLEFT", cell.specIconHost, "BOTTOMLEFT", 0, -3)
+	cell.countsText:SetPoint("RIGHT", cell, "RIGHT", -CELL_PAD, 0)
+	cell.countsText:SetHeight(LINE_H)
+	cell.countsText:SetJustifyH("LEFT")
+	cell.countsText:SetJustifyV("MIDDLE")
+
+	cell:SetScript("OnEnter", function(self)
+		if not self.member then
 			return
 		end
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		GameTooltip:AddLine(row.classLabel)
-		GameTooltip:Show()
-	end)
-	row.classIconHost:SetScript("OnLeave", function()
-		GameTooltip:Hide()
-	end)
-
-	row.specIconHost:EnableMouse(true)
-	row.specIconHost:SetScript("OnEnter", function(self)
-		if not row.specLabel or row.specLabel == "" then
-			return
-		end
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		GameTooltip:AddLine(row.specLabel)
-		GameTooltip:Show()
-	end)
-	row.specIconHost:SetScript("OnLeave", function()
-		GameTooltip:Hide()
-	end)
-
-	row:SetScript("OnEnter", function(self)
-		local stripe = self.stripe or UI.CD_ROW_A
-		self:SetBackdropColor(stripe[1] * 1.08, stripe[2] * 1.08, stripe[3] * 1.08, stripe[4])
+		self:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
 		if self.entry and self.entry.report then
 			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 			GameTooltip:AddLine(W.T("GEAR_CHECK_RAID_CLICK_HINT"))
 			GameTooltip:Show()
 		end
 	end)
-	row:SetScript("OnLeave", function(self)
+	cell:SetScript("OnLeave", function(self)
 		local stripe = self.stripe or UI.CD_ROW_A
 		self:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
 		GameTooltip:Hide()
 	end)
-	row:SetScript("OnClick", function(self)
+	cell:SetScript("OnClick", function(self)
 		local entry = self.entry
 		if entry and entry.report and Addon.ShowGearCheckReport then
 			Addon:ShowGearCheckReport(entry.report, entry.status or "ok")
 		end
 	end)
 
-	return row
+	return cell
 end
 
-local function ApplyEntryToRow(row, entry)
-	local member = entry and entry.member or {}
+local function CreateGroupColumn(parent, groupIndex)
+	local column = CreateFrame("Frame", nil, parent)
+	column:SetSize(CELL_W, BlockHeight())
+
+	local label = column:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	label:SetPoint("TOPLEFT", 0, 0)
+	label:SetPoint("TOPRIGHT", 0, 0)
+	label:SetHeight(GROUP_LABEL_H)
+	label:SetJustifyH("CENTER")
+	label:SetText(tostring(groupIndex))
+	W.SetFontColor(label, UI.GOLD)
+	column.label = label
+
+	column.cells = {}
+	for slot = 1, 5 do
+		local cell = CreatePlayerCell(column)
+		cell:SetPoint("TOPLEFT", 0, -(GROUP_LABEL_H + (slot - 1) * (CELL_H + CELL_GAP)))
+		column.cells[slot] = cell
+	end
+
+	return column
+end
+
+local function CreateBlock(parent, startGroup, endGroup)
+	local columnCount = endGroup - startGroup + 1
+	local block = CreateFrame("Frame", nil, parent)
+	block:SetSize(
+		CELL_W * columnCount + CELL_GAP * (columnCount - 1),
+		BlockHeight()
+	)
+
+	block.columns = {}
+	for groupIndex = startGroup, endGroup do
+		local column = CreateGroupColumn(block, groupIndex)
+		column:SetPoint("TOPLEFT", ColumnOffset(groupIndex - startGroup + 1), 0)
+		block.columns[groupIndex] = column
+	end
+
+	return block
+end
+
+local function FillPlayerCell(cell, member, entry, stripe)
+	cell.stripe = stripe
+	cell:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+
+	if not member then
+		cell.member = nil
+		cell.entry = nil
+		cell.nameText:SetText("")
+		cell.overallText:SetText("")
+		cell.countsText:SetText("")
+		cell.classIconHost:Hide()
+		cell.specIconHost:Hide()
+		cell:EnableMouse(false)
+		cell:Show()
+		return
+	end
+
+	cell.member = member
+	cell.entry = entry
+	cell:EnableMouse(true)
+
 	local report = entry and entry.report
 	local character = report and report.character or {}
+	local classToken = member.class or character.classFile or ""
+	local name = member.name or character.name or "?"
 
-	row.entry = entry
-	row.member = member
-	row.classLabel = member.classLabel or character.className
-	row.specLabel = member.spec or character.specName
+	cell.nameText:SetText(name)
+	cell.nameText:SetTextColor(W.ClassColor(classToken))
+	W.SetSpecOrClassIcon(cell.classIcon, nil, classToken)
+	cell.classIconHost:Show()
 
-	row.nameText:SetText(member.name or character.name or "?")
-	row.nameText:SetTextColor(W.ClassColor(member.class or character.className))
-
-	W.SetSpecOrClassIcon(row.classIcon, nil, member.class or character.className)
-	local specIcon = member.specIcon or character.specIcon
-	W.SetSpecOrClassIcon(row.specIcon, specIcon, member.class or character.className)
+	local specIcon = character.specIcon
+	if not specIcon or specIcon == "" then
+		specIcon = member.specIcon
+	end
+	if specIcon and specIcon ~= "" then
+		W.SetSpecOrClassIcon(cell.specIcon, specIcon, classToken)
+		cell.specIcon:Show()
+	else
+		cell.specIcon:SetTexture(nil)
+		cell.specIcon:Hide()
+	end
+	cell.specIconHost:Show()
 
 	local overallLabel = StatusLabelForEntry(entry)
-	row.overallText:SetText(overallLabel)
-	W.SetFontColor(row.overallText, report and OverallColor(overallLabel) or UI.TEXT_DISABLED)
-
-	if report and report.verdicts then
-		row.badText:SetText(tostring(report.verdicts.bad or 0))
-		row.replaceText:SetText(tostring(report.verdicts.replace or 0))
-		W.SetFontColor(row.badText, (report.verdicts.bad or 0) > 0 and UI.TEXT_ALERT or UI.TEXT_IDLE)
-		W.SetFontColor(row.replaceText, (report.verdicts.replace or 0) > 0 and UI.GOLD or UI.TEXT_IDLE)
+	cell.overallText:SetText(overallLabel)
+	if report then
+		W.SetFontColor(cell.overallText, OverallColor(overallLabel))
 	else
-		row.badText:SetText("-")
-		row.replaceText:SetText("-")
-		W.SetFontColor(row.badText, UI.TEXT_DISABLED)
-		W.SetFontColor(row.replaceText, UI.TEXT_DISABLED)
+		W.SetFontColor(cell.overallText, UI.TEXT_DISABLED)
 	end
 
-	if report and report.overall and report.overall.issues then
-		local issues = report.overall.issues
-		local total = (issues.enchants or 0) + (issues.gems or 0) + (issues.meta or 0)
-		row.issuesText:SetText(tostring(total))
-		W.SetFontColor(row.issuesText, total > 0 and UI.GOLD or UI.TEXT_IDLE)
+	local counts = FormatCellCounts(report)
+	cell.countsText:SetText(counts)
+	if counts ~= "" then
+		local verdicts = report.verdicts or {}
+		local issues = (report.overall and report.overall.issues) or {}
+		local issueTotal = (issues.enchants or 0) + (issues.gems or 0) + (issues.meta or 0)
+		local hot = (verdicts.bad or 0) > 0 or (verdicts.replace or 0) > 0 or issueTotal > 0
+		W.SetFontColor(cell.countsText, hot and UI.GOLD or UI.TEXT_IDLE)
 	else
-		row.issuesText:SetText("-")
-		W.SetFontColor(row.issuesText, UI.TEXT_DISABLED)
+		W.SetFontColor(cell.countsText, UI.TEXT_DISABLED)
 	end
+
+	cell:Show()
 end
 
 local function RunRaidScan(page)
@@ -323,10 +399,6 @@ function Addon:RefreshGearCheckRaidView(autoScan)
 		return
 	end
 
-	if page.scanning and self.IsGearCheckScanBusy and self:IsGearCheckScanBusy() then
-		return
-	end
-
 	local results = page.results
 	if (not results or #results == 0) and self.GetLastGearCheckRaidResults then
 		results = self:GetLastGearCheckRaidResults() or {}
@@ -343,39 +415,28 @@ function Addon:RefreshGearCheckRaidView(autoScan)
 		end
 	end
 
-	if not page.tableHost then
+	if not page.tableHost or not page.topBlock then
 		return
 	end
 	page.tableHost:Show()
 
-	local content = page.tableContent
-	local headerBg = page.headerBg
-	local tableW = TableWidth()
-	local rowCount = math.max(#results, 1)
-	local tableH = UI.CD_HEADER_H + rowCount * UI.CD_ROW_H
-
-	content:SetSize(tableW, tableH)
-	headerBg:SetWidth(tableW)
-
-	W.HidePoolFrom(page.rowFrames, #results + 1)
-	for rowIndex = 1, #results do
-		local entry = results[rowIndex]
-		local row = page.rowFrames[rowIndex]
-		if not row then
-			row = CreateRaidRow(content)
-			page.rowFrames[rowIndex] = row
+	local groups = (self.BuildRaidGroups and self:BuildRaidGroups(false)) or {}
+	local byGuid, byName = IndexResults(results)
+	local blocks = { page.topBlock, page.bottomBlock }
+	for blockIndex = 1, #blocks do
+		local block = blocks[blockIndex]
+		for groupIndex, column in pairs(block.columns) do
+			local slots = groups[groupIndex] or {}
+			for slot = 1, 5 do
+				local stripe = (slot % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
+				local member = slots[slot]
+				FillPlayerCell(column.cells[slot], member, EntryForMember(member, byGuid, byName), stripe)
+			end
 		end
-
-		row:ClearAllPoints()
-		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(UI.CD_HEADER_H + (rowIndex - 1) * UI.CD_ROW_H))
-		row:SetSize(tableW, UI.CD_ROW_H)
-		local stripe = (rowIndex % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
-		row.stripe = stripe
-		row:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
-		ApplyEntryToRow(row, entry)
-		row:Show()
 	end
 
+	local contentW, contentH = ContentSize()
+	page.tableContent:SetSize(contentW, contentH)
 	W.LayoutTableScrollBars(page)
 end
 
@@ -432,38 +493,18 @@ local function CreateGearCheckRaidPage(parent)
 	page.scroll = scroll
 
 	local content = CreateFrame("Frame", nil, scroll)
-	content:SetSize(1, 1)
+	local contentW, contentH = ContentSize()
+	content:SetSize(contentW, contentH)
 	scroll:SetScrollChild(content)
 	page.tableContent = content
-	page.rowFrames = {}
 
-	local headerBg = CreateFrame("Frame", nil, content)
-	headerBg:SetPoint("TOPLEFT", 0, 0)
-	headerBg:SetHeight(UI.CD_HEADER_H)
-	W.ApplyPlainPanel(headerBg, UI.TITLE_BG)
-	page.headerBg = headerBg
+	local topBlock = CreateBlock(content, 1, 5)
+	topBlock:SetPoint("TOPLEFT", 0, 0)
+	page.topBlock = topBlock
 
-	local headerKeys = {
-		"COL_NAME",
-		"COL_CLASS",
-		"COL_SPEC",
-		"GEAR_CHECK_RAID_COL_OVERALL",
-		"GEAR_CHECK_RAID_COL_BAD",
-		"GEAR_CHECK_RAID_COL_REPLACE",
-		"GEAR_CHECK_RAID_COL_ISSUES",
-	}
-	page.headerKeys = headerKeys
-	page.headerLabels = {}
-	for index = 1, #headerKeys do
-		local label = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		label:SetPoint("TOPLEFT", headerBg, "TOPLEFT", ColumnOffset(index) + 4, -10)
-		label:SetWidth(COLUMN_WIDTHS[index] - 8)
-		local center = index >= 4
-		label:SetJustifyH(center and "CENTER" or "LEFT")
-		label:SetText(W.T(headerKeys[index]))
-		W.SetFontColor(label, UI.GOLD)
-		page.headerLabels[index] = label
-	end
+	local bottomBlock = CreateBlock(content, 6, 8)
+	bottomBlock:SetPoint("TOPLEFT", topBlock, "BOTTOMLEFT", 0, -BLOCK_GAP)
+	page.bottomBlock = bottomBlock
 
 	local vBar = W.CreateCooldownScrollBar(tableHost, "VERTICAL")
 	vBar:SetPoint("TOPRIGHT", -1, -1)
@@ -483,7 +524,7 @@ local function CreateGearCheckRaidPage(parent)
 
 	scroll:SetScript("OnMouseWheel", function(self, delta)
 		local maxV = math.max(0, (content:GetHeight() or 0) - (self:GetHeight() or 0))
-		local step = UI.CD_ROW_H
+		local step = CELL_H
 		local nextValue = math.max(0, math.min(maxV, (self:GetVerticalScroll() or 0) - delta * step))
 		self:SetVerticalScroll(nextValue)
 		vBar:SetValue(nextValue)
@@ -518,14 +559,6 @@ local function ApplyLocale(page)
 			page.summaryLabel:SetText(FormatSummaryLine(results))
 		else
 			page.summaryLabel:SetText(W.T("GEAR_CHECK_RAID_SUMMARY_EMPTY"))
-		end
-	end
-	if page and page.headerKeys and page.headerLabels then
-		for index = 1, #page.headerKeys do
-			local label = page.headerLabels[index]
-			if label then
-				label:SetText(W.T(page.headerKeys[index]))
-			end
 		end
 	end
 end

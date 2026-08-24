@@ -425,7 +425,7 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 ### Checklist
 
 - [x] `StartGearCheckRaidScan` — sequential inspect queue over `CompositionMembers()`
-- [x] `PageGearCheckRaid.lua` — Scan, summary counts, scroll table
+- [x] `PageGearCheckRaid.lua` — Scan, summary counts, party-column grid (groups 1–5 / 6–8)
 - [x] Row click → `ShowGearCheckReport` on **Gear check (target)** (no rescan)
 - [x] `IsGearCheckScanBusy` — blocks overlapping target/raid scans
 - [x] EN/RU chrome strings
@@ -501,7 +501,7 @@ Legacy name: `S_DRUID_BALANCE` is also used for all mage/warlock specs (rename t
 | `Raidwise/GearCheckSavedReports.lua` | Manual save / load / prune (~14 days) |
 | `types/GearCheck.ts` | Frozen TypeScript shape (report + findings) |
 | `Raidwise/PageGearCheckTarget.lua` | Target/self UI (scan, save, saved list) |
-| `Raidwise/PageGearCheckRaid.lua` | Raid/party scan queue + summary table |
+| `Raidwise/PageGearCheckRaid.lua` | Raid/party scan queue + party-column grid |
 | `gear-check-debug/stats-matrix.html` | Stat rank matrix editor + Lua export |
 | `docs/Gear-Check-Progress.md` | This tracker |
 | `docs/RaidWise Addon — Gear Check Specification.md` | Product spec |

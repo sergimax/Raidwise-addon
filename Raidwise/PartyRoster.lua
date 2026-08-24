@@ -608,6 +608,16 @@ function Addon:GetCachedSpecForUnit(unit)
 	return "", "", 0
 end
 
+function Addon:ClearCachedSpecForUnit(unit)
+	if not unit or UnitIsUnit(unit, "player") then
+		return
+	end
+	local guid = UnitGUID(unit)
+	if guid then
+		specCache[guid] = nil
+	end
+end
+
 function Addon:StoreSpecCacheForUnit(unit, specName, specIcon, specTab)
 	if not unit or UnitIsUnit(unit, "player") then
 		return

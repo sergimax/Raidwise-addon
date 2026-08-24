@@ -53,8 +53,8 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 9` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| Gear check (raid) | `LAYOUT_VERSION = 2` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| Gear check (raid) | `LAYOUT_VERSION = 3` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 3` | `PageInfo.lua` | Shell title bar (next to page name) |
@@ -256,25 +256,34 @@ Saved snapshot fields: `rulesetVersion` (`wotlk-3.3.5a-{addonVersion}`), `dataVe
 
 ## Gear check (raid)
 
-`LAYOUT_VERSION = 2`. Scans party/raid roster sequentially (WoW inspect is one player at a time).
+`LAYOUT_VERSION = 3`. Same party-column grid as **Raid roster** (groups 1–5, then 6–8). Scans party/raid sequentially (WoW inspect is one player at a time).
 
 ```text
 [ short description ]                                    [ Scan ]
 [ hint — one-at-a-time inspect; stay in range ]
-        roster stats gap
+        summary gap
 [ summary: BAD · REPLACE · OK · GOOD · Failed ]
-[ Name | (class) | (spec) | Overall | BAD | Repl. | Issues ]
-[ Rhee |  SH   |  Enh   | REPLACE |  0  |   2   |   4   ]
+[ 1              ][ 2              ][ 3              ][ 4              ][ 5              ]
+[ (class) Rhee   ][ empty slot     ] ...
+[ (spec) REPLACE ]
+[ BAD 0 · Repl. 2 · Iss. 4 ]
+        12 px gap
+[ 6              ][ 7              ][ 8              ]
+[ player cell    ] ...
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | Surface-level group scan; click row → **Gear check (target)** |
+| short description | Surface-level group scan; click a filled cell → **Gear check (target)** |
 | Scan | **Scan** — queues `CompositionMembers()` one inspect at a time |
 | hint / status | Progress `Scanning N/M: Name…`; empty group message when alone |
 | summary line | Counts by overall status + failed/skipped inspects |
-| table columns | Name, class, spec icons, overall status, BAD/REPLACE slot counts, enchant+gem+meta issue count |
-| row click | Opens full report on **Gear check (target)** (no rescan) |
+| column header | Group number (`1`–`8`) |
+| line 1 | Class icon + class-colored name |
+| line 2 | Spec icon + overall (colored) or fail / not scanned |
+| line 3 | `BAD N · Repl. N · Iss. N` (enchant+gem+meta issue total) |
+| empty slot | Blank cell (no member) |
+| cell click | Opens full report on **Gear check (target)** (no rescan) when a report exists |
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
 
