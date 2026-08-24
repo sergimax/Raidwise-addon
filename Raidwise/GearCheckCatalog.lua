@@ -14,9 +14,10 @@ local ENCHANTS = {
 	[3236] = { name = "Greater Defense", maxLevel = false, stats = { defenseRating = 22 } },
 	-- Cloak
 	[3831] = { name = "Greater Speed", maxLevel = true, stats = { hasteRating = 23 } },
+	[1099] = { name = "Major Agility", maxLevel = true, stats = { agility = 22 } },
 	[3294] = { name = "Wisdom", maxLevel = true, stats = { spirit = 10 } },
 	[1951] = { name = "Titanweave", maxLevel = true, stats = { defenseRating = 16 } },
-	[3243] = { name = "Major Agility", maxLevel = false, stats = { agility = 22 } },
+	[3243] = { name = "Spell Penetration", maxLevel = false, stats = { spellPenetration = 35 } },
 	[3825] = { name = "Speed", maxLevel = false, stats = { hasteRating = 15 } },
 	-- Boots
 	[3232] = { name = "Tuskarr's Vitality", maxLevel = true, stats = { stamina = 15 } },

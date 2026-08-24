@@ -1169,6 +1169,39 @@ function Addon:GearCheckRulesSelfTest()
 	Check("enhancement intellect → not STAT_DISCOURAGED", not HasCode(fEnh, "STAT_DISCOURAGED"))
 	Check("enhancement intellect chest → GOOD", enhInt.equipment[1].verdict == "GOOD")
 
+	-- Retribution: leather offset + intellect on mail pieces are acceptable
+	local retLeather = {
+		character = { classFile = "PALADIN", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("wrist", "WristSlot", MakeItem({
+				itemId = 30,
+				category = "armor",
+				armorType = "leather",
+				stats = { agility = 40, attackPower = 50, critRating = 30, stamina = 40 },
+				enchant = { enchantId = 3845, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("hands", "HandsSlot", MakeItem({
+				itemId = 31,
+				category = "armor",
+				armorType = "mail",
+				stats = { agility = 40, attackPower = 50, intellect = 30, stamina = 40 },
+				enchant = { enchantId = 1603, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("back", "BackSlot", MakeItem({
+				itemId = 32,
+				category = "armor",
+				armorType = "cloth",
+				stats = { strength = 40, stamina = 40, critRating = 30 },
+				enchant = { enchantId = 1099, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fRet = self:EvaluateGearCheck(retLeather)
+	Check("ret leather wrist → not ARMOR_DISCOURAGED", not HasCode(fRet, "ARMOR_DISCOURAGED"))
+	Check("ret mail intellect → not STAT_DISCOURAGED", not HasCode(fRet, "STAT_DISCOURAGED"))
+	Check("ret cloak Major Agility → not ENCHANT_NOT_CHECKABLE", not HasCode(fRet, "ENCHANT_NOT_CHECKABLE"))
+	Check("ret cloak Major Agility → not ENCHANT_LOWER_LEVEL", not HasCode(fRet, "ENCHANT_LOWER_LEVEL"))
+
 	-- Phase 8: unknown gem → not-checkable (info), not false GEM_LOWER_LEVEL
 	local unkGem = {
 		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },

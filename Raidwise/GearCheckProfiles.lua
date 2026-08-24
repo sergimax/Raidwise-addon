@@ -41,6 +41,8 @@ end
 -- Shared armor templates.
 local A_PLATE = Armor({ "plate" }, { "mail" }, { "leather" }, { "cloth" })
 local A_PLATE_TANK = Armor({ "plate" }, {}, { "mail", "leather" }, { "cloth" })
+-- Ret (and similar plate DPS): leather/mail offset pieces appear on BiS lists.
+local A_PLATE_DPS = Armor({ "plate" }, { "mail", "leather" }, {}, { "cloth" })
 local A_MAIL = Armor({ "mail" }, { "leather" }, { "cloth" }, { "plate" })
 local A_LEATHER = Armor({ "leather" }, {}, { "cloth", "mail" }, { "plate" })
 local A_CLOTH = Armor({ "cloth" }, {}, {}, { "leather", "mail", "plate" })
@@ -50,6 +52,13 @@ local S_PHYS_MELEE = Stats(
 	{ "strength", "agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "armor" },
 	{ "stamina" },
 	{ "spirit", "intellect" },
+	{ "spellPower", "mp5", "spellPenetration" }
+)
+-- Retribution: intellect rides on many strong temporary mail/leather pieces.
+local S_RET = Stats(
+	{ "strength", "agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "armor" },
+	{ "stamina", "intellect" },
+	{ "spirit" },
 	{ "spellPower", "mp5", "spellPenetration" }
 )
 local S_PHYS_TANK = Stats(
@@ -176,7 +185,7 @@ local PROFILES = {
 	-- Paladin
 	["PALADIN-1"] = Profile("Holy", A_PLATE, S_HEALER, W_1H_SHIELD, { 41376, 41401, 41395 }),
 	["PALADIN-2"] = Profile("Protection", A_PLATE_TANK, S_PHYS_TANK, W_1H_SHIELD, { 41397, 41396, 41380 }),
-	["PALADIN-3"] = Profile("Retribution", A_PLATE, S_PHYS_MELEE, W_2H_MELEE, { 41398, 41285 }),
+	["PALADIN-3"] = Profile("Retribution", A_PLATE_DPS, S_RET, W_2H_MELEE, { 41398, 41285 }),
 
 	-- Hunter
 	["HUNTER-1"] = Profile("Beast Mastery", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }),
