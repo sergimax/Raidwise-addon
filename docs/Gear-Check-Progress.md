@@ -20,7 +20,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | Overall status | Worst wins; BAD/REPLACE summaries note that items have those statuses |
 | Resilience (PvE) | 1 item with Resilience → overall **REPLACE**; 2+ → **BAD** |
 | Catalogs | Seed from AtlasLoot lists + hand-built enchantId map; unknown IDs → **not-checkable** (no false BAD) |
-| Trinkets / relics / shirt / tabard | Ignored for now; trinkets marked **planned** |
+| Trinkets / relics / shirt / tabard | Relics / shirt / tabard ignored; **trinkets CHECKED** vs surface allowlists (soft not-preferred) |
 | Finding locale | English only for now (RU later) |
 | Persistence / ruleset versioning | Backlog (spec §§25–27) |
 
@@ -40,7 +40,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 8 | Ruleset expansion | **done** | Enh intellect; gem not-checkable policy; leg/Engi/weapon catalogs |
 | — | Raid-wide gear check | **backlog** | Menu stub only |
 | — | Saved reports | **backlog** | Spec §25 |
-| — | Trinket analysis | **backlog** | Slot policy PLANNED |
+| — | Trinket analysis | **done** (surface) | Allowlists from BiS examples; soft `TRINKET_NOT_PREFERRED`; not BiS scoring |
 | — | Catalog / profile false positives | **backlog** | New reports after Phase 8 polish (Rhee items addressed) |
 
 ---
@@ -54,25 +54,25 @@ Features from the spec or locked decisions that are **not done** yet (or only pa
 | Item | Spec / notes |
 |------|----------------|
 | Raid-wide gear check | Menu stub only (`PageGearCheckRaid.lua`) |
-| Trinket analysis | Slots marked **PLANNED**; not evaluated |
 | Saved reports | Spec §25 — manual save, ~14-day retention; no auto-persist |
 | Ruleset versioning | Spec §26 — with saved reports |
 | Data versioning | Spec §27 — with saved reports |
 | Finding messages in RU | Chrome localized; finding `message` strings EN only |
+| Full trinket BiS scoring | Surface allowlists only; expand IDs when false positives appear |
 
 ### Spec in-scope, only partial
 
 | Item | Spec | Current state |
 |------|------|----------------|
-| Weapon combinations | §12 | Weapon **type** ranks only; no MH/OH combo (1H+1H vs 2H), hand-usage, or “must have ranged” checks |
+| Weapon combinations | §12 | Setup checks: `dw` / `2h` / `1h_shield` (empty OH, shield expected, …); still no “must have ranged” |
 | Preferred / allowed enchants | §13, §19 | Catalog `maxLevel` + bad-stat checks; no per-spec preferred enchant lists |
 | Preferred / allowed gems | §14, §19 | Same for gems (beyond `metaPreferred`) |
 | Meta allowed / forbidden set | §16 | Soft `META_NOT_PREFERRED` vs profile list; not a full allowed/forbidden matrix |
 | Set 2pc / 4pc milestones | §17 | Informational **T9/T10 X/5** counts only |
-| Slot policy naming | §9 | Spec `UNSUPPORTED`; addon uses **PLANNED** for trinkets |
+| Slot policy naming | §9 | Spec `UNSUPPORTED`; unused for trinkets (now CHECKED) |
 | Unknown / not-checkable UI | §8 | Info findings exist; All-filter hides pure info → easy to miss “cannot evaluate” |
 | Catalog / profile completeness | Phase 8 | Seeded + “being maintained”; expand on false-positive reports |
-| Surface rules from BiS examples | — | Distilled in `docs/Gear-Check-Surface-From-BiS.md` (armor / weapons / trinkets); not wired into evaluation yet |
+| Surface rules from BiS examples | — | Wired into profiles + `WEAPON_SETUP` / `TRINKET_NOT_PREFERRED`; see `docs/Gear-Check-Surface-From-BiS.md` |
 
 ### Explicitly out of scope (do not treat as incomplete)
 
@@ -118,7 +118,7 @@ Observed on **Rhee (Enhancement Shaman)** during Phase 3; addressed in **Phase 8
 1. `/reload`, then `/rw gearcheck` (or open **Gear check (target)** and press **Scan**).
 2. **Self:** clear target → scan → dump shows your name, class, spec, equipped slots with enchant/gem ids.
 3. **Other player:** target a nearby inspectable player → scan → after inspect, dump fills (may take a moment).
-4. Confirm trinkets / shirt / tabard appear as planned/ignored, not as checked gear lines.
+4. Confirm trinkets are **CHECKED** (allowlist); shirt / tabard ignored; relics ignored.
 5. Confirm empty slots are listed as empty (not invented items).
 
 ### Out of scope this phase
@@ -128,7 +128,7 @@ Rules, verdicts, chat report modes, set-bonus logic, socket-bonus matching, BiS.
 ### Implemented files
 
 - `Raidwise/GearCheck.lua` — collector + inspect retries + Phase 1 dump formatter
-- `Raidwise/PageGearCheckTarget.lua` — Scan / Select all / copy box (`LAYOUT_VERSION = 2`)
+- `Raidwise/PageGearCheckTarget.lua` — Scan / Select all / copy box
 - Slash: `/rw gearcheck` or `/raidwise gearcheck`
 
 ---

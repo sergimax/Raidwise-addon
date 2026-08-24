@@ -32,6 +32,8 @@ local MESSAGES = {
 	ARMOR_NOT_PREFERRED = "Armor type is usable but not preferred for this specialization.",
 	WEAPON_FORBIDDEN = "Forbidden weapon type for this specialization.",
 	WEAPON_DISCOURAGED = "Discouraged weapon type for this specialization.",
+	WEAPON_SETUP = "Weapon setup does not match this specialization.",
+	TRINKET_NOT_PREFERRED = "Trinket is not typically used for this specialization.",
 	STAT_FORBIDDEN = "Forbidden stat for this specialization.",
 	STAT_DISCOURAGED = "Discouraged stat for this specialization.",
 	RESILIENCE_PVE = "Resilience is a PvP stat and is inappropriate for PvE Gear Check.",
@@ -184,6 +186,100 @@ local function EvaluateItemWeapon(findings, profile, slot)
 		AddFinding(findings, "WEAPON_DISCOURAGED", "soft", "weapon", slot.key, Msg("WEAPON_DISCOURAGED", weaponType))
 	elseif rank == "unknown" then
 		AddFinding(findings, "ITEM_NOT_CHECKABLE", "info", "item", slot.key, Msg("ITEM_NOT_CHECKABLE", "weapon type"))
+	end
+end
+
+local TWO_HAND = {
+	sword2h = true,
+	axe2h = true,
+	mace2h = true,
+	polearm = true,
+	staff = true,
+}
+
+local function FindEquipmentSlot(equipment, key)
+	for index = 1, #equipment do
+		if equipment[index].key == key then
+			return equipment[index]
+		end
+	end
+	return nil
+end
+
+local function SlotHasItem(slot)
+	return slot and not slot.empty and slot.item ~= nil
+end
+
+local function ItemIsTwoHand(item)
+	return item and item.category == "weapon" and item.weaponType and TWO_HAND[item.weaponType]
+end
+
+local function ItemIsShield(item)
+	return item and item.armorType == "shield"
+end
+
+local function ItemIsWeapon(item)
+	return item and item.category == "weapon"
+end
+
+-- Surface weapon-setup rules from BiS lists (not BiS scoring).
+local function EvaluateWeaponSetup(findings, profile, equipment)
+	local setup = profile.weaponSetup
+	if not setup or setup == "any" then
+		return
+	end
+	local mh = FindEquipmentSlot(equipment, "mainHand")
+	local oh = FindEquipmentSlot(equipment, "offHand")
+
+	if setup == "dw" then
+		if not SlotHasItem(mh) or not ItemIsWeapon(mh.item) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "mainHand", Msg("WEAPON_SETUP", "dual-wield needs a main-hand weapon"))
+		end
+		if not SlotHasItem(oh) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "dual-wield needs an off-hand weapon"))
+		elseif ItemIsShield(oh.item) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "shield is not used for dual-wield"))
+		elseif not ItemIsWeapon(oh.item) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "dual-wield needs an off-hand weapon"))
+		end
+	elseif setup == "2h" then
+		if SlotHasItem(mh) and ItemIsTwoHand(mh.item) and SlotHasItem(oh) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "two-hand setup should leave off-hand empty"))
+		end
+	elseif setup == "1h_shield" then
+		if not SlotHasItem(oh) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects a shield"))
+		elseif not ItemIsShield(oh.item) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects a shield"))
+		end
+		if SlotHasItem(mh) and ItemIsTwoHand(mh.item) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "mainHand", Msg("WEAPON_SETUP", "expects a one-hand weapon with shield"))
+		end
+	end
+end
+
+local function EvaluateTrinket(findings, profile, slot)
+	if slot.key ~= "trinket1" and slot.key ~= "trinket2" then
+		return
+	end
+	local allowed = profile.trinketsAllowed
+	if type(allowed) ~= "table" or not next(allowed) then
+		return
+	end
+	local item = slot.item
+	local itemId = item and tonumber(item.itemId)
+	if not itemId or itemId <= 0 then
+		return
+	end
+	if not allowed[itemId] then
+		AddFinding(
+			findings,
+			"TRINKET_NOT_PREFERRED",
+			"soft",
+			"item",
+			slot.key,
+			Msg("TRINKET_NOT_PREFERRED", tostring(itemId))
+		)
 	end
 end
 
@@ -358,12 +454,21 @@ local function EvaluateSlot(findings, profile, slot)
 	end
 
 	if not skipTypeAndStats then
-		EvaluateItemArmor(findings, profile, slot)
-		EvaluateItemWeapon(findings, profile, slot)
-		EvaluateItemStats(findings, profile, slot)
+		if slot.key == "trinket1" or slot.key == "trinket2" then
+			EvaluateTrinket(findings, profile, slot)
+			EvaluateItemStats(findings, profile, slot)
+		else
+			EvaluateItemArmor(findings, profile, slot)
+			EvaluateItemWeapon(findings, profile, slot)
+			EvaluateItemStats(findings, profile, slot)
+		end
+	elseif slot.key == "trinket1" or slot.key == "trinket2" then
+		EvaluateTrinket(findings, profile, slot)
 	end
-	EvaluateEnchant(findings, profile, slot)
-	EvaluateGems(findings, profile, slot)
+	if slot.key ~= "trinket1" and slot.key ~= "trinket2" then
+		EvaluateEnchant(findings, profile, slot)
+		EvaluateGems(findings, profile, slot)
+	end
 end
 
 local COLOR_MATCH = {
@@ -593,6 +698,7 @@ function Addon:EvaluateGearCheck(report)
 	for index = 1, #equipment do
 		EvaluateSlot(findings, profile, equipment[index])
 	end
+	EvaluateWeaponSetup(findings, profile, equipment)
 	EvaluateMetaActivation(findings, report, equipment)
 	report.sets = CollectSetCounts(equipment)
 
@@ -658,6 +764,13 @@ end
 
 local function TypeQualifiesForGood(profile, slot)
 	local item = slot.item
+	if slot.key == "trinket1" or slot.key == "trinket2" then
+		local allowed = profile.trinketsAllowed
+		if type(allowed) == "table" and next(allowed) then
+			return allowed[tonumber(item.itemId)] == true
+		end
+		return true
+	end
 	if slot.key == "back" or slot.key == "neck" or slot.key == "finger1" or slot.key == "finger2" then
 		return true
 	end
@@ -956,6 +1069,16 @@ function Addon:GearCheckRulesSelfTest()
 	local function HasCode(findings, code)
 		for index = 1, #findings do
 			if findings[index].code == code then
+				return true
+			end
+		end
+		return false
+	end
+
+	local function HasCodeOnSlot(findings, code, slotKey)
+		for index = 1, #findings do
+			local finding = findings[index]
+			if finding.code == code and finding.slot == slotKey then
 				return true
 			end
 		end
@@ -1407,6 +1530,74 @@ function Addon:GearCheckRulesSelfTest()
 	local fAll = self:EvaluateGearCheck(allStats)
 	Check("powerful stats chest → not ENCHANT_BAD_STAT", not HasCode(fAll, "ENCHANT_BAD_STAT"))
 	Check("nightmare tear → not GEM_BAD_STAT", not HasCode(fAll, "GEM_BAD_STAT"))
+
+	-- BiS surface: Fury dual-wield expects off-hand; leather offset OK; 2H preferred
+	local furyOh = {
+		character = { classFile = "WARRIOR", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("mainHand", "MainHandSlot", MakeItem({
+				itemId = 50,
+				category = "weapon",
+				weaponType = "axe2h",
+				stats = { strength = 80, stamina = 80 },
+				enchant = { enchantId = 3789, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("wrist", "WristSlot", MakeItem({
+				itemId = 51,
+				category = "armor",
+				armorType = "leather",
+				stats = { strength = 40, stamina = 40, attackPower = 50 },
+				enchant = { enchantId = 3845, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("trinket1", "Trinket0Slot", MakeItem({
+				itemId = 50362,
+				category = "armor",
+				armorType = "misc",
+				stats = {},
+			})),
+			MakeSlot("trinket2", "Trinket1Slot", MakeItem({
+				itemId = 54573,
+				category = "armor",
+				armorType = "misc",
+				stats = { spellPower = 100 },
+			})),
+		},
+	}
+	local fFury = self:EvaluateGearCheck(furyOh)
+	Check("fury missing OH → WEAPON_SETUP", HasCode(fFury, "WEAPON_SETUP"))
+	Check("fury leather wrist → not ARMOR_DISCOURAGED", not HasCode(fFury, "ARMOR_DISCOURAGED"))
+	Check("fury axe2h → not WEAPON_DISCOURAGED", not HasCode(fFury, "WEAPON_DISCOURAGED"))
+	Check("fury DBW trinket → not TRINKET_NOT_PREFERRED", not HasCodeOnSlot(fFury, "TRINKET_NOT_PREFERRED", "trinket1"))
+	Check("fury glowing scale → TRINKET_NOT_PREFERRED", HasCodeOnSlot(fFury, "TRINKET_NOT_PREFERRED", "trinket2"))
+
+	-- Tank leather stays discouraged
+	local tankLeather = {
+		character = { classFile = "WARRIOR", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("wrist", "WristSlot", MakeItem({
+				itemId = 52,
+				category = "armor",
+				armorType = "leather",
+				stats = { stamina = 50, defenseRating = 30 },
+				enchant = { enchantId = 3850, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("offHand", "SecondaryHandSlot", MakeItem({
+				itemId = 53,
+				category = "armor",
+				armorType = "shield",
+				stats = { stamina = 80, blockRating = 40 },
+			})),
+			MakeSlot("mainHand", "MainHandSlot", MakeItem({
+				itemId = 54,
+				category = "weapon",
+				weaponType = "axe1h",
+				stats = { strength = 50, stamina = 50 },
+				enchant = { enchantId = 3789, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fTank = self:EvaluateGearCheck(tankLeather)
+	Check("prot leather wrist → ARMOR_DISCOURAGED", HasCode(fTank, "ARMOR_DISCOURAGED"))
 
 	local profileCount = 0
 	if self.GetGearCheckProfileCount then
