@@ -80,9 +80,9 @@ Esc or the title **X** closes the window.
 
 **Gear check (target)** tab:
 
-- Phase 2: **Scan** builds a normalized gear model for the current player target (or yourself) and shows a copyable dump (`schemaVersion=2`: category, stats, sockets, enchant, gems, gaps)
-- Surface-level disclaimer; class/spec rules are being maintained (evaluation rules come in later phases)
-- `/rw gearcheck` opens this tab and runs a scan
+- Phase 3: **Scan** builds the normalized gear model and runs the rules engine; dump shows equipment plus **findings** (`hard` / `soft` / `info`). No OK/REPLACE/BAD yet
+- Surface-level disclaimer; class/spec rules are being maintained
+- `/rw gearcheck` opens this tab and runs a scan; `/rw gearcheck test` runs offline rule fixtures
 - Progress tracker: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
 
 **Gear check (raid)** tab:
@@ -147,7 +147,10 @@ Raidwise/
   UnitTooltips.lua    # personal/community lines on player unit tooltips
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
-  GearCheck.lua       # gear check collector + normalize (schemaVersion 2)
+  GearCheckCatalog.lua # enchant / gem seed catalogs
+  GearCheckProfiles.lua # class + 30-spec Gear Check profiles
+  GearCheckRules.lua  # findings engine + offline self-test
+  GearCheck.lua       # collector + normalize (schemaVersion 2) + evaluate + dump
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
   PageParty.lua       # Party roster tab
@@ -169,7 +172,7 @@ docs/
 types/
   CharacterExport.ts  # TypeScript types for the Export tab JSON
   CooldownsExport.ts  # TypeScript types for account-wide cooldown JSON shape
-  GearCheck.ts        # TypeScript types for Gear Check normalized report
+  GearCheck.ts        # TypeScript types for Gear Check report + findings
 ```
 
 ## Notes

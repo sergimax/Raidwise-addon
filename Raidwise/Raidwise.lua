@@ -10,7 +10,7 @@ Addon.lastUpdated = ""
 -- Fallback if Locale.lua does not load. Locale.lua replaces Addon.T.
 local FallbackChat = {
 	CHAT_LOADED = "loaded (v%s). Type /raidwise to open.",
-	CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, or /raidwise gearcheck.",
+	CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, /raidwise gearcheck, or /raidwise gearcheck test.",
 }
 
 local function FormatText(text, ...)
@@ -169,7 +169,7 @@ end
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
 
--- /raidwise [close|gearcheck] — open, close, or open Gear Check scan.
+-- /raidwise [close|gearcheck|gearcheck test] — open, close, scan, or run rules self-test.
 SlashCmdList["RAIDWISE"] = function(msg)
 	msg = (msg or ""):match("^%s*(.-)%s*$") or ""
 	msg = msg:lower()
@@ -181,6 +181,21 @@ SlashCmdList["RAIDWISE"] = function(msg)
 
 	if msg == "close" then
 		Addon:HideMainFrame()
+		return
+	end
+
+	if msg == "gearcheck test" or msg == "gear test" then
+		if not Addon.GearCheckRulesSelfTest then
+			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
+			return
+		end
+		local results, passed, total = Addon:GearCheckRulesSelfTest()
+		Addon:Print(Addon:T("CHAT_GEARCHECK_TEST_SUMMARY", passed, total))
+		for index = 1, #results do
+			local row = results[index]
+			local mark = row.ok and "PASS" or "FAIL"
+			Addon:Print(string.format("  [%s] %s", mark, row.name))
+		end
 		return
 	end
 

@@ -371,7 +371,12 @@ local function NormalizeEnchant(enchantId)
 		gaps = {},
 	}
 	if enchant.present then
-		AddGap(enchant.gaps, "ENCHANT_UNMAPPED")
+		local info = Addon.GetGearCheckEnchantInfo and Addon:GetGearCheckEnchantInfo(enchantId)
+		if info then
+			enchant.known = true
+		else
+			AddGap(enchant.gaps, "ENCHANT_UNMAPPED")
+		end
 	end
 	return enchant
 end
@@ -394,6 +399,17 @@ local function NormalizeGem(rawGem)
 	local ok = pcall(function()
 		name, _, _, _, _, itemType, itemSubType = GetItemInfo(rawGem.link or rawGem.itemId)
 	end)
+	local catalog = Addon.GetGearCheckGemInfo and Addon:GetGearCheckGemInfo(rawGem.itemId)
+	if catalog then
+		gem.known = true
+		if catalog.color then
+			gem.color = catalog.color
+			gem.isMeta = catalog.color == "meta"
+		end
+		if type(catalog.stats) == "table" then
+			gem.stats = catalog.stats
+		end
+	end
 	if ok and type(name) == "string" and name ~= "" then
 		gem.name = name
 		gem.known = true
@@ -407,9 +423,11 @@ local function NormalizeGem(rawGem)
 		end
 		if rawGem.link then
 			local stats = CollectStatsAndSockets(rawGem.link)
-			gem.stats = stats
+			if type(stats) == "table" and next(stats) then
+				gem.stats = stats
+			end
 		end
-	else
+	elseif not catalog then
 		AddGap(gaps, "GEM_INFO_UNKNOWN", tostring(rawGem.itemId))
 	end
 	return gem
@@ -681,6 +699,13 @@ function Addon:GetLastGearCheckReport()
 	return lastReport
 end
 
+local function AttachFindings(report)
+	if report and Addon.EvaluateGearCheck then
+		Addon:EvaluateGearCheck(report)
+	end
+	return report
+end
+
 function Addon:CollectGearCheck(unit)
 	unit = unit or self:ResolveGearCheckUnit()
 	if not unit or not UnitExists(unit) then
@@ -746,7 +771,7 @@ function Addon:CollectGearCheck(unit)
 				filledCheckedSlots = filled,
 			},
 		},
-		phase = 2,
+		phase = 3,
 		name = name,
 		isSelf = isSelf,
 		specKnown = identity.specKnown,
@@ -759,7 +784,7 @@ function Addon:CollectGearCheck(unit)
 	}
 
 	lastReport = report
-	return report
+	return AttachFindings(report)
 end
 
 function Addon:FormatGearCheckDump(report)
@@ -772,11 +797,13 @@ function Addon:FormatGearCheckDump(report)
 	local inspect = collection.inspect or report.inspect or {}
 	local counts = collection.counts or report.stats or {}
 	local equipment = report.equipment or report.slots or {}
+	local findings = report.findings or {}
+	local profile = report.profile
 
 	local lines = {}
-	lines[#lines + 1] = "Raidwise Gear Check — Phase 2 snapshot (normalized model; no rules)"
+	lines[#lines + 1] = "Raidwise Gear Check — Phase 3 snapshot (findings; no OK/REPLACE/BAD yet)"
 	lines[#lines + 1] = "schemaVersion=" .. tostring(report.schemaVersion or "?")
-	lines[#lines + 1] = "Rules must consume this shape only. Item level is informational and must not affect verdicts."
+	lines[#lines + 1] = "Rules produce findings only. Item level is informational and must not affect verdicts."
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = string.format(
 		"Unit: %s (%s)%s",
@@ -800,6 +827,13 @@ function Addon:FormatGearCheckDump(report)
 		)
 	else
 		lines[#lines + 1] = "Spec: unknown (class-only rules will apply; gap SPEC_UNKNOWN)"
+	end
+	if profile then
+		lines[#lines + 1] = string.format(
+			"Profile: %s (source=%s)",
+			tostring(profile.name or "?"),
+			tostring(profile.source or "?")
+		)
 	end
 	local charGaps = FormatGapsBrief(character.gaps)
 	if charGaps then
@@ -903,6 +937,24 @@ function Addon:FormatGearCheckDump(report)
 			if enchantGaps then
 				lines[#lines + 1] = "      enchantGaps: " .. enchantGaps
 			end
+		end
+	end
+
+	lines[#lines + 1] = ""
+	lines[#lines + 1] = string.format("Findings (%d):", #findings)
+	if #findings == 0 then
+		lines[#lines + 1] = "  (none)"
+	else
+		for index = 1, #findings do
+			local finding = findings[index]
+			lines[#lines + 1] = string.format(
+				"  [%s/%s] %s%s — %s",
+				tostring(finding.severity or "?"),
+				tostring(finding.category or "?"),
+				tostring(finding.code or "?"),
+				finding.slot and (" @" .. finding.slot) or "",
+				tostring(finding.message or "")
+			)
 		end
 	end
 

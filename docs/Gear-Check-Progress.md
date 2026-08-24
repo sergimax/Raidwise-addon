@@ -32,7 +32,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 |-------|------|--------|-------|
 | 1 | Data collection | **done** | Target/self unit, slots, item/enchant/gem IDs, class/spec; Phase 1 dump UI |
 | 2 | Normalized gear model | **done** | `schemaVersion = 2`; `types/GearCheck.ts`; dump shows stats/types/gaps |
-| 3 | Rules engine | planned | Hard/soft findings; armor/stat/weapon/enchant/gem/meta |
+| 3 | Rules engine | **done** | Hard/soft/info findings; catalogs + 30-spec profiles; `/rw gearcheck test` |
 | 4 | Item verdicts | planned | Aggregate findings → OK / REPLACE / BAD |
 | 5 | Gear-level evaluation | planned | Overall status, meta activation, set counts, counters |
 | 6 | UI | planned | Breakdown screens beyond Phase 1 dump |
@@ -122,7 +122,7 @@ GearCheckReport
 1. `/reload`, `/rw gearcheck` (self and nearby target).
 2. Dump header shows `schemaVersion=2`.
 3. Filled slots show `category`, `armorType` or `weaponType`, `stats: …`, `sockets: …`, `enchant: id=… present=… known=…`.
-4. Enchanted items show `enchantGaps: ENCHANT_UNMAPPED` until Phase 3 catalogs.
+4. Catalogued enchants show `known=yes` (no `ENCHANT_UNMAPPED`); unknown ids stay not-checkable.
 5. Trinkets remain `PLANNED`; shirt/tabard `IGNORED`; relics `IGNORED / relic`.
 
 ### Implemented files
@@ -137,9 +137,44 @@ GearCheckReport
 
 **Goal:** Findings only (`code`, severity, category, slot, message). Seed catalogs from AtlasLoot + enchantId map.
 
+**Status: done** (2026-08-24)
+
+### Checklist
+
+- [x] Enchant / gem seed catalogs (`GearCheckCatalog.lua`)
+- [x] Class + 30-spec profiles (`GearCheckProfiles.lua`)
+- [x] Rules engine emits findings only (`GearCheckRules.lua`) — no OK/REPLACE/BAD
+- [x] Evaluate after collect; dump prints `Findings (N):`
+- [x] Catalogued enchant ids mark `known = true` (clears `ENCHANT_UNMAPPED`)
+- [x] Cloaks / jewelry skip armor-type rules
+- [x] Offline fixtures: `/rw gearcheck test`
+- [x] `types/GearCheck.ts` findings + profile types
+
+### Finding shape
+
+```text
+{ code, severity: hard|soft|info, category, slot?, message }  -- message EN only
+```
+
+Common codes: `ARMOR_FORBIDDEN`, `STAT_FORBIDDEN`, `RESILIENCE_PVE`, `MISSING_ENCHANT`, `ENCHANT_NOT_CHECKABLE`, `GEM_LOWER_LEVEL`, `SPEC_UNKNOWN`, …
+
 ### How to test
 
-Known bad fixtures (cloth on prot warrior, resilience ring, missing chest enchant) produce expected finding codes.
+1. `/reload`, then `/rw gearcheck test` → expect **4 / 4 passed**.
+2. `/rw gearcheck` (self) → dump ends with `Findings (N):` and profile line.
+3. Cloth on a plate tank (or fixture) → `ARMOR_FORBIDDEN`; resilience gear → `RESILIENCE_PVE`.
+
+### Out of scope this phase
+
+Item verdicts, overall status, chat report modes, meta activation across full set.
+
+### Implemented files
+
+- `Raidwise/GearCheckCatalog.lua` — enchantId / gem itemId seeds
+- `Raidwise/GearCheckProfiles.lua` — class fallbacks + 30 specs
+- `Raidwise/GearCheckRules.lua` — `EvaluateGearCheck` + `GearCheckRulesSelfTest`
+- `Raidwise/GearCheck.lua` — attach findings; Phase 3 dump
+- TOC loads Catalog → Profiles → Rules → GearCheck
 
 ---
 
@@ -197,11 +232,13 @@ Spot-check one tank / one melee / one caster / one healer after each ruleset edi
 
 | File | Role |
 |------|------|
-| `Raidwise/GearCheck.lua` | Collector, normalize (`schemaVersion` 2), scan orchestration, dump |
-| `types/GearCheck.ts` | Frozen TypeScript shape for the normalized report |
+| `Raidwise/GearCheck.lua` | Collector, normalize (`schemaVersion` 2), evaluate hook, dump |
+| `Raidwise/GearCheckCatalog.lua` | Enchant / gem seed catalogs |
+| `Raidwise/GearCheckProfiles.lua` | Class + 30-spec rule profiles |
+| `Raidwise/GearCheckRules.lua` | Findings engine + offline self-test |
+| `types/GearCheck.ts` | Frozen TypeScript shape (report + findings) |
 | `Raidwise/PageGearCheckTarget.lua` | Target/self UI |
 | `Raidwise/PageGearCheckRaid.lua` | Backlog stub |
-| `Raidwise/GearCheckRules*.lua` | Later: profiles + catalogs (names TBD) |
 | `docs/Gear-Check-Progress.md` | This tracker |
 | `docs/RaidWise Addon — Gear Check Specification.md` | Product spec |
 

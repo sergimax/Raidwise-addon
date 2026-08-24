@@ -33,7 +33,7 @@ local Translations = {
 
 		INFO_ABOUT = "About",
 		INFO_INTRO = "Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, player ratings, meeting history, account-wide lockouts, and character export.\n\n"
-			.. "Slash commands: /raidwise or /rw to open; /raidwise close or /rw close to close; /rw gearcheck to scan the target (or yourself).",
+			.. "Slash commands: /raidwise or /rw to open; /raidwise close or /rw close to close; /rw gearcheck to scan; /rw gearcheck test for rules self-test.",
 		INFO_SECTION_COOLDOWNS = "Shows raid and dungeon lockouts for every character saved on this account, "
 			.. "including when each character was last checked. "
 			.. "Log in on each alt to record their lockouts. "
@@ -99,9 +99,9 @@ local Translations = {
 		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
 		GEAR_CHECK_TARGET_DESC = "Gear check of the current target (or yourself). Surface-level PvE evaluation only — not BiS or build optimization. Class/spec rules are being maintained and may change.",
 		GEAR_CHECK_RAID_DESC = "Gear check of the raid — planned; not available yet.",
-		GEAR_CHECK_LIMITATION = "Gear Check is a surface-level evaluation. It does not consider BiS lists, specific gear builds, encounter requirements, or detailed stat weights. Phase 2 dump shows the normalized gear model (no rules yet).",
+		GEAR_CHECK_LIMITATION = "Gear Check is a surface-level evaluation. It does not consider BiS lists, specific gear builds, encounter requirements, or detailed stat weights. Phase 3 dump shows findings (hard/soft/info); OK/REPLACE/BAD come later.",
 		GEAR_CHECK_SCAN = "Scan",
-		GEAR_CHECK_HINT = "Target a player (or clear target to scan yourself), then press Scan. Phase 2 dump lists category, stats, sockets, enchant, and gems.",
+		GEAR_CHECK_HINT = "Target a player (or clear target to scan yourself), then press Scan. Phase 3 dump lists equipment plus findings. Run /rw gearcheck test for offline rule fixtures.",
 		GEAR_CHECK_STATUS_SCANNING = "Scanning…",
 		GEAR_CHECK_STATUS_OK = "Scanned %s (%s).",
 		GEAR_CHECK_STATUS_SELF = "self",
@@ -111,7 +111,8 @@ local Translations = {
 		GEAR_CHECK_STATUS_NO_INSPECT = "Cannot inspect that target.",
 		GEAR_CHECK_STATUS_TIMEOUT = "Inspect timed out — dump may be incomplete. Move closer and Scan again.",
 		GEAR_CHECK_STATUS_EMPTY = "No equipped items found on checked slots (or inspect not ready).",
-		CHAT_GEARCHECK_USAGE = "Usage: /rw gearcheck — open Gear check (target) and scan.",
+		CHAT_GEARCHECK_USAGE = "Usage: /rw gearcheck — scan; /rw gearcheck test — run rules self-test.",
+		CHAT_GEARCHECK_TEST_SUMMARY = "Gear Check rules self-test: %d / %d passed.",
 		COMP_FAIL = "Composition module failed to load. Reload UI (/reload).",
 		COMP_EMPTY = "Join a party or raid, or play solo to see your own coverage.",
 		COMP_CHAT_MISSING = "Raidwise: missing classes: %s",
@@ -412,7 +413,7 @@ local Translations = {
 		LOCALE_RU = "Русский",
 
 		CHAT_LOADED = "loaded (v%s). Type /raidwise to open.",
-		CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, or /raidwise gearcheck.",
+		CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, /raidwise gearcheck, or /raidwise gearcheck test.",
 
 		MONTH_1 = "Jan",
 		MONTH_2 = "Feb",
@@ -457,7 +458,7 @@ local Translations = {
 
 		INFO_ABOUT = "Об аддоне",
 		INFO_INTRO = "Raidwise — аддон для подготовки к рейду в Wrath of the Lich King 3.3.5a: составы группы и рейда, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа.\n\n"
-			.. "Команды: /raidwise или /rw — открыть; /raidwise close или /rw close — закрыть; /rw gearcheck — сканировать цель (или себя).",
+			.. "Команды: /raidwise или /rw — открыть; /raidwise close или /rw close — закрыть; /rw gearcheck — сканировать; /rw gearcheck test — самотест правил.",
 		INFO_SECTION_COOLDOWNS = "Показывает рейдовые и подземельные блокировки всех сохранённых персонажей, "
 			.. "включая время последней проверки. "
 			.. "Зайдите на каждого альта, чтобы записать его КД. "
@@ -523,9 +524,9 @@ local Translations = {
 		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",
 		GEAR_CHECK_TARGET_DESC = "Проверка экипировки цели (или себя). Поверхностная PvE-оценка — не BiS и не оптимизация билда. Правила классов/спеков поддерживаются и могут меняться.",
 		GEAR_CHECK_RAID_DESC = "Проверка экипировки рейда — в планах; пока недоступно.",
-		GEAR_CHECK_LIMITATION = "Gear Check — поверхностная оценка. Без BiS, билдов, энкаунтеров и весов статов. Фаза 2: нормализованная модель (без правил).",
+		GEAR_CHECK_LIMITATION = "Gear Check — поверхностная оценка. Без BiS, билдов, энкаунтеров и весов статов. Фаза 3: findings (hard/soft/info); OK/REPLACE/BAD позже.",
 		GEAR_CHECK_SCAN = "Сканировать",
-		GEAR_CHECK_HINT = "Возьмите в цель игрока (или снимите цель, чтобы проверить себя) и нажмите «Сканировать». Фаза 2 — dump: категория, статы, сокеты, чары и камни.",
+		GEAR_CHECK_HINT = "Возьмите в цель игрока (или снимите цель, чтобы проверить себя) и нажмите «Сканировать». Фаза 3 — dump с findings. /rw gearcheck test — офлайн-фикстуры правил.",
 		GEAR_CHECK_STATUS_SCANNING = "Сканирование…",
 		GEAR_CHECK_STATUS_OK = "Проверен: %s (%s).",
 		GEAR_CHECK_STATUS_SELF = "вы",
@@ -535,7 +536,8 @@ local Translations = {
 		GEAR_CHECK_STATUS_NO_INSPECT = "Нельзя осмотреть эту цель.",
 		GEAR_CHECK_STATUS_TIMEOUT = "Осмотр не успел — dump может быть неполным. Подойдите ближе и сканируйте снова.",
 		GEAR_CHECK_STATUS_EMPTY = "На проверяемых слотах нет предметов (или осмотр ещё не готов).",
-		CHAT_GEARCHECK_USAGE = "Использование: /rw gearcheck — открыть проверку экипа (цель) и сканировать.",
+		CHAT_GEARCHECK_USAGE = "Использование: /rw gearcheck — сканировать; /rw gearcheck test — самотест правил.",
+		CHAT_GEARCHECK_TEST_SUMMARY = "Самотест правил Gear Check: %d / %d пройдено.",
 		COMP_FAIL = "Модуль анализа состава не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_EMPTY = "Войдите в группу или рейд — или смотрите покрытие только своего персонажа.",
 		COMP_CHAT_MISSING = "Raidwise: нет классов: %s",
@@ -836,7 +838,7 @@ local Translations = {
 		LOCALE_RU = "Русский",
 
 		CHAT_LOADED = "загружен (v%s). Введите /raidwise, чтобы открыть.",
-		CHAT_UNKNOWN = "Неизвестная команда. Используйте /raidwise, /raidwise close или /raidwise gearcheck.",
+		CHAT_UNKNOWN = "Неизвестная команда. Используйте /raidwise, /raidwise close, /raidwise gearcheck или /raidwise gearcheck test.",
 
 		MONTH_1 = "янв",
 		MONTH_2 = "фев",

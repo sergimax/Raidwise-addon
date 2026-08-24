@@ -211,25 +211,25 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Gear check (target)
 
-Phase 2 normalized dump for one player (current target or self). No suitability rules yet. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`.
+Phase 3 dump for one player (current target or self): normalized model plus findings (no OK/REPLACE/BAD yet). Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`.
 
 ```text
 [ short description ]
 [ surface-level limitation ]
 [ Scan ] [ Select all ]
 [ status ]
-[ Phase 2 dump (copy box) ]
+[ Phase 3 dump (copy box) ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | Surface-level PvE check; not BiS; rules being maintained |
-| limitation | Spec disclaimer + Phase 2 normalized model note |
-| Scan | Resolves target or self, inspects if needed, fills dump |
+| limitation | Spec disclaimer + Phase 3 findings note |
+| Scan | Resolves target or self, inspects if needed, evaluate + dump |
 | Select all | Highlights dump for Ctrl+C |
-| dump | `schemaVersion=2`; category / stats / sockets / enchant / gems / gaps per slot |
+| dump | `schemaVersion=2`; equipment detail; `Findings (N):` at end |
 
-`LAYOUT_VERSION = 2`. Slash: `/rw gearcheck`.
+`LAYOUT_VERSION = 2`. Slash: `/rw gearcheck`; `/rw gearcheck test` for offline fixtures.
 
 ## Gear check (raid)
 

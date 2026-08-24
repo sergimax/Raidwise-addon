@@ -6,6 +6,8 @@
  *
  * `itemLevel` is informational and must never affect OK / REPLACE / BAD.
  * Unknown data uses `gaps[]` (`{ code, detail? }`); never invent a BAD verdict.
+ *
+ * Phase 3 attaches `findings[]` and `profile` after evaluate; verdicts come in Phase 4.
  */
 
 export type GearCheckSchemaVersion = 2;
@@ -27,6 +29,59 @@ export type GearCheckGapCode =
 export type GearCheckGap = {
   code: GearCheckGapCode | string;
   detail?: string;
+};
+
+export type GearCheckFindingSeverity = "hard" | "soft" | "info";
+
+export type GearCheckFindingCategory =
+  | "character"
+  | "item"
+  | "armor"
+  | "weapon"
+  | "stat"
+  | "enchant"
+  | "gem"
+  | "meta"
+  | string;
+
+export type GearCheckFindingCode =
+  | "SPEC_UNKNOWN"
+  | "PROFILE_MISSING"
+  | "ITEM_NOT_CHECKABLE"
+  | "ARMOR_FORBIDDEN"
+  | "ARMOR_DISCOURAGED"
+  | "ARMOR_NOT_PREFERRED"
+  | "WEAPON_FORBIDDEN"
+  | "WEAPON_DISCOURAGED"
+  | "STAT_FORBIDDEN"
+  | "STAT_DISCOURAGED"
+  | "RESILIENCE_PVE"
+  | "MISSING_ENCHANT"
+  | "ENCHANT_NOT_CHECKABLE"
+  | "ENCHANT_LOWER_LEVEL"
+  | "ENCHANT_BAD_STAT"
+  | "MISSING_GEM"
+  | "GEM_NOT_CHECKABLE"
+  | "GEM_LOWER_LEVEL"
+  | "GEM_BAD_STAT"
+  | "META_MISSING"
+  | "META_NOT_META"
+  | "META_NOT_PREFERRED"
+  | string;
+
+export type GearCheckFinding = {
+  code: GearCheckFindingCode;
+  severity: GearCheckFindingSeverity;
+  category: GearCheckFindingCategory;
+  /** Slot key when item-scoped; omitted for character-level findings. */
+  slot?: string;
+  /** English-only for now. */
+  message: string;
+};
+
+export type GearCheckProfileRef = {
+  name: string;
+  source: "spec" | "class" | string;
 };
 
 /** Locale-independent stat ids from GetItemStats mapping. */
@@ -69,7 +124,7 @@ export type GearCheckSockets = {
 export type GearCheckEnchant = {
   enchantId: number;
   present: boolean;
-  /** True when id is 0 (no enchant) or a catalog has resolved the id. Phase 2: only 0 is known. */
+  /** True when id is 0 (no enchant) or the enchant catalog resolved the id. */
   known: boolean;
   gaps: GearCheckGap[];
 };
@@ -204,6 +259,7 @@ export type GearCheckCollection = {
 /**
  * Frozen Gear Check report.
  * Rules read `character` + `equipment` (+ top-level `gaps`). Ignore `collection`.
+ * After Phase 3 evaluate: `findings` + `profile` are attached (still no verdicts).
  *
  * Convenience aliases (`name`, `isSelf`, `inspect`, `slots`, …) may also be present
  * for UI/inspect orchestration; prefer the nested fields in new code.
@@ -214,4 +270,6 @@ export type GearCheckReport = {
   equipment: GearCheckSlot[];
   gaps: GearCheckGap[];
   collection: GearCheckCollection;
+  findings?: GearCheckFinding[];
+  profile?: GearCheckProfileRef;
 };

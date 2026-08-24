@@ -18,12 +18,15 @@ PlayerHistory.lua     history store + personal rating domain API
 UIWidgets.lua         shared UI helpers (panels, buttons, icons, layout badge)
 UnitTooltips.lua      GameTooltip unit lines for personal/community ratings
 CharacterProfile.lua  character profile popup
-GearCheck.lua         gear check collector + normalized model (schemaVersion 2)
+GearCheckCatalog.lua  enchant / gem seed catalogs
+GearCheckProfiles.lua class + 30-spec rule profiles
+GearCheckRules.lua    findings engine (EvaluateGearCheck)
+GearCheck.lua         collector + normalize (schemaVersion 2) + evaluate hook + dump
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
 ExporterWindow.lua    main shell (menu, title, status, tab wiring)
 ```
 
-Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → pages → shell.
+Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → gear-check (catalog → profiles → rules → collector) → pages → shell.
 
 ## Layers
 
@@ -89,7 +92,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `CommitProfileRating` | Profile | **Save and Update** button |
 | `RefreshRatingViews` | Profile | After rating save / profile close |
 | `RefreshPartyData` | `PartyRoster.lua` | Fan-out refresh (below) |
-| `OpenGearCheckTarget` / `RefreshGearCheckTargetView` / `StartGearCheckScan` | GearCheck + target page | `/rw gearcheck`, Scan button |
+| `OpenGearCheckTarget` / `RefreshGearCheckTargetView` / `StartGearCheckScan` / `EvaluateGearCheck` / `GearCheckRulesSelfTest` | GearCheck stack + target page | `/rw gearcheck`, `/rw gearcheck test`, Scan button |
 
 ## Unit tooltips
 

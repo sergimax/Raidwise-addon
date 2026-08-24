@@ -19,6 +19,9 @@ PlayerHistory.lua
 UIWidgets.lua
 UnitTooltips.lua
 CharacterProfile.lua
+GearCheckCatalog.lua
+GearCheckProfiles.lua
+GearCheckRules.lua
 GearCheck.lua
 PageCooldowns.lua
 PageExport.lua
