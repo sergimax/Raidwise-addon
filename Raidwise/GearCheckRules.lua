@@ -304,7 +304,7 @@ local function EvaluateGems(findings, profile, slot)
 			for statId, amount in pairs(stats) do
 				if tonumber(amount) and tonumber(amount) > 0 then
 					if statId == "resilience" then
-						AddFinding(findings, "RESILIENCE_PVE", "soft", "gem", slot.key, Msg("RESILIENCE_PVE"))
+						AddFinding(findings, "RESILIENCE_PVE", "soft", "gem", slot.key, Msg("RESILIENCE_PVE", tostring(gem.itemId)))
 					elseif RankStat(profile, statId) == "forbidden" then
 						AddFinding(findings, "GEM_BAD_STAT", "hard", "gem", slot.key, Msg("GEM_BAD_STAT", statId))
 					elseif RankStat(profile, statId) == "discouraged" then
@@ -1064,6 +1064,27 @@ function Addon:GearCheckRulesSelfTest()
 	}
 	local fEpic = self:EvaluateGearCheck(epicGem)
 	Check("epic catalog gem → not GEM_LOWER_LEVEL", not HasCode(fEpic, "GEM_LOWER_LEVEL"))
+
+	-- JC Dragon's Eye (Bold) is catalogued max-level, not unknown
+	local jcGem = {
+		character = { classFile = "DEATHKNIGHT", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("head", "HeadSlot", MakeItem({
+				itemId = 24,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 40, stamina = 50 },
+				enchant = { enchantId = 3817, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 1, yellow = 0, blue = 0, prismatic = 0, total = 1 },
+				gems = {
+					{ socketIndex = 1, itemId = 42142, present = true, known = true, isMeta = false, color = "red", stats = {}, gaps = {} },
+				},
+			})),
+		},
+	}
+	local fJc = self:EvaluateGearCheck(jcGem)
+	Check("JC Bold Dragon's Eye → not GEM_NOT_CHECKABLE", not HasCode(fJc, "GEM_NOT_CHECKABLE"))
+	Check("JC Bold Dragon's Eye → not GEM_LOWER_LEVEL", not HasCode(fJc, "GEM_LOWER_LEVEL"))
 
 	-- Engineering Nitro Boosts on feet is max-level
 	local nitro = {

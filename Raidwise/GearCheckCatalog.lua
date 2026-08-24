@@ -205,6 +205,25 @@ local GEMS = {
 	[39996] = { maxLevel = false, color = "red", stats = { strength = 16 } },
 	[39997] = { maxLevel = false, color = "red", stats = { agility = 16 } },
 	[40000] = { maxLevel = false, color = "red", stats = { attackPower = 32 } },
+	-- Jewelcrafting Dragon's Eye (Unique-Equipped: Jeweler's Gems ×3; JC-only).
+	[42142] = { maxLevel = true, color = "red", jcUnique = true, stats = { strength = 34 } }, -- Bold
+	[36766] = { maxLevel = true, color = "red", jcUnique = true, stats = { attackPower = 68 } }, -- Bright
+	[42148] = { maxLevel = true, color = "yellow", jcUnique = true, stats = { intellect = 34 } }, -- Brilliant
+	[42143] = { maxLevel = true, color = "red", jcUnique = true, stats = { agility = 34 } }, -- Delicate
+	[42152] = { maxLevel = true, color = "red", jcUnique = true, stats = { parryRating = 34 } }, -- Flashing
+	[42153] = { maxLevel = true, color = "red", jcUnique = true, stats = { armorPenetration = 34 } }, -- Fractured
+	[42146] = { maxLevel = true, color = "blue", jcUnique = true, stats = { mp5 = 17 } }, -- Lustrous
+	[42158] = { maxLevel = true, color = "yellow", jcUnique = true, stats = { resilience = 34 } }, -- Mystic
+	[42154] = { maxLevel = true, color = "red", jcUnique = true, stats = { expertiseRating = 34 } }, -- Precise
+	[42150] = { maxLevel = true, color = "yellow", jcUnique = true, stats = { hasteRating = 34 } }, -- Quick
+	[42156] = { maxLevel = true, color = "yellow", jcUnique = true, stats = { hitRating = 34 } }, -- Rigid
+	[42144] = { maxLevel = true, color = "red", jcUnique = true, stats = { spellPower = 39 } }, -- Runed
+	[42149] = { maxLevel = true, color = "yellow", jcUnique = true, stats = { critRating = 34 } }, -- Smooth
+	[36767] = { maxLevel = true, color = "blue", jcUnique = true, stats = { stamina = 51 } }, -- Solid
+	[42145] = { maxLevel = true, color = "blue", jcUnique = true, stats = { spirit = 34 } }, -- Sparkling
+	[42155] = { maxLevel = true, color = "blue", jcUnique = true, stats = { spellPenetration = 43 } }, -- Stormy
+	[42151] = { maxLevel = true, color = "yellow", jcUnique = true, stats = { dodgeRating = 34 } }, -- Subtle
+	[42157] = { maxLevel = true, color = "yellow", jcUnique = true, stats = { defenseRating = 34 } }, -- Thick
 }
 
 function Addon:GetGearCheckEnchantInfo(enchantId)
