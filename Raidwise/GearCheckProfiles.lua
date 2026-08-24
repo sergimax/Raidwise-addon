@@ -329,9 +329,9 @@ local PROFILES = {
 	["MAGE-3"] = Profile("Frost", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
 
 	-- Warlock
-	["WARLOCK-1"] = Profile("Affliction", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	["WARLOCK-2"] = Profile("Demonology", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	["WARLOCK-3"] = Profile("Destruction", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["WARLOCK-1"] = Profile("Affliction", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["WARLOCK-2"] = Profile("Demonology", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["WARLOCK-3"] = Profile("Destruction", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
 
 	-- Druid
 	["DRUID-1"] = Profile("Balance", A_LEATHER, S_DRUID_BALANCE, W_FERAL, { 41285, 41333, 41401 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
