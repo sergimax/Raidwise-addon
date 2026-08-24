@@ -414,6 +414,24 @@
       unwanted: ["defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue"],
       forbidden: ["intellect", "spirit", "spellPower", "spellPenetration", "mp5"]
     },
+    S_PRIEST_DISC: {
+      preferred: ["intellect", "spellPower", "critRating", "hasteRating", "mp5"],
+      acceptable: ["spirit", "stamina"],
+      unwanted: ["strength", "agility", "hitRating"],
+      forbidden: ["attackPower", "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor"]
+    },
+    S_PRIEST_HOLY: {
+      preferred: ["intellect", "spirit", "spellPower", "critRating", "hasteRating", "mp5"],
+      acceptable: ["stamina"],
+      unwanted: ["strength", "agility", "hitRating"],
+      forbidden: ["attackPower", "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor"]
+    },
+    S_PRIEST_SHADOW: {
+      preferred: ["intellect", "spellPower", "hitRating", "critRating", "hasteRating"],
+      acceptable: ["spirit", "stamina", "mp5"],
+      unwanted: ["strength", "agility", "spellPenetration"],
+      forbidden: ["attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor"]
+    },
   };
 
   // Spec / class rows → which template they use today
@@ -439,9 +457,9 @@
     { key: "ROGUE-3", name: "Subtlety", template: "S_PHYS_MELEE", kind: "spec", classFile: "ROGUE" },
 
     { key: "PRIEST", name: "Priest (class)", template: "S_HEALER", kind: "class" },
-    { key: "PRIEST-1", name: "Discipline", template: "S_HEALER", kind: "spec", classFile: "PRIEST" },
-    { key: "PRIEST-2", name: "Holy", template: "S_HEALER", kind: "spec", classFile: "PRIEST" },
-    { key: "PRIEST-3", name: "Shadow", template: "S_CASTER", kind: "spec", classFile: "PRIEST" },
+    { key: "PRIEST-1", name: "Discipline", template: "S_PRIEST_DISC", kind: "spec", classFile: "PRIEST" },
+    { key: "PRIEST-2", name: "Holy", template: "S_PRIEST_HOLY", kind: "spec", classFile: "PRIEST" },
+    { key: "PRIEST-3", name: "Shadow", template: "S_PRIEST_SHADOW", kind: "spec", classFile: "PRIEST" },
 
     { key: "DEATHKNIGHT", name: "Death Knight (class)", template: "S_PHYS_MELEE", kind: "class" },
     { key: "DEATHKNIGHT-1", name: "Blood", template: "S_DK_BLOOD", kind: "spec", classFile: "DEATHKNIGHT" },

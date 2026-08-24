@@ -144,6 +144,25 @@ local S_DK_DPS = Stats(
 	{ "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue" },
 	{ "intellect", "spirit", "spellPower", "spellPenetration", "mp5" }
 )
+-- Priest specs: disc vs holy vs shadow stat gradation.
+local S_PRIEST_DISC = Stats(
+	{ "intellect", "spellPower", "critRating", "hasteRating", "mp5" },
+	{ "spirit", "stamina" },
+	{ "strength", "agility", "hitRating" },
+	{ "attackPower", "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor" }
+)
+local S_PRIEST_HOLY = Stats(
+	{ "intellect", "spirit", "spellPower", "critRating", "hasteRating", "mp5" },
+	{ "stamina" },
+	{ "strength", "agility", "hitRating" },
+	{ "attackPower", "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor" }
+)
+local S_PRIEST_SHADOW = Stats(
+	{ "intellect", "spellPower", "hitRating", "critRating", "hasteRating" },
+	{ "spirit", "stamina", "mp5" },
+	{ "strength", "agility", "spellPenetration" },
+	{ "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor" }
+)
 
 local W_1H_SHIELD = Weapons(
 	{ "sword1h", "axe1h", "mace1h", "shield" },
@@ -335,9 +354,9 @@ local PROFILES = {
 	["ROGUE-3"] = Profile("Subtlety", A_LEATHER, S_PHYS_MELEE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
 
 	-- Priest
-	["PRIEST-1"] = Profile("Discipline", A_CLOTH, S_HEALER, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
-	["PRIEST-2"] = Profile("Holy", A_CLOTH, S_HEALER, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
-	["PRIEST-3"] = Profile("Shadow", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["PRIEST-1"] = Profile("Discipline", A_CLOTH, S_PRIEST_DISC, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
+	["PRIEST-2"] = Profile("Holy", A_CLOTH, S_PRIEST_HOLY, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
+	["PRIEST-3"] = Profile("Shadow", A_CLOTH, S_PRIEST_SHADOW, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
 
 	-- Death Knight
 	["DEATHKNIGHT-1"] = Profile("Blood", A_PLATE_TANK, S_DK_BLOOD, W_DK_2H, { 41397, 41396, 41380 }, { weaponSetup = "2h", trinkets = T_TANK }),
