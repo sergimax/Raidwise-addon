@@ -327,12 +327,18 @@
     "armor", "mp5"
   ];
 
-  // Shared templates from GearCheckProfiles.lua (lines 49–85)
+  // Shared templates from GearCheckProfiles.lua (S_* Stats blocks)
   var TEMPLATES = {
     S_PHYS_MELEE: {
       preferred: ["strength", "agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "armor"],
       acceptable: ["stamina"],
       discouraged: ["spirit", "intellect"],
+      forbidden: ["spellPower", "mp5", "spellPenetration"]
+    },
+    S_RET: {
+      preferred: ["strength", "agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "armor"],
+      acceptable: ["stamina", "intellect"],
+      discouraged: ["spirit"],
       forbidden: ["spellPower", "mp5", "spellPenetration"]
     },
     S_PHYS_TANK: {
@@ -377,7 +383,7 @@
     { key: "PALADIN", name: "Paladin (class)", template: "S_PHYS_MELEE", kind: "class" },
     { key: "PALADIN-1", name: "Holy", template: "S_HEALER", kind: "spec", classFile: "PALADIN" },
     { key: "PALADIN-2", name: "Protection", template: "S_PHYS_TANK", kind: "spec", classFile: "PALADIN" },
-    { key: "PALADIN-3", name: "Retribution", template: "S_PHYS_MELEE", kind: "spec", classFile: "PALADIN" },
+    { key: "PALADIN-3", name: "Retribution", template: "S_RET", kind: "spec", classFile: "PALADIN" },
 
     { key: "HUNTER", name: "Hunter (class)", template: "S_HUNTER", kind: "class" },
     { key: "HUNTER-1", name: "Beast Mastery", template: "S_HUNTER", kind: "spec", classFile: "HUNTER" },
