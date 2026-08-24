@@ -197,6 +197,9 @@ local T_CASTER = {
 	50360, 50365, -- Phylactery of the Nameless Lich
 	50348, 50353, -- Dislodged Foreign Object
 	47316, 47182, -- Reign of the Dead / Unliving
+	-- Entry / mid-tier
+	40682, -- Sundial of the Exiled
+	47726, -- Talisman of Volatile Power
 }
 local T_HEALER = {
 	54573, 54589, -- Glowing Twilight Scale
