@@ -324,9 +324,9 @@ local PROFILES = {
 	["SHAMAN-3"] = Profile("Restoration", A_MAIL, S_HEALER, W_ELE_RESTO_SHAMAN, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield_or_oh", trinkets = T_HEALER }),
 
 	-- Mage
-	["MAGE-1"] = Profile("Arcane", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	["MAGE-2"] = Profile("Fire", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	["MAGE-3"] = Profile("Frost", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["MAGE-1"] = Profile("Arcane", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["MAGE-2"] = Profile("Fire", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["MAGE-3"] = Profile("Frost", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
 
 	-- Warlock
 	["WARLOCK-1"] = Profile("Affliction", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
