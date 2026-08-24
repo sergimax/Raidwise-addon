@@ -36,6 +36,7 @@ local ENCHANTS = {
 	[1603] = { name = "Crusher", maxLevel = true, stats = { attackPower = 44 } },
 	[3246] = { name = "Exceptional Spellpower", maxLevel = true, stats = { spellPower = 28 } },
 	[3231] = { name = "Expertise", maxLevel = true, stats = { expertiseRating = 15 } },
+	[3253] = { name = "Armsman", maxLevel = true, stats = { expertiseRating = 10 } },
 	[3222] = { name = "Major Agility", maxLevel = false, stats = { agility = 20 } },
 	-- Weapon
 	[3789] = { name = "Berserking", maxLevel = true, stats = {} },
