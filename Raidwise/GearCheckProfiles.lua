@@ -244,7 +244,7 @@ local function Profile(name, armor, stats, weapons, metaPreferred, opts)
 		stats = stats,
 		weapons = weapons,
 		metaPreferred = Set(metaPreferred or {}),
-		-- dw | 2h | 1h_shield | 1h_oh | any
+		-- dw | 2h | 1h_shield | 1h_shield_or_oh | 1h_oh | any
 		weaponSetup = opts.weaponSetup or "any",
 		trinketsAllowed = Set(opts.trinkets or {}),
 	}
@@ -296,7 +296,7 @@ local PROFILES = {
 	-- Shaman
 	["SHAMAN-1"] = Profile("Elemental", A_MAIL, S_CASTER, W_ELE_RESTO_SHAMAN, { 41285, 41333, 41401 }, { weaponSetup = "1h_shield", trinkets = T_CASTER }),
 	["SHAMAN-2"] = Profile("Enhancement", A_MAIL, S_ENHANCE, W_ENHANCE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_ENHANCE }),
-	["SHAMAN-3"] = Profile("Restoration", A_MAIL, S_HEALER, W_ELE_RESTO_SHAMAN, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield", trinkets = T_HEALER }),
+	["SHAMAN-3"] = Profile("Restoration", A_MAIL, S_HEALER, W_ELE_RESTO_SHAMAN, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield_or_oh", trinkets = T_HEALER }),
 
 	-- Mage
 	["MAGE-1"] = Profile("Arcane", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),

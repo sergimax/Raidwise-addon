@@ -222,6 +222,19 @@ local function ItemIsWeapon(item)
 	return item and item.category == "weapon"
 end
 
+local function ItemIsHeldOffhand(item)
+	return item and item.armorType == "offhand"
+end
+
+local function OffhandHasSpiritOrHit(item)
+	if not item or type(item.stats) ~= "table" then
+		return false
+	end
+	local spirit = tonumber(item.stats.spirit) or 0
+	local hit = tonumber(item.stats.hitRating) or 0
+	return spirit > 0 or hit > 0
+end
+
 -- Surface weapon-setup rules from BiS lists (not BiS scoring).
 local function EvaluateWeaponSetup(findings, profile, equipment)
 	local setup = profile.weaponSetup
@@ -254,6 +267,38 @@ local function EvaluateWeaponSetup(findings, profile, equipment)
 		end
 		if SlotHasItem(mh) and ItemIsTwoHand(mh.item) then
 			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "mainHand", Msg("WEAPON_SETUP", "expects a one-hand weapon with shield"))
+		end
+	elseif setup == "1h_shield_or_oh" then
+		-- Resto Shaman: shield preferred; SP/haste/crit held OH (no spirit/hit) also fine.
+		if not SlotHasItem(oh) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects a shield or off-hand"))
+		elseif ItemIsShield(oh.item) then
+			-- ok
+		elseif ItemIsHeldOffhand(oh.item) then
+			if OffhandHasSpiritOrHit(oh.item) then
+				AddFinding(
+					findings,
+					"WEAPON_SETUP",
+					"soft",
+					"weapon",
+					"offHand",
+					Msg("WEAPON_SETUP", "held off-hand with spirit/hit is not preferred; use shield or SP/haste/crit OH")
+				)
+			end
+		elseif not ItemIsWeapon(oh.item) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects a shield or off-hand"))
+		end
+		if SlotHasItem(mh) and ItemIsTwoHand(mh.item) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "mainHand", Msg("WEAPON_SETUP", "expects a one-hand weapon"))
+		end
+	elseif setup == "1h_oh" then
+		if not SlotHasItem(oh) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects an off-hand"))
+		elseif ItemIsShield(oh.item) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "shield is not used for this setup"))
+		end
+		if SlotHasItem(mh) and ItemIsTwoHand(mh.item) then
+			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "mainHand", Msg("WEAPON_SETUP", "expects a one-hand weapon with off-hand"))
 		end
 	end
 end
@@ -317,7 +362,11 @@ local function EnchantableSlot(slot)
 		return false
 	end
 	if slot.key == "offHand" then
-		return item.category == "weapon" or item.armorType == "shield" or item.armorType == "offhand"
+		-- Held-in-off-hand books/orbs (INVTYPE_HOLDABLE) cannot be enchanted; shields and weapons can.
+		if item.armorType == "offhand" then
+			return false
+		end
+		return item.category == "weapon" or item.armorType == "shield"
 	end
 	if slot.key == "ranged" then
 		return item.category == "weapon"
@@ -1725,6 +1774,39 @@ function Addon:GearCheckRulesSelfTest()
 	Check("disc staff Greater Spellpower → not ENCHANT_NOT_CHECKABLE", not HasCodeOnSlot(fDisc, "ENCHANT_NOT_CHECKABLE", "mainHand"))
 	Check("disc wand → not MISSING_ENCHANT", not HasCodeOnSlot(fDisc, "MISSING_ENCHANT", "ranged"))
 	Check("disc wand → GOOD (no enchant required)", discFix.equipment[5].verdict == "GOOD")
+
+	-- Resto Shaman: Flexweave cloak ok; held OH (no spirit/hit) ok and unenchantable
+	local restoSham = {
+		character = { classFile = "SHAMAN", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("back", "BackSlot", MakeItem({
+				itemId = 70,
+				category = "armor",
+				armorType = "cloth",
+				stats = { intellect = 40, spellPower = 60, hasteRating = 30 },
+				enchant = { enchantId = 3859, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("mainHand", "MainHandSlot", MakeItem({
+				itemId = 71,
+				category = "weapon",
+				weaponType = "mace1h",
+				stats = { intellect = 50, spellPower = 400 },
+				enchant = { enchantId = 3834, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("offHand", "SecondaryHandSlot", MakeItem({
+				itemId = 50309,
+				category = "armor",
+				armorType = "offhand",
+				stats = { intellect = 34, spellPower = 78, critRating = 51, hasteRating = 50, stamina = 54 },
+				enchant = { enchantId = 0, present = false, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fRestoSham = self:EvaluateGearCheck(restoSham)
+	Check("resto sham Flexweave → not ENCHANT_BAD_STAT", not HasCode(fRestoSham, "ENCHANT_BAD_STAT"))
+	Check("resto sham held OH → not MISSING_ENCHANT", not HasCodeOnSlot(fRestoSham, "MISSING_ENCHANT", "offHand"))
+	Check("resto sham held OH (no spirit/hit) → not WEAPON_SETUP", not HasCode(fRestoSham, "WEAPON_SETUP"))
+	Check("resto sham held OH → GOOD", restoSham.equipment[3].verdict == "GOOD")
 
 	local profileCount = 0
 	if self.GetGearCheckProfileCount then
