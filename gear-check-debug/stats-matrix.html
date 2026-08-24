@@ -432,6 +432,12 @@
       unwanted: ["strength", "agility", "spellPenetration"],
       forbidden: ["attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor"]
     },
+    S_ROGUE: {
+      preferred: ["strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration"],
+      acceptable: ["stamina", "armor"],
+      unwanted: [],
+      forbidden: ["intellect", "spirit", "spellPower", "spellPenetration", "mp5"]
+    },
   };
 
   // Spec / class rows → which template they use today
@@ -452,9 +458,9 @@
     { key: "HUNTER-3", name: "Survival", template: "S_HUNTER", kind: "spec", classFile: "HUNTER" },
 
     { key: "ROGUE", name: "Rogue (class)", template: "S_PHYS_MELEE", kind: "class" },
-    { key: "ROGUE-1", name: "Assassination", template: "S_PHYS_MELEE", kind: "spec", classFile: "ROGUE" },
-    { key: "ROGUE-2", name: "Combat", template: "S_PHYS_MELEE", kind: "spec", classFile: "ROGUE" },
-    { key: "ROGUE-3", name: "Subtlety", template: "S_PHYS_MELEE", kind: "spec", classFile: "ROGUE" },
+    { key: "ROGUE-1", name: "Assassination", template: "S_ROGUE", kind: "spec", classFile: "ROGUE" },
+    { key: "ROGUE-2", name: "Combat", template: "S_ROGUE", kind: "spec", classFile: "ROGUE" },
+    { key: "ROGUE-3", name: "Subtlety", template: "S_ROGUE", kind: "spec", classFile: "ROGUE" },
 
     { key: "PRIEST", name: "Priest (class)", template: "S_HEALER", kind: "class" },
     { key: "PRIEST-1", name: "Discipline", template: "S_PRIEST_DISC", kind: "spec", classFile: "PRIEST" },

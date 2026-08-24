@@ -163,6 +163,13 @@ local S_PRIEST_SHADOW = Stats(
 	{ "strength", "agility", "spellPenetration" },
 	{ "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor" }
 )
+-- Rogue specs: pure physical DPS; spell stats forbidden.
+local S_ROGUE = Stats(
+	{ "strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration" },
+	{ "stamina", "armor" },
+	{},
+	{ "intellect", "spirit", "spellPower", "spellPenetration", "mp5" }
+)
 
 local W_1H_SHIELD = Weapons(
 	{ "sword1h", "axe1h", "mace1h", "shield" },
@@ -349,9 +356,9 @@ local PROFILES = {
 	["HUNTER-3"] = Profile("Survival", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_HUNTER }),
 
 	-- Rogue
-	["ROGUE-1"] = Profile("Assassination", A_LEATHER, S_PHYS_MELEE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
-	["ROGUE-2"] = Profile("Combat", A_LEATHER, S_PHYS_MELEE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
-	["ROGUE-3"] = Profile("Subtlety", A_LEATHER, S_PHYS_MELEE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
+	["ROGUE-1"] = Profile("Assassination", A_LEATHER, S_ROGUE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
+	["ROGUE-2"] = Profile("Combat", A_LEATHER, S_ROGUE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
+	["ROGUE-3"] = Profile("Subtlety", A_LEATHER, S_ROGUE, W_ROGUE, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
 
 	-- Priest
 	["PRIEST-1"] = Profile("Discipline", A_CLOTH, S_PRIEST_DISC, W_CASTER, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
