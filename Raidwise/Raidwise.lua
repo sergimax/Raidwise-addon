@@ -10,7 +10,7 @@ Addon.lastUpdated = ""
 -- Fallback if Locale.lua does not load. Locale.lua replaces Addon.T.
 local FallbackChat = {
 	CHAT_LOADED = "loaded (v%s). Type /raidwise to open.",
-	CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, /raidwise gearcheck, or /raidwise gearcheck test.",
+	CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, or /raidwise gearcheck [summary|items|enchants|gems|test].",
 }
 
 local function FormatText(text, ...)
@@ -169,7 +169,7 @@ end
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
 
--- /raidwise [close|gearcheck|gearcheck test] — open, close, scan, or run rules self-test.
+-- /raidwise [close|gearcheck …] — open, close, scan, self-test, or self-chat reports.
 SlashCmdList["RAIDWISE"] = function(msg)
 	msg = (msg or ""):match("^%s*(.-)%s*$") or ""
 	msg = msg:lower()
@@ -195,6 +195,21 @@ SlashCmdList["RAIDWISE"] = function(msg)
 			local row = results[index]
 			local mark = row.ok and "PASS" or "FAIL"
 			Addon:Print(string.format("  [%s] %s", mark, row.name))
+		end
+		return
+	end
+
+	local reportMode = msg:match("^gearcheck%s+(%S+)$") or msg:match("^gear%s+(%S+)$")
+	if reportMode == "summary" or reportMode == "report"
+		or reportMode == "items" or reportMode == "enchants" or reportMode == "gems"
+	then
+		if reportMode == "report" then
+			reportMode = "summary"
+		end
+		if Addon.RunGearCheckChatReport then
+			Addon:RunGearCheckChatReport(reportMode, true)
+		else
+			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
 		end
 		return
 	end

@@ -53,7 +53,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 3` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 4` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | Gear check (raid) | `LAYOUT_VERSION = 1` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -211,7 +211,7 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Gear check (target)
 
-Phase 6 UI for one player (current target or self): summary band, filtered findings breakdown, Debug dump. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`.
+Phase 7 UI for one player (current target or self): summary, filtered findings, self-chat report buttons, Debug dump. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`.
 
 ```text
 [ short description ]
@@ -219,23 +219,25 @@ Phase 6 UI for one player (current target or self): summary band, filtered findi
 [ Scan ] [ Debug ] [ Select all ]
 [ status ]
 [ summary: Overall / who / issues / meta / sets ]
+[ Report summary | Report items | Report enchants | Report gems ]
 [ All | Items | Enchants | Gems ]
 [ scrollable findings by slot ]
-(Debug on → raw dump copy box instead of summary+filters+list)
+(Debug on → raw dump copy box instead of summary+reports+filters+list)
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | Surface-level PvE check; not BiS; rules being maintained |
-| limitation | Spec disclaimer (no phase number) |
+| limitation | Spec disclaimer |
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI |
-| Debug | Toggles raw dump (Phase 5 snapshot text) |
+| Debug | Toggles raw dump |
 | Select all | Enabled in Debug when dump has text |
 | summary | Overall status (colored), character line, issue counts, meta, sets |
+| report buttons | Print to **self chat only** (`[GearCheck]` lines) |
 | filters | All / Items / Enchants / Gems |
 | breakdown | `[VERDICT] Slot — Item` plus finding bullets |
 
-`LAYOUT_VERSION = 3`. Slash: `/rw gearcheck`; `/rw gearcheck test` for offline fixtures.
+`LAYOUT_VERSION = 4`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems`; `/rw gearcheck test`.
 
 ## Gear check (raid)
 

@@ -93,7 +93,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `CommitProfileRating` | Profile | **Save and Update** button |
 | `RefreshRatingViews` | Profile | After rating save / profile close |
 | `RefreshPartyData` | `PartyRoster.lua` | Fan-out refresh (below) |
-| `OpenGearCheckTarget` / `RefreshGearCheckTargetView` / `StartGearCheckScan` / `EvaluateGearCheck` / `GearCheckRulesSelfTest` | GearCheck stack + target page | `/rw gearcheck`, `/rw gearcheck test`, Scan button |
+| `OpenGearCheckTarget` / `RefreshGearCheckTargetView` / `StartGearCheckScan` / `EvaluateGearCheck` / `GearCheckRulesSelfTest` / `PrintGearCheckReport` / `RunGearCheckChatReport` | GearCheck stack + target page | `/rw gearcheck …`, Scan / Report buttons |
 
 ## Unit tooltips
 

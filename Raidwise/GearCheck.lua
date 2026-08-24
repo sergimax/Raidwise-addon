@@ -1136,3 +1136,195 @@ function Addon:StartGearCheckScan(callback)
 		retryFrame:Show()
 	end
 end
+
+-- Phase 7: self-chat reports only (DEFAULT_CHAT_FRAME). Finding text stays English.
+local CHAT_ITEM_CATEGORIES = {
+	item = true,
+	armor = true,
+	weapon = true,
+	stat = true,
+}
+local CHAT_MAX_DETAIL = 15
+
+local function ChatPlayerName(report)
+	local character = report.character or {}
+	return character.name or report.name or "?"
+end
+
+local function ChatSlotShort(report, slotKey)
+	if not slotKey then
+		return "Gear"
+	end
+	local equipment = report.equipment or report.slots or {}
+	for index = 1, #equipment do
+		local slot = equipment[index]
+		if slot.key == slotKey then
+			return slot.slotName or slotKey
+		end
+	end
+	return tostring(slotKey)
+end
+
+local function ChatFindingMatches(finding, mode)
+	local category = finding.category
+	if mode == "items" then
+		return CHAT_ITEM_CATEGORIES[category] == true
+	end
+	if mode == "enchants" then
+		return category == "enchant"
+	end
+	if mode == "gems" then
+		return category == "gem" or category == "meta"
+	end
+	return false
+end
+
+local function ChatDetailLines(report, mode)
+	local findings = report.findings or {}
+	local lines = {}
+	local bySlot = {}
+	local order = {}
+
+	for index = 1, #findings do
+		local finding = findings[index]
+		if ChatFindingMatches(finding, mode) and (finding.severity == "hard" or finding.severity == "soft") then
+			local key = finding.slot or "_gear"
+			local bucket = bySlot[key]
+			if not bucket then
+				bucket = {}
+				bySlot[key] = bucket
+				order[#order + 1] = key
+			end
+			bucket[#bucket + 1] = finding.message or finding.code or "?"
+		end
+	end
+
+	for index = 1, #order do
+		local key = order[index]
+		local messages = bySlot[key]
+		local slotName = ChatSlotShort(report, key ~= "_gear" and key or nil)
+		lines[#lines + 1] = string.format("%s: %s", slotName, table.concat(messages, "; "))
+	end
+	return lines
+end
+
+function Addon:FormatGearCheckChatReport(report, mode)
+	mode = mode or "summary"
+	if mode == "report" then
+		mode = "summary"
+	end
+	local lines = {}
+	if not report then
+		return lines
+	end
+
+	local name = ChatPlayerName(report)
+	local overall = report.overall or {}
+	local status = overall.status or "OK"
+	local issues = overall.issues or {}
+	local verdicts = report.verdicts or {}
+
+	if mode == "summary" then
+		lines[#lines + 1] = string.format("%s — %s", name, status)
+		local parts = {}
+		local bad = verdicts.bad or 0
+		local replace = verdicts.replace or 0
+		local enchantN = issues.enchants or 0
+		local gemN = issues.gems or 0
+		local metaN = issues.meta or 0
+		if bad > 0 then
+			parts[#parts + 1] = string.format("%d bad item%s", bad, bad == 1 and "" or "s")
+		end
+		if replace > 0 then
+			parts[#parts + 1] = string.format("%d REPLACE", replace)
+		end
+		if enchantN > 0 then
+			parts[#parts + 1] = string.format("%d enchant issue%s", enchantN, enchantN == 1 and "" or "s")
+		end
+		if gemN > 0 then
+			parts[#parts + 1] = string.format("%d gem issue%s", gemN, gemN == 1 and "" or "s")
+		end
+		if metaN > 0 then
+			parts[#parts + 1] = string.format("%d meta issue%s", metaN, metaN == 1 and "" or "s")
+		elseif report.meta and report.meta.present and report.meta.active == true then
+			parts[#parts + 1] = "meta OK"
+		end
+		if #parts == 0 then
+			parts[1] = "no significant issues"
+		end
+		lines[#lines + 1] = table.concat(parts, ", ") .. "."
+		if overall.resilienceItems and overall.resilienceItems > 0 then
+			lines[#lines + 1] = string.format("Resilience items: %d.", overall.resilienceItems)
+		end
+		return lines
+	end
+
+	local title = mode
+	if mode == "items" then
+		title = "Items"
+	elseif mode == "enchants" then
+		title = "Enchants"
+	elseif mode == "gems" then
+		title = "Gems"
+	end
+	lines[#lines + 1] = string.format("%s — %s:", name, title)
+
+	local details = ChatDetailLines(report, mode)
+	if #details == 0 then
+		lines[#lines + 1] = "No issues in this category."
+		return lines
+	end
+	local limit = math.min(#details, CHAT_MAX_DETAIL)
+	for index = 1, limit do
+		lines[#lines + 1] = details[index]
+	end
+	if #details > CHAT_MAX_DETAIL then
+		lines[#lines + 1] = string.format("… and %d more.", #details - CHAT_MAX_DETAIL)
+	end
+	return lines
+end
+
+function Addon:PrintGearCheckReport(mode, report)
+	report = report or self:GetLastGearCheckReport()
+	if not report then
+		self:Print(self:T("CHAT_GEARCHECK_NO_REPORT"))
+		return false
+	end
+	local lines = self:FormatGearCheckChatReport(report, mode)
+	for index = 1, #lines do
+		DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[GearCheck]|r " .. lines[index])
+	end
+	return true
+end
+
+-- Print a report mode; scan first when no cached report exists.
+function Addon:RunGearCheckChatReport(mode, openUi)
+	mode = mode or "summary"
+	if openUi ~= false and self.OpenGearCheckTarget then
+		self:ShowMainFrame()
+		self:SelectTab("geartarget")
+	end
+	local report = self:GetLastGearCheckReport()
+	if report then
+		self:PrintGearCheckReport(mode, report)
+		if openUi ~= false and self.RefreshGearCheckTargetView then
+			self:RefreshGearCheckTargetView(false)
+		end
+		return
+	end
+	if not self.StartGearCheckScan then
+		self:Print(self:T("GEAR_CHECK_STATUS_FAIL"))
+		return
+	end
+	self:Print(self:T("CHAT_GEARCHECK_SCANNING"))
+	self:StartGearCheckScan(function(scanned)
+		if openUi ~= false and self.RefreshGearCheckTargetView then
+			self:RefreshGearCheckTargetView(false)
+		end
+		if scanned then
+			self:PrintGearCheckReport(mode, scanned)
+		else
+			self:Print(self:T("CHAT_GEARCHECK_NO_REPORT"))
+		end
+	end)
+end

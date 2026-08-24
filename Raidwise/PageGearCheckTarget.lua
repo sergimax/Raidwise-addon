@@ -1,4 +1,4 @@
--- PageGearCheckTarget — Phase 6 Gear Check UI (summary + breakdown; dump behind Debug).
+-- PageGearCheckTarget — Phase 7 UI (summary, breakdown, self-chat reports; dump behind Debug).
 
 local Addon = Raidwise
 local W = Addon.Widgets
@@ -6,13 +6,20 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 3
+local LAYOUT_VERSION = 4
 
 local FILTERS = {
 	{ id = "all", labelKey = "GEAR_CHECK_FILTER_ALL" },
 	{ id = "items", labelKey = "GEAR_CHECK_FILTER_ITEMS" },
 	{ id = "enchants", labelKey = "GEAR_CHECK_FILTER_ENCHANTS" },
 	{ id = "gems", labelKey = "GEAR_CHECK_FILTER_GEMS" },
+}
+
+local REPORT_BUTTONS = {
+	{ mode = "summary", labelKey = "GEAR_CHECK_REPORT_SUMMARY" },
+	{ mode = "items", labelKey = "GEAR_CHECK_REPORT_ITEMS" },
+	{ mode = "enchants", labelKey = "GEAR_CHECK_REPORT_ENCHANTS" },
+	{ mode = "gems", labelKey = "GEAR_CHECK_REPORT_GEMS" },
 }
 
 local ITEM_CATEGORIES = {
@@ -238,6 +245,13 @@ local function UpdateDebugVisibility(page)
 			page.summaryHost:Show()
 		end
 	end
+	if page.reportHost then
+		if debug then
+			page.reportHost:Hide()
+		else
+			page.reportHost:Show()
+		end
+	end
 	if page.filterHost then
 		if debug then
 			page.filterHost:Hide()
@@ -448,6 +462,40 @@ local function RunScan(page)
 	end)
 end
 
+local function RunChatReport(page, mode)
+	if not Addon.PrintGearCheckReport then
+		Addon:Print(W.T("GEAR_CHECK_STATUS_FAIL"))
+		return
+	end
+	local report = page.lastReport or (Addon.GetLastGearCheckReport and Addon:GetLastGearCheckReport())
+	if report then
+		Addon:PrintGearCheckReport(mode, report)
+		return
+	end
+	if not Addon.StartGearCheckScan then
+		Addon:Print(W.T("CHAT_GEARCHECK_NO_REPORT"))
+		return
+	end
+	if page.statusLabel then
+		page.statusLabel:SetText(W.T("GEAR_CHECK_STATUS_SCANNING"))
+	end
+	if page.scanBtn then
+		page.scanBtn:Disable()
+	end
+	Addon:Print(W.T("CHAT_GEARCHECK_SCANNING"))
+	Addon:StartGearCheckScan(function(scanned, status)
+		ApplyReportToPage(page, scanned, status)
+		if page.scanBtn then
+			page.scanBtn:Enable()
+		end
+		if scanned then
+			Addon:PrintGearCheckReport(mode, scanned)
+		else
+			Addon:Print(W.T("CHAT_GEARCHECK_NO_REPORT"))
+		end
+	end)
+end
+
 local function CreateGearCheckTargetPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
@@ -551,9 +599,33 @@ local function CreateGearCheckTargetPage(parent)
 	W.SetFontColor(summaryNote, UI.TEXT_DISABLED)
 	page.summaryNote = summaryNote
 
+	-- Self-chat report buttons (Phase 7)
+	local reportHost = CreateFrame("Frame", nil, page)
+	reportHost:SetPoint("TOPLEFT", summaryHost, "BOTTOMLEFT", 0, -8)
+	reportHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	reportHost:SetHeight(UI.ACTION_BTN_H)
+	page.reportHost = reportHost
+
+	page.reportButtons = {}
+	local reportW = (innerW - UI.ACTION_BTN_GAP * (#REPORT_BUTTONS - 1)) / #REPORT_BUTTONS
+	for index = 1, #REPORT_BUTTONS do
+		local info = REPORT_BUTTONS[index]
+		local btn = W.CreatePlainButton(reportHost, reportW, UI.ACTION_BTN_H, W.T(info.labelKey))
+		if index == 1 then
+			btn:SetPoint("TOPLEFT", 0, 0)
+		else
+			btn:SetPoint("LEFT", page.reportButtons[index - 1], "RIGHT", UI.ACTION_BTN_GAP, 0)
+		end
+		btn.reportMode = info.mode
+		btn:SetScript("OnClick", function()
+			RunChatReport(page, info.mode)
+		end)
+		page.reportButtons[index] = btn
+	end
+
 	-- Filter tabs
 	local filterHost = CreateFrame("Frame", nil, page)
-	filterHost:SetPoint("TOPLEFT", summaryHost, "BOTTOMLEFT", 0, -8)
+	filterHost:SetPoint("TOPLEFT", reportHost, "BOTTOMLEFT", 0, -6)
 	filterHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	filterHost:SetHeight(UI.ACTION_BTN_H)
 	page.filterHost = filterHost
@@ -678,6 +750,14 @@ local function ApplyLocale(page)
 	for index = 1, #buttons do
 		local btn = buttons[index]
 		local info = FILTERS[index]
+		if btn and btn.label and info then
+			btn.label:SetText(W.T(info.labelKey))
+		end
+	end
+	local reportButtons = page.reportButtons or {}
+	for index = 1, #reportButtons do
+		local btn = reportButtons[index]
+		local info = REPORT_BUTTONS[index]
 		if btn and btn.label and info then
 			btn.label:SetText(W.T(info.labelKey))
 		end

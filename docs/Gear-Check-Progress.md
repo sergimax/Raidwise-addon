@@ -36,7 +36,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 4 | Item verdicts | **done** | Per-slot OK / REPLACE / BAD from findings (info ≠ BAD) |
 | 5 | Gear-level evaluation | **done** | Overall worst-wins; resilience 1/2+; meta activation; T9/T10 counts |
 | 6 | UI | **done** | Summary + Items/Enchants/Gems filters; dump behind Debug |
-| 7 | Chat output | planned | `/rw gearcheck` reports (summary / items / enchants / gems) |
+| 7 | Chat output | **done** | Self-chat summary/items/enchants/gems; UI + slash |
 | 8 | Ruleset expansion | planned | Verify all 30 specs; maintain continuously |
 | — | Raid-wide gear check | **backlog** | Menu stub only |
 | — | Saved reports | **backlog** | Spec §25 |
@@ -304,9 +304,28 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 
 **Goal:** Print summary / items / enchants / gems to self chat.
 
+**Status: done** (2026-08-24)
+
+### Checklist
+
+- [x] Self-only chat (`DEFAULT_CHAT_FRAME`, `[GearCheck]` prefix — never raid/party)
+- [x] Modes: summary / items / enchants / gems
+- [x] UI buttons: Report summary / items / enchants / gems
+- [x] Slash: `/rw gearcheck summary|items|enchants|gems` (alias `report` → summary)
+- [x] Scans first when no cached report
+- [x] Detail lines capped (15) with “… and N more”
+- [x] `LAYOUT_VERSION = 4`
+
 ### How to test
 
-Buttons or `/rw gearcheck …` variants; messages appear only for you.
+1. Scan someone, then press **Report summary** — only you see `[GearCheck] Name — STATUS`.
+2. **Report items / enchants / gems** — category lines only; empty category says so.
+3. `/rw gearcheck summary` (and items/enchants/gems) without prior scan — scans then prints.
+4. Confirm nothing is sent to raid/party chat.
+
+### Out of scope this phase
+
+Catalog false-positive fixes; Phase 8 ruleset polish.
 
 ---
 

@@ -30,6 +30,8 @@ In-game slash commands:
 | `/raidwise` or `/rw` | Open the main window |
 | `/raidwise close` or `/rw close` | Close the main window |
 | `/raidwise gearcheck` or `/rw gearcheck` | Open Gear check (target) and scan |
+| `/rw gearcheck summary` (also `items`, `enchants`, `gems`) | Print that report to your chat (scans first if needed) |
+| `/rw gearcheck test` | Offline rules self-test |
 
 Plain panels, a **left menu**, and a content page.
 The status bar shows the addon name and version.
@@ -80,9 +82,9 @@ Esc or the title **X** closes the window.
 
 **Gear check (target)** tab:
 
-- Phase 6: **Scan** shows **Overall** status, issue counts, meta/sets, and a filtered findings list (**All / Items / Enchants / Gems**). **Debug** reveals the raw dump
+- Phase 7: **Scan** shows **Overall**, filters, and findings; **Report …** buttons (and `/rw gearcheck summary|items|enchants|gems`) print to **your chat only**. **Debug** reveals the raw dump
 - Surface-level disclaimer; class/spec rules are being maintained
-- `/rw gearcheck` opens this tab and runs a scan; `/rw gearcheck test` runs offline rule fixtures
+- `/rw gearcheck` opens this tab and runs a scan; report modes and `/rw gearcheck test` as above
 - Known catalog/profile false positives are tracked in [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md) (backlog)
 
 **Gear check (raid)** tab:

@@ -33,7 +33,7 @@ local Translations = {
 
 		INFO_ABOUT = "About",
 		INFO_INTRO = "Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, player ratings, meeting history, account-wide lockouts, and character export.\n\n"
-			.. "Slash commands: /raidwise or /rw to open; /raidwise close or /rw close to close; /rw gearcheck to scan; /rw gearcheck test for rules self-test.",
+			.. "Slash commands: /raidwise or /rw to open; /raidwise close or /rw close to close; /rw gearcheck [summary|items|enchants|gems|test].",
 		INFO_SECTION_COOLDOWNS = "Shows raid and dungeon lockouts for every character saved on this account, "
 			.. "including when each character was last checked. "
 			.. "Log in on each alt to record their lockouts. "
@@ -103,7 +103,7 @@ local Translations = {
 		GEAR_CHECK_SCAN = "Scan",
 		GEAR_CHECK_DEBUG = "Debug",
 		GEAR_CHECK_DEBUG_ON = "Debug ✓",
-		GEAR_CHECK_HINT = "Target a player (or clear target to scan yourself), then press Scan. Use filters for items, enchants, and gems. Debug shows the raw dump.",
+		GEAR_CHECK_HINT = "Target a player (or clear target to scan yourself), then press Scan. Report buttons print to your chat only. Debug shows the raw dump.",
 		GEAR_CHECK_STATUS_SCANNING = "Scanning…",
 		GEAR_CHECK_STATUS_OK = "Scanned %s (%s).",
 		GEAR_CHECK_STATUS_SELF = "self",
@@ -117,6 +117,10 @@ local Translations = {
 		GEAR_CHECK_FILTER_ITEMS = "Items",
 		GEAR_CHECK_FILTER_ENCHANTS = "Enchants",
 		GEAR_CHECK_FILTER_GEMS = "Gems",
+		GEAR_CHECK_REPORT_SUMMARY = "Report summary",
+		GEAR_CHECK_REPORT_ITEMS = "Report items",
+		GEAR_CHECK_REPORT_ENCHANTS = "Report enchants",
+		GEAR_CHECK_REPORT_GEMS = "Report gems",
 		GEAR_CHECK_OVERALL = "Overall: %s",
 		GEAR_CHECK_OVERALL_NONE = "Overall: —",
 		GEAR_CHECK_WHO = "%s — %s / %s",
@@ -133,8 +137,10 @@ local Translations = {
 		GEAR_CHECK_SCOPE_GEAR = "Gear",
 		GEAR_CHECK_BREAK_EMPTY_SCAN = "Scan a player to see findings.",
 		GEAR_CHECK_BREAK_EMPTY_FILTER = "No issues in this category.",
-		CHAT_GEARCHECK_USAGE = "Usage: /rw gearcheck — scan; /rw gearcheck test — run rules self-test.",
+		CHAT_GEARCHECK_USAGE = "Usage: /rw gearcheck [summary|items|enchants|gems|test]",
 		CHAT_GEARCHECK_TEST_SUMMARY = "Gear Check rules self-test: %d / %d passed.",
+		CHAT_GEARCHECK_NO_REPORT = "No Gear Check data yet. Scan first (/rw gearcheck).",
+		CHAT_GEARCHECK_SCANNING = "Scanning for Gear Check report…",
 		COMP_FAIL = "Composition module failed to load. Reload UI (/reload).",
 		COMP_EMPTY = "Join a party or raid, or play solo to see your own coverage.",
 		COMP_CHAT_MISSING = "Raidwise: missing classes: %s",
@@ -435,7 +441,7 @@ local Translations = {
 		LOCALE_RU = "Русский",
 
 		CHAT_LOADED = "loaded (v%s). Type /raidwise to open.",
-		CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, /raidwise gearcheck, or /raidwise gearcheck test.",
+		CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, or /raidwise gearcheck [summary|items|enchants|gems|test].",
 
 		MONTH_1 = "Jan",
 		MONTH_2 = "Feb",
@@ -480,7 +486,7 @@ local Translations = {
 
 		INFO_ABOUT = "Об аддоне",
 		INFO_INTRO = "Raidwise — аддон для подготовки к рейду в Wrath of the Lich King 3.3.5a: составы группы и рейда, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа.\n\n"
-			.. "Команды: /raidwise или /rw — открыть; /raidwise close или /rw close — закрыть; /rw gearcheck — сканировать; /rw gearcheck test — самотест правил.",
+			.. "Команды: /raidwise или /rw — открыть; /raidwise close или /rw close — закрыть; /rw gearcheck [summary|items|enchants|gems|test].",
 		INFO_SECTION_COOLDOWNS = "Показывает рейдовые и подземельные блокировки всех сохранённых персонажей, "
 			.. "включая время последней проверки. "
 			.. "Зайдите на каждого альта, чтобы записать его КД. "
@@ -550,7 +556,7 @@ local Translations = {
 		GEAR_CHECK_SCAN = "Сканировать",
 		GEAR_CHECK_DEBUG = "Отладка",
 		GEAR_CHECK_DEBUG_ON = "Отладка ✓",
-		GEAR_CHECK_HINT = "Возьмите в цель игрока (или снимите цель, чтобы проверить себя) и нажмите «Сканировать». Фильтры: предметы, чары, камни. «Отладка» — сырой dump.",
+		GEAR_CHECK_HINT = "Возьмите в цель игрока (или снимите цель, чтобы проверить себя) и нажмите «Сканировать». Кнопки Report пишут только вам в чат. «Отладка» — сырой dump.",
 		GEAR_CHECK_STATUS_SCANNING = "Сканирование…",
 		GEAR_CHECK_STATUS_OK = "Проверен: %s (%s).",
 		GEAR_CHECK_STATUS_SELF = "вы",
@@ -564,6 +570,10 @@ local Translations = {
 		GEAR_CHECK_FILTER_ITEMS = "Предметы",
 		GEAR_CHECK_FILTER_ENCHANTS = "Чары",
 		GEAR_CHECK_FILTER_GEMS = "Камни",
+		GEAR_CHECK_REPORT_SUMMARY = "Отчёт: итог",
+		GEAR_CHECK_REPORT_ITEMS = "Отчёт: предметы",
+		GEAR_CHECK_REPORT_ENCHANTS = "Отчёт: чары",
+		GEAR_CHECK_REPORT_GEMS = "Отчёт: камни",
 		GEAR_CHECK_OVERALL = "Итог: %s",
 		GEAR_CHECK_OVERALL_NONE = "Итог: —",
 		GEAR_CHECK_WHO = "%s — %s / %s",
@@ -580,8 +590,10 @@ local Translations = {
 		GEAR_CHECK_SCOPE_GEAR = "Экипировка",
 		GEAR_CHECK_BREAK_EMPTY_SCAN = "Сканируйте игрока, чтобы увидеть findings.",
 		GEAR_CHECK_BREAK_EMPTY_FILTER = "В этой категории проблем нет.",
-		CHAT_GEARCHECK_USAGE = "Использование: /rw gearcheck — сканировать; /rw gearcheck test — самотест правил.",
+		CHAT_GEARCHECK_USAGE = "Использование: /rw gearcheck [summary|items|enchants|gems|test]",
 		CHAT_GEARCHECK_TEST_SUMMARY = "Самотест правил Gear Check: %d / %d пройдено.",
+		CHAT_GEARCHECK_NO_REPORT = "Нет данных Gear Check. Сначала сканируйте (/rw gearcheck).",
+		CHAT_GEARCHECK_SCANNING = "Сканирование для отчёта Gear Check…",
 		COMP_FAIL = "Модуль анализа состава не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_EMPTY = "Войдите в группу или рейд — или смотрите покрытие только своего персонажа.",
 		COMP_CHAT_MISSING = "Raidwise: нет классов: %s",
@@ -882,7 +894,7 @@ local Translations = {
 		LOCALE_RU = "Русский",
 
 		CHAT_LOADED = "загружен (v%s). Введите /raidwise, чтобы открыть.",
-		CHAT_UNKNOWN = "Неизвестная команда. Используйте /raidwise, /raidwise close, /raidwise gearcheck или /raidwise gearcheck test.",
+		CHAT_UNKNOWN = "Неизвестная команда. Используйте /raidwise, /raidwise close или /raidwise gearcheck [summary|items|enchants|gems|test].",
 
 		MONTH_1 = "янв",
 		MONTH_2 = "фев",
