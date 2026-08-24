@@ -72,6 +72,7 @@ Features from the spec or locked decisions that are **not done** yet (or only pa
 | Slot policy naming | §9 | Spec `UNSUPPORTED`; addon uses **PLANNED** for trinkets |
 | Unknown / not-checkable UI | §8 | Info findings exist; All-filter hides pure info → easy to miss “cannot evaluate” |
 | Catalog / profile completeness | Phase 8 | Seeded + “being maintained”; expand on false-positive reports |
+| Surface rules from BiS examples | — | Distilled in `docs/Gear-Check-Surface-From-BiS.md` (armor / weapons / trinkets); not wired into evaluation yet |
 
 ### Explicitly out of scope (do not treat as incomplete)
 
@@ -405,5 +406,6 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 | `Raidwise/PageGearCheckRaid.lua` | Backlog stub |
 | `docs/Gear-Check-Progress.md` | This tracker |
 | `docs/RaidWise Addon — Gear Check Specification.md` | Product spec |
+| `docs/Gear-Check-Surface-From-BiS.md` | Armor / weapon / trinket surface rules distilled from example BiS lists |
 
 Do **not** auto-persist scans (spec §25).
