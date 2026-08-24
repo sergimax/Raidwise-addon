@@ -153,13 +153,14 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
-Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**~144** px): multi-line status, **Scan**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 9`.
+Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**~144** px): multi-line status, **Scan**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 10`.
 
 | Element | Size | Notes |
 |---------|------|-------|
 | Left column | **~670** px | `innerW − RIGHT_COL_W − COL_GAP` |
 | Right column | **220** px | Top band + saved sidebar |
 | Summary (left) | height **124** | Top block; report row below `max(124, right top)` |
+| Class / spec icons | **18** px | On who line under Overall; tooltips show class / spec names |
 | Right top band | height **~144** | Status + 3 stacked buttons |
 | Report / filter rows | left width only | Five equal buttons each |
 | Breakdown | left, fills height | Slot groups with verdict color |
@@ -167,7 +168,19 @@ Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW �
 
 ## Gear check (raid) tab
 
-Empty placeholder. Same description layout as before. `LAYOUT_VERSION = 1`.
+Toolbar + scroll table (same chrome as Party roster). `LAYOUT_VERSION = 2`.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Hint + Scan | toolbar **28** | Scan button **104 × 28** top-right |
+| Status hint | under description | `GameFontNormalSmall` |
+| Summary line | height **20** | `ROSTER_STATS_H`; BAD/REPLACE/OK/GOOD/Failed counts |
+| Header row | **52** | `UI.CD_HEADER_H` |
+| Columns | **100 + 28 + 28 + 64 + 36 + 44 + 52 = 352** | Name, class, spec, Overall, BAD, Repl., Issues |
+| Class / spec icons | **18** px | Centered in 28 px columns |
+| Rows | **20** px | Click opens **Gear check (target)** with frozen report |
+
+Inspect queue runs sequentially; target scan blocked while raid scan is active.
 
 ## Character profile
 

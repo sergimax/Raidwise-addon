@@ -54,7 +54,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 9` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| Gear check (raid) | `LAYOUT_VERSION = 1` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
+| Gear check (raid) | `LAYOUT_VERSION = 2` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 3` | `PageInfo.lua` | Shell title bar (next to page name) |
@@ -218,7 +218,7 @@ Two-column layout: **left** — summary, chat reports, filters, findings; **righ
 [ surface-level limitation — full width ]
 
 LEFT (~670px)                          RIGHT (~220px)
-[ summary: Overall / who / GS+iLvl … ]  [ status line 1 ]
+[ summary: Overall / class+spec icons / who / GS+iLvl … ]  [ status line 1 ]
                                         [ status line 2 … ]
                                         [ Scan ]
                                         [ Show as a text ]
@@ -238,7 +238,7 @@ LEFT (~670px)                          RIGHT (~220px)
 |-------|------------------------|
 | short description | Surface-level PvE check; not BiS; rules being maintained |
 | limitation | Spec disclaimer |
-| summary (left) | Overall status (colored), character line, GearScore / avg iLvl, issue counts, meta, sets |
+| summary (left) | Overall status (colored), class + spec icons + character line, GearScore / avg iLvl, issue counts, meta, sets |
 | status (right) | Multi-line hint or scan result (`\n` breaks + word wrap); sits above Scan |
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI |
 | Show as a text | Toggles raw dump (replaces main columns; stays in top band) |
@@ -250,21 +250,33 @@ LEFT (~670px)                          RIGHT (~220px)
 | Delete selected report | Removes the currently viewed saved entry |
 | saved panel (right) | Scrollable list of all saved entries; click loads frozen snapshot |
 
-`LAYOUT_VERSION = 9`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
+`LAYOUT_VERSION = 10`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
 
 Saved snapshot fields: `rulesetVersion` (`wotlk-3.3.5a-{addonVersion}`), `dataVersion` (`GEAR_CHECK_DATA_VERSION` in catalog). Expired entries prune on load/save.
 
 ## Gear check (raid)
 
-Backlog placeholder — raid-wide check not implemented yet.
+`LAYOUT_VERSION = 2`. Scans party/raid roster sequentially (WoW inspect is one player at a time).
 
 ```text
-[ short description ]
+[ short description ]                                    [ Scan ]
+[ hint — one-at-a-time inspect; stay in range ]
+        roster stats gap
+[ summary: BAD · REPLACE · OK · GOOD · Failed ]
+[ Name | (class) | (spec) | Overall | BAD | Repl. | Issues ]
+[ Rhee |  SH   |  Enh   | REPLACE |  0  |   2   |   4   ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “planned; not available yet” |
+| short description | Surface-level group scan; click row → **Gear check (target)** |
+| Scan | **Scan** — queues `CompositionMembers()` one inspect at a time |
+| hint / status | Progress `Scanning N/M: Name…`; empty group message when alone |
+| summary line | Counts by overall status + failed/skipped inspects |
+| table columns | Name, class, spec icons, overall status, BAD/REPLACE slot counts, enchant+gem+meta issue count |
+| row click | Opens full report on **Gear check (target)** (no rescan) |
+
+API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
 
 ## Character profile
 

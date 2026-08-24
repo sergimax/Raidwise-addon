@@ -89,7 +89,8 @@ Esc or the title **X** closes the window.
 
 **Gear check (raid)** tab:
 
-- Placeholder: planned; not available yet
+- **Scan** inspects party/raid members one at a time; summary table shows Overall, BAD, REPLACE, and issue counts per player
+- Click a row to open the full report on **Gear check (target)** (no rescan)
 
 **History** tab:
 

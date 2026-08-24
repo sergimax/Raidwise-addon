@@ -11,7 +11,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 
 | Topic | Decision |
 |-------|----------|
-| Menus | Keep **Gear check (target)** and **Gear check (raid)**; raid is empty backlog |
+| Menus | **Gear check (target)** and **Gear check (raid)** — target = single scan; raid = roster queue + drill-down |
 | Specs | Full 30 WotLK specs; UI notes that rules are **being maintained** |
 | Unknown spec | Class-only rules **and** a “spec unknown” banner |
 | Self-check | Yes — use player when there is no friendly player target |
@@ -40,7 +40,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 6 | UI | **done** | Summary + Items/Enchants/Gems filters; raw dump via **Show as a text** |
 | 7 | Chat output | **done** | Self-chat summary/items/enchants/gems; UI + slash |
 | 8 | Ruleset expansion | **done** | Enh intellect; gem not-checkable policy; leg/Engi/weapon catalogs |
-| — | Raid-wide gear check | **backlog** | Menu stub only |
+| — | Raid-wide gear check | **done** | `PageGearCheckRaid.lua` + `StartGearCheckRaidScan` queue |
 | — | Saved reports | **done** | Manual save/load/delete in target UI; 14-day prune |
 | — | Trinket analysis | **done** | Per-spec pools in `GearCheckTrinkets.lua`: BiS **preferred** (GOOD) + progression **allowed** (OK); soft `TRINKET_NOT_PREFERRED` outside allowed |
 | — | Catalog / profile false positives | **backlog** | New reports after Phase 8 polish (Rhee items addressed) |
@@ -55,7 +55,6 @@ Features from the spec or locked decisions that are **not done** yet (or only pa
 
 | Item | Spec / notes |
 |------|----------------|
-| Raid-wide gear check | Menu stub only (`PageGearCheckRaid.lua`) |
 | Finding messages in RU | Chrome localized; finding `message` strings EN only |
 
 ### Spec in-scope, only partial
@@ -417,6 +416,33 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 
 ---
 
+## Raid-wide gear check
+
+**Goal:** Scan party/raid roster, show per-player overall summary, drill down to target UI.
+
+**Status: done**
+
+### Checklist
+
+- [x] `StartGearCheckRaidScan` — sequential inspect queue over `CompositionMembers()`
+- [x] `PageGearCheckRaid.lua` — Scan, summary counts, scroll table
+- [x] Row click → `ShowGearCheckReport` on **Gear check (target)** (no rescan)
+- [x] `IsGearCheckScanBusy` — blocks overlapping target/raid scans
+- [x] EN/RU chrome strings
+
+### How to test
+
+1. Join a party or raid (solo shows empty message).
+2. Open **Gear check (raid)** → **Scan** → status shows `Scanning N/M: …`.
+3. Summary line updates; table fills with Overall / BAD / Repl. / Issues.
+4. Click a row with a report → **Gear check (target)** shows that player's findings.
+5. While raid scan runs, **Gear check (target)** Scan shows busy message.
+6. Spec icons/names in the raid table should match roster; Overall should match single-target scan for the same player (no class-fallback false BAD/REPLACE).
+
+Inspect waits for **both** gear slots and talent spec before scoring. Party roster inspect is paused during gear scans to avoid `NotifyInspect` conflicts.
+
+---
+
 ## Trinket pools (maintenance)
 
 **Goal:** Per-spec trinket allowlists from BiS examples — **preferred** (ICC/RS endgame → GOOD) and **allowed** (+ ToC/Ulduar/badge progression → OK, no soft finding).
@@ -475,7 +501,7 @@ Legacy name: `S_DRUID_BALANCE` is also used for all mage/warlock specs (rename t
 | `Raidwise/GearCheckSavedReports.lua` | Manual save / load / prune (~14 days) |
 | `types/GearCheck.ts` | Frozen TypeScript shape (report + findings) |
 | `Raidwise/PageGearCheckTarget.lua` | Target/self UI (scan, save, saved list) |
-| `Raidwise/PageGearCheckRaid.lua` | Backlog stub |
+| `Raidwise/PageGearCheckRaid.lua` | Raid/party scan queue + summary table |
 | `gear-check-debug/stats-matrix.html` | Stat rank matrix editor + Lua export |
 | `docs/Gear-Check-Progress.md` | This tracker |
 | `docs/RaidWise Addon — Gear Check Specification.md` | Product spec |

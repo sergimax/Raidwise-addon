@@ -134,9 +134,12 @@ local auctionMapsReady = false
 local scanToken = 0
 local pendingUnit = nil
 local pendingCallback = nil
+local pendingInspectReady = false
 local retryElapsed = 0
 local retryBudget = 0
 local lastReport = nil
+local raidQueue = nil
+local lastRaidResults = nil
 
 local retryFrame = CreateFrame("Frame")
 retryFrame:Hide()
@@ -303,6 +306,42 @@ local function MapGetItemStatsKey(rawKey)
 end
 
 local scanTip
+local inspectGemCache = {}
+
+local function GemCacheKey(unit, slotKey, itemId, enchantId)
+	if not unit or not slotKey or not itemId then
+		return nil
+	end
+	local guid = UnitGUID(unit)
+	if not guid then
+		return nil
+	end
+	return tostring(guid) .. ":" .. tostring(slotKey) .. ":" .. tostring(itemId) .. ":" .. tostring(enchantId or 0)
+end
+
+local function ReadGemCache(unit, slotKey, itemId, enchantId)
+	local key = GemCacheKey(unit, slotKey, itemId, enchantId)
+	if not key then
+		return nil
+	end
+	return inspectGemCache[key]
+end
+
+local function WriteGemCache(unit, slotKey, itemId, enchantId, gems)
+	local key = GemCacheKey(unit, slotKey, itemId, enchantId)
+	if not key or type(gems) ~= "table" or #gems == 0 then
+		return
+	end
+	local copy = {}
+	for index = 1, #gems do
+		copy[index] = {
+			socketIndex = gems[index].socketIndex,
+			itemId = gems[index].itemId,
+			link = gems[index].link,
+		}
+	end
+	inspectGemCache[key] = copy
+end
 
 local function EnsureScanTip()
 	if scanTip then
@@ -313,23 +352,48 @@ local function EnsureScanTip()
 	return scanTip
 end
 
-local function CountEmptySocketsFromTooltip(itemLink)
-	local empty = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 0 }
-	if type(itemLink) ~= "string" or itemLink == "" then
-		return empty
-	end
+local function PopulateScanTip(itemLink, unit, slotId)
 	local tip = EnsureScanTip()
 	if not tip then
-		return empty
+		return false
 	end
 	local ok = pcall(function()
 		tip:SetOwner(UIParent, "ANCHOR_NONE")
 		tip:ClearLines()
-		tip:SetHyperlink(itemLink)
+		if unit and slotId and type(tip.SetInventoryItem) == "function" then
+			tip:SetInventoryItem(unit, slotId)
+			if (tip:NumLines() or 0) > 0 then
+				return
+			end
+			tip:ClearLines()
+		end
+		if type(itemLink) == "string" and itemLink ~= "" then
+			tip:SetHyperlink(itemLink)
+		end
 	end)
-	if not ok then
-		return empty
+	return ok
+end
+
+local function GetItemLinkFromScanTip()
+	local tip = EnsureScanTip()
+	if not tip or type(tip.GetItem) ~= "function" then
+		return nil
 	end
+	local _, link = tip:GetItem()
+	if type(link) == "string" and link ~= "" then
+		return link
+	end
+	return nil
+end
+
+local function HideScanTip()
+	local tip = EnsureScanTip()
+	if tip then
+		tip:Hide()
+	end
+end
+
+local function BuildEmptySocketLabels()
 	local labels = {
 		["red socket"] = "red",
 		["yellow socket"] = "yellow",
@@ -345,20 +409,7 @@ local function CountEmptySocketsFromTooltip(itemLink)
 			end
 		end
 	end
-	local lineCount = tip:NumLines() or 0
-	for index = 1, lineCount do
-		local fontString = _G["RaidwiseGearCheckScanTipTextLeft" .. index]
-		local text = fontString and fontString:GetText()
-		if type(text) == "string" and text ~= "" then
-			local color = labels[strlower(text)]
-			if color then
-				empty[color] = (empty[color] or 0) + 1
-				empty.total = empty.total + 1
-			end
-		end
-	end
-	tip:Hide()
-	return empty
+	return labels
 end
 
 local function CollectStatsAndSockets(itemLinkOrId)
@@ -429,7 +480,7 @@ local function ParseItemLinkParts(itemLink)
 	}
 end
 
-local function CollectGemItemIds(itemLink, parsed)
+local function CollectGemsFromItemLink(itemLink, parsed)
 	local gems = {}
 	if type(GetItemGem) == "function" and itemLink then
 		for index = 1, 4 do
@@ -459,6 +510,92 @@ local function CollectGemItemIds(itemLink, parsed)
 		end
 	end
 	return gems
+end
+
+local function CollectItemLinksForGems(itemLink, unit, slotId)
+	local links = {}
+	local seen = {}
+	local function add(link)
+		if type(link) ~= "string" or link == "" or seen[link] then
+			return
+		end
+		seen[link] = true
+		links[#links + 1] = link
+	end
+	if unit and slotId and type(GetInventoryItemLink) == "function" then
+		add(GetInventoryItemLink(unit, slotId))
+	end
+	add(itemLink)
+	return links
+end
+
+local function ScanInventorySocketData(itemLink, parsed, unit, slotId)
+	local empty = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 0 }
+	local gems = {}
+	local links = CollectItemLinksForGems(itemLink, unit, slotId)
+	for index = 1, #links do
+		local link = links[index]
+		gems = CollectGemsFromItemLink(link, ParseItemLinkParts(link) or parsed)
+		if #gems > 0 then
+			return gems, empty
+		end
+	end
+	if not unit or not slotId then
+		return gems, empty
+	end
+	if not PopulateScanTip(itemLink, unit, slotId) then
+		return gems, empty
+	end
+	local tip = EnsureScanTip()
+	local tipName = tip:GetName()
+	if #gems == 0 then
+		local tipLink = GetItemLinkFromScanTip()
+		if tipLink then
+			gems = CollectGemsFromItemLink(tipLink, ParseItemLinkParts(tipLink) or parsed)
+		end
+		if #gems == 0 and type(GetInventoryItemLink) == "function" then
+			local afterTipLink = GetInventoryItemLink(unit, slotId)
+			if type(afterTipLink) == "string" and afterTipLink ~= "" then
+				gems = CollectGemsFromItemLink(afterTipLink, ParseItemLinkParts(afterTipLink) or parsed)
+			end
+		end
+	end
+	if #gems > 0 then
+		HideScanTip()
+		return gems, empty
+	end
+	local labels = BuildEmptySocketLabels()
+	local lineCount = tip:NumLines() or 0
+	for index = 1, lineCount do
+		local fontString = _G[tipName .. "TextLeft" .. index]
+		local text = fontString and fontString:GetText()
+		if type(text) == "string" and text ~= "" then
+			-- Gem/enchant lines use [Name]; empty socket placeholders are plain text.
+			if not text:find("%[", 1, true) then
+				local color = labels[strlower(text)]
+				if color then
+					empty[color] = (empty[color] or 0) + 1
+					empty.total = empty.total + 1
+				end
+			end
+		end
+	end
+	HideScanTip()
+	return gems, empty
+end
+
+local function CollectGemItemIds(itemLink, parsed, unit, slotId, slotKey)
+	local noEmpty = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 0 }
+	local gems, fromTip = ScanInventorySocketData(itemLink, parsed, unit, slotId)
+	if #gems > 0 then
+		WriteGemCache(unit, slotKey, parsed and parsed.itemId, parsed and parsed.enchantId, gems)
+		return gems, noEmpty
+	end
+	local cached = ReadGemCache(unit, slotKey, parsed and parsed.itemId, parsed and parsed.enchantId)
+	if cached then
+		return cached, noEmpty
+	end
+	return gems, fromTip
 end
 
 local function NormalizeEnchant(enchantId)
@@ -558,7 +695,7 @@ local function ItemInfoBundle(itemId, itemLink)
 	}
 end
 
-local function NormalizeItem(parsed, itemLink, info)
+local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey)
 	local gaps = {}
 	local stats, sockets, statGaps = CollectStatsAndSockets(itemLink or parsed.itemId)
 	for index = 1, #statGaps do
@@ -575,7 +712,7 @@ local function NormalizeItem(parsed, itemLink, info)
 		AddGap(gaps, "WEAPON_TYPE_UNKNOWN")
 	end
 
-	local rawGems = CollectGemItemIds(itemLink, parsed)
+	local rawGems, fromTip = CollectGemItemIds(itemLink, parsed, unit, slotId, slotKey)
 	local gems = {}
 	local metaGemId = nil
 	for index = 1, #rawGems do
@@ -587,37 +724,42 @@ local function NormalizeItem(parsed, itemLink, info)
 	end
 
 	-- Resolve socket totals carefully:
-	-- On many 3.3.5a clients GetItemStats EMPTY_SOCKET_* is the item's socket
-	-- *layout* (still reported when gems are present), not remaining empties.
-	-- Tooltip "Red Socket" / etc. lines are the reliable remaining-empty signal.
+	-- GetItemStats EMPTY_SOCKET_* is layout (still present when gemmed).
+	-- When gems are detected, derive empties from layout − gem count (ignore tooltip).
+	-- Tooltip empty lines are only used when no gems were detected.
 	local fromStats = sockets.total
-	local fromTip = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 0 }
-	if itemLink then
-		fromTip = CountEmptySocketsFromTooltip(itemLink)
+	local layoutTotal = fromStats
+	local remainingEmpty = 0
+	local emptyConfirmed = false
+
+	if #gems > 0 then
+		layoutTotal = math.max(fromStats, #gems)
+		remainingEmpty = math.max(0, layoutTotal - #gems)
+		emptyConfirmed = remainingEmpty > 0
+	elseif fromTip.total > 0 then
+		remainingEmpty = fromTip.total
+		layoutTotal = math.max(fromStats, fromTip.total)
+		emptyConfirmed = true
+	elseif fromStats > 0 then
+		layoutTotal = fromStats
+		remainingEmpty = 0
+	else
+		layoutTotal = fromTip.total
+		remainingEmpty = fromTip.total
+		emptyConfirmed = fromTip.total > 0
 	end
 
-	local remainingEmpty = fromTip.total
-	if remainingEmpty == 0 and #gems == 0 and fromStats > 0 then
-		-- No gems and tip found nothing — treat stats as empty sockets.
-		remainingEmpty = fromStats
-	end
-
-	local socketTotal = #gems + remainingEmpty
-	if fromStats > socketTotal then
-		-- Stats look like a full layout larger than gems+tip empties.
-		socketTotal = fromStats
-		remainingEmpty = math.max(remainingEmpty, fromStats - #gems)
-	end
-
-	if fromTip.total > 0 and fromStats == 0 then
+	if fromTip.total > 0 and fromStats == 0 and #gems == 0 then
 		sockets.meta = fromTip.meta
 		sockets.red = fromTip.red
 		sockets.yellow = fromTip.yellow
 		sockets.blue = fromTip.blue
 		sockets.prismatic = fromTip.prismatic
 	end
-	sockets.total = socketTotal
+	sockets.total = layoutTotal
 	sockets.empty = remainingEmpty
+	sockets.emptyConfirmed = emptyConfirmed
+	sockets.gemDataUncertain = fromStats > 0 and #gems == 0 and remainingEmpty == 0
 
 	return {
 		itemId = parsed.itemId,
@@ -709,7 +851,7 @@ local function CollectSlot(unit, def)
 	end
 
 	local info = ItemInfoBundle(parsed.itemId, itemLink)
-	local item = NormalizeItem(parsed, itemLink, info)
+	local item = NormalizeItem(parsed, itemLink, info, unit, slotId, def.key)
 
 	if entry.policy == "CHECKED" and item.isRelic then
 		entry.policy = "IGNORED"
@@ -730,30 +872,45 @@ local function CollectClassSpec(unit)
 	if UnitIsUnit(unit, "player") and Addon.CollectPrimarySpec then
 		specName, specIcon, specTab = Addon:CollectPrimarySpec()
 	else
-		local isInspect = true
-		local talentGroup = 1
-		if type(GetActiveTalentGroup) == "function" then
-			talentGroup = GetActiveTalentGroup(isInspect) or 1
+		if Addon.GetCachedSpecForUnit then
+			local cachedName, cachedIcon, cachedTab = Addon:GetCachedSpecForUnit(unit)
+			if (cachedName and cachedName ~= "") or (cachedTab and cachedTab > 0) then
+				specName = cachedName or ""
+				specIcon = cachedIcon or ""
+				specTab = cachedTab or 0
+				specKnown = true
+			end
 		end
-		local tabCount = 3
-		if type(GetNumTalentTabs) == "function" then
-			tabCount = GetNumTalentTabs(isInspect) or 3
-		end
-		local bestPoints = -1
-		for tab = 1, tabCount do
-			local name, icon, pointsSpent = GetTalentTabInfo(tab, isInspect, nil, talentGroup)
-			pointsSpent = tonumber(pointsSpent) or 0
-			if pointsSpent > bestPoints then
-				bestPoints = pointsSpent
-				specName = name or ""
-				specIcon = icon or ""
-				specTab = tab
+
+		if not specKnown then
+			local isInspect = true
+			local talentGroup = 1
+			if type(GetActiveTalentGroup) == "function" then
+				talentGroup = GetActiveTalentGroup(isInspect) or 1
+			end
+			local tabCount = 3
+			if type(GetNumTalentTabs) == "function" then
+				tabCount = GetNumTalentTabs(isInspect) or 3
+			end
+			local bestPoints = -1
+			for tab = 1, tabCount do
+				local name, icon, pointsSpent = GetTalentTabInfo(tab, isInspect, nil, talentGroup)
+				pointsSpent = tonumber(pointsSpent) or 0
+				if pointsSpent > bestPoints then
+					bestPoints = pointsSpent
+					specName = name or ""
+					specIcon = icon or ""
+					specTab = tab
+				end
 			end
 		end
 	end
 
 	if (specName and specName ~= "") or (specTab and specTab > 0) then
 		specKnown = true
+		if not UnitIsUnit(unit, "player") and Addon.StoreSpecCacheForUnit then
+			Addon:StoreSpecCacheForUnit(unit, specName, specIcon, specTab)
+		end
 	else
 		AddGap(gaps, "SPEC_UNKNOWN")
 	end
@@ -869,6 +1026,27 @@ end
 
 function Addon:GetLastGearCheckReport()
 	return lastReport
+end
+
+function Addon:SetLastGearCheckReport(report, status)
+	if not report then
+		return
+	end
+	if status then
+		report.scanStatus = status
+		if report.collection then
+			report.collection.scanStatus = status
+		end
+	end
+	lastReport = report
+end
+
+function Addon:GetLastGearCheckRaidResults()
+	return lastRaidResults
+end
+
+function Addon:IsGearCheckScanBusy()
+	return pendingUnit ~= nil or (raidQueue and raidQueue.active) or false
 end
 
 local function AttachFindings(report)
@@ -1206,6 +1384,71 @@ function Addon:FormatGearCheckPhase1Dump(report)
 	return self:FormatGearCheckDump(report)
 end
 
+local function MaybeResumePartyInspects()
+	if Addon.IsGearCheckScanBusy and Addon:IsGearCheckScanBusy() then
+		return
+	end
+	if Addon.QueuePartyInspects then
+		Addon:QueuePartyInspects()
+	end
+end
+
+local function FinishRaidScan()
+	if not raidQueue then
+		return
+	end
+	local onComplete = raidQueue.onComplete
+	local results = raidQueue.results
+	lastRaidResults = results
+	raidQueue = nil
+	if onComplete then
+		onComplete(results, "ok")
+	end
+	MaybeResumePartyInspects()
+end
+
+local function AppendRaidScanResult(report, status)
+	if not raidQueue or not raidQueue.active then
+		return
+	end
+	local entry = {
+		member = raidQueue.currentMember,
+		report = report,
+		status = status,
+	}
+	raidQueue.results[#raidQueue.results + 1] = entry
+	if raidQueue.onProgress then
+		raidQueue.onProgress(entry, #raidQueue.results, raidQueue.total)
+	end
+end
+
+local function ScanNextRaidMember()
+	if not raidQueue or not raidQueue.active then
+		return
+	end
+	local members = raidQueue.members
+	while raidQueue.index <= #members do
+		local member = members[raidQueue.index]
+		raidQueue.index = raidQueue.index + 1
+		local unit = member and member.unit
+		if unit and UnitExists(unit) then
+			local connected = true
+			if type(UnitIsConnected) == "function" and not UnitIsUnit(unit, "player") then
+				connected = UnitIsConnected(unit)
+			end
+			if connected then
+				raidQueue.currentMember = member
+				if Addon:StartGearCheckUnitScan(unit, nil) then
+					return
+				end
+			end
+		end
+		AppendRaidScanResult(nil, "skipped")
+	end
+	raidQueue.active = false
+	FinishRaidScan()
+end
+
 local function FinishScan(report, status)
 	if report then
 		report.scanStatus = status
@@ -1215,13 +1458,21 @@ local function FinishScan(report, status)
 	end
 	lastReport = report
 	local callback = pendingCallback
+	local continueRaid = raidQueue and raidQueue.active
 	pendingCallback = nil
 	pendingUnit = nil
+	pendingInspectReady = false
 	retryFrame:Hide()
 	retryElapsed = 0
 	retryBudget = 0
 	if callback then
 		callback(report, status)
+	end
+	if continueRaid then
+		AppendRaidScanResult(report, status)
+		ScanNextRaidMember()
+	elseif not pendingUnit and not (raidQueue and raidQueue.active) then
+		MaybeResumePartyInspects()
 	end
 end
 
@@ -1240,7 +1491,7 @@ local function TryCollectPending(forceComplete)
 	end
 	local filled = (report.collection and report.collection.counts and report.collection.counts.filledCheckedSlots) or 0
 	local specKnown = report.character and report.character.specKnown
-	if filled > 0 and (specKnown or forceComplete) then
+	if filled > 0 and specKnown and pendingInspectReady then
 		if report.inspect then
 			report.inspect.complete = true
 		end
@@ -1248,8 +1499,22 @@ local function TryCollectPending(forceComplete)
 		return
 	end
 	if forceComplete then
+		local inspect = report.inspect or {}
+		if filled > 0 and not specKnown and not inspect.specRetry then
+			inspect.specRetry = true
+			retryBudget = retryBudget + 2.0
+			retryElapsed = 0
+			if type(NotifyInspect) == "function" then
+				pcall(NotifyInspect, pendingUnit)
+			end
+			return
+		end
 		if report.inspect then
-			report.inspect.complete = filled > 0
+			report.inspect.complete = filled > 0 and specKnown
+		end
+		if filled > 0 and not specKnown then
+			FinishScan(report, "timeout")
+			return
 		end
 		FinishScan(report, filled > 0 and "ok" or "empty")
 	end
@@ -1282,39 +1547,56 @@ retryFrame:SetScript("OnUpdate", function(_, elapsed)
 	end
 end)
 
-eventFrame:SetScript("OnEvent", function(_, event)
+eventFrame:SetScript("OnEvent", function(_, event, unit)
 	if event ~= "INSPECT_TALENT_READY" then
 		return
 	end
-	if pendingUnit then
-		TryCollectPending(true)
+	if not pendingUnit then
+		return
 	end
+	if unit and type(UnitIsUnit) == "function" and not UnitIsUnit(unit, pendingUnit) then
+		return
+	end
+	pendingInspectReady = true
+	TryCollectPending(false)
 end)
 
-function Addon:StartGearCheckScan(callback)
+function Addon:StartGearCheckUnitScan(unit, callback)
+	if pendingUnit then
+		return false
+	end
+	if callback and raidQueue and raidQueue.active then
+		return false
+	end
 	pendingCallback = callback
 	scanToken = scanToken + 1
-	local unit = self:ResolveGearCheckUnit()
 	local report = self:CollectGearCheck(unit)
 	if not report then
 		FinishScan(nil, "missing")
-		return
+		return true
 	end
 
 	if report.character and report.character.isSelf then
 		FinishScan(report, "ok")
-		return
+		return true
 	end
 
 	local inspect = report.inspect or {}
 	if not inspect.canInspect then
 		FinishScan(report, inspect.tooFar and "too_far" or "cannot_inspect")
-		return
+		return true
 	end
 
 	pendingUnit = unit
+	pendingInspectReady = false
 	retryElapsed = 0
-	retryBudget = 2.5
+	retryBudget = 4.0
+	if Addon.ClearPartyInspectForGearCheck then
+		Addon:ClearPartyInspectForGearCheck()
+	end
+	if type(ClearInspectPlayer) == "function" then
+		pcall(ClearInspectPlayer)
+	end
 	if type(NotifyInspect) == "function" then
 		local ok = pcall(NotifyInspect, unit)
 		inspect.notified = ok and true or false
@@ -1323,6 +1605,36 @@ function Addon:StartGearCheckScan(callback)
 	if pendingUnit then
 		retryFrame:Show()
 	end
+	return true
+end
+
+function Addon:StartGearCheckScan(callback)
+	return self:StartGearCheckUnitScan(self:ResolveGearCheckUnit(), callback)
+end
+
+function Addon:StartGearCheckRaidScan(onProgress, onComplete)
+	if pendingUnit or (raidQueue and raidQueue.active) then
+		return false
+	end
+	local members = (self.CompositionMembers and self:CompositionMembers(false)) or {}
+	if #members == 0 then
+		lastRaidResults = {}
+		if onComplete then
+			onComplete({}, "empty")
+		end
+		return true
+	end
+	raidQueue = {
+		members = members,
+		index = 1,
+		total = #members,
+		results = {},
+		onProgress = onProgress,
+		onComplete = onComplete,
+		active = true,
+	}
+	ScanNextRaidMember()
+	return true
 end
 
 -- Phase 7: self-chat reports only (DEFAULT_CHAT_FRAME). Finding text stays English.

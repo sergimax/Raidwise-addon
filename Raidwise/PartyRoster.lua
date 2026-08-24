@@ -583,7 +583,42 @@ function Addon:BuildRaidGroups(refreshGearScore)
 	return groups
 end
 
+function Addon:ClearPartyInspectForGearCheck()
+	inspectPending = nil
+	for index = #inspectQueue, 1, -1 do
+		inspectQueue[index] = nil
+	end
+end
+
+function Addon:GetCachedSpecForUnit(unit)
+	if not unit or not UnitExists(unit) then
+		return "", "", 0
+	end
+	if UnitIsUnit(unit, "player") then
+		if self.CollectPrimarySpec then
+			local specName, specIcon, specTab = self:CollectPrimarySpec()
+			return specName or "", specIcon or "", specTab or 0
+		end
+		return "", "", 0
+	end
+	local cachedName, cachedIcon, cachedTab = CachedSpecForGuid(UnitGUID(unit))
+	if cachedName ~= nil then
+		return cachedName, cachedIcon, cachedTab or 0
+	end
+	return "", "", 0
+end
+
+function Addon:StoreSpecCacheForUnit(unit, specName, specIcon, specTab)
+	if not unit or UnitIsUnit(unit, "player") then
+		return
+	end
+	StoreSpecCache(UnitGUID(unit), specName, specIcon, specTab)
+end
+
 function Addon:QueuePartyInspects()
+	if self.IsGearCheckScanBusy and self:IsGearCheckScanBusy() then
+		return
+	end
 	for index = #inspectQueue, 1, -1 do
 		inspectQueue[index] = nil
 	end
@@ -598,6 +633,9 @@ function Addon:QueuePartyInspects()
 end
 
 function Addon:ProcessNextPartyInspect()
+	if self.IsGearCheckScanBusy and self:IsGearCheckScanBusy() then
+		return
+	end
 	if inspectPending or #inspectQueue == 0 then
 		return
 	end

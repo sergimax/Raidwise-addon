@@ -149,19 +149,19 @@ local S_PRIEST_DISC = Stats(
 	{ "intellect", "spellPower", "critRating", "hasteRating", "mp5" },
 	{ "spirit", "stamina" },
 	{ "strength", "agility", "hitRating" },
-	{ "attackPower", "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor" }
+	{ "attackPower", "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue" }
 )
 local S_PRIEST_HOLY = Stats(
 	{ "intellect", "spirit", "spellPower", "critRating", "hasteRating", "mp5" },
 	{ "stamina" },
 	{ "strength", "agility", "hitRating" },
-	{ "attackPower", "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor" }
+	{ "attackPower", "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue" }
 )
 local S_PRIEST_SHADOW = Stats(
 	{ "intellect", "spellPower", "hitRating", "critRating", "hasteRating" },
 	{ "spirit", "stamina", "mp5" },
 	{ "strength", "agility", "spellPenetration" },
-	{ "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor" }
+	{ "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue" }
 )
 -- Rogue specs: pure physical DPS; spell stats forbidden.
 local S_ROGUE = Stats(

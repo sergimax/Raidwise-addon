@@ -436,12 +436,23 @@ local function EvaluateGems(findings, profile, slot)
 	local item = slot.item
 	local sockets = item.sockets or {}
 	local gems = item.gems or {}
+	if sockets.gemDataUncertain then
+		AddFinding(
+			findings,
+			"GEM_NOT_CHECKABLE",
+			"info",
+			"gem",
+			slot.key,
+			Msg("GEM_NOT_CHECKABLE", "inspect socket data unavailable")
+		)
+		return
+	end
 	local socketTotal = tonumber(sockets.total) or 0
 	local emptySockets = tonumber(sockets.empty)
 	if emptySockets == nil then
 		emptySockets = math.max(0, socketTotal - #gems)
 	end
-	if emptySockets > 0 then
+	if emptySockets > 0 and sockets.emptyConfirmed then
 		AddFinding(
 			findings,
 			"MISSING_GEM",
@@ -812,12 +823,15 @@ end
 local function GemsQualifyForGood(item)
 	local sockets = item.sockets or {}
 	local gems = item.gems or {}
+	if sockets.gemDataUncertain then
+		return false
+	end
 	local socketTotal = tonumber(sockets.total) or 0
 	local empty = tonumber(sockets.empty)
 	if empty == nil then
 		empty = math.max(0, socketTotal - #gems)
 	end
-	if empty > 0 then
+	if empty > 0 and sockets.emptyConfirmed then
 		return false
 	end
 	if socketTotal <= 0 and #gems == 0 then
@@ -943,14 +957,18 @@ local function CollectNotGoodReasons(profile, slot, findings)
 	if not GemsQualifyForGood(item) then
 		local sockets = item.sockets or {}
 		local gems = item.gems or {}
-		local empty = tonumber(sockets.empty)
-		if empty == nil then
-			empty = math.max(0, (tonumber(sockets.total) or 0) - #gems)
-		end
-		if empty > 0 then
-			reasons[#reasons + 1] = "Empty sockets block GOOD."
+		if sockets.gemDataUncertain then
+			reasons[#reasons + 1] = "Gem socket data was not fully available from inspect."
 		else
-			reasons[#reasons + 1] = "One or more gems are not recognized as max-level."
+			local empty = tonumber(sockets.empty)
+			if empty == nil then
+				empty = math.max(0, (tonumber(sockets.total) or 0) - #gems)
+			end
+			if empty > 0 and sockets.emptyConfirmed then
+				reasons[#reasons + 1] = "Empty sockets block GOOD."
+			else
+				reasons[#reasons + 1] = "One or more gems are not recognized as max-level."
+			end
 		end
 	end
 	return reasons

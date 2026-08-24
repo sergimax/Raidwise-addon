@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 9
+local LAYOUT_VERSION = 10
 
 local RIGHT_COL_W = 220
 local COL_GAP = 10
@@ -528,6 +528,16 @@ local function ApplySummary(page, report)
 		page.overallLabel:SetText(W.T("GEAR_CHECK_OVERALL_NONE"))
 		W.SetFontColor(page.overallLabel, UI.TEXT_DISABLED)
 		page.whoLabel:SetText("")
+		if page.classIcon then
+			page.classIcon:SetTexture(nil)
+			page.classIconHost.classLabel = nil
+			page.classIconHost:Hide()
+		end
+		if page.specIcon then
+			page.specIcon:SetTexture(nil)
+			page.specIconHost.specLabel = nil
+			page.specIconHost:Hide()
+		end
 		if page.statsLabel then
 			page.statsLabel:SetText("")
 		end
@@ -544,7 +554,8 @@ local function ApplySummary(page, report)
 
 	local character = report.character or {}
 	local who = character.name or report.name or "?"
-	local className = character.className or character.classFile or "?"
+	local classFile = character.classFile
+	local className = character.className or classFile or "?"
 	local spec = "?"
 	if character.specKnown and character.specName and character.specName ~= "" then
 		spec = character.specName
@@ -552,6 +563,22 @@ local function ApplySummary(page, report)
 		spec = report.profile.name .. " (" .. tostring(report.profile.source or "?") .. ")"
 	else
 		spec = W.T("GEAR_CHECK_SPEC_UNKNOWN")
+	end
+	if page.classIcon then
+		W.SetSpecOrClassIcon(page.classIcon, nil, classFile)
+		page.classIconHost.classLabel = className
+		page.classIconHost:Show()
+	end
+	if page.specIcon then
+		local specIcon = character.specIcon
+		if character.specKnown and specIcon and specIcon ~= "" then
+			W.SetSpecOrClassIcon(page.specIcon, specIcon, classFile)
+			page.specIconHost.specLabel = spec
+		else
+			W.SetSpecOrClassIcon(page.specIcon, nil, classFile)
+			page.specIconHost.specLabel = spec
+		end
+		page.specIconHost:Show()
 	end
 	page.whoLabel:SetText(W.T("GEAR_CHECK_WHO", who, className, spec))
 	W.SetFontColor(page.whoLabel, UI.TEXT_IDLE)
@@ -715,6 +742,12 @@ local function RunScan(page)
 		end
 		return
 	end
+	if Addon.IsGearCheckScanBusy and Addon:IsGearCheckScanBusy() then
+		if page.statusLabel then
+			page.statusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_BUSY"))
+		end
+		return
+	end
 	if page.statusLabel then
 		page.statusLabel:SetText(W.T("GEAR_CHECK_STATUS_SCANNING"))
 	end
@@ -855,14 +888,56 @@ local function CreateGearCheckTargetPage(parent)
 	overallLabel:SetJustifyH("LEFT")
 	page.overallLabel = overallLabel
 
+	local classIconHost = CreateFrame("Frame", nil, summaryHost)
+	classIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
+	classIconHost:SetPoint("TOPLEFT", overallLabel, "BOTTOMLEFT", 0, -4)
+	classIconHost:EnableMouse(true)
+	classIconHost:SetScript("OnEnter", function(self)
+		if not self.classLabel or self.classLabel == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.classLabel)
+		GameTooltip:Show()
+	end)
+	classIconHost:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+	local classIcon = classIconHost:CreateTexture(nil, "ARTWORK")
+	classIcon:SetAllPoints(classIconHost)
+	page.classIconHost = classIconHost
+	page.classIcon = classIcon
+	classIconHost:Hide()
+
+	local specIconHost = CreateFrame("Frame", nil, summaryHost)
+	specIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
+	specIconHost:SetPoint("LEFT", classIconHost, "RIGHT", 4, 0)
+	specIconHost:EnableMouse(true)
+	specIconHost:SetScript("OnEnter", function(self)
+		if not self.specLabel or self.specLabel == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.specLabel)
+		GameTooltip:Show()
+	end)
+	specIconHost:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+	local specIcon = specIconHost:CreateTexture(nil, "ARTWORK")
+	specIcon:SetAllPoints(specIconHost)
+	page.specIconHost = specIconHost
+	page.specIcon = specIcon
+	specIconHost:Hide()
+
 	local whoLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	whoLabel:SetPoint("TOPLEFT", overallLabel, "BOTTOMLEFT", 0, -4)
+	whoLabel:SetPoint("LEFT", specIconHost, "RIGHT", 6, 0)
 	whoLabel:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
 	whoLabel:SetJustifyH("LEFT")
 	page.whoLabel = whoLabel
 
 	local statsLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	statsLabel:SetPoint("TOPLEFT", whoLabel, "BOTTOMLEFT", 0, -4)
+	statsLabel:SetPoint("TOPLEFT", classIconHost, "BOTTOMLEFT", 0, -4)
 	statsLabel:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
 	statsLabel:SetJustifyH("LEFT")
 	page.statsLabel = statsLabel
@@ -1207,6 +1282,20 @@ function Addon:RefreshGearCheckTargetView(autoScan)
 		if report then
 			ApplyReportToPage(page, report, report.scanStatus or "ok")
 		end
+	end
+end
+
+function Addon:ShowGearCheckReport(report, status)
+	if not report then
+		return
+	end
+	if self.SetLastGearCheckReport then
+		self:SetLastGearCheckReport(report, status or report.scanStatus or "ok")
+	end
+	self:ShowMainFrame()
+	self:SelectTab("geartarget")
+	if self.RefreshGearCheckTargetView then
+		self:RefreshGearCheckTargetView(false)
 	end
 end
 

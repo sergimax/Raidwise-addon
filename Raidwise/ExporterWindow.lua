@@ -182,6 +182,10 @@ function Addon:SelectTab(tabId)
 		if self.RefreshGearCheckTargetView then
 			self:RefreshGearCheckTargetView(false)
 		end
+	elseif tabId == "gearraid" then
+		if self.RefreshGearCheckRaidView then
+			self:RefreshGearCheckRaidView(false)
+		end
 	end
 end
 
