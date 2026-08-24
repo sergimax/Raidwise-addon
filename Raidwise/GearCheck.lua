@@ -784,6 +784,46 @@ local function CountFilledCheckedSlots(slots)
 	return filled, checked
 end
 
+-- Informational only — never used by OK / REPLACE / BAD rules.
+local function AverageItemLevelFromEquipment(equipment)
+	local total = 0
+	local count = 0
+	for index = 1, #equipment do
+		local slot = equipment[index]
+		if slot.policy == "CHECKED" and slot.item and slot.item.itemLevel then
+			total = total + slot.item.itemLevel
+			count = count + 1
+		end
+	end
+	if count == 0 then
+		return nil
+	end
+	return math.floor(total / count + 0.5)
+end
+
+local function CollectGearScoreForUnit(unit)
+	if not unit or not UnitExists(unit) then
+		return nil
+	end
+	if UnitIsUnit(unit, "player") and Addon.CollectCurrentGearScore then
+		return Addon:CollectCurrentGearScore()
+	end
+	local name, realm = UnitName(unit)
+	if not name then
+		return nil
+	end
+	if type(GearScore_GetScore) == "function" then
+		pcall(GearScore_GetScore, name, unit)
+	end
+	realm = realm or GetRealmName()
+	local players = GS_Data and realm and GS_Data[realm] and GS_Data[realm].Players
+	local record = players and players[name]
+	if record and record.GearScore ~= nil then
+		return tonumber(record.GearScore)
+	end
+	return nil
+end
+
 local function FormatStatsBrief(stats)
 	if type(stats) ~= "table" then
 		return "-"
@@ -852,6 +892,8 @@ function Addon:CollectGearCheck(unit)
 	end
 
 	local filled, checked = CountFilledCheckedSlots(equipment)
+	local averageIlvl = AverageItemLevelFromEquipment(equipment)
+	local gearScore = CollectGearScoreForUnit(unit)
 	local characterGaps = {}
 	for index = 1, #identity.gaps do
 		characterGaps[#characterGaps + 1] = identity.gaps[index]
@@ -891,6 +933,8 @@ function Addon:CollectGearCheck(unit)
 			specTab = identity.specTab,
 			specKnown = identity.specKnown,
 			gaps = characterGaps,
+			gearScore = gearScore,
+			averageIlvl = averageIlvl,
 		},
 		equipment = equipment,
 		gaps = {},
@@ -911,6 +955,8 @@ function Addon:CollectGearCheck(unit)
 		stats = {
 			checkedSlots = checked,
 			filledCheckedSlots = filled,
+			gearScore = gearScore,
+			averageIlvl = averageIlvl,
 		},
 		slots = equipment,
 	}
@@ -979,6 +1025,14 @@ function Addon:FormatGearCheckDump(report)
 		"Checked slots filled: %d / %d",
 		counts.filledCheckedSlots or 0,
 		counts.checkedSlots or 0
+	)
+	local stats = report.stats or {}
+	local gearScore = stats.gearScore or character.gearScore
+	local averageIlvl = stats.averageIlvl or character.averageIlvl
+	lines[#lines + 1] = string.format(
+		"GearScore: %s  Average iLvl: %s",
+		gearScore ~= nil and tostring(gearScore) or "-",
+		averageIlvl ~= nil and tostring(averageIlvl) or "-"
 	)
 	if inspect.tooFar then
 		lines[#lines + 1] = "Inspect: too far"
@@ -1299,6 +1353,29 @@ local function ChatSlotShort(report, slotKey)
 	return tostring(slotKey)
 end
 
+local function ChatSlotItem(report, slotKey)
+	if not slotKey then
+		return nil
+	end
+	local equipment = report.equipment or report.slots or {}
+	for index = 1, #equipment do
+		local slot = equipment[index]
+		if slot.key == slotKey then
+			return slot.item
+		end
+	end
+	return nil
+end
+
+local function FormatItemIdIlvl(item)
+	if not item then
+		return nil
+	end
+	local id = item.itemId and tostring(item.itemId) or "-"
+	local ilvl = item.itemLevel and tostring(item.itemLevel) or "-"
+	return string.format("id=%s ilvl=%s", id, ilvl)
+end
+
 local function ChatFindingMatches(finding, mode)
 	local category = finding.category
 	if mode == "items" then
@@ -1327,7 +1404,12 @@ local function ChatDetailLines(report, mode)
 				if #reasons > 1 then
 					detail = detail .. " (+" .. tostring(#reasons - 1) .. " more)"
 				end
-				lines[#lines + 1] = string.format("%s: %s", slotName, detail)
+				local meta = FormatItemIdIlvl(slot.item)
+				if meta then
+					lines[#lines + 1] = string.format("%s (%s): %s", slotName, meta, detail)
+				else
+					lines[#lines + 1] = string.format("%s: %s", slotName, detail)
+				end
 			end
 		end
 		return lines
@@ -1355,7 +1437,12 @@ local function ChatDetailLines(report, mode)
 		local key = order[index]
 		local messages = bySlot[key]
 		local slotName = ChatSlotShort(report, key ~= "_gear" and key or nil)
-		lines[#lines + 1] = string.format("%s: %s", slotName, table.concat(messages, "; "))
+		local meta = FormatItemIdIlvl(ChatSlotItem(report, key ~= "_gear" and key or nil))
+		if meta then
+			lines[#lines + 1] = string.format("%s (%s): %s", slotName, meta, table.concat(messages, "; "))
+		else
+			lines[#lines + 1] = string.format("%s: %s", slotName, table.concat(messages, "; "))
+		end
 	end
 	return lines
 end
@@ -1378,6 +1465,17 @@ function Addon:FormatGearCheckChatReport(report, mode)
 
 	if mode == "summary" then
 		lines[#lines + 1] = string.format("%s — %s", name, status)
+		local stats = report.stats or {}
+		local character = report.character or {}
+		local gearScore = stats.gearScore or character.gearScore
+		local averageIlvl = stats.averageIlvl or character.averageIlvl
+		if gearScore ~= nil or averageIlvl ~= nil then
+			lines[#lines + 1] = string.format(
+				"GearScore: %s · Avg iLvl: %s",
+				gearScore ~= nil and tostring(gearScore) or "-",
+				averageIlvl ~= nil and tostring(averageIlvl) or "-"
+			)
+		end
 		local parts = {}
 		local bad = verdicts.bad or 0
 		local replace = verdicts.replace or 0

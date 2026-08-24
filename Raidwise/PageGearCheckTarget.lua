@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 5
+local LAYOUT_VERSION = 6
 
 local FILTERS = {
 	{ id = "all", labelKey = "GEAR_CHECK_FILTER_ALL" },
@@ -96,8 +96,11 @@ local function SlotLabel(report, slotKey)
 		local slot = equipment[index]
 		if slot.key == slotKey then
 			local name = slot.slotName or slotKey
-			if slot.item and slot.item.name and slot.item.name ~= "" then
-				return name .. " — " .. slot.item.name
+			local item = slot.item
+			if item and item.name and item.name ~= "" then
+				local id = item.itemId and tostring(item.itemId) or "-"
+				local ilvl = item.itemLevel and tostring(item.itemLevel) or "-"
+				return string.format("%s — %s  id=%s  ilvl=%s", name, item.name, id, ilvl)
 			end
 			return name
 		end
@@ -330,6 +333,9 @@ local function ApplySummary(page, report)
 		page.overallLabel:SetText(W.T("GEAR_CHECK_OVERALL_NONE"))
 		W.SetFontColor(page.overallLabel, UI.TEXT_DISABLED)
 		page.whoLabel:SetText("")
+		if page.statsLabel then
+			page.statsLabel:SetText("")
+		end
 		page.issuesLabel:SetText("")
 		page.metaLabel:SetText("")
 		page.setsLabel:SetText("")
@@ -354,6 +360,18 @@ local function ApplySummary(page, report)
 	end
 	page.whoLabel:SetText(W.T("GEAR_CHECK_WHO", who, className, spec))
 	W.SetFontColor(page.whoLabel, UI.TEXT_IDLE)
+
+	if page.statsLabel then
+		local stats = report.stats or {}
+		local gearScore = stats.gearScore or character.gearScore
+		local averageIlvl = stats.averageIlvl or character.averageIlvl
+		page.statsLabel:SetText(W.T(
+			"GEAR_CHECK_GS_ILVL",
+			gearScore ~= nil and tostring(gearScore) or "-",
+			averageIlvl ~= nil and tostring(averageIlvl) or "-"
+		))
+		W.SetFontColor(page.statsLabel, UI.TEXT_IDLE)
+	end
 
 	local issues = overall.issues or {}
 	local verdicts = report.verdicts or {}
@@ -601,7 +619,7 @@ local function CreateGearCheckTargetPage(parent)
 	local summaryHost = CreateFrame("Frame", nil, page)
 	summaryHost:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
 	summaryHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
-	summaryHost:SetHeight(108)
+	summaryHost:SetHeight(124)
 	W.ApplyPlainPanel(summaryHost, UI.PANEL_BG)
 	page.summaryHost = summaryHost
 
@@ -617,8 +635,14 @@ local function CreateGearCheckTargetPage(parent)
 	whoLabel:SetJustifyH("LEFT")
 	page.whoLabel = whoLabel
 
+	local statsLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	statsLabel:SetPoint("TOPLEFT", whoLabel, "BOTTOMLEFT", 0, -4)
+	statsLabel:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
+	statsLabel:SetJustifyH("LEFT")
+	page.statsLabel = statsLabel
+
 	local issuesLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	issuesLabel:SetPoint("TOPLEFT", whoLabel, "BOTTOMLEFT", 0, -4)
+	issuesLabel:SetPoint("TOPLEFT", statsLabel, "BOTTOMLEFT", 0, -4)
 	issuesLabel:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
 	issuesLabel:SetJustifyH("LEFT")
 	page.issuesLabel = issuesLabel

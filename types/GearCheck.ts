@@ -281,6 +281,10 @@ export type GearCheckCharacter = {
   specTab: number;
   specKnown: boolean;
   gaps: GearCheckGap[];
+  /** From GearScore addon when available; informational only. */
+  gearScore?: number;
+  /** Mean itemLevel of filled CHECKED slots; informational only. */
+  averageIlvl?: number;
 };
 
 /** Inspect / scan metadata. Not an input to suitability rules. */
