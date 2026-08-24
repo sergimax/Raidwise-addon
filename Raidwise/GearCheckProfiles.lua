@@ -203,6 +203,8 @@ local T_CASTER = {
 	40682, -- Sundial of the Exiled
 	47726, -- Talisman of Volatile Power
 	37835, -- Je'Tze's Bell
+	48724, -- Talisman of Resurgence
+	48722, -- Shard of the Crystal Heart
 }
 local T_HEALER = {
 	54573, 54589, -- Glowing Twilight Scale

@@ -20,6 +20,10 @@ local ENCHANTS = {
 	[1951] = { name = "Titanweave", maxLevel = true, stats = { defenseRating = 16 } },
 	[3243] = { name = "Spell Penetration", maxLevel = false, stats = { spellPenetration = 35 } },
 	[3825] = { name = "Speed", maxLevel = false, stats = { hasteRating = 15 } },
+	-- Tailoring cloak embroideries (profession-bound)
+	[3722] = { name = "Lightweave Embroidery", maxLevel = true, stats = {} },
+	[3728] = { name = "Darkglow Embroidery", maxLevel = true, stats = {} },
+	[3730] = { name = "Swordguard Embroidery", maxLevel = true, stats = {} },
 	-- Boots
 	[3232] = { name = "Tuskarr's Vitality", maxLevel = true, stats = { stamina = 15 } },
 	[1075] = { name = "Greater Fortitude", maxLevel = true, stats = { stamina = 22 } },
@@ -216,6 +220,7 @@ local GEMS = {
 	[39996] = { maxLevel = false, color = "red", stats = { strength = 16 } },
 	[39997] = { maxLevel = false, color = "red", stats = { agility = 16 } },
 	[40000] = { maxLevel = false, color = "red", stats = { attackPower = 32 } },
+	[39918] = { maxLevel = false, color = "yellow", stats = { hasteRating = 8 } }, -- Quick Sun Crystal
 	-- Jewelcrafting Dragon's Eye (Unique-Equipped: Jeweler's Gems ×3; JC-only).
 	[42142] = { maxLevel = true, color = "red", jcUnique = true, stats = { strength = 34 } }, -- Bold
 	[36766] = { maxLevel = true, color = "red", jcUnique = true, stats = { attackPower = 68 } }, -- Bright
