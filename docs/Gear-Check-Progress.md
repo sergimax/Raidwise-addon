@@ -58,7 +58,7 @@ Features from the spec or locked decisions that are **not done** yet (or only pa
 | Raid-wide gear check | Menu stub only (`PageGearCheckRaid.lua`) |
 | Finding messages in RU | Chrome localized; finding `message` strings EN only |
 | Full trinket BiS scoring | Surface allowlists only; expand IDs when false positives appear |
-| Warrior stat profiles | Still on shared `S_PHYS_MELEE` / `S_PHYS_TANK`; tune via stats matrix |
+| Warrior stat profiles | `S_WARRIOR_DPS` (Arms/Fury), `S_WARRIOR_PROT` (Protection); class fallback still `S_PHYS_MELEE` |
 
 ### Spec in-scope, only partial
 
@@ -423,13 +423,13 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 
 **Goal:** Per-spec stat gradation (`preferred / acceptable / unwanted / forbidden`) aligned with BiS surface rules.
 
-**Status: in progress** (Warrior specs still on shared melee/tank templates)
+**Status: done** (all classes have per-spec stat templates; class fallbacks may still use shared templates)
 
 ### Coverage
 
 | Class | Stat templates |
 |-------|------------------|
-| Warrior | `S_PHYS_MELEE`, `S_PHYS_TANK` (shared) |
+| Warrior | `S_WARRIOR_DPS`, `S_WARRIOR_PROT` |
 | Paladin | `S_PALADIN_HOLY`, `S_PALADIN_PROT`, `S_PALADIN_RET` |
 | Hunter | `S_HUNTER` |
 | Rogue | `S_ROGUE` |

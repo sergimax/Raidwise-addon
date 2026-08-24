@@ -189,6 +189,19 @@ local S_PALADIN_RET = Stats(
 	{ "spirit" },
 	{ "spellPenetration", "mp5" }
 )
+-- Warrior specs: Arms/Fury DPS vs Protection tank.
+local S_WARRIOR_DPS = Stats(
+	{ "strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration", "armor" },
+	{ "stamina" },
+	{ "intellect" },
+	{ "spirit", "spellPower", "spellPenetration", "mp5" }
+)
+local S_WARRIOR_PROT = Stats(
+	{ "strength", "agility", "stamina", "hitRating", "expertiseRating", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor" },
+	{ "attackPower", "critRating", "hasteRating", "armorPenetration" },
+	{ "intellect" },
+	{ "spirit", "spellPower", "spellPenetration", "mp5" }
+)
 
 local W_1H_SHIELD = Weapons(
 	{ "sword1h", "axe1h", "mace1h", "shield" },
@@ -360,9 +373,9 @@ local PROFILES = {
 	DRUID = Profile("Druid", A_LEATHER, S_CASTER, W_FERAL, { 41398, 41401, 41376 }, { weaponSetup = "any", trinkets = T_CASTER }),
 
 	-- Warrior
-	["WARRIOR-1"] = Profile("Arms", A_PLATE_DPS, S_PHYS_MELEE, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
-	["WARRIOR-2"] = Profile("Fury", A_PLATE_DPS, S_PHYS_MELEE, W_FURY, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
-	["WARRIOR-3"] = Profile("Protection", A_PLATE_TANK, S_PHYS_TANK, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinkets = T_TANK }),
+	["WARRIOR-1"] = Profile("Arms", A_PLATE_DPS, S_WARRIOR_DPS, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
+	["WARRIOR-2"] = Profile("Fury", A_PLATE_DPS, S_WARRIOR_DPS, W_FURY, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
+	["WARRIOR-3"] = Profile("Protection", A_PLATE_TANK, S_WARRIOR_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinkets = T_TANK }),
 
 	-- Paladin
 	["PALADIN-1"] = Profile("Holy", A_PLATE_DPS, S_PALADIN_HOLY, W_1H_SHIELD, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield", trinkets = T_HEALER }),

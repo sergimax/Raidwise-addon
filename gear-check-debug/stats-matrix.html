@@ -456,14 +456,26 @@
       unwanted: ["spirit"],
       forbidden: ["spellPenetration", "mp5"]
     },
+    S_WARRIOR_DPS: {
+      preferred: ["strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration", "armor"],
+      acceptable: ["stamina"],
+      unwanted: ["intellect"],
+      forbidden: ["spirit", "spellPower", "spellPenetration", "mp5"]
+    },
+    S_WARRIOR_PROT: {
+      preferred: ["strength", "agility", "stamina", "hitRating", "expertiseRating", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor"],
+      acceptable: ["attackPower", "critRating", "hasteRating", "armorPenetration"],
+      unwanted: ["intellect"],
+      forbidden: ["spirit", "spellPower", "spellPenetration", "mp5"]
+    },
   };
 
   // Spec / class rows → which template they use today
   var ROWS = [
     { key: "WARRIOR", name: "Warrior (class)", template: "S_PHYS_MELEE", kind: "class" },
-    { key: "WARRIOR-1", name: "Arms", template: "S_PHYS_MELEE", kind: "spec", classFile: "WARRIOR" },
-    { key: "WARRIOR-2", name: "Fury", template: "S_PHYS_MELEE", kind: "spec", classFile: "WARRIOR" },
-    { key: "WARRIOR-3", name: "Protection", template: "S_PHYS_TANK", kind: "spec", classFile: "WARRIOR" },
+    { key: "WARRIOR-1", name: "Arms", template: "S_WARRIOR_DPS", kind: "spec", classFile: "WARRIOR" },
+    { key: "WARRIOR-2", name: "Fury", template: "S_WARRIOR_DPS", kind: "spec", classFile: "WARRIOR" },
+    { key: "WARRIOR-3", name: "Protection", template: "S_WARRIOR_PROT", kind: "spec", classFile: "WARRIOR" },
 
     { key: "PALADIN", name: "Paladin (class)", template: "S_PHYS_MELEE", kind: "class" },
     { key: "PALADIN-1", name: "Holy", template: "S_PALADIN_HOLY", kind: "spec", classFile: "PALADIN" },
