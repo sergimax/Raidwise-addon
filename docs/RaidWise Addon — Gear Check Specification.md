@@ -872,7 +872,7 @@ Implemented in `GearCheckSavedReports.lua` + **Gear check (target)** UI:
 
 # 26. Ruleset Versioning
 
-Every saved report stores `rulesetVersion`, e.g. `wotlk-3.3.5a-1.15.0` (WotLK + addon version).
+Every saved report stores `rulesetVersion`, e.g. `wotlk-3.3.5a-1.16.0` (WotLK + addon version).
 
 This allows historical reports to be interpreted after rules change.
 

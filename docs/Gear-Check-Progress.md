@@ -37,8 +37,8 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 3 | Rules engine | **done** | Hard/soft/info findings; catalogs + 30-spec profiles; `/rw gearcheck test` |
 | 4 | Item verdicts | **done** | Per-slot OK / GOOD / REPLACE / BAD from findings (info ≠ BAD) |
 | 5 | Gear-level evaluation | **done** | Overall worst-wins; resilience 1/2+; meta activation; T9/T10 counts |
-| 6 | UI | **done** | Summary + Items/Enchants/Gems filters; raw dump via **Show as a text** |
-| 7 | Chat output | **done** | Self-chat summary/items/enchants/gems; UI + slash |
+| 6 | UI | **done** | Two-column summary + filters (incl. OK); **Show as a text**; `LAYOUT_VERSION = 10` |
+| 7 | Chat output | **done** | Self-chat summary/items/enchants/gems/ok; UI + slash |
 | 8 | Ruleset expansion | **done** | Enh intellect; gem not-checkable policy; leg/Engi/weapon catalogs |
 | — | Raid-wide gear check | **done** | `PageGearCheckRaid.lua` + `StartGearCheckRaidScan` queue |
 | — | Saved reports | **done** | Manual save/load/delete in target UI; 14-day prune |
@@ -315,17 +315,17 @@ Chat reports, real UI breakdown, catalog false-positive fixes (see backlog). Soc
 ### Checklist
 
 - [x] Surface-level disclaimer stays visible
-- [x] Summary band: Overall, who/class/spec, issue counts, meta, sets
-- [x] Filters: All / Items / Enchants / Gems with explainable findings per slot
-- [x] Verdict coloring: BAD red, REPLACE gold, OK idle
+- [x] Summary band: Overall, class/spec icons, who/class/spec, GS/iLvl, issue counts, meta, sets
+- [x] Filters: All / Items / Enchants / Gems / **OK** with explainable findings per slot
+- [x] Verdict coloring: BAD red, REPLACE gold, OK idle, GOOD green
 - [x] Raw dump via **Show as a text** (Select all works in text view)
-- [x] `LAYOUT_VERSION = 9` (two-column layout; text view + Select all in top band)
+- [x] `LAYOUT_VERSION = 10` (two-column layout; text view + Select all in top band; class/spec icons)
 - [x] Locale chrome (findings messages stay EN)
 
 ### How to test
 
 1. `/reload`, `/rw gearcheck` — summary + breakdown (not the dump).
-2. Switch All / Items / Enchants / Gems; empty category shows “No issues…”.
+2. Switch All / Items / Enchants / Gems / OK; empty category shows “No issues…”.
 3. **Show as a text** → raw Phase 5 dump + Select all; toggle off returns to UI.
 4. Switch language in Settings — chrome translates; finding text stays English.
 
@@ -344,18 +344,18 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 ### Checklist
 
 - [x] Self-only chat (`DEFAULT_CHAT_FRAME`, `[GearCheck]` prefix — never raid/party)
-- [x] Modes: summary / items / enchants / gems
-- [x] UI buttons: Report summary / items / enchants / gems
-- [x] Slash: `/rw gearcheck summary|items|enchants|gems` (alias `report` → summary)
+- [x] Modes: summary / items / enchants / gems / **ok**
+- [x] UI buttons: Report summary / items / enchants / gems / **Report OK**
+- [x] Slash: `/rw gearcheck summary|items|enchants|gems|ok` (alias `report` → summary)
 - [x] Scans first when no cached report
 - [x] Detail lines capped (15) with “… and N more”
-- [x] `LAYOUT_VERSION = 8` (Report OK + scrollable saved reports — see Saved reports section)
+- [x] Layout continued on target page (see Phase 6 / Saved reports; current `LAYOUT_VERSION = 10`)
 
 ### How to test
 
 1. Scan someone, then press **Report summary** — only you see `[GearCheck] Name — STATUS`.
-2. **Report items / enchants / gems** — category lines only; empty category says so.
-3. `/rw gearcheck summary` (and items/enchants/gems) without prior scan — scans then prints.
+2. **Report items / enchants / gems / OK** — category lines only; empty category says so.
+3. `/rw gearcheck summary` (and items/enchants/gems/ok) without prior scan — scans then prints.
 4. Confirm nothing is sent to raid/party chat.
 
 ### Out of scope this phase
@@ -426,20 +426,21 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 
 - [x] `StartGearCheckRaidScan` — sequential inspect queue over `CompositionMembers()`
 - [x] `PageGearCheckRaid.lua` — Scan, summary counts, party-column grid (groups 1–5 / 6–8)
-- [x] Row click → `ShowGearCheckReport` on **Gear check (target)** (no rescan)
+- [x] Cell click → `ShowGearCheckReport` on **Gear check (target)** (no rescan)
 - [x] `IsGearCheckScanBusy` — blocks overlapping target/raid scans
 - [x] EN/RU chrome strings
+- [x] `LAYOUT_VERSION = 3`
 
 ### How to test
 
 1. Join a party or raid (solo shows empty message).
 2. Open **Gear check (raid)** → **Scan** → status shows `Scanning N/M: …`.
-3. Summary line updates; table fills with Overall / BAD / Repl. / Issues.
-4. Click a row with a report → **Gear check (target)** shows that player's findings.
+3. Summary line updates; group cells fill with Overall / BAD / Repl. / Issues.
+4. Click a scanned player cell → **Gear check (target)** shows that player's findings.
 5. While raid scan runs, **Gear check (target)** Scan shows busy message.
-6. Spec icons/names in the raid table should match roster; Overall should match single-target scan for the same player (no class-fallback false BAD/REPLACE).
+6. Spec icons/names in raid cells should match that player (not the previous inspect target); Overall should match a single-target scan for the same player.
 
-Inspect waits for **both** gear slots and talent spec before scoring. Party roster inspect is paused during gear scans to avoid `NotifyInspect` conflicts.
+Inspect waits for **both** gear slots and talent spec (`INSPECT_TALENT_READY`) before scoring. Spec is not read from the previous inspect buffer. Party roster inspect is paused during gear scans to avoid `NotifyInspect` conflicts.
 
 ---
 

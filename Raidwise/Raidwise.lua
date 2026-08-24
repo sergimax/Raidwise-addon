@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.15.0"
+Addon.version = "1.16.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 

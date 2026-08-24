@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.15.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--24-blue)
+![](https://img.shields.io/badge/current_version-1.16.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--25-blue)
 
 
 ## Install
@@ -30,7 +30,7 @@ In-game slash commands:
 | `/raidwise` or `/rw` | Open the main window |
 | `/raidwise close` or `/rw close` | Close the main window |
 | `/raidwise gearcheck` or `/rw gearcheck` | Open Gear check (target) and scan |
-| `/rw gearcheck summary` (also `items`, `enchants`, `gems`) | Print that report to your chat (scans first if needed) |
+| `/rw gearcheck summary` (also `items`, `enchants`, `gems`, `ok`) | Print that report to your chat (scans first if needed) |
 | `/rw gearcheck test` | Offline rules self-test |
 
 Plain panels, a **left menu**, and a content page.
@@ -82,15 +82,17 @@ Esc or the title **X** closes the window.
 
 **Gear check (target)** tab:
 
-- Phase 7: **Scan** shows **Overall**, filters, and findings; **Report …** buttons (and `/rw gearcheck summary|items|enchants|gems`) print to **your chat only**. **Debug** reveals the raw dump
-- Surface-level disclaimer; class/spec rules are being maintained
-- `/rw gearcheck` opens this tab and runs a scan; report modes and `/rw gearcheck test` as above
-- Known catalog/profile false positives from Rhee (Enhancement) were fixed in Phase 8; new ones go in [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
+- **Scan** evaluates target or self (Overall, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / OK)
+- **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to **your chat only**
+- **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
+- Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
+- `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
 
 **Gear check (raid)** tab:
 
-- **Scan** inspects party/raid members one at a time; summary table shows Overall, BAD, REPLACE, and issue counts per player
-- Click a row to open the full report on **Gear check (target)** (no rescan)
+- **Scan** inspects party/raid members one at a time on a group grid (parties 1–5, then 6–8)
+- Each cell shows class/spec icons, Overall, and BAD / REPLACE / issue counts
+- Click a scanned player to open the full report on **Gear check (target)** (no rescan)
 
 **History** tab:
 
@@ -152,8 +154,10 @@ Raidwise/
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
   GearCheckCatalog.lua # enchant / gem seed catalogs
   GearCheckSets.lua   # T9/T10 set-piece ids (informational)
+  GearCheckTrinkets.lua # preferred/allowed trinket pools by role
   GearCheckProfiles.lua # class + 30-spec Gear Check profiles
   GearCheckRules.lua  # findings + verdicts + overall + offline self-test
+  GearCheckSavedReports.lua # manual save / load / prune (~14 days)
   GearCheck.lua       # collector + normalize (schemaVersion 2) + evaluate + dump
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab

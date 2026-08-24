@@ -49,8 +49,8 @@ local Translations = {
 		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
 			.. "Gold means covered; dim means missing. Section titles show present/total; red title means nothing in that section is present. "
 			.. "Report missing posts absent classes to raid or party chat. Shift-click an effect row to post that effect with provider classes and spells.",
-		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target (or yourself). Phase 2 builds a normalized gear model (stats, armor/weapon types, sockets, enchant/gem ids). Class/spec rules are being maintained. Not BiS or build optimization.",
-		INFO_SECTION_GEARRAID = "Raid-wide gear check — planned backlog; not implemented yet.",
+		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target (or yourself). Scans equipment, enchants, gems, and meta; shows Overall and findings. Class/spec rules are being maintained. Not BiS or build optimization.",
+		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time). Group grid shows Overall per player; click a cell to open the full report on Gear check (target).",
 		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
 			.. "That list is saved on this account and stays after logout. "
 			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
@@ -533,8 +533,8 @@ local Translations = {
 		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
 			.. "Золотое — есть, серое — не хватает. В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет. "
 			.. "«Сообщить» пишет отсутствующие классы в чат рейда или группы. Shift+клик по эффекту — эффект, классы и заклинания в чат.",
-		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели (или себя). Фаза 2 строит нормализованную модель (статы, типы брони/оружия, сокеты, id чар/камней). Правила классов/спеков поддерживаются. Не BiS и не оптимизация билда.",
-		INFO_SECTION_GEARRAID = "Проверка экипировки всего рейда — в бэклоге; пока не реализовано.",
+		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели (или себя). Сканирует предметы, чары, камни и мету; показывает итог и findings. Правила классов/спеков поддерживаются. Не BiS и не оптимизация билда.",
+		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному). Сетка групп показывает итог по игроку; клик открывает полный отчёт на вкладке «Проверка экипа (цель)».",
 		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
 			.. "Список сохраняется на аккаунте и остаётся после выхода. "
 			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
