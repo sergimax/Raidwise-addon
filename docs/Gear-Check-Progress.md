@@ -35,7 +35,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 3 | Rules engine | **done** | Hard/soft/info findings; catalogs + 30-spec profiles; `/rw gearcheck test` |
 | 4 | Item verdicts | **done** | Per-slot OK / REPLACE / BAD from findings (info ≠ BAD) |
 | 5 | Gear-level evaluation | **done** | Overall worst-wins; resilience 1/2+; meta activation; T9/T10 counts |
-| 6 | UI | planned | Breakdown screens beyond Phase 1 dump |
+| 6 | UI | **done** | Summary + Items/Enchants/Gems filters; dump behind Debug |
 | 7 | Chat output | planned | `/rw gearcheck` reports (summary / items / enchants / gems) |
 | 8 | Ruleset expansion | planned | Verify all 30 specs; maintain continuously |
 | — | Raid-wide gear check | **backlog** | Menu stub only |
@@ -275,9 +275,28 @@ Chat reports, real UI breakdown, catalog false-positive fixes (see backlog). Soc
 
 **Goal:** Proper Gear Check screen (summary + item/enchant/gem breakdown + surface-level disclaimer). Phase 1 dump can be removed or moved behind a debug toggle.
 
+**Status: done** (2026-08-24)
+
+### Checklist
+
+- [x] Surface-level disclaimer stays visible
+- [x] Summary band: Overall, who/class/spec, issue counts, meta, sets
+- [x] Filters: All / Items / Enchants / Gems with explainable findings per slot
+- [x] Verdict coloring: BAD red, REPLACE gold, OK idle
+- [x] Raw dump moved behind **Debug** (Select all works in Debug)
+- [x] `LAYOUT_VERSION = 3`
+- [x] Locale chrome (findings messages stay EN)
+
 ### How to test
 
-Walk target/self flows in-game; language switch keeps chrome working (findings stay EN).
+1. `/reload`, `/rw gearcheck` — summary + breakdown (not the dump).
+2. Switch All / Items / Enchants / Gems; empty category shows “No issues…”.
+3. **Debug** → raw Phase 5 dump + Select all; toggle off returns to UI.
+4. Switch language in Settings — chrome translates; finding text stays English.
+
+### Out of scope this phase
+
+Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-positive fixes.
 
 ---
 
