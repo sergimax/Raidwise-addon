@@ -371,6 +371,24 @@
       acceptable: ["stamina"],
       unwanted: ["spirit", "spellPower", "defenseRating", "dodgeRating", "parryRating", "mp5", "spellPenetration"],
       forbidden: []
+    },
+    S_DRUID_BALANCE: {
+      preferred: ["intellect", "spirit", "spellPower", "hitRating", "critRating", "hasteRating", "spellPenetration"],
+      acceptable: ["stamina", "mp5"],
+      unwanted: ["strength", "agility"],
+      forbidden: ["attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating"]
+    },
+    S_DRUID_FERAL: {
+      preferred: ["strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration"],
+      acceptable: ["stamina", "armor"],
+      unwanted: ["intellect", "spirit"],
+      forbidden: ["spellPower", "spellPenetration", "mp5"]
+    },
+    S_DRUID_RESTO: {
+      preferred: ["intellect", "spirit", "spellPower", "critRating", "hasteRating", "mp5"],
+      acceptable: ["stamina"],
+      unwanted: ["attackPower", "spellPenetration"],
+      forbidden: ["strength", "agility", "hitRating", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating"]
     }
   };
 
@@ -422,9 +440,9 @@
     { key: "WARLOCK-3", name: "Destruction", template: "S_CASTER", kind: "spec", classFile: "WARLOCK" },
 
     { key: "DRUID", name: "Druid (class)", template: "S_CASTER", kind: "class" },
-    { key: "DRUID-1", name: "Balance", template: "S_CASTER", kind: "spec", classFile: "DRUID" },
-    { key: "DRUID-2", name: "Feral", template: "S_PHYS_MELEE", kind: "spec", classFile: "DRUID" },
-    { key: "DRUID-3", name: "Restoration", template: "S_HEALER", kind: "spec", classFile: "DRUID" }
+    { key: "DRUID-1", name: "Balance", template: "S_DRUID_BALANCE", kind: "spec", classFile: "DRUID" },
+    { key: "DRUID-2", name: "Feral", template: "S_DRUID_FERAL", kind: "spec", classFile: "DRUID" },
+    { key: "DRUID-3", name: "Restoration", template: "S_DRUID_RESTO", kind: "spec", classFile: "DRUID" }
   ];
 
   var TEMPLATE_ROWS = Object.keys(TEMPLATES).map(function (id) {

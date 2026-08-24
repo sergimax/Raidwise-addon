@@ -99,6 +99,25 @@ local S_ENHANCE = Stats(
 	{ "spirit", "spellPower", "defenseRating", "dodgeRating", "parryRating", "mp5", "spellPenetration" },
 	{}
 )
+-- Druid specs: tighter stat gradation than shared caster/melee/healer templates.
+local S_DRUID_BALANCE = Stats(
+	{ "intellect", "spirit", "spellPower", "hitRating", "critRating", "hasteRating", "spellPenetration" },
+	{ "stamina", "mp5" },
+	{ "strength", "agility" },
+	{ "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating" }
+)
+local S_DRUID_FERAL = Stats(
+	{ "strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration" },
+	{ "stamina", "armor" },
+	{ "intellect", "spirit" },
+	{ "spellPower", "spellPenetration", "mp5" }
+)
+local S_DRUID_RESTO = Stats(
+	{ "intellect", "spirit", "spellPower", "critRating", "hasteRating", "mp5" },
+	{ "stamina" },
+	{ "attackPower", "spellPenetration" },
+	{ "strength", "agility", "hitRating", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating" }
+)
 
 local W_1H_SHIELD = Weapons(
 	{ "sword1h", "axe1h", "mace1h", "shield" },
@@ -315,9 +334,9 @@ local PROFILES = {
 	["WARLOCK-3"] = Profile("Destruction", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
 
 	-- Druid
-	["DRUID-1"] = Profile("Balance", A_LEATHER, S_CASTER, W_FERAL, { 41285, 41333, 41401 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
-	["DRUID-2"] = Profile("Feral", A_LEATHER, S_PHYS_MELEE, W_FERAL, { 41398, 41397, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
-	["DRUID-3"] = Profile("Restoration", A_LEATHER_HEAL, S_HEALER, W_FERAL, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
+	["DRUID-1"] = Profile("Balance", A_LEATHER, S_DRUID_BALANCE, W_FERAL, { 41285, 41333, 41401 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
+	["DRUID-2"] = Profile("Feral", A_LEATHER, S_DRUID_FERAL, W_FERAL, { 41398, 41397, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
+	["DRUID-3"] = Profile("Restoration", A_LEATHER_HEAL, S_DRUID_RESTO, W_FERAL, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinkets = T_HEALER }),
 }
 
 -- Blood DK tank tab is 1 in RaidRoles.
