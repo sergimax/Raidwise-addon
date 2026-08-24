@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Raidwise — Gear Check Stats Matrix</title>
+<style>
+  :root {
+    --p: #2e7d32;
+    --a: #558b2f;
+    --d: #ef6c00;
+    --f: #c62828;
+    --u: #9e9e9e;
+    --bg: #1a1b1e;
+    --panel: #25262b;
+    --border: #3b3c42;
+    --text: #e8e8ea;
+    --muted: #9a9ba2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 13px/1.4 system-ui, Segoe UI, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    align-items: center;
+  }
+  header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+  header .hint { color: var(--muted); font-size: 12px; }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+  }
+  .swatch {
+    width: 12px; height: 12px; border-radius: 2px;
+    display: inline-block;
+  }
+  .swatch.p { background: var(--p); }
+  .swatch.a { background: var(--a); }
+  .swatch.d { background: var(--d); }
+  .swatch.f { background: var(--f); }
+  .swatch.u { background: var(--u); }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+  button, select {
+    background: #2f3036;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font: inherit;
+  }
+  button:hover { background: #3a3b42; }
+  .wrap {
+    overflow: auto;
+    max-height: calc(100vh - 280px);
+    border-bottom: 1px solid var(--border);
+  }
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 100%;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 2px 3px;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: #2a2b31;
+    font-size: 11px;
+    font-weight: 600;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    height: 110px;
+    min-width: 34px;
+    text-align: left;
+  }
+  thead th.row-label {
+    writing-mode: horizontal-tb;
+    transform: none;
+    left: 0;
+    z-index: 4;
+    min-width: 170px;
+    text-align: left;
+    padding: 6px 8px;
+  }
+  tbody th {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--panel);
+    text-align: left;
+    padding: 4px 8px;
+    font-weight: 500;
+    font-size: 12px;
+  }
+  tbody th .tpl {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 400;
+  }
+  tbody tr.class-fallback th { border-left: 3px solid #5c6bc0; }
+  tbody tr.spec-row th { border-left: 3px solid transparent; }
+  td.cell { text-align: center; padding: 1px 2px; }
+  td.cell.preferred { background: color-mix(in srgb, var(--p) 28%, transparent); }
+  td.cell.acceptable { background: color-mix(in srgb, var(--a) 22%, transparent); }
+  td.cell.discouraged { background: color-mix(in srgb, var(--d) 28%, transparent); }
+  td.cell.forbidden { background: color-mix(in srgb, var(--f) 28%, transparent); }
+  td.cell.unset { background: transparent; }
+  .radios {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+  }
+  .radios label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .radios input {
+    margin: 0;
+    cursor: pointer;
+    accent-color: currentColor;
+  }
+  .radios label[data-l="preferred"] { color: var(--p); }
+  .radios label[data-l="acceptable"] { color: var(--a); }
+  .radios label[data-l="discouraged"] { color: var(--d); }
+  .radios label[data-l="forbidden"] { color: var(--f); }
+  .radios label[data-l="unset"] { color: var(--u); }
+  .export {
+    padding: 12px 16px 20px;
+    background: var(--panel);
+  }
+  .export-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .export-head label { font-weight: 600; font-size: 13px; }
+  .export-head .hint { color: var(--muted); font-size: 12px; }
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    font: 12px/1.45 ui-monospace, Consolas, monospace;
+    background: #121316;
+    color: #d8d9de;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px;
+    resize: vertical;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Gear Check — Stats Matrix</h1>
+  <span class="hint">Edit cells → export updates for <code>GearCheckProfiles.lua</code> Stats / PROFILES</span>
+  <div class="legend">
+    <span><i class="swatch p"></i> preferred</span>
+    <span><i class="swatch a"></i> acceptable</span>
+    <span><i class="swatch d"></i> discouraged</span>
+    <span><i class="swatch f"></i> forbidden</span>
+    <span><i class="swatch u"></i> unset (other)</span>
+  </div>
+  <div class="toolbar">
+    <label>View
+      <select id="viewMode">
+        <option value="specs">Class specs</option>
+        <option value="templates">Shared templates (S_*)</option>
+      </select>
+    </label>
+    <button type="button" id="btnReset">Reset to current Lua</button>
+    <button type="button" id="btnCopy">Copy export</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <table id="matrix"></table>
+</div>
+
+<div class="export">
+  <div class="export-head">
+    <label for="out">Export (Lua-ready)</label>
+    <span class="hint">Unique matrices → <code>S_*</code> Stats() blocks, then PROFILES.stats references</span>
+  </div>
+  <textarea id="out" readonly spellcheck="false"></textarea>
+</div>
+
+<script>
+(function () {
+  var LEVELS = ["preferred", "acceptable", "discouraged", "forbidden", "unset"];
+  var LEVEL_SHORT = { preferred: "P", acceptable: "A", discouraged: "D", forbidden: "F", unset: "—" };
+
+  var STATS = [
+    "strength", "agility", "intellect", "spirit", "stamina",
+    "attackPower", "spellPower", "hitRating", "critRating", "hasteRating",
+    "expertiseRating", "armorPenetration", "spellPenetration",
+    "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue",
+    "armor", "mp5"
+  ];
+
+  // Shared templates from GearCheckProfiles.lua (lines 49–85)
+  var TEMPLATES = {
+    S_PHYS_MELEE: {
+      preferred: ["strength", "agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "armor"],
+      acceptable: ["stamina"],
+      discouraged: ["spirit", "intellect"],
+      forbidden: ["spellPower", "mp5", "spellPenetration"]
+    },
+    S_PHYS_TANK: {
+      preferred: ["stamina", "defenseRating", "dodgeRating", "parryRating", "expertiseRating", "strength", "agility", "hitRating", "blockRating", "blockValue", "armor"],
+      acceptable: ["critRating", "hasteRating", "attackPower", "armorPenetration"],
+      discouraged: ["spirit", "intellect"],
+      forbidden: ["spellPower", "mp5", "spellPenetration"]
+    },
+    S_CASTER: {
+      preferred: ["spellPower", "hitRating", "critRating", "hasteRating", "intellect", "spirit", "spellPenetration"],
+      acceptable: ["stamina", "mp5"],
+      discouraged: ["strength", "agility", "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating"],
+      forbidden: []
+    },
+    S_HEALER: {
+      preferred: ["spellPower", "critRating", "hasteRating", "intellect", "spirit", "mp5"],
+      acceptable: ["stamina", "hitRating"],
+      discouraged: ["strength", "agility", "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating", "spellPenetration"],
+      forbidden: []
+    },
+    S_HUNTER: {
+      preferred: ["agility", "attackPower", "hitRating", "critRating", "hasteRating", "armorPenetration", "intellect"],
+      acceptable: ["stamina", "strength"],
+      discouraged: ["spirit", "defenseRating", "dodgeRating", "parryRating"],
+      forbidden: ["spellPower", "mp5"]
+    },
+    S_ENHANCE: {
+      preferred: ["agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "intellect", "strength"],
+      acceptable: ["stamina"],
+      discouraged: ["spirit", "spellPower", "defenseRating", "dodgeRating", "parryRating", "mp5", "spellPenetration"],
+      forbidden: []
+    }
+  };
+
+  // Spec / class rows → which template they use today
+  var ROWS = [
+    { key: "WARRIOR", name: "Warrior (class)", template: "S_PHYS_MELEE", kind: "class" },
+    { key: "WARRIOR-1", name: "Arms", template: "S_PHYS_MELEE", kind: "spec", classFile: "WARRIOR" },
+    { key: "WARRIOR-2", name: "Fury", template: "S_PHYS_MELEE", kind: "spec", classFile: "WARRIOR" },
+    { key: "WARRIOR-3", name: "Protection", template: "S_PHYS_TANK", kind: "spec", classFile: "WARRIOR" },
+
+    { key: "PALADIN", name: "Paladin (class)", template: "S_PHYS_MELEE", kind: "class" },
+    { key: "PALADIN-1", name: "Holy", template: "S_HEALER", kind: "spec", classFile: "PALADIN" },
+    { key: "PALADIN-2", name: "Protection", template: "S_PHYS_TANK", kind: "spec", classFile: "PALADIN" },
+    { key: "PALADIN-3", name: "Retribution", template: "S_PHYS_MELEE", kind: "spec", classFile: "PALADIN" },
+
+    { key: "HUNTER", name: "Hunter (class)", template: "S_HUNTER", kind: "class" },
+    { key: "HUNTER-1", name: "Beast Mastery", template: "S_HUNTER", kind: "spec", classFile: "HUNTER" },
+    { key: "HUNTER-2", name: "Marksmanship", template: "S_HUNTER", kind: "spec", classFile: "HUNTER" },
+    { key: "HUNTER-3", name: "Survival", template: "S_HUNTER", kind: "spec", classFile: "HUNTER" },
+
+    { key: "ROGUE", name: "Rogue (class)", template: "S_PHYS_MELEE", kind: "class" },
+    { key: "ROGUE-1", name: "Assassination", template: "S_PHYS_MELEE", kind: "spec", classFile: "ROGUE" },
+    { key: "ROGUE-2", name: "Combat", template: "S_PHYS_MELEE", kind: "spec", classFile: "ROGUE" },
+    { key: "ROGUE-3", name: "Subtlety", template: "S_PHYS_MELEE", kind: "spec", classFile: "ROGUE" },
+
+    { key: "PRIEST", name: "Priest (class)", template: "S_HEALER", kind: "class" },
+    { key: "PRIEST-1", name: "Discipline", template: "S_HEALER", kind: "spec", classFile: "PRIEST" },
+    { key: "PRIEST-2", name: "Holy", template: "S_HEALER", kind: "spec", classFile: "PRIEST" },
+    { key: "PRIEST-3", name: "Shadow", template: "S_CASTER", kind: "spec", classFile: "PRIEST" },
+
+    { key: "DEATHKNIGHT", name: "Death Knight (class)", template: "S_PHYS_MELEE", kind: "class" },
+    { key: "DEATHKNIGHT-1", name: "Blood", template: "S_PHYS_TANK", kind: "spec", classFile: "DEATHKNIGHT" },
+    { key: "DEATHKNIGHT-2", name: "Frost", template: "S_PHYS_MELEE", kind: "spec", classFile: "DEATHKNIGHT" },
+    { key: "DEATHKNIGHT-3", name: "Unholy", template: "S_PHYS_MELEE", kind: "spec", classFile: "DEATHKNIGHT" },
+
+    { key: "SHAMAN", name: "Shaman (class)", template: "S_CASTER", kind: "class" },
+    { key: "SHAMAN-1", name: "Elemental", template: "S_CASTER", kind: "spec", classFile: "SHAMAN" },
+    { key: "SHAMAN-2", name: "Enhancement", template: "S_ENHANCE", kind: "spec", classFile: "SHAMAN" },
+    { key: "SHAMAN-3", name: "Restoration", template: "S_HEALER", kind: "spec", classFile: "SHAMAN" },
+
+    { key: "MAGE", name: "Mage (class)", template: "S_CASTER", kind: "class" },
+    { key: "MAGE-1", name: "Arcane", template: "S_CASTER", kind: "spec", classFile: "MAGE" },
+    { key: "MAGE-2", name: "Fire", template: "S_CASTER", kind: "spec", classFile: "MAGE" },
+    { key: "MAGE-3", name: "Frost", template: "S_CASTER", kind: "spec", classFile: "MAGE" },
+
+    { key: "WARLOCK", name: "Warlock (class)", template: "S_CASTER", kind: "class" },
+    { key: "WARLOCK-1", name: "Affliction", template: "S_CASTER", kind: "spec", classFile: "WARLOCK" },
+    { key: "WARLOCK-2", name: "Demonology", template: "S_CASTER", kind: "spec", classFile: "WARLOCK" },
+    { key: "WARLOCK-3", name: "Destruction", template: "S_CASTER", kind: "spec", classFile: "WARLOCK" },
+
+    { key: "DRUID", name: "Druid (class)", template: "S_CASTER", kind: "class" },
+    { key: "DRUID-1", name: "Balance", template: "S_CASTER", kind: "spec", classFile: "DRUID" },
+    { key: "DRUID-2", name: "Feral", template: "S_PHYS_MELEE", kind: "spec", classFile: "DRUID" },
+    { key: "DRUID-3", name: "Restoration", template: "S_HEALER", kind: "spec", classFile: "DRUID" }
+  ];
+
+  var TEMPLATE_ROWS = Object.keys(TEMPLATES).map(function (id) {
+    return { key: id, name: id, template: id, kind: "template" };
+  });
+
+  /** @type {Record<string, Record<string, string>>} */
+  var state = {};
+
+  function cloneTemplateLevels(tpl) {
+    var map = {};
+    STATS.forEach(function (s) { map[s] = "unset"; });
+    ["preferred", "acceptable", "discouraged", "forbidden"].forEach(function (level) {
+      (tpl[level] || []).forEach(function (stat) {
+        if (map[stat] !== undefined) map[stat] = level;
+      });
+    });
+    return map;
+  }
+
+  function resetState() {
+    state = {};
+    ROWS.forEach(function (row) {
+      state[row.key] = cloneTemplateLevels(TEMPLATES[row.template]);
+    });
+    TEMPLATE_ROWS.forEach(function (row) {
+      state[row.key] = cloneTemplateLevels(TEMPLATES[row.template]);
+    });
+  }
+
+  function activeRows() {
+    return document.getElementById("viewMode").value === "templates" ? TEMPLATE_ROWS : ROWS;
+  }
+
+  function setCellLevel(rowKey, stat, level) {
+    if (!state[rowKey]) state[rowKey] = {};
+    state[rowKey][stat] = level;
+    var td = document.querySelector('td.cell[data-row="' + rowKey + '"][data-stat="' + stat + '"]');
+    if (td) {
+      td.className = "cell " + level;
+      var input = td.querySelector('input[value="' + level + '"]');
+      if (input) input.checked = true;
+    }
+    refreshExport();
+  }
+
+  function buildTable() {
+    var rows = activeRows();
+    var table = document.getElementById("matrix");
+    var html = "<thead><tr><th class=\"row-label\">Spec / Template</th>";
+    STATS.forEach(function (stat) {
+      html += "<th title=\"" + stat + "\">" + stat + "</th>";
+    });
+    html += "</tr></thead><tbody>";
+
+    rows.forEach(function (row) {
+      var cls = row.kind === "class" ? "class-fallback" : (row.kind === "template" ? "template-row" : "spec-row");
+      html += "<tr class=\"" + cls + "\"><th>" + escapeHtml(row.name);
+      if (row.kind !== "template") {
+        html += "<span class=\"tpl\">" + escapeHtml(row.key) + " · was " + escapeHtml(row.template) + "</span>";
+      }
+      html += "</th>";
+
+      STATS.forEach(function (stat) {
+        var level = (state[row.key] && state[row.key][stat]) || "unset";
+        var name = "r_" + row.key + "_" + stat;
+        html += "<td class=\"cell " + level + "\" data-row=\"" + row.key + "\" data-stat=\"" + stat + "\"><div class=\"radios\">";
+        LEVELS.forEach(function (l) {
+          html += "<label data-l=\"" + l + "\" title=\"" + l + "\">"
+            + "<input type=\"radio\" name=\"" + name + "\" value=\"" + l + "\""
+            + (level === l ? " checked" : "") + ">"
+            + "</label>";
+        });
+        html += "</div></td>";
+      });
+      html += "</tr>";
+    });
+    html += "</tbody>";
+    table.innerHTML = html;
+
+    table.querySelectorAll("input[type=radio]").forEach(function (input) {
+      input.addEventListener("change", function () {
+        var td = input.closest("td");
+        setCellLevel(td.getAttribute("data-row"), td.getAttribute("data-stat"), input.value);
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function matrixSignature(levels) {
+    var buckets = { preferred: [], acceptable: [], discouraged: [], forbidden: [] };
+    STATS.forEach(function (stat) {
+      var l = levels[stat] || "unset";
+      if (buckets[l]) buckets[l].push(stat);
+    });
+    return JSON.stringify(buckets);
+  }
+
+  function luaList(arr) {
+    if (!arr.length) return "{}";
+    return "{ \"" + arr.join("\", \"") + "\" }";
+  }
+
+  function luaStatsCall(levels) {
+    var buckets = { preferred: [], acceptable: [], discouraged: [], forbidden: [] };
+    STATS.forEach(function (stat) {
+      var l = levels[stat] || "unset";
+      if (buckets[l]) buckets[l].push(stat);
+    });
+    return "Stats(\n\t" + luaList(buckets.preferred) + ",\n\t"
+      + luaList(buckets.acceptable) + ",\n\t"
+      + luaList(buckets.discouraged) + ",\n\t"
+      + luaList(buckets.forbidden) + "\n)";
+  }
+
+  function knownTemplateName(sig) {
+    for (var id in TEMPLATES) {
+      if (matrixSignature(cloneTemplateLevels(TEMPLATES[id])) === sig) return id;
+    }
+    return null;
+  }
+
+  function refreshExport() {
+    var mode = document.getElementById("viewMode").value;
+    var rows = activeRows();
+    var groups = {}; // sig -> { name?, keys: [], levels }
+    var order = [];
+
+    rows.forEach(function (row) {
+      var levels = state[row.key];
+      var sig = matrixSignature(levels);
+      if (!groups[sig]) {
+        groups[sig] = { keys: [], levels: levels, known: knownTemplateName(sig) };
+        order.push(sig);
+      }
+      groups[sig].keys.push(row.key);
+    });
+
+    // Prefer known names; otherwise S_CUSTOM_1…
+    var nameBySig = {};
+    var customIdx = 1;
+    order.forEach(function (sig) {
+      var g = groups[sig];
+      if (g.known) {
+        nameBySig[sig] = g.known;
+      } else if (mode === "templates" && g.keys.length === 1 && TEMPLATES[g.keys[0]]) {
+        nameBySig[sig] = g.keys[0];
+      } else {
+        nameBySig[sig] = "S_CUSTOM_" + customIdx++;
+      }
+    });
+
+    var lines = [];
+    lines.push("-- Auto-generated from gear-check-debug/stats-matrix.html");
+    lines.push("-- Paste into GearCheckProfiles.lua (shared Stats templates), then wire PROFILES.");
+    lines.push("-- unset stats are omitted (engine RankStat → \"other\").");
+    lines.push("");
+    lines.push("-- === Shared stat templates ===");
+    order.forEach(function (sig) {
+      var name = nameBySig[sig];
+      var g = groups[sig];
+      lines.push("local " + name + " = " + luaStatsCall(g.levels));
+      lines.push("-- used by: " + g.keys.join(", "));
+      lines.push("");
+    });
+
+    if (mode === "specs") {
+      lines.push("-- === PROFILES.stats references (3rd arg of Profile) ===");
+      ROWS.forEach(function (row) {
+        var sig = matrixSignature(state[row.key]);
+        var name = nameBySig[sig];
+        var keyLit = row.key.indexOf("-") >= 0 ? "[\"" + row.key + "\"]" : row.key;
+        lines.push("-- " + keyLit + " → stats = " + name);
+      });
+      lines.push("");
+      lines.push("-- Compact JSON (analysis)");
+      lines.push(JSON.stringify({
+        templates: order.map(function (sig) {
+          var buckets = JSON.parse(sig);
+          return { name: nameBySig[sig], keys: groups[sig].keys, stats: buckets };
+        }),
+        profiles: ROWS.reduce(function (acc, row) {
+          acc[row.key] = nameBySig[matrixSignature(state[row.key])];
+          return acc;
+        }, {})
+      }, null, 2));
+    } else {
+      lines.push("-- Compact JSON (analysis)");
+      lines.push(JSON.stringify({
+        templates: order.map(function (sig) {
+          return { name: nameBySig[sig], stats: JSON.parse(sig) };
+        })
+      }, null, 2));
+    }
+
+    document.getElementById("out").value = lines.join("\n");
+  }
+
+  document.getElementById("viewMode").addEventListener("change", function () {
+    buildTable();
+    refreshExport();
+  });
+  document.getElementById("btnReset").addEventListener("click", function () {
+    resetState();
+    buildTable();
+    refreshExport();
+  });
+  document.getElementById("btnCopy").addEventListener("click", function () {
+    var ta = document.getElementById("out");
+    ta.select();
+    navigator.clipboard.writeText(ta.value).catch(function () {
+      document.execCommand("copy");
+    });
+  });
+
+  resetState();
+  buildTable();
+  refreshExport();
+})();
+</script>
+</body>
+</html>
