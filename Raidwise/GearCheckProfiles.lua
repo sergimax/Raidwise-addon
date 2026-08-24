@@ -87,10 +87,10 @@ local S_HEALER = Stats(
 	{}
 )
 local S_HUNTER = Stats(
-	{ "agility", "attackPower", "hitRating", "critRating", "hasteRating", "armorPenetration", "intellect" },
-	{ "stamina", "strength" },
-	{ "spirit", "defenseRating", "dodgeRating", "parryRating" },
-	{ "spellPower", "mp5" }
+	{ "agility", "intellect", "attackPower", "hitRating", "critRating", "hasteRating", "armorPenetration" },
+	{ "strength", "stamina" },
+	{ "defenseRating", "dodgeRating", "parryRating" },
+	{ "spirit", "spellPower", "mp5" }
 )
 -- Enhancement: intellect and spellPower on hybrid mail pieces; mp5 is soft waste.
 local S_ENHANCE = Stats(
