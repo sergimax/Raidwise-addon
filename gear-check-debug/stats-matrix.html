@@ -438,6 +438,24 @@
       unwanted: [],
       forbidden: ["intellect", "spirit", "spellPower", "spellPenetration", "mp5"]
     },
+    S_PALADIN_HOLY: {
+      preferred: ["intellect", "spirit", "spellPower", "critRating", "hasteRating", "mp5"],
+      acceptable: ["stamina"],
+      unwanted: ["strength", "agility", "attackPower", "hitRating"],
+      forbidden: ["expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue"]
+    },
+    S_PALADIN_PROT: {
+      preferred: ["strength", "agility", "stamina", "hitRating", "expertiseRating", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor"],
+      acceptable: ["attackPower", "critRating", "hasteRating", "armorPenetration"],
+      unwanted: ["intellect", "spirit", "spellPower"],
+      forbidden: ["spellPenetration", "mp5"]
+    },
+    S_PALADIN_RET: {
+      preferred: ["strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration"],
+      acceptable: ["intellect", "stamina", "spellPower", "armor"],
+      unwanted: ["spirit"],
+      forbidden: ["spellPenetration", "mp5"]
+    },
   };
 
   // Spec / class rows → which template they use today
@@ -448,9 +466,9 @@
     { key: "WARRIOR-3", name: "Protection", template: "S_PHYS_TANK", kind: "spec", classFile: "WARRIOR" },
 
     { key: "PALADIN", name: "Paladin (class)", template: "S_PHYS_MELEE", kind: "class" },
-    { key: "PALADIN-1", name: "Holy", template: "S_HEALER", kind: "spec", classFile: "PALADIN" },
-    { key: "PALADIN-2", name: "Protection", template: "S_PHYS_TANK", kind: "spec", classFile: "PALADIN" },
-    { key: "PALADIN-3", name: "Retribution", template: "S_RET", kind: "spec", classFile: "PALADIN" },
+    { key: "PALADIN-1", name: "Holy", template: "S_PALADIN_HOLY", kind: "spec", classFile: "PALADIN" },
+    { key: "PALADIN-2", name: "Protection", template: "S_PALADIN_PROT", kind: "spec", classFile: "PALADIN" },
+    { key: "PALADIN-3", name: "Retribution", template: "S_PALADIN_RET", kind: "spec", classFile: "PALADIN" },
 
     { key: "HUNTER", name: "Hunter (class)", template: "S_HUNTER", kind: "class" },
     { key: "HUNTER-1", name: "Beast Mastery", template: "S_HUNTER", kind: "spec", classFile: "HUNTER" },

@@ -170,6 +170,25 @@ local S_ROGUE = Stats(
 	{},
 	{ "intellect", "spirit", "spellPower", "spellPenetration", "mp5" }
 )
+-- Paladin specs: holy healer vs protection tank vs retribution DPS.
+local S_PALADIN_HOLY = Stats(
+	{ "intellect", "spirit", "spellPower", "critRating", "hasteRating", "mp5" },
+	{ "stamina" },
+	{ "strength", "agility", "attackPower", "hitRating" },
+	{ "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue" }
+)
+local S_PALADIN_PROT = Stats(
+	{ "strength", "agility", "stamina", "hitRating", "expertiseRating", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor" },
+	{ "attackPower", "critRating", "hasteRating", "armorPenetration" },
+	{ "intellect", "spirit", "spellPower" },
+	{ "spellPenetration", "mp5" }
+)
+local S_PALADIN_RET = Stats(
+	{ "strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration" },
+	{ "intellect", "stamina", "spellPower", "armor" },
+	{ "spirit" },
+	{ "spellPenetration", "mp5" }
+)
 
 local W_1H_SHIELD = Weapons(
 	{ "sword1h", "axe1h", "mace1h", "shield" },
@@ -346,9 +365,9 @@ local PROFILES = {
 	["WARRIOR-3"] = Profile("Protection", A_PLATE_TANK, S_PHYS_TANK, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinkets = T_TANK }),
 
 	-- Paladin
-	["PALADIN-1"] = Profile("Holy", A_PLATE_DPS, S_HEALER, W_1H_SHIELD, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield", trinkets = T_HEALER }),
-	["PALADIN-2"] = Profile("Protection", A_PLATE_TANK, S_PHYS_TANK, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinkets = T_TANK }),
-	["PALADIN-3"] = Profile("Retribution", A_PLATE_DPS, S_RET, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
+	["PALADIN-1"] = Profile("Holy", A_PLATE_DPS, S_PALADIN_HOLY, W_1H_SHIELD, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield", trinkets = T_HEALER }),
+	["PALADIN-2"] = Profile("Protection", A_PLATE_TANK, S_PALADIN_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinkets = T_TANK }),
+	["PALADIN-3"] = Profile("Retribution", A_PLATE_DPS, S_PALADIN_RET, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
 
 	-- Hunter
 	["HUNTER-1"] = Profile("Beast Mastery", A_MAIL, S_HUNTER, W_HUNTER, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_HUNTER }),
