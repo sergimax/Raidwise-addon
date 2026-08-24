@@ -260,17 +260,25 @@ local function EvaluateWeaponSetup(findings, profile, equipment)
 			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "two-hand setup should leave off-hand empty"))
 		end
 	elseif setup == "1h_shield" then
-		if not SlotHasItem(oh) then
-			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects a shield"))
-		elseif not ItemIsShield(oh.item) then
-			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects a shield"))
-		end
 		if SlotHasItem(mh) and ItemIsTwoHand(mh.item) then
-			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "mainHand", Msg("WEAPON_SETUP", "expects a one-hand weapon with shield"))
+			-- Staff / other 2H is a temporary healer variant; off-hand must stay empty.
+			if SlotHasItem(oh) then
+				AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "two-hand setup should leave off-hand empty"))
+			end
+		else
+			if not SlotHasItem(oh) then
+				AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects a shield"))
+			elseif not ItemIsShield(oh.item) then
+				AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects a shield"))
+			end
 		end
 	elseif setup == "1h_shield_or_oh" then
-		-- Resto Shaman: shield preferred; SP/haste/crit held OH (no spirit/hit) also fine.
-		if not SlotHasItem(oh) then
+		-- Resto Shaman: shield preferred; SP/haste/crit held OH (no spirit/hit) also fine; 2H staff ok.
+		if SlotHasItem(mh) and ItemIsTwoHand(mh.item) then
+			if SlotHasItem(oh) then
+				AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "two-hand setup should leave off-hand empty"))
+			end
+		elseif not SlotHasItem(oh) then
 			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects a shield or off-hand"))
 		elseif ItemIsShield(oh.item) then
 			-- ok
@@ -288,17 +296,18 @@ local function EvaluateWeaponSetup(findings, profile, equipment)
 		elseif not ItemIsWeapon(oh.item) then
 			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects a shield or off-hand"))
 		end
-		if SlotHasItem(mh) and ItemIsTwoHand(mh.item) then
-			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "mainHand", Msg("WEAPON_SETUP", "expects a one-hand weapon"))
-		end
 	elseif setup == "1h_oh" then
-		if not SlotHasItem(oh) then
-			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects an off-hand"))
-		elseif ItemIsShield(oh.item) then
-			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "shield is not used for this setup"))
-		end
+		-- 1H+OH preferred; 2H staff is an acceptable temporary healer/caster variant.
 		if SlotHasItem(mh) and ItemIsTwoHand(mh.item) then
-			AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "mainHand", Msg("WEAPON_SETUP", "expects a one-hand weapon with off-hand"))
+			if SlotHasItem(oh) then
+				AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "two-hand setup should leave off-hand empty"))
+			end
+		else
+			if not SlotHasItem(oh) then
+				AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "expects an off-hand"))
+			elseif ItemIsShield(oh.item) then
+				AddFinding(findings, "WEAPON_SETUP", "soft", "weapon", "offHand", Msg("WEAPON_SETUP", "shield is not used for this setup"))
+			end
 		end
 	end
 end
@@ -1807,6 +1816,24 @@ function Addon:GearCheckRulesSelfTest()
 	Check("resto sham held OH → not MISSING_ENCHANT", not HasCodeOnSlot(fRestoSham, "MISSING_ENCHANT", "offHand"))
 	Check("resto sham held OH (no spirit/hit) → not WEAPON_SETUP", not HasCode(fRestoSham, "WEAPON_SETUP"))
 	Check("resto sham held OH → GOOD", restoSham.equipment[3].verdict == "GOOD")
+
+	-- Resto Druid: 2H staff with empty OH is an acceptable temporary variant
+	local restoStaff = {
+		character = { classFile = "DRUID", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("mainHand", "MainHandSlot", MakeItem({
+				itemId = 54806,
+				category = "weapon",
+				weaponType = "staff",
+				stats = { intellect = 92, spellPower = 550, critRating = 80, hasteRating = 80 },
+				enchant = { enchantId = 3854, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("offHand", "SecondaryHandSlot", nil),
+		},
+	}
+	local fRestoStaff = self:EvaluateGearCheck(restoStaff)
+	Check("resto druid 2H staff → not WEAPON_SETUP", not HasCode(fRestoStaff, "WEAPON_SETUP"))
+	Check("resto druid 2H staff → GOOD", restoStaff.equipment[1].verdict == "GOOD")
 
 	local profileCount = 0
 	if self.GetGearCheckProfileCount then
