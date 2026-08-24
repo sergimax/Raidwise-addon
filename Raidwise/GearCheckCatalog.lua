@@ -6,10 +6,10 @@ local Addon = Raidwise
 -- maxLevel: Northrend (or best-in-slot-ish) enchants. stats used for appropriateness only.
 local ENCHANTS = {
 	-- Chest
-	[3832] = { name = "Powerful Stats", maxLevel = true, stats = { strength = 10, agility = 10, stamina = 10, intellect = 10, spirit = 10 } },
+	[3832] = { name = "Powerful Stats", maxLevel = true, allStats = true, stats = { strength = 10, agility = 10, stamina = 10, intellect = 10, spirit = 10 } },
 	[3297] = { name = "Super Health", maxLevel = true, stats = { } },
 	[3245] = { name = "Exceptional Resilience", maxLevel = true, stats = { resilience = 20 } },
-	[3252] = { name = "Super Stats", maxLevel = false, stats = { strength = 8, agility = 8, stamina = 8, intellect = 8, spirit = 8 } },
+	[3252] = { name = "Super Stats", maxLevel = false, allStats = true, stats = { strength = 8, agility = 8, stamina = 8, intellect = 8, spirit = 8 } },
 	[3233] = { name = "Mighty Health", maxLevel = false, stats = {} },
 	[3236] = { name = "Greater Defense", maxLevel = false, stats = { defenseRating = 22 } },
 	-- Cloak
@@ -126,7 +126,7 @@ local GEMS = {
 	[41375] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Tireless
 	[41382] = { maxLevel = true, color = "meta", stats = { spellPower = 21 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Trenchant
 	-- Prismatic
-	[49110] = { maxLevel = true, color = "prismatic", stats = { strength = 10, agility = 10, stamina = 10, intellect = 10, spirit = 10 } },
+	[49110] = { maxLevel = true, color = "prismatic", allStats = true, stats = { strength = 10, agility = 10, stamina = 10, intellect = 10, spirit = 10 } },
 	-- Sample epic reds / yellows / blues (ICC cut) — enough for maxLevel checks
 	[40111] = { maxLevel = true, color = "red", stats = { strength = 20 } },
 	[40112] = { maxLevel = true, color = "red", stats = { agility = 20 } },

@@ -247,7 +247,7 @@ local function EvaluateEnchant(findings, profile, slot)
 	if info.maxLevel ~= true then
 		AddFinding(findings, "ENCHANT_LOWER_LEVEL", "soft", "enchant", slot.key, Msg("ENCHANT_LOWER_LEVEL", info.name or tostring(enchant.enchantId)))
 	end
-	if type(info.stats) == "table" then
+	if type(info.stats) == "table" and not info.allStats then
 		for statId, amount in pairs(info.stats) do
 			if tonumber(amount) and tonumber(amount) > 0 then
 				if statId == "resilience" then
@@ -300,7 +300,7 @@ local function EvaluateGems(findings, profile, slot)
 		elseif catalog.maxLevel ~= true then
 			AddFinding(findings, "GEM_LOWER_LEVEL", "soft", "gem", slot.key, Msg("GEM_LOWER_LEVEL", tostring(gem.itemId)))
 		end
-		if type(stats) == "table" then
+		if type(stats) == "table" and not (catalog and catalog.allStats) then
 			for statId, amount in pairs(stats) do
 				if tonumber(amount) and tonumber(amount) > 0 then
 					if statId == "resilience" then
@@ -1098,6 +1098,27 @@ function Addon:GearCheckRulesSelfTest()
 	local fLeg = self:EvaluateGearCheck(iceLeg)
 	Check("icescale legs → not ENCHANT_NOT_CHECKABLE", not HasCode(fLeg, "ENCHANT_NOT_CHECKABLE"))
 	Check("icescale legs → not ENCHANT_LOWER_LEVEL", not HasCode(fLeg, "ENCHANT_LOWER_LEVEL"))
+
+	-- +10 all stats chest enchant / Nightmare Tear: spirit is packaged, not a bad pick
+	local allStats = {
+		character = { classFile = "SHAMAN", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 25,
+				category = "armor",
+				armorType = "mail",
+				stats = { agility = 80, intellect = 50, attackPower = 100 },
+				enchant = { enchantId = 3832, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 1, total = 1, empty = 0 },
+				gems = {
+					{ socketIndex = 1, itemId = 49110, present = true, known = true, isMeta = false, color = "prismatic", stats = { strength = 10, agility = 10, stamina = 10, intellect = 10, spirit = 10 }, gaps = {} },
+				},
+			})),
+		},
+	}
+	local fAll = self:EvaluateGearCheck(allStats)
+	Check("powerful stats chest → not ENCHANT_BAD_STAT", not HasCode(fAll, "ENCHANT_BAD_STAT"))
+	Check("nightmare tear → not GEM_BAD_STAT", not HasCode(fAll, "GEM_BAD_STAT"))
 
 	local profileCount = 0
 	if self.GetGearCheckProfileCount then
