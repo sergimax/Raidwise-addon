@@ -53,7 +53,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 8` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 9` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | Gear check (raid) | `LAYOUT_VERSION = 1` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -211,7 +211,7 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Gear check (target)
 
-Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, Scan, Save report, Delete selected, scrollable saved list, Show as a text, Select all. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
+Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, Scan, Show as a text, Select all (top band), then Save report, Delete selected report, scrollable saved list. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
 
 ```text
 [ short description — full width ]
@@ -221,17 +221,17 @@ LEFT (~670px)                          RIGHT (~220px)
 [ summary: Overall / who / GS+iLvl … ]  [ status line 1 ]
                                         [ status line 2 … ]
                                         [ Scan ]
+                                        [ Show as a text ]
+                                        [ Select all ]
 
 [ Report summary | … | Report OK ]
 [ All | Items | Enchants | Gems | OK ]
 
 [ scrollable findings by slot ]         [ Save report ]
-                                        [ Delete selected ]
+                                        [ Delete selected report ]
                                         [ Saved reports (~14 days) — scroll ]
-                                        [ Show as a text ]
-                                        [ Select all ]
 
-(Show as a text → full-width raw dump copy box instead of columns above)
+(Show as a text → raw dump copy box below top band; text view + Select all stay in top band)
 ```
 
 | Block | In-game text / control |
@@ -241,18 +241,18 @@ LEFT (~670px)                          RIGHT (~220px)
 | summary (left) | Overall status (colored), character line, GearScore / avg iLvl, issue counts, meta, sets |
 | status (right) | Multi-line hint or scan result (`\n` breaks + word wrap); sits above Scan |
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI |
+| Show as a text | Toggles raw dump (replaces main columns; stays in top band) |
+| Select all | Enabled in text view when dump has text |
 | report buttons | Print to **self chat only** (`[GearCheck]` lines) |
 | filters | All / Items / Enchants / Gems / **OK** |
 | breakdown (left) | Active filter name as gold header (except **All**); then `[VERDICT] Slot — Item` plus finding bullets |
 | Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved |
-| Delete selected | Removes the currently viewed saved entry |
+| Delete selected report | Removes the currently viewed saved entry |
 | saved panel (right) | Scrollable list of all saved entries; click loads frozen snapshot |
-| Show as a text | Toggles raw dump (replaces both columns) |
-| Select all | Enabled in text view when dump has text |
 
-`LAYOUT_VERSION = 8`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
+`LAYOUT_VERSION = 9`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
 
-Saved snapshot fields: `rulesetVersion` (`wotlk-3.3.5a-{addonVersion}`), `dataVersion` (`GEAR_CHECK_DATA_VERSION` in catalog). Expired entries prune on load/save. **Show as a text** and **Select all** stay pinned at the bottom of the right column even in text view.
+Saved snapshot fields: `rulesetVersion` (`wotlk-3.3.5a-{addonVersion}`), `dataVersion` (`GEAR_CHECK_DATA_VERSION` in catalog). Expired entries prune on load/save.
 
 ## Gear check (raid)
 

@@ -6,10 +6,13 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 8
+local LAYOUT_VERSION = 9
 
 local RIGHT_COL_W = 220
 local COL_GAP = 10
+local SUMMARY_H = 124
+local RIGHT_TOP_H = UI.ACTION_BTN_H * 3 + 12 + 44
+local TOP_BLOCK_H = math.max(SUMMARY_H, RIGHT_TOP_H)
 
 local ApplyReportToPage
 local RefreshSavedList
@@ -345,19 +348,29 @@ local function UpdateDebugVisibility(page)
 		end
 	end
 	if page.rightTop then
+		page.rightTop:Show()
+	end
+	if page.statusLabel then
 		if debug then
-			page.rightTop:Hide()
+			page.statusLabel:Hide()
 		else
-			page.rightTop:Show()
+			page.statusLabel:Show()
+		end
+	end
+	if page.scanBtn then
+		if debug then
+			page.scanBtn:Hide()
+		else
+			page.scanBtn:Show()
 		end
 	end
 	if page.copyHost then
 		if debug then
 			page.copyHost:Show()
 			page.copyHost:ClearAllPoints()
-			page.copyHost:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
-			local bottomH = (page.bottomHost and page.bottomHost:GetHeight()) or (UI.ACTION_BTN_H * 2 + 4)
-			page.copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, bottomH + 4)
+			local blockH = page.topBlockH or TOP_BLOCK_H
+			page.copyHost:SetPoint("TOPLEFT", page.limit, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS - blockH - 8)
+			page.copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 		else
 			page.copyHost:Hide()
 		end
@@ -785,20 +798,40 @@ local function CreateGearCheckTargetPage(parent)
 	local summaryHost = CreateFrame("Frame", nil, page)
 	summaryHost:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", 0, topY)
 	summaryHost:SetWidth(leftW)
-	summaryHost:SetHeight(124)
+	summaryHost:SetHeight(SUMMARY_H)
 	W.ApplyPlainPanel(summaryHost, UI.PANEL_BG)
 	page.summaryHost = summaryHost
 
-	-- Right top: status + Scan
+	-- Right top: status, Scan, text view, select all
 	local rightTop = CreateFrame("Frame", nil, page)
 	rightTop:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", leftW + COL_GAP, topY)
 	rightTop:SetWidth(RIGHT_COL_W)
-	rightTop:SetHeight(124)
+	rightTop:SetHeight(RIGHT_TOP_H)
 	page.rightTop = rightTop
 
+	local selectBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("BTN_SELECT_ALL"))
+	selectBtn:SetPoint("BOTTOMLEFT", 0, 0)
+	selectBtn:SetPoint("BOTTOMRIGHT", rightTop, "BOTTOMRIGHT", 0, 0)
+	selectBtn:Disable()
+	selectBtn:SetScript("OnClick", function()
+		if Addon.SelectGearCheckDump then
+			Addon:SelectGearCheckDump()
+		end
+	end)
+	page.selectBtn = selectBtn
+
+	local debugBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_TEXT_VIEW"))
+	debugBtn:SetPoint("BOTTOMLEFT", selectBtn, "TOPLEFT", 0, 4)
+	debugBtn:SetPoint("BOTTOMRIGHT", selectBtn, "TOPRIGHT", 0, 4)
+	debugBtn:SetScript("OnClick", function()
+		page.debugMode = not page.debugMode
+		UpdateDebugVisibility(page)
+	end)
+	page.debugBtn = debugBtn
+
 	local scanBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
-	scanBtn:SetPoint("BOTTOMLEFT", 0, 0)
-	scanBtn:SetPoint("BOTTOMRIGHT", rightTop, "BOTTOMRIGHT", 0, 0)
+	scanBtn:SetPoint("BOTTOMLEFT", debugBtn, "TOPLEFT", 0, 4)
+	scanBtn:SetPoint("BOTTOMRIGHT", debugBtn, "TOPRIGHT", 0, 4)
 	scanBtn:SetScript("OnClick", function()
 		RunScan(page)
 	end)
@@ -813,6 +846,8 @@ local function CreateGearCheckTargetPage(parent)
 	statusLabel:SetNonSpaceWrap(false)
 	statusLabel:SetText(W.T("GEAR_CHECK_HINT"))
 	page.statusLabel = statusLabel
+
+	page.topBlockH = TOP_BLOCK_H
 
 	local overallLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	overallLabel:SetPoint("TOPLEFT", 8, -8)
@@ -857,9 +892,9 @@ local function CreateGearCheckTargetPage(parent)
 	W.SetFontColor(summaryNote, UI.TEXT_DISABLED)
 	page.summaryNote = summaryNote
 
-	-- Self-chat report buttons (left column)
+	-- Self-chat report buttons (left column; below taller top block)
 	local reportHost = CreateFrame("Frame", nil, page)
-	reportHost:SetPoint("TOPLEFT", summaryHost, "BOTTOMLEFT", 0, -8)
+	reportHost:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", 0, topY - TOP_BLOCK_H - 8)
 	reportHost:SetWidth(leftW)
 	reportHost:SetHeight(UI.ACTION_BTN_H)
 	page.reportHost = reportHost
@@ -907,37 +942,10 @@ local function CreateGearCheckTargetPage(parent)
 	end
 	SetFilterSelected(page, "all")
 
-	-- Right sidebar bottom: text view + select all (always visible for toggle back)
-	local bottomHost = CreateFrame("Frame", nil, page)
-	bottomHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
-	bottomHost:SetWidth(RIGHT_COL_W)
-	bottomHost:SetHeight(UI.ACTION_BTN_H * 2 + 4)
-	page.bottomHost = bottomHost
-
-	local selectBtn = W.CreatePlainButton(bottomHost, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("BTN_SELECT_ALL"))
-	selectBtn:SetPoint("BOTTOMLEFT", 0, 0)
-	selectBtn:SetPoint("BOTTOMRIGHT", bottomHost, "BOTTOMRIGHT", 0, 0)
-	selectBtn:Disable()
-	selectBtn:SetScript("OnClick", function()
-		if Addon.SelectGearCheckDump then
-			Addon:SelectGearCheckDump()
-		end
-	end)
-	page.selectBtn = selectBtn
-
-	local debugBtn = W.CreatePlainButton(bottomHost, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_TEXT_VIEW"))
-	debugBtn:SetPoint("BOTTOMLEFT", selectBtn, "TOPLEFT", 0, 4)
-	debugBtn:SetPoint("BOTTOMRIGHT", selectBtn, "TOPRIGHT", 0, 4)
-	debugBtn:SetScript("OnClick", function()
-		page.debugMode = not page.debugMode
-		UpdateDebugVisibility(page)
-	end)
-	page.debugBtn = debugBtn
-
 	-- Right sidebar: save, delete, saved list (aligned with breakdown)
 	local rightSidebar = CreateFrame("Frame", nil, page)
 	rightSidebar:SetPoint("TOPLEFT", filterHost, "BOTTOMLEFT", leftW + COL_GAP, -6)
-	rightSidebar:SetPoint("BOTTOMRIGHT", bottomHost, "TOPRIGHT", 0, 4)
+	rightSidebar:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 	page.rightSidebar = rightSidebar
 
 	local saveBtn = W.CreatePlainButton(rightSidebar, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVE"))
@@ -1097,7 +1105,7 @@ local function CreateGearCheckTargetPage(parent)
 		"RaidwiseGearCheckBoxV" .. tostring(LAYOUT_VERSION)
 	)
 	copyHost:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
-	copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, -(UI.ACTION_BTN_H * 2 + 8))
+	copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 	copyHost:Hide()
 	page.dumpBox = dumpBox
 	page.copyHost = copyHost

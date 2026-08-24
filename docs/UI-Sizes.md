@@ -153,17 +153,17 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
-Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right: status + **Scan** (top band), then **Save report**, **Delete selected**, scrollable saved list, **Show as a text**, **Select all**. Text view replaces both columns with multiline dump. `LAYOUT_VERSION = 8`.
+Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**~144** px): multi-line status, **Scan**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 9`.
 
 | Element | Size | Notes |
 |---------|------|-------|
 | Left column | **~670** px | `innerW − RIGHT_COL_W − COL_GAP` |
-| Right column | **220** px | Status/Scan band + sidebar stack |
-| Summary (left) | height **124** | Aligns vertically with status/Scan band |
+| Right column | **220** px | Top band + saved sidebar |
+| Summary (left) | height **124** | Top block; report row below `max(124, right top)` |
+| Right top band | height **~144** | Status + 3 stacked buttons |
 | Report / filter rows | left width only | Five equal buttons each |
 | Breakdown | left, fills height | Slot groups with verdict color |
 | Saved list | right sidebar below delete | Scroll + vertical bar; all entries (not capped) |
-| Sidebar bottom | **2 ×** button height + gap | Show as a text, then Select all |
 
 ## Gear check (raid) tab
 

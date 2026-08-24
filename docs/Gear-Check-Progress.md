@@ -322,7 +322,7 @@ Chat reports, real UI breakdown, catalog false-positive fixes (see backlog). Soc
 - [x] Filters: All / Items / Enchants / Gems with explainable findings per slot
 - [x] Verdict coloring: BAD red, REPLACE gold, OK idle
 - [x] Raw dump via **Show as a text** (Select all works in text view)
-- [x] `LAYOUT_VERSION = 8` (two-column layout: left findings, right status/scan/saved)
+- [x] `LAYOUT_VERSION = 9` (two-column layout; text view + Select all in top band)
 - [x] Locale chrome (findings messages stay EN)
 
 ### How to test
@@ -406,7 +406,7 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 - [x] `RaidwiseDB.gearCheckSaved` — not auto-persisted on scan
 - [x] ~14-day retention; prune on load and save
 - [x] `rulesetVersion` + `dataVersion` on each entry
-- [x] Target UI: **Save report**, scrollable saved list (load), **Delete selected**
+- [x] Target UI: **Save report**, scrollable saved list (load), **Delete selected report**
 - [x] Loaded snapshot is frozen (no re-evaluate with current rules)
 - [x] Self-test merged into `/rw gearcheck test`
 
@@ -414,7 +414,7 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 
 1. Scan a player → **Save report** → chat confirms save.
 2. `/reload` → open Gear check → saved row still listed → click loads snapshot.
-3. **Delete selected** removes entry; live scan unchanged.
+3. **Delete selected report** removes entry; live scan unchanged.
 4. `/rw gearcheck test` — saved-report checks pass.
 
 ---
