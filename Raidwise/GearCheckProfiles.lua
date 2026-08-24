@@ -201,6 +201,7 @@ local T_CASTER = {
 local T_HEALER = {
 	54573, 54589, -- Glowing Twilight Scale
 	50359, 50366, -- Althor's Abacus
+	50358, -- Purified Lunar Dust
 	47041, 47059, 47271, 47432, -- Solace of the Fallen / Defeated
 	48724, -- Talisman of Resurgence
 	46051, -- Meteorite Crystal

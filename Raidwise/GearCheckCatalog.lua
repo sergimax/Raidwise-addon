@@ -25,6 +25,7 @@ local ENCHANTS = {
 	[1075] = { name = "Greater Fortitude", maxLevel = true, stats = { stamina = 22 } },
 	[3826] = { name = "Icewalker", maxLevel = true, stats = { hitRating = 12, critRating = 12 } },
 	[1597] = { name = "Greater Assault", maxLevel = true, stats = { attackPower = 32 } },
+	[1147] = { name = "Greater Spirit", maxLevel = true, stats = { spirit = 18 } },
 	[983] = { name = "Superior Agility", maxLevel = false, stats = { agility = 16 } },
 	-- Bracers
 	[3850] = { name = "Major Stamina", maxLevel = true, stats = { stamina = 40 } },
@@ -41,6 +42,7 @@ local ENCHANTS = {
 	[3827] = { name = "Massacre", maxLevel = true, stats = {} },
 	[3833] = { name = "Superior Potency", maxLevel = true, stats = { attackPower = 65 } },
 	[3834] = { name = "Mighty Spellpower", maxLevel = true, stats = { spellPower = 63 } },
+	[3854] = { name = "Greater Spellpower (staff)", maxLevel = true, stats = { spellPower = 81 } },
 	[3847] = { name = "Rune of the Stoneskin Gargoyle", maxLevel = true, stats = { defenseRating = 25 } },
 	[3368] = { name = "Rune of the Fallen Crusader", maxLevel = true, stats = {} },
 	[3369] = { name = "Rune of Cinderglacier", maxLevel = true, stats = {} },
@@ -180,7 +182,7 @@ local GEMS = {
 	[40152] = { maxLevel = true, color = "orange", stats = { spellPower = 12, intellect = 10 } },
 	[40153] = { maxLevel = true, color = "orange", stats = { attackPower = 20, hitRating = 10 } },
 	[40154] = { maxLevel = true, color = "orange", stats = { spellPower = 12, resilience = 10 } },
-	[40155] = { maxLevel = true, color = "orange", stats = { attackPower = 20, hasteRating = 10 } },
+	[40155] = { maxLevel = true, color = "orange", stats = { spellPower = 12, hasteRating = 10 } }, -- Reckless
 	[40157] = { maxLevel = true, color = "orange", stats = { attackPower = 20, critRating = 10 } },
 	[40158] = { maxLevel = true, color = "orange", stats = { attackPower = 20, expertiseRating = 10 } },
 	[40159] = { maxLevel = true, color = "orange", stats = { agility = 10, hasteRating = 10 } },

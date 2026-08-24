@@ -305,13 +305,15 @@ local function EvaluateItemStats(findings, profile, slot)
 end
 
 local function EnchantableSlot(slot)
-	if ENCHANTABLE[slot.key] or ENCHANT_OPTIONAL[slot.key] then
-		-- fall through for present-enchant checks; MISSING uses ENCHANTABLE only
-	else
+	if not (ENCHANTABLE[slot.key] or ENCHANT_OPTIONAL[slot.key]) then
 		return false
 	end
 	local item = slot.item
 	if not item then
+		return false
+	end
+	-- Wands cannot be enchanted in WotLK.
+	if item.weaponType == "wand" then
 		return false
 	end
 	if slot.key == "offHand" then
@@ -321,6 +323,13 @@ local function EnchantableSlot(slot)
 		return item.category == "weapon"
 	end
 	return true
+end
+
+local function SlotRequiresEnchantForGood(slot)
+	if not ENCHANTABLE[slot.key] then
+		return false
+	end
+	return EnchantableSlot(slot)
 end
 
 local function EvaluateEnchant(findings, profile, slot)
@@ -842,7 +851,7 @@ local function CollectNotGoodReasons(profile, slot, findings)
 			reasons[#reasons + 1] = "Item type is not preferred for this specialization."
 		end
 	end
-	if ENCHANTABLE[slot.key] then
+	if SlotRequiresEnchantForGood(slot) then
 		if not item.enchant or not item.enchant.present then
 			reasons[#reasons + 1] = "Missing a max-level enchant (required for GOOD)."
 		elseif not EnchantIsMaxLevel(item.enchant) then
@@ -1636,6 +1645,61 @@ function Addon:GearCheckRulesSelfTest()
 	}
 	local fTank = self:EvaluateGearCheck(tankLeather)
 	Check("prot leather wrist → ARMOR_DISCOURAGED", HasCode(fTank, "ARMOR_DISCOURAGED"))
+
+	-- Disc priest: Reckless Ametrine (SP+haste), Greater Spirit boots, Lunar Dust,
+	-- staff Greater Spellpower, wand without enchant.
+	local discFix = {
+		character = { classFile = "PRIEST", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("waist", "WaistSlot", MakeItem({
+				itemId = 60,
+				category = "armor",
+				armorType = "cloth",
+				stats = { intellect = 40, spellPower = 60, spirit = 30 },
+				sockets = { meta = 0, red = 0, yellow = 1, blue = 0, prismatic = 0, total = 1, empty = 0 },
+				gems = { { itemId = 40155, color = "orange", isMeta = false } },
+			})),
+			MakeSlot("feet", "FeetSlot", MakeItem({
+				itemId = 61,
+				category = "armor",
+				armorType = "cloth",
+				stats = { intellect = 40, spellPower = 60, spirit = 30 },
+				enchant = { enchantId = 1147, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("trinket2", "Trinket1Slot", MakeItem({
+				itemId = 50358,
+				category = "armor",
+				armorType = "misc",
+				stats = { spellPower = 179 },
+			})),
+			MakeSlot("mainHand", "MainHandSlot", MakeItem({
+				itemId = 62,
+				category = "weapon",
+				weaponType = "staff",
+				stats = { intellect = 80, spellPower = 200, spirit = 60 },
+				enchant = { enchantId = 3854, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 2, yellow = 0, blue = 0, prismatic = 0, total = 2, empty = 0 },
+				gems = {
+					{ itemId = 40155, color = "orange", isMeta = false },
+					{ itemId = 40155, color = "orange", isMeta = false },
+				},
+			})),
+			MakeSlot("ranged", "RangedSlot", MakeItem({
+				itemId = 63,
+				category = "weapon",
+				weaponType = "wand",
+				stats = { intellect = 20, spellPower = 40, spirit = 20 },
+				enchant = { enchantId = 0, present = false, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fDisc = self:EvaluateGearCheck(discFix)
+	Check("disc Reckless Ametrine → not GEM_BAD_STAT", not HasCode(fDisc, "GEM_BAD_STAT"))
+	Check("disc Greater Spirit boots → not ENCHANT_NOT_CHECKABLE", not HasCode(fDisc, "ENCHANT_NOT_CHECKABLE"))
+	Check("disc Purified Lunar Dust → not TRINKET_NOT_PREFERRED", not HasCode(fDisc, "TRINKET_NOT_PREFERRED"))
+	Check("disc staff Greater Spellpower → not ENCHANT_NOT_CHECKABLE", not HasCodeOnSlot(fDisc, "ENCHANT_NOT_CHECKABLE", "mainHand"))
+	Check("disc wand → not MISSING_ENCHANT", not HasCodeOnSlot(fDisc, "MISSING_ENCHANT", "ranged"))
+	Check("disc wand → GOOD (no enchant required)", discFix.equipment[5].verdict == "GOOD")
 
 	local profileCount = 0
 	if self.GetGearCheckProfileCount then
