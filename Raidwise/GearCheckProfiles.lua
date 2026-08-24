@@ -186,6 +186,8 @@ local T_PHYS = {
 	50355, -- Herkuml War Token
 	47131, 47464, -- Death's Choice / Verdict (ToC)
 	47303, 47115, -- Death's Verdict variants
+	-- Entry / mid-tier
+	50198, -- Needle-Encrusted Scorpion
 }
 local T_HUNTER = {
 	50362, 50363,
@@ -231,6 +233,7 @@ local T_TANK = {
 local T_ENHANCE = {
 	50362, 50363, 54569, 54590, 50355,
 	54572, 54588, 50360, 50365,
+	50198, -- Needle-Encrusted Scorpion
 }
 
 local function Profile(name, armor, stats, weapons, metaPreferred, opts)
