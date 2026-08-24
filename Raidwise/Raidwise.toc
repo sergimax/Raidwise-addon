@@ -23,6 +23,7 @@ GearCheckCatalog.lua
 GearCheckSets.lua
 GearCheckProfiles.lua
 GearCheckRules.lua
+GearCheckSavedReports.lua
 GearCheck.lua
 PageCooldowns.lua
 PageExport.lua

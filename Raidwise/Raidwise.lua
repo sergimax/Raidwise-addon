@@ -41,6 +41,10 @@ local defaults = {
 		hideCommunity = false,
 		hideCommunityTags = false,
 	},
+	gearCheckSaved = {
+		nextId = 0,
+		reports = {},
+	},
 }
 
 -- Recursively copy a value (tables become independent copies).
@@ -70,6 +74,9 @@ local function EnsureDB()
 		end
 	end
 	Addon.db = RaidwiseDB
+	if Addon.PruneExpiredGearCheckReports then
+		Addon:PruneExpiredGearCheckReports()
+	end
 end
 
 -- Print a prefixed message to the default chat frame.

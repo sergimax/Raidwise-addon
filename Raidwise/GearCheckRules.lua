@@ -1841,6 +1841,13 @@ function Addon:GearCheckRulesSelfTest()
 	end
 	Check("profiles cover 30 specs + 10 class fallbacks", profileCount == 40)
 
+	if self.GearCheckSavedReportsSelfTest then
+		local savedResults = self:GearCheckSavedReportsSelfTest()
+		for index = 1, #savedResults do
+			results[#results + 1] = savedResults[index]
+		end
+	end
+
 	local passed = 0
 	for index = 1, #results do
 		if results[index].ok then

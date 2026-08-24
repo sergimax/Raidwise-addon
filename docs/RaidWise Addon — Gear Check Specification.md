@@ -856,54 +856,33 @@ This makes the rules independently testable.
 
 ---
 
-# 25. Saved Reports — BACKLOG
+# 25. Saved Reports
 
-Do NOT implement persistent Gear Check reports in the initial version.
+Manual save only — scans are **not** auto-persisted.
 
-Future functionality:
+Implemented in `GearCheckSavedReports.lua` + **Gear check (target)** UI:
 
-- user manually saves a Gear Check report;
-- report is associated with the scanned character;
-- report contains the report creation date;
-- report contains the gear snapshot;
-- report remains available for approximately 14 days;
-- expired reports are deleted.
-
-The addon should not automatically persist every scan.
-
-The user must explicitly choose to save a report.
+- user presses **Save report** after a scan;
+- report is keyed to the scanned character (GUID, or name-realm);
+- snapshot includes full evaluated report + `savedAt` / `expiresAt` (~14 days);
+- expired entries are pruned on load and save;
+- saved list supports load (frozen snapshot) and delete.
 
 ---
 
-# 26. Ruleset Versioning — BACKLOG
+# 26. Ruleset Versioning
 
-When saved reports are eventually implemented, every saved report should contain a ruleset version.
+Every saved report stores `rulesetVersion`, e.g. `wotlk-3.3.5a-1.15.0` (WotLK + addon version).
 
-Example:
-
-```text
-rulesetVersion: "wotlk-3.3.5a-1.0"
-```
-
-This is required so that historical reports can be interpreted correctly after rules are changed.
-
-Do NOT implement persistence or ruleset versioning in the initial Gear Check implementation.
+This allows historical reports to be interpreted after rules change.
 
 ---
 
-# 27. Data Versioning — BACKLOG
+# 27. Data Versioning
 
-When saved reports are eventually implemented, every saved report should also contain a data version.
+Every saved report stores `dataVersion` (catalog revision, e.g. `catalog-2026-08-24` from `GEAR_CHECK_DATA_VERSION`).
 
-Example:
-
-```text
-dataVersion: "..."
-```
-
-This allows the system to distinguish reports generated using different versions of item, enchant, gem or other game data.
-
-Do NOT implement persistence or data versioning in the initial Gear Check implementation.
+This distinguishes snapshots taken under different enchant/gem catalog seeds.
 
 ---
 

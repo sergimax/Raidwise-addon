@@ -6,7 +6,10 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 6
+local LAYOUT_VERSION = 7
+
+local ApplyReportToPage
+local RefreshSavedList
 
 local FILTERS = {
 	{ id = "all", labelKey = "GEAR_CHECK_FILTER_ALL" },
@@ -306,6 +309,13 @@ local function UpdateDebugVisibility(page)
 			page.breakHost:Show()
 		end
 	end
+	if page.savedHost then
+		if debug then
+			page.savedHost:Hide()
+		else
+			page.savedHost:Show()
+		end
+	end
 	if page.copyHost then
 		if debug then
 			page.copyHost:Show()
@@ -322,6 +332,124 @@ local function UpdateDebugVisibility(page)
 		else
 			page.selectBtn:Disable()
 		end
+	end
+	if page.saveBtn then
+		if page.lastReport and not page.debugMode then
+			page.saveBtn:Enable()
+		else
+			page.saveBtn:Disable()
+		end
+	end
+	if page.savedDeleteBtn then
+		if page.viewingSavedId then
+			page.savedDeleteBtn:Enable()
+		else
+			page.savedDeleteBtn:Disable()
+		end
+	end
+end
+
+local function EnsureSavedRows(page, needed)
+	page.savedRows = page.savedRows or {}
+	while #page.savedRows < needed do
+		local row = W.CreatePlainButton(page.savedContent, 200, 20, "")
+		row:SetScript("OnClick", function(self)
+			if self.savedId and page then
+				local entry = Addon.GetGearCheckSavedReport and Addon:GetGearCheckSavedReport(self.savedId)
+				if entry and entry.report then
+					ApplyReportToPage(page, entry.report, "saved", entry)
+				end
+			end
+		end)
+		page.savedRows[#page.savedRows + 1] = row
+	end
+	for index = needed + 1, #page.savedRows do
+		page.savedRows[index]:Hide()
+	end
+end
+
+RefreshSavedList = function(page)
+	if not page or not page.savedContent then
+		return
+	end
+	local list = Addon.ListGearCheckSavedReports and Addon:ListGearCheckSavedReports() or {}
+	local innerW = W.ContentInnerWidth()
+	local rowW = math.max(100, innerW - 16)
+	if #list == 0 then
+		EnsureSavedRows(page, 0)
+		if page.savedEmptyLabel then
+			page.savedEmptyLabel:Show()
+		end
+		page.savedContent:SetHeight(18)
+		return
+	end
+	if page.savedEmptyLabel then
+		page.savedEmptyLabel:Hide()
+	end
+	local maxRows = math.min(#list, 4)
+	EnsureSavedRows(page, maxRows)
+	local y = 0
+	for index = 1, maxRows do
+		local entry = list[index]
+		local row = page.savedRows[index]
+		row:SetWidth(rowW)
+		row:ClearAllPoints()
+		row:SetPoint("TOPLEFT", page.savedContent, "TOPLEFT", 0, y)
+		row.savedId = entry.id
+		local label = Addon.FormatGearCheckSavedLabel and Addon:FormatGearCheckSavedLabel(entry) or entry.id
+		if page.viewingSavedId == entry.id then
+			label = "> " .. label
+		end
+		if row.label then
+			row.label:SetText(label)
+		end
+		row:Show()
+		y = y - 22
+	end
+	page.savedContent:SetHeight(math.max(18, -y))
+end
+
+local function SaveCurrentReport(page)
+	if not page or not page.lastReport then
+		Addon:Print(W.T("GEAR_CHECK_SAVED_FAIL"))
+		return
+	end
+	if not Addon.SaveGearCheckReport then
+		Addon:Print(W.T("GEAR_CHECK_STATUS_FAIL"))
+		return
+	end
+	local id, err = Addon:SaveGearCheckReport(page.lastReport)
+	if not id then
+		Addon:Print(W.T("GEAR_CHECK_SAVED_FAIL"))
+		return
+	end
+	local entry = Addon:GetGearCheckSavedReport(id)
+	local label = entry and Addon:FormatGearCheckSavedLabel(entry) or id
+	Addon:Print(W.T("GEAR_CHECK_SAVED_SAVED", label))
+	if entry and entry.report then
+		ApplyReportToPage(page, entry.report, "saved", entry)
+	else
+		RefreshSavedList(page)
+	end
+end
+
+local function DeleteViewingSaved(page)
+	if not page or not page.viewingSavedId then
+		Addon:Print(W.T("GEAR_CHECK_SAVED_NONE"))
+		return
+	end
+	if Addon.DeleteGearCheckSavedReport and Addon:DeleteGearCheckSavedReport(page.viewingSavedId) then
+		page.viewingSavedId = nil
+		Addon:Print(W.T("GEAR_CHECK_SAVED_DELETED"))
+		RefreshSavedList(page)
+		local live = Addon.GetLastGearCheckReport and Addon:GetLastGearCheckReport()
+		if live then
+			ApplyReportToPage(page, live, page.lastStatus or "ok")
+		else
+			ApplyReportToPage(page, nil, "empty")
+		end
+	else
+		Addon:Print(W.T("GEAR_CHECK_SAVED_NONE"))
 	end
 end
 
@@ -485,14 +613,23 @@ local function ApplyBreakdown(page, report)
 	end
 end
 
-local function ApplyReportToPage(page, report, status)
+ApplyReportToPage = function(page, report, status, savedEntry)
 	if not page then
 		return
 	end
 	page.lastReport = report
 	page.lastStatus = status
+	if savedEntry then
+		page.viewingSavedId = savedEntry.id
+	else
+		page.viewingSavedId = nil
+	end
 	if page.statusLabel then
-		page.statusLabel:SetText(StatusTextForScan(report, status))
+		if status == "saved" and savedEntry and Addon.FormatGearCheckSavedLabel then
+			page.statusLabel:SetText(W.T("GEAR_CHECK_STATUS_SAVED", Addon:FormatGearCheckSavedLabel(savedEntry)))
+		else
+			page.statusLabel:SetText(StatusTextForScan(report, status))
+		end
 	end
 	if page.dumpBox and Addon.FormatGearCheckDump then
 		page.dumpBox:SetText(report and Addon:FormatGearCheckDump(report) or "")
@@ -500,6 +637,7 @@ local function ApplyReportToPage(page, report, status)
 	ApplySummary(page, report)
 	ApplyBreakdown(page, report)
 	UpdateDebugVisibility(page)
+	RefreshSavedList(page)
 end
 
 local function RunScan(page)
@@ -582,7 +720,7 @@ local function CreateGearCheckTargetPage(parent)
 	W.SetFontColor(limit, UI.TEXT_DISABLED)
 	page.limit = limit
 
-	local buttonW = (innerW - UI.ACTION_BTN_GAP * 2) / 3
+	local buttonW = (innerW - UI.ACTION_BTN_GAP * 3) / 4
 	local scanBtn = W.CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
 	scanBtn:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
 	scanBtn:SetScript("OnClick", function()
@@ -590,8 +728,16 @@ local function CreateGearCheckTargetPage(parent)
 	end)
 	page.scanBtn = scanBtn
 
+	local saveBtn = W.CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVE"))
+	saveBtn:SetPoint("LEFT", scanBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
+	saveBtn:Disable()
+	saveBtn:SetScript("OnClick", function()
+		SaveCurrentReport(page)
+	end)
+	page.saveBtn = saveBtn
+
 	local debugBtn = W.CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_DEBUG"))
-	debugBtn:SetPoint("LEFT", scanBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
+	debugBtn:SetPoint("LEFT", saveBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
 	debugBtn:SetScript("OnClick", function()
 		page.debugMode = not page.debugMode
 		UpdateDebugVisibility(page)
@@ -716,9 +862,50 @@ local function CreateGearCheckTargetPage(parent)
 	end
 	SetFilterSelected(page, "all")
 
+	-- Saved reports (manual, ~14 days)
+	local savedHost = CreateFrame("Frame", nil, page)
+	savedHost:SetPoint("TOPLEFT", filterHost, "BOTTOMLEFT", 0, -6)
+	savedHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	savedHost:SetHeight(74)
+	W.ApplyPlainPanel(savedHost, UI.PANEL_BG)
+	page.savedHost = savedHost
+
+	local savedTitle = savedHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	savedTitle:SetPoint("TOPLEFT", 8, -6)
+	savedTitle:SetJustifyH("LEFT")
+	savedTitle:SetText(W.T("GEAR_CHECK_SAVED_TITLE"))
+	page.savedTitle = savedTitle
+
+	local savedDeleteBtn = W.CreatePlainButton(savedHost, 88, 20, W.T("GEAR_CHECK_SAVED_DELETE"))
+	savedDeleteBtn:SetPoint("TOPRIGHT", -8, -4)
+	savedDeleteBtn:Disable()
+	savedDeleteBtn:SetScript("OnClick", function()
+		DeleteViewingSaved(page)
+	end)
+	page.savedDeleteBtn = savedDeleteBtn
+
+	local savedScroll = CreateFrame("ScrollFrame", nil, savedHost)
+	savedScroll:SetPoint("TOPLEFT", 8, -26)
+	savedScroll:SetPoint("BOTTOMRIGHT", -8, 6)
+	page.savedScroll = savedScroll
+
+	local savedContent = CreateFrame("Frame", nil, savedScroll)
+	savedContent:SetWidth(math.max(100, innerW - 32))
+	savedContent:SetHeight(18)
+	savedScroll:SetScrollChild(savedContent)
+	page.savedContent = savedContent
+
+	local savedEmptyLabel = savedContent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	savedEmptyLabel:SetPoint("TOPLEFT", 0, 0)
+	savedEmptyLabel:SetWidth(savedContent:GetWidth())
+	savedEmptyLabel:SetJustifyH("LEFT")
+	savedEmptyLabel:SetText(W.T("GEAR_CHECK_SAVED_EMPTY"))
+	W.SetFontColor(savedEmptyLabel, UI.TEXT_DISABLED)
+	page.savedEmptyLabel = savedEmptyLabel
+
 	-- Breakdown scroll
 	local breakHost = CreateFrame("Frame", nil, page)
-	breakHost:SetPoint("TOPLEFT", filterHost, "BOTTOMLEFT", 0, -6)
+	breakHost:SetPoint("TOPLEFT", savedHost, "BOTTOMLEFT", 0, -6)
 	breakHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 	W.ApplyPlainPanel(breakHost, UI.PANEL_BG)
 	page.breakHost = breakHost
@@ -789,6 +976,7 @@ local function CreateGearCheckTargetPage(parent)
 	ApplySummary(page, nil)
 	ApplyBreakdown(page, nil)
 	UpdateDebugVisibility(page)
+	RefreshSavedList(page)
 
 	page.layoutVersion = LAYOUT_VERSION
 	return page
@@ -806,6 +994,9 @@ local function ApplyLocale(page)
 	end
 	if page.scanBtn and page.scanBtn.label then
 		page.scanBtn.label:SetText(W.T("GEAR_CHECK_SCAN"))
+	end
+	if page.saveBtn and page.saveBtn.label then
+		page.saveBtn.label:SetText(W.T("GEAR_CHECK_SAVE"))
 	end
 	if page.debugBtn and page.debugBtn.label then
 		page.debugBtn.label:SetText(page.debugMode and W.T("GEAR_CHECK_DEBUG_ON") or W.T("GEAR_CHECK_DEBUG"))
@@ -828,6 +1019,15 @@ local function ApplyLocale(page)
 		if btn and btn.label and info then
 			btn.label:SetText(W.T(info.labelKey))
 		end
+	end
+	if page.savedTitle then
+		page.savedTitle:SetText(W.T("GEAR_CHECK_SAVED_TITLE"))
+	end
+	if page.savedDeleteBtn and page.savedDeleteBtn.label then
+		page.savedDeleteBtn.label:SetText(W.T("GEAR_CHECK_SAVED_DELETE"))
+	end
+	if page.savedEmptyLabel then
+		page.savedEmptyLabel:SetText(W.T("GEAR_CHECK_SAVED_EMPTY"))
 	end
 	if page.statusLabel and not page.lastReport then
 		page.statusLabel:SetText(W.T("GEAR_CHECK_HINT"))

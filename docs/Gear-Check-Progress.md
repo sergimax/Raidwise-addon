@@ -40,7 +40,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 7 | Chat output | **done** | Self-chat summary/items/enchants/gems; UI + slash |
 | 8 | Ruleset expansion | **done** | Enh intellect; gem not-checkable policy; leg/Engi/weapon catalogs |
 | — | Raid-wide gear check | **backlog** | Menu stub only |
-| — | Saved reports | **backlog** | Spec §25 |
+| — | Saved reports | **done** | Manual save/load/delete in target UI; 14-day prune |
 | — | Trinket analysis | **done** (surface) | Allowlists from BiS examples; soft `TRINKET_NOT_PREFERRED`; not BiS scoring |
 | — | Catalog / profile false positives | **backlog** | New reports after Phase 8 polish (Rhee items addressed) |
 
@@ -55,9 +55,9 @@ Features from the spec or locked decisions that are **not done** yet (or only pa
 | Item | Spec / notes |
 |------|----------------|
 | Raid-wide gear check | Menu stub only (`PageGearCheckRaid.lua`) |
-| Saved reports | Spec §25 — manual save, ~14-day retention; no auto-persist |
-| Ruleset versioning | Spec §26 — with saved reports |
-| Data versioning | Spec §27 — with saved reports |
+| Saved reports | **done** | Manual save on Gear check (target); ~14-day retention; ruleset + data version on snapshot |
+| Ruleset versioning | **done** (saved) | `rulesetVersion` on each saved report (`wotlk-3.3.5a-{addonVersion}`) |
+| Data versioning | **done** (saved) | `dataVersion` on each saved report (`GEAR_CHECK_DATA_VERSION` in catalog) |
 | Finding messages in RU | Chrome localized; finding `message` strings EN only |
 | Full trinket BiS scoring | Surface allowlists only; expand IDs when false positives appear |
 
