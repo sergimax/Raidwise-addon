@@ -160,6 +160,17 @@
     font-size: 13px;
     box-shadow: var(--sticky-shadow);
   }
+  tbody th .row-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  tbody th .row-export {
+    margin-top: 3px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  tbody th .row-label-text { min-width: 0; }
   tbody th .tpl {
     display: block;
     color: var(--muted);
@@ -172,8 +183,19 @@
   tbody tr.class-fallback th { border-left: 4px solid #4f6bed; }
   tbody tr.spec-row th { border-left: 4px solid transparent; padding-left: 18px; }
   tbody tr.template-row th { border-left: 4px solid #0f766e; }
+  tbody tr.export-off { opacity: 0.45; }
+  tbody tr.export-off th .row-label-text { color: var(--muted); }
   tbody tr:hover th { background: #f0f4ff; }
   tbody tr:hover td.cell.unset { background: #f5f7ff; }
+  thead th.row-label .export-toggle-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 650;
+    color: var(--text);
+    cursor: pointer;
+  }
+  thead th.row-label .export-toggle-all input { cursor: pointer; }
 
   td.cell { text-align: center; padding: 4px 5px; min-width: 52px; }
   td.cell.preferred { background: var(--p-bg) !important; }
@@ -287,7 +309,7 @@
 <div class="export">
   <div class="export-head">
     <label for="out">Export (Lua-ready)</label>
-    <span class="hint">Unique matrices → <code>S_*</code> Stats() blocks, then PROFILES.stats references</span>
+    <span class="hint">Only checked rows → unique <code>S_*</code> Stats() blocks, then PROFILES.stats references</span>
   </div>
   <textarea id="out" readonly spellcheck="false"></textarea>
 </div>
@@ -404,6 +426,8 @@
 
   /** @type {Record<string, Record<string, string>>} */
   var state = {};
+  /** @type {Record<string, boolean>} */
+  var exportInclude = {};
 
   function cloneTemplateLevels(tpl) {
     var map = {};
@@ -418,16 +442,45 @@
 
   function resetState() {
     state = {};
+    exportInclude = {};
     ROWS.forEach(function (row) {
       state[row.key] = cloneTemplateLevels(TEMPLATES[row.template]);
+      exportInclude[row.key] = true;
     });
     TEMPLATE_ROWS.forEach(function (row) {
       state[row.key] = cloneTemplateLevels(TEMPLATES[row.template]);
+      exportInclude[row.key] = true;
     });
   }
 
   function activeRows() {
     return document.getElementById("viewMode").value === "templates" ? TEMPLATE_ROWS : ROWS;
+  }
+
+  function exportedRows() {
+    return activeRows().filter(function (row) {
+      return exportInclude[row.key] !== false;
+    });
+  }
+
+  function syncToggleAllCheckbox() {
+    var rows = activeRows();
+    var all = document.getElementById("toggleAllExport");
+    if (!all || !rows.length) return;
+    var included = 0;
+    rows.forEach(function (row) {
+      if (exportInclude[row.key] !== false) included++;
+    });
+    all.checked = included === rows.length;
+    all.indeterminate = included > 0 && included < rows.length;
+  }
+
+  function setRowExportIncluded(rowKey, included) {
+    exportInclude[rowKey] = !!included;
+    var tr = document.querySelector('tr[data-row="' + rowKey + '"]');
+    if (tr) tr.classList.toggle("export-off", !included);
+    syncToggleAllCheckbox();
+    refreshExport();
   }
 
   function setCellLevel(rowKey, stat, level) {
@@ -445,19 +498,26 @@
   function buildTable() {
     var rows = activeRows();
     var table = document.getElementById("matrix");
-    var html = "<thead><tr><th class=\"row-label\">Spec / Template</th>";
+    var html = "<thead><tr><th class=\"row-label\">"
+      + "<label class=\"export-toggle-all\" title=\"Include all visible rows in export\">"
+      + "<input type=\"checkbox\" id=\"toggleAllExport\" checked> Spec / Template</label></th>";
     STATS.forEach(function (stat) {
       html += "<th title=\"" + stat + "\">" + stat + "</th>";
     });
     html += "</tr></thead><tbody>";
 
     rows.forEach(function (row) {
+      var included = exportInclude[row.key] !== false;
       var cls = row.kind === "class" ? "class-fallback" : (row.kind === "template" ? "template-row" : "spec-row");
-      html += "<tr class=\"" + cls + "\"><th>" + escapeHtml(row.name);
+      if (!included) cls += " export-off";
+      html += "<tr class=\"" + cls + "\" data-row=\"" + row.key + "\"><th><div class=\"row-head\">"
+        + "<input type=\"checkbox\" class=\"row-export\" data-row=\"" + row.key + "\""
+        + " title=\"Include in export\"" + (included ? " checked" : "") + ">"
+        + "<span class=\"row-label-text\">" + escapeHtml(row.name);
       if (row.kind !== "template") {
         html += "<span class=\"tpl\">" + escapeHtml(row.key) + " · was " + escapeHtml(row.template) + "</span>";
       }
-      html += "</th>";
+      html += "</span></div></th>";
 
       STATS.forEach(function (stat) {
         var level = (state[row.key] && state[row.key][stat]) || "unset";
@@ -483,6 +543,23 @@
         setCellLevel(td.getAttribute("data-row"), td.getAttribute("data-stat"), input.value);
       });
     });
+    table.querySelectorAll("input.row-export").forEach(function (input) {
+      input.addEventListener("change", function () {
+        setRowExportIncluded(input.getAttribute("data-row"), input.checked);
+      });
+    });
+    var toggleAll = document.getElementById("toggleAllExport");
+    if (toggleAll) {
+      toggleAll.addEventListener("change", function () {
+        var include = toggleAll.checked;
+        rows.forEach(function (row) {
+          exportInclude[row.key] = include;
+        });
+        buildTable();
+        refreshExport();
+      });
+      syncToggleAllCheckbox();
+    }
   }
 
   function escapeHtml(s) {
@@ -524,7 +601,7 @@
 
   function refreshExport() {
     var mode = document.getElementById("viewMode").value;
-    var rows = activeRows();
+    var rows = exportedRows();
     var groups = {}; // sig -> { name?, keys: [], levels }
     var order = [];
 
@@ -556,7 +633,15 @@
     lines.push("-- Auto-generated from gear-check-debug/stats-matrix.html");
     lines.push("-- Paste into GearCheckProfiles.lua (shared Stats templates), then wire PROFILES.");
     lines.push("-- unset stats are omitted (engine RankStat → \"other\").");
+    lines.push("-- Included rows: " + (rows.length ? rows.map(function (r) { return r.key; }).join(", ") : "(none)"));
     lines.push("");
+
+    if (!rows.length) {
+      lines.push("-- No rows selected for export. Check rows in the first column.");
+      document.getElementById("out").value = lines.join("\n");
+      return;
+    }
+
     lines.push("-- === Shared stat templates ===");
     order.forEach(function (sig) {
       var name = nameBySig[sig];
@@ -568,7 +653,7 @@
 
     if (mode === "specs") {
       lines.push("-- === PROFILES.stats references (3rd arg of Profile) ===");
-      ROWS.forEach(function (row) {
+      rows.forEach(function (row) {
         var sig = matrixSignature(state[row.key]);
         var name = nameBySig[sig];
         var keyLit = row.key.indexOf("-") >= 0 ? "[\"" + row.key + "\"]" : row.key;
@@ -581,7 +666,7 @@
           var buckets = JSON.parse(sig);
           return { name: nameBySig[sig], keys: groups[sig].keys, stats: buckets };
         }),
-        profiles: ROWS.reduce(function (acc, row) {
+        profiles: rows.reduce(function (acc, row) {
           acc[row.key] = nameBySig[matrixSignature(state[row.key])];
           return acc;
         }, {})
