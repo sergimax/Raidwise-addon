@@ -4,7 +4,7 @@
 
 Аддон для подготовки к рейду в **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): составы группы и рейда, анализ состава, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа в JSON.
 
-![](https://img.shields.io/badge/current_version-1.14.0-purple)
+![](https://img.shields.io/badge/current_version-1.15.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--08--24-blue)
 
 
@@ -98,6 +98,7 @@ Esc или **X** в заголовке закрывает окно.
 
 - Язык интерфейса: **English** или **Русский**
 - Выбор сохраняется на аккаунте (`RaidwiseDB.locale`); на русском клиенте по умолчанию русский
+- **Стартовая страница**: какая вкладка левого меню открывается по `/raidwise` (`RaidwiseDB.startupTab`; по умолчанию КД персонажей; **Справку** выбрать нельзя)
 - Переключатели строк в подсказках игроков: скрыть личное мнение / личные теги / общественный рейтинг / общественные теги (`RaidwiseDB.tooltip`)
 - Превью компактного (живой) и столбикового варианта подсказки
 
@@ -157,6 +158,6 @@ types/
 ## Заметки
 
 - Целевая сборка: **3.3.5a** (клиенты приватных серверов используют `## Interface: 30300`).
-- Сохранённые переменные лежат в `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Настройки старого `MrcExporterDB` переносятся при первой загрузке. КД и валюта персонажей для таблицы кулдаунов — в `RaidwiseDB.characters` (`.lockouts`, `.currency`). Встречи в группе и рейде — в `RaidwiseDB.history` (ключ — GUID), включая личные рейтинги (`.rating.personal` с мнением/тегами/фактами), события (`.events`), заметки (`.notes`), журнал изменений (`.changes`) и счётчик совместных групп (`.meetCount`). Язык интерфейса — `RaidwiseDB.locale` (`enUS` или `ruRU`). Флаги подсказок — `RaidwiseDB.tooltip`.
+- Сохранённые переменные лежат в `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Настройки старого `MrcExporterDB` переносятся при первой загрузке. КД и валюта персонажей для таблицы кулдаунов — в `RaidwiseDB.characters` (`.lockouts`, `.currency`). Встречи в группе и рейде — в `RaidwiseDB.history` (ключ — GUID), включая личные рейтинги (`.rating.personal` с мнением/тегами/фактами), события (`.events`), заметки (`.notes`), журнал изменений (`.changes`) и счётчик совместных групп (`.meetCount`). Язык интерфейса — `RaidwiseDB.locale` (`enUS` или `ruRU`). Стартовая вкладка меню — `RaidwiseDB.startupTab`. Флаги подсказок — `RaidwiseDB.tooltip`.
 - `## X-LastUpdated` в `.toc` задаётся вручную; бейдж в README нужно держать в синхроне.
 - Необязательная зависимость: **GearScore** (`## OptionalDeps`) для поля `gearScore` в экспорте.

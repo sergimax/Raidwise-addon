@@ -31,6 +31,33 @@ local function PageInfoById(tabId)
 	return nil
 end
 
+-- Info is reference-only; not a valid /raidwise startup page.
+local function IsAllowedStartupTab(tabId)
+	return type(tabId) == "string" and tabId ~= "info" and PageInfoById(tabId) ~= nil
+end
+
+function Addon:GetStartupTab()
+	local tabId = self.db and self.db.startupTab
+	if IsAllowedStartupTab(tabId) then
+		return tabId
+	end
+	if self.db and self.db.startupTab == "info" then
+		self.db.startupTab = "cooldowns"
+	end
+	return "cooldowns"
+end
+
+function Addon:SetStartupTab(tabId)
+	if not self.db or not IsAllowedStartupTab(tabId) then
+		return
+	end
+	self.db.startupTab = tabId
+end
+
+function Addon:IsAllowedStartupTab(tabId)
+	return IsAllowedStartupTab(tabId)
+end
+
 local function UpdateShellHeader(frame, tabId)
 	if not frame then
 		return
@@ -344,7 +371,7 @@ function Addon:CreateMainFrame()
 	end
 
 	self.mainFrame = frame
-	self:SelectTab(previousTab or "cooldowns")
+	self:SelectTab(previousTab or self:GetStartupTab())
 	return frame
 end
 
@@ -506,7 +533,8 @@ end
 
 function Addon:ShowMainFrame()
 	local frame = self:CreateMainFrame()
-	self:SelectTab(frame.selectedTab or "cooldowns")
+	-- Prefer configured startup tab each time the window is opened.
+	self:SelectTab(self:GetStartupTab())
 	frame:Show()
 	frame:Raise()
 end

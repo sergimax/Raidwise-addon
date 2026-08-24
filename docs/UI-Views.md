@@ -52,7 +52,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 2` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 5` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 2` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
@@ -303,6 +303,11 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 [ short hint ]
 [ English button ] [ Русский button ]
 
+[ Startup page heading ]
+[ short hint ]
+( ) Cooldowns   ( ) Export   ( ) Party   ( ) Raid
+( ) Composition ( ) History  ( ) Settings
+
 [ Unit tooltips heading ]
 [ short hint ]
 [ ] Hide personal opinion
@@ -324,6 +329,7 @@ Stacked (variant)
 | language heading | Language |
 | short hint | “Interface language. Saved on this account.” |
 | English / Русский | Menu-style buttons; the active locale is selected. Choice is stored in `RaidwiseDB.locale` (`enUS` / `ruRU`). Default is the client locale. |
+| Startup page | Exclusive radio group for left-menu pages (**Info** excluded); selected page opens on `/raidwise`. Stored in `RaidwiseDB.startupTab` (default `cooldowns`). |
 | Unit tooltips | Checkboxes stored in `RaidwiseDB.tooltip` (`hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags`); default all shown |
 | Preview | Sample compact (live) and stacked layout lines; updates when checkboxes change |
 

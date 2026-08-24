@@ -6,7 +6,12 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 2
+local LAYOUT_VERSION = 5
+
+local STARTUP_COLS = 4
+local STARTUP_RADIO_SIZE = 16
+local STARTUP_ROW_H = 22
+local STARTUP_GAP = UI.ACTION_BTN_GAP
 
 local CHECK_KEYS = {
 	{ key = "hidePersonal", labelKey = "SETTINGS_TIP_HIDE_PERSONAL" },
@@ -22,6 +27,42 @@ local function UpdateLocaleButtons(page)
 	local locale = Addon:GetLocaleId()
 	W.SetMenuButtonState(page.enBtn, locale == "enUS", false)
 	W.SetMenuButtonState(page.ruBtn, locale == "ruRU", false)
+end
+
+-- Exclusive SetChecked on the startup-page radio group (same pattern as profile opinion).
+local function UpdateStartupRadios(page)
+	if not page or not page.startupRadios then
+		return
+	end
+	local selected = Addon.GetStartupTab and Addon:GetStartupTab() or "cooldowns"
+	for index = 1, #page.startupRadios do
+		local radio = page.startupRadios[index]
+		local checked = radio.tabId == selected
+		radio.isUpdating = true
+		radio:SetChecked(checked)
+		local checkedTexture = radio.GetCheckedTexture and radio:GetCheckedTexture()
+		if checkedTexture then
+			if checked then
+				checkedTexture:Show()
+			else
+				checkedTexture:Hide()
+			end
+		end
+		if radio.label then
+			if radio.labelKey then
+				radio.label:SetText(W.T(radio.labelKey))
+			end
+			W.SetFontColor(radio.label, checked and UI.GOLD or UI.TEXT_IDLE)
+		end
+		radio.isUpdating = false
+	end
+end
+
+local function ApplyStartupChoice(page, tabId)
+	if Addon.SetStartupTab then
+		Addon:SetStartupTab(tabId)
+	end
+	UpdateStartupRadios(page)
 end
 
 local function CreateSettingsCheck(page, nameSuffix, labelKey, dbKey, anchor)
@@ -91,6 +132,90 @@ local function RefreshTooltipPreviews(page)
 	end
 end
 
+local function CreateStartupRadio(page, parent, pageInfo, columnWidth)
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetSize(columnWidth, STARTUP_ROW_H)
+
+	local radio = CreateFrame("CheckButton", nil, host, "UIRadioButtonTemplate")
+	radio:SetSize(STARTUP_RADIO_SIZE, STARTUP_RADIO_SIZE)
+	radio:SetPoint("LEFT", 0, 0)
+	radio.tabId = pageInfo.id
+	radio.labelKey = pageInfo.labelKey
+
+	local label = host:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	label:SetPoint("LEFT", radio, "RIGHT", 4, 0)
+	label:SetPoint("RIGHT", host, "RIGHT", 0, 0)
+	label:SetJustifyH("LEFT")
+	label:SetText(W.T(pageInfo.labelKey))
+	W.SetFontColor(label, UI.TEXT_IDLE)
+	radio.label = label
+	radio.host = host
+
+	-- Label-only hit target; do not cover the radio or call :Click() (exclusive group).
+	local hit = CreateFrame("Button", nil, host)
+	hit:SetPoint("TOPLEFT", label, "TOPLEFT", 0, 2)
+	hit:SetPoint("BOTTOMRIGHT", host, "BOTTOMRIGHT", 0, -2)
+	hit:SetScript("OnClick", function()
+		ApplyStartupChoice(page, radio.tabId)
+	end)
+	radio.hit = hit
+
+	radio:SetScript("OnClick", function(self)
+		if self.isUpdating then
+			return
+		end
+		ApplyStartupChoice(page, self.tabId)
+	end)
+
+	return radio
+end
+
+local function CreateStartupTabRadios(page, anchor)
+	local menuPages = Addon.MenuPages or {}
+	page.startupRadios = {}
+	local choices = {}
+	for index = 1, #menuPages do
+		local pageInfo = menuPages[index]
+		if pageInfo and pageInfo.id ~= "info" then
+			choices[#choices + 1] = pageInfo
+		end
+	end
+	if #choices == 0 then
+		return anchor
+	end
+
+	local innerWidth = W.ContentInnerWidth()
+	local colWidth = math.floor((innerWidth - STARTUP_GAP * (STARTUP_COLS - 1)) / STARTUP_COLS)
+	local firstHost = nil
+	local lastHost = nil
+
+	for index = 1, #choices do
+		local pageInfo = choices[index]
+		local radio = CreateStartupRadio(page, page, pageInfo, colWidth)
+		local host = radio.host
+
+		local col = (index - 1) % STARTUP_COLS
+		local row = math.floor((index - 1) / STARTUP_COLS)
+		if row == 0 and col == 0 then
+			host:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
+			firstHost = host
+		elseif col == 0 then
+			host:SetPoint("TOPLEFT", page.startupRadios[index - STARTUP_COLS].host, "BOTTOMLEFT", 0, -STARTUP_GAP)
+		else
+			host:SetPoint("LEFT", page.startupRadios[index - 1].host, "RIGHT", STARTUP_GAP, 0)
+		end
+
+		page.startupRadios[index] = radio
+		lastHost = host
+	end
+
+	UpdateStartupRadios(page)
+	-- Anchor following content under the first cell of the last row (left edge).
+	local lastRowStart = ((#choices - 1) - ((#choices - 1) % STARTUP_COLS)) + 1
+	local bottomLeft = page.startupRadios[lastRowStart] and page.startupRadios[lastRowStart].host
+	return bottomLeft or lastHost or firstHost or anchor
+end
+
 local function CreateSettingsPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
@@ -136,8 +261,23 @@ local function CreateSettingsPage(parent)
 	end)
 	page.ruBtn = ruBtn
 
+	local startupHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	startupHeading:SetPoint("TOPLEFT", enBtn, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
+	startupHeading:SetText(W.T("SETTINGS_STARTUP_TAB"))
+	W.SetFontColor(startupHeading, UI.GOLD)
+	page.startupHeading = startupHeading
+
+	local startupHint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	startupHint:SetPoint("TOPLEFT", startupHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	startupHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	startupHint:SetJustifyH("LEFT")
+	startupHint:SetText(W.T("SETTINGS_STARTUP_TAB_HINT"))
+	page.startupHint = startupHint
+
+	local startupAnchor = CreateStartupTabRadios(page, startupHint)
+
 	local tipHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	tipHeading:SetPoint("TOPLEFT", enBtn, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
+	tipHeading:SetPoint("TOPLEFT", startupAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
 	tipHeading:SetText(W.T("SETTINGS_TOOLTIP"))
 	W.SetFontColor(tipHeading, UI.GOLD)
 	page.tipHeading = tipHeading
@@ -217,6 +357,20 @@ local function ApplySettingsLocale(page)
 	if page.ruBtn then
 		page.ruBtn.label:SetText(W.T("LOCALE_RU"))
 	end
+	if page.startupHeading then
+		page.startupHeading:SetText(W.T("SETTINGS_STARTUP_TAB"))
+	end
+	if page.startupHint then
+		page.startupHint:SetText(W.T("SETTINGS_STARTUP_TAB_HINT"))
+	end
+	if page.startupRadios then
+		for index = 1, #page.startupRadios do
+			local radio = page.startupRadios[index]
+			if radio.label and radio.labelKey then
+				radio.label:SetText(W.T(radio.labelKey))
+			end
+		end
+	end
 	if page.tipHeading then
 		page.tipHeading:SetText(W.T("SETTINGS_TOOLTIP"))
 	end
@@ -239,6 +393,7 @@ local function ApplySettingsLocale(page)
 		page.stackedLabel:SetText(W.T("SETTINGS_TIP_LAYOUT_STACKED"))
 	end
 	UpdateLocaleButtons(page)
+	UpdateStartupRadios(page)
 	RefreshTooltipPreviews(page)
 end
 
@@ -247,5 +402,6 @@ Addon.Pages.Settings = {
 	LAYOUT_VERSION = LAYOUT_VERSION,
 	Create = CreateSettingsPage,
 	UpdateLocaleButtons = UpdateLocaleButtons,
+	UpdateStartupRadios = UpdateStartupRadios,
 	ApplyLocale = ApplySettingsLocale,
 }

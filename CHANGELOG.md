@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.15.0] - 2026-08-24
+
+### Added
+- **Settings → Startup page**: choose which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns)
+
+### Changed
+- Startup page options use a radio group; **Info** cannot be selected as the startup page
+
 ## [1.14.0] - 2026-08-24
 
 ### Changed

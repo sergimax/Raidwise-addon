@@ -43,6 +43,7 @@ TOC: `RaidwiseDB`, `MrcExporterDB` (legacy migrate-only).
 | `enabled` | `Raidwise.lua` | Addon on/off (status) |
 | `includeGearNames` | Export page / `CharacterExport` | JSON export option |
 | `locale` | `Locale.lua` | `enUS` / `ruRU` |
+| `startupTab` | Settings / shell | Left-menu page id opened on `/raidwise` (default `cooldowns`; `info` not allowed) |
 | `tooltip` | `UnitTooltips.lua` / Settings | Hide flags for unit tooltip rating lines |
 | `characters` | `CharacterLockouts.lua` | Per-character lockout columns |
 | `history` | `PlayerHistory.lua` | GUID-keyed meetings, opinion/tags/facts, events, notes |
@@ -61,7 +62,7 @@ History personal reputation shape (see [Reputation.md](Reputation.md)):
 
 | Kind | Where | Shown | Purpose |
 |------|-------|-------|---------|
-| **Addon semver** | `Addon.version` + TOC `## Version` | Status bar (e.g. `v1.14.0`) | Release / changelog |
+| **Addon semver** | `Addon.version` + TOC `## Version` | Status bar (e.g. `v1.15.0`) | Release / changelog |
 | **Layout version** | `*_LAYOUT_VERSION` per view | Shell title bar next to page name (`vN`); profile title bar; shell constant is rebuild-only | Force UI rebuild when structure changes |
 
 Bump layout versions when sizes, named frames, or control layout change. Do **not** bump for pure locale string edits. Keep docs in sync (`UI-Views.md`, `UI-Sizes.md`).
@@ -73,6 +74,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | Method | Defined in | Used by |
 |--------|------------|---------|
 | `CreateMainFrame` / `ShowMainFrame` / `HideMainFrame` / `ToggleMainFrame` | Shell | Bootstrap, slash |
+| `GetStartupTab` / `SetStartupTab` | Shell | Settings startup page (`RaidwiseDB.startupTab`) |
 | `SelectTab` | Shell | Menu buttons, `RefreshLocalizedUI` |
 | `RefreshLocalizedUI` | Shell | `SetLocale` |
 | `RefreshCooldownTable` | Cooldowns page | Lockout events |
