@@ -22,6 +22,7 @@ local ENCHANTS = {
 	[3825] = { name = "Speed", maxLevel = false, stats = { hasteRating = 15 } },
 	-- Boots
 	[3232] = { name = "Tuskarr's Vitality", maxLevel = true, stats = { stamina = 15 } },
+	[1075] = { name = "Greater Fortitude", maxLevel = true, stats = { stamina = 22 } },
 	[3826] = { name = "Icewalker", maxLevel = true, stats = { hitRating = 12, critRating = 12 } },
 	[1597] = { name = "Greater Assault", maxLevel = true, stats = { attackPower = 32 } },
 	[983] = { name = "Superior Agility", maxLevel = false, stats = { agility = 16 } },
@@ -50,6 +51,7 @@ local ENCHANTS = {
 	[3594] = { name = "Rune of Swordbreaking", maxLevel = true, stats = {} },
 	[3883] = { name = "Rune of the Nerubian Carapace", maxLevel = true, stats = { defenseRating = 13 } },
 	-- Shield
+	[1071] = { name = "Major Stamina", maxLevel = true, stats = { stamina = 18 } },
 	[1952] = { name = "Defense", maxLevel = true, stats = { defenseRating = 20 } },
 	[1128] = { name = "Greater Intellect", maxLevel = true, stats = { intellect = 25 } },
 	-- Legs (LW kits + Tailoring spellthread; profession permanent reinforcements share stats)

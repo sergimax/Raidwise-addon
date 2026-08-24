@@ -210,7 +210,15 @@ local T_TANK = {
 	50361, 50364, -- Sindragosa's Flawless Fang
 	54571, 54591, -- Petrified Twilight Scale
 	50356, -- Corroded Skeleton Key
-	47088, 47290, -- Satrina's Impenetrable Scarab
+	47080, 47088, -- Satrina's Impeding Scarab
+	47290, 47451, -- Juggernaut's Vitality
+	48021, -- Eitrigg's Oath
+	-- Entry / mid-tier
+	50235, -- Ick's Rotting Thumb
+	47735, -- Glyph of Indomitability
+	47216, -- The Black Heart
+	37220, -- Essence of Gossamer
+	50344, -- Dark Matter
 }
 -- Enhancement AP + SP lists both appear in sources.
 local T_ENHANCE = {

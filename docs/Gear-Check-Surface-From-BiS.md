@@ -168,7 +168,10 @@ Enhancement **SP** lists (Icy Veins): also caster trinkets below.
 | Sindragosa's Flawless Fang (Безупречный клык Синдрагосы) |
 | Petrified Twilight Scale (Окаменелая сумеречная чешуя) |
 | Corroded Skeleton Key (Проржавевший костяной ключ) |
-| Satrina's Impenetrable Scarab (Упрямый скарабей Сатрины) |
+| Satrina's Impeding Scarab / Juggernaut's Vitality / Eitrigg's Oath |
+| Ick's Rotting Thumb (Гниющий палец Ика) — ICC early |
+| Glyph of Indomitability (Символ неукротимости) — Triumph badge |
+| The Black Heart / Essence of Gossamer / Dark Matter — entry tank |
 
 ### Cross-role caution
 
