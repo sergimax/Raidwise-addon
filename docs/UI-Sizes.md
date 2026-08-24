@@ -153,16 +153,17 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
-Description + limitation, then **Scan** / **Save report** / **Debug** / **Select all** (quarter-width: `(innerW - 3×gap) / 4`), status, summary band (**124** px), report buttons, filter row, **saved reports** panel (**74** px), breakdown scroll (fills remainder). Debug replaces summary/reports/filters/saved/list with multiline dump (Export-style copy box). `LAYOUT_VERSION = 7`.
+Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right: status + **Scan** (top band), then **Save report**, scrollable saved list, **Delete selected**, **Show as a text**, **Select all**. Text view replaces both columns with multiline dump. `LAYOUT_VERSION = 8`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Top buttons | **4 ×** `(innerW - 3×ACTION_BTN_GAP) / 4` | Scan, Save report, Debug, Select all |
-| Summary host | height **124** | Overall, who, GS+iLvl, issues, meta, sets |
-| Report row | height **ACTION_BTN_H** | Five equal buttons (summary / items / enchants / gems / ok) |
-| Filter row | height **ACTION_BTN_H** | All / Items / Enchants / Gems / OK |
-| Saved panel | height **74** | Title + Delete (top-right); scroll list up to **4** rows |
-| Breakdown | fills below saved | Slot groups with verdict color + bullet findings |
+| Left column | **~670** px | `innerW − RIGHT_COL_W − COL_GAP` |
+| Right column | **220** px | Status/Scan band + sidebar stack |
+| Summary (left) | height **124** | Aligns vertically with status/Scan band |
+| Report / filter rows | left width only | Five equal buttons each |
+| Breakdown | left, fills height | Slot groups with verdict color |
+| Saved list | right sidebar middle | Scroll + vertical bar; all entries (not capped) |
+| Sidebar bottom | **2 ×** button height + gap | Show as a text, then Select all |
 
 ## Gear check (raid) tab
 

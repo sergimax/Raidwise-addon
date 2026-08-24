@@ -37,7 +37,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 3 | Rules engine | **done** | Hard/soft/info findings; catalogs + 30-spec profiles; `/rw gearcheck test` |
 | 4 | Item verdicts | **done** | Per-slot OK / GOOD / REPLACE / BAD from findings (info ≠ BAD) |
 | 5 | Gear-level evaluation | **done** | Overall worst-wins; resilience 1/2+; meta activation; T9/T10 counts |
-| 6 | UI | **done** | Summary + Items/Enchants/Gems filters; dump behind Debug |
+| 6 | UI | **done** | Summary + Items/Enchants/Gems filters; raw dump via **Show as a text** |
 | 7 | Chat output | **done** | Self-chat summary/items/enchants/gems; UI + slash |
 | 8 | Ruleset expansion | **done** | Enh intellect; gem not-checkable policy; leg/Engi/weapon catalogs |
 | — | Raid-wide gear check | **backlog** | Menu stub only |
@@ -321,15 +321,15 @@ Chat reports, real UI breakdown, catalog false-positive fixes (see backlog). Soc
 - [x] Summary band: Overall, who/class/spec, issue counts, meta, sets
 - [x] Filters: All / Items / Enchants / Gems with explainable findings per slot
 - [x] Verdict coloring: BAD red, REPLACE gold, OK idle
-- [x] Raw dump moved behind **Debug** (Select all works in Debug)
-- [x] `LAYOUT_VERSION = 7` (saved reports panel + Save button + OK filter)
+- [x] Raw dump via **Show as a text** (Select all works in text view)
+- [x] `LAYOUT_VERSION = 8` (two-column layout: left findings, right status/scan/saved)
 - [x] Locale chrome (findings messages stay EN)
 
 ### How to test
 
 1. `/reload`, `/rw gearcheck` — summary + breakdown (not the dump).
 2. Switch All / Items / Enchants / Gems; empty category shows “No issues…”.
-3. **Debug** → raw Phase 5 dump + Select all; toggle off returns to UI.
+3. **Show as a text** → raw Phase 5 dump + Select all; toggle off returns to UI.
 4. Switch language in Settings — chrome translates; finding text stays English.
 
 ### Out of scope this phase
@@ -352,7 +352,7 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 - [x] Slash: `/rw gearcheck summary|items|enchants|gems` (alias `report` → summary)
 - [x] Scans first when no cached report
 - [x] Detail lines capped (15) with “… and N more”
-- [x] `LAYOUT_VERSION = 7` (Report OK + saved reports — see Saved reports section)
+- [x] `LAYOUT_VERSION = 8` (Report OK + scrollable saved reports — see Saved reports section)
 
 ### How to test
 
@@ -406,7 +406,7 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 - [x] `RaidwiseDB.gearCheckSaved` — not auto-persisted on scan
 - [x] ~14-day retention; prune on load and save
 - [x] `rulesetVersion` + `dataVersion` on each entry
-- [x] Target UI: **Save report**, saved list (load), **Delete saved**
+- [x] Target UI: **Save report**, scrollable saved list (load), **Delete selected**
 - [x] Loaded snapshot is frozen (no re-evaluate with current rules)
 - [x] Self-test merged into `/rw gearcheck test`
 
@@ -414,7 +414,7 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 
 1. Scan a player → **Save report** → chat confirms save.
 2. `/reload` → open Gear check → saved row still listed → click loads snapshot.
-3. **Delete saved** removes entry; live scan unchanged.
+3. **Delete selected** removes entry; live scan unchanged.
 4. `/rw gearcheck test` — saved-report checks pass.
 
 ---

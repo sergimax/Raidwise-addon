@@ -1,4 +1,4 @@
--- PageGearCheckTarget — summary, breakdown (incl. OK-not-GOOD), self-chat reports; dump behind Debug.
+-- PageGearCheckTarget — summary, breakdown (incl. OK-not-GOOD), self-chat reports; raw dump via Show as a text.
 
 local Addon = Raidwise
 local W = Addon.Widgets
@@ -6,7 +6,10 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 7
+local LAYOUT_VERSION = 8
+
+local RIGHT_COL_W = 220
+local COL_GAP = 10
 
 local ApplyReportToPage
 local RefreshSavedList
@@ -88,6 +91,31 @@ local function FindingMatchesFilter(finding, filterId)
 		return category == "gem" or category == "meta"
 	end
 	return false
+end
+
+local function FilterLabelForId(filterId)
+	for index = 1, #FILTERS do
+		local info = FILTERS[index]
+		if info.id == filterId then
+			return W.T(info.labelKey)
+		end
+	end
+	return filterId
+end
+
+local function BreakdownFilterHeaderHeight(page, filterId)
+	if filterId == "all" or not page.breakFilterHeader then
+		if page.breakFilterHeader then
+			page.breakFilterHeader:Hide()
+		end
+		return 0
+	end
+	local width = math.max(100, (page.breakContent and page.breakContent:GetWidth()) or 100)
+	page.breakFilterHeader:SetWidth(width)
+	page.breakFilterHeader:SetText(FilterLabelForId(filterId))
+	W.SetFontColor(page.breakFilterHeader, UI.GOLD)
+	page.breakFilterHeader:Show()
+	return (page.breakFilterHeader:GetStringHeight() or 14) + 6
 end
 
 local function SlotLabel(report, slotKey)
@@ -309,22 +337,33 @@ local function UpdateDebugVisibility(page)
 			page.breakHost:Show()
 		end
 	end
-	if page.savedHost then
+	if page.rightSidebar then
 		if debug then
-			page.savedHost:Hide()
+			page.rightSidebar:Hide()
 		else
-			page.savedHost:Show()
+			page.rightSidebar:Show()
+		end
+	end
+	if page.rightTop then
+		if debug then
+			page.rightTop:Hide()
+		else
+			page.rightTop:Show()
 		end
 	end
 	if page.copyHost then
 		if debug then
 			page.copyHost:Show()
+			page.copyHost:ClearAllPoints()
+			page.copyHost:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
+			local bottomH = (page.bottomHost and page.bottomHost:GetHeight()) or (UI.ACTION_BTN_H * 2 + 4)
+			page.copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, bottomH + 4)
 		else
 			page.copyHost:Hide()
 		end
 	end
 	if page.debugBtn and page.debugBtn.label then
-		page.debugBtn.label:SetText(debug and W.T("GEAR_CHECK_DEBUG_ON") or W.T("GEAR_CHECK_DEBUG"))
+		page.debugBtn.label:SetText(debug and W.T("GEAR_CHECK_TEXT_VIEW_ON") or W.T("GEAR_CHECK_TEXT_VIEW"))
 	end
 	if page.selectBtn then
 		if debug and page.dumpBox and (page.dumpBox:GetText() or "") ~= "" then
@@ -373,23 +412,28 @@ RefreshSavedList = function(page)
 		return
 	end
 	local list = Addon.ListGearCheckSavedReports and Addon:ListGearCheckSavedReports() or {}
-	local innerW = W.ContentInnerWidth()
-	local rowW = math.max(100, innerW - 16)
+	local rowW = page.savedRowW or math.max(100, (page.rightW or 200) - 20)
 	if #list == 0 then
 		EnsureSavedRows(page, 0)
 		if page.savedEmptyLabel then
 			page.savedEmptyLabel:Show()
 		end
 		page.savedContent:SetHeight(18)
+		if page.savedScroll then
+			page.savedScroll:SetVerticalScroll(0)
+		end
+		if page.savedBar then
+			page.savedBar:SetMinMaxValues(0, 0)
+			page.savedBar:SetValue(0)
+		end
 		return
 	end
 	if page.savedEmptyLabel then
 		page.savedEmptyLabel:Hide()
 	end
-	local maxRows = math.min(#list, 4)
-	EnsureSavedRows(page, maxRows)
+	EnsureSavedRows(page, #list)
 	local y = 0
-	for index = 1, maxRows do
+	for index = 1, #list do
 		local entry = list[index]
 		local row = page.savedRows[index]
 		row:SetWidth(rowW)
@@ -406,7 +450,17 @@ RefreshSavedList = function(page)
 		row:Show()
 		y = y - 22
 	end
-	page.savedContent:SetHeight(math.max(18, -y))
+	local contentH = math.max(18, -y)
+	page.savedContent:SetHeight(contentH)
+	if page.savedScroll then
+		local viewH = page.savedScroll:GetHeight() or 0
+		local maxV = math.max(0, contentH - viewH)
+		page.savedScroll:SetVerticalScroll(0)
+		if page.savedBar then
+			page.savedBar:SetMinMaxValues(0, maxV)
+			page.savedBar:SetValue(0)
+		end
+	end
 end
 
 local function SaveCurrentReport(page)
@@ -539,6 +593,7 @@ local function ApplyBreakdown(page, report)
 
 	local filterId = page.activeFilter or "all"
 	local groups = report and BuildBreakdownGroups(report, filterId) or {}
+	local headerH = BreakdownFilterHeaderHeight(page, filterId)
 	local emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_SCAN")
 	if report then
 		if #groups == 0 then
@@ -554,15 +609,15 @@ local function ApplyBreakdown(page, report)
 		EnsureBreakdownRows(page, 1)
 		local row = page.breakRows[1]
 		row:ClearAllPoints()
-		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, 0)
-		row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, 0)
+		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -headerH)
+		row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, -headerH)
 		row.title:SetText(emptyText)
 		W.SetFontColor(row.title, UI.TEXT_DISABLED)
 		row.detail:SetText("")
 		row.detail:Hide()
 		row:SetHeight(18)
 		row:Show()
-		content:SetHeight(24)
+		content:SetHeight(math.max(24, headerH + 18 + 4))
 		scroll:SetVerticalScroll(0)
 		if page.breakBar then
 			page.breakBar:SetMinMaxValues(0, 0)
@@ -572,7 +627,7 @@ local function ApplyBreakdown(page, report)
 	end
 
 	EnsureBreakdownRows(page, #groups)
-	local y = 0
+	local y = -headerH
 	local width = math.max(100, (content:GetWidth() or W.ContentInnerWidth()) - 4)
 	for index = 1, #groups do
 		local group = groups[index]
@@ -720,54 +775,44 @@ local function CreateGearCheckTargetPage(parent)
 	W.SetFontColor(limit, UI.TEXT_DISABLED)
 	page.limit = limit
 
-	local buttonW = (innerW - UI.ACTION_BTN_GAP * 3) / 4
-	local scanBtn = W.CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
-	scanBtn:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
+	local leftW = innerW - RIGHT_COL_W - COL_GAP
+	page.leftW = leftW
+	page.rightW = RIGHT_COL_W
+
+	local topY = -UI.CHECK_TO_BUTTONS
+
+	-- Left: summary band (aligned with right status column)
+	local summaryHost = CreateFrame("Frame", nil, page)
+	summaryHost:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", 0, topY)
+	summaryHost:SetWidth(leftW)
+	summaryHost:SetHeight(124)
+	W.ApplyPlainPanel(summaryHost, UI.PANEL_BG)
+	page.summaryHost = summaryHost
+
+	-- Right top: status + Scan
+	local rightTop = CreateFrame("Frame", nil, page)
+	rightTop:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", leftW + COL_GAP, topY)
+	rightTop:SetWidth(RIGHT_COL_W)
+	rightTop:SetHeight(124)
+	page.rightTop = rightTop
+
+	local scanBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
+	scanBtn:SetPoint("BOTTOMLEFT", 0, 0)
+	scanBtn:SetPoint("BOTTOMRIGHT", rightTop, "BOTTOMRIGHT", 0, 0)
 	scanBtn:SetScript("OnClick", function()
 		RunScan(page)
 	end)
 	page.scanBtn = scanBtn
 
-	local saveBtn = W.CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVE"))
-	saveBtn:SetPoint("LEFT", scanBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
-	saveBtn:Disable()
-	saveBtn:SetScript("OnClick", function()
-		SaveCurrentReport(page)
-	end)
-	page.saveBtn = saveBtn
-
-	local debugBtn = W.CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_DEBUG"))
-	debugBtn:SetPoint("LEFT", saveBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
-	debugBtn:SetScript("OnClick", function()
-		page.debugMode = not page.debugMode
-		UpdateDebugVisibility(page)
-	end)
-	page.debugBtn = debugBtn
-
-	local selectBtn = W.CreatePlainButton(page, buttonW, UI.ACTION_BTN_H, W.T("BTN_SELECT_ALL"))
-	selectBtn:SetPoint("LEFT", debugBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
-	selectBtn:Disable()
-	selectBtn:SetScript("OnClick", function()
-		if Addon.SelectGearCheckDump then
-			Addon:SelectGearCheckDump()
-		end
-	end)
-	page.selectBtn = selectBtn
-
-	local statusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	statusLabel:SetPoint("TOPLEFT", scanBtn, "BOTTOMLEFT", 0, -UI.BUTTONS_TO_HINT)
-	statusLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	local statusLabel = rightTop:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	statusLabel:SetPoint("TOPLEFT", rightTop, "TOPLEFT", 0, -4)
+	statusLabel:SetPoint("BOTTOMRIGHT", scanBtn, "TOPRIGHT", 0, -4)
 	statusLabel:SetJustifyH("LEFT")
+	statusLabel:SetJustifyV("TOP")
+	statusLabel:SetWordWrap(true)
+	statusLabel:SetNonSpaceWrap(false)
 	statusLabel:SetText(W.T("GEAR_CHECK_HINT"))
 	page.statusLabel = statusLabel
-
-	-- Summary band
-	local summaryHost = CreateFrame("Frame", nil, page)
-	summaryHost:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
-	summaryHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
-	summaryHost:SetHeight(124)
-	W.ApplyPlainPanel(summaryHost, UI.PANEL_BG)
-	page.summaryHost = summaryHost
 
 	local overallLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	overallLabel:SetPoint("TOPLEFT", 8, -8)
@@ -812,15 +857,15 @@ local function CreateGearCheckTargetPage(parent)
 	W.SetFontColor(summaryNote, UI.TEXT_DISABLED)
 	page.summaryNote = summaryNote
 
-	-- Self-chat report buttons (Phase 7)
+	-- Self-chat report buttons (left column)
 	local reportHost = CreateFrame("Frame", nil, page)
 	reportHost:SetPoint("TOPLEFT", summaryHost, "BOTTOMLEFT", 0, -8)
-	reportHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	reportHost:SetWidth(leftW)
 	reportHost:SetHeight(UI.ACTION_BTN_H)
 	page.reportHost = reportHost
 
 	page.reportButtons = {}
-	local reportW = (innerW - UI.ACTION_BTN_GAP * (#REPORT_BUTTONS - 1)) / #REPORT_BUTTONS
+	local reportW = (leftW - UI.ACTION_BTN_GAP * (#REPORT_BUTTONS - 1)) / #REPORT_BUTTONS
 	for index = 1, #REPORT_BUTTONS do
 		local info = REPORT_BUTTONS[index]
 		local btn = W.CreatePlainButton(reportHost, reportW, UI.ACTION_BTN_H, W.T(info.labelKey))
@@ -836,15 +881,15 @@ local function CreateGearCheckTargetPage(parent)
 		page.reportButtons[index] = btn
 	end
 
-	-- Filter tabs
+	-- Filter tabs (left column)
 	local filterHost = CreateFrame("Frame", nil, page)
 	filterHost:SetPoint("TOPLEFT", reportHost, "BOTTOMLEFT", 0, -6)
-	filterHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	filterHost:SetWidth(leftW)
 	filterHost:SetHeight(UI.ACTION_BTN_H)
 	page.filterHost = filterHost
 
 	page.filterButtons = {}
-	local filterW = (innerW - UI.ACTION_BTN_GAP * (#FILTERS - 1)) / #FILTERS
+	local filterW = (leftW - UI.ACTION_BTN_GAP * (#FILTERS - 1)) / #FILTERS
 	for index = 1, #FILTERS do
 		local info = FILTERS[index]
 		local btn = W.CreatePlainButton(filterHost, filterW, UI.ACTION_BTN_H, W.T(info.labelKey))
@@ -862,38 +907,90 @@ local function CreateGearCheckTargetPage(parent)
 	end
 	SetFilterSelected(page, "all")
 
-	-- Saved reports (manual, ~14 days)
-	local savedHost = CreateFrame("Frame", nil, page)
-	savedHost:SetPoint("TOPLEFT", filterHost, "BOTTOMLEFT", 0, -6)
-	savedHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
-	savedHost:SetHeight(74)
-	W.ApplyPlainPanel(savedHost, UI.PANEL_BG)
-	page.savedHost = savedHost
+	-- Right sidebar bottom: text view + select all (always visible for toggle back)
+	local bottomHost = CreateFrame("Frame", nil, page)
+	bottomHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+	bottomHost:SetWidth(RIGHT_COL_W)
+	bottomHost:SetHeight(UI.ACTION_BTN_H * 2 + 4)
+	page.bottomHost = bottomHost
 
-	local savedTitle = savedHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	savedTitle:SetPoint("TOPLEFT", 8, -6)
-	savedTitle:SetJustifyH("LEFT")
-	savedTitle:SetText(W.T("GEAR_CHECK_SAVED_TITLE"))
-	page.savedTitle = savedTitle
+	local selectBtn = W.CreatePlainButton(bottomHost, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("BTN_SELECT_ALL"))
+	selectBtn:SetPoint("BOTTOMLEFT", 0, 0)
+	selectBtn:SetPoint("BOTTOMRIGHT", bottomHost, "BOTTOMRIGHT", 0, 0)
+	selectBtn:Disable()
+	selectBtn:SetScript("OnClick", function()
+		if Addon.SelectGearCheckDump then
+			Addon:SelectGearCheckDump()
+		end
+	end)
+	page.selectBtn = selectBtn
 
-	local savedDeleteBtn = W.CreatePlainButton(savedHost, 88, 20, W.T("GEAR_CHECK_SAVED_DELETE"))
-	savedDeleteBtn:SetPoint("TOPRIGHT", -8, -4)
+	local debugBtn = W.CreatePlainButton(bottomHost, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_TEXT_VIEW"))
+	debugBtn:SetPoint("BOTTOMLEFT", selectBtn, "TOPLEFT", 0, 4)
+	debugBtn:SetPoint("BOTTOMRIGHT", selectBtn, "TOPRIGHT", 0, 4)
+	debugBtn:SetScript("OnClick", function()
+		page.debugMode = not page.debugMode
+		UpdateDebugVisibility(page)
+	end)
+	page.debugBtn = debugBtn
+
+	-- Right sidebar: save, saved list, delete (aligned with breakdown)
+	local rightSidebar = CreateFrame("Frame", nil, page)
+	rightSidebar:SetPoint("TOPLEFT", filterHost, "BOTTOMLEFT", leftW + COL_GAP, -6)
+	rightSidebar:SetPoint("BOTTOMRIGHT", bottomHost, "TOPRIGHT", 0, 4)
+	page.rightSidebar = rightSidebar
+
+	local saveBtn = W.CreatePlainButton(rightSidebar, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVE"))
+	saveBtn:SetPoint("TOPLEFT", 0, 0)
+	saveBtn:SetPoint("TOPRIGHT", rightSidebar, "TOPRIGHT", 0, 0)
+	saveBtn:Disable()
+	saveBtn:SetScript("OnClick", function()
+		SaveCurrentReport(page)
+	end)
+	page.saveBtn = saveBtn
+
+	local savedDeleteBtn = W.CreatePlainButton(rightSidebar, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVED_DELETE"))
+	savedDeleteBtn:SetPoint("BOTTOMLEFT", 0, 0)
+	savedDeleteBtn:SetPoint("BOTTOMRIGHT", rightSidebar, "BOTTOMRIGHT", 0, 0)
 	savedDeleteBtn:Disable()
 	savedDeleteBtn:SetScript("OnClick", function()
 		DeleteViewingSaved(page)
 	end)
 	page.savedDeleteBtn = savedDeleteBtn
 
-	local savedScroll = CreateFrame("ScrollFrame", nil, savedHost)
-	savedScroll:SetPoint("TOPLEFT", 8, -26)
-	savedScroll:SetPoint("BOTTOMRIGHT", -8, 6)
+	-- Saved reports (scrollable list)
+	local savedHost = CreateFrame("Frame", nil, rightSidebar)
+	savedHost:SetPoint("TOPLEFT", saveBtn, "BOTTOMLEFT", 0, -6)
+	savedHost:SetPoint("BOTTOMLEFT", savedDeleteBtn, "TOPLEFT", 0, 4)
+	savedHost:SetPoint("BOTTOMRIGHT", savedDeleteBtn, "TOPRIGHT", 0, 4)
+	W.ApplyPlainPanel(savedHost, UI.PANEL_BG)
+	page.savedHost = savedHost
+
+	local savedTitle = savedHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	savedTitle:SetPoint("TOPLEFT", 8, -6)
+	savedTitle:SetPoint("TOPRIGHT", savedHost, "TOPRIGHT", -(UI.CD_SCROLLBAR_W + 8), -6)
+	savedTitle:SetJustifyH("LEFT")
+	savedTitle:SetText(W.T("GEAR_CHECK_SAVED_TITLE"))
+	page.savedTitle = savedTitle
+
+	local savedScrollName = "RaidwiseGearCheckSavedScrollV" .. tostring(LAYOUT_VERSION)
+	local existingSaved = _G[savedScrollName]
+	if existingSaved then
+		existingSaved:Hide()
+		existingSaved:SetParent(nil)
+	end
+	local savedScroll = CreateFrame("ScrollFrame", savedScrollName, savedHost)
+	savedScroll:SetPoint("TOPLEFT", 8, -22)
+	savedScroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 6), 6)
+	savedScroll:EnableMouseWheel(true)
 	page.savedScroll = savedScroll
 
 	local savedContent = CreateFrame("Frame", nil, savedScroll)
-	savedContent:SetWidth(math.max(100, innerW - 32))
+	savedContent:SetWidth(math.max(100, RIGHT_COL_W - UI.CD_SCROLLBAR_W - 20))
 	savedContent:SetHeight(18)
 	savedScroll:SetScrollChild(savedContent)
 	page.savedContent = savedContent
+	page.savedRowW = savedContent:GetWidth()
 
 	local savedEmptyLabel = savedContent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	savedEmptyLabel:SetPoint("TOPLEFT", 0, 0)
@@ -903,10 +1000,36 @@ local function CreateGearCheckTargetPage(parent)
 	W.SetFontColor(savedEmptyLabel, UI.TEXT_DISABLED)
 	page.savedEmptyLabel = savedEmptyLabel
 
-	-- Breakdown scroll
+	local savedBar
+	if W.CreateCooldownScrollBar then
+		savedBar = W.CreateCooldownScrollBar(savedHost, "VERTICAL")
+	else
+		savedBar = CreateFrame("Slider", nil, savedHost)
+		savedBar:SetOrientation("VERTICAL")
+		savedBar:SetWidth(UI.CD_SCROLLBAR_W)
+	end
+	savedBar:SetPoint("TOPRIGHT", -2, -2)
+	savedBar:SetPoint("BOTTOMRIGHT", -2, 2)
+	savedBar:SetMinMaxValues(0, 0)
+	savedBar:SetValue(0)
+	savedBar:SetScript("OnValueChanged", function(self)
+		savedScroll:SetVerticalScroll(self:GetValue() or 0)
+	end)
+	page.savedBar = savedBar
+
+	savedScroll:SetScript("OnMouseWheel", function(self, delta)
+		local contentH = page.savedContent and page.savedContent:GetHeight() or 0
+		local maxV = math.max(0, contentH - (self:GetHeight() or 0))
+		local nextValue = math.max(0, math.min(maxV, (self:GetVerticalScroll() or 0) - delta * 22))
+		self:SetVerticalScroll(nextValue)
+		savedBar:SetValue(nextValue)
+	end)
+
+	-- Breakdown scroll (left column)
 	local breakHost = CreateFrame("Frame", nil, page)
-	breakHost:SetPoint("TOPLEFT", savedHost, "BOTTOMLEFT", 0, -6)
-	breakHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+	breakHost:SetPoint("TOPLEFT", filterHost, "BOTTOMLEFT", 0, -6)
+	breakHost:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 0, 0)
+	breakHost:SetWidth(leftW)
 	W.ApplyPlainPanel(breakHost, UI.PANEL_BG)
 	page.breakHost = breakHost
 
@@ -923,11 +1046,18 @@ local function CreateGearCheckTargetPage(parent)
 	page.breakScroll = breakScroll
 
 	local breakContent = CreateFrame("Frame", nil, breakScroll)
-	breakContent:SetWidth(math.max(100, innerW - UI.CD_SCROLLBAR_W - 28))
+	breakContent:SetWidth(math.max(100, leftW - UI.CD_SCROLLBAR_W - 20))
 	breakContent:SetHeight(1)
 	breakScroll:SetScrollChild(breakContent)
 	page.breakContent = breakContent
 	page.breakRows = {}
+
+	local breakFilterHeader = breakContent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	breakFilterHeader:SetPoint("TOPLEFT", 0, 0)
+	breakFilterHeader:SetPoint("TOPRIGHT", breakContent, "TOPRIGHT", 0, 0)
+	breakFilterHeader:SetJustifyH("LEFT")
+	breakFilterHeader:Hide()
+	page.breakFilterHeader = breakFilterHeader
 
 	local breakBar
 	if W.CreateCooldownScrollBar then
@@ -954,21 +1084,21 @@ local function CreateGearCheckTargetPage(parent)
 	end)
 	breakScroll:SetScript("OnSizeChanged", function()
 		if page.breakContent then
-			page.breakContent:SetWidth(math.max(100, (breakScroll:GetWidth() or innerW) - 4))
+			page.breakContent:SetWidth(math.max(100, (breakScroll:GetWidth() or leftW) - 4))
 		end
 		if page.lastReport then
 			ApplyBreakdown(page, page.lastReport)
 		end
 	end)
 
-	-- Debug dump (hidden by default)
+	-- Text dump (hidden by default; replaces both columns)
 	local dumpBox, copyHost = W.CreateCopyBox(
 		page,
 		"RaidwiseGearCheckScrollV" .. tostring(LAYOUT_VERSION),
 		"RaidwiseGearCheckBoxV" .. tostring(LAYOUT_VERSION)
 	)
-	copyHost:SetPoint("TOPLEFT", statusLabel, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
-	copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+	copyHost:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", 0, -UI.HINT_TO_INSET)
+	copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, -(UI.ACTION_BTN_H * 2 + 8))
 	copyHost:Hide()
 	page.dumpBox = dumpBox
 	page.copyHost = copyHost
@@ -999,7 +1129,7 @@ local function ApplyLocale(page)
 		page.saveBtn.label:SetText(W.T("GEAR_CHECK_SAVE"))
 	end
 	if page.debugBtn and page.debugBtn.label then
-		page.debugBtn.label:SetText(page.debugMode and W.T("GEAR_CHECK_DEBUG_ON") or W.T("GEAR_CHECK_DEBUG"))
+		page.debugBtn.label:SetText(page.debugMode and W.T("GEAR_CHECK_TEXT_VIEW_ON") or W.T("GEAR_CHECK_TEXT_VIEW"))
 	end
 	if page.selectBtn and page.selectBtn.label then
 		page.selectBtn.label:SetText(W.T("BTN_SELECT_ALL"))
