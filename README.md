@@ -80,7 +80,7 @@ Esc or the title **X** closes the window.
 
 **Gear check (target)** tab:
 
-- Phase 1: **Scan** collects equipped gear for the current player target (or yourself) and shows a copyable dump (item / enchant / gem IDs)
+- Phase 2: **Scan** builds a normalized gear model for the current player target (or yourself) and shows a copyable dump (`schemaVersion=2`: category, stats, sockets, enchant, gems, gaps)
 - Surface-level disclaimer; class/spec rules are being maintained (evaluation rules come in later phases)
 - `/rw gearcheck` opens this tab and runs a scan
 - Progress tracker: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
@@ -121,7 +121,7 @@ Esc or the title **X** closes the window.
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Reputation model: [`docs/Reputation.md`](docs/Reputation.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
-Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet).
+Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet). `types/GearCheck.ts` describes the Gear Check normalized report (`schemaVersion` 2).
 
 ## Screenshots
 
@@ -147,7 +147,7 @@ Raidwise/
   UnitTooltips.lua    # personal/community lines on player unit tooltips
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
-  GearCheck.lua       # gear check collector (target / self)
+  GearCheck.lua       # gear check collector + normalize (schemaVersion 2)
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
   PageParty.lua       # Party roster tab
@@ -169,6 +169,7 @@ docs/
 types/
   CharacterExport.ts  # TypeScript types for the Export tab JSON
   CooldownsExport.ts  # TypeScript types for account-wide cooldown JSON shape
+  GearCheck.ts        # TypeScript types for Gear Check normalized report
 ```
 
 ## Notes

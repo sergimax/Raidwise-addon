@@ -80,7 +80,7 @@ Esc или **X** в заголовке закрывает окно.
 
 Вкладка **Проверка экипа (цель)**:
 
-- Фаза 1: **Сканировать** собирает экипировку цели (или вас) в копируемый dump (id предметов / чар / камней)
+- Фаза 2: **Сканировать** строит нормализованную модель экипировки цели (или вас) и копируемый dump (`schemaVersion=2`: категория, статы, сокеты, чары, камни, gaps)
 - Поверхностная оговорка; правила классов/спеков поддерживаются (оценка — в следующих фазах)
 - `/rw gearcheck` открывает вкладку и сканирует
 - Прогресс: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
@@ -121,7 +121,7 @@ Esc или **X** в заголовке закрывает окно.
 
 Схемы окон: [`docs/UI-Views.md`](docs/UI-Views.md). Размеры в пикселях: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Модель репутации: [`docs/Reputation.md`](docs/Reputation.md). Что проверяет анализ состава: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
-Потребители могут типизировать JSON вкладки Export через `types/CharacterExport.ts`. `types/CooldownsExport.ts` описывает форму JSON КД аккаунта (`FormatCooldownsExport`; пока без кнопки в UI).
+Потребители могут типизировать JSON вкладки Export через `types/CharacterExport.ts`. `types/CooldownsExport.ts` описывает форму JSON КД аккаунта (`FormatCooldownsExport`; пока без кнопки в UI). `types/GearCheck.ts` — нормализованный отчёт Gear Check (`schemaVersion` 2).
 
 ## Скриншоты
 
@@ -147,7 +147,7 @@ Raidwise/
   UnitTooltips.lua    # строки личного/общественного рейтинга в подсказках
   UIWidgets.lua       # общие панели, кнопки, иконки, бейджи версии вёрстки
   CharacterProfile.lua # профиль персонажа (мнение, теги, заметки, история)
-  GearCheck.lua       # сбор экипировки для Gear Check (цель / себя)
+  GearCheck.lua       # сбор и нормализация Gear Check (schemaVersion 2)
   PageCooldowns.lua   # вкладка Character cooldowns
   PageExport.lua      # вкладка Export gear and CDs
   PageParty.lua       # вкладка Party roster
@@ -169,6 +169,7 @@ docs/
 types/
   CharacterExport.ts  # TypeScript-типы JSON вкладки Export
   CooldownsExport.ts  # TypeScript-типы JSON КД аккаунта
+  GearCheck.ts        # TypeScript-типы нормализованного отчёта Gear Check
 ```
 
 ## Заметки

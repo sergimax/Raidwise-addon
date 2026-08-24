@@ -31,7 +31,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | Phase | Name | Status | Notes |
 |-------|------|--------|-------|
 | 1 | Data collection | **done** | Target/self unit, slots, item/enchant/gem IDs, class/spec; Phase 1 dump UI |
-| 2 | Normalized gear model | planned | Stable `Character → Equipment → Item` shape (collector already returns a draft) |
+| 2 | Normalized gear model | **done** | `schemaVersion = 2`; `types/GearCheck.ts`; dump shows stats/types/gaps |
 | 3 | Rules engine | planned | Hard/soft findings; armor/stat/weapon/enchant/gem/meta |
 | 4 | Item verdicts | planned | Aggregate findings → OK / REPLACE / BAD |
 | 5 | Gear-level evaluation | planned | Overall status, meta activation, set counts, counters |
@@ -85,15 +85,51 @@ Rules, verdicts, chat report modes, set-bonus logic, socket-bonus matching, BiS.
 
 **Goal:** Freeze the internal table shape used by the rules engine (no WoW API calls inside rules).
 
+**Status: done** (2026-08-24)
+
 ### Checklist
 
-- [ ] Document field list in this file (or `types/` if useful)
-- [ ] Collector returns only that shape
-- [ ] Unknown / missing data explicit (nil + reason), never fake BAD
+- [x] Document field list (`types/GearCheck.ts` + this section)
+- [x] Collector returns only that shape (`schemaVersion = 2`)
+- [x] Unknown / missing data explicit (`gaps[]` + `known` flags); never fake BAD
+- [x] Dump shows category / armorType / weaponType / stats / sockets / enchant / gems / gaps
+
+### Model (rules-facing)
+
+```text
+GearCheckReport
+  schemaVersion = 2
+  character { unit, isSelf, name, classFile, specTab, specKnown, gaps[] }
+  equipment[]  (stable slot order)
+    slot { key, slotName, policy CHECKED|IGNORED|PLANNED, policyNote?, empty, item?, gaps[] }
+      item {
+        itemId, name?, equipLoc?, category, armorType?, weaponType?, isRelic,
+        stats{}, sockets{}, enchant{ enchantId, present, known, gaps[] },
+        gems[], metaGemId?, infoKnown, pendingLink, gaps[]
+      }
+  gaps[]
+  collection { … inspect / counts — not for rules }
+```
+
+- Stat ids: `strength`, `agility`, `stamina`, `intellect`, `spirit`, ratings, `spellPower`, `resilience`, `armor`, …
+- Armor types: `cloth` / `leather` / `mail` / `plate` / `shield` / `offhand` / …
+- Weapon types: `axe1h`, `sword2h`, `staff`, …
+- Enchant with id but no catalog yet → `known = false` + gap `ENCHANT_UNMAPPED`
+- `itemLevel` is collected for display only
 
 ### How to test
 
-Re-scan; dump or debug print matches the documented shape. Rules unit tests (later) consume fixtures without API.
+1. `/reload`, `/rw gearcheck` (self and nearby target).
+2. Dump header shows `schemaVersion=2`.
+3. Filled slots show `category`, `armorType` or `weaponType`, `stats: …`, `sockets: …`, `enchant: id=… present=… known=…`.
+4. Enchanted items show `enchantGaps: ENCHANT_UNMAPPED` until Phase 3 catalogs.
+5. Trinkets remain `PLANNED`; shirt/tabard `IGNORED`; relics `IGNORED / relic`.
+
+### Implemented files
+
+- `Raidwise/GearCheck.lua` — normalize + Phase 2 dump
+- `types/GearCheck.ts` — TypeScript shape for consumers / fixtures
+- UI copy updated for Phase 2 dump wording
 
 ---
 
@@ -161,7 +197,8 @@ Spot-check one tank / one melee / one caster / one healer after each ruleset edi
 
 | File | Role |
 |------|------|
-| `Raidwise/GearCheck.lua` | Collector, scan orchestration, Phase 1 dump |
+| `Raidwise/GearCheck.lua` | Collector, normalize (`schemaVersion` 2), scan orchestration, dump |
+| `types/GearCheck.ts` | Frozen TypeScript shape for the normalized report |
 | `Raidwise/PageGearCheckTarget.lua` | Target/self UI |
 | `Raidwise/PageGearCheckRaid.lua` | Backlog stub |
 | `Raidwise/GearCheckRules*.lua` | Later: profiles + catalogs (names TBD) |

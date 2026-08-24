@@ -49,7 +49,7 @@ local Translations = {
 		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
 			.. "Gold means covered; dim means missing. Section titles show present/total; red title means nothing in that section is present. "
 			.. "Report missing posts absent classes to raid or party chat. Shift-click an effect row to post that effect with provider classes and spells.",
-		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target (or yourself). Phase 1 collects equipped item, enchant, and gem IDs. Class/spec rules are being maintained. Not BiS or build optimization.",
+		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target (or yourself). Phase 2 builds a normalized gear model (stats, armor/weapon types, sockets, enchant/gem ids). Class/spec rules are being maintained. Not BiS or build optimization.",
 		INFO_SECTION_GEARRAID = "Raid-wide gear check — planned backlog; not implemented yet.",
 		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
 			.. "That list is saved on this account and stays after logout. "
@@ -99,9 +99,9 @@ local Translations = {
 		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
 		GEAR_CHECK_TARGET_DESC = "Gear check of the current target (or yourself). Surface-level PvE evaluation only — not BiS or build optimization. Class/spec rules are being maintained and may change.",
 		GEAR_CHECK_RAID_DESC = "Gear check of the raid — planned; not available yet.",
-		GEAR_CHECK_LIMITATION = "Gear Check is a surface-level evaluation. It does not consider BiS lists, specific gear builds, encounter requirements, or detailed stat weights. Phase 1 shows a collection dump only.",
+		GEAR_CHECK_LIMITATION = "Gear Check is a surface-level evaluation. It does not consider BiS lists, specific gear builds, encounter requirements, or detailed stat weights. Phase 2 dump shows the normalized gear model (no rules yet).",
 		GEAR_CHECK_SCAN = "Scan",
-		GEAR_CHECK_HINT = "Target a player (or clear target to scan yourself), then press Scan. Phase 1 dump lists item, enchant, and gem IDs.",
+		GEAR_CHECK_HINT = "Target a player (or clear target to scan yourself), then press Scan. Phase 2 dump lists category, stats, sockets, enchant, and gems.",
 		GEAR_CHECK_STATUS_SCANNING = "Scanning…",
 		GEAR_CHECK_STATUS_OK = "Scanned %s (%s).",
 		GEAR_CHECK_STATUS_SELF = "self",
@@ -473,7 +473,7 @@ local Translations = {
 		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
 			.. "Золотое — есть, серое — не хватает. В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет. "
 			.. "«Сообщить» пишет отсутствующие классы в чат рейда или группы. Shift+клик по эффекту — эффект, классы и заклинания в чат.",
-		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели (или себя). Фаза 1 собирает id предметов, чар и камней. Правила классов/спеков поддерживаются. Не BiS и не оптимизация билда.",
+		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели (или себя). Фаза 2 строит нормализованную модель (статы, типы брони/оружия, сокеты, id чар/камней). Правила классов/спеков поддерживаются. Не BiS и не оптимизация билда.",
 		INFO_SECTION_GEARRAID = "Проверка экипировки всего рейда — в бэклоге; пока не реализовано.",
 		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
 			.. "Список сохраняется на аккаунте и остаётся после выхода. "
@@ -523,9 +523,9 @@ local Translations = {
 		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",
 		GEAR_CHECK_TARGET_DESC = "Проверка экипировки цели (или себя). Поверхностная PvE-оценка — не BiS и не оптимизация билда. Правила классов/спеков поддерживаются и могут меняться.",
 		GEAR_CHECK_RAID_DESC = "Проверка экипировки рейда — в планах; пока недоступно.",
-		GEAR_CHECK_LIMITATION = "Gear Check — поверхностная оценка. Без BiS, билдов, энкаунтеров и весов статов. Фаза 1: только снимок сбора данных.",
+		GEAR_CHECK_LIMITATION = "Gear Check — поверхностная оценка. Без BiS, билдов, энкаунтеров и весов статов. Фаза 2: нормализованная модель (без правил).",
 		GEAR_CHECK_SCAN = "Сканировать",
-		GEAR_CHECK_HINT = "Возьмите в цель игрока (или снимите цель, чтобы проверить себя) и нажмите «Сканировать». Фаза 1 — dump id предметов, чар и камней.",
+		GEAR_CHECK_HINT = "Возьмите в цель игрока (или снимите цель, чтобы проверить себя) и нажмите «Сканировать». Фаза 2 — dump: категория, статы, сокеты, чары и камни.",
 		GEAR_CHECK_STATUS_SCANNING = "Сканирование…",
 		GEAR_CHECK_STATUS_OK = "Проверен: %s (%s).",
 		GEAR_CHECK_STATUS_SELF = "вы",

@@ -153,7 +153,7 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
-Phase 1: description + limitation, then **Scan** / **Select all** (**120**-style half-width buttons via `(innerW - gap) / 2`), status line, multiline copy box (same widget as Export). `LAYOUT_VERSION = 2`.
+Phase 2: description + limitation, then **Scan** / **Select all** (half-width buttons via `(innerW - gap) / 2`), status line, multiline copy box (same widget as Export). Dump shows normalized model (`schemaVersion=2`). `LAYOUT_VERSION = 2`.
 
 ## Gear check (raid) tab
 

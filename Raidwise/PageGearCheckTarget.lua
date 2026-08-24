@@ -1,4 +1,4 @@
--- PageGearCheckTarget — Phase 1 collection dump (rules come later).
+-- PageGearCheckTarget — Phase 2 normalized dump (rules come later).
 
 local Addon = Raidwise
 local W = Addon.Widgets
@@ -24,8 +24,13 @@ local function StatusTextForScan(report, status)
 	if status == "empty" then
 		return W.T("GEAR_CHECK_STATUS_EMPTY")
 	end
-	local who = report.name or "?"
-	local where = report.isSelf and W.T("GEAR_CHECK_STATUS_SELF") or W.T("GEAR_CHECK_STATUS_TARGET")
+	local character = report.character or {}
+	local who = character.name or report.name or "?"
+	local isSelf = character.isSelf
+	if isSelf == nil then
+		isSelf = report.isSelf
+	end
+	local where = isSelf and W.T("GEAR_CHECK_STATUS_SELF") or W.T("GEAR_CHECK_STATUS_TARGET")
 	return W.T("GEAR_CHECK_STATUS_OK", who, where)
 end
 
@@ -36,7 +41,9 @@ local function ApplyDumpToPage(page, report, status)
 	if page.statusLabel then
 		page.statusLabel:SetText(StatusTextForScan(report, status))
 	end
-	if page.dumpBox and Addon.FormatGearCheckPhase1Dump then
+	if page.dumpBox and Addon.FormatGearCheckDump then
+		page.dumpBox:SetText(Addon:FormatGearCheckDump(report))
+	elseif page.dumpBox and Addon.FormatGearCheckPhase1Dump then
 		page.dumpBox:SetText(Addon:FormatGearCheckPhase1Dump(report))
 	end
 	if page.selectBtn then
@@ -175,6 +182,11 @@ function Addon:RefreshGearCheckTargetView(autoScan)
 	end
 	if autoScan then
 		RunScan(page)
+	elseif self.GetLastGearCheckReport and self.FormatGearCheckDump then
+		local report = self:GetLastGearCheckReport()
+		if report then
+			ApplyDumpToPage(page, report, report.scanStatus or "ok")
+		end
 	elseif self.GetLastGearCheckReport and self.FormatGearCheckPhase1Dump then
 		local report = self:GetLastGearCheckReport()
 		if report then

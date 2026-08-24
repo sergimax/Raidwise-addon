@@ -211,23 +211,23 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Gear check (target)
 
-Phase 1 collection UI for one player (current target or self). No suitability rules yet. Spec / progress: `docs/RaidWise Addon — Gear Check Specification.md`, `docs/Gear-Check-Progress.md`.
+Phase 2 normalized dump for one player (current target or self). No suitability rules yet. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`.
 
 ```text
 [ short description ]
 [ surface-level limitation ]
 [ Scan ] [ Select all ]
 [ status ]
-[ Phase 1 dump (copy box) ]
+[ Phase 2 dump (copy box) ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | Surface-level PvE check; not BiS; rules being maintained |
-| limitation | Spec disclaimer + “Phase 1 shows a collection dump only” |
+| limitation | Spec disclaimer + Phase 2 normalized model note |
 | Scan | Resolves target or self, inspects if needed, fills dump |
 | Select all | Highlights dump for Ctrl+C |
-| dump | Item / enchant / gem IDs per slot; policy CHECKED / IGNORED / PLANNED |
+| dump | `schemaVersion=2`; category / stats / sockets / enchant / gems / gaps per slot |
 
 `LAYOUT_VERSION = 2`. Slash: `/rw gearcheck`.
 
