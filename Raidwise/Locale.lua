@@ -49,8 +49,8 @@ local Translations = {
 		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
 			.. "Gold means covered; dim means missing. Section titles show present/total; red title means nothing in that section is present. "
 			.. "Report missing posts absent classes to raid or party chat. Shift-click an effect row to post that effect with provider classes and spells.",
-		INFO_SECTION_GEARTARGET = "Gear check of target player.",
-		INFO_SECTION_GEARRAID = "Gear check of raid.",
+		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target (or yourself): obvious armor/weapon/stat, enchant, and gem issues. Class/spec rules are being maintained. Not BiS or build optimization.",
+		INFO_SECTION_GEARRAID = "Raid-wide gear check — planned backlog; not implemented yet.",
 		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
 			.. "That list is saved on this account and stays after logout. "
 			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
@@ -97,8 +97,8 @@ local Translations = {
 		HISTORY_HINT = "Players from your parties and raids. Saved on this account.",
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
 		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
-		GEAR_CHECK_TARGET_DESC = "Gear check of target player",
-		GEAR_CHECK_RAID_DESC = "Gear check of raid",
+		GEAR_CHECK_TARGET_DESC = "Gear check of the current target (or yourself). Surface-level PvE evaluation only — not BiS or build optimization. Class/spec rules are being maintained and may change.",
+		GEAR_CHECK_RAID_DESC = "Gear check of the raid — planned; not available yet.",
 		COMP_FAIL = "Composition module failed to load. Reload UI (/reload).",
 		COMP_EMPTY = "Join a party or raid, or play solo to see your own coverage.",
 		COMP_CHAT_MISSING = "Raidwise: missing classes: %s",
@@ -460,8 +460,8 @@ local Translations = {
 		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
 			.. "Золотое — есть, серое — не хватает. В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет. "
 			.. "«Сообщить» пишет отсутствующие классы в чат рейда или группы. Shift+клик по эффекту — эффект, классы и заклинания в чат.",
-		INFO_SECTION_GEARTARGET = "Проверка экипировки целевого игрока.",
-		INFO_SECTION_GEARRAID = "Проверка экипировки рейда.",
+		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели (или себя): явные проблемы брони/оружия/статов, чар и камней. Правила классов/спеков поддерживаются. Не BiS и не оптимизация билда.",
+		INFO_SECTION_GEARRAID = "Проверка экипировки всего рейда — в бэклоге; пока не реализовано.",
 		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
 			.. "Список сохраняется на аккаунте и остаётся после выхода. "
 			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
@@ -508,8 +508,8 @@ local Translations = {
 		HISTORY_HINT = "Игроки из ваших групп и рейдов. Сохраняется на этом аккаунте.",
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",
-		GEAR_CHECK_TARGET_DESC = "Проверка экипировки целевого игрока",
-		GEAR_CHECK_RAID_DESC = "Проверка экипировки рейда",
+		GEAR_CHECK_TARGET_DESC = "Проверка экипировки цели (или себя). Поверхностная PvE-оценка — не BiS и не оптимизация билда. Правила классов/спеков поддерживаются и могут меняться.",
+		GEAR_CHECK_RAID_DESC = "Проверка экипировки рейда — в планах; пока недоступно.",
 		COMP_FAIL = "Модуль анализа состава не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_EMPTY = "Войдите в группу или рейд — или смотрите покрытие только своего персонажа.",
 		COMP_CHAT_MISSING = "Raidwise: нет классов: %s",

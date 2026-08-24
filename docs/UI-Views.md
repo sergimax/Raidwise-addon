@@ -211,7 +211,7 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Gear check (target)
 
-Placeholder page for inspecting the current target’s gear.
+Placeholder for one-player Gear Check (current target or self). See the Gear Check specification in `docs/`. Class/spec rules are being maintained.
 
 ```text
 [ short description ]
@@ -219,11 +219,11 @@ Placeholder page for inspecting the current target’s gear.
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Gear check of target player” |
+| short description | Surface-level PvE check; not BiS; rules being maintained |
 
 ## Gear check (raid)
 
-Placeholder page for inspecting raid members’ gear.
+Backlog placeholder — raid-wide check not implemented yet.
 
 ```text
 [ short description ]
@@ -231,7 +231,7 @@ Placeholder page for inspecting raid members’ gear.
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Gear check of raid” |
+| short description | “planned; not available yet” |
 
 ## Character profile
 
