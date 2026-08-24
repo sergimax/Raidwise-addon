@@ -98,7 +98,7 @@ Esc or the title **X** closes the window.
 
 - Interface language: **English** or **Русский**
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
-- **Startup page**: which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns)
+- **Startup page**: which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns; **Info** cannot be selected)
 - Unit tooltip toggles: hide personal opinion / personal tags / community rating / community tags (`RaidwiseDB.tooltip`)
 - Preview of compact (live) and stacked tooltip layouts
 

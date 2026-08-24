@@ -43,7 +43,7 @@ TOC: `RaidwiseDB`, `MrcExporterDB` (legacy migrate-only).
 | `enabled` | `Raidwise.lua` | Addon on/off (status) |
 | `includeGearNames` | Export page / `CharacterExport` | JSON export option |
 | `locale` | `Locale.lua` | `enUS` / `ruRU` |
-| `startupTab` | Settings / shell | Left-menu page id opened on `/raidwise` (default `cooldowns`) |
+| `startupTab` | Settings / shell | Left-menu page id opened on `/raidwise` (default `cooldowns`; `info` not allowed) |
 | `tooltip` | `UnitTooltips.lua` / Settings | Hide flags for unit tooltip rating lines |
 | `characters` | `CharacterLockouts.lua` | Per-character lockout columns |
 | `history` | `PlayerHistory.lua` | GUID-keyed meetings, opinion/tags/facts, events, notes |

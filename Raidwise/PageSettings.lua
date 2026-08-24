@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 4
+local LAYOUT_VERSION = 5
 
 local STARTUP_COLS = 4
 local STARTUP_RADIO_SIZE = 16
@@ -173,7 +173,14 @@ end
 local function CreateStartupTabRadios(page, anchor)
 	local menuPages = Addon.MenuPages or {}
 	page.startupRadios = {}
-	if #menuPages == 0 then
+	local choices = {}
+	for index = 1, #menuPages do
+		local pageInfo = menuPages[index]
+		if pageInfo and pageInfo.id ~= "info" then
+			choices[#choices + 1] = pageInfo
+		end
+	end
+	if #choices == 0 then
 		return anchor
 	end
 
@@ -182,8 +189,8 @@ local function CreateStartupTabRadios(page, anchor)
 	local firstHost = nil
 	local lastHost = nil
 
-	for index = 1, #menuPages do
-		local pageInfo = menuPages[index]
+	for index = 1, #choices do
+		local pageInfo = choices[index]
 		local radio = CreateStartupRadio(page, page, pageInfo, colWidth)
 		local host = radio.host
 
@@ -204,7 +211,7 @@ local function CreateStartupTabRadios(page, anchor)
 
 	UpdateStartupRadios(page)
 	-- Anchor following content under the first cell of the last row (left edge).
-	local lastRowStart = ((#menuPages - 1) - ((#menuPages - 1) % STARTUP_COLS)) + 1
+	local lastRowStart = ((#choices - 1) - ((#choices - 1) % STARTUP_COLS)) + 1
 	local bottomLeft = page.startupRadios[lastRowStart] and page.startupRadios[lastRowStart].host
 	return bottomLeft or lastHost or firstHost or anchor
 end
