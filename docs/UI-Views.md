@@ -211,23 +211,23 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Gear check (target)
 
-Phase 4 dump for one player (current target or self): normalized model, findings, and per-slot OK / REPLACE / BAD. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`.
+Phase 5 dump for one player (current target or self): overall status, per-slot verdicts, findings, meta activation, informational set counts. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`.
 
 ```text
 [ short description ]
 [ surface-level limitation ]
 [ Scan ] [ Select all ]
 [ status ]
-[ Phase 4 dump (copy box) ]
+[ Phase 5 dump (copy box) ]
 ```
 
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | Surface-level PvE check; not BiS; rules being maintained |
-| limitation | Spec disclaimer + Phase 4 verdict note |
-| Scan | Resolves target or self, inspects if needed, evaluate + verdicts + dump |
+| limitation | Spec disclaimer + Phase 5 overall / meta / sets note |
+| Scan | Resolves target or self, inspects if needed, evaluate + overall + dump |
 | Select all | Highlights dump for Ctrl+C |
-| dump | `schemaVersion=2`; `verdict=` per slot; findings; verdict counts |
+| dump | `Overall:`; `verdict=` per slot; findings; `Sets (informational):` |
 
 `LAYOUT_VERSION = 2`. Slash: `/rw gearcheck`; `/rw gearcheck test` for offline fixtures.
 

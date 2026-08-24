@@ -71,28 +71,28 @@ local ENCHANTS = {
 
 -- Northrend epic (and Nightmare Tear) gems. maxLevel = true means ICC-era epic quality.
 local GEMS = {
-	-- Meta (Earthsiege / Skyflare)
-	[41380] = { maxLevel = true, color = "meta", stats = {} },
-	[41389] = { maxLevel = true, color = "meta", stats = {} },
-	[41395] = { maxLevel = true, color = "meta", stats = { spellPower = 21 } },
-	[41285] = { maxLevel = true, color = "meta", stats = { critRating = 21 } },
-	[41307] = { maxLevel = true, color = "meta", stats = {} },
-	[41377] = { maxLevel = true, color = "meta", stats = {} },
-	[41333] = { maxLevel = true, color = "meta", stats = { spellPower = 25 } },
-	[41335] = { maxLevel = true, color = "meta", stats = {} },
-	[41396] = { maxLevel = true, color = "meta", stats = { defenseRating = 21 } },
-	[41378] = { maxLevel = true, color = "meta", stats = { spellPower = 25 } },
-	[41379] = { maxLevel = true, color = "meta", stats = {} },
-	[41401] = { maxLevel = true, color = "meta", stats = { intellect = 21 } },
-	[41385] = { maxLevel = true, color = "meta", stats = { attackPower = 42 } },
-	[41381] = { maxLevel = true, color = "meta", stats = { attackPower = 42 } },
-	[41397] = { maxLevel = true, color = "meta", stats = { stamina = 32 } },
-	[41398] = { maxLevel = true, color = "meta", stats = { agility = 21 } },
-	[41376] = { maxLevel = true, color = "meta", stats = { spellPower = 25 } },
-	[41339] = { maxLevel = true, color = "meta", stats = { attackPower = 42 } },
-	[41400] = { maxLevel = true, color = "meta", stats = {} },
-	[41375] = { maxLevel = true, color = "meta", stats = { spellPower = 25 } },
-	[41382] = { maxLevel = true, color = "meta", stats = { spellPower = 21 } },
+	-- Meta (Earthsiege / Skyflare). requires = gem colors across the full set (not the meta itself).
+	[41380] = { maxLevel = true, color = "meta", stats = {}, requires = { blue = 2 } }, -- Austere
+	[41389] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2, yellow = 1 } }, -- Beaming
+	[41395] = { maxLevel = true, color = "meta", stats = { spellPower = 21 }, requires = { red = 2 } }, -- Bracing
+	[41285] = { maxLevel = true, color = "meta", stats = { critRating = 21 }, requires = { blue = 2 } }, -- Chaotic
+	[41307] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2 } }, -- Destructive
+	[41377] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2, yellow = 1 } }, -- Impassive
+	[41333] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 3 } }, -- Ember
+	[41335] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2, yellow = 1 } }, -- Enigmatic
+	[41396] = { maxLevel = true, color = "meta", stats = { defenseRating = 21 }, requires = { blue = 2 } }, -- Eternal
+	[41378] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { yellow = 2, red = 1 } }, -- Forlorn
+	[41379] = { maxLevel = true, color = "meta", stats = {}, requires = { yellow = 2 } }, -- Mystical
+	[41401] = { maxLevel = true, color = "meta", stats = { intellect = 21 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Insightful
+	[41385] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { blue = 2 } }, -- Invigorating
+	[41381] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { yellow = 2, blue = 1 } }, -- Persistent
+	[41397] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { blue = 2 } }, -- Powerful
+	[41398] = { maxLevel = true, color = "meta", stats = { agility = 21 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Relentless
+	[41376] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 2 } }, -- Revitalizing
+	[41339] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { yellow = 2, red = 1 } }, -- Swift
+	[41400] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 1, yellow = 1, blue = 1 } }, -- Thundering
+	[41375] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Tireless
+	[41382] = { maxLevel = true, color = "meta", stats = { spellPower = 21 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Trenchant
 	-- Prismatic
 	[49110] = { maxLevel = true, color = "prismatic", stats = { strength = 10, agility = 10, stamina = 10, intellect = 10, spirit = 10 } },
 	-- Sample epic reds / yellows / blues (ICC cut) — enough for maxLevel checks

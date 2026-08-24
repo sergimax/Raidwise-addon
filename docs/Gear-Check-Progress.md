@@ -34,7 +34,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 2 | Normalized gear model | **done** | `schemaVersion = 2`; `types/GearCheck.ts`; dump shows stats/types/gaps |
 | 3 | Rules engine | **done** | Hard/soft/info findings; catalogs + 30-spec profiles; `/rw gearcheck test` |
 | 4 | Item verdicts | **done** | Per-slot OK / REPLACE / BAD from findings (info ≠ BAD) |
-| 5 | Gear-level evaluation | planned | Overall status, meta activation, set counts, counters |
+| 5 | Gear-level evaluation | **done** | Overall worst-wins; resilience 1/2+; meta activation; T9/T10 counts |
 | 6 | UI | planned | Breakdown screens beyond Phase 1 dump |
 | 7 | Chat output | planned | `/rw gearcheck` reports (summary / items / enchants / gems) |
 | 8 | Ruleset expansion | planned | Verify all 30 specs; maintain continuously |
@@ -236,9 +236,38 @@ Overall status, meta activation across full set, chat reports, catalog false-pos
 
 **Goal:** Overall status (worst wins), resilience 1→REPLACE / 2+→BAD, meta activation across full set, informational set counts (T9/T10…).
 
+**Status: done** (2026-08-24)
+
+### Checklist
+
+- [x] Overall status from item verdicts + findings (worst wins)
+- [x] Resilience: 1 unique item → overall at least REPLACE; 2+ → overall **BAD**
+- [x] Meta activation vs full-set gem colors (`META_INACTIVE` / `META_NOT_CHECKABLE`)
+- [x] Issue counters: items / enchants / gems / meta
+- [x] T9/T10 set counts informational only (do not change verdicts)
+- [x] Dump shows Overall / Issues / Meta / Sets
+- [x] Self-test covers resilience pair, meta blues, T10 4/5
+
+### Overall
+
+```text
+any BAD item (or hard finding)     → BAD
+else any REPLACE item (or soft)    → REPLACE
+else                               → OK
+then: resilienceItems >= 2         → BAD
+      resilienceItems == 1 and OK  → REPLACE
+```
+
+Set lines like `T10: 4/5` never change OK/REPLACE/BAD.
+
 ### How to test
 
-Multi-slot resilience cases; meta with missing blue gems; set line like `T10: 4/5` does not change verdicts.
+1. `/rw gearcheck test` — includes two-ring resilience → overall BAD; Chaotic without blues → `META_INACTIVE`; two blues → active; T10 4/5.
+2. `/rw gearcheck` — header shows `Overall: …` and optional `Sets (informational):`.
+
+### Out of scope this phase
+
+Chat reports, real UI breakdown, catalog false-positive fixes (see backlog). Socket-bonus matching. 2pc vs 4pc advice.
 
 ---
 
@@ -278,6 +307,7 @@ Spot-check one tank / one melee / one caster / one healer after each ruleset edi
 |------|------|
 | `Raidwise/GearCheck.lua` | Collector, normalize (`schemaVersion` 2), evaluate hook, dump |
 | `Raidwise/GearCheckCatalog.lua` | Enchant / gem seed catalogs |
+| `Raidwise/GearCheckSets.lua` | T9/T10 item-id → set key (informational) |
 | `Raidwise/GearCheckProfiles.lua` | Class + 30-spec rule profiles |
 | `Raidwise/GearCheckRules.lua` | Findings engine + offline self-test |
 | `types/GearCheck.ts` | Frozen TypeScript shape (report + findings) |

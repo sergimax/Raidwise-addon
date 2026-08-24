@@ -80,7 +80,7 @@ Esc or the title **X** closes the window.
 
 **Gear check (target)** tab:
 
-- Phase 4: **Scan** builds the model, runs rules, and shows per-slot **OK / REPLACE / BAD** (plus findings). Overall gear status comes later
+- Phase 5: **Scan** shows per-slot **OK / REPLACE / BAD**, **overall** status (worst wins; Resilience 1→REPLACE, 2+→BAD), meta activation, and informational T9/T10 counts
 - Surface-level disclaimer; class/spec rules are being maintained
 - `/rw gearcheck` opens this tab and runs a scan; `/rw gearcheck test` runs offline rule fixtures
 - Known catalog/profile false positives are tracked in [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md) (backlog)
@@ -148,8 +148,9 @@ Raidwise/
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
   GearCheckCatalog.lua # enchant / gem seed catalogs
+  GearCheckSets.lua   # T9/T10 set-piece ids (informational)
   GearCheckProfiles.lua # class + 30-spec Gear Check profiles
-  GearCheckRules.lua  # findings engine + offline self-test
+  GearCheckRules.lua  # findings + verdicts + overall + offline self-test
   GearCheck.lua       # collector + normalize (schemaVersion 2) + evaluate + dump
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab

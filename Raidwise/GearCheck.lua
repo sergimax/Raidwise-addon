@@ -771,7 +771,7 @@ function Addon:CollectGearCheck(unit)
 				filledCheckedSlots = filled,
 			},
 		},
-		phase = 4,
+		phase = 5,
 		name = name,
 		isSelf = isSelf,
 		specKnown = identity.specKnown,
@@ -800,11 +800,14 @@ function Addon:FormatGearCheckDump(report)
 	local findings = report.findings or {}
 	local profile = report.profile
 	local verdicts = report.verdicts
+	local overall = report.overall
+	local meta = report.meta
+	local sets = report.sets
 
 	local lines = {}
-	lines[#lines + 1] = "Raidwise Gear Check — Phase 4 snapshot (per-slot OK / REPLACE / BAD)"
+	lines[#lines + 1] = "Raidwise Gear Check — Phase 5 snapshot (overall + meta + sets)"
 	lines[#lines + 1] = "schemaVersion=" .. tostring(report.schemaVersion or "?")
-	lines[#lines + 1] = "Verdicts aggregate findings (hard→BAD, soft→REPLACE, info-only→OK). Item level must not affect verdicts."
+	lines[#lines + 1] = "Overall is worst-wins of item verdicts; Resilience 1→REPLACE, 2+→BAD. Set counts are informational."
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = string.format(
 		"Unit: %s (%s)%s",
@@ -862,6 +865,44 @@ function Addon:FormatGearCheckDump(report)
 			verdicts.bad or 0,
 			verdicts.skipped or 0
 		)
+	end
+	if overall then
+		lines[#lines + 1] = string.format(
+			"Overall: %s — %s",
+			tostring(overall.status or "?"),
+			tostring(overall.summary or "")
+		)
+		local issues = overall.issues or {}
+		lines[#lines + 1] = string.format(
+			"Issues: items=%d  enchants=%d  gems=%d  meta=%s  resilienceItems=%d",
+			issues.items or 0,
+			issues.enchants or 0,
+			issues.gems or 0,
+			(issues.meta or 0) == 0 and "OK" or tostring(issues.meta),
+			overall.resilienceItems or 0
+		)
+	end
+	if meta and meta.present then
+		local activeText = "unknown"
+		if meta.active == true then
+			activeText = "yes"
+		elseif meta.active == false then
+			activeText = "no"
+		end
+		lines[#lines + 1] = string.format(
+			"Meta: id=%s slot=%s active=%s",
+			tostring(meta.itemId or "?"),
+			tostring(meta.slot or "?"),
+			activeText
+		)
+	end
+	if sets and #sets > 0 then
+		local setParts = {}
+		for index = 1, #sets do
+			local row = sets[index]
+			setParts[#setParts + 1] = string.format("%s: %d/%d", row.key, row.equipped or 0, row.pieces or 5)
+		end
+		lines[#lines + 1] = "Sets (informational): " .. table.concat(setParts, ", ")
 	end
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "Equipment:"

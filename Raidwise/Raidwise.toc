@@ -20,6 +20,7 @@ UIWidgets.lua
 UnitTooltips.lua
 CharacterProfile.lua
 GearCheckCatalog.lua
+GearCheckSets.lua
 GearCheckProfiles.lua
 GearCheckRules.lua
 GearCheck.lua

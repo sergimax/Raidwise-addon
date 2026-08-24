@@ -1,4 +1,4 @@
--- Gear Check rules engine (Phase 3): produces findings only. No verdicts yet.
+-- Gear Check rules: findings, item verdicts, overall status (no GOOD in v1).
 
 local Addon = Raidwise
 
@@ -39,6 +39,8 @@ local MESSAGES = {
 	META_MISSING = "Meta socket is missing a meta gem.",
 	META_NOT_META = "Meta socket does not contain a meta gem.",
 	META_NOT_PREFERRED = "Meta gem is not preferred for this specialization.",
+	META_INACTIVE = "Meta gem requirements are not met across equipped gems.",
+	META_NOT_CHECKABLE = "Meta gem activation requirements are unknown to the catalog (not-checkable).",
 }
 
 local function Msg(code, detail)
@@ -346,6 +348,204 @@ local function EvaluateSlot(findings, profile, slot)
 	EvaluateGems(findings, profile, slot)
 end
 
+local COLOR_MATCH = {
+	red = { red = true, orange = true, purple = true, prismatic = true },
+	yellow = { yellow = true, orange = true, green = true, prismatic = true },
+	blue = { blue = true, purple = true, green = true, prismatic = true },
+}
+
+local function GemColor(gem)
+	if gem.isMeta then
+		return "meta"
+	end
+	if gem.color and gem.color ~= "unknown" then
+		return gem.color
+	end
+	local catalog = Addon:GetGearCheckGemInfo(gem.itemId)
+	if catalog and catalog.color then
+		return catalog.color
+	end
+	return gem.color or "unknown"
+end
+
+local function CountMatchingGems(equipment)
+	local have = { red = 0, yellow = 0, blue = 0 }
+	for index = 1, #equipment do
+		local slot = equipment[index]
+		if slot.policy == "CHECKED" and slot.item and slot.item.gems then
+			local gems = slot.item.gems
+			for g = 1, #gems do
+				local gem = gems[g]
+				if not gem.isMeta then
+					local color = GemColor(gem)
+					if COLOR_MATCH.red[color] then
+						have.red = have.red + 1
+					end
+					if COLOR_MATCH.yellow[color] then
+						have.yellow = have.yellow + 1
+					end
+					if COLOR_MATCH.blue[color] then
+						have.blue = have.blue + 1
+					end
+				end
+			end
+		end
+	end
+	return have
+end
+
+local function FormatRequireBrief(requires, have)
+	local parts = {}
+	local order = { "red", "yellow", "blue" }
+	for index = 1, #order do
+		local color = order[index]
+		local need = requires[color]
+		if need and need > 0 then
+			parts[#parts + 1] = string.format("%s %d/%d", color, have[color] or 0, need)
+		end
+	end
+	return table.concat(parts, ", ")
+end
+
+local function EvaluateMetaActivation(findings, report, equipment)
+	local have = CountMatchingGems(equipment)
+	local metaInfo = {
+		present = false,
+		active = nil,
+		known = false,
+		itemId = nil,
+		slot = nil,
+		requires = nil,
+		have = have,
+	}
+	for index = 1, #equipment do
+		local slot = equipment[index]
+		if slot.policy == "CHECKED" and slot.item and slot.item.gems then
+			local gems = slot.item.gems
+			for g = 1, #gems do
+				local gem = gems[g]
+				if gem.isMeta or GemColor(gem) == "meta" then
+					metaInfo.present = true
+					metaInfo.itemId = gem.itemId
+					metaInfo.slot = slot.key
+					local catalog = Addon:GetGearCheckGemInfo(gem.itemId)
+					local requires = catalog and catalog.requires
+					if type(requires) ~= "table" or not next(requires) then
+						metaInfo.known = false
+						AddFinding(
+							findings,
+							"META_NOT_CHECKABLE",
+							"info",
+							"meta",
+							slot.key,
+							Msg("META_NOT_CHECKABLE", tostring(gem.itemId))
+						)
+					else
+						metaInfo.known = true
+						metaInfo.requires = requires
+						local ok = true
+						for color, need in pairs(requires) do
+							if (have[color] or 0) < (tonumber(need) or 0) then
+								ok = false
+								break
+							end
+						end
+						metaInfo.active = ok
+						if not ok then
+							AddFinding(
+								findings,
+								"META_INACTIVE",
+								"soft",
+								"meta",
+								slot.key,
+								Msg("META_INACTIVE", FormatRequireBrief(requires, have))
+							)
+						end
+					end
+				end
+			end
+		end
+	end
+	report.meta = metaInfo
+end
+
+local function CollectSetCounts(equipment)
+	local counts = {}
+	local seenKeys = {}
+	for index = 1, #equipment do
+		local slot = equipment[index]
+		if slot.item and slot.item.itemId and Addon.GetGearCheckSetInfo then
+			local info = Addon:GetGearCheckSetInfo(slot.item.itemId)
+			if info then
+				local bucket = counts[info.key]
+				if not bucket then
+					bucket = { key = info.key, equipped = 0, pieces = info.pieces or 5 }
+					counts[info.key] = bucket
+					seenKeys[#seenKeys + 1] = info.key
+				end
+				bucket.equipped = bucket.equipped + 1
+			end
+		end
+	end
+	table.sort(seenKeys)
+	local list = {}
+	for index = 1, #seenKeys do
+		list[#list + 1] = counts[seenKeys[index]]
+	end
+	return list
+end
+
+local ITEM_ISSUE_CATEGORIES = {
+	armor = true,
+	weapon = true,
+	stat = true,
+	item = true,
+}
+
+local function CountUnique(map)
+	local n = 0
+	for _ in pairs(map) do
+		n = n + 1
+	end
+	return n
+end
+
+local function CountIssueGroups(findings)
+	local items, enchants, gems, meta = {}, {}, {}, {}
+	for index = 1, #findings do
+		local finding = findings[index]
+		if finding.severity == "hard" or finding.severity == "soft" then
+			local key = finding.slot or "_gear"
+			if finding.category == "enchant" then
+				enchants[key] = true
+			elseif finding.category == "gem" then
+				gems[key] = true
+			elseif finding.category == "meta" then
+				meta[key] = true
+			elseif ITEM_ISSUE_CATEGORIES[finding.category] then
+				items[key] = true
+			end
+		end
+	end
+	return {
+		items = CountUnique(items),
+		enchants = CountUnique(enchants),
+		gems = CountUnique(gems),
+		meta = CountUnique(meta),
+	}
+end
+
+local function CountResilienceItems(findings)
+	local slots = {}
+	for index = 1, #findings do
+		local finding = findings[index]
+		if finding.code == "RESILIENCE_PVE" and finding.slot then
+			slots[finding.slot] = true
+		end
+	end
+	return CountUnique(slots)
+end
+
 function Addon:EvaluateGearCheck(report)
 	local findings = {}
 	if not report or not report.character then
@@ -360,7 +560,9 @@ function Addon:EvaluateGearCheck(report)
 	if not profile then
 		AddFinding(findings, "PROFILE_MISSING", "info", "character", nil, Msg("PROFILE_MISSING"))
 		report.findings = findings
+		report.sets = CollectSetCounts(report.equipment or report.slots or {})
 		self:AggregateGearCheckVerdicts(report)
+		self:AggregateGearCheckOverall(report)
 		return findings
 	end
 
@@ -373,9 +575,12 @@ function Addon:EvaluateGearCheck(report)
 	for index = 1, #equipment do
 		EvaluateSlot(findings, profile, equipment[index])
 	end
+	EvaluateMetaActivation(findings, report, equipment)
+	report.sets = CollectSetCounts(equipment)
 
 	report.findings = findings
 	self:AggregateGearCheckVerdicts(report)
+	self:AggregateGearCheckOverall(report)
 	return findings
 end
 
@@ -436,6 +641,84 @@ function Addon:AggregateGearCheckVerdicts(report)
 
 	report.verdicts = summary
 	return summary
+end
+
+-- Overall status: worst item verdict, then Resilience count (1 → REPLACE, 2+ → BAD).
+-- Set-piece counts are informational and must not change this result.
+function Addon:AggregateGearCheckOverall(report)
+	local overall = {
+		status = "OK",
+		reason = "clean",
+		summary = "No significant issues.",
+		issues = { items = 0, enchants = 0, gems = 0, meta = 0 },
+		resilienceItems = 0,
+	}
+	if not report then
+		return overall
+	end
+
+	local findings = report.findings or {}
+	local verdicts = report.verdicts or { ok = 0, replace = 0, bad = 0 }
+	local issues = CountIssueGroups(findings)
+	local resilienceItems = CountResilienceItems(findings)
+	overall.issues = issues
+	overall.resilienceItems = resilienceItems
+
+	local status = "OK"
+	local reason = "clean"
+	if (verdicts.bad or 0) > 0 then
+		status = "BAD"
+		reason = "item_bad"
+	else
+		for index = 1, #findings do
+			if findings[index].severity == "hard" then
+				status = "BAD"
+				reason = "hard_finding"
+				break
+			end
+		end
+	end
+	if status == "OK" then
+		if (verdicts.replace or 0) > 0 then
+			status = "REPLACE"
+			reason = "item_replace"
+		else
+			for index = 1, #findings do
+				if findings[index].severity == "soft" then
+					status = "REPLACE"
+					reason = "soft_finding"
+					break
+				end
+			end
+		end
+	end
+
+	if resilienceItems >= 2 then
+		status = "BAD"
+		reason = "resilience"
+	elseif resilienceItems == 1 and status == "OK" then
+		status = "REPLACE"
+		reason = "resilience"
+	end
+
+	overall.status = status
+	overall.reason = reason
+	if status == "BAD" then
+		if reason == "resilience" then
+			overall.summary = string.format("%d items have Resilience (PvE: 2+ is BAD).", resilienceItems)
+		else
+			overall.summary = string.format("%d item(s) are BAD.", verdicts.bad or 0)
+		end
+	elseif status == "REPLACE" then
+		if reason == "resilience" then
+			overall.summary = "1 item has Resilience (PvE: REPLACE)."
+		else
+			overall.summary = string.format("%d item(s) are REPLACE.", verdicts.replace or 0)
+		end
+	end
+
+	report.overall = overall
+	return overall
 end
 
 local function MakeSlot(key, slotName, item)
@@ -576,6 +859,134 @@ function Addon:GearCheckRulesSelfTest()
 	local fInfo = self:EvaluateGearCheck(unmapped)
 	Check("unknown enchant → ENCHANT_NOT_CHECKABLE", HasCode(fInfo, "ENCHANT_NOT_CHECKABLE"))
 	Check("unknown enchant → still OK (no false BAD)", unmapped.equipment[1].verdict == "OK")
+	Check("unknown enchant → overall OK", unmapped.overall and unmapped.overall.status == "OK")
+
+	Check("cloth on prot → overall BAD", clothProt.overall and clothProt.overall.status == "BAD")
+	Check("one resilience ring → overall REPLACE", resRing.overall and resRing.overall.status == "REPLACE")
+
+	-- Two resilience items → overall BAD (locked PvE rule)
+	local twoRes = {
+		character = { classFile = "WARRIOR", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("finger1", "Finger0Slot", MakeItem({
+				itemId = 7,
+				category = "armor",
+				armorType = "misc",
+				stats = { resilience = 40, stamina = 20 },
+			})),
+			MakeSlot("finger2", "Finger1Slot", MakeItem({
+				itemId = 8,
+				category = "armor",
+				armorType = "misc",
+				stats = { resilience = 40, stamina = 20 },
+			})),
+		},
+	}
+	self:EvaluateGearCheck(twoRes)
+	Check("two resilience rings → items REPLACE", twoRes.equipment[1].verdict == "REPLACE" and twoRes.equipment[2].verdict == "REPLACE")
+	Check("two resilience rings → overall BAD", twoRes.overall and twoRes.overall.status == "BAD")
+	Check("two resilience rings → resilienceItems=2", twoRes.overall and twoRes.overall.resilienceItems == 2)
+
+	-- Chaotic Skyflare (2 blue) without blues → META_INACTIVE
+	local noBlue = {
+		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("head", "HeadSlot", MakeItem({
+				itemId = 9,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 40, stamina = 50 },
+				enchant = { enchantId = 3817, present = true, known = true, gaps = {} },
+				sockets = { meta = 1, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 1 },
+				gems = {
+					{ socketIndex = 1, itemId = 41285, present = true, known = true, isMeta = true, color = "meta", stats = { critRating = 21 }, gaps = {} },
+				},
+			})),
+		},
+	}
+	local fMeta = self:EvaluateGearCheck(noBlue)
+	Check("meta without blues → META_INACTIVE", HasCode(fMeta, "META_INACTIVE"))
+	Check("meta without blues → head REPLACE", noBlue.equipment[1].verdict == "REPLACE")
+	Check("meta without blues → overall REPLACE", noBlue.overall and noBlue.overall.status == "REPLACE")
+
+	-- Same meta with 2 blue gems elsewhere → active
+	local withBlue = {
+		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("head", "HeadSlot", MakeItem({
+				itemId = 9,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 40, stamina = 50 },
+				enchant = { enchantId = 3817, present = true, known = true, gaps = {} },
+				sockets = { meta = 1, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 1 },
+				gems = {
+					{ socketIndex = 1, itemId = 41285, present = true, known = true, isMeta = true, color = "meta", stats = { critRating = 21 }, gaps = {} },
+				},
+			})),
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 10,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 40, stamina = 50 },
+				enchant = { enchantId = 3297, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 0, yellow = 0, blue = 2, prismatic = 0, total = 2 },
+				gems = {
+					{ socketIndex = 1, itemId = 40119, present = true, known = true, isMeta = false, color = "blue", stats = { stamina = 30 }, gaps = {} },
+					{ socketIndex = 2, itemId = 40119, present = true, known = true, isMeta = false, color = "blue", stats = { stamina = 30 }, gaps = {} },
+				},
+			})),
+		},
+	}
+	local fBlue = self:EvaluateGearCheck(withBlue)
+	Check("meta with 2 blues → not META_INACTIVE", not HasCode(fBlue, "META_INACTIVE"))
+	Check("meta with 2 blues → meta.active", withBlue.meta and withBlue.meta.active == true)
+
+	-- T10 counts are informational and must not create verdicts
+	local t10 = {
+		character = { classFile = "SHAMAN", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("head", "HeadSlot", MakeItem({
+				itemId = 50832,
+				category = "armor",
+				armorType = "mail",
+				stats = { agility = 50, attackPower = 80 },
+				enchant = { enchantId = 3817, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("shoulder", "ShoulderSlot", MakeItem({
+				itemId = 50834,
+				category = "armor",
+				armorType = "mail",
+				stats = { agility = 40, attackPower = 70 },
+				enchant = { enchantId = 3808, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 50830,
+				category = "armor",
+				armorType = "mail",
+				stats = { agility = 50, attackPower = 80 },
+				enchant = { enchantId = 3297, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("hands", "HandsSlot", MakeItem({
+				itemId = 50831,
+				category = "armor",
+				armorType = "mail",
+				stats = { agility = 40, attackPower = 70 },
+				enchant = { enchantId = 1603, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	self:EvaluateGearCheck(t10)
+	local t10Count = 0
+	if t10.sets then
+		for index = 1, #t10.sets do
+			if t10.sets[index].key == "T10" then
+				t10Count = t10.sets[index].equipped
+			end
+		end
+	end
+	Check("T10 seed → 4/5 equipped", t10Count == 4)
+	Check("T10 counts do not force BAD", t10.overall and t10.overall.status ~= "BAD")
 
 	local passed = 0
 	for index = 1, #results do

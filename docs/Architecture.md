@@ -19,14 +19,15 @@ UIWidgets.lua         shared UI helpers (panels, buttons, icons, layout badge)
 UnitTooltips.lua      GameTooltip unit lines for personal/community ratings
 CharacterProfile.lua  character profile popup
 GearCheckCatalog.lua  enchant / gem seed catalogs
+GearCheckSets.lua     T9/T10 set-piece ids (informational)
 GearCheckProfiles.lua class + 30-spec rule profiles
-GearCheckRules.lua    findings engine + item verdicts (EvaluateGearCheck)
+GearCheckRules.lua    findings engine + item verdicts + overall (EvaluateGearCheck)
 GearCheck.lua         collector + normalize (schemaVersion 2) + evaluate hook + dump
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
 ExporterWindow.lua    main shell (menu, title, status, tab wiring)
 ```
 
-Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → gear-check (catalog → profiles → rules → collector) → pages → shell.
+Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → gear-check (catalog → sets → profiles → rules → collector) → pages → shell.
 
 ## Layers
 

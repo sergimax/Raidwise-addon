@@ -67,6 +67,8 @@ export type GearCheckFindingCode =
   | "META_MISSING"
   | "META_NOT_META"
   | "META_NOT_PREFERRED"
+  | "META_INACTIVE"
+  | "META_NOT_CHECKABLE"
   | string;
 
 export type GearCheckFinding = {
@@ -233,6 +235,37 @@ export type GearCheckVerdictSummary = {
   skipped: number;
 };
 
+export type GearCheckIssueCounts = {
+  items: number;
+  enchants: number;
+  gems: number;
+  meta: number;
+};
+
+export type GearCheckOverall = {
+  status: GearCheckItemVerdict;
+  reason: string;
+  summary: string;
+  issues: GearCheckIssueCounts;
+  resilienceItems: number;
+};
+
+export type GearCheckMetaState = {
+  present: boolean;
+  active?: boolean | null;
+  known: boolean;
+  itemId?: number;
+  slot?: string;
+  requires?: Partial<Record<"red" | "yellow" | "blue", number>>;
+  have?: Partial<Record<"red" | "yellow" | "blue", number>>;
+};
+
+export type GearCheckSetCount = {
+  key: string;
+  equipped: number;
+  pieces: number;
+};
+
 export type GearCheckCharacter = {
   unit: string;
   isSelf: boolean;
@@ -272,6 +305,7 @@ export type GearCheckCollection = {
  * Rules read `character` + `equipment` (+ top-level `gaps`). Ignore `collection`.
  * After Phase 3 evaluate: `findings` + `profile`.
  * After Phase 4 aggregate: per-slot `verdict` + `verdicts` counts (no GOOD yet).
+ * After Phase 5: `overall`, `meta` activation, informational `sets`.
  *
  * Convenience aliases (`name`, `isSelf`, `inspect`, `slots`, …) may also be present
  * for UI/inspect orchestration; prefer the nested fields in new code.
@@ -285,4 +319,7 @@ export type GearCheckReport = {
   findings?: GearCheckFinding[];
   profile?: GearCheckProfileRef;
   verdicts?: GearCheckVerdictSummary;
+  overall?: GearCheckOverall;
+  meta?: GearCheckMetaState;
+  sets?: GearCheckSetCount[];
 };
