@@ -22,12 +22,13 @@ GearCheckCatalog.lua  enchant / gem seed catalogs
 GearCheckSets.lua     T9/T10 set-piece ids (informational)
 GearCheckProfiles.lua class + 30-spec rule profiles
 GearCheckRules.lua    findings engine + item verdicts + overall (EvaluateGearCheck)
+GearCheckSavedReports.lua  manual save / load / prune (~14 days)
 GearCheck.lua         collector + normalize (schemaVersion 2) + evaluate hook + dump
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
 ExporterWindow.lua    main shell (menu, title, status, tab wiring)
 ```
 
-Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → gear-check (catalog → sets → profiles → rules → collector) → pages → shell.
+Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → gear-check (catalog → sets → profiles → rules → **saved reports** → collector) → pages → shell.
 
 ## Layers
 
@@ -52,8 +53,9 @@ TOC: `RaidwiseDB`, `MrcExporterDB` (legacy migrate-only).
 | `tooltip` | `UnitTooltips.lua` / Settings | Hide flags for unit tooltip rating lines |
 | `characters` | `CharacterLockouts.lua` | Per-character lockout columns |
 | `history` | `PlayerHistory.lua` | GUID-keyed meetings, opinion/tags/facts, events, notes |
+| `gearCheckSaved` | `GearCheckSavedReports.lua` | Manual Gear Check snapshots (`reports`, `nextId`); ~14-day retention |
 
-Bound as `Addon.db` after `EnsureDB`.
+Bound as `Addon.db` after `EnsureDB`. Expired Gear Check reports are pruned on addon load and on save.
 
 History personal reputation shape (see [Reputation.md](Reputation.md)):
 
@@ -94,6 +96,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `RefreshRatingViews` | Profile | After rating save / profile close |
 | `RefreshPartyData` | `PartyRoster.lua` | Fan-out refresh (below) |
 | `OpenGearCheckTarget` / `RefreshGearCheckTargetView` / `StartGearCheckScan` / `EvaluateGearCheck` / `GearCheckRulesSelfTest` / `PrintGearCheckReport` / `RunGearCheckChatReport` | GearCheck stack + target page | `/rw gearcheck …`, Scan / Report buttons |
+| `SaveGearCheckReport` / `ListGearCheckSavedReports` / `GetGearCheckSavedReport` / `DeleteGearCheckSavedReport` / `PruneExpiredGearCheckReports` | `GearCheckSavedReports.lua` | Save report / saved list UI |
 
 ## Unit tooltips
 

@@ -32,6 +32,8 @@ SurfaceProfile {
 
 Until trinket analysis ships, use **armor + weapon setups** to tighten `GearCheckProfiles.lua` only.
 
+Stat ranks for all 30 specs are maintained in `GearCheckProfiles.lua` (see `gear-check-debug/stats-matrix.html` for the matrix editor and Lua export). Class fallbacks use older shared templates when spec is unknown.
+
 ### Rank gradation (P / A / U / F)
 
 Same four ranks for armor, stats, and weapons:

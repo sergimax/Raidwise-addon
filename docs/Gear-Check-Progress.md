@@ -23,7 +23,8 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | Catalogs | Seed from AtlasLoot lists + hand-built enchantId map; unknown IDs → **not-checkable** (no false BAD) |
 | Trinkets / relics / shirt / tabard | Relics / shirt / tabard ignored; **trinkets CHECKED** vs surface allowlists (soft not-preferred) |
 | Finding locale | English only for now (RU later) |
-| Persistence / ruleset versioning | Backlog (spec §§25–27) |
+| Saved reports | Manual save only; ~14-day retention; `rulesetVersion` + `dataVersion` on each snapshot |
+| Profile stat tuning | Per-spec `S_*` templates in `GearCheckProfiles.lua`; matrix editor at `gear-check-debug/stats-matrix.html` |
 
 ---
 
@@ -55,11 +56,9 @@ Features from the spec or locked decisions that are **not done** yet (or only pa
 | Item | Spec / notes |
 |------|----------------|
 | Raid-wide gear check | Menu stub only (`PageGearCheckRaid.lua`) |
-| Saved reports | **done** | Manual save on Gear check (target); ~14-day retention; ruleset + data version on snapshot |
-| Ruleset versioning | **done** (saved) | `rulesetVersion` on each saved report (`wotlk-3.3.5a-{addonVersion}`) |
-| Data versioning | **done** (saved) | `dataVersion` on each saved report (`GEAR_CHECK_DATA_VERSION` in catalog) |
 | Finding messages in RU | Chrome localized; finding `message` strings EN only |
 | Full trinket BiS scoring | Surface allowlists only; expand IDs when false positives appear |
+| Warrior stat profiles | Still on shared `S_PHYS_MELEE` / `S_PHYS_TANK`; tune via stats matrix |
 
 ### Spec in-scope, only partial
 
@@ -72,7 +71,7 @@ Features from the spec or locked decisions that are **not done** yet (or only pa
 | Set 2pc / 4pc milestones | §17 | Informational **T9/T10 X/5** counts only |
 | Slot policy naming | §9 | Spec `UNSUPPORTED`; unused for trinkets (now CHECKED) |
 | Unknown / not-checkable UI | §8 | Info findings exist; All-filter hides pure info → easy to miss “cannot evaluate” |
-| Catalog / profile completeness | Phase 8 | Seeded + “being maintained”; expand on false-positive reports |
+| Catalog / profile completeness | Phase 8+ | Seeded + “being maintained”; 27/30 specs use dedicated stat templates; expand on false-positive reports |
 | Surface rules from BiS examples | — | Wired into profiles + `WEAPON_SETUP` / `TRINKET_NOT_PREFERRED`; see `docs/Gear-Check-Surface-From-BiS.md` |
 
 ### Explicitly out of scope (do not treat as incomplete)
@@ -209,7 +208,9 @@ GearCheckReport
 { code, severity: hard|soft|info, category, slot?, message }  -- message EN only
 ```
 
-Common codes: `ARMOR_FORBIDDEN`, `STAT_FORBIDDEN`, `RESILIENCE_PVE`, `MISSING_ENCHANT`, `ENCHANT_NOT_CHECKABLE`, `GEM_LOWER_LEVEL`, `SPEC_UNKNOWN`, …
+Common codes: `ARMOR_FORBIDDEN`, `ARMOR_UNWANTED`, `STAT_UNWANTED`, `STAT_FORBIDDEN`, `RESILIENCE_PVE`, `MISSING_ENCHANT`, `ENCHANT_NOT_CHECKABLE`, `GEM_LOWER_LEVEL`, `SPEC_UNKNOWN`, …
+
+Profile stat ranks: **preferred / acceptable / unwanted / forbidden** (`unwanted` → soft `*_UNWANTED` → REPLACE).
 
 ### How to test
 
@@ -321,7 +322,7 @@ Chat reports, real UI breakdown, catalog false-positive fixes (see backlog). Soc
 - [x] Filters: All / Items / Enchants / Gems with explainable findings per slot
 - [x] Verdict coloring: BAD red, REPLACE gold, OK idle
 - [x] Raw dump moved behind **Debug** (Select all works in Debug)
-- [x] `LAYOUT_VERSION = 3`
+- [x] `LAYOUT_VERSION = 7` (saved reports panel + Save button + OK filter)
 - [x] Locale chrome (findings messages stay EN)
 
 ### How to test
@@ -351,7 +352,7 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 - [x] Slash: `/rw gearcheck summary|items|enchants|gems` (alias `report` → summary)
 - [x] Scans first when no cached report
 - [x] Detail lines capped (15) with “… and N more”
-- [x] `LAYOUT_VERSION = 5` (OK filter + report)
+- [x] `LAYOUT_VERSION = 7` (Report OK + saved reports — see Saved reports section)
 
 ### How to test
 
@@ -393,6 +394,57 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 
 ---
 
+## Saved reports (spec §25–27)
+
+**Goal:** Manual Gear Check snapshots with retention and version stamps for later interpretation.
+
+**Status: done**
+
+### Checklist
+
+- [x] `GearCheckSavedReports.lua` — save / list / get / delete / prune
+- [x] `RaidwiseDB.gearCheckSaved` — not auto-persisted on scan
+- [x] ~14-day retention; prune on load and save
+- [x] `rulesetVersion` + `dataVersion` on each entry
+- [x] Target UI: **Save report**, saved list (load), **Delete saved**
+- [x] Loaded snapshot is frozen (no re-evaluate with current rules)
+- [x] Self-test merged into `/rw gearcheck test`
+
+### How to test
+
+1. Scan a player → **Save report** → chat confirms save.
+2. `/reload` → open Gear check → saved row still listed → click loads snapshot.
+3. **Delete saved** removes entry; live scan unchanged.
+4. `/rw gearcheck test` — saved-report checks pass.
+
+---
+
+## Stat profile tuning (maintenance)
+
+**Goal:** Per-spec stat gradation (`preferred / acceptable / unwanted / forbidden`) aligned with BiS surface rules.
+
+**Status: in progress** (Warrior specs still on shared melee/tank templates)
+
+### Coverage
+
+| Class | Stat templates |
+|-------|------------------|
+| Warrior | `S_PHYS_MELEE`, `S_PHYS_TANK` (shared) |
+| Paladin | `S_PALADIN_HOLY`, `S_PALADIN_PROT`, `S_PALADIN_RET` |
+| Hunter | `S_HUNTER` |
+| Rogue | `S_ROGUE` |
+| Priest | `S_PRIEST_DISC`, `S_PRIEST_HOLY`, `S_PRIEST_SHADOW` |
+| DK | `S_DK_BLOOD`, `S_DK_DPS` |
+| Shaman | `S_SHAMAN_ELEMENTAL`, `S_ENHANCE`, `S_SHAMAN_RESTO` |
+| Mage / Warlock | `S_DRUID_BALANCE` (shared caster DPS gradation) |
+| Druid | `S_DRUID_BALANCE`, `S_DRUID_FERAL`, `S_DRUID_RESTO` |
+
+Edit via `gear-check-debug/stats-matrix.html` → export Lua → paste into `GearCheckProfiles.lua`.
+
+Legacy name: `S_DRUID_BALANCE` is also used for all mage/warlock specs (rename to neutral `S_CASTER_DPS` is optional cleanup).
+
+---
+
 ## File map (expected)
 
 | File | Role |
@@ -402,11 +454,13 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 | `Raidwise/GearCheckSets.lua` | T9/T10 item-id → set key (informational) |
 | `Raidwise/GearCheckProfiles.lua` | Class + 30-spec rule profiles |
 | `Raidwise/GearCheckRules.lua` | Findings engine + offline self-test |
+| `Raidwise/GearCheckSavedReports.lua` | Manual save / load / prune (~14 days) |
 | `types/GearCheck.ts` | Frozen TypeScript shape (report + findings) |
-| `Raidwise/PageGearCheckTarget.lua` | Target/self UI |
+| `Raidwise/PageGearCheckTarget.lua` | Target/self UI (scan, save, saved list) |
 | `Raidwise/PageGearCheckRaid.lua` | Backlog stub |
+| `gear-check-debug/stats-matrix.html` | Stat rank matrix editor + Lua export |
 | `docs/Gear-Check-Progress.md` | This tracker |
 | `docs/RaidWise Addon — Gear Check Specification.md` | Product spec |
 | `docs/Gear-Check-Surface-From-BiS.md` | Armor / weapon / trinket surface rules distilled from example BiS lists |
 
-Do **not** auto-persist scans (spec §25).
+Scans are **not** auto-persisted; user must press **Save report** (spec §25).

@@ -53,7 +53,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 5` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 7` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | Gear check (raid) | `LAYOUT_VERSION = 1` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -211,18 +211,20 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 ## Gear check (target)
 
-Phase 7 UI for one player (current target or self): summary, filtered findings, self-chat report buttons, Debug dump. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`.
+Phase 7 UI for one player (current target or self): summary, filtered findings, self-chat report buttons, **manual saved reports**, Debug dump. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
 
 ```text
 [ short description ]
 [ surface-level limitation ]
-[ Scan ] [ Debug ] [ Select all ]
+[ Scan ] [ Save report ] [ Debug ] [ Select all ]
 [ status ]
-[ summary: Overall / who / issues / meta / sets ]
-[ Report summary | Report items | Report enchants | Report gems ]
-[ All | Items | Enchants | Gems ]
-[ scrollable findings by slot ]
-(Debug on → raw dump copy box instead of summary+reports+filters+list)
+[ summary: Overall / who / GS+iLvl / issues / meta / sets ]
+[ Report summary | Report items | Report enchants | Report gems | Report OK ]
+[ All | Items | Enchants | Gems | OK ]
+[ Saved reports (~14 days)                    ] [ Delete saved ]
+[ click row → load frozen snapshot            ]
+[ scrollable findings by slot                 ]
+(Debug on → raw dump copy box instead of summary+reports+filters+saved+list)
 ```
 
 | Block | In-game text / control |
@@ -230,14 +232,19 @@ Phase 7 UI for one player (current target or self): summary, filtered findings, 
 | short description | Surface-level PvE check; not BiS; rules being maintained |
 | limitation | Spec disclaimer |
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI |
+| Save report | Stores current evaluated snapshot in `RaidwiseDB.gearCheckSaved` (~14 days); scans are **not** auto-saved |
 | Debug | Toggles raw dump |
 | Select all | Enabled in Debug when dump has text |
-| summary | Overall status (colored), character line, issue counts, meta, sets |
+| summary | Overall status (colored), character line, GearScore / avg iLvl, issue counts, meta, sets |
 | report buttons | Print to **self chat only** (`[GearCheck]` lines) |
-| filters | All / Items / Enchants / Gems |
-| breakdown | `[VERDICT] Slot — Item` plus finding bullets |
+| filters | All / Items / Enchants / Gems / **OK** (OK-not-GOOD reasons) |
+| saved panel | Up to 4 recent entries (all characters); click loads snapshot without re-running rules |
+| Delete saved | Removes the currently viewed saved entry |
+| breakdown | `[VERDICT] Slot — Item` plus finding bullets; OK filter lists slots that stayed OK with why-not-GOOD |
 
-`LAYOUT_VERSION = 5`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
+`LAYOUT_VERSION = 7`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test` (includes saved-report self-test).
+
+Saved snapshot fields: `rulesetVersion` (`wotlk-3.3.5a-{addonVersion}`), `dataVersion` (`GEAR_CHECK_DATA_VERSION` in catalog). Expired entries prune on load/save.
 
 ## Gear check (raid)
 
