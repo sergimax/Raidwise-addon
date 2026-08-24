@@ -17,6 +17,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | Self-check | Yes — use player when there is no friendly player target |
 | Chat reports | Self / default chat only (for now) |
 | Verdicts | **OK / GOOD / REPLACE / BAD** (GOOD = highly appropriate, not BiS) |
+| Profile ranks | **preferred / acceptable / unwanted / forbidden** (renamed from *discouraged* → *unwanted*) |
 | Overall status | Worst wins; BAD/REPLACE summaries note that items have those statuses |
 | Resilience (PvE) | 1 item with Resilience → overall **REPLACE**; 2+ → **BAD** |
 | Catalogs | Seed from AtlasLoot lists + hand-built enchantId map; unknown IDs → **not-checkable** (no false BAD) |
@@ -87,7 +88,7 @@ Observed on **Rhee (Enhancement Shaman)** during Phase 3; addressed in **Phase 8
 | Area | Status | Notes |
 |------|--------|-------|
 | Gems epic → `GEM_LOWER_LEVEL` | **fixed** | Unknown gems are `GEM_NOT_CHECKABLE` (info); expanded ICC epic purple/orange/green seeds |
-| Enhancement intellect discouraged | **fixed** | `S_ENHANCE` prefers intellect |
+| Enhancement intellect unwanted | **fixed** | `S_ENHANCE` prefers intellect |
 | LW / Tailoring leg kits | **fixed** | Frosthide/Icescale/Nerubian/Jormungar + spellthread ids |
 | Engineering feet/hands | **fixed** | Nitro / Hyperspeed / Pyro Rocket / Flexweave / Frag Belt |
 | Weapon enchants unknown | **fixed** | Mongoose, Executioner, Black Magic, Accuracy, Blade Ward, Blood Draining, … |
@@ -385,7 +386,7 @@ Catalog false-positive fixes; Phase 8 ruleset polish.
 ### How to test
 
 1. `/rw gearcheck test` — all checks pass (incl. Phase 8 fixtures).
-2. Scan **Rhee** (Enhancement): intellect should not be discouraged; epic gems / Icescale / Nitro should not soft-REPLACE for level.
+2. Scan **Rhee** (Enhancement): intellect should not be unwanted; epic gems / Icescale / Nitro should not soft-REPLACE for level.
 3. Spot-check one tank / caster / healer if editing profiles later.
 
 UI copy still says rules are **being maintained** — catalogs remain expandable when new ids appear.

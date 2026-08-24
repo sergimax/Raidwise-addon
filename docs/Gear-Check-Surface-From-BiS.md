@@ -20,7 +20,7 @@ Suggested shape (not wired yet):
 
 ```text
 SurfaceProfile {
-  armor: { preferred[], acceptable[], discouraged[], forbidden[] }
+  armor: { preferred[], acceptable[], unwanted[], forbidden[] }
   weapons: {
     preferredTypes[]          -- axe1h, sword2h, …
     setups[]                  -- e.g. "dw_1h", "2h", "1h_shield", "1h_oh", "2h_ranged"
@@ -31,6 +31,17 @@ SurfaceProfile {
 ```
 
 Until trinket analysis ships, use **armor + weapon setups** to tighten `GearCheckProfiles.lua` only.
+
+### Rank gradation (P / A / U / F)
+
+Same four ranks for armor, stats, and weapons:
+
+| Rank | Meaning | Engine effect |
+|------|---------|---------------|
+| **preferred** | BiS-appropriate | No finding; required (with max enchant/gems) for **GOOD** |
+| **acceptable** | Usable surface (offsets, hybrid) | No finding; **OK** by default |
+| **unwanted** | Wrong-for-spec soft waste | Soft finding → **REPLACE** |
+| **forbidden** | Explicitly inappropriate | Hard finding → **BAD** |
 
 ---
 
@@ -46,7 +57,7 @@ Until trinket analysis ships, use **armor + weapon setups** to tighten `GearChec
 | Mage, Warlock, Priest | cloth | leather, mail, plate |
 
 \* Plate on mail classes is wrong for BiS-era gear; keep forbidden.  
-† Mail on leather classes: rare; keep discouraged/forbidden except if a list shows otherwise.  
+† Mail on leather classes: rare; keep unwanted/forbidden except if a list shows otherwise.  
 ‡ Cloth on leather healers: Disc/Resto sometimes use **cloth chest** in mix lists — treat cloth chest as **acceptable for Resto Druid / Disc-Holy Priest only**, not preferred.
 
 ### Offset / acceptable (from BiS lists)
@@ -62,7 +73,7 @@ Physical DPS lists routinely use **lower armor types** for wrist / hands / waist
 | Hunter (all) | mail | leather wrists/belt/boots/legs |
 | Holy Paladin | plate | leather belt/legs; some mail |
 | Feral Druid | leather | (stays leather; no plate) |
-| Tanks (Prot Warr / Prot Pala / Blood DK) | plate | **almost no offset** — keep mail/leather discouraged |
+| Tanks (Prot Warr / Prot Pala / Blood DK) | plate | **almost no offset** — keep mail/leather unwanted |
 
 ### Implementation hint
 

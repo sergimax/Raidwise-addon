@@ -1,5 +1,9 @@
 -- Gear Check class/spec profiles (WotLK 3.3.5a). Keys: CLASSFILE or CLASSFILE-specTab.
--- Levels: preferred / acceptable / discouraged / forbidden. Being maintained.
+-- Rank gradation (armor / stats / weapons):
+--   preferred  — BiS-appropriate; no finding; required (with max enchant/gems) for GOOD
+--   acceptable — usable surface choice (offsets, hybrid); no finding; OK by default
+--   unwanted   — wrong-for-spec soft waste → soft finding → REPLACE
+--   forbidden  — explicitly inappropriate → hard finding → BAD
 -- Surface rules distilled from docs/Gear-Check-Surface-From-BiS.md (example BiS lists).
 
 local Addon = Raidwise
@@ -12,29 +16,29 @@ local function Set(list)
 	return t
 end
 
-local function Armor(preferred, acceptable, discouraged, forbidden)
+local function Armor(preferred, acceptable, unwanted, forbidden)
 	return {
 		preferred = Set(preferred or {}),
 		acceptable = Set(acceptable or {}),
-		discouraged = Set(discouraged or {}),
+		unwanted = Set(unwanted or {}),
 		forbidden = Set(forbidden or {}),
 	}
 end
 
-local function Stats(preferred, acceptable, discouraged, forbidden)
+local function Stats(preferred, acceptable, unwanted, forbidden)
 	return {
 		preferred = Set(preferred or {}),
 		acceptable = Set(acceptable or {}),
-		discouraged = Set(discouraged or {}),
+		unwanted = Set(unwanted or {}),
 		forbidden = Set(forbidden or {}),
 	}
 end
 
-local function Weapons(preferred, acceptable, discouraged, forbidden)
+local function Weapons(preferred, acceptable, unwanted, forbidden)
 	return {
 		preferred = Set(preferred or {}),
 		acceptable = Set(acceptable or {}),
-		discouraged = Set(discouraged or {}),
+		unwanted = Set(unwanted or {}),
 		forbidden = Set(forbidden or {}),
 	}
 end

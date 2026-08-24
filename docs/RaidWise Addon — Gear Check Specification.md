@@ -152,7 +152,7 @@ The item is usable but has an obvious problem or is clearly not the preferred ch
 
 Examples:
 
-- acceptable but discouraged armor type;
+- acceptable but unwanted armor type;
 - valid item with a significant itemization issue;
 - lower-quality enchant;
 - other correctable soft issue.
@@ -237,7 +237,7 @@ A soft violation indicates that the item is usable but should preferably be corr
 
 Examples:
 
-- discouraged armor type;
+- unwanted armor type;
 - lower-level enchant;
 - lower-level gem;
 - other non-critical optimization issue.
@@ -326,7 +326,7 @@ The ruleset should support categories such as:
 ```text
 preferred
 acceptable
-discouraged
+unwanted
 forbidden
 ```
 
@@ -336,8 +336,8 @@ Example:
 Fury Warrior
 
 Plate      preferred
-Leather    acceptable/discouraged
-Mail       discouraged
+Leather    acceptable/unwanted
+Mail       unwanted
 Cloth      forbidden
 ```
 
@@ -364,9 +364,16 @@ The ruleset should support at least:
 ```text
 preferred
 acceptable
-discouraged
+unwanted
 forbidden
 ```
+
+| Rank | Meaning | Verdict effect |
+|------|---------|----------------|
+| **preferred** | BiS-appropriate for the spec | No finding; required (with max enchant/gems) for **GOOD** |
+| **acceptable** | Usable surface choice (offsets, hybrid leftovers) | No finding; **OK** by default; can still be **GOOD** on offset slots / special rules |
+| **unwanted** | Wrong-for-spec soft waste | Soft finding → slot **REPLACE** |
+| **forbidden** | Explicitly inappropriate | Hard finding → slot **BAD** |
 
 The initial rules should identify obviously inappropriate stats.
 
@@ -390,8 +397,10 @@ FORBIDDEN
 and:
 
 ```text
-UNWANTED / DISCOURAGED
+UNWANTED
 ```
+
+**unwanted** is the canonical soft rank name (formerly “discouraged” in early drafts). It produces a soft finding that maps to **REPLACE**, not **BAD**.
 
 The initial system must avoid attempting to determine exact stat weights.
 
@@ -625,19 +634,19 @@ A specialization profile should be capable of defining:
 Armor
     preferred
     acceptable
-    discouraged
+    unwanted
     forbidden
 
 Stats
     preferred
     acceptable
-    discouraged
+    unwanted
     forbidden
 
 Weapons
     preferred
     acceptable
-    discouraged
+    unwanted
     forbidden
 
 Enchants

@@ -28,14 +28,14 @@ local MESSAGES = {
 	PROFILE_MISSING = "No Gear Check profile is available for this class.",
 	ITEM_NOT_CHECKABLE = "Cannot evaluate this item (incomplete or unknown data).",
 	ARMOR_FORBIDDEN = "Forbidden armor type for this specialization.",
-	ARMOR_DISCOURAGED = "Discouraged armor type for this specialization.",
+	ARMOR_UNWANTED = "Unwanted armor type for this specialization.",
 	ARMOR_NOT_PREFERRED = "Armor type is usable but not preferred for this specialization.",
 	WEAPON_FORBIDDEN = "Forbidden weapon type for this specialization.",
-	WEAPON_DISCOURAGED = "Discouraged weapon type for this specialization.",
+	WEAPON_UNWANTED = "Unwanted weapon type for this specialization.",
 	WEAPON_SETUP = "Weapon setup does not match this specialization.",
 	TRINKET_NOT_PREFERRED = "Trinket is not typically used for this specialization.",
 	STAT_FORBIDDEN = "Forbidden stat for this specialization.",
-	STAT_DISCOURAGED = "Discouraged stat for this specialization.",
+	STAT_UNWANTED = "Unwanted stat for this specialization.",
 	RESILIENCE_PVE = "Resilience is a PvP stat and is inappropriate for PvE Gear Check.",
 	MISSING_ENCHANT = "Missing enchant.",
 	ENCHANT_NOT_CHECKABLE = "Enchant id is unknown to the catalog (not-checkable).",
@@ -78,8 +78,8 @@ local function RankArmor(profile, armorType)
 	if a.forbidden[armorType] then
 		return "forbidden"
 	end
-	if a.discouraged[armorType] then
-		return "discouraged"
+	if a.unwanted[armorType] then
+		return "unwanted"
 	end
 	if a.preferred[armorType] then
 		return "preferred"
@@ -102,8 +102,8 @@ local function RankWeapon(profile, weaponType)
 	if w.forbidden[weaponType] then
 		return "forbidden"
 	end
-	if w.discouraged[weaponType] then
-		return "discouraged"
+	if w.unwanted[weaponType] then
+		return "unwanted"
 	end
 	if w.preferred[weaponType] then
 		return "preferred"
@@ -119,8 +119,8 @@ local function RankStat(profile, statId)
 	if s.forbidden[statId] then
 		return "forbidden"
 	end
-	if s.discouraged[statId] then
-		return "discouraged"
+	if s.unwanted[statId] then
+		return "unwanted"
 	end
 	if s.preferred[statId] then
 		return "preferred"
@@ -152,16 +152,16 @@ local function EvaluateItemArmor(findings, profile, slot)
 		local rank = RankWeapon(profile, armorType)
 		if rank == "forbidden" then
 			AddFinding(findings, "WEAPON_FORBIDDEN", "hard", "weapon", slot.key, Msg("WEAPON_FORBIDDEN", armorType))
-		elseif rank == "discouraged" then
-			AddFinding(findings, "WEAPON_DISCOURAGED", "soft", "weapon", slot.key, Msg("WEAPON_DISCOURAGED", armorType))
+		elseif rank == "unwanted" then
+			AddFinding(findings, "WEAPON_UNWANTED", "soft", "weapon", slot.key, Msg("WEAPON_UNWANTED", armorType))
 		end
 		return
 	end
 	local rank = RankArmor(profile, armorType)
 	if rank == "forbidden" then
 		AddFinding(findings, "ARMOR_FORBIDDEN", "hard", "armor", slot.key, Msg("ARMOR_FORBIDDEN", armorType))
-	elseif rank == "discouraged" then
-		AddFinding(findings, "ARMOR_DISCOURAGED", "soft", "armor", slot.key, Msg("ARMOR_DISCOURAGED", armorType))
+	elseif rank == "unwanted" then
+		AddFinding(findings, "ARMOR_UNWANTED", "soft", "armor", slot.key, Msg("ARMOR_UNWANTED", armorType))
 	elseif rank == "other" then
 		AddFinding(findings, "ARMOR_NOT_PREFERRED", "soft", "armor", slot.key, Msg("ARMOR_NOT_PREFERRED", armorType))
 	elseif rank == "unknown" then
@@ -182,8 +182,8 @@ local function EvaluateItemWeapon(findings, profile, slot)
 	local rank = RankWeapon(profile, weaponType)
 	if rank == "forbidden" then
 		AddFinding(findings, "WEAPON_FORBIDDEN", "hard", "weapon", slot.key, Msg("WEAPON_FORBIDDEN", weaponType))
-	elseif rank == "discouraged" then
-		AddFinding(findings, "WEAPON_DISCOURAGED", "soft", "weapon", slot.key, Msg("WEAPON_DISCOURAGED", weaponType))
+	elseif rank == "unwanted" then
+		AddFinding(findings, "WEAPON_UNWANTED", "soft", "weapon", slot.key, Msg("WEAPON_UNWANTED", weaponType))
 	elseif rank == "unknown" then
 		AddFinding(findings, "ITEM_NOT_CHECKABLE", "info", "item", slot.key, Msg("ITEM_NOT_CHECKABLE", "weapon type"))
 	end
@@ -350,8 +350,8 @@ local function EvaluateItemStats(findings, profile, slot)
 				local rank = RankStat(profile, statId)
 				if rank == "forbidden" then
 					AddFinding(findings, "STAT_FORBIDDEN", "hard", "stat", slot.key, Msg("STAT_FORBIDDEN", statId))
-				elseif rank == "discouraged" then
-					AddFinding(findings, "STAT_DISCOURAGED", "soft", "stat", slot.key, Msg("STAT_DISCOURAGED", statId))
+				elseif rank == "unwanted" then
+					AddFinding(findings, "STAT_UNWANTED", "soft", "stat", slot.key, Msg("STAT_UNWANTED", statId))
 				end
 			end
 		end
@@ -417,7 +417,7 @@ local function EvaluateEnchant(findings, profile, slot)
 					AddFinding(findings, "RESILIENCE_PVE", "soft", "enchant", slot.key, Msg("RESILIENCE_PVE", info.name))
 				elseif RankStat(profile, statId) == "forbidden" then
 					AddFinding(findings, "ENCHANT_BAD_STAT", "hard", "enchant", slot.key, Msg("ENCHANT_BAD_STAT", statId))
-				elseif RankStat(profile, statId) == "discouraged" then
+				elseif RankStat(profile, statId) == "unwanted" then
 					AddFinding(findings, "ENCHANT_BAD_STAT", "soft", "enchant", slot.key, Msg("ENCHANT_BAD_STAT", statId))
 				end
 			end
@@ -470,7 +470,7 @@ local function EvaluateGems(findings, profile, slot)
 						AddFinding(findings, "RESILIENCE_PVE", "soft", "gem", slot.key, Msg("RESILIENCE_PVE", tostring(gem.itemId)))
 					elseif RankStat(profile, statId) == "forbidden" then
 						AddFinding(findings, "GEM_BAD_STAT", "hard", "gem", slot.key, Msg("GEM_BAD_STAT", statId))
-					elseif RankStat(profile, statId) == "discouraged" then
+					elseif RankStat(profile, statId) == "unwanted" then
 						AddFinding(findings, "GEM_BAD_STAT", "soft", "gem", slot.key, Msg("GEM_BAD_STAT", statId))
 					end
 				end
@@ -1417,7 +1417,7 @@ function Addon:GearCheckRulesSelfTest()
 	Check("T10 seed → 4/5 equipped", t10Count == 4)
 	Check("T10 counts do not force BAD", t10.overall and t10.overall.status ~= "BAD")
 
-	-- Phase 8: Enhancement intellect is preferred (not discouraged)
+	-- Phase 8: Enhancement intellect is preferred (not unwanted)
 	local enhInt = {
 		character = { classFile = "SHAMAN", specTab = 2, specKnown = true, gaps = {} },
 		equipment = {
@@ -1431,7 +1431,7 @@ function Addon:GearCheckRulesSelfTest()
 		},
 	}
 	local fEnh = self:EvaluateGearCheck(enhInt)
-	Check("enhancement intellect → not STAT_DISCOURAGED", not HasCode(fEnh, "STAT_DISCOURAGED"))
+	Check("enhancement intellect → not STAT_UNWANTED", not HasCode(fEnh, "STAT_UNWANTED"))
 	Check("enhancement intellect chest → GOOD", enhInt.equipment[1].verdict == "GOOD")
 
 	-- Retribution: leather offset + intellect on mail pieces are acceptable
@@ -1462,8 +1462,8 @@ function Addon:GearCheckRulesSelfTest()
 		},
 	}
 	local fRet = self:EvaluateGearCheck(retLeather)
-	Check("ret leather wrist → not ARMOR_DISCOURAGED", not HasCode(fRet, "ARMOR_DISCOURAGED"))
-	Check("ret mail intellect → not STAT_DISCOURAGED", not HasCode(fRet, "STAT_DISCOURAGED"))
+	Check("ret leather wrist → not ARMOR_UNWANTED", not HasCode(fRet, "ARMOR_UNWANTED"))
+	Check("ret mail intellect → not STAT_UNWANTED", not HasCode(fRet, "STAT_UNWANTED"))
 	Check("ret cloak Major Agility → not ENCHANT_NOT_CHECKABLE", not HasCode(fRet, "ENCHANT_NOT_CHECKABLE"))
 	Check("ret cloak Major Agility → not ENCHANT_LOWER_LEVEL", not HasCode(fRet, "ENCHANT_LOWER_LEVEL"))
 	Check("ret leather wrist → GOOD (BiS offset)", retLeather.equipment[1].verdict == "GOOD")
@@ -1484,7 +1484,7 @@ function Addon:GearCheckRulesSelfTest()
 		},
 	}
 	local fEnhWrist = self:EvaluateGearCheck(enhLeather)
-	Check("enh leather wrist → not ARMOR_DISCOURAGED", not HasCode(fEnhWrist, "ARMOR_DISCOURAGED"))
+	Check("enh leather wrist → not ARMOR_UNWANTED", not HasCode(fEnhWrist, "ARMOR_UNWANTED"))
 	Check("enh leather wrist → GOOD (BiS offset)", enhLeather.equipment[1].verdict == "GOOD")
 
 	-- Resto Druid: cloth chest is BiS-acceptable and should be GOOD
@@ -1507,7 +1507,7 @@ function Addon:GearCheckRulesSelfTest()
 		},
 	}
 	local fResto = self:EvaluateGearCheck(restoCloth)
-	Check("resto cloth chest → not ARMOR_DISCOURAGED", not HasCode(fResto, "ARMOR_DISCOURAGED"))
+	Check("resto cloth chest → not ARMOR_UNWANTED", not HasCode(fResto, "ARMOR_UNWANTED"))
 	Check("resto cloth chest → GOOD", restoCloth.equipment[1].verdict == "GOOD")
 	Check("resto Je'Tze's Bell → not TRINKET_NOT_PREFERRED", not HasCode(fResto, "TRINKET_NOT_PREFERRED"))
 
@@ -1695,12 +1695,12 @@ function Addon:GearCheckRulesSelfTest()
 	}
 	local fFury = self:EvaluateGearCheck(furyOh)
 	Check("fury missing OH → WEAPON_SETUP", HasCode(fFury, "WEAPON_SETUP"))
-	Check("fury leather wrist → not ARMOR_DISCOURAGED", not HasCode(fFury, "ARMOR_DISCOURAGED"))
-	Check("fury axe2h → not WEAPON_DISCOURAGED", not HasCode(fFury, "WEAPON_DISCOURAGED"))
+	Check("fury leather wrist → not ARMOR_UNWANTED", not HasCode(fFury, "ARMOR_UNWANTED"))
+	Check("fury axe2h → not WEAPON_UNWANTED", not HasCode(fFury, "WEAPON_UNWANTED"))
 	Check("fury DBW trinket → not TRINKET_NOT_PREFERRED", not HasCodeOnSlot(fFury, "TRINKET_NOT_PREFERRED", "trinket1"))
 	Check("fury glowing scale → TRINKET_NOT_PREFERRED", HasCodeOnSlot(fFury, "TRINKET_NOT_PREFERRED", "trinket2"))
 
-	-- Tank leather stays discouraged
+	-- Tank leather stays unwanted
 	local tankLeather = {
 		character = { classFile = "WARRIOR", specTab = 3, specKnown = true, gaps = {} },
 		equipment = {
@@ -1727,7 +1727,7 @@ function Addon:GearCheckRulesSelfTest()
 		},
 	}
 	local fTank = self:EvaluateGearCheck(tankLeather)
-	Check("prot leather wrist → ARMOR_DISCOURAGED", HasCode(fTank, "ARMOR_DISCOURAGED"))
+	Check("prot leather wrist → ARMOR_UNWANTED", HasCode(fTank, "ARMOR_UNWANTED"))
 
 	-- Disc priest: Reckless Ametrine (SP+haste), Greater Spirit boots, Lunar Dust,
 	-- staff Greater Spellpower, wand without enchant.

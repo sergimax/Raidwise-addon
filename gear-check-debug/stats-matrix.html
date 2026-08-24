@@ -83,7 +83,7 @@
   }
   .chip.p { background: var(--p); }
   .chip.a { background: var(--a); }
-  .chip.d { background: var(--d); }
+  .chip.w { background: var(--d); }
   .chip.f { background: var(--f); }
   .chip.u { background: var(--u); }
   .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -200,7 +200,7 @@
   td.cell { text-align: center; padding: 4px 5px; min-width: 52px; }
   td.cell.preferred { background: var(--p-bg) !important; }
   td.cell.acceptable { background: var(--a-bg) !important; }
-  td.cell.discouraged { background: var(--d-bg) !important; }
+  td.cell.unwanted { background: var(--d-bg) !important; }
   td.cell.forbidden { background: var(--f-bg) !important; }
   td.cell.unset { background: transparent; }
 
@@ -234,7 +234,7 @@
   }
   .radios label[data-l="preferred"] .mark { color: var(--p); }
   .radios label[data-l="acceptable"] .mark { color: var(--a); }
-  .radios label[data-l="discouraged"] .mark { color: var(--d); }
+  .radios label[data-l="unwanted"] .mark { color: var(--d); }
   .radios label[data-l="forbidden"] .mark { color: var(--f); }
   .radios label[data-l="unset"] .mark { color: var(--u); }
 
@@ -244,7 +244,7 @@
   }
   .radios label[data-l="preferred"] input:checked + .mark { background: var(--p); }
   .radios label[data-l="acceptable"] input:checked + .mark { background: var(--a); }
-  .radios label[data-l="discouraged"] input:checked + .mark { background: var(--d); }
+  .radios label[data-l="unwanted"] input:checked + .mark { background: var(--d); }
   .radios label[data-l="forbidden"] input:checked + .mark { background: var(--f); }
   .radios label[data-l="unset"] input:checked + .mark { background: var(--u); }
   .radios label:hover .mark { border-color: currentColor; }
@@ -281,11 +281,12 @@
     <h1>Gear Check — Stats Matrix</h1>
     <span class="hint">Edit cells → export for <code>GearCheckProfiles.lua</code></span>
   </div>
+  <p class="hint gradation">Ranks: <strong>P</strong> preferred and <strong>A</strong> acceptable → no finding (GOOD when max enchant/gems apply); <strong>U</strong> unwanted → soft finding (REPLACE); <strong>F</strong> forbidden → hard finding (BAD).</p>
   <div class="controls">
     <div class="legend">
       <span><i class="chip p">P</i> preferred</span>
       <span><i class="chip a">A</i> acceptable</span>
-      <span><i class="chip d">D</i> discouraged</span>
+      <span><i class="chip w">U</i> unwanted</span>
       <span><i class="chip f">F</i> forbidden</span>
       <span><i class="chip u">—</i> unset</span>
     </div>
@@ -316,8 +317,8 @@
 
 <script>
 (function () {
-  var LEVELS = ["preferred", "acceptable", "discouraged", "forbidden", "unset"];
-  var LEVEL_SHORT = { preferred: "P", acceptable: "A", discouraged: "D", forbidden: "F", unset: "—" };
+  var LEVELS = ["preferred", "acceptable", "unwanted", "forbidden", "unset"];
+  var LEVEL_SHORT = { preferred: "P", acceptable: "A", unwanted: "U", forbidden: "F", unset: "—" };
 
   var STATS = [
     "strength", "agility", "intellect", "spirit", "stamina",
@@ -332,43 +333,43 @@
     S_PHYS_MELEE: {
       preferred: ["strength", "agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "armor"],
       acceptable: ["stamina"],
-      discouraged: ["spirit", "intellect"],
+      unwanted: ["spirit", "intellect"],
       forbidden: ["spellPower", "mp5", "spellPenetration"]
     },
     S_RET: {
       preferred: ["strength", "agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "armor"],
       acceptable: ["stamina", "intellect"],
-      discouraged: ["spirit"],
+      unwanted: ["spirit"],
       forbidden: ["spellPower", "mp5", "spellPenetration"]
     },
     S_PHYS_TANK: {
       preferred: ["stamina", "defenseRating", "dodgeRating", "parryRating", "expertiseRating", "strength", "agility", "hitRating", "blockRating", "blockValue", "armor"],
       acceptable: ["critRating", "hasteRating", "attackPower", "armorPenetration"],
-      discouraged: ["spirit", "intellect"],
+      unwanted: ["spirit", "intellect"],
       forbidden: ["spellPower", "mp5", "spellPenetration"]
     },
     S_CASTER: {
       preferred: ["spellPower", "hitRating", "critRating", "hasteRating", "intellect", "spirit", "spellPenetration"],
       acceptable: ["stamina", "mp5"],
-      discouraged: ["strength", "agility", "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating"],
+      unwanted: ["strength", "agility", "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating"],
       forbidden: []
     },
     S_HEALER: {
       preferred: ["spellPower", "critRating", "hasteRating", "intellect", "spirit", "mp5"],
       acceptable: ["stamina", "hitRating"],
-      discouraged: ["strength", "agility", "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating", "spellPenetration"],
+      unwanted: ["strength", "agility", "attackPower", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating", "spellPenetration"],
       forbidden: []
     },
     S_HUNTER: {
       preferred: ["agility", "attackPower", "hitRating", "critRating", "hasteRating", "armorPenetration", "intellect"],
       acceptable: ["stamina", "strength"],
-      discouraged: ["spirit", "defenseRating", "dodgeRating", "parryRating"],
+      unwanted: ["spirit", "defenseRating", "dodgeRating", "parryRating"],
       forbidden: ["spellPower", "mp5"]
     },
     S_ENHANCE: {
       preferred: ["agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "intellect", "strength"],
       acceptable: ["stamina"],
-      discouraged: ["spirit", "spellPower", "defenseRating", "dodgeRating", "parryRating", "mp5", "spellPenetration"],
+      unwanted: ["spirit", "spellPower", "defenseRating", "dodgeRating", "parryRating", "mp5", "spellPenetration"],
       forbidden: []
     }
   };
@@ -438,7 +439,7 @@
   function cloneTemplateLevels(tpl) {
     var map = {};
     STATS.forEach(function (s) { map[s] = "unset"; });
-    ["preferred", "acceptable", "discouraged", "forbidden"].forEach(function (level) {
+    ["preferred", "acceptable", "unwanted", "forbidden"].forEach(function (level) {
       (tpl[level] || []).forEach(function (stat) {
         if (map[stat] !== undefined) map[stat] = level;
       });
@@ -573,7 +574,7 @@
   }
 
   function matrixSignature(levels) {
-    var buckets = { preferred: [], acceptable: [], discouraged: [], forbidden: [] };
+    var buckets = { preferred: [], acceptable: [], unwanted: [], forbidden: [] };
     STATS.forEach(function (stat) {
       var l = levels[stat] || "unset";
       if (buckets[l]) buckets[l].push(stat);
@@ -587,14 +588,14 @@
   }
 
   function luaStatsCall(levels) {
-    var buckets = { preferred: [], acceptable: [], discouraged: [], forbidden: [] };
+    var buckets = { preferred: [], acceptable: [], unwanted: [], forbidden: [] };
     STATS.forEach(function (stat) {
       var l = levels[stat] || "unset";
       if (buckets[l]) buckets[l].push(stat);
     });
     return "Stats(\n\t" + luaList(buckets.preferred) + ",\n\t"
       + luaList(buckets.acceptable) + ",\n\t"
-      + luaList(buckets.discouraged) + ",\n\t"
+      + luaList(buckets.unwanted) + ",\n\t"
       + luaList(buckets.forbidden) + "\n)";
   }
 
