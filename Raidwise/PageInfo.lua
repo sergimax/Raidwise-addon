@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 2
+local LAYOUT_VERSION = 3
 
 local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
 
@@ -20,6 +20,8 @@ local SECTION_BODY_KEYS = {
 	party = "INFO_SECTION_PARTY",
 	raid = "INFO_SECTION_RAID",
 	composition = "INFO_SECTION_COMPOSITION",
+	geartarget = "INFO_SECTION_GEARTARGET",
+	gearraid = "INFO_SECTION_GEARRAID",
 	history = "INFO_SECTION_HISTORY",
 	settings = "INFO_SECTION_SETTINGS",
 }

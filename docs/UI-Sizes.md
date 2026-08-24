@@ -36,7 +36,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
 | Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
 
-Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Party roster** (Prayer of Fortitude), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **History** (book), **Settings** (gear), **Info** (question mark).
+Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Party roster** (Prayer of Fortitude), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **Gear check (target)** (spyglass), **Gear check (raid)** (plate), **History** (book), **Settings** (gear), **Info** (question mark).
 
 ## Content padding
 
@@ -151,6 +151,41 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 | Effect row | height **20** | Icon **16** px, name, count width **36** (right-aligned, no wrap) |
 | Gap between sections | **10** px | After packing into the shortest column |
 
+## Gear check (target) tab
+
+Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**~144** px): multi-line status, **Scan**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 10`.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Left column | **~670** px | `innerW − RIGHT_COL_W − COL_GAP` |
+| Right column | **220** px | Top band + saved sidebar |
+| Summary (left) | height **124** | Top block; report row below `max(124, right top)` |
+| Class / spec icons | **18** px | On who line under Overall; tooltips show class / spec names |
+| Right top band | height **~144** | Status + 3 stacked buttons |
+| Report / filter rows | left width only | Five equal buttons each |
+| Breakdown | left, fills height | Slot groups with verdict color |
+| Saved list | right sidebar below delete | Scroll + vertical bar; all entries (not capped) |
+
+## Gear check (raid) tab
+
+Same party-column grid as **Raid roster** (groups 1–5 / 6–8). `LAYOUT_VERSION = 3`.
+
+| Element | Size | Notes |
+|---------|------|-------|
+| Hint + Scan | toolbar **28** | Scan button **104 × 28** top-right |
+| Status hint | under description | `GameFontNormalSmall` |
+| Summary line | height **20** | `ROSTER_STATS_H`; BAD/REPLACE/OK/GOOD/Failed counts |
+| Cell | **168 × 68** | Gap **2**; pad **4**; icons **18** |
+| Group label | height **16** | Centered group number |
+| Line 1 | class icon + name | Class-colored |
+| Line 2 | spec icon + overall | Verdict color or dim fail / not scanned |
+| Line 3 | counts | `BAD N · Repl. N · Iss. N` |
+| Top block | groups **1–5** | Width **5×168 + 4×2** |
+| Bottom block | groups **6–8** | **12** px gap below top block |
+| Scroll | v + h bars | Same chrome as Raid roster |
+
+Inspect queue runs sequentially; target scan blocked while raid scan is active.
+
 ## Character profile
 
 Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Party roster, Raid roster, or History; Esc-close via `UISpecialFrames`. No window scroll — tab panels fill the body below the summary. Layout rebuild gated by `PROFILE_LAYOUT_VERSION` (title-bar badge `vN`).
@@ -202,7 +237,7 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 
 Below: **Startup page** heading, hint, then an **4-column** radio group (`UIRadioButtonTemplate`, **16** px, row **22**, 8 px gaps); selected page is stored in `RaidwiseDB.startupTab`.
 
-Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels, then **Preview** with compact + stacked sample blocks (`LAYOUT_VERSION = 4`).
+Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels, then **Preview** with compact + stacked sample blocks (`LAYOUT_VERSION = 6`).
 
 ## Fonts
 

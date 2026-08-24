@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.15.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--24-blue)
+![](https://img.shields.io/badge/current_version-1.16.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--25-blue)
 
 
 ## Install
@@ -29,6 +29,9 @@ In-game slash commands:
 |---------|-------------|
 | `/raidwise` or `/rw` | Open the main window |
 | `/raidwise close` or `/rw close` | Close the main window |
+| `/raidwise gearcheck` or `/rw gearcheck` | Open Gear check (target) and scan |
+| `/rw gearcheck summary` (also `items`, `enchants`, `gems`, `ok`) | Print that report to your chat (scans first if needed) |
+| `/rw gearcheck test` | Offline rules self-test |
 
 Plain panels, a **left menu**, and a content page.
 The status bar shows the addon name and version.
@@ -77,6 +80,20 @@ Esc or the title **X** closes the window.
 - **Report missing** posts absent classes to raid or party chat; **Refresh** re-reads the group (same inspect path as Raid roster)
 - Full tracking list: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
 
+**Gear check (target)** tab:
+
+- **Scan** evaluates target or self (Overall, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / OK)
+- **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to **your chat only**
+- **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
+- Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
+- `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
+
+**Gear check (raid)** tab:
+
+- **Scan** inspects party/raid members one at a time on a group grid (parties 1–5, then 6–8)
+- Each cell shows class/spec icons, Overall, and BAD / REPLACE / issue counts
+- Click a scanned player to open the full report on **Gear check (target)** (no rescan)
+
 **History** tab:
 
 - Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
@@ -109,7 +126,7 @@ Esc or the title **X** closes the window.
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Reputation model: [`docs/Reputation.md`](docs/Reputation.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
-Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet).
+Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet). `types/GearCheck.ts` describes the Gear Check normalized report (`schemaVersion` 2).
 
 ## Screenshots
 
@@ -135,11 +152,20 @@ Raidwise/
   UnitTooltips.lua    # personal/community lines on player unit tooltips
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
+  GearCheckCatalog.lua # enchant / gem seed catalogs
+  GearCheckSets.lua   # T9/T10 set-piece ids (informational)
+  GearCheckTrinkets.lua # preferred/allowed trinket pools by role
+  GearCheckProfiles.lua # class + 30-spec Gear Check profiles
+  GearCheckRules.lua  # findings + verdicts + overall + offline self-test
+  GearCheckSavedReports.lua # manual save / load / prune (~14 days)
+  GearCheck.lua       # collector + normalize (schemaVersion 2) + evaluate + dump
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
   PageParty.lua       # Party roster tab
   PageRaid.lua        # Raid roster tab
   PageComposition.lua # Raid composition tab
+  PageGearCheckTarget.lua # Gear check (target) tab
+  PageGearCheckRaid.lua   # Gear check (raid) tab
   PageHistory.lua     # History tab
   PageSettings.lua    # Settings tab
   PageInfo.lua        # Info tab
@@ -148,11 +174,13 @@ docs/
   Architecture.md     # TOC order, layers, SavedVariables, refresh API
   UI-Views.md         # ASCII layouts for each view + layout version table
   UI-Sizes.md         # window / control pixel sizes
+  Gear-Check-Progress.md # Gear Check phase board (planned / done / test steps)
   Reputation.md       # personal rating / events / memo model
   Raid-Composition.md # classes/specs tracked by the Raid composition tab
 types/
   CharacterExport.ts  # TypeScript types for the Export tab JSON
   CooldownsExport.ts  # TypeScript types for account-wide cooldown JSON shape
+  GearCheck.ts        # TypeScript types for Gear Check report + findings
 ```
 
 ## Notes

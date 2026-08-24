@@ -3,14 +3,14 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.15.0"
+Addon.version = "1.16.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
 -- Fallback if Locale.lua does not load. Locale.lua replaces Addon.T.
 local FallbackChat = {
 	CHAT_LOADED = "loaded (v%s). Type /raidwise to open.",
-	CHAT_UNKNOWN = "Unknown command. Use /raidwise or /raidwise close.",
+	CHAT_UNKNOWN = "Unknown command. Use /raidwise, /raidwise close, or /raidwise gearcheck [summary|items|enchants|gems|ok|test].",
 }
 
 local function FormatText(text, ...)
@@ -41,6 +41,10 @@ local defaults = {
 		hideCommunity = false,
 		hideCommunityTags = false,
 	},
+	gearCheckSaved = {
+		nextId = 0,
+		reports = {},
+	},
 }
 
 -- Recursively copy a value (tables become independent copies).
@@ -70,6 +74,9 @@ local function EnsureDB()
 		end
 	end
 	Addon.db = RaidwiseDB
+	if Addon.PruneExpiredGearCheckReports then
+		Addon:PruneExpiredGearCheckReports()
+	end
 end
 
 -- Print a prefixed message to the default chat frame.
@@ -169,10 +176,10 @@ end
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
 
--- /raidwise [close] — open or close the main window.
+-- /raidwise [close|gearcheck …] — open, close, scan, self-test, or self-chat reports.
 SlashCmdList["RAIDWISE"] = function(msg)
 	msg = (msg or ""):match("^%s*(.-)%s*$") or ""
-	msg = msg:lower()
+	msg = msg:lower():gsub("%s+", " ")
 
 	if msg == "" then
 		Addon:ShowMainFrame()
@@ -181,6 +188,53 @@ SlashCmdList["RAIDWISE"] = function(msg)
 
 	if msg == "close" then
 		Addon:HideMainFrame()
+		return
+	end
+
+	if msg == "gearcheck test" or msg == "gear test" then
+		if not Addon.GearCheckRulesSelfTest then
+			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
+			return
+		end
+		local ok, results, passed, total = pcall(function()
+			return Addon:GearCheckRulesSelfTest()
+		end)
+		if not ok then
+			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
+			Addon:Print(tostring(results))
+			return
+		end
+		Addon:Print(Addon:T("CHAT_GEARCHECK_TEST_SUMMARY", passed, total))
+		for index = 1, #results do
+			local row = results[index]
+			local mark = row.ok and "PASS" or "FAIL"
+			Addon:Print(string.format("  [%s] %s", mark, row.name))
+		end
+		return
+	end
+
+	local reportMode = msg:match("^gearcheck%s+(%S+)$") or msg:match("^gear%s+(%S+)$")
+	if reportMode == "summary" or reportMode == "report"
+		or reportMode == "items" or reportMode == "enchants" or reportMode == "gems"
+		or reportMode == "ok"
+	then
+		if reportMode == "report" then
+			reportMode = "summary"
+		end
+		if Addon.RunGearCheckChatReport then
+			Addon:RunGearCheckChatReport(reportMode, true)
+		else
+			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
+		end
+		return
+	end
+
+	if msg == "gearcheck" or msg == "gear" then
+		if Addon.OpenGearCheckTarget then
+			Addon:OpenGearCheckTarget(true)
+		else
+			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
+		end
 		return
 	end
 

@@ -4,8 +4,8 @@
 
 Аддон для подготовки к рейду в **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): составы группы и рейда, анализ состава, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа в JSON.
 
-![](https://img.shields.io/badge/current_version-1.15.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--24-blue)
+![](https://img.shields.io/badge/current_version-1.16.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--08--25-blue)
 
 
 ## Установка
@@ -29,6 +29,9 @@
 |---------|-------------|
 | `/raidwise` или `/rw` | Открыть главное окно |
 | `/raidwise close` или `/rw close` | Закрыть главное окно |
+| `/raidwise gearcheck` или `/rw gearcheck` | Открыть проверку экипа (цель) и сканировать |
+| `/rw gearcheck summary` (также `items`, `enchants`, `gems`, `ok`) | Печать отчёта в ваш чат (сначала сканирует при необходимости) |
+| `/rw gearcheck test` | Офлайн self-test правил |
 
 Простые панели, **левое меню** и страница содержимого.
 В строке состояния — имя аддона и версия.
@@ -77,6 +80,20 @@ Esc или **X** в заголовке закрывает окно.
 - **Сообщить** — отсутствующие классы в чат; **Обновить** заново считывает группу (тот же осмотр, что у состава рейда)
 - Полный список: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
 
+Вкладка **Проверка экипа (цель)**:
+
+- **Сканировать** оценивает цель или вас (итог, иконки класса/спека, GS/iLvl, находки по фильтрам: Все / Предметы / Чары / Камни / OK)
+- Кнопки **Отчёт …** и `/rw gearcheck summary|items|enchants|gems|ok` печатают **только в ваш чат**
+- **Показать текстом** — сырой dump; **Сохранить отчёт** — снимок (~14 дней)
+- Поверхностная оговорка; правила и известные ложные срабатывания: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
+- `/rw gearcheck` открывает вкладку и сканирует; `/rw gearcheck test` — офлайн self-test
+
+Вкладка **Проверка экипа (рейд)**:
+
+- **Сканировать** — поочерёдный осмотр группы/рейда на сетке групп (1–5, затем 6–8)
+- В ячейке: иконки класса/спека, итог, счётчики BAD / REPLACE / проблем
+- Клик по просканированному игроку открывает полный отчёт на вкладке **Проверка экипа (цель)** (без повторного скана)
+
 Вкладка **История**:
 
 - Таблица игроков, с которыми вы были в группе или рейде (хранится в `RaidwiseDB.history`, остаётся после выхода)
@@ -109,7 +126,7 @@ Esc или **X** в заголовке закрывает окно.
 
 Схемы окон: [`docs/UI-Views.md`](docs/UI-Views.md). Размеры в пикселях: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Модель репутации: [`docs/Reputation.md`](docs/Reputation.md). Что проверяет анализ состава: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
-Потребители могут типизировать JSON вкладки Export через `types/CharacterExport.ts`. `types/CooldownsExport.ts` описывает форму JSON КД аккаунта (`FormatCooldownsExport`; пока без кнопки в UI).
+Потребители могут типизировать JSON вкладки Export через `types/CharacterExport.ts`. `types/CooldownsExport.ts` описывает форму JSON КД аккаунта (`FormatCooldownsExport`; пока без кнопки в UI). `types/GearCheck.ts` — нормализованный отчёт Gear Check (`schemaVersion` 2).
 
 ## Скриншоты
 
@@ -135,11 +152,20 @@ Raidwise/
   UnitTooltips.lua    # строки личного/общественного рейтинга в подсказках
   UIWidgets.lua       # общие панели, кнопки, иконки, бейджи версии вёрстки
   CharacterProfile.lua # профиль персонажа (мнение, теги, заметки, история)
+  GearCheckCatalog.lua # каталоги чар / камней
+  GearCheckSets.lua   # id кусков T9/T10 (информационно)
+  GearCheckTrinkets.lua # пулы тринкетов по роли
+  GearCheckProfiles.lua # профили классов + 30 спеков
+  GearCheckRules.lua  # находки + вердикты + итог + офлайн self-test
+  GearCheckSavedReports.lua # ручное сохранение / загрузка / очистка (~14 дней)
+  GearCheck.lua       # сбор и нормализация Gear Check (schemaVersion 2)
   PageCooldowns.lua   # вкладка Character cooldowns
   PageExport.lua      # вкладка Export gear and CDs
   PageParty.lua       # вкладка Party roster
   PageRaid.lua        # вкладка Raid roster
   PageComposition.lua # вкладка Raid composition
+  PageGearCheckTarget.lua # вкладка Gear check (target)
+  PageGearCheckRaid.lua   # вкладка Gear check (raid)
   PageHistory.lua     # вкладка History
   PageSettings.lua    # вкладка Settings
   PageInfo.lua        # вкладка Info
@@ -148,11 +174,13 @@ docs/
   Architecture.md     # порядок TOC, слои, SavedVariables, API обновления
   UI-Views.md         # ASCII-схемы каждого вида + таблица layout-версий
   UI-Sizes.md         # размеры окна и элементов
+  Gear-Check-Progress.md # фазы Gear Check (план / готово / как тестировать)
   Reputation.md       # модель личного рейтинга / событий / мемо
   Raid-Composition.md # классы и спеки, которые проверяет анализ состава
 types/
   CharacterExport.ts  # TypeScript-типы JSON вкладки Export
   CooldownsExport.ts  # TypeScript-типы JSON КД аккаунта
+  GearCheck.ts        # TypeScript-типы нормализованного отчёта Gear Check
 ```
 
 ## Заметки

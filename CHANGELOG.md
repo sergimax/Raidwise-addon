@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.16.0] - 2026-08-25
+
+### Added
+- **Gear check (target)**: Scan target or self for surface-level PvE gear evaluation (armor/weapons/stats/enchants/gems/meta), Overall status, filtered findings, self-chat reports, and optional raw dump via **Show as a text**
+- **Gear check (raid)**: Sequential party/raid scan with a Raid-roster-style group grid (parties 1–5 / 6–8); click a player to open the full target report
+- Manual **Save report** / load / delete for gear-check snapshots (~14-day retention)
+- Spec-specific rule profiles, enchant/gem catalogs, trinket pools, T9/T10 set counts (informational), and `/rw gearcheck test` offline self-test
+- Class and spec icons in the Gear check (target) summary band
+
+### Changed
+- Gear check (target) uses a two-column layout (summary + findings left; Scan / text view / saved reports right)
+- Stat preference labels use **unwanted** instead of discouraged; tighter per-class/spec stat templates (Priest, Druid, Warlock, and others)
+
+### Fixed
+- Inspect re-scans no longer invent empty sockets / missing gems when gem IDs are stripped from item links
+- Raid gear-check no longer applies the previous player’s talent tree (e.g. Protection name on a Priest) when inspecting the next member
+
 ## [1.15.0] - 2026-08-24
 
 ### Added

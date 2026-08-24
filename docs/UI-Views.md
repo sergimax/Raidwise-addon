@@ -32,28 +32,32 @@ Menu tabs (top to bottom; each row has a 16×16 category icon + label):
 [ PoF   ] Party roster
 [ glory ] Raid roster
 [ BoK   ] Raid composition
+[ scope ] Gear check (target)
+[ plate ] Gear check (raid)
 [ book  ] History
 [ gear  ] Settings
 [  ?    ] Info
 ```
 
-Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Spell_Holy_PrayerOfFortitude`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
+Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Spell_Holy_PrayerOfFortitude`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Chest_Plate_23`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
 ## Layout versions
 
 Independent from addon semver (`Addon.version` in the status bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 4` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 5` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 27` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| Gear check (raid) | `LAYOUT_VERSION = 3` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 5` | `PageSettings.lua` | Shell title bar (next to page name) |
-| Info | `LAYOUT_VERSION = 2` | `PageInfo.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Info | `LAYOUT_VERSION = 3` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
 
@@ -205,6 +209,84 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 
 Spec is the primary talent tree (same as Raid roster). Solo shows only your own coverage.
 
+## Gear check (target)
+
+Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, Scan, Show as a text, Select all (top band), then Save report, Delete selected report, scrollable saved list. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
+
+```text
+[ short description — full width ]
+[ surface-level limitation — full width ]
+
+LEFT (~670px)                          RIGHT (~220px)
+[ summary: Overall / class+spec icons / who / GS+iLvl … ]  [ status line 1 ]
+                                        [ status line 2 … ]
+                                        [ Scan ]
+                                        [ Show as a text ]
+                                        [ Select all ]
+
+[ Report summary | … | Report OK ]
+[ All | Items | Enchants | Gems | OK ]
+
+[ scrollable findings by slot ]         [ Save report ]
+                                        [ Delete selected report ]
+                                        [ Saved reports (~14 days) — scroll ]
+
+(Show as a text → raw dump copy box below top band; text view + Select all stay in top band)
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | Surface-level PvE check; not BiS; rules being maintained |
+| limitation | Spec disclaimer |
+| summary (left) | Overall status (colored), class + spec icons + character line, GearScore / avg iLvl, issue counts, meta, sets |
+| status (right) | Multi-line hint or scan result (`\n` breaks + word wrap); sits above Scan |
+| Scan | Resolves target or self, inspects if needed, evaluate + refresh UI |
+| Show as a text | Toggles raw dump (replaces main columns; stays in top band) |
+| Select all | Enabled in text view when dump has text |
+| report buttons | Print to **self chat only** (`[GearCheck]` lines) |
+| filters | All / Items / Enchants / Gems / **OK** |
+| breakdown (left) | Active filter name as gold header (except **All**); then `[VERDICT] Slot — Item` plus finding bullets |
+| Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved |
+| Delete selected report | Removes the currently viewed saved entry |
+| saved panel (right) | Scrollable list of all saved entries; click loads frozen snapshot |
+
+`LAYOUT_VERSION = 10`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
+
+Saved snapshot fields: `rulesetVersion` (`wotlk-3.3.5a-{addonVersion}`), `dataVersion` (`GEAR_CHECK_DATA_VERSION` in catalog). Expired entries prune on load/save.
+
+## Gear check (raid)
+
+`LAYOUT_VERSION = 3`. Same party-column grid as **Raid roster** (groups 1–5, then 6–8). Scans party/raid sequentially (WoW inspect is one player at a time).
+
+```text
+[ short description ]                                    [ Scan ]
+[ hint — one-at-a-time inspect; stay in range ]
+        summary gap
+[ summary: BAD · REPLACE · OK · GOOD · Failed ]
+[ 1              ][ 2              ][ 3              ][ 4              ][ 5              ]
+[ (class) Rhee   ][ empty slot     ] ...
+[ (spec) REPLACE ]
+[ BAD 0 · Repl. 2 · Iss. 4 ]
+        12 px gap
+[ 6              ][ 7              ][ 8              ]
+[ player cell    ] ...
+```
+
+| Block | In-game text / control |
+|-------|------------------------|
+| short description | Surface-level group scan; click a filled cell → **Gear check (target)** |
+| Scan | **Scan** — queues `CompositionMembers()` one inspect at a time |
+| hint / status | Progress `Scanning N/M: Name…`; empty group message when alone |
+| summary line | Counts by overall status + failed/skipped inspects |
+| column header | Group number (`1`–`8`) |
+| line 1 | Class icon + class-colored name |
+| line 2 | Spec icon + overall (colored) or fail / not scanned |
+| line 3 | `BAD N · Repl. N · Iss. N` (enchant+gem+meta issue total) |
+| empty slot | Blank cell (no member) |
+| cell click | Opens full report on **Gear check (target)** (no rescan) when a report exists |
+
+API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
+
 ## Character profile
 
 Standalone window (**460 × 560**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
@@ -305,8 +387,9 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 
 [ Startup page heading ]
 [ short hint ]
-( ) Cooldowns   ( ) Export   ( ) Party   ( ) Raid
-( ) Composition ( ) History  ( ) Settings
+( ) Cooldowns   ( ) Export      ( ) Party       ( ) Raid
+( ) Composition ( ) Gear target ( ) Gear raid   ( ) History
+( ) Settings
 
 [ Unit tooltips heading ]
 [ short hint ]

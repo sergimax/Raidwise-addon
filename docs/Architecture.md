@@ -18,11 +18,18 @@ PlayerHistory.lua     history store + personal rating domain API
 UIWidgets.lua         shared UI helpers (panels, buttons, icons, layout badge)
 UnitTooltips.lua      GameTooltip unit lines for personal/community ratings
 CharacterProfile.lua  character profile popup
+GearCheckCatalog.lua  enchant / gem seed catalogs
+GearCheckSets.lua     T9/T10 set-piece ids (informational)
+GearCheckTrinkets.lua per-role BiS + progression trinket id pools
+GearCheckProfiles.lua class + 30-spec rule profiles
+GearCheckRules.lua    findings engine + item verdicts + overall (EvaluateGearCheck)
+GearCheckSavedReports.lua  manual save / load / prune (~14 days)
+GearCheck.lua         collector + normalize (schemaVersion 2) + evaluate hook + dump
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
 ExporterWindow.lua    main shell (menu, title, status, tab wiring)
 ```
 
-Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → pages → shell.
+Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → gear-check (catalog → sets → profiles → rules → **saved reports** → collector) → pages → shell.
 
 ## Layers
 
@@ -30,7 +37,7 @@ Order is the dependency graph: bootstrap → locale → domain → shared widget
 |-------|-------|------|
 | Bootstrap | `Raidwise.lua` | `Addon.db`, lifecycle, slash `/raidwise` / `/rw` (open), `close` (hide) |
 | i18n | `Locale.lua` | Strings; `SetLocale` → `RefreshLocalizedUI` |
-| Domain | Export, Lockouts, PartyRoster, RaidRoles, Composition, History | Data and analysis; no frame creation |
+| Domain | Export, Lockouts, PartyRoster, RaidRoles, Composition, History, GearCheck | Data and analysis; no frame creation |
 | Shared UI | `UIWidgets.lua` | Plain panels, buttons, icons, drag, copy box, layout version label |
 | UI | Profile + pages + shell | Frames, refresh, localization refresh |
 
@@ -47,8 +54,9 @@ TOC: `RaidwiseDB`, `MrcExporterDB` (legacy migrate-only).
 | `tooltip` | `UnitTooltips.lua` / Settings | Hide flags for unit tooltip rating lines |
 | `characters` | `CharacterLockouts.lua` | Per-character lockout columns |
 | `history` | `PlayerHistory.lua` | GUID-keyed meetings, opinion/tags/facts, events, notes |
+| `gearCheckSaved` | `GearCheckSavedReports.lua` | Manual Gear Check snapshots (`reports`, `nextId`); ~14-day retention |
 
-Bound as `Addon.db` after `EnsureDB`.
+Bound as `Addon.db` after `EnsureDB`. Expired Gear Check reports are pruned on addon load and on save.
 
 History personal reputation shape (see [Reputation.md](Reputation.md)):
 
@@ -62,7 +70,7 @@ History personal reputation shape (see [Reputation.md](Reputation.md)):
 
 | Kind | Where | Shown | Purpose |
 |------|-------|-------|---------|
-| **Addon semver** | `Addon.version` + TOC `## Version` | Status bar (e.g. `v1.15.0`) | Release / changelog |
+| **Addon semver** | `Addon.version` + TOC `## Version` | Status bar (e.g. `v1.16.0`) | Release / changelog |
 | **Layout version** | `*_LAYOUT_VERSION` per view | Shell title bar next to page name (`vN`); profile title bar; shell constant is rebuild-only | Force UI rebuild when structure changes |
 
 Bump layout versions when sizes, named frames, or control layout change. Do **not** bump for pure locale string edits. Keep docs in sync (`UI-Views.md`, `UI-Sizes.md`).
@@ -88,6 +96,8 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `CommitProfileRating` | Profile | **Save and Update** button |
 | `RefreshRatingViews` | Profile | After rating save / profile close |
 | `RefreshPartyData` | `PartyRoster.lua` | Fan-out refresh (below) |
+| `OpenGearCheckTarget` / `RefreshGearCheckTargetView` / `ShowGearCheckReport` / `StartGearCheckScan` / `StartGearCheckRaidScan` / `EvaluateGearCheck` / `GearCheckRulesSelfTest` / `PrintGearCheckReport` / `RunGearCheckChatReport` | GearCheck stack + target/raid pages | `/rw gearcheck …`, Scan / Report buttons |
+| `SaveGearCheckReport` / `ListGearCheckSavedReports` / `GetGearCheckSavedReport` / `DeleteGearCheckSavedReport` / `PruneExpiredGearCheckReports` | `GearCheckSavedReports.lua` | Save report / saved list UI |
 
 ## Unit tooltips
 

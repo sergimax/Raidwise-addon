@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 5
+local LAYOUT_VERSION = 6
 
 local STARTUP_COLS = 4
 local STARTUP_RADIO_SIZE = 16
