@@ -276,6 +276,91 @@ local function ClassifyItem(itemType, itemSubType, equipLoc)
 	return category, armorType, weaponType, isRelic
 end
 
+local function MapGetItemStatsKey(rawKey)
+	if type(rawKey) ~= "string" then
+		return nil, nil
+	end
+	if SOCKET_MAP[rawKey] then
+		return "socket", SOCKET_MAP[rawKey]
+	end
+	if STAT_MAP[rawKey] then
+		return "stat", STAT_MAP[rawKey]
+	end
+	if type(_G) ~= "table" then
+		return nil, nil
+	end
+	for token, color in pairs(SOCKET_MAP) do
+		if _G[token] == rawKey then
+			return "socket", color
+		end
+	end
+	for token, statId in pairs(STAT_MAP) do
+		if _G[token] == rawKey then
+			return "stat", statId
+		end
+	end
+	return nil, nil
+end
+
+local scanTip
+
+local function EnsureScanTip()
+	if scanTip then
+		return scanTip
+	end
+	scanTip = CreateFrame("GameTooltip", "RaidwiseGearCheckScanTip", nil, "GameTooltipTemplate")
+	scanTip:Hide()
+	return scanTip
+end
+
+local function CountEmptySocketsFromTooltip(itemLink)
+	local empty = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 0 }
+	if type(itemLink) ~= "string" or itemLink == "" then
+		return empty
+	end
+	local tip = EnsureScanTip()
+	if not tip then
+		return empty
+	end
+	local ok = pcall(function()
+		tip:SetOwner(UIParent, "ANCHOR_NONE")
+		tip:ClearLines()
+		tip:SetHyperlink(itemLink)
+	end)
+	if not ok then
+		return empty
+	end
+	local labels = {
+		["red socket"] = "red",
+		["yellow socket"] = "yellow",
+		["blue socket"] = "blue",
+		["meta socket"] = "meta",
+		["prismatic socket"] = "prismatic",
+	}
+	if type(_G) == "table" then
+		for token, color in pairs(SOCKET_MAP) do
+			local text = _G[token]
+			if type(text) == "string" and text ~= "" then
+				labels[strlower(text)] = color
+			end
+		end
+	end
+	local lineCount = tip:NumLines() or 0
+	for index = 1, lineCount do
+		local fontString = _G["RaidwiseGearCheckScanTipTextLeft" .. index]
+		local text = fontString and fontString:GetText()
+		if type(text) == "string" and text ~= "" then
+			local color = labels[strlower(text)]
+			if color then
+				empty[color] = (empty[color] or 0) + 1
+				empty.total = empty.total + 1
+			end
+		end
+	end
+	tip:Hide()
+	return empty
+end
+
 local function CollectStatsAndSockets(itemLinkOrId)
 	local stats = {}
 	local sockets = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 0 }
@@ -292,40 +377,54 @@ local function CollectStatsAndSockets(itemLinkOrId)
 	for rawKey, value in pairs(raw) do
 		local amount = tonumber(value)
 		if amount and amount ~= 0 then
-			local socketColor = SOCKET_MAP[rawKey]
-			if socketColor then
-				sockets[socketColor] = (sockets[socketColor] or 0) + amount
+			local kind, mapped = MapGetItemStatsKey(rawKey)
+			if kind == "socket" then
+				sockets[mapped] = (sockets[mapped] or 0) + amount
 				sockets.total = sockets.total + amount
-			else
-				local mapped = STAT_MAP[rawKey]
-				if mapped then
-					stats[mapped] = (stats[mapped] or 0) + amount
-				end
+			elseif kind == "stat" then
+				stats[mapped] = (stats[mapped] or 0) + amount
 			end
 		end
 	end
 	return stats, sockets, gaps
 end
 
+local function SplitColonFields(payload)
+	local fields = {}
+	local start = 1
+	while true do
+		local colon = payload:find(":", start, true)
+		if not colon then
+			fields[#fields + 1] = payload:sub(start)
+			break
+		end
+		fields[#fields + 1] = payload:sub(start, colon - 1)
+		start = colon + 1
+	end
+	return fields
+end
+
 local function ParseItemLinkParts(itemLink)
 	if type(itemLink) ~= "string" or itemLink == "" then
 		return nil
 	end
-	local itemId, enchantId, gem1, gem2, gem3, gem4 = itemLink:match(
-		"item:(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+)"
-	)
-	itemId = tonumber(itemId)
+	local payload = itemLink:match("[Hh]?item:([^|]+)")
+	if not payload then
+		return nil
+	end
+	local fields = SplitColonFields(payload)
+	local itemId = tonumber(fields[1])
 	if not itemId or itemId <= 0 then
 		return nil
 	end
 	return {
 		itemId = itemId,
-		enchantId = tonumber(enchantId) or 0,
+		enchantId = tonumber(fields[2]) or 0,
 		gemIdsFromLink = {
-			tonumber(gem1) or 0,
-			tonumber(gem2) or 0,
-			tonumber(gem3) or 0,
-			tonumber(gem4) or 0,
+			tonumber(fields[3]) or 0,
+			tonumber(fields[4]) or 0,
+			tonumber(fields[5]) or 0,
+			tonumber(fields[6]) or 0,
 		},
 	}
 end
@@ -486,6 +585,20 @@ local function NormalizeItem(parsed, itemLink, info)
 			metaGemId = gem.itemId
 		end
 	end
+
+	-- GetItemStats EMPTY_SOCKET_* counts remaining empty sockets only.
+	if sockets.total == 0 and itemLink then
+		local fromTip = CountEmptySocketsFromTooltip(itemLink)
+		if fromTip.total > 0 then
+			sockets.meta = fromTip.meta
+			sockets.red = fromTip.red
+			sockets.yellow = fromTip.yellow
+			sockets.blue = fromTip.blue
+			sockets.prismatic = fromTip.prismatic
+			sockets.total = fromTip.total
+		end
+	end
+	sockets.total = sockets.total + #gems
 
 	return {
 		itemId = parsed.itemId,

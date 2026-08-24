@@ -85,7 +85,7 @@ Esc or the title **X** closes the window.
 - Phase 7: **Scan** shows **Overall**, filters, and findings; **Report …** buttons (and `/rw gearcheck summary|items|enchants|gems`) print to **your chat only**. **Debug** reveals the raw dump
 - Surface-level disclaimer; class/spec rules are being maintained
 - `/rw gearcheck` opens this tab and runs a scan; report modes and `/rw gearcheck test` as above
-- Known catalog/profile false positives are tracked in [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md) (backlog)
+- Known catalog/profile false positives from Rhee (Enhancement) were fixed in Phase 8; new ones go in [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
 
 **Gear check (raid)** tab:
 

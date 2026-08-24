@@ -172,7 +172,7 @@ SLASH_RAIDWISE2 = "/rw"
 -- /raidwise [close|gearcheck …] — open, close, scan, self-test, or self-chat reports.
 SlashCmdList["RAIDWISE"] = function(msg)
 	msg = (msg or ""):match("^%s*(.-)%s*$") or ""
-	msg = msg:lower()
+	msg = msg:lower():gsub("%s+", " ")
 
 	if msg == "" then
 		Addon:ShowMainFrame()
@@ -189,7 +189,14 @@ SlashCmdList["RAIDWISE"] = function(msg)
 			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
 			return
 		end
-		local results, passed, total = Addon:GearCheckRulesSelfTest()
+		local ok, results, passed, total = pcall(function()
+			return Addon:GearCheckRulesSelfTest()
+		end)
+		if not ok then
+			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
+			Addon:Print(tostring(results))
+			return
+		end
 		Addon:Print(Addon:T("CHAT_GEARCHECK_TEST_SUMMARY", passed, total))
 		for index = 1, #results do
 			local row = results[index]

@@ -1,5 +1,5 @@
 -- Gear Check catalogs (seeded). Enchant ids are item-link enchant ids, not spell ids.
--- Maintained surface-level lists for WotLK 3.3.5a; expand during Phase 8.
+-- WotLK 3.3.5a surface lists; expand when new false positives appear.
 
 local Addon = Raidwise
 
@@ -49,13 +49,43 @@ local ENCHANTS = {
 	[3883] = { name = "Rune of the Nerubian Carapace", maxLevel = true, stats = { defenseRating = 13 } },
 	-- Shield
 	[1952] = { name = "Defense", maxLevel = true, stats = { defenseRating = 20 } },
-	[1128] = { name = "Greater Intellect", maxLevel = false, stats = { intellect = 25 } },
-	-- Legs (spellthread / armor kit often appear as enchants)
+	[1128] = { name = "Greater Intellect", maxLevel = true, stats = { intellect = 25 } },
+	-- Legs (LW kits + Tailoring spellthread; profession permanent reinforcements share stats)
 	[3325] = { name = "Jormungar Leg Reinforcements", maxLevel = true, stats = { stamina = 55, agility = 22 } },
-	[3326] = { name = "Frosthide Leg Armor", maxLevel = true, stats = { attackPower = 75, critRating = 22 } },
+	[3326] = { name = "Nerubian Leg Reinforcements", maxLevel = true, stats = { attackPower = 75, critRating = 22 } },
+	[3327] = { name = "Jormungar Leg Reinforcements", maxLevel = true, stats = { stamina = 55, agility = 22 } },
+	[3328] = { name = "Nerubian Leg Armor", maxLevel = false, stats = { attackPower = 55, critRating = 15 } },
+	[3822] = { name = "Frosthide Leg Armor", maxLevel = true, stats = { stamina = 55, agility = 22 } },
+	[3823] = { name = "Icescale Leg Armor", maxLevel = true, stats = { attackPower = 75, critRating = 22 } },
 	[3853] = { name = "Earthen Leg Armor", maxLevel = true, stats = { stamina = 40, resilience = 28 } },
 	[3719] = { name = "Brilliant Spellthread", maxLevel = true, stats = { spellPower = 50, spirit = 20 } },
+	[3720] = { name = "Azure Spellthread", maxLevel = false, stats = { spellPower = 35, spirit = 12 } },
 	[3721] = { name = "Sapphire Spellthread", maxLevel = true, stats = { spellPower = 50, stamina = 30 } },
+	-- Engineering tinkers (appear as permanent enchantId on 3.3.5a links)
+	[3603] = { name = "Hand-Mounted Pyro Rocket", maxLevel = true, stats = {} },
+	[3604] = { name = "Hyperspeed Accelerators", maxLevel = true, stats = {} },
+	[3605] = { name = "Flexweave Underlay", maxLevel = true, stats = { agility = 23 } },
+	[3606] = { name = "Nitro Boosts", maxLevel = true, stats = { critRating = 24 } },
+	[3601] = { name = "Frag Belt", maxLevel = true, stats = {} },
+	-- Extra weapon enchants (melee / caster commons)
+	[2673] = { name = "Mongoose", maxLevel = true, stats = {} },
+	[3225] = { name = "Executioner", maxLevel = true, stats = {} },
+	[3790] = { name = "Black Magic", maxLevel = true, stats = {} },
+	[3788] = { name = "Accuracy", maxLevel = true, stats = { hitRating = 25, critRating = 25 } },
+	[3869] = { name = "Blade Ward", maxLevel = true, stats = {} },
+	[3870] = { name = "Blood Draining", maxLevel = true, stats = {} },
+	[3731] = { name = "Titanium Weapon Chain", maxLevel = true, stats = { hitRating = 28 } },
+	[3241] = { name = "Lifeward", maxLevel = true, stats = {} },
+	[3239] = { name = "Icebreaker", maxLevel = true, stats = {} },
+	[3251] = { name = "Giant Slayer", maxLevel = false, stats = {} },
+	[1606] = { name = "Greater Potency", maxLevel = false, stats = { attackPower = 50 } },
+	[3830] = { name = "Exceptional Spellpower", maxLevel = false, stats = { spellPower = 50 } },
+	[3844] = { name = "Exceptional Spirit", maxLevel = true, stats = { spirit = 45 } },
+	[1103] = { name = "Exceptional Agility", maxLevel = false, stats = { agility = 26 } },
+	-- Rings
+	[3839] = { name = "Assault", maxLevel = true, stats = { attackPower = 40 } },
+	[3840] = { name = "Greater Spellpower", maxLevel = true, stats = { spellPower = 23 } },
+	[3791] = { name = "Stamina", maxLevel = true, stats = { stamina = 30 } },
 	-- Head / shoulder (arcanum / inscription) — common ids
 	[3820] = { name = "Arcanum of Burning Mysteries", maxLevel = true, stats = { spellPower = 30, critRating = 20 } },
 	[3819] = { name = "Arcanum of Blissful Mending", maxLevel = true, stats = { spellPower = 30, mp5 = 10 } },
@@ -67,6 +97,8 @@ local ENCHANTS = {
 	[3809] = { name = "Greater Inscription of the Crag", maxLevel = true, stats = { spellPower = 24, mp5 = 8 } },
 	[3810] = { name = "Greater Inscription of the Pinnacle", maxLevel = true, stats = { dodgeRating = 20, defenseRating = 15 } },
 	[3811] = { name = "Greater Inscription of the Storm", maxLevel = true, stats = { spellPower = 24, critRating = 15 } },
+	[3875] = { name = "Greater Inscription of the Axe", maxLevel = false, stats = { attackPower = 30, critRating = 10 } },
+	[3876] = { name = "Greater Inscription of the Crag", maxLevel = false, stats = { spellPower = 18, mp5 = 5 } },
 }
 
 -- Northrend epic (and Nightmare Tear) gems. maxLevel = true means ICC-era epic quality.
@@ -114,6 +146,65 @@ local GEMS = {
 	[40126] = { maxLevel = true, color = "yellow", stats = { defenseRating = 20 } },
 	[40127] = { maxLevel = true, color = "yellow", stats = { resilience = 20 } },
 	[40128] = { maxLevel = true, color = "yellow", stats = { hasteRating = 20 } },
+	-- Epic purple (Dreadstone)
+	[40129] = { maxLevel = true, color = "purple", stats = { strength = 10, stamina = 15 } },
+	[40130] = { maxLevel = true, color = "purple", stats = { agility = 10, stamina = 15 } },
+	[40131] = { maxLevel = true, color = "purple", stats = { parryRating = 10, stamina = 15 } },
+	[40132] = { maxLevel = true, color = "purple", stats = { spellPower = 12, stamina = 15 } },
+	[40133] = { maxLevel = true, color = "purple", stats = { spellPower = 12, spirit = 10 } },
+	[40134] = { maxLevel = true, color = "purple", stats = { attackPower = 20, stamina = 15 } },
+	[40135] = { maxLevel = true, color = "purple", stats = { hitRating = 10, stamina = 15 } },
+	[40136] = { maxLevel = true, color = "purple", stats = { expertiseRating = 10, stamina = 15 } },
+	[40137] = { maxLevel = true, color = "purple", stats = { armorPenetration = 10, stamina = 15 } },
+	[40138] = { maxLevel = true, color = "purple", stats = { dodgeRating = 10, stamina = 15 } },
+	[40139] = { maxLevel = true, color = "purple", stats = { parryRating = 10, dodgeRating = 10 } },
+	[40140] = { maxLevel = true, color = "purple", stats = { armorPenetration = 10, hitRating = 10 } },
+	[40141] = { maxLevel = true, color = "purple", stats = { expertiseRating = 10, hitRating = 10 } },
+	-- Epic orange (Ametrine)
+	[40142] = { maxLevel = true, color = "orange", stats = { strength = 10, critRating = 10 } },
+	[40143] = { maxLevel = true, color = "orange", stats = { strength = 10, hitRating = 10 } },
+	[40144] = { maxLevel = true, color = "orange", stats = { strength = 10, defenseRating = 10 } },
+	[40145] = { maxLevel = true, color = "orange", stats = { strength = 10, resilience = 10 } },
+	[40146] = { maxLevel = true, color = "orange", stats = { strength = 10, hasteRating = 10 } },
+	[40147] = { maxLevel = true, color = "orange", stats = { agility = 10, critRating = 10 } },
+	[40148] = { maxLevel = true, color = "orange", stats = { agility = 10, hitRating = 10 } },
+	[40149] = { maxLevel = true, color = "orange", stats = { spellPower = 12, hasteRating = 10 } },
+	[40150] = { maxLevel = true, color = "orange", stats = { attackPower = 20, hasteRating = 10 } },
+	[40152] = { maxLevel = true, color = "orange", stats = { spellPower = 12, intellect = 10 } },
+	[40153] = { maxLevel = true, color = "orange", stats = { attackPower = 20, hitRating = 10 } },
+	[40154] = { maxLevel = true, color = "orange", stats = { spellPower = 12, resilience = 10 } },
+	[40155] = { maxLevel = true, color = "orange", stats = { attackPower = 20, hasteRating = 10 } },
+	[40157] = { maxLevel = true, color = "orange", stats = { attackPower = 20, critRating = 10 } },
+	[40158] = { maxLevel = true, color = "orange", stats = { attackPower = 20, expertiseRating = 10 } },
+	[40159] = { maxLevel = true, color = "orange", stats = { agility = 10, hasteRating = 10 } },
+	[40160] = { maxLevel = true, color = "orange", stats = { dodgeRating = 10, defenseRating = 10 } },
+	[40161] = { maxLevel = true, color = "orange", stats = { parryRating = 10, defenseRating = 10 } },
+	[40162] = { maxLevel = true, color = "orange", stats = { expertiseRating = 10, hitRating = 10 } },
+	[40163] = { maxLevel = true, color = "orange", stats = { expertiseRating = 10, defenseRating = 10 } },
+	-- Epic green (Eye of Zul)
+	[40164] = { maxLevel = true, color = "green", stats = { intellect = 10, stamina = 15 } },
+	[40165] = { maxLevel = true, color = "green", stats = { critRating = 10, stamina = 15 } },
+	[40166] = { maxLevel = true, color = "green", stats = { hitRating = 10, stamina = 15 } },
+	[40167] = { maxLevel = true, color = "green", stats = { defenseRating = 10, stamina = 15 } },
+	[40168] = { maxLevel = true, color = "green", stats = { resilience = 10, stamina = 15 } },
+	[40169] = { maxLevel = true, color = "green", stats = { hasteRating = 10, stamina = 15 } },
+	[40170] = { maxLevel = true, color = "green", stats = { intellect = 10, spirit = 10 } },
+	[40171] = { maxLevel = true, color = "green", stats = { intellect = 10, hasteRating = 10 } },
+	[40172] = { maxLevel = true, color = "green", stats = { hitRating = 10, spirit = 10 } },
+	[40173] = { maxLevel = true, color = "green", stats = { spirit = 10, stamina = 15 } },
+	[40174] = { maxLevel = true, color = "green", stats = { hasteRating = 10, spirit = 10 } },
+	[40175] = { maxLevel = true, color = "green", stats = { intellect = 10, mp5 = 5 } },
+	[40176] = { maxLevel = true, color = "green", stats = { critRating = 10, mp5 = 5 } },
+	[40177] = { maxLevel = true, color = "green", stats = { hitRating = 10, mp5 = 5 } },
+	[40178] = { maxLevel = true, color = "green", stats = { resilience = 10, mp5 = 5 } },
+	[40179] = { maxLevel = true, color = "green", stats = { hasteRating = 10, mp5 = 5 } },
+	[40180] = { maxLevel = true, color = "green", stats = { critRating = 10, spellPenetration = 13 } },
+	[40181] = { maxLevel = true, color = "green", stats = { hitRating = 10, spellPenetration = 13 } },
+	[40182] = { maxLevel = true, color = "green", stats = { hasteRating = 10, spellPenetration = 13 } },
+	-- Rare Northrend (maxLevel false) — samples for lower-level soft checks
+	[39996] = { maxLevel = false, color = "red", stats = { strength = 16 } },
+	[39997] = { maxLevel = false, color = "red", stats = { agility = 16 } },
+	[40000] = { maxLevel = false, color = "red", stats = { attackPower = 32 } },
 }
 
 function Addon:GetGearCheckEnchantInfo(enchantId)

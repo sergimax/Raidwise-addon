@@ -16,6 +16,13 @@ local ENCHANTABLE = {
 	ranged = true,
 }
 
+-- Profession / optional enchants: evaluate when present, never flag MISSING_ENCHANT.
+local ENCHANT_OPTIONAL = {
+	waist = true,
+	finger1 = true,
+	finger2 = true,
+}
+
 local MESSAGES = {
 	SPEC_UNKNOWN = "Specialization is unknown; class-only rules are applied.",
 	PROFILE_MISSING = "No Gear Check profile is available for this class.",
@@ -202,7 +209,9 @@ local function EvaluateItemStats(findings, profile, slot)
 end
 
 local function EnchantableSlot(slot)
-	if not ENCHANTABLE[slot.key] then
+	if ENCHANTABLE[slot.key] or ENCHANT_OPTIONAL[slot.key] then
+		-- fall through for present-enchant checks; MISSING uses ENCHANTABLE only
+	else
 		return false
 	end
 	local item = slot.item
@@ -223,8 +232,11 @@ local function EvaluateEnchant(findings, profile, slot)
 		return
 	end
 	local enchant = slot.item.enchant
+	local requirePresent = ENCHANTABLE[slot.key] == true
 	if not enchant or not enchant.present then
-		AddFinding(findings, "MISSING_ENCHANT", "soft", "enchant", slot.key, Msg("MISSING_ENCHANT"))
+		if requirePresent then
+			AddFinding(findings, "MISSING_ENCHANT", "soft", "enchant", slot.key, Msg("MISSING_ENCHANT"))
+		end
 		return
 	end
 	local info = Addon:GetGearCheckEnchantInfo(enchant.enchantId)
@@ -278,12 +290,10 @@ local function EvaluateGems(findings, profile, slot)
 		if catalog and type(catalog.stats) == "table" and (not stats or not next(stats)) then
 			stats = catalog.stats
 		end
-		if not catalog and not gem.known then
+		if not catalog then
+			-- Unknown ids stay not-checkable (info). Never invent GEM_LOWER_LEVEL.
 			AddFinding(findings, "GEM_NOT_CHECKABLE", "info", "gem", slot.key, Msg("GEM_NOT_CHECKABLE", tostring(gem.itemId)))
-		elseif catalog and catalog.maxLevel ~= true then
-			AddFinding(findings, "GEM_LOWER_LEVEL", "soft", "gem", slot.key, Msg("GEM_LOWER_LEVEL", tostring(gem.itemId)))
-		elseif not catalog then
-			-- Known via GetItemInfo but not in max catalog → treat as lower-level soft.
+		elseif catalog.maxLevel ~= true then
 			AddFinding(findings, "GEM_LOWER_LEVEL", "soft", "gem", slot.key, Msg("GEM_LOWER_LEVEL", tostring(gem.itemId)))
 		end
 		if type(stats) == "table" then
@@ -325,10 +335,11 @@ local function EvaluateSlot(findings, profile, slot)
 		return
 	end
 	local item = slot.item
-	if item.pendingLink or item.infoKnown == false then
+	if item.pendingLink then
 		AddFinding(findings, "ITEM_NOT_CHECKABLE", "info", "item", slot.key, Msg("ITEM_NOT_CHECKABLE"))
 		return
 	end
+	local skipTypeAndStats = item.infoKnown == false
 	if type(item.gaps) == "table" then
 		for index = 1, #item.gaps do
 			local gap = item.gaps[index]
@@ -336,14 +347,17 @@ local function EvaluateSlot(findings, profile, slot)
 				or gap.code == "ARMOR_TYPE_UNKNOWN" or gap.code == "WEAPON_TYPE_UNKNOWN"
 			then
 				AddFinding(findings, "ITEM_NOT_CHECKABLE", "info", "item", slot.key, Msg("ITEM_NOT_CHECKABLE", gap.code))
-				return
+				skipTypeAndStats = true
+				break
 			end
 		end
 	end
 
-	EvaluateItemArmor(findings, profile, slot)
-	EvaluateItemWeapon(findings, profile, slot)
-	EvaluateItemStats(findings, profile, slot)
+	if not skipTypeAndStats then
+		EvaluateItemArmor(findings, profile, slot)
+		EvaluateItemWeapon(findings, profile, slot)
+		EvaluateItemStats(findings, profile, slot)
+	end
 	EvaluateEnchant(findings, profile, slot)
 	EvaluateGems(findings, profile, slot)
 end
@@ -987,6 +1001,105 @@ function Addon:GearCheckRulesSelfTest()
 	end
 	Check("T10 seed → 4/5 equipped", t10Count == 4)
 	Check("T10 counts do not force BAD", t10.overall and t10.overall.status ~= "BAD")
+
+	-- Phase 8: Enhancement intellect is preferred (not discouraged)
+	local enhInt = {
+		character = { classFile = "SHAMAN", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 20,
+				category = "armor",
+				armorType = "mail",
+				stats = { intellect = 40, agility = 50, attackPower = 80, stamina = 60 },
+				enchant = { enchantId = 3297, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fEnh = self:EvaluateGearCheck(enhInt)
+	Check("enhancement intellect → not STAT_DISCOURAGED", not HasCode(fEnh, "STAT_DISCOURAGED"))
+	Check("enhancement intellect chest → OK", enhInt.equipment[1].verdict == "OK")
+
+	-- Phase 8: unknown gem → not-checkable (info), not false GEM_LOWER_LEVEL
+	local unkGem = {
+		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 21,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 40, stamina = 50 },
+				enchant = { enchantId = 3297, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 1, yellow = 0, blue = 0, prismatic = 0, total = 1 },
+				gems = {
+					{ socketIndex = 1, itemId = 999001, present = true, known = true, isMeta = false, color = "red", stats = { strength = 20 }, gaps = {} },
+				},
+			})),
+		},
+	}
+	local fGem = self:EvaluateGearCheck(unkGem)
+	Check("unknown gem → GEM_NOT_CHECKABLE", HasCode(fGem, "GEM_NOT_CHECKABLE"))
+	Check("unknown gem → not GEM_LOWER_LEVEL", not HasCode(fGem, "GEM_LOWER_LEVEL"))
+	Check("unknown gem → still OK (no false REPLACE)", unkGem.equipment[1].verdict == "OK")
+
+	-- Catalogued epic gem is max-level
+	local epicGem = {
+		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 22,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 40, stamina = 50 },
+				enchant = { enchantId = 3297, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 1, yellow = 0, blue = 0, prismatic = 0, total = 1 },
+				gems = {
+					{ socketIndex = 1, itemId = 40111, present = true, known = true, isMeta = false, color = "red", stats = { strength = 20 }, gaps = {} },
+				},
+			})),
+		},
+	}
+	local fEpic = self:EvaluateGearCheck(epicGem)
+	Check("epic catalog gem → not GEM_LOWER_LEVEL", not HasCode(fEpic, "GEM_LOWER_LEVEL"))
+
+	-- Engineering Nitro Boosts on feet is max-level
+	local nitro = {
+		character = { classFile = "SHAMAN", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("feet", "FeetSlot", MakeItem({
+				itemId = 23,
+				category = "armor",
+				armorType = "mail",
+				stats = { agility = 40, intellect = 30, attackPower = 60 },
+				enchant = { enchantId = 3606, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fNitro = self:EvaluateGearCheck(nitro)
+	Check("nitro boots → not ENCHANT_NOT_CHECKABLE", not HasCode(fNitro, "ENCHANT_NOT_CHECKABLE"))
+	Check("nitro boots → not ENCHANT_LOWER_LEVEL", not HasCode(fNitro, "ENCHANT_LOWER_LEVEL"))
+
+	-- Icescale leg armor recognized
+	local iceLeg = {
+		character = { classFile = "SHAMAN", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("legs", "LegsSlot", MakeItem({
+				itemId = 24,
+				category = "armor",
+				armorType = "mail",
+				stats = { agility = 50, intellect = 40, attackPower = 80 },
+				enchant = { enchantId = 3823, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fLeg = self:EvaluateGearCheck(iceLeg)
+	Check("icescale legs → not ENCHANT_NOT_CHECKABLE", not HasCode(fLeg, "ENCHANT_NOT_CHECKABLE"))
+	Check("icescale legs → not ENCHANT_LOWER_LEVEL", not HasCode(fLeg, "ENCHANT_LOWER_LEVEL"))
+
+	local profileCount = 0
+	if self.GetGearCheckProfileCount then
+		profileCount = self:GetGearCheckProfileCount() or 0
+	end
+	Check("profiles cover 30 specs + 10 class fallbacks", profileCount == 40)
 
 	local passed = 0
 	for index = 1, #results do

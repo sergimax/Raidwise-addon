@@ -37,27 +37,27 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | 5 | Gear-level evaluation | **done** | Overall worst-wins; resilience 1/2+; meta activation; T9/T10 counts |
 | 6 | UI | **done** | Summary + Items/Enchants/Gems filters; dump behind Debug |
 | 7 | Chat output | **done** | Self-chat summary/items/enchants/gems; UI + slash |
-| 8 | Ruleset expansion | planned | Verify all 30 specs; maintain continuously |
+| 8 | Ruleset expansion | **done** | Enh intellect; gem not-checkable policy; leg/Engi/weapon catalogs |
 | — | Raid-wide gear check | **backlog** | Menu stub only |
 | — | Saved reports | **backlog** | Spec §25 |
 | — | Trinket analysis | **backlog** | Slot policy PLANNED |
-| — | Catalog / profile false positives | **backlog** | See [Known false positives](#known-false-positives--ruleset-gaps) (fix after Phase 8 polish) |
+| — | Catalog / profile false positives | **backlog** | New reports after Phase 8 polish (Rhee items addressed) |
 
 ---
 
 ## Known false positives / ruleset gaps
 
-Observed on **Rhee (Enhancement Shaman)** during Phase 3. Do **not** chase these mid-phase; revisit after Phases 4–7, preferably during **Phase 8** (ruleset expansion / catalog polish).
+Observed on **Rhee (Enhancement Shaman)** during Phase 3; addressed in **Phase 8**. Keep this section for future reports.
 
-| Area | Symptom | Likely cause | Fix direction |
-|------|---------|--------------|---------------|
-| Gems | Epic (max-level) gems flagged `GEM_LOWER_LEVEL` | Seed catalog incomplete; gems known via `GetItemInfo` but missing from `GEMS` (or treated as non-max) are soft-flagged as lower | Expand Northrend epic gem catalog; only flag lower when catalog entry exists with `maxLevel = false`, or quality-based heuristic |
-| Stats (Enhancement) | `intellect` → `STAT_DISCOURAGED` on gear | `S_PHYS_MELEE` / Enh profile lists intellect as discouraged; for Enh it is a primary (hard to avoid) mail stat | Add Enhancement-specific stats (prefer intellect; keep spellPower soft/forbidden as appropriate) |
-| Legs enchants | Tailoring / Leatherworking leg kits treated as unknown or wrong | Leg armor / spellthread ids not fully seeded as max-level “enchants” | Map common LW/Tailoring leg enchant ids into catalog as `maxLevel` |
-| Feet / hands | Engineering tinker improvements unknown or wrong | Engi boot/glove enchant ids missing from catalog | Seed Engineering feet/hands enchant ids |
-| Weapons | Some weapon enchants unknown (`ENCHANT_NOT_CHECKABLE` / unmapped) | Incomplete weapon enchantId map (incl. shaman / melee commons) | Expand weapon enchant catalog from live links |
+| Area | Status | Notes |
+|------|--------|-------|
+| Gems epic → `GEM_LOWER_LEVEL` | **fixed** | Unknown gems are `GEM_NOT_CHECKABLE` (info); expanded ICC epic purple/orange/green seeds |
+| Enhancement intellect discouraged | **fixed** | `S_ENHANCE` prefers intellect |
+| LW / Tailoring leg kits | **fixed** | Frosthide/Icescale/Nerubian/Jormungar + spellthread ids |
+| Engineering feet/hands | **fixed** | Nitro / Hyperspeed / Pyro Rocket / Flexweave / Frag Belt |
+| Weapon enchants unknown | **fixed** | Mongoose, Executioner, Black Magic, Accuracy, Blade Ward, Blood Draining, … |
 
-**Policy reminder:** unknown catalog ids must stay **not-checkable** (info), never false **BAD**. False **REPLACE** from incomplete catalogs is still a ruleset bug to fix in backlog/Phase 8.
+**Policy reminder:** unknown catalog ids stay **not-checkable** (info), never false **BAD**. Report new false REPLACE cases here for catalog/profile edits.
 
 ---
 
@@ -331,11 +331,28 @@ Catalog false-positive fixes; Phase 8 ruleset polish.
 
 ## Phase 8 — Ruleset expansion
 
-**Goal:** All 30 specs covered; keep “being maintained” copy accurate.
+**Goal:** All 30 specs covered; keep “being maintained” copy accurate; fix known false positives.
+
+**Status: done** (2026-08-24)
+
+### Checklist
+
+- [x] Confirm 30 spec + 10 class profiles (`GetGearCheckProfileCount` = 40)
+- [x] Enhancement: `S_ENHANCE` prefers intellect (Rhee false positive)
+- [x] Gems: unknown → `GEM_NOT_CHECKABLE` only; expand ICC epic purple/orange/green seeds
+- [x] Legs: Frosthide / Icescale / Nerubian / Jormungar / spellthread ids
+- [x] Engineering: Nitro, Hyperspeed, Pyro Rocket, Flexweave, Frag Belt
+- [x] Weapons: Mongoose, Executioner, Black Magic, Accuracy, Blade Ward, Blood Draining, …
+- [x] Optional enchants (rings / waist): evaluate when present, never MISSING
+- [x] Self-test covers Enh intellect, unknown gem, Nitro, Icescale, profile count
 
 ### How to test
 
-Spot-check one tank / one melee / one caster / one healer after each ruleset edit.
+1. `/rw gearcheck test` — all checks pass (incl. Phase 8 fixtures).
+2. Scan **Rhee** (Enhancement): intellect should not be discouraged; epic gems / Icescale / Nitro should not soft-REPLACE for level.
+3. Spot-check one tank / caster / healer if editing profiles later.
+
+UI copy still says rules are **being maintained** — catalogs remain expandable when new ids appear.
 
 ---
 

@@ -76,6 +76,13 @@ local S_HUNTER = Stats(
 	{ "spirit", "defenseRating", "dodgeRating", "parryRating" },
 	{ "spellPower", "mp5" }
 )
+-- Enhancement: intellect is a primary mail/hybrid stat (hard to avoid); spellPower is soft waste.
+local S_ENHANCE = Stats(
+	{ "agility", "attackPower", "hitRating", "expertiseRating", "critRating", "hasteRating", "armorPenetration", "intellect", "strength" },
+	{ "stamina" },
+	{ "spirit", "spellPower", "defenseRating", "dodgeRating", "parryRating", "mp5", "spellPenetration" },
+	{}
+)
 
 local W_1H_SHIELD = Weapons(
 	{ "sword1h", "axe1h", "mace1h", "shield" },
@@ -193,7 +200,7 @@ local PROFILES = {
 
 	-- Shaman
 	["SHAMAN-1"] = Profile("Elemental", A_MAIL, S_CASTER, W_ELE_RESTO_SHAMAN, { 41285, 41333, 41401 }),
-	["SHAMAN-2"] = Profile("Enhancement", A_MAIL, S_PHYS_MELEE, W_ENHANCE, { 41398, 41285 }),
+	["SHAMAN-2"] = Profile("Enhancement", A_MAIL, S_ENHANCE, W_ENHANCE, { 41398, 41285 }),
 	["SHAMAN-3"] = Profile("Restoration", A_MAIL, S_HEALER, W_ELE_RESTO_SHAMAN, { 41376, 41401, 41395 }),
 
 	-- Mage
