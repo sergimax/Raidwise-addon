@@ -131,6 +131,19 @@ local S_DRUID_RESTO = Stats(
 	{ "attackPower", "spellPenetration" },
 	{ "strength", "agility", "hitRating", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating" }
 )
+-- Death Knight specs: blood tank vs frost/unholy DPS gradation.
+local S_DK_BLOOD = Stats(
+	{ "strength", "agility", "stamina", "hitRating", "expertiseRating", "defenseRating", "dodgeRating", "parryRating", "blockRating", "armor" },
+	{ "attackPower", "critRating", "hasteRating", "armorPenetration", "blockValue" },
+	{},
+	{ "intellect", "spirit", "spellPower", "spellPenetration", "mp5" }
+)
+local S_DK_DPS = Stats(
+	{ "strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration" },
+	{ "stamina", "armor" },
+	{ "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue" },
+	{ "intellect", "spirit", "spellPower", "spellPenetration", "mp5" }
+)
 
 local W_1H_SHIELD = Weapons(
 	{ "sword1h", "axe1h", "mace1h", "shield" },
@@ -327,9 +340,9 @@ local PROFILES = {
 	["PRIEST-3"] = Profile("Shadow", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinkets = T_CASTER }),
 
 	-- Death Knight
-	["DEATHKNIGHT-1"] = Profile("Blood", A_PLATE_TANK, S_PHYS_TANK, W_DK_2H, { 41397, 41396, 41380 }, { weaponSetup = "2h", trinkets = T_TANK }),
-	["DEATHKNIGHT-2"] = Profile("Frost", A_PLATE_DPS, S_PHYS_MELEE, W_DK_DW, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
-	["DEATHKNIGHT-3"] = Profile("Unholy", A_PLATE_DPS, S_PHYS_MELEE, W_DK_2H, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
+	["DEATHKNIGHT-1"] = Profile("Blood", A_PLATE_TANK, S_DK_BLOOD, W_DK_2H, { 41397, 41396, 41380 }, { weaponSetup = "2h", trinkets = T_TANK }),
+	["DEATHKNIGHT-2"] = Profile("Frost", A_PLATE_DPS, S_DK_DPS, W_DK_DW, { 41398, 41285 }, { weaponSetup = "dw", trinkets = T_PHYS }),
+	["DEATHKNIGHT-3"] = Profile("Unholy", A_PLATE_DPS, S_DK_DPS, W_DK_2H, { 41398, 41285 }, { weaponSetup = "2h", trinkets = T_PHYS }),
 
 	-- Shaman
 	["SHAMAN-1"] = Profile("Elemental", A_MAIL, S_SHAMAN_ELEMENTAL, W_ELE_RESTO_SHAMAN, { 41285, 41333, 41401 }, { weaponSetup = "1h_shield", trinkets = T_CASTER }),

@@ -401,7 +401,19 @@
       acceptable: ["stamina"],
       unwanted: ["attackPower", "spellPenetration"],
       forbidden: ["strength", "agility", "hitRating", "expertiseRating", "armorPenetration", "defenseRating", "dodgeRating", "parryRating"]
-    }
+    },
+    S_DK_BLOOD: {
+      preferred: ["strength", "agility", "stamina", "hitRating", "expertiseRating", "defenseRating", "dodgeRating", "parryRating", "blockRating", "armor"],
+      acceptable: ["attackPower", "critRating", "hasteRating", "armorPenetration", "blockValue"],
+      unwanted: [],
+      forbidden: ["intellect", "spirit", "spellPower", "spellPenetration", "mp5"]
+    },
+    S_DK_DPS: {
+      preferred: ["strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration"],
+      acceptable: ["stamina", "armor"],
+      unwanted: ["defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue"],
+      forbidden: ["intellect", "spirit", "spellPower", "spellPenetration", "mp5"]
+    },
   };
 
   // Spec / class rows → which template they use today
@@ -432,9 +444,9 @@
     { key: "PRIEST-3", name: "Shadow", template: "S_CASTER", kind: "spec", classFile: "PRIEST" },
 
     { key: "DEATHKNIGHT", name: "Death Knight (class)", template: "S_PHYS_MELEE", kind: "class" },
-    { key: "DEATHKNIGHT-1", name: "Blood", template: "S_PHYS_TANK", kind: "spec", classFile: "DEATHKNIGHT" },
-    { key: "DEATHKNIGHT-2", name: "Frost", template: "S_PHYS_MELEE", kind: "spec", classFile: "DEATHKNIGHT" },
-    { key: "DEATHKNIGHT-3", name: "Unholy", template: "S_PHYS_MELEE", kind: "spec", classFile: "DEATHKNIGHT" },
+    { key: "DEATHKNIGHT-1", name: "Blood", template: "S_DK_BLOOD", kind: "spec", classFile: "DEATHKNIGHT" },
+    { key: "DEATHKNIGHT-2", name: "Frost", template: "S_DK_DPS", kind: "spec", classFile: "DEATHKNIGHT" },
+    { key: "DEATHKNIGHT-3", name: "Unholy", template: "S_DK_DPS", kind: "spec", classFile: "DEATHKNIGHT" },
 
     { key: "SHAMAN", name: "Shaman (class)", template: "S_CASTER", kind: "class" },
     { key: "SHAMAN-1", name: "Elemental", template: "S_SHAMAN_ELEMENTAL", kind: "spec", classFile: "SHAMAN" },
