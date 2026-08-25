@@ -88,11 +88,11 @@ Esc or the title **X** closes the window.
 - Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
 - `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
 
-**Gear check (raid)** tab:
+**Raid roster** tab (gear check integrated):
 
-- **Scan** inspects party/raid members one at a time on a group grid (parties 1–5, then 6–8)
-- Each cell shows class/spec icons, Overall, and BAD / REPLACE / issue counts
-- Click a scanned player to open the full report on **Gear check (target)** (no rescan)
+- **Scan** inspects party/raid members one at a time; summary line shows BAD / REPLACE / OK / GOOD / Failed counts
+- Each player cell adds two gear-check rows: Overall and BAD / Repl. / issue counts
+- **Shift-click** a scanned player to open the full report on **Gear check (target)** (no rescan); left-click still opens **Character profile**
 
 **History** tab:
 
@@ -165,7 +165,6 @@ Raidwise/
   PageRaid.lua        # Raid roster tab
   PageComposition.lua # Raid composition tab
   PageGearCheckTarget.lua # Gear check (target) tab
-  PageGearCheckRaid.lua   # Gear check (raid) tab
   PageHistory.lua     # History tab
   PageSettings.lua    # Settings tab
   PageInfo.lua        # Info tab
