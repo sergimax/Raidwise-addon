@@ -32,7 +32,6 @@ PageParty.lua
 PageRaid.lua
 PageComposition.lua
 PageGearCheckTarget.lua
-PageGearCheckRaid.lua
 PageHistory.lua
 PageSettings.lua
 PageInfo.lua

@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 5
+local SHELL_LAYOUT_VERSION = 6
 
 local MENU_ICON_SIZE = 16
 
@@ -16,7 +16,6 @@ local PAGES = {
 	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider" },
 	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings" },
 	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03" },
-	{ id = "gearraid", key = "GearCheckRaid", labelKey = "TAB_GEAR_CHECK_RAID", icon = "Interface\\Icons\\INV_Chest_Plate_23" },
 	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11" },
 	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01" },
 	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark" },
@@ -40,10 +39,16 @@ end
 
 function Addon:GetStartupTab()
 	local tabId = self.db and self.db.startupTab
+	if tabId == "gearraid" then
+		tabId = "raid"
+		if self.db then
+			self.db.startupTab = tabId
+		end
+	end
 	if IsAllowedStartupTab(tabId) then
 		return tabId
 	end
-	if self.db and self.db.startupTab == "info" then
+	if self.db and (self.db.startupTab == "info" or self.db.startupTab == "gearraid") then
 		self.db.startupTab = "cooldowns"
 	end
 	return "cooldowns"
@@ -181,10 +186,6 @@ function Addon:SelectTab(tabId)
 	elseif tabId == "geartarget" then
 		if self.RefreshGearCheckTargetView then
 			self:RefreshGearCheckTargetView(false)
-		end
-	elseif tabId == "gearraid" then
-		if self.RefreshGearCheckRaidView then
-			self:RefreshGearCheckRaidView(false)
 		end
 	end
 end
@@ -488,11 +489,16 @@ function Addon:RefreshLocalizedUI()
 
 	local raidPage = frame.pages.raid
 	if raidPage then
-		if raidPage.hint then
-			raidPage.hint:SetText(W.T("RAID_HINT"))
-		end
-		if raidPage.refreshBtn then
-			raidPage.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
+		local raidModule = Addon.Pages and Addon.Pages.Raid
+		if raidModule and raidModule.ApplyLocale then
+			raidModule.ApplyLocale(raidPage)
+		else
+			if raidPage.hint then
+				raidPage.hint:SetText(W.T("RAID_HINT"))
+			end
+			if raidPage.refreshBtn then
+				raidPage.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
+			end
 		end
 	end
 
@@ -514,14 +520,6 @@ function Addon:RefreshLocalizedUI()
 		local gearTargetModule = Addon.Pages and Addon.Pages.GearCheckTarget
 		if gearTargetModule and gearTargetModule.ApplyLocale then
 			gearTargetModule.ApplyLocale(gearTargetPage)
-		end
-	end
-
-	local gearRaidPage = frame.pages.gearraid
-	if gearRaidPage then
-		local gearRaidModule = Addon.Pages and Addon.Pages.GearCheckRaid
-		if gearRaidModule and gearRaidModule.ApplyLocale then
-			gearRaidModule.ApplyLocale(gearRaidPage)
 		end
 	end
 

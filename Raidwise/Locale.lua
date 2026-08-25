@@ -45,6 +45,7 @@ local Translations = {
 		INFO_SECTION_PARTY = "Lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, personal opinion, and tags. "
 			.. "Click a row to open Character profile.",
 		INFO_SECTION_RAID = "Shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
+			.. "Gear check Scan adds Overall and issue counts per player; Shift-click a filled card to open the full gear report on Gear check (target). "
 			.. "Click a filled card to open Character profile.",
 		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
 			.. "Gold means covered; dim means missing. Section titles show present/total; red title means nothing in that section is present. "
@@ -92,7 +93,7 @@ local Translations = {
 
 		PARTY_HINT = "Current party (5 players max). Refresh after gear or spec changes.",
 		PARTY_FAIL = "Party module failed to load. Reload UI (/reload).",
-		RAID_HINT = "Raid groups 1–5 and 6–8. Refresh after gear or spec changes.",
+		RAID_HINT = "Raid groups 1–5 and 6–8. Refresh after gear or spec changes. Scan runs gear check for the whole group.",
 		RAID_FAIL = "Raid roster module failed to load. Reload UI (/reload).",
 		HISTORY_HINT = "Players from your parties and raids. Saved on this account.",
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
@@ -109,7 +110,7 @@ local Translations = {
 		GEAR_CHECK_RAID_CELL_COUNTS = "BAD %d · Repl. %d · Iss. %d",
 		GEAR_CHECK_RAID_NOT_SCANNED = "—",
 		GEAR_CHECK_RAID_ROW_FAIL = "—",
-		GEAR_CHECK_RAID_CLICK_HINT = "Click to open full report",
+		GEAR_CHECK_RAID_CLICK_HINT = "Shift-click to open full gear report",
 		GEAR_CHECK_RAID_STATUS_TOO_FAR = "Too far",
 		GEAR_CHECK_RAID_STATUS_NO_INSPECT = "No insp.",
 		GEAR_CHECK_RAID_STATUS_TIMEOUT = "Timeout",
@@ -529,6 +530,7 @@ local Translations = {
 		INFO_SECTION_PARTY = "Текущая группа из 5 игроков: спек, иконки рейд-баффов, GearScore, средний iLvl, гильдия, личное мнение и теги. "
 			.. "Клик по строке открывает профиль персонажа.",
 		INFO_SECTION_RAID = "Группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl). "
+			.. "«Сканировать» добавляет итог Gear Check и счётчики проблем; Shift+клик по карточке — полный отчёт на вкладке «Проверка экипа (цель)». "
 			.. "Клик по заполненной карточке открывает профиль персонажа.",
 		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
 			.. "Золотое — есть, серое — не хватает. В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет. "
@@ -576,7 +578,7 @@ local Translations = {
 
 		PARTY_HINT = "Текущая группа (до 5 игроков). Обновите после смены экипировки или спека.",
 		PARTY_FAIL = "Модуль группы не загрузился. Перезагрузите интерфейс (/reload).",
-		RAID_HINT = "Рейдовые группы 1–5 и 6–8. Обновите после смены экипировки или спека.",
+		RAID_HINT = "Рейдовые группы 1–5 и 6–8. Обновите после смены экипировки или спека. «Сканировать» проверяет экип всей группы.",
 		RAID_FAIL = "Модуль состава рейда не загрузился. Перезагрузите интерфейс (/reload).",
 		HISTORY_HINT = "Игроки из ваших групп и рейдов. Сохраняется на этом аккаунте.",
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
@@ -593,7 +595,7 @@ local Translations = {
 		GEAR_CHECK_RAID_CELL_COUNTS = "BAD %d · Repl. %d · Iss. %d",
 		GEAR_CHECK_RAID_NOT_SCANNED = "—",
 		GEAR_CHECK_RAID_ROW_FAIL = "—",
-		GEAR_CHECK_RAID_CLICK_HINT = "Клик — полный отчёт",
+		GEAR_CHECK_RAID_CLICK_HINT = "Shift+клик — полный отчёт по экипу",
 		GEAR_CHECK_RAID_STATUS_TOO_FAR = "Далеко",
 		GEAR_CHECK_RAID_STATUS_NO_INSPECT = "Нет осм.",
 		GEAR_CHECK_RAID_STATUS_TIMEOUT = "Таймаут",

@@ -21,7 +21,6 @@ local SECTION_BODY_KEYS = {
 	raid = "INFO_SECTION_RAID",
 	composition = "INFO_SECTION_COMPOSITION",
 	geartarget = "INFO_SECTION_GEARTARGET",
-	gearraid = "INFO_SECTION_GEARRAID",
 	history = "INFO_SECTION_HISTORY",
 	settings = "INFO_SECTION_SETTINGS",
 }
