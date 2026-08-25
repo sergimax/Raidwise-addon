@@ -36,7 +36,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
 | Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
 
-Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Party roster** (Prayer of Fortitude), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **Gear check (target)** (spyglass), **Gear check (raid)** (plate), **History** (book), **Settings** (gear), **Info** (question mark).
+Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Party roster** (Prayer of Fortitude), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **Gear check (target)** (spyglass), **History** (book), **Settings** (gear), **Info** (question mark).
 
 ## Content padding
 
@@ -120,20 +120,25 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Same toolbar as Party roster, then two stats lines, then the scroll host. Two stacked blocks inside the scroll child.
+Toolbar with **Scan** and **Refresh**, gear-check status hint, three stats lines, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 2`.
 
 | Element | Size | Notes |
 |---------|------|-------|
+| Toolbar | hint left; **Scan** **104 × 28** then **Refresh** **96 × 28** | 4 px gap between buttons |
+| Gear check status | under description | `GameFontNormalSmall`; scan progress or hint |
 | Averages line | height **16** | `Average GS: {n}` only (no average iLvl; transmog skews it) |
 | Role averages | height **16** | `Tanks: {n} ({gs} gs)` (and Healers, Melee, Range); `-` when no GS |
-| Stats block | height **32** | Combined area for both stats lines (`RAID_STATS_H`) |
-| Player cell | **168 × 106** | Five lines: class+name, role+spec+GS/iLvl, buff icons, personal opinion, tags |
+| Gear check summary | height **16** | `BAD · REPLACE · OK · GOOD · Failed`; dim until first scan |
+| Stats block | height **48** | Three lines (was 32 before gear-check integration) |
+| Player cell | **168 × 136** | Seven lines: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, gear overall, gear counts |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Gold number above each party column |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
 | Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
+
+Inspect queue runs sequentially; target scan blocked while raid scan is active.
 
 ## Raid composition tab
 
@@ -166,25 +171,7 @@ Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW �
 | Breakdown | left, fills height | Slot groups with verdict color |
 | Saved list | right sidebar below delete | Scroll + vertical bar; all entries (not capped) |
 
-## Gear check (raid) tab
-
-Same party-column grid as **Raid roster** (groups 1–5 / 6–8). `LAYOUT_VERSION = 3`.
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Hint + Scan | toolbar **28** | Scan button **104 × 28** top-right |
-| Status hint | under description | `GameFontNormalSmall` |
-| Summary line | height **20** | `ROSTER_STATS_H`; BAD/REPLACE/OK/GOOD/Failed counts |
-| Cell | **168 × 68** | Gap **2**; pad **4**; icons **18** |
-| Group label | height **16** | Centered group number |
-| Line 1 | class icon + name | Class-colored |
-| Line 2 | spec icon + overall | Verdict color or dim fail / not scanned |
-| Line 3 | counts | `BAD N · Repl. N · Iss. N` |
-| Top block | groups **1–5** | Width **5×168 + 4×2** |
-| Bottom block | groups **6–8** | **12** px gap below top block |
-| Scroll | v + h bars | Same chrome as Raid roster |
-
-Inspect queue runs sequentially; target scan blocked while raid scan is active.
+Raid-wide gear check is integrated into **Raid roster** (see that section). There is no separate gear-check raid tab.
 
 ## Character profile
 

@@ -33,28 +33,26 @@ Menu tabs (top to bottom; each row has a 16×16 category icon + label):
 [ glory ] Raid roster
 [ BoK   ] Raid composition
 [ scope ] Gear check (target)
-[ plate ] Gear check (raid)
 [ book  ] History
 [ gear  ] Settings
 [  ?    ] Info
 ```
 
-Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Spell_Holy_PrayerOfFortitude`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Chest_Plate_23`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
+Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Spell_Holy_PrayerOfFortitude`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
 ## Layout versions
 
 Independent from addon semver (`Addon.version` in the status bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 5` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 6` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 27` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 1` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 2` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| Gear check (raid) | `LAYOUT_VERSION = 3` | `PageGearCheckRaid.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 3` | `PageInfo.lua` | Shell title bar (next to page name) |
@@ -144,13 +142,15 @@ Personal opinion and tags come from `RaidwiseDB.history` (keyed by GUID). Defaul
 
 ## Raid roster
 
-Current raid layout by group. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1.
+Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1.
 
 ```text
-[ short description ]                              [ Refresh ]
+[ short description ]                         [ Scan ] [ Refresh ]
+[ gear check hint / scan progress ]
         8 px gap
 [ Average GS: 6158 ]
 [ Tanks: 2 (6200 gs)     Healers: 6 (5800 gs)     Melee: 10 (6400 gs)     Range: 7 (6100 gs) ]
+[ BAD · REPLACE · OK · GOOD · Failed ]
         8 px gap
 [ 1              ][ 2              ][ 3              ][ 4              ][ 5              ]
 [ (class) Rhee   ][ empty slot     ] ...
@@ -158,6 +158,8 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 [ (buff)(buff)(buff) ]
 [ Personal opinion: Positive ]
 [ Friendly, Good Tank ]
+[ REPLACE ]
+[ BAD 0 · Repl. 2 · Iss. 4 ]
         12 px gap
 [ 6              ][ 7              ][ 8              ]
 [ player cell    ] ...
@@ -165,18 +167,25 @@ Current raid layout by group. Parties 1–5 are the first block; parties 6–8 a
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Raid groups 1–5 and 6–8. Refresh after gear or spec changes.” |
+| short description | “Raid groups 1–5 and 6–8. Refresh after gear or spec changes. Scan runs gear check for the whole group.” |
+| Scan | **Scan** — queues gear check over `CompositionMembers()` one inspect at a time |
 | Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons |
+| gear check hint / status | One-at-a-time inspect reminder; progress `Scanning N/M: Name…` while scanning |
 | averages | Mean GearScore of members that have a value (`-` when none). Average iLvl is omitted (transmog skews it). |
 | role averages | Count and mean GS per role (`Tanks: 2 (6200 gs)`); `-` when none |
+| gear summary | Counts by overall status + failed/skipped inspects; dim until first scan |
 | column header | Group number (`1`–`8`) |
 | line 1 | Class icon + class-colored name |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
 | line 3 | Spec- and race-specific raid buff icons (hover for name); up to 8 |
 | line 4 | `Personal opinion: {Positive|Neutral|Negative}`; color-coded |
 | line 5 | Colored tag summary (up to 3 labels, then `+N`); dim when none |
-| hover | Tooltip shows full opinion label and tag summary |
-| click | Left-click a filled cell opens **Character profile** |
+| line 6 | Gear check overall (colored) or fail / not scanned (`—`) |
+| line 7 | `BAD N · Repl. N · Iss. N` (enchant+gem+meta issue total) |
+| hover | Tooltip shows opinion/tags; Shift-click hint when a gear report exists |
+| click | Left-click → **Character profile**; **Shift-click** → full gear report on **Gear check (target)** |
+
+API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
 
 ## Raid composition
 
@@ -254,38 +263,7 @@ LEFT (~670px)                          RIGHT (~220px)
 
 Saved snapshot fields: `rulesetVersion` (`wotlk-3.3.5a-{addonVersion}`), `dataVersion` (`GEAR_CHECK_DATA_VERSION` in catalog). Expired entries prune on load/save.
 
-## Gear check (raid)
-
-`LAYOUT_VERSION = 3`. Same party-column grid as **Raid roster** (groups 1–5, then 6–8). Scans party/raid sequentially (WoW inspect is one player at a time).
-
-```text
-[ short description ]                                    [ Scan ]
-[ hint — one-at-a-time inspect; stay in range ]
-        summary gap
-[ summary: BAD · REPLACE · OK · GOOD · Failed ]
-[ 1              ][ 2              ][ 3              ][ 4              ][ 5              ]
-[ (class) Rhee   ][ empty slot     ] ...
-[ (spec) REPLACE ]
-[ BAD 0 · Repl. 2 · Iss. 4 ]
-        12 px gap
-[ 6              ][ 7              ][ 8              ]
-[ player cell    ] ...
-```
-
-| Block | In-game text / control |
-|-------|------------------------|
-| short description | Surface-level group scan; click a filled cell → **Gear check (target)** |
-| Scan | **Scan** — queues `CompositionMembers()` one inspect at a time |
-| hint / status | Progress `Scanning N/M: Name…`; empty group message when alone |
-| summary line | Counts by overall status + failed/skipped inspects |
-| column header | Group number (`1`–`8`) |
-| line 1 | Class icon + class-colored name |
-| line 2 | Spec icon + overall (colored) or fail / not scanned |
-| line 3 | `BAD N · Repl. N · Iss. N` (enchant+gem+meta issue total) |
-| empty slot | Blank cell (no member) |
-| cell click | Opens full report on **Gear check (target)** (no rescan) when a report exists |
-
-API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
+Raid-wide gear check lives on **Raid roster** (Scan button + report rows per player cell). See that section for layout and interaction.
 
 ## Character profile
 
