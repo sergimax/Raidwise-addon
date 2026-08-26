@@ -1955,6 +1955,24 @@ function Addon:GearCheckRulesSelfTest()
 	Check("fire mage Sanctified Spellthread → not ENCHANT_BAD_STAT", not HasCode(fFireCat, "ENCHANT_BAD_STAT"))
 	Check("fire mage Veiled cloak → GOOD", fireMageCatalog.equipment[1].verdict == "GOOD")
 
+	-- Cardinal Ruby Subtle/Precise stats (not expertise/hit swapped)
+	local subtleRuby = {
+		character = { classFile = "WARRIOR", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("head", "HeadSlot", MakeItem({
+				itemId = 1,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 50, stamina = 50, dodgeRating = 40, defenseRating = 40 },
+				enchant = { enchantId = 3818, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 1, yellow = 0, blue = 0, prismatic = 0, total = 1, empty = 0 },
+				gems = { { itemId = 40115, color = "red", isMeta = false } },
+			})),
+		},
+	}
+	local fSubtle = self:EvaluateGearCheck(subtleRuby)
+	Check("prot warrior Subtle Cardinal Ruby → not GEM_BAD_STAT", not HasCode(fSubtle, "GEM_BAD_STAT"))
+
 	-- Resto Druid: 2H staff with empty OH is an acceptable temporary variant
 	local restoStaff = {
 		character = { classFile = "DRUID", specTab = 3, specKnown = true, gaps = {} },

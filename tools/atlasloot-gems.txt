@@ -1,0 +1,602 @@
+=== JewelBlue1 ===
+23118	q2	Solid Azure Moonstone
+23119	q2	Sparkling Azure Moonstone
+23120	q2	Stormy Azure Moonstone
+23121	q2	Lustrous Azure Moonstone
+24033	q3	Solid Star of Elune
+24035	q3	Sparkling Star of Elune
+24037	q3	Lustrous Star of Elune
+24039	q3	Stormy Star of Elune
+32200	q4	Solid Empyrean Sapphire
+32201	q4	Sparkling Empyrean Sapphire
+32202	q4	Lustrous Empyrean Sapphire
+32203	q4	Stormy Empyrean Sapphire
+33135	q4	Falling Star
+39919	q2	Solid Chalcedony
+39920	q2	Sparkling Chalcedony
+39927	q2	Lustrous Chalcedony
+39932	q2	Stormy Chalcedony
+40008	q3	Solid Sky Sapphire
+40009	q3	Sparkling Sky Sapphire
+40010	q3	Lustrous Sky Sapphire
+40011	q3	Stormy Sky Sapphire
+40119	q4	Solid Majestic Zircon
+40120	q4	Sparkling Majestic Zircon
+40121	q4	Lustrous Majestic Zircon
+40122	q4	Stormy Majestic Zircon
+
+=== JewelDragonsEye1 ===
+36766	q4	Bright Dragon's Eye
+36767	q4	Solid Dragon's Eye
+42142	q4	Bold Dragon's Eye
+42143	q4	Delicate Dragon's Eye
+42144	q4	Runed Dragon's Eye
+42145	q4	Sparkling Dragon's Eye
+42146	q4	Lustrous Dragon's Eye
+42148	q4	Brilliant Dragon's Eye
+42149	q4	Smooth Dragon's Eye
+42150	q4	Quick Dragon's Eye
+42151	q4	Subtle Dragon's Eye
+42152	q4	Flashing Dragon's Eye
+42153	q4	Fractured Dragon's Eye
+42154	q4	Precise Dragon's Eye
+42155	q4	Stormy Dragon's Eye
+42156	q4	Rigid Dragon's Eye
+42157	q4	Thick Dragon's Eye
+42158	q4	Mystic Dragon's Eye
+
+=== JewelGreen1 ===
+32223	q4	Enduring Seaspray Emerald
+32224	q4	Radiant Seaspray Emerald
+32225	q4	Dazzling Seaspray Emerald
+32226	q4	Jagged Seaspray Emerald
+35758	q4	Steady Seaspray Emerald
+35759	q4	Forceful Seaspray Emerald
+40089	q3	Enduring Forest Emerald
+40091	q3	Forceful Forest Emerald
+40094	q3	Dazzling Forest Emerald
+40104	q3	Intricate Forest Emerald
+40105	q3	Energized Forest Emerald
+40164	q4	Timeless Eye of Zul
+40165	q4	Jagged Eye of Zul
+40166	q4	Vivid Eye of Zul
+40167	q4	Enduring Eye of Zul
+40168	q4	Steady Eye of Zul
+40169	q4	Forceful Eye of Zul
+40170	q4	Seer's Eye of Zul
+40171	q4	Misty Eye of Zul
+40172	q4	Shining Eye of Zul
+40173	q4	Turbid Eye of Zul
+40174	q4	Intricate Eye of Zul
+40175	q4	Dazzling Eye of Zul
+40176	q4	Sundered Eye of Zul
+40177	q4	Lambent Eye of Zul
+40178	q4	Opaque Eye of Zul
+40179	q4	Energized Eye of Zul
+40180	q4	Radiant Eye of Zul
+40181	q4	Tense Eye of Zul
+40182	q4	Shattered Eye of Zul
+
+=== JewelGreen2 ===
+24062	q3	Enduring Talasite
+24065	q3	Dazzling Talasite
+24066	q3	Radiant Talasite
+24067	q3	Jagged Talasite
+33782	q3	Steady Talasite
+35318	q3	Forceful Talasite
+39974	q2	Jagged Dark Jade
+39976	q2	Enduring Dark Jade
+39978	q2	Forceful Dark Jade
+39980	q2	Misty Dark Jade
+39983	q2	Intricate Dark Jade
+39984	q2	Dazzling Dark Jade
+39986	q2	Lambent Dark Jade
+39988	q2	Opaque Dark Jade
+39989	q2	Energized Dark Jade
+39990	q2	Radiant Dark Jade
+40085	q3	Timeless Forest Emerald
+40086	q3	Jagged Forest Emerald
+40088	q3	Vivid Forest Emerald
+40090	q3	Steady Forest Emerald
+40092	q3	Seer's Forest Emerald
+40095	q3	Misty Forest Emerald
+40096	q3	Sundered Forest Emerald
+40098	q3	Radiant Forest Emerald
+40099	q3	Shining Forest Emerald
+40100	q3	Lambent Forest Emerald
+40101	q3	Tense Forest Emerald
+40102	q3	Turbid Forest Emerald
+40103	q3	Opaque Forest Emerald
+40106	q3	Shattered Forest Emerald
+
+=== JewelGreen3 ===
+23103	q2	Radiant Deep Peridot
+23104	q2	Jagged Deep Peridot
+23105	q2	Enduring Deep Peridot
+23106	q2	Dazzling Deep Peridot
+39968	q2	Timeless Dark Jade
+39975	q2	Vivid Dark Jade
+39977	q2	Steady Dark Jade
+39979	q2	Seer's Dark Jade
+39981	q2	Shining Dark Jade
+39982	q2	Turbid Dark Jade
+39985	q2	Sundered Dark Jade
+39991	q2	Tense Dark Jade
+39992	q2	Shattered Dark Jade
+
+=== JewelMeta1 ===
+25890	q3	Destructive Skyfire Diamond
+25893	q3	Mystical Skyfire Diamond
+25895	q3	Enigmatic Skyfire Diamond
+25897	q3	Bracing Earthstorm Diamond
+25899	q3	Brutal Earthstorm Diamond
+25901	q3	Insightful Earthstorm Diamond
+34220	q3	Chaotic Skyfire Diamond
+35501	q3	Eternal Earthstorm Diamond
+35503	q3	Ember Skyfire Diamond
+41285	q3	Chaotic Skyflare Diamond
+41307	q3	Destructive Skyflare Diamond
+41333	q3	Ember Skyflare Diamond
+41335	q3	Enigmatic Skyflare Diamond
+41339	q3	Swift Skyflare Diamond
+41375	q3	Tireless Skyflare Diamond
+41376	q3	Revitalizing Skyflare Diamond
+41377	q3	Effulgent Skyflare Diamond
+41378	q3	Forlorn Skyflare Diamond
+41379	q3	Impassive Skyflare Diamond
+41380	q3	Austere Earthsiege Diamond
+41381	q3	Persistant Earthsiege Diamond
+41382	q3	Trenchant Earthsiege Diamond
+41385	q3	Invigorating Earthsiege Diamond
+41389	q3	Beaming Earthsiege Diamond
+41395	q3	Bracing Earthsiege Diamond
+41396	q3	Eternal Earthsiege Diamond
+41397	q3	Powerful Earthsiege Diamond
+41398	q3	Relentless Earthsiege Diamond
+41400	q3	Thundering Skyflare Diamond
+41401	q3	Insightful Earthsiege Diamond
+
+=== JewelMeta2 ===
+25894	q3	Swift Skyfire Diamond
+25896	q3	Powerful Earthstorm Diamond
+25898	q3	Tenacious Earthstorm Diamond
+32409	q3	Relentless Earthstorm Diamond
+32410	q3	Thundering Skyfire Diamond
+
+=== JewelMisc1 ===
+20816	q1	Delicate Copper Wire
+20832	q3	Moonsoul Crown
+20954	q2	Heavy Iron Knuckles
+20963	q1	Mithril Filigree
+20969	q3	Ruby Crown of Restoration
+21774	q3	Emerald Crown of Destruction
+24122	q4	Coronet of the Verdant Flame
+24123	q4	Circlet of Arcane Might
+25498	q1	Rough Stone Statue
+25880	q1	Coarse Stone Statue
+25881	q1	Heavy Stone Statue
+25882	q1	Solid Stone Statue
+25883	q1	Dense Stone Statue
+31079	q3	Mercurial Adamantite
+32776	q3	Crown of the Sea Witch
+35945	q3	Brilliant Glass
+41367	q2	Dark Jade Focusing Lens
+42420	q2	Shadow Crystal Focusing Lens
+42421	q2	Shadow Jade Focusing Lens
+44943	q3	Icy Prism
+
+=== JewelNeck1 ===
+21766	q3	Opal Necklace of Impact
+21790	q2	Sapphire Pendant of Winter Night
+21791	q3	Living Emerald Pendant
+21792	q3	Necklace of the Diamond Tower
+24077	q2	Thick Adamantite Necklace
+24092	q3	Pendant of Frozen Flame
+24093	q3	Pendant of Thawing
+24095	q3	Pendant of Withering
+24097	q3	Pendant of Shadow's End
+24098	q3	Pendant of the Null Rune
+24106	q3	Thick Felsteel Necklace
+24110	q3	Living Ruby Pendant
+24114	q3	Braided Eternium Chain
+24116	q3	Eye of the Night
+24117	q3	Embrace of the Dawn
+24121	q3	Chain of the Twilight Owl
+32508	q3	Necklace of the Deep
+34358	q4	Hard Khorium Choker
+34359	q4	Pendant of Sunfire
+34360	q4	Amulet of Flowing Life
+42338	q3	Jade Dagger Pendant
+42339	q3	Blood Sun Necklace
+42645	q4	Titanium Impact Choker
+42646	q4	Titanium Earthguard Chain
+42647	q4	Titanium Spellshock Necklace
+43244	q2	Crystal Citrine Necklace
+43245	q2	Crystal Chalcedony Amulet
+45627	q3	Amulet of Truesight
+45812	q3	Emerald Choker
+45813	q3	Sky Sapphire Amulet
+
+=== JewelNeck2 ===
+20830	q2	Amulet of the Moon
+20831	q2	Heavy Golden Necklace of Battle
+20909	q2	Barbaric Iron Collar
+20950	q2	Pendant of the Agate Shield
+20966	q2	Jade Pendant of Blasting
+20967	q2	Citrine Pendant of Golden Healing
+21755	q2	Aquamarine Pendant of the Warrior
+21764	q2	Ruby Pendant of Fire
+21933	q2	Thick Bronze Necklace
+21934	q2	Ornate Tigerseye Necklace
+25438	q2	Malachite Pendant
+30419	q2	Brilliant Necklace
+31154	q2	Bronze Torc
+
+=== JewelOrange1 ===
+32217	q4	Inscribed Pyrestone
+32218	q4	Potent Pyrestone
+32219	q4	Luminous Pyrestone
+32220	q4	Glinting Pyrestone
+32221	q4	Veiled Pyrestone
+32222	q4	Wicked Pyrestone
+35760	q4	Reckless Pyrestone
+40058	q3	Accurate Monarch Topaz
+40142	q4	Inscribed Ametrine
+40143	q4	Etched Ametrine
+40144	q4	Champion's Ametrine
+40145	q4	Resplendent Ametrine
+40146	q4	Fierce Ametrine
+40147	q4	Deadly Ametrine
+40148	q4	Glinting Ametrine
+40149	q4	Lucent Ametrine
+40150	q4	Deft Ametrine
+40151	q4	Luminous Ametrine
+40152	q4	Potent Ametrine
+40153	q4	Veiled Ametrine
+40154	q4	Durable Ametrine
+40155	q4	Reckless Ametrine
+40156	q4	Wicked Ametrine
+40157	q4	Pristine Ametrine
+40158	q4	Empowered Ametrine
+40159	q4	Stark Ametrine
+40160	q4	Stalwart Ametrine
+40161	q4	Glimmering Ametrine
+40162	q4	Accurate Ametrine
+40163	q4	Resolute Ametrine
+
+=== JewelOrange2 ===
+24058	q3	Inscribed Noble Topaz
+24059	q3	Potent Noble Topaz
+24060	q3	Luminous Noble Topaz
+24061	q3	Glinting Noble Topaz
+31867	q3	Veiled Noble Topaz
+31868	q3	Wicked Noble Topaz
+35316	q3	Reckless Noble Topaz
+39965	q2	Glimmering Huge Citrine
+39966	q2	Accurate Huge Citrine
+40037	q3	Inscribed Monarch Topaz
+40038	q3	Etched Monarch Topaz
+40039	q3	Champion's Monarch Topaz
+40040	q3	Resplendent Monarch Topaz
+40041	q3	Fierce Monarch Topaz
+40043	q3	Deadly Monarch Topaz
+40044	q3	Glinting Monarch Topaz
+40045	q3	Lucent Monarch Topaz
+40046	q3	Deft Monarch Topaz
+40047	q3	Luminous Monarch Topaz
+40048	q3	Potent Monarch Topaz
+40049	q3	Veiled Monarch Topaz
+40050	q3	Durable Monarch Topaz
+40051	q3	Reckless Monarch Topaz
+40052	q3	Wicked Monarch Topaz
+40053	q3	Pristine Monarch Topaz
+40054	q3	Empowered Monarch Topaz
+40055	q3	Stark Monarch Topaz
+40056	q3	Stalwart Monarch Topaz
+40057	q3	Glimmering Monarch Topaz
+40059	q3	Resolute Monarch Topaz
+
+=== JewelOrange3 ===
+23098	q2	Inscribed Flame Spessarite
+23099	q2	Luminous Flame Spessarite
+23100	q2	Glinting Flame Spessarite
+23101	q2	Potent Flame Spessarite
+31866	q2	Veiled Flame Spessarite
+31869	q2	Wicked Flame Spessarite
+39946	q2	Luminous Huge Citrine
+39947	q2	Inscribed Huge Citrine
+39948	q2	Etched Huge Citrine
+39949	q2	Champion's Huge Citrine
+39950	q2	Resplendent Huge Citrine
+39951	q2	Fierce Huge Citrine
+39952	q2	Deadly Huge Citrine
+39953	q2	Glinting Huge Citrine
+39954	q2	Lucent Huge Citrine
+39955	q2	Deft Huge Citrine
+39956	q2	Potent Huge Citrine
+39957	q2	Veiled Huge Citrine
+39958	q2	Durable Huge Citrine
+39959	q2	Reckless Huge Citrine
+39960	q2	Wicked Huge Citrine
+39961	q2	Pristine Huge Citrine
+39962	q2	Empowered Huge Citrine
+39963	q2	Stark Huge Citrine
+39964	q2	Stalwart Huge Citrine
+39967	q2	Resolute Huge Citrine
+
+=== JewelPrismatic1 ===
+22459	q4	Void Sphere
+22460	q3	Prismatic Sphere
+42701	q2	Prismatic Black Diamond
+42702	q3	Enchanted Tear
+49110	q4	Nightmare Tear
+
+=== JewelPurple1 ===
+32211	q4	Sovereign Shadowsong Amethyst
+32212	q4	Shifting Shadowsong Amethyst
+32213	q4	Balanced Shadowsong Amethyst
+32214	q4	Infused Shadowsong Amethyst
+32215	q4	Glowing Shadowsong Amethyst
+32216	q4	Royal Shadowsong Amethyst
+37503	q4	Purified Shadowsong Amethyst
+40025	q3	Glowing Twilight Opal
+40026	q3	Purified Twilight Opal
+40027	q3	Royal Twilight Opal
+40028	q3	Mysterious Twilight Opal
+40029	q3	Balanced Twilight Opal
+40030	q3	Infused Twilight Opal
+40031	q3	Regal Twilight Opal
+40032	q3	Defender's Twilight Opal
+40033	q3	Puissant Twilight Opal
+40034	q3	Guardian's Twilight Opal
+40129	q4	Sovereign Dreadstone
+40130	q4	Shifting Dreadstone
+40131	q4	Tenuous Dreadstone
+40132	q4	Glowing Dreadstone
+40133	q4	Purified Dreadstone
+40134	q4	Royal Dreadstone
+40135	q4	Mysterious Dreadstone
+40136	q4	Balanced Dreadstone
+40137	q4	Infused Dreadstone
+40138	q4	Regal Dreadstone
+40139	q4	Defender's Dreadstone
+40140	q4	Puissant Dreadstone
+40141	q4	Guardian's Dreadstone
+
+=== JewelPurple2 ===
+23109	q2	Royal Shadow Draenite
+23110	q2	Shifting Shadow Draenite
+23111	q2	Sovereign Shadow Draenite
+24054	q3	Sovereign Nightseye
+24055	q3	Shifting Nightseye
+24056	q3	Glowing Nightseye
+24057	q3	Royal Nightseye
+31862	q2	Balanced Shadow Draenite
+31863	q3	Balanced Nightseye
+31864	q2	Infused Shadow Draenite
+31865	q3	Infused Nightseye
+32833	q2	Purified Jaggal Pearl
+32836	q3	Purified Shadow Pearl
+35707	q3	Regal Nightseye
+39933	q2	Puissant Shadow Crystal
+39934	q2	Sovereign Shadow Crystal
+39935	q2	Shifting Shadow Crystal
+39936	q2	Glowing Shadow Crystal
+39937	q2	Balanced Shadow Crystal
+39938	q2	Regal Shadow Crystal
+39939	q2	Defender's Shadow Crystal
+39940	q2	Guardian's Shadow Crystal
+39941	q2	Purified Shadow Crystal
+39942	q2	Tenuous Shadow Crystal
+39943	q2	Royal Shadow Crystal
+39944	q2	Infused Shadow Crystal
+39945	q2	Mysterious Shadow Crystal
+40022	q3	Sovereign Twilight Opal
+40023	q3	Shifting Twilight Opal
+40024	q3	Tenuous Twilight Opal
+
+=== JewelPurple3 ===
+23108	q2	Glowing Shadow Draenite
+
+=== JewelRed1 ===
+24027	q3	Bold Living Ruby
+24028	q3	Delicate Living Ruby
+24030	q3	Runed Living Ruby
+24031	q3	Bright Living Ruby
+24036	q3	Flashing Living Ruby
+32193	q4	Bold Crimson Spinel
+32194	q4	Delicate Crimson Spinel
+32195	q4	Teardrop Crimson Spinel
+32196	q4	Runed Crimson Spinel
+32197	q4	Bright Crimson Spinel
+32198	q4	Subtle Crimson Spinel
+32199	q4	Flashing Crimson Spinel
+33131	q4	Crimson Sun
+33133	q4	Don Julio's Heart
+33134	q4	Kailee's Rose
+39996	q3	Bold Scarlet Ruby
+39997	q3	Delicate Scarlet Ruby
+39998	q3	Runed Scarlet Ruby
+39999	q3	Bright Scarlet Ruby
+40001	q3	Flashing Scarlet Ruby
+40002	q3	Fractured Scarlet Ruby
+40003	q3	Precise Scarlet Ruby
+40111	q4	Bold Cardinal Ruby
+40112	q4	Delicate Cardinal Ruby
+40113	q4	Runed Cardinal Ruby
+40114	q4	Bright Cardinal Ruby
+40115	q4	Subtle Cardinal Ruby
+40116	q4	Flashing Cardinal Ruby
+40117	q4	Fractured Cardinal Ruby
+40118	q4	Precise Cardinal Ruby
+
+=== JewelRed2 ===
+23094	q2	Teardrop Blood Garnet
+23095	q2	Bold Blood Garnet
+23096	q2	Runed Blood Garnet
+23097	q2	Delicate Blood Garnet
+24029	q3	Teardrop Living Ruby
+24032	q3	Subtle Living Ruby
+28595	q2	Bright Blood Garnet
+39900	q2	Bold Bloodstone
+39905	q2	Delicate Bloodstone
+39906	q2	Bright Bloodstone
+39907	q2	Subtle Bloodstone
+39908	q2	Flashing Bloodstone
+39909	q2	Fractured Bloodstone
+39910	q2	Precise Bloodstone
+39911	q2	Runed Bloodstone
+
+=== JewelRing1 ===
+24079	q3	Khorium Band of Shadows
+24080	q3	Khorium Band of Frost
+24082	q3	Khorium Inferno Band
+24085	q3	Khorium Band of Leaves
+24086	q3	Arcane Khorium Band
+24087	q3	Heavy Felsteel Ring
+24088	q3	Delicate Eternium Ring
+24089	q3	Blazing Eternium Band
+30825	q3	Ring of Arcane Shielding
+31398	q4	The Frozen Eye
+31399	q4	The Natural Ward
+32774	q3	The Black Pearl
+34361	q4	Hard Khorium Band
+34362	q4	Loop of Forged Power
+34363	q4	Ring of Flowing Life
+42340	q3	Dream Signet
+42642	q4	Titanium Impact Band
+42643	q4	Titanium Earthguard Ring
+42644	q4	Titanium Spellshock Ring
+43246	q3	Earthshadow Ring
+43247	q3	Jade Ring of Slaying
+43250	q3	Ring of Earthern Might
+43251	q3	Ring of Scarlet Shadows
+43252	q3	Windfire Band
+43253	q3	Ring of Northern Tears
+43482	q3	Savage Titanium Ring
+43498	q3	Savage Titanium Band
+43582	q4	Titanium Frostguard Ring
+45808	q3	Runed Mana Band
+45809	q3	Scarlet Signet
+
+=== JewelRing2 ===
+20826	q3	Heavy Silver Ring
+20958	q2	Blazing Citrine Ring
+20959	q2	The Jade Eye
+20960	q2	Engraved Truesilver Ring
+20961	q2	Citrine Ring of Rapid Healing
+20964	q3	Aquamarine Signet
+21753	q3	Gem Studded Band
+21754	q2	The Aquamarine Ward
+21765	q2	Truesilver Healing Ring
+21767	q2	Simple Opal Ring
+21768	q3	Sapphire Signet
+21775	q2	Onslaught Ring
+21778	q2	Ring of Bitter Shadows
+21779	q3	Band of Natural Fire
+24074	q2	Fel Iron Blood Ring
+24075	q2	Golden Draenite Ring
+24076	q2	Azure Moonstone Ring
+24078	q2	Heavy Adamantite Ring
+29157	q3	Golden Ring of Power
+29158	q3	Truesilver Commander's Ring
+29159	q2	Glowing Thorium Band
+29160	q2	Emerald Lion Ring
+30421	q2	Red Ring of Destruction
+30422	q2	Diamond Focus Ring
+30804	q3	Bronze Band of Force
+32772	q3	Brilliant Pearl Band
+42336	q2	Bloodstone Band
+42337	q2	Sun Rock Ring
+43248	q2	Stoneguard Band
+43249	q2	Shadowmight Ring
+
+=== JewelRing3 ===
+20818	q2	Elegant Silver Ring
+20820	q2	Simple Pearl Ring
+20821	q2	Inlaid Malachite Ring
+20823	q2	Gloom Band
+20827	q2	Ring of Silver Might
+20828	q2	Ring of Twilight Shadows
+20833	q2	Wicked Moonstone Ring
+20906	q2	Braided Copper Ring
+20907	q2	Solid Bronze Ring
+20955	q2	Golden Dragon Ring
+21931	q2	Woven Copper Ring
+21932	q2	Heavy Copper Ring
+25439	q2	Tigerseye Band
+30420	q2	Heavy Jade Ring
+
+=== JewelTrinket1 ===
+21748	q2	Figurine - Jade Owl
+21756	q2	Figurine - Golden Hare
+21758	q2	Figurine - Black Pearl Panther
+21760	q2	Figurine - Truesilver Crab
+21763	q2	Figurine - Truesilver Boar
+21769	q2	Figurine - Ruby Serpent
+21777	q2	Figurine - Emerald Owl
+21784	q3	Figurine - Black Diamond Crab
+21789	q3	Figurine - Dark Iron Scorpid
+24124	q3	Figurine - Felsteel Boar
+24125	q3	Figurine - Dawnstone Crab
+24126	q3	Figurine - Living Ruby Serpent
+24127	q3	Figurine - Talasite Owl
+24128	q3	Figurine - Nightseye Panther
+35693	q4	Figurine - Empyrean Tortoise
+35694	q4	Figurine - Khorium Boar
+35700	q4	Figurine - Crimson Serpent
+35702	q4	Figurine - Shadowsong Panther
+35703	q4	Figurine - Seaspray Albatross
+42341	q3	Figurine - Ruby Hare
+42395	q3	Figurine - Twilight Serpent
+42413	q3	Figurine - Sapphire Owl
+42418	q3	Figurine - Emerald Boar
+44063	q3	Figurine - Monarch Crab
+
+=== JewelYellow1 ===
+24047	q3	Brilliant Dawnstone
+24048	q3	Smooth Dawnstone
+24050	q3	Gleaming Dawnstone
+24051	q3	Rigid Dawnstone
+24053	q3	Mystic Dawnstone
+31861	q3	Great Dawnstone
+32204	q4	Brilliant Lionseye
+32205	q4	Smooth Lionseye
+32206	q4	Rigid Lionseye
+32207	q4	Gleaming Lionseye
+32208	q4	Thick Lionseye
+32209	q4	Mystic Lionseye
+32210	q4	Great Lionseye
+33140	q4	Blood of Amber
+33143	q4	Stone of Blades
+33144	q4	Facet of Eternity
+35315	q3	Quick Dawnstone
+35761	q4	Quick Lionseye
+40012	q3	Brilliant Autumn's Glow
+40013	q3	Smooth Autumn's Glow
+40014	q3	Rigid Autumn's Glow
+40015	q3	Thick Autumn's Glow
+40016	q3	Mystic Autumn's Glow
+40017	q3	Quick Autumn's Glow
+40123	q4	Brilliant King's Amber
+40124	q4	Smooth King's Amber
+40125	q4	Rigid King's Amber
+40126	q4	Thick King's Amber
+40127	q4	Mystic King's Amber
+40128	q4	Quick King's Amber
+
+=== JewelYellow2 ===
+23113	q2	Brilliant Golden Draenite
+23114	q2	Gleaming Golden Draenite
+23115	q2	Thick Golden Draenite
+23116	q2	Rigid Golden Draenite
+24052	q3	Thick Dawnstone
+28290	q2	Smooth Golden Draenite
+31860	q2	Great Golden Draenite
+39912	q2	Brilliant Sun Crystal
+39914	q2	Smooth Sun Crystal
+39915	q2	Rigid Sun Crystal
+39916	q2	Thick Sun Crystal
+39917	q2	Mystic Sun Crystal
+39918	q2	Quick Sun Crystal
+

@@ -1,0 +1,108 @@
+AtlasLoot socket gems total: 391
+WotLK epic socket gems (AtlasLoot): 91
+Catalog GEMS entries: 185
+Epic present in catalog: 91
+Epic MISSING from catalog: 0
+Rare Northrend in AtlasLoot: 71
+Rare present in catalog: 71
+Rare MISSING from catalog: 0
+
+=== EPIC MISSING ===
+
+=== EPIC PRESENT (sample check) ===
+36766	Bright Dragon's Eye	maxLevel=True	color=red
+36767	Solid Dragon's Eye	maxLevel=True	color=blue
+40111	Bold Cardinal Ruby	maxLevel=True	color=red
+40112	Delicate Cardinal Ruby	maxLevel=True	color=red
+40113	Runed Cardinal Ruby	maxLevel=True	color=red
+40114	Bright Cardinal Ruby	maxLevel=True	color=red
+40115	Subtle Cardinal Ruby	maxLevel=True	color=red
+40116	Flashing Cardinal Ruby	maxLevel=True	color=red
+40117	Fractured Cardinal Ruby	maxLevel=True	color=red
+40118	Precise Cardinal Ruby	maxLevel=True	color=red
+40119	Solid Majestic Zircon	maxLevel=True	color=blue
+40120	Sparkling Majestic Zircon	maxLevel=True	color=blue
+40121	Lustrous Majestic Zircon	maxLevel=True	color=blue
+40122	Stormy Majestic Zircon	maxLevel=True	color=blue
+40123	Brilliant King's Amber	maxLevel=True	color=yellow
+40124	Smooth King's Amber	maxLevel=True	color=yellow
+40125	Rigid King's Amber	maxLevel=True	color=yellow
+40126	Thick King's Amber	maxLevel=True	color=yellow
+40127	Mystic King's Amber	maxLevel=True	color=yellow
+40128	Quick King's Amber	maxLevel=True	color=yellow
+40129	Sovereign Dreadstone	maxLevel=True	color=purple
+40130	Shifting Dreadstone	maxLevel=True	color=purple
+40131	Tenuous Dreadstone	maxLevel=True	color=purple
+40132	Glowing Dreadstone	maxLevel=True	color=purple
+40133	Purified Dreadstone	maxLevel=True	color=purple
+40134	Royal Dreadstone	maxLevel=True	color=purple
+40135	Mysterious Dreadstone	maxLevel=True	color=purple
+40136	Balanced Dreadstone	maxLevel=True	color=purple
+40137	Infused Dreadstone	maxLevel=True	color=purple
+40138	Regal Dreadstone	maxLevel=True	color=purple
+40139	Defender's Dreadstone	maxLevel=True	color=purple
+40140	Puissant Dreadstone	maxLevel=True	color=purple
+40141	Guardian's Dreadstone	maxLevel=True	color=purple
+40142	Inscribed Ametrine	maxLevel=True	color=orange
+40143	Etched Ametrine	maxLevel=True	color=orange
+40144	Champion's Ametrine	maxLevel=True	color=orange
+40145	Resplendent Ametrine	maxLevel=True	color=orange
+40146	Fierce Ametrine	maxLevel=True	color=orange
+40147	Deadly Ametrine	maxLevel=True	color=orange
+40148	Glinting Ametrine	maxLevel=True	color=orange
+40149	Lucent Ametrine	maxLevel=True	color=orange
+40150	Deft Ametrine	maxLevel=True	color=orange
+40151	Luminous Ametrine	maxLevel=True	color=orange
+40152	Potent Ametrine	maxLevel=True	color=orange
+40153	Veiled Ametrine	maxLevel=True	color=orange
+40154	Durable Ametrine	maxLevel=True	color=orange
+40155	Reckless Ametrine	maxLevel=True	color=orange
+40156	Wicked Ametrine	maxLevel=True	color=orange
+40157	Pristine Ametrine	maxLevel=True	color=orange
+40158	Empowered Ametrine	maxLevel=True	color=orange
+40159	Stark Ametrine	maxLevel=True	color=orange
+40160	Stalwart Ametrine	maxLevel=True	color=orange
+40161	Glimmering Ametrine	maxLevel=True	color=orange
+40162	Accurate Ametrine	maxLevel=True	color=orange
+40163	Resolute Ametrine	maxLevel=True	color=orange
+40164	Timeless Eye of Zul	maxLevel=True	color=green
+40165	Jagged Eye of Zul	maxLevel=True	color=green
+40166	Vivid Eye of Zul	maxLevel=True	color=green
+40167	Enduring Eye of Zul	maxLevel=True	color=green
+40168	Steady Eye of Zul	maxLevel=True	color=green
+40169	Forceful Eye of Zul	maxLevel=True	color=green
+40170	Seer's Eye of Zul	maxLevel=True	color=green
+40171	Misty Eye of Zul	maxLevel=True	color=green
+40172	Shining Eye of Zul	maxLevel=True	color=green
+40173	Turbid Eye of Zul	maxLevel=True	color=green
+40174	Intricate Eye of Zul	maxLevel=True	color=green
+40175	Dazzling Eye of Zul	maxLevel=True	color=green
+40176	Sundered Eye of Zul	maxLevel=True	color=green
+40177	Lambent Eye of Zul	maxLevel=True	color=green
+40178	Opaque Eye of Zul	maxLevel=True	color=green
+40179	Energized Eye of Zul	maxLevel=True	color=green
+40180	Radiant Eye of Zul	maxLevel=True	color=green
+40181	Tense Eye of Zul	maxLevel=True	color=green
+40182	Shattered Eye of Zul	maxLevel=True	color=green
+42142	Bold Dragon's Eye	maxLevel=True	color=red
+42143	Delicate Dragon's Eye	maxLevel=True	color=red
+42144	Runed Dragon's Eye	maxLevel=True	color=red
+42145	Sparkling Dragon's Eye	maxLevel=True	color=blue
+42146	Lustrous Dragon's Eye	maxLevel=True	color=blue
+42148	Brilliant Dragon's Eye	maxLevel=True	color=yellow
+42149	Smooth Dragon's Eye	maxLevel=True	color=yellow
+42150	Quick Dragon's Eye	maxLevel=True	color=yellow
+42151	Subtle Dragon's Eye	maxLevel=True	color=yellow
+42152	Flashing Dragon's Eye	maxLevel=True	color=red
+42153	Fractured Dragon's Eye	maxLevel=True	color=red
+42154	Precise Dragon's Eye	maxLevel=True	color=red
+42155	Stormy Dragon's Eye	maxLevel=True	color=blue
+42156	Rigid Dragon's Eye	maxLevel=True	color=yellow
+42157	Thick Dragon's Eye	maxLevel=True	color=yellow
+42158	Mystic Dragon's Eye	maxLevel=True	color=yellow
+49110	Nightmare Tear	maxLevel=True	color=prismatic
+
+=== RARE MISSING (first 80) ===
+
+=== CATALOG IDS NOT IN ATLAS SOCKET TABLES ===
+40000	maxLevel=False	color=red
