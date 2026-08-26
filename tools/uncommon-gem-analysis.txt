@@ -1,0 +1,97 @@
+=== Uncommon Northrend socket gems (AtlasLoot) ===
+total=72 in_catalog=1 missing=71 unmapped_prefix=0
+
+--- Bloodstone: 8 ---
+39900	q2	Bold Bloodstone	MISSING	OK	color=red
+39905	q2	Delicate Bloodstone	MISSING	OK	color=red
+39906	q2	Bright Bloodstone	MISSING	OK	color=red
+39907	q2	Subtle Bloodstone	MISSING	OK	color=red
+39908	q2	Flashing Bloodstone	MISSING	OK	color=red
+39909	q2	Fractured Bloodstone	MISSING	OK	color=red
+39910	q2	Precise Bloodstone	MISSING	OK	color=red
+39911	q2	Runed Bloodstone	MISSING	OK	color=red
+
+--- Sun Crystal: 6 ---
+39912	q2	Brilliant Sun Crystal	MISSING	OK	color=yellow
+39914	q2	Smooth Sun Crystal	MISSING	OK	color=yellow
+39915	q2	Rigid Sun Crystal	MISSING	OK	color=yellow
+39916	q2	Thick Sun Crystal	MISSING	OK	color=yellow
+39917	q2	Mystic Sun Crystal	MISSING	OK	color=yellow
+39918	q2	Quick Sun Crystal	IN_CATALOG	OK	color=yellow
+
+--- Chalcedony: 4 ---
+39919	q2	Solid Chalcedony	MISSING	OK	color=blue
+39920	q2	Sparkling Chalcedony	MISSING	OK	color=blue
+39927	q2	Lustrous Chalcedony	MISSING	OK	color=blue
+39932	q2	Stormy Chalcedony	MISSING	OK	color=blue
+
+--- Huge Citrine: 22 ---
+39946	q2	Luminous Huge Citrine	MISSING	OK	color=orange
+39947	q2	Inscribed Huge Citrine	MISSING	OK	color=orange
+39948	q2	Etched Huge Citrine	MISSING	OK	color=orange
+39949	q2	Champion's Huge Citrine	MISSING	OK	color=orange
+39950	q2	Resplendent Huge Citrine	MISSING	OK	color=orange
+39951	q2	Fierce Huge Citrine	MISSING	OK	color=orange
+39952	q2	Deadly Huge Citrine	MISSING	OK	color=orange
+39953	q2	Glinting Huge Citrine	MISSING	OK	color=orange
+39954	q2	Lucent Huge Citrine	MISSING	OK	color=orange
+39955	q2	Deft Huge Citrine	MISSING	OK	color=orange
+39956	q2	Potent Huge Citrine	MISSING	OK	color=orange
+39957	q2	Veiled Huge Citrine	MISSING	OK	color=orange
+39958	q2	Durable Huge Citrine	MISSING	OK	color=orange
+39959	q2	Reckless Huge Citrine	MISSING	OK	color=orange
+39960	q2	Wicked Huge Citrine	MISSING	OK	color=orange
+39961	q2	Pristine Huge Citrine	MISSING	OK	color=orange
+39962	q2	Empowered Huge Citrine	MISSING	OK	color=orange
+39963	q2	Stark Huge Citrine	MISSING	OK	color=orange
+39964	q2	Stalwart Huge Citrine	MISSING	OK	color=orange
+39965	q2	Glimmering Huge Citrine	MISSING	OK	color=orange
+39966	q2	Accurate Huge Citrine	MISSING	OK	color=orange
+39967	q2	Resolute Huge Citrine	MISSING	OK	color=orange
+
+--- Shadow Crystal: 13 ---
+39933	q2	Puissant Shadow Crystal	MISSING	OK	color=purple
+39934	q2	Sovereign Shadow Crystal	MISSING	OK	color=purple
+39935	q2	Shifting Shadow Crystal	MISSING	OK	color=purple
+39936	q2	Glowing Shadow Crystal	MISSING	OK	color=purple
+39937	q2	Balanced Shadow Crystal	MISSING	OK	color=purple
+39938	q2	Regal Shadow Crystal	MISSING	OK	color=purple
+39939	q2	Defender's Shadow Crystal	MISSING	OK	color=purple
+39940	q2	Guardian's Shadow Crystal	MISSING	OK	color=purple
+39941	q2	Purified Shadow Crystal	MISSING	OK	color=purple
+39942	q2	Tenuous Shadow Crystal	MISSING	OK	color=purple
+39943	q2	Royal Shadow Crystal	MISSING	OK	color=purple
+39944	q2	Infused Shadow Crystal	MISSING	OK	color=purple
+39945	q2	Mysterious Shadow Crystal	MISSING	OK	color=purple
+
+--- Dark Jade: 19 ---
+39968	q2	Timeless Dark Jade	MISSING	OK	color=green
+39974	q2	Jagged Dark Jade	MISSING	OK	color=green
+39975	q2	Vivid Dark Jade	MISSING	OK	color=green
+39976	q2	Enduring Dark Jade	MISSING	OK	color=green
+39977	q2	Steady Dark Jade	MISSING	OK	color=green
+39978	q2	Forceful Dark Jade	MISSING	OK	color=green
+39979	q2	Seer's Dark Jade	MISSING	OK	color=green
+39980	q2	Misty Dark Jade	MISSING	OK	color=green
+39981	q2	Shining Dark Jade	MISSING	OK	color=green
+39982	q2	Turbid Dark Jade	MISSING	OK	color=green
+39983	q2	Intricate Dark Jade	MISSING	OK	color=green
+39984	q2	Dazzling Dark Jade	MISSING	OK	color=green
+39985	q2	Sundered Dark Jade	MISSING	OK	color=green
+39986	q2	Lambent Dark Jade	MISSING	OK	color=green
+39988	q2	Opaque Dark Jade	MISSING	OK	color=green
+39989	q2	Energized Dark Jade	MISSING	OK	color=green
+39990	q2	Radiant Dark Jade	MISSING	OK	color=green
+39991	q2	Tense Dark Jade	MISSING	OK	color=green
+39992	q2	Shattered Dark Jade	MISSING	OK	color=green
+
+=== All AtlasLoot socket-table quality counts ===
+q4: 118
+q3: 111
+q2: 104
+q1: 0
+
+=== Gear-check behavior if seeded ===
+maxLevel=false -> soft GEM_LOWER_LEVEL (replace with epic)
+unknown id     -> info GEM_NOT_CHECKABLE (no replace pressure)
+stats still evaluated for GEM_BAD_STAT if catalog has stats
