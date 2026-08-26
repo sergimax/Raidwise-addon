@@ -8,8 +8,8 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Content frame (`RaidwiseFrame`) | **890 × 690** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Menu panel (`RaidwiseMenu`) | **170 × 690** | Anchored to content `TOPLEFT` with a 2 px gap |
+| Content frame (`RaidwiseFrame`) | **890 × 940** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
+| Menu panel (`RaidwiseMenu`) | **170 × 940** | Anchored to content `TOPLEFT` with a 2 px gap |
 | Status bar | height **20** | Spans menu left → content right, 2 px below both; name and version |
 | Status bar padding | 8 px | Left / right |
 | Status bar gap | 12 px | Between name and version |
@@ -120,7 +120,7 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Toolbar with **Scan** and **Refresh**, gear-check status hint, three stats lines, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 2`.
+Toolbar with **Scan** and **Refresh**, gear-check status hint, three stats lines, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 3`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -129,8 +129,9 @@ Toolbar with **Scan** and **Refresh**, gear-check status hint, three stats lines
 | Averages line | height **16** | `Average GS: {n}` only (no average iLvl; transmog skews it) |
 | Role averages | height **16** | `Tanks: {n} ({gs} gs)` (and Healers, Melee, Range); `-` when no GS |
 | Gear check summary | height **16** | `BAD · REPLACE · OK · GOOD · Failed`; dim until first scan |
-| Stats block | height **48** | Three lines (was 32 before gear-check integration) |
-| Player cell | **168 × 136** | Seven lines: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, gear overall, gear counts |
+| Stats block | height **48** | Three lines (avg GS, roles, gear summary) |
+| Player cell | **168 × 152** | Eight lines: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, gear overall, gear counts, **Profile** + **Gear check** buttons |
+| Cell buttons | **16** tall | Side-by-side; Gear check disabled until that player has a scan report |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Gold number above each party column |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |

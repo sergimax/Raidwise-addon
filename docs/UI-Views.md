@@ -9,7 +9,7 @@ Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.m
 Classic-theme plain panels: left menu, content page, status bar under both.
 
 ```text
-[ Menu 170 ] 2px [ Content 890 x 690 ]
+[ Menu 170 ] 2px [ Content 890 x 940 ]
                  [ title bar 20  {page} vN  X ]
                  [ page body         ]
 [ addon name ] [ current version ]
@@ -45,12 +45,12 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 6` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 7` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 27` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 2` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 3` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -160,6 +160,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ Friendly, Good Tank ]
 [ REPLACE ]
 [ BAD 0 · Repl. 2 · Iss. 4 ]
+[ Profile ][ Gear check ]
         12 px gap
 [ 6              ][ 7              ][ 8              ]
 [ player cell    ] ...
@@ -182,8 +183,9 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 5 | Colored tag summary (up to 3 labels, then `+N`); dim when none |
 | line 6 | Gear check overall (colored) or fail / not scanned (`—`) |
 | line 7 | `BAD N · Repl. N · Iss. N` (enchant+gem+meta issue total) |
-| hover | Tooltip shows opinion/tags; Shift-click hint when a gear report exists |
-| click | Left-click → **Character profile**; **Shift-click** → full gear report on **Gear check (target)** |
+| line 8 | **Profile** (Character profile) and **Gear check** (opens report on Gear check (target); disabled until scanned) |
+| hover | Tooltip shows opinion/tags |
+| click | Left-click card → **Character profile**; **Profile** / **Gear check** buttons do the same actions |
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
 

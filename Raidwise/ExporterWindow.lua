@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 6
+local SHELL_LAYOUT_VERSION = 7
 
 local MENU_ICON_SIZE = 16
 

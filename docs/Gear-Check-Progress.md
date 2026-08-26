@@ -11,7 +11,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 
 | Topic | Decision |
 |-------|----------|
-| Menus | **Gear check (target)** for single scan; raid-wide scan on **Raid roster** (Shift-click cell → drill-down) |
+| Menus | **Gear check (target)** for single scan; raid-wide scan on **Raid roster** (cell **Gear check** → drill-down) |
 | Specs | Full 30 WotLK specs; UI notes that rules are **being maintained** |
 | Unknown spec | Class-only rules **and** a “spec unknown” banner |
 | Self-check | Yes — use player when there is no friendly player target |
@@ -429,7 +429,7 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 - [x] Shift+click cell → `ShowGearCheckReport` on **Gear check (target)** (no rescan)
 - [x] `IsGearCheckScanBusy` — blocks overlapping target/raid scans
 - [x] EN/RU chrome strings
-- [x] Raid roster `LAYOUT_VERSION = 2`
+- [x] Raid roster `LAYOUT_VERSION = 3`
 
 ### How to test
 

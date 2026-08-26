@@ -5,7 +5,7 @@ local Addon = Raidwise
 Addon.UITheme = {
 	-- Content panel (RaidwiseFrame)
 	CONTENT_WIDTH = 890,
-	CONTENT_HEIGHT = 690,
+	CONTENT_HEIGHT = 940,
 	PAD = 10,
 	TITLE_H = 20,
 	CLOSE_SIZE = 16,
@@ -60,7 +60,7 @@ Addon.UITheme = {
 	RAID_BUFF_MAX = 8,
 	RAID_BUFF_GAP = 2,
 	ROSTER_STATS_H = 16,
-	RAID_STATS_H = 32,
+	RAID_STATS_H = 48,
 
 	-- Colors — Classic theme (preview/themes.html #classic)
 	GOLD = { 1.000, 0.824, 0.000 },
@@ -547,7 +547,13 @@ function W.RosterTableTopOffset()
 end
 
 function W.RaidRosterTableTopOffset()
-	return UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE + UI.RAID_STATS_H + UI.CD_HINT_TO_TABLE
+	-- Toolbar + status line + three stats lines (avg GS, roles, gear summary) + gaps.
+	return UI.CD_TOOLBAR_H
+		+ UI.CD_HINT_TO_TABLE
+		+ UI.ROSTER_STATS_H
+		+ UI.CD_HINT_TO_TABLE
+		+ UI.RAID_STATS_H
+		+ UI.CD_HINT_TO_TABLE
 end
 
 function W.FormatGuildDisplay(guildName, guildRank)

@@ -24,6 +24,8 @@ local Translations = {
 		BTN_RESET = "Reset",
 		BTN_SAVE = "Save",
 		BTN_SAVE_AND_UPDATE = "Save and Update",
+		BTN_RAID_PROFILE = "Profile",
+		BTN_RAID_GEAR = "Gear check",
 
 		EXPORT_DESC = "Export this character's gear, bags, and raid lockouts as JSON.",
 		EXPORT_INCLUDE_NAMES = "Include item names",
@@ -45,13 +47,13 @@ local Translations = {
 		INFO_SECTION_PARTY = "Lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, personal opinion, and tags. "
 			.. "Click a row to open Character profile.",
 		INFO_SECTION_RAID = "Shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
-			.. "Gear check Scan adds Overall and issue counts per player; Shift-click a filled card to open the full gear report on Gear check (target). "
-			.. "Click a filled card to open Character profile.",
+			.. "Gear check Scan adds Overall and issue counts per player. "
+			.. "Use Profile or Gear check on a filled card (or click the card for Character profile).",
 		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
 			.. "Gold means covered; dim means missing. Section titles show present/total; red title means nothing in that section is present. "
 			.. "Report missing posts absent classes to raid or party chat. Shift-click an effect row to post that effect with provider classes and spells.",
 		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target (or yourself). Scans equipment, enchants, gems, and meta; shows Overall and findings. Class/spec rules are being maintained. Not BiS or build optimization.",
-		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time). Group grid shows Overall per player; click a cell to open the full report on Gear check (target).",
+		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time). Group grid shows Overall per player; Gear check on a scanned card opens the full report on Gear check (target).",
 		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
 			.. "That list is saved on this account and stays after logout. "
 			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
@@ -99,7 +101,7 @@ local Translations = {
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
 		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
 		GEAR_CHECK_TARGET_DESC = "Gear check of the current target (or yourself). Surface-level PvE evaluation only — not BiS or build optimization. Class/spec rules are being maintained and may change.",
-		GEAR_CHECK_RAID_DESC = "Scan everyone in your party or raid. Click a player to open the full report on Gear check (target). Surface-level PvE evaluation only — same limits as single-target scan.",
+		GEAR_CHECK_RAID_DESC = "Scan everyone in your party or raid. Use Gear check on a player card to open the full report on Gear check (target). Surface-level PvE evaluation only — same limits as single-target scan.",
 		GEAR_CHECK_RAID_HINT = "Inspects group members one at a time. Stay in range; large raids take a while.",
 		GEAR_CHECK_RAID_STATUS_SCANNING = "Scanning %d/%d: %s…",
 		GEAR_CHECK_RAID_STATUS_DONE = "Scan complete — %d players.",
@@ -110,7 +112,7 @@ local Translations = {
 		GEAR_CHECK_RAID_CELL_COUNTS = "BAD %d · Repl. %d · Iss. %d",
 		GEAR_CHECK_RAID_NOT_SCANNED = "—",
 		GEAR_CHECK_RAID_ROW_FAIL = "—",
-		GEAR_CHECK_RAID_CLICK_HINT = "Shift-click to open full gear report",
+		GEAR_CHECK_RAID_CLICK_HINT = "Gear check opens the full report",
 		GEAR_CHECK_RAID_STATUS_TOO_FAR = "Too far",
 		GEAR_CHECK_RAID_STATUS_NO_INSPECT = "No insp.",
 		GEAR_CHECK_RAID_STATUS_TIMEOUT = "Timeout",
@@ -509,6 +511,8 @@ local Translations = {
 		BTN_RESET = "Сброс",
 		BTN_SAVE = "Сохранить",
 		BTN_SAVE_AND_UPDATE = "Сохранить и обновить",
+		BTN_RAID_PROFILE = "Профиль",
+		BTN_RAID_GEAR = "Экип",
 
 		EXPORT_DESC = "Экспорт экипировки, сумок и КД этого персонажа в JSON.",
 		EXPORT_INCLUDE_NAMES = "Включать названия предметов",
@@ -530,13 +534,13 @@ local Translations = {
 		INFO_SECTION_PARTY = "Текущая группа из 5 игроков: спек, иконки рейд-баффов, GearScore, средний iLvl, гильдия, личное мнение и теги. "
 			.. "Клик по строке открывает профиль персонажа.",
 		INFO_SECTION_RAID = "Группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl). "
-			.. "«Сканировать» добавляет итог Gear Check и счётчики проблем; Shift+клик по карточке — полный отчёт на вкладке «Проверка экипа (цель)». "
-			.. "Клик по заполненной карточке открывает профиль персонажа.",
+			.. "«Сканировать» добавляет итог Gear Check и счётчики проблем. "
+			.. "Кнопки «Профиль» и «Экип» на карточке (или клик по карточке — профиль персонажа).",
 		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
 			.. "Золотое — есть, серое — не хватает. В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет. "
 			.. "«Сообщить» пишет отсутствующие классы в чат рейда или группы. Shift+клик по эффекту — эффект, классы и заклинания в чат.",
 		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели (или себя). Сканирует предметы, чары, камни и мету; показывает итог и findings. Правила классов/спеков поддерживаются. Не BiS и не оптимизация билда.",
-		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному). Сетка групп показывает итог по игроку; клик открывает полный отчёт на вкладке «Проверка экипа (цель)».",
+		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному). Сетка групп показывает итог по игроку; «Экип» на просканированной карточке открывает полный отчёт на вкладке «Проверка экипа (цель)».",
 		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
 			.. "Список сохраняется на аккаунте и остаётся после выхода. "
 			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
@@ -584,7 +588,7 @@ local Translations = {
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",
 		GEAR_CHECK_TARGET_DESC = "Проверка экипировки цели (или себя). Поверхностная PvE-оценка — не BiS и не оптимизация билда. Правила классов/спеков поддерживаются и могут меняться.",
-		GEAR_CHECK_RAID_DESC = "Сканирование группы или рейда. Клик по игроку открывает полный отчёт на вкладке «Проверка экипа (цель)». Поверхностная PvE-оценка — те же ограничения, что и для одной цели.",
+		GEAR_CHECK_RAID_DESC = "Сканирование группы или рейда. «Экип» на карточке игрока открывает полный отчёт на вкладке «Проверка экипа (цель)». Поверхностная PvE-оценка — те же ограничения, что и для одной цели.",
 		GEAR_CHECK_RAID_HINT = "Осмотр игроков по одному. Держитесь в радиусе; большой рейд займёт время.",
 		GEAR_CHECK_RAID_STATUS_SCANNING = "Сканирование %d/%d: %s…",
 		GEAR_CHECK_RAID_STATUS_DONE = "Сканирование завершено — %d игроков.",
@@ -595,7 +599,7 @@ local Translations = {
 		GEAR_CHECK_RAID_CELL_COUNTS = "BAD %d · Repl. %d · Iss. %d",
 		GEAR_CHECK_RAID_NOT_SCANNED = "—",
 		GEAR_CHECK_RAID_ROW_FAIL = "—",
-		GEAR_CHECK_RAID_CLICK_HINT = "Shift+клик — полный отчёт по экипу",
+		GEAR_CHECK_RAID_CLICK_HINT = "«Экип» открывает полный отчёт",
 		GEAR_CHECK_RAID_STATUS_TOO_FAR = "Далеко",
 		GEAR_CHECK_RAID_STATUS_NO_INSPECT = "Нет осм.",
 		GEAR_CHECK_RAID_STATUS_TIMEOUT = "Таймаут",

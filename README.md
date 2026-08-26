@@ -65,10 +65,10 @@ Esc or the title **X** closes the window.
 
 - Two blocks: raid groups **1–5**, then **6–8**
 - Line above the cells: overall average GearScore; second line is per-role count and average GS (`Tanks: 2 (6200 gs)`)
-- Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, personal opinion, and tags
+- Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, personal opinion, tags, and gear-check rows
 - Role icon matches RaidBuffStatus (tank / healer / melee / ranged)
 - Buff icons are spec- and race-specific raid utilities (hover for the name)
-- Click a filled card to open **Character profile** (`{name} - Character profile`)
+- **Profile** and **Gear check** buttons on filled cards (card click also opens **Character profile**)
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 
 **Raid composition** tab:
@@ -92,7 +92,7 @@ Esc or the title **X** closes the window.
 
 - **Scan** inspects party/raid members one at a time; summary line shows BAD / REPLACE / OK / GOOD / Failed counts
 - Each player cell adds two gear-check rows: Overall and BAD / Repl. / issue counts
-- **Shift-click** a scanned player to open the full report on **Gear check (target)** (no rescan); left-click still opens **Character profile**
+- **Profile** opens **Character profile**; **Gear check** opens the full report on **Gear check (target)** when that player has been scanned
 
 **History** tab:
 

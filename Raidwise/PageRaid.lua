@@ -6,21 +6,19 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 2
+local LAYOUT_VERSION = 3
 
 local RAID_CELL_W = 168
-local RAID_CELL_H = 136
+local RAID_CELL_H = 152
 local RAID_CELL_GAP = 2
 local RAID_CELL_PAD = 4
 local RAID_LINE_H = 14
 local RAID_ICON = 20
+local RAID_BTN_H = 16
+local RAID_BTN_GAP = 2
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
 local RAID_TOOLBAR_BTN_GAP = 4
-
-local function RaidTableTopOffset()
-	return W.RaidRosterTableTopOffset() + UI.ROSTER_STATS_H
-end
 
 local function FormatRaidStatsLine(gearScore, averageIlvl)
 	local parts = {}
@@ -226,9 +224,9 @@ local function UpdateRaidRosterStatsLabels(page, members)
 	end
 end
 
-local function CreateRaidStatsLabels(page)
+local function CreateRaidStatsLabels(page, anchor)
 	local stats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	stats:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -(UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE))
+	stats:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.CD_HINT_TO_TABLE)
 	stats:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	stats:SetHeight(UI.ROSTER_STATS_H)
 	stats:SetJustifyH("LEFT")
@@ -384,32 +382,44 @@ local function CreateRaidPlayerCell(parent)
 	cell.gearCountsText:SetHeight(RAID_LINE_H)
 	cell.gearCountsText:SetJustifyH("LEFT")
 
+	local btnWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2 - RAID_BTN_GAP) / 2)
+	local profileBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_PROFILE"))
+	profileBtn:SetPoint("BOTTOMLEFT", RAID_CELL_PAD, RAID_CELL_PAD)
+	profileBtn:SetScript("OnClick", function()
+		if cell.member then
+			Addon:ShowRaidCharacterWindow(cell.member)
+		end
+	end)
+	profileBtn:Hide()
+	cell.profileBtn = profileBtn
+
+	local gearBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_GEAR"))
+	gearBtn:SetPoint("LEFT", profileBtn, "RIGHT", RAID_BTN_GAP, 0)
+	gearBtn:SetScript("OnClick", function()
+		local gearEntry = cell.gearEntry
+		if gearEntry and gearEntry.report and Addon.ShowGearCheckReport then
+			Addon:ShowGearCheckReport(gearEntry.report, gearEntry.status or "ok")
+		end
+	end)
+	gearBtn:Hide()
+	cell.gearBtn = gearBtn
+
 	cell:SetScript("OnEnter", function(self)
 		if not self.member then
 			return
 		end
 		self:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
 		W.ShowMemberRatingTooltip(self, self.member)
-		if self.gearEntry and self.gearEntry.report then
-			GameTooltip:AddLine(W.T("GEAR_CHECK_RAID_CLICK_HINT"))
-			GameTooltip:Show()
-		end
 	end)
 	cell:SetScript("OnLeave", function(self)
 		local stripe = self.stripe or UI.CD_ROW_A
 		self:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
 		GameTooltip:Hide()
 	end)
-	cell:SetScript("OnClick", function(self, button)
-		if not self.member then
-			return
+	cell:SetScript("OnClick", function(self)
+		if self.member then
+			Addon:ShowRaidCharacterWindow(self.member)
 		end
-		local gearEntry = self.gearEntry
-		if IsShiftKeyDown() and gearEntry and gearEntry.report and Addon.ShowGearCheckReport then
-			Addon:ShowGearCheckReport(gearEntry.report, gearEntry.status or "ok")
-			return
-		end
-		Addon:ShowRaidCharacterWindow(self.member)
 	end)
 
 	return cell
@@ -461,6 +471,9 @@ local function FillGearReportRows(cell, member, entry)
 		cell.gearEntry = nil
 		cell.gearOverallText:SetText("")
 		cell.gearCountsText:SetText("")
+		if cell.gearBtn then
+			cell.gearBtn:Disable()
+		end
 		return
 	end
 
@@ -488,6 +501,14 @@ local function FillGearReportRows(cell, member, entry)
 		W.SetFontColor(cell.gearCountsText, UI.TEXT_DISABLED)
 	end
 
+	if cell.gearBtn then
+		if report then
+			cell.gearBtn:Enable()
+		else
+			cell.gearBtn:Disable()
+		end
+	end
+
 	if report and character.specIcon and character.specIcon ~= "" and member.specIcon ~= character.specIcon then
 		W.SetSpecOrClassIcon(cell.specIcon, character.specIcon, member.class)
 		cell.specIcon:Show()
@@ -510,6 +531,12 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		cell.specIconHost:Hide()
 		W.FillRaidBuffIcons(cell.buffHosts, nil)
 		FillGearReportRows(cell, nil, nil)
+		if cell.profileBtn then
+			cell.profileBtn:Hide()
+		end
+		if cell.gearBtn then
+			cell.gearBtn:Hide()
+		end
 		cell:EnableMouse(false)
 		cell:Show()
 		return
@@ -562,6 +589,13 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	end
 
 	FillGearReportRows(cell, member, gearEntry)
+	if cell.profileBtn then
+		cell.profileBtn:Show()
+		cell.profileBtn:Enable()
+	end
+	if cell.gearBtn then
+		cell.gearBtn:Show()
+	end
 	cell:Show()
 end
 
@@ -697,12 +731,12 @@ local function CreateRaidRosterPage(parent)
 	gearCheckStatusLabel:SetJustifyV("TOP")
 	gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_HINT"))
 	W.SetFontColor(gearCheckStatusLabel, UI.TEXT_IDLE)
+	page.gearCheckStatusLabel = gearCheckStatusLabel
 
-	CreateRaidStatsLabels(page)
+	CreateRaidStatsLabels(page, gearCheckStatusLabel)
 
-	local tableTop = -RaidTableTopOffset()
 	local tableHost = CreateFrame("Frame", nil, page)
-	tableHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
+	tableHost:SetPoint("TOPLEFT", page.gearCheckSummaryLabel, "BOTTOMLEFT", 0, -UI.CD_HINT_TO_TABLE)
 	tableHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 	W.ApplyPlainPanel(tableHost, UI.PANEL_BG)
 	page.tableHost = tableHost
@@ -761,7 +795,6 @@ local function CreateRaidRosterPage(parent)
 	page.hint = hint
 	page.refreshBtn = refreshBtn
 	page.gearCheckScanBtn = scanBtn
-	page.gearCheckStatusLabel = gearCheckStatusLabel
 	page.gearCheckResults = {}
 	page.gearCheckScanning = false
 	page.layoutVersion = LAYOUT_VERSION
@@ -785,6 +818,24 @@ local function ApplyLocale(page)
 		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_HINT"))
 	end
 	UpdateGearCheckSummaryLabel(page, ResolveGearCheckResults(page))
+
+	local blocks = { page.topBlock, page.bottomBlock }
+	for blockIndex = 1, #blocks do
+		local block = blocks[blockIndex]
+		if block and block.columns then
+			for _, column in pairs(block.columns) do
+				for slot = 1, 5 do
+					local cell = column.cells and column.cells[slot]
+					if cell and cell.profileBtn and cell.profileBtn.label then
+						cell.profileBtn.label:SetText(W.T("BTN_RAID_PROFILE"))
+					end
+					if cell and cell.gearBtn and cell.gearBtn.label then
+						cell.gearBtn.label:SetText(W.T("BTN_RAID_GEAR"))
+					end
+				end
+			end
+		end
+	end
 end
 
 Addon.Pages.Raid = {
