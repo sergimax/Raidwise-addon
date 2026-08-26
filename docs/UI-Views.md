@@ -168,10 +168,10 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Raid groups 1–5 and 6–8. Refresh after gear or spec changes. Scan runs gear check for the whole group.” |
+| short description | “Raid groups 1–5 and 6–8… Scan rates each player GOOD / OK / REPLACE / BAD.” |
 | Scan | **Scan** — queues gear check over `CompositionMembers()` one inspect at a time |
 | Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons |
-| gear check hint / status | One-at-a-time inspect reminder; progress `Scanning N/M: Name…` while scanning |
+| gear check hint / status | Rating legend (GOOD / OK / REPLACE / BAD + preferred / acceptable / unwanted / forbidden); progress `Scanning N/M: Name…` while scanning |
 | averages | Mean GearScore of members that have a value (`-` when none). Average iLvl is omitted (transmog skews it). |
 | role averages | Count and mean GS per role (`Tanks: 2 (6200 gs)`); `-` when none |
 | gear summary | Counts by overall status + failed/skipped inspects; dim until first scan |
@@ -247,8 +247,8 @@ LEFT (~670px)                          RIGHT (~220px)
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | Surface-level PvE check; not BiS; rules being maintained |
-| limitation | Spec disclaimer |
+| short description | Overall: GOOD (preferred) / OK (usable) / REPLACE (soft) / BAD (wrong for spec); surface-level PvE; not BiS |
+| limitation | Spec ranks: preferred → GOOD, acceptable → OK, unwanted → REPLACE, forbidden → BAD; no stat weights / builds |
 | summary (left) | Overall status (colored), class + spec icons + character line, GearScore / avg iLvl, issue counts, meta, sets |
 | status (right) | Multi-line hint or scan result (`\n` breaks + word wrap); sits above Scan |
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI |

@@ -82,7 +82,8 @@ Esc or the title **X** closes the window.
 
 **Gear check (target)** tab:
 
-- **Scan** evaluates target or self (Overall, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / OK)
+- **Scan** evaluates target or self (Overall GOOD / OK / REPLACE / BAD, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / OK)
+- Spec ranks: **preferred** / **acceptable** / **unwanted** / **forbidden** (map to GOOD / OK / REPLACE / BAD)
 - **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to **your chat only**
 - **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
 - Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
@@ -91,6 +92,7 @@ Esc or the title **X** closes the window.
 **Raid roster** tab (gear check integrated):
 
 - **Scan** inspects party/raid members one at a time; summary line shows BAD / REPLACE / OK / GOOD / Failed counts
+- Overall meanings match Gear check (target): GOOD = preferred, OK = usable, REPLACE = soft issues, BAD = wrong for spec
 - Each player cell adds two gear-check rows: Overall and BAD / Repl. / issue counts
 - **Profile** opens **Character profile**; **Gear check** opens the full report on **Gear check (target)** when that player has been scanned
 

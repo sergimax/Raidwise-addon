@@ -52,8 +52,8 @@ local Translations = {
 		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
 			.. "Gold means covered; dim means missing. Section titles show present/total; red title means nothing in that section is present. "
 			.. "Report missing posts absent classes to raid or party chat. Shift-click an effect row to post that effect with provider classes and spells.",
-		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target (or yourself). Scans equipment, enchants, gems, and meta; shows Overall and findings. Class/spec rules are being maintained. Not BiS or build optimization.",
-		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time). Group grid shows Overall per player; Gear check on a scanned card opens the full report on Gear check (target).",
+		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target (or yourself). Overall: GOOD (preferred), OK (usable), REPLACE (soft issues), BAD (wrong for spec). Spec ranks: preferred / acceptable / unwanted / forbidden. Not BiS or build optimization.",
+		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time). Group grid shows Overall per player (GOOD / OK / REPLACE / BAD); Gear check on a scanned card opens the full report on Gear check (target).",
 		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
 			.. "That list is saved on this account and stays after logout. "
 			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
@@ -95,14 +95,14 @@ local Translations = {
 
 		PARTY_HINT = "Current party (5 players max). Refresh after gear or spec changes.",
 		PARTY_FAIL = "Party module failed to load. Reload UI (/reload).",
-		RAID_HINT = "Raid groups 1–5 and 6–8. Refresh after gear or spec changes. Scan runs gear check for the whole group.",
+		RAID_HINT = "Raid groups 1–5 and 6–8. Refresh after gear or spec changes. Scan rates each player GOOD / OK / REPLACE / BAD.",
 		RAID_FAIL = "Raid roster module failed to load. Reload UI (/reload).",
 		HISTORY_HINT = "Players from your parties and raids. Saved on this account.",
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
 		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
-		GEAR_CHECK_TARGET_DESC = "Gear check of the current target (or yourself). Surface-level PvE evaluation only — not BiS or build optimization. Class/spec rules are being maintained and may change.",
-		GEAR_CHECK_RAID_DESC = "Scan everyone in your party or raid. Use Gear check on a player card to open the full report on Gear check (target). Surface-level PvE evaluation only — same limits as single-target scan.",
-		GEAR_CHECK_RAID_HINT = "Inspects group members one at a time. Stay in range; large raids take a while.",
+		GEAR_CHECK_TARGET_DESC = "Gear check of the current target (or yourself). Overall (worst slot wins): GOOD = preferred for the spec; OK = usable; REPLACE = soft issues (swap soon); BAD = wrong for the spec. Surface-level PvE only — not BiS or build optimization.",
+		GEAR_CHECK_RAID_DESC = "Scan everyone in your party or raid. Overall per player: GOOD / OK / REPLACE / BAD (same meanings as Gear check target). Use Gear check on a card for the full report.",
+		GEAR_CHECK_RAID_HINT = "GOOD = preferred; OK = usable; REPLACE = unwanted/soft issues; BAD = forbidden/hard issues. Spec ranks: preferred / acceptable / unwanted / forbidden. Inspects one at a time — stay in range.",
 		GEAR_CHECK_RAID_STATUS_SCANNING = "Scanning %d/%d: %s…",
 		GEAR_CHECK_RAID_STATUS_DONE = "Scan complete — %d players.",
 		GEAR_CHECK_RAID_STATUS_EMPTY = "Not in a party or raid, or roster is empty.",
@@ -117,7 +117,7 @@ local Translations = {
 		GEAR_CHECK_RAID_STATUS_NO_INSPECT = "No insp.",
 		GEAR_CHECK_RAID_STATUS_TIMEOUT = "Timeout",
 		GEAR_CHECK_RAID_CELL_EMPTY = "Empty",
-		GEAR_CHECK_LIMITATION = "Gear Check is a surface-level evaluation. It does not consider BiS lists, specific gear builds, encounter requirements, or detailed stat weights.",
+		GEAR_CHECK_LIMITATION = "Spec ranks for armor, weapons, and stats: preferred (fits BiS surface → needed for GOOD), acceptable (usable offset → OK), unwanted (soft → REPLACE), forbidden (hard → BAD). No detailed stat weights, encounter requirements, or build-specific gearing.",
 		GEAR_CHECK_SCAN = "Scan",
 		GEAR_CHECK_SAVE = "Save report",
 		GEAR_CHECK_SAVED_DELETE = "Delete selected report",
@@ -539,8 +539,8 @@ local Translations = {
 		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
 			.. "Золотое — есть, серое — не хватает. В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет. "
 			.. "«Сообщить» пишет отсутствующие классы в чат рейда или группы. Shift+клик по эффекту — эффект, классы и заклинания в чат.",
-		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели (или себя). Сканирует предметы, чары, камни и мету; показывает итог и findings. Правила классов/спеков поддерживаются. Не BiS и не оптимизация билда.",
-		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному). Сетка групп показывает итог по игроку; «Экип» на просканированной карточке открывает полный отчёт на вкладке «Проверка экипа (цель)».",
+		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели (или себя). Итог: GOOD (preferred), OK (подходит), REPLACE (мягкие проблемы), BAD (не для спека). Ранги: preferred / acceptable / unwanted / forbidden. Не BiS и не оптимизация билда.",
+		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному). Сетка групп показывает итог по игроку (GOOD / OK / REPLACE / BAD); «Экип» на просканированной карточке открывает полный отчёт на вкладке «Проверка экипа (цель)».",
 		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
 			.. "Список сохраняется на аккаунте и остаётся после выхода. "
 			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
@@ -582,14 +582,14 @@ local Translations = {
 
 		PARTY_HINT = "Текущая группа (до 5 игроков). Обновите после смены экипировки или спека.",
 		PARTY_FAIL = "Модуль группы не загрузился. Перезагрузите интерфейс (/reload).",
-		RAID_HINT = "Рейдовые группы 1–5 и 6–8. Обновите после смены экипировки или спека. «Сканировать» проверяет экип всей группы.",
+		RAID_HINT = "Рейдовые группы 1–5 и 6–8. Обновите после смены экипировки или спека. «Сканировать» ставит каждому GOOD / OK / REPLACE / BAD.",
 		RAID_FAIL = "Модуль состава рейда не загрузился. Перезагрузите интерфейс (/reload).",
 		HISTORY_HINT = "Игроки из ваших групп и рейдов. Сохраняется на этом аккаунте.",
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",
-		GEAR_CHECK_TARGET_DESC = "Проверка экипировки цели (или себя). Поверхностная PvE-оценка — не BiS и не оптимизация билда. Правила классов/спеков поддерживаются и могут меняться.",
-		GEAR_CHECK_RAID_DESC = "Сканирование группы или рейда. «Экип» на карточке игрока открывает полный отчёт на вкладке «Проверка экипа (цель)». Поверхностная PvE-оценка — те же ограничения, что и для одной цели.",
-		GEAR_CHECK_RAID_HINT = "Осмотр игроков по одному. Держитесь в радиусе; большой рейд займёт время.",
+		GEAR_CHECK_TARGET_DESC = "Проверка экипировки цели (или себя). Итог (худший слот): GOOD = preferred для спека; OK = подходит; REPLACE = мягкие проблемы (лучше сменить); BAD = не для спека. Поверхностная PvE-оценка — не BiS и не оптимизация билда.",
+		GEAR_CHECK_RAID_DESC = "Сканирование группы или рейда. Итог по игроку: GOOD / OK / REPLACE / BAD (те же значения, что на вкладке «Проверка экипа (цель)»). «Экип» на карточке открывает полный отчёт.",
+		GEAR_CHECK_RAID_HINT = "GOOD = preferred; OK = подходит; REPLACE = unwanted/мягкие проблемы; BAD = forbidden/жёсткие. Ранги спека: preferred / acceptable / unwanted / forbidden. Осмотр по одному — держитесь в радиусе.",
 		GEAR_CHECK_RAID_STATUS_SCANNING = "Сканирование %d/%d: %s…",
 		GEAR_CHECK_RAID_STATUS_DONE = "Сканирование завершено — %d игроков.",
 		GEAR_CHECK_RAID_STATUS_EMPTY = "Вы не в группе/рейде или состав пуст.",
@@ -604,7 +604,7 @@ local Translations = {
 		GEAR_CHECK_RAID_STATUS_NO_INSPECT = "Нет осм.",
 		GEAR_CHECK_RAID_STATUS_TIMEOUT = "Таймаут",
 		GEAR_CHECK_RAID_CELL_EMPTY = "Пусто",
-		GEAR_CHECK_LIMITATION = "Gear Check — поверхностная оценка. Без BiS, билдов, энкаунтеров и весов статов.",
+		GEAR_CHECK_LIMITATION = "Ранги спека для брони, оружия и статов: preferred (под BiS-поверхность → нужен для GOOD), acceptable (допустимый оффсет → OK), unwanted (мягко → REPLACE), forbidden (жёстко → BAD). Без весов статов, энкаунтеров и билдов.",
 		GEAR_CHECK_SCAN = "Сканировать",
 		GEAR_CHECK_SAVE = "Сохранить отчёт",
 		GEAR_CHECK_SAVED_DELETE = "Удалить выбранный отчёт",

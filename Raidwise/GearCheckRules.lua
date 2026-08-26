@@ -1471,6 +1471,38 @@ function Addon:GearCheckRulesSelfTest()
 	Check("enhancement intellect → not STAT_UNWANTED", not HasCode(fEnh, "STAT_UNWANTED"))
 	Check("enhancement intellect chest → GOOD", enhInt.equipment[1].verdict == "GOOD")
 
+	-- Frost/Unholy DK: intellect is unwanted (REPLACE), not forbidden (BAD)
+	local udkInt = {
+		character = { classFile = "DEATHKNIGHT", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("waist", "WaistSlot", MakeItem({
+				itemId = 33,
+				category = "armor",
+				armorType = "mail",
+				stats = { agility = 40, attackPower = 60, intellect = 30, stamina = 40, critRating = 30 },
+			})),
+		},
+	}
+	local fUdk = self:EvaluateGearCheck(udkInt)
+	Check("unholy intellect → STAT_UNWANTED", HasCode(fUdk, "STAT_UNWANTED"))
+	Check("unholy intellect → not STAT_FORBIDDEN", not HasCode(fUdk, "STAT_FORBIDDEN"))
+	Check("unholy intellect waist → REPLACE", udkInt.equipment[1].verdict == "REPLACE")
+
+	local fdkInt = {
+		character = { classFile = "DEATHKNIGHT", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("waist", "WaistSlot", MakeItem({
+				itemId = 34,
+				category = "armor",
+				armorType = "mail",
+				stats = { agility = 40, attackPower = 60, intellect = 30, stamina = 40, critRating = 30 },
+			})),
+		},
+	}
+	local fFdk = self:EvaluateGearCheck(fdkInt)
+	Check("frost intellect → STAT_UNWANTED", HasCode(fFdk, "STAT_UNWANTED"))
+	Check("frost intellect → not STAT_FORBIDDEN", not HasCode(fFdk, "STAT_FORBIDDEN"))
+
 	-- Retribution: leather offset + intellect on mail pieces are acceptable
 	local retLeather = {
 		character = { classFile = "PALADIN", specTab = 3, specKnown = true, gaps = {} },

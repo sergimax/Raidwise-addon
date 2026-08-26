@@ -138,11 +138,12 @@ local S_DK_BLOOD = Stats(
 	{},
 	{ "intellect", "spirit", "spellPower", "spellPenetration", "mp5" }
 )
+-- Frost/Unholy: intellect is soft waste (hybrid mail/leather), not a hard BAD.
 local S_DK_DPS = Stats(
 	{ "strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration" },
 	{ "stamina", "armor" },
-	{ "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue" },
-	{ "intellect", "spirit", "spellPower", "spellPenetration", "mp5" }
+	{ "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "intellect" },
+	{ "spirit", "spellPower", "spellPenetration", "mp5" }
 )
 -- Priest specs: disc vs holy vs shadow stat gradation.
 local S_PRIEST_DISC = Stats(
