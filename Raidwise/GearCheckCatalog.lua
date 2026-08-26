@@ -4,7 +4,7 @@
 local Addon = Raidwise
 
 -- Bump when enchant/gem catalog seeds change materially (saved report dataVersion).
-Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-08-24"
+Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-08-26"
 
 -- maxLevel: Northrend (or best-in-slot-ish) enchants. stats used for appropriateness only.
 local ENCHANTS = {
@@ -75,6 +75,9 @@ local ENCHANTS = {
 	[3719] = { name = "Brilliant Spellthread", maxLevel = true, stats = { spellPower = 50, spirit = 20 } },
 	[3720] = { name = "Azure Spellthread", maxLevel = false, stats = { spellPower = 35, spirit = 12 } },
 	[3721] = { name = "Sapphire Spellthread", maxLevel = true, stats = { spellPower = 50, stamina = 30 } },
+	-- Tailoring permanent profession spellthreads (same stats as consumable kits above)
+	[3872] = { name = "Sanctified Spellthread", maxLevel = true, stats = { spellPower = 50, spirit = 20 } },
+	[3873] = { name = "Master's Spellthread", maxLevel = true, stats = { spellPower = 50, stamina = 30 } },
 	-- Engineering tinkers (appear as permanent enchantId on 3.3.5a links)
 	[3603] = { name = "Hand-Mounted Pyro Rocket", maxLevel = true, stats = {} },
 	[3604] = { name = "Hyperspeed Accelerators", maxLevel = true, stats = {} },
@@ -87,6 +90,8 @@ local ENCHANTS = {
 	[3860] = { name = "Reticulated Armor Webbing", maxLevel = true, stats = { armor = 885 } },
 	-- Extra weapon enchants (melee / caster commons)
 	[2673] = { name = "Mongoose", maxLevel = true, stats = {} },
+	-- Spellsurge (BC): mana-restore proc; accepted healer weapon enchant (empty stats = no BAD_STAT).
+	[2674] = { name = "Spellsurge", maxLevel = true, stats = {} },
 	[3225] = { name = "Executioner", maxLevel = true, stats = {} },
 	[3790] = { name = "Black Magic", maxLevel = true, stats = {} },
 	[3788] = { name = "Accuracy", maxLevel = true, stats = { hitRating = 25, critRating = 25 } },
@@ -164,41 +169,43 @@ local GEMS = {
 	[40126] = { maxLevel = true, color = "yellow", stats = { defenseRating = 20 } },
 	[40127] = { maxLevel = true, color = "yellow", stats = { resilience = 20 } },
 	[40128] = { maxLevel = true, color = "yellow", stats = { hasteRating = 20 } },
-	-- Epic purple (Dreadstone)
-	[40129] = { maxLevel = true, color = "purple", stats = { strength = 10, stamina = 15 } },
-	[40130] = { maxLevel = true, color = "purple", stats = { agility = 10, stamina = 15 } },
-	[40131] = { maxLevel = true, color = "purple", stats = { parryRating = 10, stamina = 15 } },
-	[40132] = { maxLevel = true, color = "purple", stats = { spellPower = 12, stamina = 15 } },
-	[40133] = { maxLevel = true, color = "purple", stats = { spellPower = 12, spirit = 10 } },
-	[40134] = { maxLevel = true, color = "purple", stats = { attackPower = 20, stamina = 15 } },
-	[40135] = { maxLevel = true, color = "purple", stats = { hitRating = 10, stamina = 15 } },
-	[40136] = { maxLevel = true, color = "purple", stats = { expertiseRating = 10, stamina = 15 } },
-	[40137] = { maxLevel = true, color = "purple", stats = { armorPenetration = 10, stamina = 15 } },
-	[40138] = { maxLevel = true, color = "purple", stats = { dodgeRating = 10, stamina = 15 } },
-	[40139] = { maxLevel = true, color = "purple", stats = { parryRating = 10, dodgeRating = 10 } },
-	[40140] = { maxLevel = true, color = "purple", stats = { armorPenetration = 10, hitRating = 10 } },
-	[40141] = { maxLevel = true, color = "purple", stats = { expertiseRating = 10, hitRating = 10 } },
-	-- Epic orange (Ametrine)
-	[40142] = { maxLevel = true, color = "orange", stats = { strength = 10, critRating = 10 } },
-	[40143] = { maxLevel = true, color = "orange", stats = { strength = 10, hitRating = 10 } },
-	[40144] = { maxLevel = true, color = "orange", stats = { strength = 10, defenseRating = 10 } },
-	[40145] = { maxLevel = true, color = "orange", stats = { strength = 10, resilience = 10 } },
-	[40146] = { maxLevel = true, color = "orange", stats = { strength = 10, hasteRating = 10 } },
-	[40147] = { maxLevel = true, color = "orange", stats = { agility = 10, critRating = 10 } },
-	[40148] = { maxLevel = true, color = "orange", stats = { agility = 10, hitRating = 10 } },
-	[40149] = { maxLevel = true, color = "orange", stats = { spellPower = 12, hasteRating = 10 } },
-	[40150] = { maxLevel = true, color = "orange", stats = { attackPower = 20, hasteRating = 10 } },
-	[40152] = { maxLevel = true, color = "orange", stats = { spellPower = 12, intellect = 10 } },
-	[40153] = { maxLevel = true, color = "orange", stats = { attackPower = 20, hitRating = 10 } },
-	[40154] = { maxLevel = true, color = "orange", stats = { spellPower = 12, resilience = 10 } },
+	-- Epic purple (Dreadstone) — ids verified vs WotLK tooltips
+	[40129] = { maxLevel = true, color = "purple", stats = { strength = 10, stamina = 15 } }, -- Sovereign
+	[40130] = { maxLevel = true, color = "purple", stats = { agility = 10, stamina = 15 } }, -- Shifting
+	[40131] = { maxLevel = true, color = "purple", stats = { agility = 10, mp5 = 5 } }, -- Tenuous
+	[40132] = { maxLevel = true, color = "purple", stats = { spellPower = 12, stamina = 15 } }, -- Glowing
+	[40133] = { maxLevel = true, color = "purple", stats = { spellPower = 12, spirit = 10 } }, -- Purified
+	[40134] = { maxLevel = true, color = "purple", stats = { spellPower = 12, mp5 = 5 } }, -- Royal
+	[40135] = { maxLevel = true, color = "purple", stats = { spellPower = 12, spellPenetration = 13 } }, -- Mysterious
+	[40136] = { maxLevel = true, color = "purple", stats = { attackPower = 20, stamina = 15 } }, -- Balanced
+	[40137] = { maxLevel = true, color = "purple", stats = { attackPower = 20, mp5 = 5 } }, -- Infused
+	[40138] = { maxLevel = true, color = "purple", stats = { dodgeRating = 10, stamina = 15 } }, -- Regal
+	[40139] = { maxLevel = true, color = "purple", stats = { parryRating = 10, stamina = 15 } }, -- Defender's
+	[40140] = { maxLevel = true, color = "purple", stats = { armorPenetration = 10, stamina = 15 } }, -- Puissant
+	[40141] = { maxLevel = true, color = "purple", stats = { expertiseRating = 10, stamina = 15 } }, -- Guardian's
+	-- Epic orange (Ametrine) — ids verified vs WotLK tooltips
+	[40142] = { maxLevel = true, color = "orange", stats = { strength = 10, critRating = 10 } }, -- Inscribed
+	[40143] = { maxLevel = true, color = "orange", stats = { strength = 10, hitRating = 10 } }, -- Etched
+	[40144] = { maxLevel = true, color = "orange", stats = { strength = 10, defenseRating = 10 } }, -- Champion's
+	[40145] = { maxLevel = true, color = "orange", stats = { strength = 10, resilience = 10 } }, -- Resplendent
+	[40146] = { maxLevel = true, color = "orange", stats = { strength = 10, hasteRating = 10 } }, -- Fierce
+	[40147] = { maxLevel = true, color = "orange", stats = { agility = 10, critRating = 10 } }, -- Deadly
+	[40148] = { maxLevel = true, color = "orange", stats = { agility = 10, hitRating = 10 } }, -- Glinting
+	[40149] = { maxLevel = true, color = "orange", stats = { agility = 10, resilience = 10 } }, -- Lucent
+	[40150] = { maxLevel = true, color = "orange", stats = { agility = 10, hasteRating = 10 } }, -- Deft
+	[40151] = { maxLevel = true, color = "orange", stats = { spellPower = 12, intellect = 10 } }, -- Luminous
+	[40152] = { maxLevel = true, color = "orange", stats = { spellPower = 12, critRating = 10 } }, -- Potent
+	[40153] = { maxLevel = true, color = "orange", stats = { spellPower = 12, hitRating = 10 } }, -- Veiled
+	[40154] = { maxLevel = true, color = "orange", stats = { spellPower = 12, resilience = 10 } }, -- Durable
 	[40155] = { maxLevel = true, color = "orange", stats = { spellPower = 12, hasteRating = 10 } }, -- Reckless
-	[40157] = { maxLevel = true, color = "orange", stats = { attackPower = 20, critRating = 10 } },
-	[40158] = { maxLevel = true, color = "orange", stats = { attackPower = 20, expertiseRating = 10 } },
-	[40159] = { maxLevel = true, color = "orange", stats = { agility = 10, hasteRating = 10 } },
-	[40160] = { maxLevel = true, color = "orange", stats = { dodgeRating = 10, defenseRating = 10 } },
-	[40161] = { maxLevel = true, color = "orange", stats = { parryRating = 10, defenseRating = 10 } },
-	[40162] = { maxLevel = true, color = "orange", stats = { expertiseRating = 10, hitRating = 10 } },
-	[40163] = { maxLevel = true, color = "orange", stats = { expertiseRating = 10, defenseRating = 10 } },
+	[40156] = { maxLevel = true, color = "orange", stats = { attackPower = 20, critRating = 10 } }, -- Wicked
+	[40157] = { maxLevel = true, color = "orange", stats = { attackPower = 20, hitRating = 10 } }, -- Pristine
+	[40158] = { maxLevel = true, color = "orange", stats = { attackPower = 20, resilience = 10 } }, -- Empowered
+	[40159] = { maxLevel = true, color = "orange", stats = { attackPower = 20, hasteRating = 10 } }, -- Stark
+	[40160] = { maxLevel = true, color = "orange", stats = { dodgeRating = 10, defenseRating = 10 } }, -- Stalwart
+	[40161] = { maxLevel = true, color = "orange", stats = { parryRating = 10, defenseRating = 10 } }, -- Glimmering
+	[40162] = { maxLevel = true, color = "orange", stats = { expertiseRating = 10, hitRating = 10 } }, -- Accurate
+	[40163] = { maxLevel = true, color = "orange", stats = { expertiseRating = 10, defenseRating = 10 } }, -- Resolute
 	-- Epic green (Eye of Zul)
 	[40164] = { maxLevel = true, color = "green", stats = { intellect = 10, stamina = 15 } },
 	[40165] = { maxLevel = true, color = "green", stats = { critRating = 10, stamina = 15 } },

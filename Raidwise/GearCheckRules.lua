@@ -1883,6 +1883,78 @@ function Addon:GearCheckRulesSelfTest()
 	Check("resto sham held OH (no spirit/hit) → not WEAPON_SETUP", not HasCode(fRestoSham, "WEAPON_SETUP"))
 	Check("resto sham held OH → GOOD", restoSham.equipment[3].verdict == "GOOD")
 
+	-- Resto Shaman: Royal Dreadstone (+12 SP / +5 mp5) and Spellsurge weapon enchant are healer-ok
+	local restoShamCatalog = {
+		character = { classFile = "SHAMAN", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("shoulder", "ShoulderSlot", MakeItem({
+				itemId = 51194,
+				category = "armor",
+				armorType = "mail",
+				stats = { intellect = 92, spellPower = 132, hasteRating = 72 },
+				enchant = { enchantId = 3809, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 0, yellow = 0, blue = 1, prismatic = 0, total = 1, empty = 0 },
+				gems = {
+					{ itemId = 40134, color = "purple", isMeta = false },
+				},
+			})),
+			MakeSlot("mainHand", "MainHandSlot", MakeItem({
+				itemId = 50428,
+				category = "weapon",
+				weaponType = "mace1h",
+				stats = { intellect = 71, spellPower = 792 },
+				enchant = { enchantId = 2674, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("offHand", "SecondaryHandSlot", MakeItem({
+				itemId = 49976,
+				category = "armor",
+				armorType = "shield",
+				stats = { intellect = 69, spellPower = 106 },
+				enchant = { enchantId = 1128, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fRestoCat = self:EvaluateGearCheck(restoShamCatalog)
+	Check("resto sham Royal Dreadstone → not GEM_BAD_STAT", not HasCode(fRestoCat, "GEM_BAD_STAT"))
+	Check("resto sham Spellsurge → not ENCHANT_NOT_CHECKABLE", not HasCode(fRestoCat, "ENCHANT_NOT_CHECKABLE"))
+	Check("resto sham Spellsurge → not ENCHANT_BAD_STAT", not HasCode(fRestoCat, "ENCHANT_BAD_STAT"))
+	Check("resto sham Royal/Spellsurge shoulder → GOOD", restoShamCatalog.equipment[1].verdict == "GOOD")
+
+	-- Fire Mage: Veiled Ametrine (+12 SP / +10 hit) and Sanctified Spellthread (tailoring legs)
+	local fireMageCatalog = {
+		character = { classFile = "MAGE", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("back", "BackSlot", MakeItem({
+				itemId = 47552,
+				category = "armor",
+				armorType = "cloth",
+				stats = { intellect = 74, spellPower = 105, critRating = 65, hasteRating = 57 },
+				enchant = { enchantId = 3722, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 1, yellow = 0, blue = 0, prismatic = 0, total = 1, empty = 0 },
+				gems = {
+					{ itemId = 40153, color = "orange", isMeta = false },
+				},
+			})),
+			MakeSlot("legs", "LegsSlot", MakeItem({
+				itemId = 51282,
+				category = "armor",
+				armorType = "cloth",
+				stats = { intellect = 139, spellPower = 195, critRating = 122, hitRating = 106 },
+				enchant = { enchantId = 3872, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 0, yellow = 1, blue = 1, prismatic = 0, total = 2, empty = 0 },
+				gems = {
+					{ itemId = 40133, color = "purple", isMeta = false },
+					{ itemId = 40152, color = "orange", isMeta = false },
+				},
+			})),
+		},
+	}
+	local fFireCat = self:EvaluateGearCheck(fireMageCatalog)
+	Check("fire mage Veiled Ametrine → not GEM_BAD_STAT", not HasCode(fFireCat, "GEM_BAD_STAT"))
+	Check("fire mage Sanctified Spellthread → not ENCHANT_NOT_CHECKABLE", not HasCode(fFireCat, "ENCHANT_NOT_CHECKABLE"))
+	Check("fire mage Sanctified Spellthread → not ENCHANT_BAD_STAT", not HasCode(fFireCat, "ENCHANT_BAD_STAT"))
+	Check("fire mage Veiled cloak → GOOD", fireMageCatalog.equipment[1].verdict == "GOOD")
+
 	-- Resto Druid: 2H staff with empty OH is an acceptable temporary variant
 	local restoStaff = {
 		character = { classFile = "DRUID", specTab = 3, specKnown = true, gaps = {} },

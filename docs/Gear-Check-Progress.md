@@ -84,10 +84,12 @@ Observed on **Rhee (Enhancement Shaman)** during Phase 3; addressed in **Phase 8
 | Area | Status | Notes |
 |------|--------|-------|
 | Gems epic → `GEM_LOWER_LEVEL` | **fixed** | Unknown gems are `GEM_NOT_CHECKABLE` (info); expanded ICC epic purple/orange/green seeds |
+| Epic purple Dreadstone stats | **fixed** | Misaligned ids (e.g. Royal `40134` was AP+stam); corrected to tooltip stats |
+| Epic orange Ametrine stats | **fixed** | Misaligned ids (e.g. Veiled `40153` was AP+hit); corrected to tooltip stats |
 | Enhancement intellect unwanted | **fixed** | `S_ENHANCE` prefers intellect |
-| LW / Tailoring leg kits | **fixed** | Frosthide/Icescale/Nerubian/Jormungar + spellthread ids |
+| LW / Tailoring leg kits | **fixed** | Frosthide/Icescale/Nerubian/Jormungar + spellthread ids; Tailoring permanent `3872`/`3873` |
 | Engineering feet/hands | **fixed** | Nitro / Hyperspeed / Pyro Rocket / Flexweave / Frag Belt |
-| Weapon enchants unknown | **fixed** | Mongoose, Executioner, Black Magic, Accuracy, Blade Ward, Blood Draining, … |
+| Weapon enchants unknown | **fixed** | Mongoose, Executioner, Black Magic, Accuracy, Blade Ward, Blood Draining, Spellsurge (`2674`), … |
 
 **Policy reminder:** unknown catalog ids stay **not-checkable** (info), never false **BAD**. Report new false REPLACE cases here for catalog/profile edits.
 
