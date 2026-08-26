@@ -120,12 +120,13 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Toolbar with **Scan** and **Refresh**, gear-check status hint, three stats lines, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 3`.
+Toolbar with **Scan** and **Refresh**, gear-check status hint, three stats lines, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 4`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Toolbar | hint left; **Scan** **104 × 28** then **Refresh** **96 × 28** | 4 px gap between buttons |
-| Gear check status | under description | `GameFontNormalSmall`; scan progress or hint |
+| Toolbar | **Scan** **104 × 28** then **Refresh** **96 × 28**, right-aligned on top row | 4 px gap between buttons |
+| Short description | full width | Below toolbar row (`CD_TOOLBAR_H` + 8 px gap); wraps |
+| Gear check status | under description | `GameFontNormalSmall`; rating legend or scan progress; wraps |
 | Averages line | height **16** | `Average GS: {n}` only (no average iLvl; transmog skews it) |
 | Role averages | height **16** | `Tanks: {n} ({gs} gs)` (and Healers, Melee, Range); `-` when no GS |
 | Gear check summary | height **16** | `BAD · REPLACE · OK · GOOD · Failed`; dim until first scan |

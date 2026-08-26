@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 3
+local LAYOUT_VERSION = 4
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 152
@@ -695,13 +695,6 @@ local function CreateRaidRosterPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	hint:SetPoint("TOPLEFT", 0, 0)
-	hint:SetPoint("RIGHT", page, "RIGHT", -210, 0)
-	hint:SetJustifyH("LEFT")
-	hint:SetJustifyV("TOP")
-	hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
-
 	local refreshBtn = W.CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
 	W.SetPlainButtonTooltip(refreshBtn, "RAID_REFRESH_TIP")
@@ -716,11 +709,22 @@ local function CreateRaidRosterPage(parent)
 		RunGearCheckRaidScan(page)
 	end)
 
+	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	hint:SetPoint("TOPLEFT", 0, -(UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE))
+	hint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	hint:SetJustifyH("LEFT")
+	hint:SetJustifyV("TOP")
+	hint:SetWordWrap(true)
+	hint:SetNonSpaceWrap(false)
+	hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
+
 	local gearCheckStatusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	gearCheckStatusLabel:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -6)
 	gearCheckStatusLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	gearCheckStatusLabel:SetJustifyH("LEFT")
 	gearCheckStatusLabel:SetJustifyV("TOP")
+	gearCheckStatusLabel:SetWordWrap(true)
+	gearCheckStatusLabel:SetNonSpaceWrap(false)
 	gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
 	W.SetFontColor(gearCheckStatusLabel, UI.TEXT_IDLE)
 	page.gearCheckStatusLabel = gearCheckStatusLabel

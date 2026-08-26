@@ -50,7 +50,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 3` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 4` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -145,7 +145,8 @@ Personal opinion and tags come from `RaidwiseDB.history` (keyed by GUID). Defaul
 Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1.
 
 ```text
-[ short description ]                         [ Scan ] [ Refresh ]
+[                                    Scan ] [ Refresh ]
+[ short description — full width ]
 [ gear check hint / scan progress ]
         8 px gap
 [ Average GS: 6158 ]
