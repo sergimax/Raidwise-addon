@@ -88,6 +88,7 @@ Observed on **Rhee (Enhancement Shaman)** during Phase 3; addressed in **Phase 8
 | Epic orange Ametrine stats | **fixed** | Misaligned ids (e.g. Veiled `40153` was AP+hit); corrected to tooltip stats |
 | Epic red/green + meta naming | **fixed** | Subtle/Precise Cardinal; Misty/Turbid Eye of Zul; Effulgent/Impassive metas |
 | Rare Northrend gem seeds | **fixed** | Full AtlasLoot Scarlet/Monarch/Twilight/Forest/Autumn/Sky set (`maxLevel=false`) |
+| Uncommon Northrend gem seeds | **fixed** | Full AtlasLoot Bloodstone/Sun/Chalcedony/Citrine/Shadow/Dark Jade set (tooltip-verified) |
 | Enhancement intellect unwanted | **fixed** | `S_ENHANCE` prefers intellect |
 | LW / Tailoring leg kits | **fixed** | Frosthide/Icescale/Nerubian/Jormungar + spellthread ids; Tailoring permanent `3872`/`3873` |
 | Inscription / LW bracer perks | **fixed** | Master's Inscription `3835–3838`; Fur Lining AP/Stam/SP `3756–3758` |

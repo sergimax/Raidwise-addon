@@ -1973,6 +1973,26 @@ function Addon:GearCheckRulesSelfTest()
 	local fSubtle = self:EvaluateGearCheck(subtleRuby)
 	Check("prot warrior Subtle Cardinal Ruby → not GEM_BAD_STAT", not HasCode(fSubtle, "GEM_BAD_STAT"))
 
+	-- Uncommon Northrend gem → soft GEM_LOWER_LEVEL (not not-checkable)
+	local uncommonGem = {
+		character = { classFile = "MAGE", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("wrist", "WristSlot", MakeItem({
+				itemId = 2,
+				category = "armor",
+				armorType = "cloth",
+				stats = { intellect = 40, spellPower = 60, hasteRating = 30 },
+				enchant = { enchantId = 2332, present = true, known = true, gaps = {} },
+				sockets = { meta = 0, red = 0, yellow = 1, blue = 0, prismatic = 0, total = 1, empty = 0 },
+				gems = { { itemId = 39918, color = "yellow", isMeta = false } },
+			})),
+		},
+	}
+	local fUnc = self:EvaluateGearCheck(uncommonGem)
+	Check("Quick Sun Crystal → GEM_LOWER_LEVEL", HasCode(fUnc, "GEM_LOWER_LEVEL"))
+	Check("Quick Sun Crystal → not GEM_NOT_CHECKABLE", not HasCode(fUnc, "GEM_NOT_CHECKABLE"))
+	Check("Quick Sun Crystal → not GEM_BAD_STAT", not HasCode(fUnc, "GEM_BAD_STAT"))
+
 	-- Resto Druid: 2H staff with empty OH is an acceptable temporary variant
 	local restoStaff = {
 		character = { classFile = "DRUID", specTab = 3, specKnown = true, gaps = {} },
