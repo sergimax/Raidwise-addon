@@ -46,16 +46,11 @@ local function FormatRoleGsSummary(label, bucket)
 end
 
 local function GearOverallColor(status)
-	if status == "BAD" then
-		return UI.TEXT_ALERT
-	end
-	if status == "REPLACE" then
-		return UI.GOLD
-	end
-	if status == "GOOD" then
-		return UI.TEXT_GOOD
-	end
-	return UI.TEXT_IDLE
+	return W.GearVerdictColor(status)
+end
+
+local function IsGearVerdictLabel(label)
+	return label == "BAD" or label == "REPLACE" or label == "OK" or label == "GOOD"
 end
 
 local function GearStatusLabelForEntry(entry)
@@ -109,14 +104,8 @@ end
 
 local function FormatGearRaidSummaryLine(results)
 	local counts = CountGearRaidSummary(results)
-	return W.T(
-		"GEAR_CHECK_RAID_SUMMARY",
-		counts.bad,
-		counts.replace,
-		counts.ok,
-		counts.good,
-		counts.failed
-	)
+	local failedSuffix = " · Failed " .. tostring(counts.failed)
+	return W.FormatGearVerdictCountsLine(nil, counts.bad, counts.replace, counts.ok, counts.good, failedSuffix)
 end
 
 local function FormatGearCellCounts(report)
@@ -126,12 +115,10 @@ local function FormatGearCellCounts(report)
 	local verdicts = report.verdicts or {}
 	local issues = (report.overall and report.overall.issues) or {}
 	local issueTotal = (issues.enchants or 0) + (issues.gems or 0) + (issues.meta or 0)
-	return W.T(
-		"GEAR_CHECK_RAID_CELL_COUNTS",
-		verdicts.bad or 0,
-		verdicts.replace or 0,
-		issueTotal
-	)
+	return W.WrapGearGradation("BAD") .. " " .. tostring(verdicts.bad or 0)
+		.. " · "
+		.. W.ColorText(UI.GEAR_REPLACE, "Repl.") .. " " .. tostring(verdicts.replace or 0)
+		.. " · Iss. " .. tostring(issueTotal)
 end
 
 local function IndexGearResults(results)
@@ -484,21 +471,22 @@ local function FillGearReportRows(cell, member, entry)
 	local character = report and report.character or {}
 
 	local overallLabel = GearStatusLabelForEntry(entry)
-	cell.gearOverallText:SetText(overallLabel)
-	if report then
-		W.SetFontColor(cell.gearOverallText, GearOverallColor(overallLabel))
+	if report and IsGearVerdictLabel(overallLabel) then
+		cell.gearOverallText:SetText(W.WrapGearGradation(overallLabel))
+		W.SetFontColor(cell.gearOverallText, UI.TEXT_IDLE)
 	else
-		W.SetFontColor(cell.gearOverallText, UI.TEXT_DISABLED)
+		cell.gearOverallText:SetText(overallLabel)
+		if report then
+			W.SetFontColor(cell.gearOverallText, GearOverallColor(overallLabel))
+		else
+			W.SetFontColor(cell.gearOverallText, UI.TEXT_DISABLED)
+		end
 	end
 
 	local counts = FormatGearCellCounts(report)
 	cell.gearCountsText:SetText(counts)
 	if counts ~= "" then
-		local verdicts = report.verdicts or {}
-		local issues = (report.overall and report.overall.issues) or {}
-		local issueTotal = (issues.enchants or 0) + (issues.gems or 0) + (issues.meta or 0)
-		local hot = (verdicts.bad or 0) > 0 or (verdicts.replace or 0) > 0 or issueTotal > 0
-		W.SetFontColor(cell.gearCountsText, hot and UI.GOLD or UI.TEXT_IDLE)
+		W.SetFontColor(cell.gearCountsText, UI.TEXT_IDLE)
 	else
 		W.SetFontColor(cell.gearCountsText, UI.TEXT_DISABLED)
 	end
@@ -712,7 +700,7 @@ local function CreateRaidRosterPage(parent)
 	hint:SetPoint("RIGHT", page, "RIGHT", -210, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
-	hint:SetText(W.T("RAID_HINT"))
+	hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
 
 	local refreshBtn = W.CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
@@ -733,7 +721,7 @@ local function CreateRaidRosterPage(parent)
 	gearCheckStatusLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	gearCheckStatusLabel:SetJustifyH("LEFT")
 	gearCheckStatusLabel:SetJustifyV("TOP")
-	gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_HINT"))
+	gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
 	W.SetFontColor(gearCheckStatusLabel, UI.TEXT_IDLE)
 	page.gearCheckStatusLabel = gearCheckStatusLabel
 
@@ -810,7 +798,7 @@ local function ApplyLocale(page)
 		return
 	end
 	if page.hint then
-		page.hint:SetText(W.T("RAID_HINT"))
+		page.hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
 	end
 	if page.refreshBtn and page.refreshBtn.label then
 		page.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
@@ -819,7 +807,7 @@ local function ApplyLocale(page)
 		page.gearCheckScanBtn.label:SetText(W.T("GEAR_CHECK_SCAN"))
 	end
 	if page.gearCheckStatusLabel and not page.gearCheckScanning then
-		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_HINT"))
+		page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
 	end
 	UpdateGearCheckSummaryLabel(page, ResolveGearCheckResults(page))
 

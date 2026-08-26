@@ -66,19 +66,6 @@ local function StatusTextForScan(report, status)
 	return W.T("GEAR_CHECK_STATUS_OK", who, where)
 end
 
-local function VerdictColor(verdict)
-	if verdict == "BAD" then
-		return UI.TEXT_ALERT
-	end
-	if verdict == "REPLACE" then
-		return UI.GOLD
-	end
-	if verdict == "GOOD" then
-		return UI.TEXT_GOOD
-	end
-	return UI.TEXT_IDLE
-end
-
 local function FindingMatchesFilter(finding, filterId)
 	local category = finding.category
 	if filterId == "all" then
@@ -549,8 +536,8 @@ local function ApplySummary(page, report)
 
 	local overall = report.overall or {}
 	local status = overall.status or "OK"
-	page.overallLabel:SetText(W.T("GEAR_CHECK_OVERALL", status))
-	W.SetFontColor(page.overallLabel, VerdictColor(status))
+	page.overallLabel:SetText(W.T("GEAR_CHECK_OVERALL", W.WrapGearGradation(status)))
+	W.SetFontColor(page.overallLabel, UI.TEXT_IDLE)
 
 	local character = report.character or {}
 	local who = character.name or report.name or "?"
@@ -597,17 +584,14 @@ local function ApplySummary(page, report)
 
 	local issues = overall.issues or {}
 	local verdicts = report.verdicts or {}
-	page.issuesLabel:SetText(W.T(
-		"GEAR_CHECK_ISSUES",
-		verdicts.bad or 0,
-		verdicts.replace or 0,
-		verdicts.ok or 0,
-		verdicts.good or 0,
-		issues.enchants or 0,
-		issues.gems or 0,
-		(issues.meta or 0) == 0 and W.T("GEAR_CHECK_META_OK_SHORT") or tostring(issues.meta or 0)
-	))
-	W.SetFontColor(page.issuesLabel, UI.TEXT_DISABLED)
+	local metaText = (issues.meta or 0) == 0 and W.T("GEAR_CHECK_META_OK_SHORT") or tostring(issues.meta or 0)
+	page.issuesLabel:SetText(
+		W.FormatGearVerdictCountsLine("Items ", verdicts.bad, verdicts.replace, verdicts.ok, verdicts.good, "")
+			.. " · Enchants " .. tostring(issues.enchants or 0)
+			.. " · Gems " .. tostring(issues.gems or 0)
+			.. " · Meta " .. metaText
+	)
+	W.SetFontColor(page.issuesLabel, UI.TEXT_IDLE)
 
 	page.metaLabel:SetText(W.T("GEAR_CHECK_META_LINE", FormatMetaBrief(report.meta)))
 	W.SetFontColor(page.metaLabel, UI.TEXT_DISABLED)
@@ -677,8 +661,8 @@ local function ApplyBreakdown(page, report)
 		row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, y)
 		row.title:SetWidth(width)
 		local verdict = group.verdict or "OK"
-		row.title:SetText(string.format("[%s] %s", verdict, group.label))
-		W.SetFontColor(row.title, VerdictColor(verdict))
+		row.title:SetText(string.format("[%s] %s", W.WrapGearGradation(verdict), group.label))
+		W.SetFontColor(row.title, UI.TEXT_IDLE)
 
 		local detailParts = {}
 		for lineIndex = 1, #group.lines do
@@ -809,7 +793,7 @@ local function CreateGearCheckTargetPage(parent)
 	desc:SetWidth(innerW)
 	desc:SetJustifyH("LEFT")
 	desc:SetJustifyV("TOP")
-	desc:SetText(W.T("GEAR_CHECK_TARGET_DESC"))
+	desc:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_TARGET_DESC")))
 	page.desc = desc
 
 	local limit = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -1206,7 +1190,7 @@ local function ApplyLocale(page)
 		return
 	end
 	if page.desc then
-		page.desc:SetText(W.T("GEAR_CHECK_TARGET_DESC"))
+		page.desc:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_TARGET_DESC")))
 	end
 	if page.limit then
 		page.limit:SetText(W.T("GEAR_CHECK_LIMITATION"))

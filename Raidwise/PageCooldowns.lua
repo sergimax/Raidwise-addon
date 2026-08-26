@@ -170,10 +170,7 @@ local function CreateCurrencyChip(parent)
 end
 
 local function ColorText(color, text)
-	local red = math.floor((color[1] or 1) * 255 + 0.5)
-	local green = math.floor((color[2] or 1) * 255 + 0.5)
-	local blue = math.floor((color[3] or 1) * 255 + 0.5)
-	return string.format("|cff%02x%02x%02x%s|r", red, green, blue, text)
+	return W.ColorText(color, text)
 end
 
 local function FormatLockoutDisplayText(variants)

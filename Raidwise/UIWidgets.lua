@@ -77,6 +77,11 @@ Addon.UITheme = {
 	TEXT_HOVER = { 1.000, 0.910, 0.550 },
 	TEXT_DISABLED = { 0.690, 0.627, 0.439 },
 	TEXT_ALERT = { 1.000, 0.251, 0.251 },
+	-- Gear Check gradation (red → green): verdicts and spec ranks share the same scale.
+	GEAR_BAD = { 1.000, 0.251, 0.251 },
+	GEAR_REPLACE = { 1.000, 0.600, 0.200 },
+	GEAR_OK = { 0.950, 0.780, 0.350 },
+	GEAR_GOOD = { 0.350, 0.850, 0.400 },
 }
 
 Addon.Widgets = {}
@@ -145,6 +150,83 @@ end
 
 function W.SetFontColor(fontString, color)
 	fontString:SetTextColor(color[1], color[2], color[3], color[4] or 1)
+end
+
+function W.ColorText(color, text)
+	if not text or text == "" then
+		return ""
+	end
+	color = color or UI.TEXT_IDLE
+	local red = math.floor((color[1] or 1) * 255 + 0.5)
+	local green = math.floor((color[2] or 1) * 255 + 0.5)
+	local blue = math.floor((color[3] or 1) * 255 + 0.5)
+	return string.format("|cff%02x%02x%02x%s|r", red, green, blue, text)
+end
+
+function W.GearGradationColor(step)
+	if not step or step == "" then
+		return UI.GEAR_OK
+	end
+	local key = string.lower(tostring(step))
+	if key == "bad" or key == "forbidden" then
+		return UI.GEAR_BAD
+	end
+	if key == "replace" or key == "unwanted" then
+		return UI.GEAR_REPLACE
+	end
+	if key == "good" or key == "preferred" then
+		return UI.GEAR_GOOD
+	end
+	return UI.GEAR_OK
+end
+
+function W.GearVerdictColor(verdict)
+	return W.GearGradationColor(verdict)
+end
+
+function W.WrapGearGradation(label)
+	return W.ColorText(W.GearGradationColor(label), label)
+end
+
+local GEAR_GRADATION_TOKENS = {
+	"forbidden",
+	"acceptable",
+	"unwanted",
+	"preferred",
+	"REPLACE",
+	"GOOD",
+	"BAD",
+	"OK",
+}
+
+function W.ColorizeGearGradation(text)
+	if not text or text == "" then
+		return text
+	end
+	for index = 1, #GEAR_GRADATION_TOKENS do
+		local token = GEAR_GRADATION_TOKENS[index]
+		local colored = W.WrapGearGradation(token)
+		text = text:gsub("(%f[%a])" .. token .. "(%f[%A])", colored)
+	end
+	return text
+end
+
+function W.FormatGearVerdictCountsLine(prefix, bad, replace, okCount, good, suffix)
+	local parts = {}
+	if prefix and prefix ~= "" then
+		parts[#parts + 1] = prefix
+	end
+	parts[#parts + 1] = W.WrapGearGradation("BAD") .. " " .. tostring(bad or 0)
+	parts[#parts + 1] = " · "
+	parts[#parts + 1] = W.WrapGearGradation("REPLACE") .. " " .. tostring(replace or 0)
+	parts[#parts + 1] = " · "
+	parts[#parts + 1] = W.WrapGearGradation("OK") .. " " .. tostring(okCount or 0)
+	parts[#parts + 1] = " · "
+	parts[#parts + 1] = W.WrapGearGradation("GOOD") .. " " .. tostring(good or 0)
+	if suffix and suffix ~= "" then
+		parts[#parts + 1] = suffix
+	end
+	return table.concat(parts)
 end
 
 function W.SetPlainButtonState(button, state)

@@ -20,7 +20,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Panel fill | **#12121c** ≈ RGB **0.07, 0.07, 0.11** | Classic theme; alpha 0.98 |
 | Title / status fill | **#1c1c2a** ≈ RGB **0.11, 0.11, 0.165** | Same texture |
 | 1 px border | **#6b5730** ≈ RGB **0.42, 0.34, 0.19** | Four edge textures (bronze) |
-| Accent gold | **#ffd200** ≈ RGB **1.00, 0.82, 0.00** | Titles, selected labels |
+| Gear Check gradation | red → green | `GEAR_BAD` / `GEAR_REPLACE` / `GEAR_OK` / `GEAR_GOOD` — verdicts (BAD…GOOD) and spec ranks (forbidden…preferred) |
 | Idle text | **#ffeebb** ≈ RGB **1.00, 0.93, 0.73** | Body / menu idle |
 
 ## Left menu
