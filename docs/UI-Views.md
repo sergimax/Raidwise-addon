@@ -50,7 +50,7 @@ Independent from addon semver (`Addon.version` in the status bar). Bump a view�
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 4` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 5` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -159,8 +159,8 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ (buff)(buff)(buff) ]
 [ Personal opinion: Positive ]
 [ Friendly, Good Tank ]
-[ REPLACE ]
-[ BAD 0 · Repl. 2 · Iss. 4 ]
+[ Armor/weap: GOOD ]
+[ Ench/sock: REPLACE ]
 [ Profile ][ Gear check ]
         12 px gap
 [ 6              ][ 7              ][ 8              ]
@@ -169,7 +169,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Raid groups 1–5 and 6–8… Scan rates each player GOOD / OK / REPLACE / BAD.” |
+| short description | “Raid groups 1–5 and 6–8… Scan shows armor/weap and ench/sock grades per player.” |
 | Scan | **Scan** — queues gear check over `CompositionMembers()` one inspect at a time (hover tip) |
 | Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons (hover tip) |
 | gear check hint / status | Rating legend (GOOD / OK / REPLACE / BAD + preferred / acceptable / unwanted / forbidden); progress `Scanning N/M: Name…` while scanning |
@@ -182,8 +182,8 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 3 | Spec- and race-specific raid buff icons (hover for name); up to 8 |
 | line 4 | `Personal opinion: {Positive|Neutral|Negative}`; color-coded |
 | line 5 | Colored tag summary (up to 3 labels, then `+N`); dim when none |
-| line 6 | Gear check overall (colored) or fail / not scanned (`—`) |
-| line 7 | `BAD N · Repl. N · Iss. N` (enchant+gem+meta issue total) |
+| line 6 | `Armor/weap: {GOOD|OK|REPLACE|BAD}` (colored grade) or fail / not scanned (`—`) |
+| line 7 | `Ench/sock: {GOOD|OK|REPLACE|BAD}` (colored grade); blank when not scanned |
 | line 8 | **Profile** (Character profile) and **Gear check** (opens report on Gear check (target); disabled until scanned); both have hover tips |
 | hover | Tooltip shows opinion/tags |
 | click | Left-click card → **Character profile**; **Profile** / **Gear check** buttons do the same actions |

@@ -245,6 +245,10 @@ export type GearCheckIssueCounts = {
 
 export type GearCheckOverall = {
   status: GearCheckItemVerdict;
+  /** Armor, weapons, trinkets, stats — worst slot wins within this category. */
+  gearGrade?: GearCheckItemVerdict;
+  /** Enchants, gems, meta — worst slot wins within this category. */
+  enchantSocketGrade?: GearCheckItemVerdict;
   reason: string;
   summary: string;
   issues: GearCheckIssueCounts;

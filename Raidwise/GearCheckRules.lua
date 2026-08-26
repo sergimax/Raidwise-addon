@@ -710,6 +710,29 @@ local ITEM_ISSUE_CATEGORIES = {
 	item = true,
 }
 
+local ENCHANT_SOCKET_CATEGORIES = {
+	enchant = true,
+	gem = true,
+	meta = true,
+}
+
+local GEAR_GOOD_BLOCKING_INFO = {
+	ITEM_NOT_CHECKABLE = true,
+}
+
+local ENCHANT_SOCKET_GOOD_BLOCKING_INFO = {
+	ENCHANT_NOT_CHECKABLE = true,
+	GEM_NOT_CHECKABLE = true,
+	META_NOT_CHECKABLE = true,
+}
+
+local VERDICT_SEVERITY = {
+	BAD = 4,
+	REPLACE = 3,
+	OK = 2,
+	GOOD = 1,
+}
+
 local function CountUnique(map)
 	local n = 0
 	for _ in pairs(map) do
@@ -795,22 +818,6 @@ end
 
 -- Promote clean OK slots to GOOD when the piece looks highly appropriate (not BiS).
 -- Blocked by any hard/soft finding, or by info findings that mean incomplete data.
-local GOOD_BLOCKING_INFO = {
-	ITEM_NOT_CHECKABLE = true,
-	ENCHANT_NOT_CHECKABLE = true,
-	GEM_NOT_CHECKABLE = true,
-	META_NOT_CHECKABLE = true,
-}
-
-local function SlotHasBlockingInfo(findings, slotKey)
-	for index = 1, #findings do
-		local finding = findings[index]
-		if finding.slot == slotKey and finding.severity == "info" and GOOD_BLOCKING_INFO[finding.code] then
-			return true
-		end
-	end
-	return false
-end
 
 local function EnchantIsMaxLevel(enchant)
 	if not enchant or not enchant.present then
@@ -902,24 +909,39 @@ local function TypeQualifiesForGood(profile, slot)
 	return true
 end
 
-local function CollectNotGoodReasons(profile, slot, findings)
+local function SlotHasCategoryBlockingInfo(findings, slotKey, blockingMap)
+	for index = 1, #findings do
+		local finding = findings[index]
+		if finding.slot == slotKey and finding.severity == "info" and blockingMap[finding.code] then
+			return true
+		end
+	end
+	return false
+end
+
+local function CollectBlockingInfoReasons(findings, slotKey, blockingMap)
+	local reasons = {}
+	for index = 1, #findings do
+		local finding = findings[index]
+		if finding.slot == slotKey and finding.severity == "info" and blockingMap[finding.code] then
+			reasons[#reasons + 1] = finding.message or finding.code
+		end
+	end
+	if #reasons == 0 then
+		reasons[#reasons + 1] = "Incomplete or unknown data blocks GOOD."
+	end
+	return reasons
+end
+
+local function CollectNotGoodGearReasons(profile, slot, findings)
 	local reasons = {}
 	local item = slot and slot.item
 	if not profile or not item then
 		reasons[#reasons + 1] = "Cannot confirm GOOD without a profile or item data."
 		return reasons
 	end
-	if SlotHasBlockingInfo(findings, slot.key) then
-		for index = 1, #findings do
-			local finding = findings[index]
-			if finding.slot == slot.key and finding.severity == "info" and GOOD_BLOCKING_INFO[finding.code] then
-				reasons[#reasons + 1] = finding.message or finding.code
-			end
-		end
-		if #reasons == 0 then
-			reasons[#reasons + 1] = "Incomplete or unknown data blocks GOOD."
-		end
-		return reasons
+	if SlotHasCategoryBlockingInfo(findings, slot.key, GEAR_GOOD_BLOCKING_INFO) then
+		return CollectBlockingInfoReasons(findings, slot.key, GEAR_GOOD_BLOCKING_INFO)
 	end
 	if not TypeQualifiesForGood(profile, slot) then
 		if slot.key == "trinket1" or slot.key == "trinket2" then
@@ -942,6 +964,18 @@ local function CollectNotGoodReasons(profile, slot, findings)
 		else
 			reasons[#reasons + 1] = "Item type is not preferred for this specialization."
 		end
+	end
+	return reasons
+end
+
+local function CollectNotGoodEnchantSocketReasons(profile, slot, findings)
+	local reasons = {}
+	local item = slot and slot.item
+	if not item then
+		return reasons
+	end
+	if SlotHasCategoryBlockingInfo(findings, slot.key, ENCHANT_SOCKET_GOOD_BLOCKING_INFO) then
+		return CollectBlockingInfoReasons(findings, slot.key, ENCHANT_SOCKET_GOOD_BLOCKING_INFO)
 	end
 	if SlotRequiresEnchantForGood(slot) then
 		if not item.enchant or not item.enchant.present then
@@ -972,6 +1006,135 @@ local function CollectNotGoodReasons(profile, slot, findings)
 		end
 	end
 	return reasons
+end
+
+local function CollectNotGoodReasons(profile, slot, findings)
+	local reasons = {}
+	local gearReasons = CollectNotGoodGearReasons(profile, slot, findings)
+	for index = 1, #gearReasons do
+		reasons[#reasons + 1] = gearReasons[index]
+	end
+	local enchantReasons = CollectNotGoodEnchantSocketReasons(profile, slot, findings)
+	for index = 1, #enchantReasons do
+		reasons[#reasons + 1] = enchantReasons[index]
+	end
+	return reasons
+end
+
+local function GearSlotQualifiesForGood(profile, slot, findings)
+	return #CollectNotGoodGearReasons(profile, slot, findings) == 0
+end
+
+local function EnchantSocketSlotQualifiesForGood(profile, slot, findings)
+	return #CollectNotGoodEnchantSocketReasons(profile, slot, findings) == 0
+end
+
+local function VerdictIsWorse(left, right)
+	return (VERDICT_SEVERITY[left] or 0) > (VERDICT_SEVERITY[right] or 0)
+end
+
+local function WorstVerdict(verdicts)
+	local worst = "OK"
+	for index = 1, #verdicts do
+		if VerdictIsWorse(verdicts[index], worst) then
+			worst = verdicts[index]
+		end
+	end
+	return worst
+end
+
+local function FindingMatchesCategory(finding, categoryMap)
+	return categoryMap[finding.category]
+end
+
+local function SlotVerdictForCategories(profile, slot, findings, categoryMap, qualifiesForGoodFn)
+	if slot.policy ~= "CHECKED" or slot.empty or not slot.item then
+		return nil
+	end
+	local hard = false
+	local soft = false
+	for index = 1, #findings do
+		local finding = findings[index]
+		if finding.slot == slot.key and FindingMatchesCategory(finding, categoryMap) then
+			if finding.severity == "hard" then
+				hard = true
+			elseif finding.severity == "soft" then
+				soft = true
+			end
+		end
+	end
+	local verdict = "OK"
+	if hard then
+		verdict = "BAD"
+	elseif soft then
+		verdict = "REPLACE"
+	end
+	if verdict == "OK" and qualifiesForGoodFn(profile, slot, findings) then
+		verdict = "GOOD"
+	end
+	return verdict
+end
+
+local function AggregateCategoryGrade(report, categoryMap, qualifiesForGoodFn, applyResilience)
+	local verdicts = {}
+	local slotVerdicts = {}
+	if not report then
+		return "OK"
+	end
+
+	local findings = report.findings or {}
+	for index = 1, #findings do
+		local finding = findings[index]
+		if not finding.slot and FindingMatchesCategory(finding, categoryMap) then
+			if finding.severity == "hard" then
+				verdicts[#verdicts + 1] = "BAD"
+			elseif finding.severity == "soft" then
+				verdicts[#verdicts + 1] = "REPLACE"
+			end
+		end
+	end
+
+	local profile = nil
+	if report.character then
+		profile = Addon:GetGearCheckProfile(
+			report.character.classFile,
+			report.character.specTab,
+			report.character.specKnown
+		)
+	end
+
+	local equipment = report.equipment or report.slots or {}
+	for index = 1, #equipment do
+		local slot = equipment[index]
+		local verdict = SlotVerdictForCategories(profile, slot, findings, categoryMap, qualifiesForGoodFn)
+		if verdict then
+			slotVerdicts[#slotVerdicts + 1] = verdict
+			verdicts[#verdicts + 1] = verdict
+		end
+	end
+
+	local status = WorstVerdict(verdicts)
+	if applyResilience then
+		local resilienceItems = CountResilienceItems(findings)
+		if resilienceItems >= 2 then
+			status = "BAD"
+		elseif resilienceItems == 1 and (status == "OK" or status == "GOOD") then
+			status = "REPLACE"
+		end
+	end
+	if status == "OK" and #slotVerdicts > 0 then
+		local allGood = true
+		for index = 1, #slotVerdicts do
+			if slotVerdicts[index] ~= "GOOD" then
+				allGood = false
+				break
+			end
+		end
+		if allGood then
+			status = "GOOD"
+		end
+	end
+	return status
 end
 
 local function SlotQualifiesForGood(profile, slot, findings)
@@ -1079,6 +1242,8 @@ function Addon:AggregateGearCheckOverall(report)
 		summary = "No significant issues.",
 		issues = { items = 0, enchants = 0, gems = 0, meta = 0 },
 		resilienceItems = 0,
+		gearGrade = "OK",
+		enchantSocketGrade = "OK",
 	}
 	if not report then
 		return overall
@@ -1139,6 +1304,13 @@ function Addon:AggregateGearCheckOverall(report)
 
 	overall.status = status
 	overall.reason = reason
+	overall.gearGrade = AggregateCategoryGrade(report, ITEM_ISSUE_CATEGORIES, GearSlotQualifiesForGood, true)
+	overall.enchantSocketGrade = AggregateCategoryGrade(
+		report,
+		ENCHANT_SOCKET_CATEGORIES,
+		EnchantSocketSlotQualifiesForGood,
+		false
+	)
 	if status == "BAD" then
 		if reason == "resilience" then
 			overall.summary = string.format("%d items have Resilience (PvE: 2+ is BAD).", resilienceItems)
@@ -1257,6 +1429,8 @@ function Addon:GearCheckRulesSelfTest()
 	local f3 = self:EvaluateGearCheck(missing)
 	Check("missing chest enchant → MISSING_ENCHANT", HasCode(f3, "MISSING_ENCHANT"))
 	Check("missing chest enchant → chest REPLACE", missing.equipment[1].verdict == "REPLACE")
+	Check("missing chest enchant → gearGrade GOOD", missing.overall and missing.overall.gearGrade == "GOOD")
+	Check("missing chest enchant → enchantSocketGrade REPLACE", missing.overall and missing.overall.enchantSocketGrade == "REPLACE")
 
 	-- Spell Power on Fury → STAT_FORBIDDEN
 	local spFury = {
@@ -1308,6 +1482,8 @@ function Addon:GearCheckRulesSelfTest()
 	self:EvaluateGearCheck(mailArms)
 	Check("mail on arms (acceptable) → OK not GOOD", mailArms.equipment[1].verdict == "OK")
 	Check("mail on arms → overall OK", mailArms.overall and mailArms.overall.status == "OK")
+	Check("mail on arms → gearGrade OK", mailArms.overall and mailArms.overall.gearGrade == "OK")
+	Check("mail on arms → enchantSocketGrade GOOD", mailArms.overall and mailArms.overall.enchantSocketGrade == "GOOD")
 
 	-- Info-only (unknown enchant) → still OK
 	local unmapped = {
@@ -1328,6 +1504,7 @@ function Addon:GearCheckRulesSelfTest()
 	Check("unknown enchant → overall OK", unmapped.overall and unmapped.overall.status == "OK")
 
 	Check("cloth on prot → overall BAD", clothProt.overall and clothProt.overall.status == "BAD")
+	Check("cloth on prot → gearGrade BAD", clothProt.overall and clothProt.overall.gearGrade == "BAD")
 	Check("one resilience ring → overall REPLACE", resRing.overall and resRing.overall.status == "REPLACE")
 
 	-- Two resilience items → overall BAD (locked PvE rule)
@@ -1374,6 +1551,8 @@ function Addon:GearCheckRulesSelfTest()
 	Check("meta without blues → META_INACTIVE", HasCode(fMeta, "META_INACTIVE"))
 	Check("meta without blues → head REPLACE", noBlue.equipment[1].verdict == "REPLACE")
 	Check("meta without blues → overall REPLACE", noBlue.overall and noBlue.overall.status == "REPLACE")
+	Check("meta without blues → gearGrade GOOD", noBlue.overall and noBlue.overall.gearGrade == "GOOD")
+	Check("meta without blues → enchantSocketGrade REPLACE", noBlue.overall and noBlue.overall.enchantSocketGrade == "REPLACE")
 
 	-- Same meta with 2 blue gems elsewhere → active
 	local withBlue = {

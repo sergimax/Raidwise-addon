@@ -131,7 +131,7 @@ Toolbar with **Scan** and **Refresh**, gear-check status hint, three stats lines
 | Role averages | height **16** | `Tanks: {n} ({gs} gs)` (and Healers, Melee, Range); `-` when no GS |
 | Gear check summary | height **16** | `BAD · REPLACE · OK · GOOD · Failed`; dim until first scan |
 | Stats block | height **48** | Three lines (avg GS, roles, gear summary) |
-| Player cell | **168 × 152** | Eight lines: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, gear overall, gear counts, **Profile** + **Gear check** buttons |
+| Player cell | **168 × 152** | Eight lines: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear check** buttons |
 | Cell buttons | **16** tall | Side-by-side; Gear check disabled until that player has a scan report |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Gold number above each party column |

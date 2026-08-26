@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 4
+local LAYOUT_VERSION = 5
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 152
@@ -43,10 +43,6 @@ local function FormatRoleGsSummary(label, bucket)
 	bucket = bucket or {}
 	local gsText = bucket.gearScore ~= nil and tostring(bucket.gearScore) or "-"
 	return W.T("ROLE_SUMMARY", label, tostring(bucket.count or 0), gsText)
-end
-
-local function GearOverallColor(status)
-	return W.GearVerdictColor(status)
 end
 
 local function IsGearVerdictLabel(label)
@@ -102,23 +98,17 @@ local function CountGearRaidSummary(results)
 	return counts
 end
 
+local function FormatRaidCategoryGradeLine(localeKey, grade)
+	if not grade or grade == "" then
+		return ""
+	end
+	return W.T(localeKey, W.WrapGearGradation(grade))
+end
+
 local function FormatGearRaidSummaryLine(results)
 	local counts = CountGearRaidSummary(results)
 	local failedSuffix = " · Failed " .. tostring(counts.failed)
 	return W.FormatGearVerdictCountsLine(nil, counts.bad, counts.replace, counts.ok, counts.good, failedSuffix)
-end
-
-local function FormatGearCellCounts(report)
-	if not report then
-		return ""
-	end
-	local verdicts = report.verdicts or {}
-	local issues = (report.overall and report.overall.issues) or {}
-	local issueTotal = (issues.enchants or 0) + (issues.gems or 0) + (issues.meta or 0)
-	return W.WrapGearGradation("BAD") .. " " .. tostring(verdicts.bad or 0)
-		.. " · "
-		.. W.ColorText(UI.GEAR_REPLACE, "Repl.") .. " " .. tostring(verdicts.replace or 0)
-		.. " · Iss. " .. tostring(issueTotal)
 end
 
 local function IndexGearResults(results)
@@ -357,17 +347,17 @@ local function CreateRaidPlayerCell(parent)
 	cell.tagText:SetHeight(RAID_LINE_H)
 	cell.tagText:SetJustifyH("LEFT")
 
-	cell.gearOverallText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gearOverallText:SetPoint("TOPLEFT", cell.tagText, "BOTTOMLEFT", 0, -1)
-	cell.gearOverallText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.gearOverallText:SetHeight(RAID_LINE_H)
-	cell.gearOverallText:SetJustifyH("LEFT")
+	cell.gearGradeText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.gearGradeText:SetPoint("TOPLEFT", cell.tagText, "BOTTOMLEFT", 0, -1)
+	cell.gearGradeText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
+	cell.gearGradeText:SetHeight(RAID_LINE_H)
+	cell.gearGradeText:SetJustifyH("LEFT")
 
-	cell.gearCountsText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gearCountsText:SetPoint("TOPLEFT", cell.gearOverallText, "BOTTOMLEFT", 0, -1)
-	cell.gearCountsText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.gearCountsText:SetHeight(RAID_LINE_H)
-	cell.gearCountsText:SetJustifyH("LEFT")
+	cell.enchantSocketGradeText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.enchantSocketGradeText:SetPoint("TOPLEFT", cell.gearGradeText, "BOTTOMLEFT", 0, -1)
+	cell.enchantSocketGradeText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
+	cell.enchantSocketGradeText:SetHeight(RAID_LINE_H)
+	cell.enchantSocketGradeText:SetJustifyH("LEFT")
 
 	local btnWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2 - RAID_BTN_GAP) / 2)
 	local profileBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_PROFILE"))
@@ -458,8 +448,8 @@ end
 local function FillGearReportRows(cell, member, entry)
 	if not member then
 		cell.gearEntry = nil
-		cell.gearOverallText:SetText("")
-		cell.gearCountsText:SetText("")
+		cell.gearGradeText:SetText("")
+		cell.enchantSocketGradeText:SetText("")
 		if cell.gearBtn then
 			cell.gearBtn:Disable()
 		end
@@ -470,33 +460,32 @@ local function FillGearReportRows(cell, member, entry)
 	local report = entry and entry.report
 	local character = report and report.character or {}
 
-	local overallLabel = GearStatusLabelForEntry(entry)
-	if report and IsGearVerdictLabel(overallLabel) then
-		cell.gearOverallText:SetText(W.WrapGearGradation(overallLabel))
-		W.SetFontColor(cell.gearOverallText, UI.TEXT_IDLE)
-	else
-		cell.gearOverallText:SetText(overallLabel)
-		if report then
-			W.SetFontColor(cell.gearOverallText, GearOverallColor(overallLabel))
+	if not report then
+		local statusLabel = GearStatusLabelForEntry(entry)
+		cell.gearGradeText:SetText(statusLabel)
+		cell.enchantSocketGradeText:SetText("")
+		if IsGearVerdictLabel(statusLabel) then
+			cell.gearGradeText:SetText(W.WrapGearGradation(statusLabel))
+			W.SetFontColor(cell.gearGradeText, UI.TEXT_IDLE)
 		else
-			W.SetFontColor(cell.gearOverallText, UI.TEXT_DISABLED)
+			W.SetFontColor(cell.gearGradeText, UI.TEXT_DISABLED)
 		end
-	end
-
-	local counts = FormatGearCellCounts(report)
-	cell.gearCountsText:SetText(counts)
-	if counts ~= "" then
-		W.SetFontColor(cell.gearCountsText, UI.TEXT_IDLE)
-	else
-		W.SetFontColor(cell.gearCountsText, UI.TEXT_DISABLED)
-	end
-
-	if cell.gearBtn then
-		if report then
-			cell.gearBtn:Enable()
-		else
+		if cell.gearBtn then
 			cell.gearBtn:Disable()
 		end
+		return
+	end
+
+	local overall = report.overall or {}
+	local gearGrade = overall.gearGrade or overall.status or "OK"
+	local enchantSocketGrade = overall.enchantSocketGrade or "OK"
+	cell.gearGradeText:SetText(FormatRaidCategoryGradeLine("GEAR_CHECK_RAID_CELL_GEAR", gearGrade))
+	cell.enchantSocketGradeText:SetText(FormatRaidCategoryGradeLine("GEAR_CHECK_RAID_CELL_ENCHANT", enchantSocketGrade))
+	W.SetFontColor(cell.gearGradeText, UI.TEXT_IDLE)
+	W.SetFontColor(cell.enchantSocketGradeText, UI.TEXT_IDLE)
+
+	if cell.gearBtn then
+		cell.gearBtn:Enable()
 	end
 
 	if report and character.specIcon and character.specIcon ~= "" and member.specIcon ~= character.specIcon then
