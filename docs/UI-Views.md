@@ -247,8 +247,8 @@ LEFT (~670px)                          RIGHT (~220px)
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | Overall: GOOD (preferred) / OK (usable) / REPLACE (soft) / BAD (wrong for spec); surface-level PvE; not BiS |
-| limitation | Spec ranks: preferred → GOOD, acceptable → OK, unwanted → REPLACE, forbidden → BAD; no stat weights / builds |
+| short description | Overall: GOOD (preferred) / OK (usable·acceptable) / REPLACE (unwanted·soft) / BAD (forbidden·wrong for spec); surface-level PvE; not BiS |
+| limitation | No BiS lists, builds, encounter requirements, or detailed stat weights |
 | summary (left) | Overall status (colored), class + spec icons + character line, GearScore / avg iLvl, issue counts, meta, sets |
 | status (right) | Multi-line hint or scan result (`\n` breaks + word wrap); sits above Scan |
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI |
