@@ -385,6 +385,7 @@ local function CreateRaidPlayerCell(parent)
 	local btnWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2 - RAID_BTN_GAP) / 2)
 	local profileBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_PROFILE"))
 	profileBtn:SetPoint("BOTTOMLEFT", RAID_CELL_PAD, RAID_CELL_PAD)
+	W.SetPlainButtonTooltip(profileBtn, "BTN_RAID_PROFILE_TIP")
 	profileBtn:SetScript("OnClick", function()
 		if cell.member then
 			Addon:ShowRaidCharacterWindow(cell.member)
@@ -395,6 +396,7 @@ local function CreateRaidPlayerCell(parent)
 
 	local gearBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_GEAR"))
 	gearBtn:SetPoint("LEFT", profileBtn, "RIGHT", RAID_BTN_GAP, 0)
+	W.SetPlainButtonTooltip(gearBtn, "BTN_RAID_GEAR_TIP")
 	gearBtn:SetScript("OnClick", function()
 		local gearEntry = cell.gearEntry
 		if gearEntry and gearEntry.report and Addon.ShowGearCheckReport then
@@ -714,12 +716,14 @@ local function CreateRaidRosterPage(parent)
 
 	local refreshBtn = W.CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
+	W.SetPlainButtonTooltip(refreshBtn, "RAID_REFRESH_TIP")
 	refreshBtn:SetScript("OnClick", function()
 		Addon:RefreshPartyData(true)
 	end)
 
 	local scanBtn = W.CreatePlainButton(page, 104, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_SCAN"))
 	scanBtn:SetPoint("RIGHT", refreshBtn, "LEFT", -RAID_TOOLBAR_BTN_GAP, 0)
+	W.SetPlainButtonTooltip(scanBtn, "RAID_SCAN_TIP")
 	scanBtn:SetScript("OnClick", function()
 		RunGearCheckRaidScan(page)
 	end)

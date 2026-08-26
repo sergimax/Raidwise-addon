@@ -200,6 +200,26 @@ function W.CreatePlainButton(parent, width, height, label)
 	return button
 end
 
+-- Hover tip for plain buttons; keeps idle/hover/disabled styling. tipKey is looked up via W.T on enter.
+function W.SetPlainButtonTooltip(button, tipKey)
+	if not button then
+		return
+	end
+	button.tooltipKey = tipKey
+	button:SetScript("OnEnter", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		if self.tooltipKey then
+			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+			GameTooltip:AddLine(W.T(self.tooltipKey), nil, nil, nil, true)
+			GameTooltip:Show()
+		end
+	end)
+	button:SetScript("OnLeave", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, false))
+		GameTooltip:Hide()
+	end)
+end
+
 W.COPY_BACKDROP = {
 	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
 	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",

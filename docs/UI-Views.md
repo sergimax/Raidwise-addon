@@ -98,7 +98,7 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | “Lockouts and currency for every character saved on this account.” |
-| Refresh | Requests fresh raid info, then redraws the table |
+| Refresh | Requests fresh raid info, then redraws the table (hover tip) |
 | first column | Instance name, then kind in parentheses (`(Raid)` / `(Dungeon)`); **Currency** row at bottom |
 | character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first; **Remove** on other columns deletes that character from `RaidwiseDB.characters` (login again restores) |
 | saved cell | Compact size/mode tags (`10`, `10h`, `25`, `25h`, …); tooltip lists each variant with time until reset |
@@ -124,7 +124,7 @@ Current 5-player party (you plus up to four others). Solo shows only you. Raid m
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | “Current party (5 players max). Refresh after gear or spec changes.” |
-| Refresh | Re-reads GearScore, item levels, guild info; re-queues inspect for specs |
+| Refresh | Re-reads GearScore, item levels, guild info; re-queues inspect for specs (hover tip) |
 | averages | Mean iLvl and GearScore of members that have a value (`-` when none) |
 | Name | Class-colored character name |
 | Class | Class icon (`CLASS_ICON_TCOORDS`); hover shows localized class name |
@@ -169,8 +169,8 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | “Raid groups 1–5 and 6–8… Scan rates each player GOOD / OK / REPLACE / BAD.” |
-| Scan | **Scan** — queues gear check over `CompositionMembers()` one inspect at a time |
-| Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons |
+| Scan | **Scan** — queues gear check over `CompositionMembers()` one inspect at a time (hover tip) |
+| Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons (hover tip) |
 | gear check hint / status | Rating legend (GOOD / OK / REPLACE / BAD + preferred / acceptable / unwanted / forbidden); progress `Scanning N/M: Name…` while scanning |
 | averages | Mean GearScore of members that have a value (`-` when none). Average iLvl is omitted (transmog skews it). |
 | role averages | Count and mean GS per role (`Tanks: 2 (6200 gs)`); `-` when none |
@@ -183,7 +183,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 5 | Colored tag summary (up to 3 labels, then `+N`); dim when none |
 | line 6 | Gear check overall (colored) or fail / not scanned (`—`) |
 | line 7 | `BAD N · Repl. N · Iss. N` (enchant+gem+meta issue total) |
-| line 8 | **Profile** (Character profile) and **Gear check** (opens report on Gear check (target); disabled until scanned) |
+| line 8 | **Profile** (Character profile) and **Gear check** (opens report on Gear check (target); disabled until scanned); both have hover tips |
 | hover | Tooltip shows opinion/tags |
 | click | Left-click card → **Character profile**; **Profile** / **Gear check** buttons do the same actions |
 
@@ -207,8 +207,8 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | “Who is needed, and which raid buffs, debuffs, and utility are already covered.” |
-| Report missing | Posts absent classes to raid chat (or party); all present → short “all classes present” line |
-| Refresh | Re-reads the current group (same inspect/GearScore path as Raid roster) |
+| Report missing | Posts absent classes to raid chat (or party); all present → short “all classes present” line (hover tip) |
+| Refresh | Re-reads the current group (same inspect/GearScore path as Raid roster) (hover tip) |
 | Roles | Left of top band: role icon + count; tooltip = role name + who / Missing |
 | Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |
 | columns | Three equal columns below; sections pack into the shortest column |
@@ -251,14 +251,14 @@ LEFT (~670px)                          RIGHT (~220px)
 | limitation | No BiS lists, builds, encounter requirements, or detailed stat weights |
 | summary (left) | Overall status (colored), class + spec icons + character line, GearScore / avg iLvl, issue counts, meta, sets |
 | status (right) | Multi-line hint or scan result (`\n` breaks + word wrap); sits above Scan |
-| Scan | Resolves target or self, inspects if needed, evaluate + refresh UI |
-| Show as a text | Toggles raw dump (replaces main columns; stays in top band) |
-| Select all | Enabled in text view when dump has text |
-| report buttons | Print to **self chat only** (`[GearCheck]` lines) |
-| filters | All / Items / Enchants / Gems / **OK** |
+| Scan | Resolves target or self, inspects if needed, evaluate + refresh UI (hover tip) |
+| Show as a text | Toggles raw dump (replaces main columns; stays in top band) (hover tip) |
+| Select all | Enabled in text view when dump has text (hover tip) |
+| report buttons | Print to **self chat only** (`[GearCheck]` lines); hover tip per mode |
+| filters | All / Items / Enchants / Gems / **OK**; hover tip per filter |
 | breakdown (left) | Active filter name as gold header (except **All**); then `[VERDICT] Slot — Item` plus finding bullets |
-| Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved |
-| Delete selected report | Removes the currently viewed saved entry |
+| Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved (hover tip) |
+| Delete selected report | Removes the currently viewed saved entry (hover tip) |
 | saved panel (right) | Scrollable list of all saved entries; click loads frozen snapshot |
 
 `LAYOUT_VERSION = 10`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.

@@ -18,19 +18,19 @@ local ApplyReportToPage
 local RefreshSavedList
 
 local FILTERS = {
-	{ id = "all", labelKey = "GEAR_CHECK_FILTER_ALL" },
-	{ id = "items", labelKey = "GEAR_CHECK_FILTER_ITEMS" },
-	{ id = "enchants", labelKey = "GEAR_CHECK_FILTER_ENCHANTS" },
-	{ id = "gems", labelKey = "GEAR_CHECK_FILTER_GEMS" },
-	{ id = "ok", labelKey = "GEAR_CHECK_FILTER_OK" },
+	{ id = "all", labelKey = "GEAR_CHECK_FILTER_ALL", tipKey = "GEAR_CHECK_FILTER_ALL_TIP" },
+	{ id = "items", labelKey = "GEAR_CHECK_FILTER_ITEMS", tipKey = "GEAR_CHECK_FILTER_ITEMS_TIP" },
+	{ id = "enchants", labelKey = "GEAR_CHECK_FILTER_ENCHANTS", tipKey = "GEAR_CHECK_FILTER_ENCHANTS_TIP" },
+	{ id = "gems", labelKey = "GEAR_CHECK_FILTER_GEMS", tipKey = "GEAR_CHECK_FILTER_GEMS_TIP" },
+	{ id = "ok", labelKey = "GEAR_CHECK_FILTER_OK", tipKey = "GEAR_CHECK_FILTER_OK_TIP" },
 }
 
 local REPORT_BUTTONS = {
-	{ mode = "summary", labelKey = "GEAR_CHECK_REPORT_SUMMARY" },
-	{ mode = "items", labelKey = "GEAR_CHECK_REPORT_ITEMS" },
-	{ mode = "enchants", labelKey = "GEAR_CHECK_REPORT_ENCHANTS" },
-	{ mode = "gems", labelKey = "GEAR_CHECK_REPORT_GEMS" },
-	{ mode = "ok", labelKey = "GEAR_CHECK_REPORT_OK" },
+	{ mode = "summary", labelKey = "GEAR_CHECK_REPORT_SUMMARY", tipKey = "GEAR_CHECK_REPORT_SUMMARY_TIP" },
+	{ mode = "items", labelKey = "GEAR_CHECK_REPORT_ITEMS", tipKey = "GEAR_CHECK_REPORT_ITEMS_TIP" },
+	{ mode = "enchants", labelKey = "GEAR_CHECK_REPORT_ENCHANTS", tipKey = "GEAR_CHECK_REPORT_ENCHANTS_TIP" },
+	{ mode = "gems", labelKey = "GEAR_CHECK_REPORT_GEMS", tipKey = "GEAR_CHECK_REPORT_GEMS_TIP" },
+	{ mode = "ok", labelKey = "GEAR_CHECK_REPORT_OK", tipKey = "GEAR_CHECK_REPORT_OK_TIP" },
 }
 
 local ITEM_CATEGORIES = {
@@ -846,6 +846,7 @@ local function CreateGearCheckTargetPage(parent)
 	selectBtn:SetPoint("BOTTOMLEFT", 0, 0)
 	selectBtn:SetPoint("BOTTOMRIGHT", rightTop, "BOTTOMRIGHT", 0, 0)
 	selectBtn:Disable()
+	W.SetPlainButtonTooltip(selectBtn, "GEAR_CHECK_SELECT_ALL_TIP")
 	selectBtn:SetScript("OnClick", function()
 		if Addon.SelectGearCheckDump then
 			Addon:SelectGearCheckDump()
@@ -856,6 +857,7 @@ local function CreateGearCheckTargetPage(parent)
 	local debugBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_TEXT_VIEW"))
 	debugBtn:SetPoint("BOTTOMLEFT", selectBtn, "TOPLEFT", 0, 4)
 	debugBtn:SetPoint("BOTTOMRIGHT", selectBtn, "TOPRIGHT", 0, 4)
+	W.SetPlainButtonTooltip(debugBtn, "GEAR_CHECK_TEXT_VIEW_TIP")
 	debugBtn:SetScript("OnClick", function()
 		page.debugMode = not page.debugMode
 		UpdateDebugVisibility(page)
@@ -865,6 +867,7 @@ local function CreateGearCheckTargetPage(parent)
 	local scanBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
 	scanBtn:SetPoint("BOTTOMLEFT", debugBtn, "TOPLEFT", 0, 4)
 	scanBtn:SetPoint("BOTTOMRIGHT", debugBtn, "TOPRIGHT", 0, 4)
+	W.SetPlainButtonTooltip(scanBtn, "GEAR_CHECK_SCAN_TIP")
 	scanBtn:SetScript("OnClick", function()
 		RunScan(page)
 	end)
@@ -985,6 +988,7 @@ local function CreateGearCheckTargetPage(parent)
 			btn:SetPoint("LEFT", page.reportButtons[index - 1], "RIGHT", UI.ACTION_BTN_GAP, 0)
 		end
 		btn.reportMode = info.mode
+		W.SetPlainButtonTooltip(btn, info.tipKey)
 		btn:SetScript("OnClick", function()
 			RunChatReport(page, info.mode)
 		end)
@@ -1009,6 +1013,7 @@ local function CreateGearCheckTargetPage(parent)
 			btn:SetPoint("LEFT", page.filterButtons[index - 1], "RIGHT", UI.ACTION_BTN_GAP, 0)
 		end
 		btn.filterId = info.id
+		W.SetPlainButtonTooltip(btn, info.tipKey)
 		btn:SetScript("OnClick", function()
 			SetFilterSelected(page, info.id)
 			ApplyBreakdown(page, page.lastReport)
@@ -1027,6 +1032,7 @@ local function CreateGearCheckTargetPage(parent)
 	saveBtn:SetPoint("TOPLEFT", 0, 0)
 	saveBtn:SetPoint("TOPRIGHT", rightSidebar, "TOPRIGHT", 0, 0)
 	saveBtn:Disable()
+	W.SetPlainButtonTooltip(saveBtn, "GEAR_CHECK_SAVE_TIP")
 	saveBtn:SetScript("OnClick", function()
 		SaveCurrentReport(page)
 	end)
@@ -1036,6 +1042,7 @@ local function CreateGearCheckTargetPage(parent)
 	savedDeleteBtn:SetPoint("TOPLEFT", saveBtn, "BOTTOMLEFT", 0, -6)
 	savedDeleteBtn:SetPoint("TOPRIGHT", saveBtn, "BOTTOMRIGHT", 0, -6)
 	savedDeleteBtn:Disable()
+	W.SetPlainButtonTooltip(savedDeleteBtn, "GEAR_CHECK_SAVED_DELETE_TIP")
 	savedDeleteBtn:SetScript("OnClick", function()
 		DeleteViewingSaved(page)
 	end)

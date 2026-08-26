@@ -199,6 +199,7 @@ local function CreatePartyPage(parent)
 
 	local refreshBtn = W.CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
+	W.SetPlainButtonTooltip(refreshBtn, "PARTY_REFRESH_TIP")
 	refreshBtn:SetScript("OnClick", function()
 		Addon:RefreshPartyData(true)
 	end)
