@@ -1247,11 +1247,28 @@ function Addon:BuildGearCheckCategoryTooltipLines(report, categoryKey, maxLines)
 			if slot.policy == "CHECKED" and slot.item and not SlotHasCategoryIssue(findings, slot.key, categoryMap) then
 				if not config.qualifiesForGood(profile, slot, findings) then
 					local reasons = config.collectNotGood(profile, slot, findings)
-					if reasons[1] then
-						AppendBucket(slot.key, "info", reasons[1])
+					for reasonIndex = 1, #reasons do
+						AppendBucket(slot.key, "info", reasons[reasonIndex])
 					end
 				end
 			end
+		end
+	end
+
+	local function AppendSlotTooltipLines(slotLabel, bucket)
+		local messages = bucket.messages
+		local severity = bucket.severity or "info"
+		if #messages == 0 then
+			result.lines[#result.lines + 1] = { severity = severity, text = slotLabel, kind = "slot" }
+			return
+		end
+		result.lines[#result.lines + 1] = { severity = severity, text = slotLabel .. ":", kind = "slot" }
+		for messageIndex = 1, #messages do
+			result.lines[#result.lines + 1] = {
+				severity = severity,
+				text = "- " .. messages[messageIndex],
+				kind = "bullet",
+			}
 		end
 	end
 
@@ -1259,10 +1276,7 @@ function Addon:BuildGearCheckCategoryTooltipLines(report, categoryKey, maxLines)
 		local key = order[index]
 		local bucket = bySlot[key]
 		local slotLabel = SlotShortName(report, key ~= "_gear" and key or nil)
-		result.lines[#result.lines + 1] = {
-			severity = bucket.severity or "info",
-			text = slotLabel .. ": " .. table.concat(bucket.messages, "; "),
-		}
+		AppendSlotTooltipLines(slotLabel, bucket)
 	end
 
 	if #result.lines == 0 then

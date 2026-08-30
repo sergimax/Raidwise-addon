@@ -780,7 +780,8 @@ function W.AppendGearCheckRaidTooltip(gearEntry)
 			else
 				color = { 0.8, 0.8, 0.8 }
 			end
-			GameTooltip:AddLine("  " .. line.text, color[1], color[2], color[3], true)
+			local indent = (line.kind == "bullet") and "    " or "  "
+			GameTooltip:AddLine(indent .. line.text, color[1], color[2], color[3], true)
 		end
 		if block.hidden and block.hidden > 0 then
 			GameTooltip:AddLine(W.T("GEAR_CHECK_RAID_TIP_MORE", block.hidden), 0.6, 0.6, 0.6, true)
