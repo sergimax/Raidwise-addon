@@ -1137,6 +1137,152 @@ local function AggregateCategoryGrade(report, categoryMap, qualifiesForGoodFn, a
 	return status
 end
 
+local TOOLTIP_CATEGORY_CONFIG = {
+	gear = {
+		categories = ITEM_ISSUE_CATEGORIES,
+		qualifiesForGood = GearSlotQualifiesForGood,
+		collectNotGood = CollectNotGoodGearReasons,
+		cleanKey = "GEAR_CHECK_RAID_TIP_GEAR_CLEAN",
+	},
+	enchantSocket = {
+		categories = ENCHANT_SOCKET_CATEGORIES,
+		qualifiesForGood = EnchantSocketSlotQualifiesForGood,
+		collectNotGood = CollectNotGoodEnchantSocketReasons,
+		cleanKey = "GEAR_CHECK_RAID_TIP_ENCHANT_CLEAN",
+	},
+}
+
+local function TipMsg(key)
+	if Addon.T then
+		return Addon:T(key)
+	end
+	return key
+end
+
+local function SlotShortName(report, slotKey)
+	if not slotKey then
+		return "Gear"
+	end
+	local equipment = report.equipment or report.slots or {}
+	for index = 1, #equipment do
+		local slot = equipment[index]
+		if slot.key == slotKey then
+			return slot.slotName or slotKey
+		end
+	end
+	return tostring(slotKey)
+end
+
+local function SlotHasCategoryIssue(findings, slotKey, categoryMap)
+	for index = 1, #findings do
+		local finding = findings[index]
+		if finding.slot == slotKey and FindingMatchesCategory(finding, categoryMap) then
+			if finding.severity == "hard" or finding.severity == "soft" then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+--- Detail lines for raid roster cell tooltips (hard/soft findings + OK-not-GOOD reasons).
+function Addon:BuildGearCheckCategoryTooltipLines(report, categoryKey, maxLines)
+	maxLines = maxLines or 8
+	local config = TOOLTIP_CATEGORY_CONFIG[categoryKey]
+	local result = { grade = "OK", lines = {}, hidden = 0 }
+	if not config or not report then
+		return result
+	end
+
+	local overall = report.overall or {}
+	if categoryKey == "gear" then
+		result.grade = overall.gearGrade or overall.status or "OK"
+	else
+		result.grade = overall.enchantSocketGrade or "OK"
+	end
+
+	local findings = report.findings or {}
+	local categoryMap = config.categories
+	local bySlot = {}
+	local order = {}
+
+	local function AppendBucket(slotKey, severity, message)
+		local key = slotKey or "_gear"
+		local bucket = bySlot[key]
+		if not bucket then
+			bucket = { severity = severity, messages = {} }
+			bySlot[key] = bucket
+			order[#order + 1] = key
+		end
+		if severity == "hard" then
+			bucket.severity = "hard"
+		elseif severity == "soft" and bucket.severity ~= "hard" then
+			bucket.severity = "soft"
+		elseif severity == "info" and bucket.severity ~= "hard" and bucket.severity ~= "soft" then
+			bucket.severity = "info"
+		end
+		bucket.messages[#bucket.messages + 1] = message
+	end
+
+	for index = 1, #findings do
+		local finding = findings[index]
+		if FindingMatchesCategory(finding, categoryMap) and (finding.severity == "hard" or finding.severity == "soft") then
+			AppendBucket(finding.slot, finding.severity, finding.message or finding.code or "?")
+		end
+	end
+
+	local profile = nil
+	if report.character then
+		profile = self:GetGearCheckProfile(
+			report.character.classFile,
+			report.character.specTab,
+			report.character.specKnown
+		)
+	end
+
+	if result.grade == "OK" then
+		local equipment = report.equipment or report.slots or {}
+		for index = 1, #equipment do
+			local slot = equipment[index]
+			if slot.policy == "CHECKED" and slot.item and not SlotHasCategoryIssue(findings, slot.key, categoryMap) then
+				if not config.qualifiesForGood(profile, slot, findings) then
+					local reasons = config.collectNotGood(profile, slot, findings)
+					if reasons[1] then
+						AppendBucket(slot.key, "info", reasons[1])
+					end
+				end
+			end
+		end
+	end
+
+	for index = 1, #order do
+		local key = order[index]
+		local bucket = bySlot[key]
+		local slotLabel = SlotShortName(report, key ~= "_gear" and key or nil)
+		result.lines[#result.lines + 1] = {
+			severity = bucket.severity or "info",
+			text = slotLabel .. ": " .. table.concat(bucket.messages, "; "),
+		}
+	end
+
+	if #result.lines == 0 then
+		if result.grade == "GOOD" then
+			result.lines[1] = { severity = "clean", text = TipMsg(config.cleanKey) }
+		elseif result.grade == "OK" then
+			result.lines[1] = { severity = "info", text = TipMsg("GEAR_CHECK_RAID_TIP_OK_CLEAN") }
+		end
+	end
+
+	if #result.lines > maxLines then
+		result.hidden = #result.lines - maxLines
+		while #result.lines > maxLines do
+			result.lines[#result.lines] = nil
+		end
+	end
+
+	return result
+end
+
 local function SlotQualifiesForGood(profile, slot, findings)
 	return #CollectNotGoodReasons(profile, slot, findings) == 0
 end

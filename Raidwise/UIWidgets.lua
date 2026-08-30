@@ -712,10 +712,11 @@ function W.FormatTagLine(member)
 	return ""
 end
 
-function W.ShowMemberRatingTooltip(anchor, member)
+function W.ShowMemberRatingTooltip(anchor, member, opts)
 	if not member then
 		return
 	end
+	opts = type(opts) == "table" and opts or nil
 	GameTooltip:SetOwner(anchor, "ANCHOR_RIGHT")
 	local opinionText = W.RatingOpinionText(member)
 	if Addon.RatingWrapColor and Addon.RatingOpinionColor then
@@ -726,7 +727,67 @@ function W.ShowMemberRatingTooltip(anchor, member)
 	if tags ~= "" then
 		GameTooltip:AddLine(W.T("COL_TAGS") .. ": " .. tags, 0.8, 0.8, 0.8, true)
 	end
+	if opts and opts.gearCheck then
+		W.AppendGearCheckRaidTooltip(opts.gearEntry)
+	end
 	GameTooltip:Show()
+end
+
+local TOOLTIP_DETAIL_MAX = 6
+
+function W.AppendGearCheckRaidTooltip(gearEntry)
+	if not Addon.BuildGearCheckCategoryTooltipLines then
+		return
+	end
+
+	local report = gearEntry and gearEntry.report
+	GameTooltip:AddLine(" ")
+	GameTooltip:AddLine(W.T("GEAR_CHECK_RAID_TIP_HEADER"), 1, 0.82, 0)
+
+	if not report then
+		local statusLabel = Addon.GetGearCheckRaidEntryStatusLabel
+			and Addon:GetGearCheckRaidEntryStatusLabel(gearEntry)
+			or W.T("GEAR_CHECK_RAID_NOT_SCANNED")
+		GameTooltip:AddLine(statusLabel, 0.7, 0.7, 0.7, true)
+		GameTooltip:AddLine(W.T("GEAR_CHECK_RAID_CLICK_HINT"), 0.6, 0.6, 0.6, true)
+		return
+	end
+
+	local sections = {
+		{ key = "gear", labelKey = "GEAR_CHECK_RAID_TIP_GEAR" },
+		{ key = "enchantSocket", labelKey = "GEAR_CHECK_RAID_TIP_ENCHANT" },
+	}
+
+	for sectionIndex = 1, #sections do
+		local section = sections[sectionIndex]
+		local block = Addon:BuildGearCheckCategoryTooltipLines(report, section.key, TOOLTIP_DETAIL_MAX)
+		local gradeColor = W.GearVerdictColor(block.grade)
+		GameTooltip:AddLine(
+			W.T(section.labelKey, W.WrapGearGradation(block.grade)),
+			gradeColor[1],
+			gradeColor[2],
+			gradeColor[3]
+		)
+		for lineIndex = 1, #block.lines do
+			local line = block.lines[lineIndex]
+			local color = UI.TEXT_IDLE
+			if line.severity == "hard" then
+				color = UI.GEAR_BAD
+			elseif line.severity == "soft" then
+				color = UI.GEAR_REPLACE
+			elseif line.severity == "clean" then
+				color = UI.GEAR_GOOD
+			else
+				color = { 0.8, 0.8, 0.8 }
+			end
+			GameTooltip:AddLine("  " .. line.text, color[1], color[2], color[3], true)
+		end
+		if block.hidden and block.hidden > 0 then
+			GameTooltip:AddLine(W.T("GEAR_CHECK_RAID_TIP_MORE", block.hidden), 0.6, 0.6, 0.6, true)
+		end
+	end
+
+	GameTooltip:AddLine(W.T("GEAR_CHECK_RAID_CLICK_HINT"), 0.6, 0.6, 0.6, true)
 end
 
 function W.AttachLayoutVersionLabel(titleBarOrParent, version, anchorRightOf)

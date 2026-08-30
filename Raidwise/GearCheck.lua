@@ -1662,6 +1662,28 @@ function Addon:StartGearCheckScan(callback)
 	return self:StartGearCheckUnitScan(self:ResolveGearCheckUnit(), callback)
 end
 
+function Addon:GetGearCheckRaidEntryStatusLabel(entry)
+	if entry and entry.report then
+		return nil
+	end
+	if entry and entry.status == "too_far" then
+		return self:T("GEAR_CHECK_RAID_STATUS_TOO_FAR")
+	end
+	if entry and entry.status == "cannot_inspect" then
+		return self:T("GEAR_CHECK_RAID_STATUS_NO_INSPECT")
+	end
+	if entry and entry.status == "timeout" then
+		return self:T("GEAR_CHECK_RAID_STATUS_TIMEOUT")
+	end
+	if entry and entry.status == "empty" then
+		return self:T("GEAR_CHECK_RAID_CELL_EMPTY")
+	end
+	if entry then
+		return self:T("GEAR_CHECK_RAID_ROW_FAIL")
+	end
+	return self:T("GEAR_CHECK_RAID_NOT_SCANNED")
+end
+
 function Addon:StartGearCheckRaidScan(onProgress, onComplete)
 	if pendingUnit or (raidQueue and raidQueue.active) then
 		return false

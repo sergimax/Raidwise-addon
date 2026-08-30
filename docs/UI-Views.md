@@ -185,7 +185,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 6 | `Armor/weap: {GOOD|OK|REPLACE|BAD}` (colored grade) or fail / not scanned (`—`) |
 | line 7 | `Ench/sock: {GOOD|OK|REPLACE|BAD}` (colored grade); blank when not scanned |
 | line 8 | **Profile** (Character profile) and **Gear check** (opens report on Gear check (target); disabled until scanned); both have hover tips |
-| hover | Tooltip shows opinion/tags |
+| hover | Opinion/tags tooltip + **gear check** section (both grades with flagged slot details, or scan status) |
 | click | Left-click card → **Character profile**; **Profile** / **Gear check** buttons do the same actions |
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.

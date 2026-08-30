@@ -50,22 +50,11 @@ local function IsGearVerdictLabel(label)
 end
 
 local function GearStatusLabelForEntry(entry)
+	local failLabel = Addon.GetGearCheckRaidEntryStatusLabel and Addon:GetGearCheckRaidEntryStatusLabel(entry)
+	if failLabel then
+		return failLabel
+	end
 	if not entry or not entry.report then
-		if entry and entry.status == "too_far" then
-			return W.T("GEAR_CHECK_RAID_STATUS_TOO_FAR")
-		end
-		if entry and entry.status == "cannot_inspect" then
-			return W.T("GEAR_CHECK_RAID_STATUS_NO_INSPECT")
-		end
-		if entry and entry.status == "timeout" then
-			return W.T("GEAR_CHECK_RAID_STATUS_TIMEOUT")
-		end
-		if entry and entry.status == "empty" then
-			return W.T("GEAR_CHECK_RAID_CELL_EMPTY")
-		end
-		if entry then
-			return W.T("GEAR_CHECK_RAID_ROW_FAIL")
-		end
 		return W.T("GEAR_CHECK_RAID_NOT_SCANNED")
 	end
 	local overall = entry.report.overall or {}
@@ -388,7 +377,7 @@ local function CreateRaidPlayerCell(parent)
 			return
 		end
 		self:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
-		W.ShowMemberRatingTooltip(self, self.member)
+		W.ShowMemberRatingTooltip(self, self.member, { gearCheck = true, gearEntry = self.gearEntry })
 	end)
 	cell:SetScript("OnLeave", function(self)
 		local stripe = self.stripe or UI.CD_ROW_A
