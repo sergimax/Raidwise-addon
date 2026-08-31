@@ -207,6 +207,57 @@ function Addon:RaidBuffsForMember(class, specTab, raceToken, faction)
 	return buffs
 end
 
+-- Party-scoped buffs shown in raid group headers (subgroup-only; not raid-wide totems).
+-- WotLK buffing totems (SoE, Mana Spring, Windfury, Wrath of Air, ToW, Flametongue) hit the
+-- whole raid within 30 yd and belong on the composition tab, not per-group headers.
+local PARTY_BUFF_CATALOG = {
+	{ spellId = 28878, matches = function(member)
+		return member.race == "Draenei"
+	end },
+	{ spellId = 15286, matches = function(member)
+		return member.class == "PRIEST" and (tonumber(member.specTab) or 0) == 3
+	end },
+	{ spellId = 16190, matches = function(member)
+		return member.class == "SHAMAN" and (tonumber(member.specTab) or 0) == 3
+	end },
+}
+
+local function ResolvePartyBuffSpellInfo(spellId)
+	if type(GetSpellInfo) ~= "function" or not spellId then
+		return nil, nil
+	end
+	local name, _, icon = GetSpellInfo(spellId)
+	if not icon or icon == "" then
+		return name, nil
+	end
+	return name, icon
+end
+
+function Addon:PartyBuffCoverageForGroup(members)
+	members = members or {}
+	local coverage = {}
+	for index = 1, #PARTY_BUFF_CATALOG do
+		local entry = PARTY_BUFF_CATALOG[index]
+		local providers = {}
+		for memberIndex = 1, #members do
+			local member = members[memberIndex]
+			if member and entry.matches(member) then
+				providers[#providers + 1] = member.name or "?"
+			end
+		end
+		local spellId = entry.spellId
+		local name, icon = ResolvePartyBuffSpellInfo(spellId)
+		coverage[index] = {
+			spellId = spellId,
+			name = name or "",
+			icon = icon,
+			present = #providers > 0,
+			providers = providers,
+		}
+	end
+	return coverage
+end
+
 local function RoleAverageBucket()
 	return { gearScore = nil, averageIlvl = nil, count = 0, gsTotal = 0, gsCount = 0, ilvlTotal = 0, ilvlCount = 0 }
 end

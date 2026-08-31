@@ -1100,6 +1100,14 @@ function Addon:GetLastGearCheckRaidResults()
 	return lastRaidResults
 end
 
+function Addon:SetLastGearCheckRaidResults(results)
+	if type(results) == "table" then
+		lastRaidResults = results
+	else
+		lastRaidResults = nil
+	end
+end
+
 function Addon:IsGearCheckScanBusy()
 	return pendingUnit ~= nil or (raidQueue and raidQueue.active) or false
 end

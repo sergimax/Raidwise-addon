@@ -59,6 +59,9 @@ Addon.UITheme = {
 	RAID_BUFF_ICON = 18,
 	RAID_BUFF_MAX = 8,
 	RAID_BUFF_GAP = 2,
+	PARTY_BUFF_ICON = 14,
+	PARTY_BUFF_MAX = 3,
+	PARTY_BUFF_GAP = 1,
 	ROSTER_STATS_H = 16,
 	RAID_STATS_H = 48,
 	RAID_PROGRESS_H = 14,
@@ -611,6 +614,60 @@ function W.FillRaidBuffIcons(hosts, buffs)
 		elseif host then
 			host.icon:SetTexture(nil)
 			host.buffName = nil
+			host:Hide()
+		end
+	end
+end
+
+function W.CreatePartyBuffStatusHost(parent)
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetSize(UI.PARTY_BUFF_ICON, UI.PARTY_BUFF_ICON)
+	host.icon = host:CreateTexture(nil, "ARTWORK")
+	host.icon:SetAllPoints(host)
+	host:EnableMouse(true)
+	host:SetScript("OnEnter", function(self)
+		if not self.buffName or self.buffName == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.buffName, 1, 1, 1)
+		if self.present then
+			local providerText = table.concat(self.providers or {}, ", ")
+			GameTooltip:AddLine(W.T("RAID_PARTY_BUFF_PRESENT", providerText), 0.2, 1, 0.2)
+		else
+			GameTooltip:AddLine(W.T("RAID_PARTY_BUFF_MISSING"), 1, 0.3, 0.3)
+		end
+		GameTooltip:Show()
+	end)
+	host:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+	return host
+end
+
+function W.FillPartyBuffStatusIcons(hosts, coverage)
+	coverage = coverage or {}
+	for buffIndex = 1, UI.PARTY_BUFF_MAX do
+		local host = hosts[buffIndex]
+		local entry = coverage[buffIndex]
+		if host and entry and entry.icon then
+			W.SetSpellIconTexture(host.icon, entry.icon)
+			host.buffName = entry.name or ""
+			host.present = entry.present and true or false
+			host.providers = entry.providers or {}
+			if host.present then
+				host.icon:SetDesaturated(false)
+				host.icon:SetVertexColor(1, 1, 1)
+			else
+				host.icon:SetDesaturated(true)
+				host.icon:SetVertexColor(0.55, 0.55, 0.55)
+			end
+			host:Show()
+		elseif host then
+			host.icon:SetTexture(nil)
+			host.buffName = nil
+			host.present = nil
+			host.providers = nil
 			host:Hide()
 		end
 	end

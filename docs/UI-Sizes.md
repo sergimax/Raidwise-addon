@@ -120,28 +120,28 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Toolbar with **Scan**, **Export**, and **Refresh**, gear-check status hint, optional progress bar, three stats lines, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 6`.
+Toolbar with **Scan**, **Export**, and **Refresh**, gear-check status hint, optional progress bar, three stats lines, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 9`.
 
 | Element | Size | Notes |
 |---------|------|-------|
 | Toolbar | **Scan** **104 × 28**, **Export** **104 × 28**, **Refresh** **96 × 28**, right-aligned on top row | 4 px gap between buttons |
 | Short description | full width | Below toolbar row (`CD_TOOLBAR_H` + 8 px gap); wraps |
-| Gear check status | under description | `GameFontNormalSmall`; rating legend or scan/export progress; wraps |
-| Progress bar | height **14**, full width | Shown during raid scan/export only; gold fill (`RAID_PROGRESS_H`) |
+| Gear check status | under description | `GameFontNormalSmall`; rating legend or scan/export/rescan progress; wraps |
+| Progress bar | height **14**, full width | Shown during raid scan/export/rescan only; gold fill (`RAID_PROGRESS_H`) |
 | Averages line | height **16** | `Average GS: {n}` only (no average iLvl; transmog skews it) |
 | Role averages | height **16** | `Tanks: {n} ({gs} gs)` (and Healers, Melee, Range); `-` when no GS |
 | Gear check summary | height **16** | `BAD · REPLACE · OK · GOOD · Failed`; dim until first scan |
 | Stats block | height **48** | Three lines (avg GS, roles, gear summary) |
-| Player cell | **168 × 152** | Eight lines: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear check** buttons |
-| Cell buttons | **16** tall | Side-by-side; Gear check disabled until that player has a scan report |
+| Player cell | **168 × 152** | Eight text lines + one button row: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
+| Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
-| Group label | height **16** | Gold number above each party column |
+| Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, desaturated = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
 | Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
 
-Inspect queue runs sequentially; target scan blocked while raid scan is active. Export builds dumps one player per frame (progress on this page) before opening Gear check (target).
+Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page) before opening Gear check (target).
 
 ## Raid composition tab
 
