@@ -116,11 +116,11 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Description block with **Scan** / **Export** / **Refresh** in a fixed right column; left column uses row-aligned hint/stats/summary beside buttons, then progress status + bar at the bottom of the left column; table at a fixed top offset. `LAYOUT_VERSION = 13`.
+Description block with **Scan** / **Export** / **Refresh** in a fixed right column; left column uses row-aligned hint/stats/summary beside buttons, then progress status + bar at the bottom of the left column; table at a fixed top offset. `LAYOUT_VERSION = 14`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Button column | **104** px wide (Refresh **96** px, right-aligned) | **Scan**, **Export**, **Refresh** stacked top → bottom; **4** px gap; **8** px gap from description |
+| Button column | **104** px wide | **Scan**, **Export**, **Refresh** stacked top → bottom; **4** px gap; **8** px gap from description |
 | Short description | left column row 1 | Beside **Scan**; wraps within first button row height |
 | Stats line | left column row 2 | Height **16**; aligned with **Export** |
 | Gear check summary | left column row 3 | Height **16**; aligned with **Refresh** |

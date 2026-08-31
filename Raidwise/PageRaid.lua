@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 13
+local LAYOUT_VERSION = 14
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 137
@@ -1045,7 +1045,7 @@ local function CreateRaidRosterPage(parent)
 		RunGearCheckRaidExport(page)
 	end)
 
-	local refreshBtn = W.CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
+	local refreshBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", exportBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
 	W.SetPlainButtonTooltip(refreshBtn, "RAID_REFRESH_TIP")
 	refreshBtn:SetScript("OnClick", function()
