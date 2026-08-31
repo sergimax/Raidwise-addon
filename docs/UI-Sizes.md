@@ -116,18 +116,16 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Toolbar with **Scan**, **Export**, and **Refresh**, gear-check status hint, optional progress bar, three stats lines, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 9`.
+Description block with **Scan** / **Export** / **Refresh** in a right column, gear-check status, optional progress bar, combined stats line, gear summary, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 10`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Toolbar | **Scan** **104 × 28**, **Export** **104 × 28**, **Refresh** **96 × 28**, right-aligned on top row | 4 px gap between buttons |
-| Short description | full width | Below toolbar row (`CD_TOOLBAR_H` + 8 px gap); wraps |
+| Button column | **104** px wide (Refresh **96** px, right-aligned) | **Scan**, **Export**, **Refresh** stacked top → bottom; **4** px gap; **8** px gap from description |
+| Short description | left column | Top-aligned; wraps beside buttons |
 | Gear check status | under description | `GameFontNormalSmall`; rating legend or scan/export/rescan progress; wraps |
-| Progress bar | height **14**, full width | Shown during raid scan/export/rescan only; gold fill (`RAID_PROGRESS_H`) |
-| Averages line | height **16** | `Average GS: {n}` only (no average iLvl; transmog skews it) |
-| Role averages | height **16** | `Tanks: {n} ({gs} gs)` (and Healers, Melee, Range); `-` when no GS |
+| Progress bar | height **14** | Left column only; shown during raid scan/export/rescan |
+| Stats line | height **16** | One line: `Average GS: {n}` + Tanks / Healers / Melee / Range role summaries |
 | Gear check summary | height **16** | `BAD · REPLACE · OK · GOOD · Failed`; dim until first scan |
-| Stats block | height **48** | Three lines (avg GS, roles, gear summary) |
 | Player cell | **168 × 152** | Eight text lines + one button row: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
 | Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |

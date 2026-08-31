@@ -731,12 +731,11 @@ function W.RosterTableTopOffset()
 end
 
 function W.RaidRosterTableTopOffset()
-	-- Toolbar + status line + three stats lines (avg GS, roles, gear summary) + gaps.
-	return UI.CD_TOOLBAR_H
-		+ UI.CD_HINT_TO_TABLE
+	-- Description block + combined stats line + gear summary + gaps (buttons sit in the right column).
+	return UI.CD_HINT_TO_TABLE
 		+ UI.ROSTER_STATS_H
 		+ UI.CD_HINT_TO_TABLE
-		+ UI.RAID_STATS_H
+		+ UI.ROSTER_STATS_H
 		+ UI.CD_HINT_TO_TABLE
 end
 

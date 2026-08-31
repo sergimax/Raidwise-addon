@@ -42,7 +42,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 9` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 10` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -137,13 +137,9 @@ Personal opinion and tags come from `RaidwiseDB.history` (keyed by GUID). Defaul
 Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1.
 
 ```text
-[                          Scan ] [ Export ] [ Refresh ]
-[ short description — full width ]
-[ gear check hint / scan progress ]
-[ progress bar — scan / export ]
-        8 px gap
-[ Average GS: 6158 ]
-[ Tanks: 2 (6200 gs)     Healers: 6 (5800 gs)     Melee: 10 (6400 gs)     Range: 7 (6100 gs) ]
+[ short description + gear check hint (left, wraps) ] [ Scan    ]
+[ progress bar (left, when active)                   ] [ Export  ]
+[ Average GS …  Tanks …  Healers …  Melee …  Range … ] [ Refresh ]
 [ BAD · REPLACE · OK · GOOD · Failed ]
         8 px gap
 [ 1 (buff icons…) ][ 2 (buff icons…) ] ...
@@ -162,14 +158,11 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | “Raid groups 1–5 and 6–8… Scan shows armor/weap and ench/sock grades per player.” |
-| Scan | **Scan** — queues gear check over `CompositionMembers()` one inspect at a time (hover tip) |
-| Export | **Export** — builds full text dumps for all scanned players (chunked; progress on this page), then opens Gear check (target) dump |
-| Refresh | Re-reads GearScore, iLvl, and re-queues inspect for spec icons (hover tip) |
+| short description | Left column; wraps beside button column |
+| Scan / Export / Refresh | **104 × 28** / **104 × 28** / **96 × 28** stacked in a right column (4 px gap); top-aligned with description |
 | gear check hint / status | Rating legend (GOOD / OK / REPLACE / BAD + preferred / acceptable / unwanted / forbidden); progress `Scanning N/M: Name — phase…` while scanning; `Building export N/M…` while exporting; `Rescanning Name…` for single-player rescan |
 | progress bar | Thin gold StatusBar under the status line during scan/export/rescan (hidden when idle); scan phases: inspect / spec / gems / evaluate |
-| averages | Mean GearScore of members that have a value (`-` when none). Average iLvl is omitted (transmog skews it). |
-| role averages | Count and mean GS per role (`Tanks: 2 (6200 gs)`); `-` when none |
+| averages + roles | One line: `Average GS: {n}` then Tanks / Healers / Melee / Range counts and GS |
 | gear summary | Counts by overall status + failed/skipped inspects; dim until first scan |
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
 | line 1 | Class icon + class-colored name |

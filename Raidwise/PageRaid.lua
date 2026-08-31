@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 9
+local LAYOUT_VERSION = 10
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 152
@@ -19,6 +19,8 @@ local RAID_BTN_GAP = 2
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
 local RAID_TOOLBAR_BTN_GAP = 4
+local RAID_TOOLBAR_COL_W = 104
+local RAID_TOOLBAR_COL_GAP = 8
 
 local SCAN_PHASE_KEYS = {
 	inspect = "GEAR_CHECK_RAID_PHASE_INSPECT",
@@ -168,6 +170,19 @@ local function UpdateGearCheckSummaryLabel(page, results)
 	end
 end
 
+local function FormatRaidRosterStatsLine(gearScore, roles)
+	roles = roles or {}
+	return FormatRaidAverageGs(gearScore)
+		.. "     "
+		.. FormatRoleGsSummary(W.T("ROLE_TANKS"), roles.tank or {})
+		.. "     "
+		.. FormatRoleGsSummary(W.T("ROLE_HEALERS"), roles.healer or {})
+		.. "     "
+		.. FormatRoleGsSummary(W.T("ROLE_MELEE_SHORT"), roles.melee or {})
+		.. "     "
+		.. FormatRoleGsSummary(W.T("ROLE_RANGE"), roles.ranged or {})
+end
+
 local function UpdateRaidRosterStatsLabels(page, members)
 	if not page or not page.statsLabel then
 		return
@@ -179,64 +194,54 @@ local function UpdateRaidRosterStatsLabels(page, members)
 	end
 	overall = overall or {}
 	roles = roles or {}
-	local tank = roles.tank or {}
-	local healer = roles.healer or {}
-	local melee = roles.melee or {}
-	local ranged = roles.ranged or {}
 
-	page.statsLabel:SetText(FormatRaidAverageGs(overall.gearScore))
-
-	if page.roleStatsLabel then
-		page.roleStatsLabel:SetText(
-			FormatRoleGsSummary(W.T("ROLE_TANKS"), tank)
-				.. "     "
-				.. FormatRoleGsSummary(W.T("ROLE_HEALERS"), healer)
-				.. "     "
-				.. FormatRoleGsSummary(W.T("ROLE_MELEE_SHORT"), melee)
-				.. "     "
-				.. FormatRoleGsSummary(W.T("ROLE_RANGE"), ranged)
-		)
-	end
+	page.statsLabel:SetText(FormatRaidRosterStatsLine(overall.gearScore, roles))
 end
 
-local function CreateRaidStatsLabels(page, anchor)
+local function RaidToolbarRightEdge(page)
+	if page and page.gearCheckScanBtn then
+		return page.gearCheckScanBtn, "LEFT", -RAID_TOOLBAR_COL_GAP, 0
+	end
+	return page, "RIGHT", 0, 0
+end
+
+local function LayoutRaidStatsBlock(page)
+	if not page or not page.statsLabel or not page.gearCheckStatusLabel then
+		return
+	end
+	local rightFrame, rightPoint, rightX, rightY = RaidToolbarRightEdge(page)
+	local statsAnchor = page.gearCheckStatusLabel
+	local statsOffsetY = -UI.CD_HINT_TO_TABLE
+	if page.gearCheckProgressHost and page.gearCheckProgressHost:IsShown() then
+		statsAnchor = page.gearCheckProgressHost
+		statsOffsetY = -UI.CD_HINT_TO_TABLE
+	end
+	page.statsLabel:ClearAllPoints()
+	page.statsLabel:SetPoint("TOPLEFT", statsAnchor, "BOTTOMLEFT", 0, statsOffsetY)
+	page.statsLabel:SetPoint("RIGHT", rightFrame, rightPoint, rightX, rightY)
+end
+
+local function CreateRaidStatsLabels(page)
+	local anchor = page.gearCheckStatusLabel
+	local rightFrame, rightPoint, rightX, rightY = RaidToolbarRightEdge(page)
+
 	local progressHost = W.CreateProgressBar(page, UI.RAID_PROGRESS_H)
 	progressHost:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -6)
-	progressHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	progressHost:SetPoint("RIGHT", rightFrame, rightPoint, rightX, rightY)
 	progressHost:Hide()
 	page.gearCheckProgressHost = progressHost
 
 	local stats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	stats:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.CD_HINT_TO_TABLE)
-	stats:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	stats:SetHeight(UI.ROSTER_STATS_H)
 	stats:SetJustifyH("LEFT")
 	stats:SetJustifyV("MIDDLE")
 	W.SetFontColor(stats, UI.TEXT_IDLE)
-	stats:SetText(FormatRaidAverageGs(nil))
+	stats:SetText(FormatRaidRosterStatsLine(nil, {}))
 	page.statsLabel = stats
 
-	local roleStats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	roleStats:SetPoint("TOPLEFT", page.statsLabel, "BOTTOMLEFT", 0, 0)
-	roleStats:SetPoint("RIGHT", page, "RIGHT", 0, 0)
-	roleStats:SetHeight(UI.ROSTER_STATS_H)
-	roleStats:SetJustifyH("LEFT")
-	roleStats:SetJustifyV("MIDDLE")
-	W.SetFontColor(roleStats, UI.TEXT_IDLE)
-	roleStats:SetText(
-		FormatRoleGsSummary(W.T("ROLE_TANKS"))
-			.. "     "
-			.. FormatRoleGsSummary(W.T("ROLE_HEALERS"))
-			.. "     "
-			.. FormatRoleGsSummary(W.T("ROLE_MELEE_SHORT"))
-			.. "     "
-			.. FormatRoleGsSummary(W.T("ROLE_RANGE"))
-	)
-	page.roleStatsLabel = roleStats
-
 	local gearSummary = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	gearSummary:SetPoint("TOPLEFT", page.roleStatsLabel, "BOTTOMLEFT", 0, 0)
-	gearSummary:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	gearSummary:SetPoint("TOPLEFT", stats, "BOTTOMLEFT", 0, 0)
+	gearSummary:SetPoint("RIGHT", rightFrame, rightPoint, rightX, rightY)
 	gearSummary:SetHeight(UI.ROSTER_STATS_H)
 	gearSummary:SetJustifyH("LEFT")
 	gearSummary:SetJustifyV("MIDDLE")
@@ -244,23 +249,12 @@ local function CreateRaidStatsLabels(page, anchor)
 	W.SetFontColor(gearSummary, UI.TEXT_DISABLED)
 	page.gearCheckSummaryLabel = gearSummary
 
+	LayoutRaidStatsBlock(page)
 	return page.statsLabel
 end
 
 local function LayoutRaidProgressAnchor(page)
-	if not page or not page.statsLabel or not page.gearCheckStatusLabel then
-		return
-	end
-	local host = page.gearCheckProgressHost
-	if host and host:IsShown() then
-		page.statsLabel:ClearAllPoints()
-		page.statsLabel:SetPoint("TOPLEFT", host, "BOTTOMLEFT", 0, -UI.CD_HINT_TO_TABLE)
-		page.statsLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
-	else
-		page.statsLabel:ClearAllPoints()
-		page.statsLabel:SetPoint("TOPLEFT", page.gearCheckStatusLabel, "BOTTOMLEFT", 0, -UI.CD_HINT_TO_TABLE)
-		page.statsLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
-	end
+	LayoutRaidStatsBlock(page)
 end
 
 local function SetRaidProgress(page, value, maxValue, visible)
@@ -1041,30 +1035,34 @@ local function CreateRaidRosterPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local refreshBtn = W.CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
-	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
-	W.SetPlainButtonTooltip(refreshBtn, "RAID_REFRESH_TIP")
-	refreshBtn:SetScript("OnClick", function()
-		Addon:RefreshPartyData(true)
-	end)
-
-	local exportBtn = W.CreatePlainButton(page, 104, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_RAID_EXPORT"))
-	exportBtn:SetPoint("RIGHT", refreshBtn, "LEFT", -RAID_TOOLBAR_BTN_GAP, 0)
-	W.SetPlainButtonTooltip(exportBtn, "GEAR_CHECK_RAID_EXPORT_TIP")
-	exportBtn:SetScript("OnClick", function()
-		RunGearCheckRaidExport(page)
-	end)
-
-	local scanBtn = W.CreatePlainButton(page, 104, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_SCAN"))
-	scanBtn:SetPoint("RIGHT", exportBtn, "LEFT", -RAID_TOOLBAR_BTN_GAP, 0)
+	local scanBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_SCAN"))
+	scanBtn:SetPoint("TOPRIGHT", 0, 0)
 	W.SetPlainButtonTooltip(scanBtn, "RAID_SCAN_TIP")
 	scanBtn:SetScript("OnClick", function()
 		RunGearCheckRaidScan(page)
 	end)
 
+	local exportBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_RAID_EXPORT"))
+	exportBtn:SetPoint("TOPRIGHT", scanBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
+	W.SetPlainButtonTooltip(exportBtn, "GEAR_CHECK_RAID_EXPORT_TIP")
+	exportBtn:SetScript("OnClick", function()
+		RunGearCheckRaidExport(page)
+	end)
+
+	local refreshBtn = W.CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
+	refreshBtn:SetPoint("TOPRIGHT", exportBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
+	W.SetPlainButtonTooltip(refreshBtn, "RAID_REFRESH_TIP")
+	refreshBtn:SetScript("OnClick", function()
+		Addon:RefreshPartyData(true)
+	end)
+
+	page.gearCheckScanBtn = scanBtn
+	page.gearCheckExportBtn = exportBtn
+	page.refreshBtn = refreshBtn
+
 	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	hint:SetPoint("TOPLEFT", 0, -(UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE))
-	hint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	hint:SetPoint("TOPLEFT", 0, 0)
+	hint:SetPoint("RIGHT", scanBtn, "LEFT", -RAID_TOOLBAR_COL_GAP, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
 	hint:SetWordWrap(true)
@@ -1073,7 +1071,7 @@ local function CreateRaidRosterPage(parent)
 
 	local gearCheckStatusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	gearCheckStatusLabel:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -6)
-	gearCheckStatusLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	gearCheckStatusLabel:SetPoint("RIGHT", scanBtn, "LEFT", -RAID_TOOLBAR_COL_GAP, 0)
 	gearCheckStatusLabel:SetJustifyH("LEFT")
 	gearCheckStatusLabel:SetJustifyV("TOP")
 	gearCheckStatusLabel:SetWordWrap(true)
@@ -1082,7 +1080,7 @@ local function CreateRaidRosterPage(parent)
 	W.SetFontColor(gearCheckStatusLabel, UI.TEXT_IDLE)
 	page.gearCheckStatusLabel = gearCheckStatusLabel
 
-	CreateRaidStatsLabels(page, gearCheckStatusLabel)
+	CreateRaidStatsLabels(page)
 
 	local tableHost = CreateFrame("Frame", nil, page)
 	tableHost:SetPoint("TOPLEFT", page.gearCheckSummaryLabel, "BOTTOMLEFT", 0, -UI.CD_HINT_TO_TABLE)
@@ -1142,9 +1140,6 @@ local function CreateRaidRosterPage(parent)
 	end)
 
 	page.hint = hint
-	page.refreshBtn = refreshBtn
-	page.gearCheckScanBtn = scanBtn
-	page.gearCheckExportBtn = exportBtn
 	page.gearCheckResults = {}
 	page.gearCheckScanning = false
 	page.gearCheckExporting = false
