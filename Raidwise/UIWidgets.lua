@@ -103,53 +103,32 @@ function W.ContentInnerWidth()
 	return UI.CONTENT_WIDTH - (UI.PAD * 2)
 end
 
--- REFACTOR candidate: inline Edge helper creates four 1px border textures.
+-- Flat panel fill (no border edges); spacing comes from layout constants (PAD, gaps, COPY_PAD_*).
 function W.ApplyPlainPanel(frame, color)
 	color = color or UI.PANEL_BG
 	frame:SetBackdrop({
 		bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
 		tile = true,
 		tileSize = 16,
-		insets = { left = 1, right = 1, top = 1, bottom = 1 },
 	})
 	frame:SetBackdropColor(color[1], color[2], color[3], color[4] or 1)
+	W.HidePanelBorder(frame)
+end
 
-	if frame.rwBorderTop then
-		W.ApplyPanelBorderColor(frame)
+function W.HidePanelBorder(frame)
+	if not frame then
 		return
 	end
-
-	local function Edge(layerPointA, relA, layerPointB, relB, width, height)
-		local tex = frame:CreateTexture(nil, "BORDER")
-		tex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
-		local border = UI.BORDER or { 0, 0, 0, 1 }
-		tex:SetVertexColor(border[1], border[2], border[3], border[4] or 1)
-		tex:SetPoint(layerPointA, frame, relA)
-		tex:SetPoint(layerPointB, frame, relB)
-		if width then
-			tex:SetWidth(width)
-		end
-		if height then
-			tex:SetHeight(height)
-		end
-		return tex
+	if frame.rwBorderTop then
+		frame.rwBorderTop:Hide()
+		frame.rwBorderBottom:Hide()
+		frame.rwBorderLeft:Hide()
+		frame.rwBorderRight:Hide()
 	end
-
-	frame.rwBorderTop = Edge("TOPLEFT", "TOPLEFT", "TOPRIGHT", "TOPRIGHT", nil, 1)
-	frame.rwBorderBottom = Edge("BOTTOMLEFT", "BOTTOMLEFT", "BOTTOMRIGHT", "BOTTOMRIGHT", nil, 1)
-	frame.rwBorderLeft = Edge("TOPLEFT", "TOPLEFT", "BOTTOMLEFT", "BOTTOMLEFT", 1, nil)
-	frame.rwBorderRight = Edge("TOPRIGHT", "TOPRIGHT", "BOTTOMRIGHT", "BOTTOMRIGHT", 1, nil)
 end
 
 function W.ApplyPanelBorderColor(frame)
-	local border = UI.BORDER or { 0, 0, 0, 1 }
-	local r, g, b, a = border[1], border[2], border[3], border[4] or 1
-	if frame.rwBorderTop then
-		frame.rwBorderTop:SetVertexColor(r, g, b, a)
-		frame.rwBorderBottom:SetVertexColor(r, g, b, a)
-		frame.rwBorderLeft:SetVertexColor(r, g, b, a)
-		frame.rwBorderRight:SetVertexColor(r, g, b, a)
-	end
+	W.HidePanelBorder(frame)
 end
 
 -- Thin gold fill bar for long-running raid scan / export on the Raid roster page.
@@ -345,9 +324,7 @@ end
 
 W.COPY_BACKDROP = {
 	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-	edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-	edgeSize = 16,
-	insets = { left = 4, right = 3, top = 4, bottom = 3 },
+	tile = true,
 }
 
 function W.ChatFontLineHeight()
@@ -414,8 +391,6 @@ function W.CreateCopyBox(parent, scrollName, boxName)
 	scrollBG:SetPoint("BOTTOMRIGHT", -UI.COPY_SCROLLBAR_W, 0)
 	scrollBG:SetBackdrop(W.COPY_BACKDROP)
 	scrollBG:SetBackdropColor(0, 0, 0, 1)
-	local border = UI.BORDER or { 0.4, 0.4, 0.4, 1 }
-	scrollBG:SetBackdropBorderColor(border[1], border[2], border[3], border[4] or 1)
 
 	local scroll = CreateFrame("ScrollFrame", scrollName, host, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", scrollBG, "TOPLEFT", UI.COPY_PAD_L, -UI.COPY_PAD_T)
@@ -491,8 +466,6 @@ function W.CreateLineCopyBox(parent, boxName)
 	host:SetHeight(UI.URL_BOX_H)
 	host:SetBackdrop(W.COPY_BACKDROP)
 	host:SetBackdropColor(0, 0, 0, 1)
-	local border = UI.BORDER or { 0.4, 0.4, 0.4, 1 }
-	host:SetBackdropBorderColor(border[1], border[2], border[3], border[4] or 1)
 
 	local box = CreateFrame("EditBox", boxName, host)
 	box:SetPoint("TOPLEFT", 8, -4)

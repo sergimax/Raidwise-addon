@@ -17,9 +17,8 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Menu title bar | height **20** | Top of menu; drag handle; label “Menu” |
 | Close button | **16 × 16** | Right side of content title bar |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
-| Panel fill | **#12121c** ≈ RGB **0.07, 0.07, 0.11** | Classic theme; alpha 0.98 |
+| Panel fill | **#12121c** ≈ RGB **0.07, 0.07, 0.11** | Classic theme; alpha 0.98; flat fill (no border edges) |
 | Title / status fill | **#1c1c2a** ≈ RGB **0.11, 0.11, 0.165** | Same texture |
-| 1 px border | **#6b5730** ≈ RGB **0.42, 0.34, 0.19** | Four edge textures (bronze) |
 | Gear Check gradation | red → green | `GEAR_BAD` / `GEAR_REPLACE` / `GEAR_OK` / `GEAR_GOOD` — verdicts (BAD…GOOD) and spec ranks (forbidden…preferred) |
 | Idle text | **#ffeebb** ≈ RGB **1.00, 0.93, 0.73** | Body / menu idle |
 
@@ -60,11 +59,10 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Gap: buttons → hint | 8 px | |
 | Copy hint | full inner width | `GameFontNormalSmall` |
 | Gap: hint → copy box | 6 px | |
-| Copy box | fills remaining height | WowSims/AceGUI MultiLineEditBox: tooltip border, black fill |
-| Copy box edge | 16 px | `UI-Tooltip-Border` |
-| Copy box insets | 4 / 3 / 4 / 3 | left / right / top / bottom of backdrop |
-| EditBox padding inside border | 5, 6, 4, 4 | left, top, right, bottom |
-| Scrollbar | 20 px wide | Outside the bordered box, 2 px gap; 16 px inset top/bottom |
+| Copy box | fills remaining height | Black fill; spacing from `COPY_PAD_*` and scrollbar gap (no tooltip border) |
+| Copy box insets | — | Padding via scroll anchors: **5 / 4 / 4 / 4** (`COPY_PAD_L/T/R/B`) |
+| EditBox padding inside box | 5, 6, 4, 4 | left, top, right, bottom |
+| Scrollbar | 20 px wide | Outside the copy host, 2 px gap; 16 px inset top/bottom |
 | EditBox line height | from `ChatFontNormal` | Face size + 2, or EditBox `cursorHeight` once known; not a hardcoded 12 px |
 | EditBox min height | 180 | Grows from measured wrapped text height |
 
@@ -79,7 +77,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Gap between feature blocks | **12** px | |
 | Heading → body | 8 px | About / GitHub |
 | Body → next heading | 14 px | |
-| URL copy box | height **28** | Tooltip border; fills row minus Select all |
+| URL copy box | height **28** | Black fill; internal 8 px horizontal / 4 px vertical padding |
 | Select all | **130 × 28** | Right of the URL box; 8 px gap |
 | Vertical scroll | **16** | Right of content when sections exceed the page |
 
@@ -245,7 +243,7 @@ Key helpers used across pages (not on `Raidwise` directly):
 
 | Helper | Role |
 |--------|------|
-| `ApplyPlainPanel` / `ApplyPanelBorderColor` | Backdrop fill + 1 px bronze edge |
+| `ApplyPlainPanel` / `ApplyPanelBorderColor` | Flat backdrop fill (no border edges) |
 | `CreatePlainButton` / `SetPlainButtonState` / `SetMenuButtonState` | Menu and action buttons |
 | `CreateCopyBox` / `CreateLineCopyBox` | Export and URL copy areas |
 | `SetSpecOrClassIcon` / `SetSpellIconTexture` / `CreateBuffIconHost` | Class, spec, buff icons |

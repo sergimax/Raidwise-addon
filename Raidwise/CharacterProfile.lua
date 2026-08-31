@@ -92,8 +92,6 @@ local function CreateProfileNotesBox(parent, width, height)
 	host:SetSize(width, height)
 	host:SetBackdrop(W.COPY_BACKDROP)
 	host:SetBackdropColor(0, 0, 0, 1)
-	local border = UI.BORDER or { 0.4, 0.4, 0.4, 1 }
-	host:SetBackdropBorderColor(border[1], border[2], border[3], border[4] or 1)
 
 	local scroll = CreateFrame("ScrollFrame", nil, host, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", 6, -6)

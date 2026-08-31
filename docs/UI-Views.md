@@ -76,7 +76,7 @@ Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions 
 | export data button | **Export character data** — fills the copy box |
 | select all data button | **Select all** — highlights JSON for Ctrl+C (disabled until export) |
 | short hint | Starts as “After export, press Ctrl+C to copy.” |
-| input for copy | Tooltip-bordered multiline EditBox (WowSimsExporter / AceGUI style). Click selects all; Ctrl+C copies. |
+| input for copy | Multiline EditBox on black fill; click selects all; Ctrl+C copies. Padding unchanged. |
 
 ## Character cooldowns
 
