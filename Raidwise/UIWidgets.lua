@@ -61,6 +61,7 @@ Addon.UITheme = {
 	RAID_BUFF_GAP = 2,
 	ROSTER_STATS_H = 16,
 	RAID_STATS_H = 48,
+	RAID_PROGRESS_H = 14,
 
 	-- Colors — Classic theme (preview/themes.html #classic)
 	GOLD = { 1.000, 0.824, 0.000 },
@@ -146,6 +147,43 @@ function W.ApplyPanelBorderColor(frame)
 		frame.rwBorderLeft:SetVertexColor(r, g, b, a)
 		frame.rwBorderRight:SetVertexColor(r, g, b, a)
 	end
+end
+
+-- Thin gold fill bar for long-running raid scan / export on the Raid roster page.
+function W.CreateProgressBar(parent, height)
+	height = height or UI.RAID_PROGRESS_H or 14
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetHeight(height)
+
+	local bg = host:CreateTexture(nil, "BACKGROUND")
+	bg:SetAllPoints(host)
+	bg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+	bg:SetVertexColor(0.05, 0.05, 0.08, 0.95)
+
+	local bar = CreateFrame("StatusBar", nil, host)
+	bar:SetPoint("TOPLEFT", 1, -1)
+	bar:SetPoint("BOTTOMRIGHT", -1, 1)
+	bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+	local fill = bar:GetStatusBarTexture()
+	if fill then
+		local gold = UI.GOLD_DIM or UI.GOLD or { 0.77, 0.63, 0.29 }
+		fill:SetVertexColor(gold[1], gold[2], gold[3], 1)
+	end
+	bar:SetMinMaxValues(0, 1)
+	bar:SetValue(0)
+	host.bar = bar
+
+	function host:SetProgress(value, maxValue)
+		maxValue = tonumber(maxValue) or 1
+		if maxValue <= 0 then
+			maxValue = 1
+		end
+		value = tonumber(value) or 0
+		self.bar:SetMinMaxValues(0, maxValue)
+		self.bar:SetValue(math.max(0, math.min(maxValue, value)))
+	end
+
+	return host
 end
 
 function W.SetFontColor(fontString, color)
@@ -326,6 +364,16 @@ function W.FitCopyBoxToText(box)
 
 	if text == "" then
 		box:SetHeight(UI.COPY_MIN_H)
+		return
+	end
+
+	-- Huge raid dumps: FontString measure freezes the client; estimate from newlines.
+	if #text > 40000 then
+		local lines = 1
+		for _ in text:gmatch("\n") do
+			lines = lines + 1
+		end
+		box:SetHeight(math.max(UI.COPY_MIN_H, lines * lineHeight + insets))
 		return
 	end
 

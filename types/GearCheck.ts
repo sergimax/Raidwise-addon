@@ -131,6 +131,8 @@ export type GearCheckEnchant = {
   present: boolean;
   /** True when id is 0 (no enchant) or the enchant catalog resolved the id. */
   known: boolean;
+  /** Catalog display name when known (e.g. Icewalker). */
+  name?: string;
   gaps: GearCheckGap[];
 };
 

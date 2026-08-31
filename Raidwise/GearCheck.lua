@@ -606,17 +606,60 @@ local function NormalizeEnchant(enchantId)
 		enchantId = enchantId,
 		present = enchantId > 0,
 		known = enchantId == 0,
+		name = nil,
 		gaps = {},
 	}
 	if enchant.present then
 		local info = Addon.GetGearCheckEnchantInfo and Addon:GetGearCheckEnchantInfo(enchantId)
 		if info then
 			enchant.known = true
+			if type(info.name) == "string" and info.name ~= "" then
+				enchant.name = info.name
+			end
 		else
 			AddGap(enchant.gaps, "ENCHANT_UNMAPPED")
 		end
 	end
 	return enchant
+end
+
+local function ResolveEnchantDumpName(enchant)
+	if type(enchant) ~= "table" then
+		return nil
+	end
+	if type(enchant.name) == "string" and enchant.name ~= "" then
+		return enchant.name
+	end
+	local enchantId = tonumber(enchant.enchantId)
+	if not enchantId or enchantId <= 0 then
+		return nil
+	end
+	local info = Addon.GetGearCheckEnchantInfo and Addon:GetGearCheckEnchantInfo(enchantId)
+	if info and type(info.name) == "string" and info.name ~= "" then
+		return info.name
+	end
+	return nil
+end
+
+local function ResolveGemDumpName(gem)
+	if type(gem) ~= "table" then
+		return nil
+	end
+	if type(gem.name) == "string" and gem.name ~= "" then
+		return gem.name
+	end
+	local itemId = tonumber(gem.itemId)
+	if not itemId or itemId <= 0 then
+		return nil
+	end
+	local name
+	local ok = pcall(function()
+		name = GetItemInfo(itemId)
+	end)
+	if ok and type(name) == "string" and name ~= "" then
+		return name
+	end
+	return nil
 end
 
 local function NormalizeGem(rawGem)
@@ -1268,12 +1311,23 @@ function Addon:FormatGearCheckDump(report)
 		elseif meta.active == false then
 			activeText = "no"
 		end
-		lines[#lines + 1] = string.format(
-			"Meta: id=%s slot=%s active=%s",
-			tostring(meta.itemId or "?"),
-			tostring(meta.slot or "?"),
-			activeText
-		)
+		local metaName = ResolveGemDumpName({ itemId = meta.itemId, name = meta.name })
+		if metaName then
+			lines[#lines + 1] = string.format(
+				"Meta: id=%s name=%s slot=%s active=%s",
+				tostring(meta.itemId or "?"),
+				metaName,
+				tostring(meta.slot or "?"),
+				activeText
+			)
+		else
+			lines[#lines + 1] = string.format(
+				"Meta: id=%s slot=%s active=%s",
+				tostring(meta.itemId or "?"),
+				tostring(meta.slot or "?"),
+				activeText
+			)
+		end
 	end
 	if sets and #sets > 0 then
 		local setParts = {}
@@ -1333,23 +1387,46 @@ function Addon:FormatGearCheckDump(report)
 				tostring(sockets.prismatic or 0)
 			)
 			local enchant = item.enchant or {}
-			lines[#lines + 1] = string.format(
-				"      enchant: id=%s present=%s known=%s",
-				tostring(enchant.enchantId or 0),
-				enchant.present and "yes" or "no",
-				enchant.known and "yes" or "no"
-			)
+			local enchantName = ResolveEnchantDumpName(enchant)
+			if enchantName then
+				lines[#lines + 1] = string.format(
+					"      enchant: id=%s present=%s known=%s name=%s",
+					tostring(enchant.enchantId or 0),
+					enchant.present and "yes" or "no",
+					enchant.known and "yes" or "no",
+					enchantName
+				)
+			else
+				lines[#lines + 1] = string.format(
+					"      enchant: id=%s present=%s known=%s",
+					tostring(enchant.enchantId or 0),
+					enchant.present and "yes" or "no",
+					enchant.known and "yes" or "no"
+				)
+			end
 			if item.gems and #item.gems > 0 then
 				local gemParts = {}
 				for g = 1, #item.gems do
 					local gem = item.gems[g]
-					gemParts[#gemParts + 1] = string.format(
-						"#%d=%s %s%s",
-						gem.socketIndex or g,
-						tostring(gem.itemId),
-						tostring(gem.color or "unknown"),
-						gem.isMeta and " meta" or ""
-					)
+					local gemName = ResolveGemDumpName(gem)
+					if gemName then
+						gemParts[#gemParts + 1] = string.format(
+							"#%d=%s %s%s name=%s",
+							gem.socketIndex or g,
+							tostring(gem.itemId),
+							tostring(gem.color or "unknown"),
+							gem.isMeta and " meta" or "",
+							gemName
+						)
+					else
+						gemParts[#gemParts + 1] = string.format(
+							"#%d=%s %s%s",
+							gem.socketIndex or g,
+							tostring(gem.itemId),
+							tostring(gem.color or "unknown"),
+							gem.isMeta and " meta" or ""
+						)
+					end
 				end
 				lines[#lines + 1] = "      gems: " .. table.concat(gemParts, ", ")
 			else
@@ -1399,6 +1476,64 @@ function Addon:FormatGearCheckPhase1Dump(report)
 end
 
 local RAID_DUMP_SEPARATOR = "\n\n" .. string.rep("=", 72) .. "\n\n"
+local raidDumpJob = nil
+local raidDumpFrame = CreateFrame("Frame")
+raidDumpFrame:Hide()
+
+local function FormatRaidDumpEntry(entry)
+	if entry and entry.report then
+		return Addon:FormatGearCheckDump(entry.report), true
+	end
+	local member = entry and entry.member or {}
+	local lines = {
+		"Raidwise Gear Check — raid scan entry (no report)",
+		string.format("Player: %s", tostring(member.name or "?")),
+		string.format("Status: %s", tostring(entry and entry.status or "unknown")),
+	}
+	return table.concat(lines, "\n"), false
+end
+
+local function FinishRaidDumpJob(text)
+	local onComplete = raidDumpJob and raidDumpJob.onComplete
+	raidDumpJob = nil
+	raidDumpFrame:Hide()
+	if onComplete then
+		onComplete(text or "")
+	end
+end
+
+raidDumpFrame:SetScript("OnUpdate", function()
+	local job = raidDumpJob
+	if not job then
+		raidDumpFrame:Hide()
+		return
+	end
+	local results = job.results
+	local index = job.index
+	if index > #results then
+		local header = string.format(
+			"Raidwise Gear Check — raid scan export (%d players, %d reports, %d failed/skipped)",
+			#results,
+			job.scanned,
+			job.failed
+		)
+		FinishRaidDumpJob(header .. "\n" .. string.rep("-", 72) .. "\n\n" .. table.concat(job.parts, RAID_DUMP_SEPARATOR))
+		return
+	end
+
+	local entry = results[index]
+	local part, ok = FormatRaidDumpEntry(entry)
+	job.parts[#job.parts + 1] = part
+	if ok then
+		job.scanned = job.scanned + 1
+	else
+		job.failed = job.failed + 1
+	end
+	job.index = index + 1
+	if job.onProgress then
+		job.onProgress(index, #results, entry and entry.member)
+	end
+end)
 
 function Addon:FormatGearCheckRaidDump(results)
 	if type(results) ~= "table" or #results == 0 then
@@ -1410,18 +1545,12 @@ function Addon:FormatGearCheckRaidDump(results)
 	local failed = 0
 	for index = 1, #results do
 		local entry = results[index]
-		if entry and entry.report then
+		local part, ok = FormatRaidDumpEntry(entry)
+		parts[#parts + 1] = part
+		if ok then
 			scanned = scanned + 1
-			parts[#parts + 1] = self:FormatGearCheckDump(entry.report)
 		else
 			failed = failed + 1
-			local member = entry and entry.member or {}
-			local lines = {
-				"Raidwise Gear Check — raid scan entry (no report)",
-				string.format("Player: %s", tostring(member.name or "?")),
-				string.format("Status: %s", tostring(entry and entry.status or "unknown")),
-			}
-			parts[#parts + 1] = table.concat(lines, "\n")
 		end
 	end
 
@@ -1432,6 +1561,46 @@ function Addon:FormatGearCheckRaidDump(results)
 		failed
 	)
 	return header .. "\n" .. string.rep("-", 72) .. "\n\n" .. table.concat(parts, RAID_DUMP_SEPARATOR)
+end
+
+function Addon:IsGearCheckRaidDumpBusy()
+	return raidDumpJob ~= nil
+end
+
+function Addon:CancelGearCheckRaidDump()
+	if not raidDumpJob then
+		return
+	end
+	local onComplete = raidDumpJob.onComplete
+	raidDumpJob = nil
+	raidDumpFrame:Hide()
+	if onComplete then
+		onComplete(nil)
+	end
+end
+
+-- Builds the raid dump one player per frame to avoid freezing the UI on large rosters.
+function Addon:BuildGearCheckRaidDumpAsync(results, onProgress, onComplete)
+	if type(results) ~= "table" or #results == 0 then
+		if onComplete then
+			onComplete("")
+		end
+		return false
+	end
+	if raidDumpJob then
+		return false
+	end
+	raidDumpJob = {
+		results = results,
+		index = 1,
+		parts = {},
+		scanned = 0,
+		failed = 0,
+		onProgress = onProgress,
+		onComplete = onComplete,
+	}
+	raidDumpFrame:Show()
+	return true
 end
 
 function Addon:ShowGearCheckRaidDump(results)
@@ -1475,14 +1644,33 @@ local function FinishRaidScan()
 	MaybeResumePartyInspects()
 end
 
+local function NotifyRaidScanLive(phase)
+	if not raidQueue or not raidQueue.onProgress then
+		return
+	end
+	if raidQueue.livePhase == phase and raidQueue.liveMember == raidQueue.currentMember then
+		return
+	end
+	raidQueue.livePhase = phase
+	raidQueue.liveMember = raidQueue.currentMember
+	raidQueue.onProgress({
+		member = raidQueue.currentMember,
+		phase = phase,
+		live = true,
+	}, #raidQueue.results, raidQueue.total)
+end
+
 local function AppendRaidScanResult(report, status)
 	if not raidQueue or not raidQueue.active then
 		return
 	end
+	raidQueue.livePhase = nil
+	raidQueue.liveMember = nil
 	local entry = {
 		member = raidQueue.currentMember,
 		report = report,
 		status = status,
+		phase = "done",
 	}
 	raidQueue.results[#raidQueue.results + 1] = entry
 	if raidQueue.onProgress then
@@ -1506,6 +1694,7 @@ local function ScanNextRaidMember()
 			end
 			if connected then
 				raidQueue.currentMember = member
+				NotifyRaidScanLive("inspect")
 				if Addon:StartGearCheckUnitScan(unit, nil) then
 					return
 				end
@@ -1583,6 +1772,17 @@ local function TryCollectPending(forceComplete)
 		end
 		FinishScan(report, "ok")
 		return
+	end
+	if raidQueue and raidQueue.active then
+		if not pendingInspectReady then
+			NotifyRaidScanLive("inspect")
+		elseif not specKnown then
+			NotifyRaidScanLive("spec")
+		elseif not gemsReady then
+			NotifyRaidScanLive("gems")
+		else
+			NotifyRaidScanLive("evaluate")
+		end
 	end
 	if forceComplete then
 		if filled > 0 and not specKnown and not pendingSpecRetry then

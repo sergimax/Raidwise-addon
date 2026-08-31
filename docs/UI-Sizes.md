@@ -120,13 +120,14 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Toolbar with **Scan** and **Refresh**, gear-check status hint, three stats lines, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 4`.
+Toolbar with **Scan**, **Export**, and **Refresh**, gear-check status hint, optional progress bar, three stats lines, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 6`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Toolbar | **Scan** **104 × 28** then **Refresh** **96 × 28**, right-aligned on top row | 4 px gap between buttons |
+| Toolbar | **Scan** **104 × 28**, **Export** **104 × 28**, **Refresh** **96 × 28**, right-aligned on top row | 4 px gap between buttons |
 | Short description | full width | Below toolbar row (`CD_TOOLBAR_H` + 8 px gap); wraps |
-| Gear check status | under description | `GameFontNormalSmall`; rating legend or scan progress; wraps |
+| Gear check status | under description | `GameFontNormalSmall`; rating legend or scan/export progress; wraps |
+| Progress bar | height **14**, full width | Shown during raid scan/export only; gold fill (`RAID_PROGRESS_H`) |
 | Averages line | height **16** | `Average GS: {n}` only (no average iLvl; transmog skews it) |
 | Role averages | height **16** | `Tanks: {n} ({gs} gs)` (and Healers, Melee, Range); `-` when no GS |
 | Gear check summary | height **16** | `BAD · REPLACE · OK · GOOD · Failed`; dim until first scan |
@@ -140,7 +141,7 @@ Toolbar with **Scan** and **Refresh**, gear-check status hint, three stats lines
 | Gap between blocks | **12** | |
 | Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
 
-Inspect queue runs sequentially; target scan blocked while raid scan is active.
+Inspect queue runs sequentially; target scan blocked while raid scan is active. Export builds dumps one player per frame (progress on this page) before opening Gear check (target).
 
 ## Raid composition tab
 

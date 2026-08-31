@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 5
+local LAYOUT_VERSION = 6
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 152
@@ -19,6 +19,15 @@ local RAID_BTN_GAP = 2
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
 local RAID_TOOLBAR_BTN_GAP = 4
+
+local SCAN_PHASE_KEYS = {
+	inspect = "GEAR_CHECK_RAID_PHASE_INSPECT",
+	spec = "GEAR_CHECK_RAID_PHASE_SPEC",
+	gems = "GEAR_CHECK_RAID_PHASE_GEMS",
+	evaluate = "GEAR_CHECK_RAID_PHASE_EVALUATE",
+	done = "GEAR_CHECK_RAID_PHASE_DONE",
+	export = "GEAR_CHECK_RAID_PHASE_EXPORT",
+}
 
 local function FormatRaidStatsLine(gearScore, averageIlvl)
 	local parts = {}
@@ -191,6 +200,12 @@ local function UpdateRaidRosterStatsLabels(page, members)
 end
 
 local function CreateRaidStatsLabels(page, anchor)
+	local progressHost = W.CreateProgressBar(page, UI.RAID_PROGRESS_H)
+	progressHost:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -6)
+	progressHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	progressHost:Hide()
+	page.gearCheckProgressHost = progressHost
+
 	local stats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	stats:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.CD_HINT_TO_TABLE)
 	stats:SetPoint("RIGHT", page, "RIGHT", 0, 0)
@@ -230,6 +245,62 @@ local function CreateRaidStatsLabels(page, anchor)
 	page.gearCheckSummaryLabel = gearSummary
 
 	return page.statsLabel
+end
+
+local function LayoutRaidProgressAnchor(page)
+	if not page or not page.statsLabel or not page.gearCheckStatusLabel then
+		return
+	end
+	local host = page.gearCheckProgressHost
+	if host and host:IsShown() then
+		page.statsLabel:ClearAllPoints()
+		page.statsLabel:SetPoint("TOPLEFT", host, "BOTTOMLEFT", 0, -UI.CD_HINT_TO_TABLE)
+		page.statsLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	else
+		page.statsLabel:ClearAllPoints()
+		page.statsLabel:SetPoint("TOPLEFT", page.gearCheckStatusLabel, "BOTTOMLEFT", 0, -UI.CD_HINT_TO_TABLE)
+		page.statsLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	end
+end
+
+local function SetRaidProgress(page, value, maxValue, visible)
+	local host = page and page.gearCheckProgressHost
+	if not host then
+		return
+	end
+	if visible then
+		host:SetProgress(value, maxValue)
+		host:Show()
+	else
+		host:SetProgress(0, 1)
+		host:Hide()
+	end
+	LayoutRaidProgressAnchor(page)
+end
+
+local function RaidScanPhaseLabel(phase)
+	local key = phase and SCAN_PHASE_KEYS[phase]
+	if key then
+		return W.T(key)
+	end
+	return W.T("GEAR_CHECK_RAID_PHASE_INSPECT")
+end
+
+local function SetRaidBusyButtons(page, busy)
+	if page.gearCheckScanBtn then
+		if busy then
+			page.gearCheckScanBtn:Disable()
+		else
+			page.gearCheckScanBtn:Enable()
+		end
+	end
+	if page.gearCheckExportBtn then
+		if busy then
+			page.gearCheckExportBtn:Disable()
+		else
+			page.gearCheckExportBtn:Enable()
+		end
+	end
 end
 
 local function MembersFromRaidGroups(groups)
@@ -574,35 +645,57 @@ local function RunGearCheckRaidScan(page)
 		end
 		return
 	end
+	if page.gearCheckExporting then
+		return
+	end
 	if Addon.IsGearCheckScanBusy and Addon:IsGearCheckScanBusy() then
 		if page.gearCheckStatusLabel then
 			page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_BUSY"))
 		end
 		return
 	end
-	if page.gearCheckScanBtn then
-		page.gearCheckScanBtn:Disable()
-	end
+	SetRaidBusyButtons(page, true)
 	if page.gearCheckStatusLabel then
 		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_STATUS_SCANNING"))
 	end
+	SetRaidProgress(page, 0, 1, true)
 	page.gearCheckScanning = true
 	page.gearCheckResults = {}
 
 	local started = Addon:StartGearCheckRaidScan(
 		function(entry, done, total)
-			if page.gearCheckStatusLabel and entry and entry.member then
-				page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_SCANNING", done, total, entry.member.name or "?"))
+			local name = (entry and entry.member and entry.member.name) or "?"
+			local phase = entry and entry.phase
+			if entry and entry.live then
+				if page.gearCheckStatusLabel then
+					page.gearCheckStatusLabel:SetText(
+						W.T(
+							"GEAR_CHECK_RAID_STATUS_SCANNING_PHASE",
+							done,
+							total,
+							name,
+							RaidScanPhaseLabel(phase)
+						)
+					)
+				end
+				-- Live update: current player in progress counts as a half step.
+				SetRaidProgress(page, done + 0.5, total, true)
+				return
 			end
+			if page.gearCheckStatusLabel then
+				page.gearCheckStatusLabel:SetText(
+					W.T("GEAR_CHECK_RAID_STATUS_SCANNING", done, total, name)
+				)
+			end
+			SetRaidProgress(page, done, total, true)
 			page.gearCheckResults[#page.gearCheckResults + 1] = entry
 			Addon:RefreshRaidRosterView(false)
 		end,
 		function(results, status)
 			page.gearCheckScanning = false
 			page.gearCheckResults = results
-			if page.gearCheckScanBtn then
-				page.gearCheckScanBtn:Enable()
-			end
+			SetRaidBusyButtons(page, false)
+			SetRaidProgress(page, 0, 1, false)
 			if page.gearCheckStatusLabel then
 				if status == "empty" then
 					page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_EMPTY"))
@@ -615,11 +708,88 @@ local function RunGearCheckRaidScan(page)
 	)
 	if not started then
 		page.gearCheckScanning = false
-		if page.gearCheckScanBtn then
-			page.gearCheckScanBtn:Enable()
-		end
+		SetRaidBusyButtons(page, false)
+		SetRaidProgress(page, 0, 1, false)
 		if page.gearCheckStatusLabel then
 			page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_BUSY"))
+		end
+	end
+end
+
+local function RunGearCheckRaidExport(page)
+	if page.gearCheckScanning or page.gearCheckExporting then
+		return
+	end
+	if Addon.IsGearCheckRaidDumpBusy and Addon:IsGearCheckRaidDumpBusy() then
+		return
+	end
+	local results = ResolveGearCheckResults(page)
+	if type(results) ~= "table" or #results == 0 then
+		Addon:Print(W.T("GEAR_CHECK_RAID_EXPORT_EMPTY"))
+		return
+	end
+	if not Addon.BuildGearCheckRaidDumpAsync then
+		if Addon.ShowGearCheckRaidDump then
+			Addon:ShowGearCheckRaidDump(results)
+		end
+		return
+	end
+
+	page.gearCheckExporting = true
+	SetRaidBusyButtons(page, true)
+	SetRaidProgress(page, 0, #results, true)
+	if page.gearCheckStatusLabel then
+		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_EXPORTING", 0, #results))
+	end
+
+	local started = Addon:BuildGearCheckRaidDumpAsync(
+		results,
+		function(done, total, member)
+			if page.gearCheckStatusLabel then
+				page.gearCheckStatusLabel:SetText(
+					W.T(
+						"GEAR_CHECK_RAID_STATUS_EXPORTING_PHASE",
+						done,
+						total,
+						(member and member.name) or "?",
+						RaidScanPhaseLabel("export")
+					)
+				)
+			end
+			SetRaidProgress(page, done, total, true)
+		end,
+		function(text)
+			page.gearCheckExporting = false
+			SetRaidBusyButtons(page, false)
+			SetRaidProgress(page, 0, 1, false)
+			if page.gearCheckStatusLabel then
+				page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
+			end
+			if not text or text == "" then
+				if text == "" then
+					Addon:Print(W.T("GEAR_CHECK_RAID_EXPORT_EMPTY"))
+				end
+				return
+			end
+			-- Defer SetText to the next frame so the progress bar can clear first.
+			local pendingText = text
+			local defer = CreateFrame("Frame")
+			defer:SetScript("OnUpdate", function(self)
+				self:SetScript("OnUpdate", nil)
+				if Addon.ShowGearCheckDumpText then
+					Addon:ShowGearCheckDumpText(pendingText)
+				else
+					Addon:Print(W.T("GEAR_CHECK_STATUS_FAIL"))
+				end
+			end)
+		end
+	)
+	if not started then
+		page.gearCheckExporting = false
+		SetRaidBusyButtons(page, false)
+		SetRaidProgress(page, 0, 1, false)
+		if Addon.ShowGearCheckRaidDump then
+			Addon:ShowGearCheckRaidDump(results)
 		end
 	end
 end
@@ -684,10 +854,7 @@ local function CreateRaidRosterPage(parent)
 	exportBtn:SetPoint("RIGHT", refreshBtn, "LEFT", -RAID_TOOLBAR_BTN_GAP, 0)
 	W.SetPlainButtonTooltip(exportBtn, "GEAR_CHECK_RAID_EXPORT_TIP")
 	exportBtn:SetScript("OnClick", function()
-		local results = ResolveGearCheckResults(page)
-		if Addon.ShowGearCheckRaidDump then
-			Addon:ShowGearCheckRaidDump(results)
-		end
+		RunGearCheckRaidExport(page)
 	end)
 
 	local scanBtn = W.CreatePlainButton(page, 104, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_SCAN"))
@@ -782,6 +949,7 @@ local function CreateRaidRosterPage(parent)
 	page.gearCheckExportBtn = exportBtn
 	page.gearCheckResults = {}
 	page.gearCheckScanning = false
+	page.gearCheckExporting = false
 	page.layoutVersion = LAYOUT_VERSION
 	return page
 end
@@ -802,7 +970,7 @@ local function ApplyLocale(page)
 	if page.gearCheckExportBtn and page.gearCheckExportBtn.label then
 		page.gearCheckExportBtn.label:SetText(W.T("GEAR_CHECK_RAID_EXPORT"))
 	end
-	if page.gearCheckStatusLabel and not page.gearCheckScanning then
+	if page.gearCheckStatusLabel and not page.gearCheckScanning and not page.gearCheckExporting then
 		page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
 	end
 	UpdateGearCheckSummaryLabel(page, ResolveGearCheckResults(page))

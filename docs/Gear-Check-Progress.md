@@ -176,7 +176,7 @@ GearCheckReport
 
 1. `/reload`, `/rw gearcheck` (self and nearby target).
 2. Dump header shows `schemaVersion=2`.
-3. Filled slots show `category`, `armorType` or `weaponType`, `stats: …`, `sockets: …`, `enchant: id=… present=… known=…`.
+3. Filled slots show `category`, `armorType` or `weaponType`, `stats: …`, `sockets: …`, `enchant: id=… present=… known=… name=…` (name when catalogued), `gems: #n=id color name=…` (name from item info when known).
 4. Catalogued enchants show `known=yes` (no `ENCHANT_UNMAPPED`); unknown ids stay not-checkable.
 5. Trinkets remain `PLANNED`; shirt/tabard `IGNORED`; relics `IGNORED / relic`.
 
