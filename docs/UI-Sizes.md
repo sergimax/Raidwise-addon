@@ -116,7 +116,7 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Description block with **Scan** / **Export** / **Refresh** in a fixed right column; left column uses row-aligned hint/stats/summary beside buttons, then progress status + bar at the bottom of the left column; table at a fixed top offset. `LAYOUT_VERSION = 12`.
+Description block with **Scan** / **Export** / **Refresh** in a fixed right column; left column uses row-aligned hint/stats/summary beside buttons, then progress status + bar at the bottom of the left column; table at a fixed top offset. `LAYOUT_VERSION = 13`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -126,7 +126,7 @@ Description block with **Scan** / **Export** / **Refresh** in a fixed right colu
 | Gear check summary | left column row 3 | Height **16**; aligned with **Refresh** |
 | Progress status | left column only | Below button rows; fixed **32** px height |
 | Progress bar | left column only | Below status (**6** px gap); height **14**; always reserved |
-| Player cell | **168 × 152** | Eight text lines + one button row: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
+| Player cell | **168 × 137** | Seven text lines + one button row: class+name, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
 | Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |

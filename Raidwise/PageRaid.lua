@@ -6,10 +6,10 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 12
+local LAYOUT_VERSION = 13
 
 local RAID_CELL_W = 168
-local RAID_CELL_H = 152
+local RAID_CELL_H = 137
 local RAID_CELL_GAP = 2
 local RAID_CELL_PAD = 4
 local RAID_LINE_H = 14
@@ -469,14 +469,8 @@ local function CreateRaidPlayerCell(parent)
 	cell.opinionText:SetHeight(RAID_LINE_H)
 	cell.opinionText:SetJustifyH("LEFT")
 
-	cell.tagText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.tagText:SetPoint("TOPLEFT", cell.opinionText, "BOTTOMLEFT", 0, -1)
-	cell.tagText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.tagText:SetHeight(RAID_LINE_H)
-	cell.tagText:SetJustifyH("LEFT")
-
 	cell.gearGradeText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gearGradeText:SetPoint("TOPLEFT", cell.tagText, "BOTTOMLEFT", 0, -1)
+	cell.gearGradeText:SetPoint("TOPLEFT", cell.opinionText, "BOTTOMLEFT", 0, -1)
 	cell.gearGradeText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
 	cell.gearGradeText:SetHeight(RAID_LINE_H)
 	cell.gearGradeText:SetJustifyH("LEFT")
@@ -688,7 +682,6 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		cell.nameText:SetText("")
 		cell.statsText:SetText("")
 		cell.opinionText:SetText("")
-		cell.tagText:SetText("")
 		cell.classIconHost:Hide()
 		cell.roleIconHost:Hide()
 		cell.specIconHost:Hide()
@@ -745,14 +738,6 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 
 	cell.opinionText:SetText(W.FormatOpinionLine(member))
 	W.SetFontColor(cell.opinionText, W.RatingOpinionColor(member))
-
-	local tags = W.FormatTagLine(member)
-	cell.tagText:SetText(tags)
-	if tags ~= "" then
-		W.SetFontColor(cell.tagText, UI.TEXT_IDLE)
-	else
-		W.SetFontColor(cell.tagText, UI.TEXT_DISABLED)
-	end
 
 	FillGearReportRows(cell, member, gearEntry)
 	if cell.profileBtn then

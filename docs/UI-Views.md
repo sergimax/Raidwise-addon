@@ -42,7 +42,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 12` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 13` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -148,7 +148,6 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ (role)(spec) 6158gs 264ilvl ]
 [ (buff)(buff)(buff) ]
 [ Personal opinion: Positive ]
-[ Friendly, Good Tank ]
 [ Armor/weap: GOOD ]
 [ Ench/sock: REPLACE ]
 [ Profile ][ Gear ][ Rescan ]
@@ -170,11 +169,10 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
 | line 3 | Spec- and race-specific raid buff icons (hover for name); up to 8 |
 | line 4 | `Personal opinion: {Positive|Neutral|Negative}`; color-coded |
-| line 5 | Colored tag summary (up to 3 labels, then `+N`); dim when none |
-| line 6 | `Armor/weap: {GOOD|OK|REPLACE|BAD}` (colored grade) or fail / not scanned (`—`) |
-| line 7 | `Ench/sock: {GOOD|OK|REPLACE|BAD}` (colored grade); blank when not scanned |
-| line 8 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
-| hover | Opinion/tags tooltip + **gear check** section (both grades with flagged slot details, or scan status) |
+| line 5 | `Armor/weap: {GOOD|OK|REPLACE|BAD}` (colored grade) or fail / not scanned (`—`) |
+| line 6 | `Ench/sock: {GOOD|OK|REPLACE|BAD}` (colored grade); blank when not scanned |
+| line 7 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
+| hover | Opinion + tags tooltip + **gear check** section (both grades with flagged slot details, or scan status) |
 | click | Left-click card → **Character profile**; **Profile** / **Gear check** / **Rescan** buttons do their own actions |
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
