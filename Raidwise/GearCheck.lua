@@ -1398,6 +1398,60 @@ function Addon:FormatGearCheckPhase1Dump(report)
 	return self:FormatGearCheckDump(report)
 end
 
+local RAID_DUMP_SEPARATOR = "\n\n" .. string.rep("=", 72) .. "\n\n"
+
+function Addon:FormatGearCheckRaidDump(results)
+	if type(results) ~= "table" or #results == 0 then
+		return ""
+	end
+
+	local parts = {}
+	local scanned = 0
+	local failed = 0
+	for index = 1, #results do
+		local entry = results[index]
+		if entry and entry.report then
+			scanned = scanned + 1
+			parts[#parts + 1] = self:FormatGearCheckDump(entry.report)
+		else
+			failed = failed + 1
+			local member = entry and entry.member or {}
+			local lines = {
+				"Raidwise Gear Check — raid scan entry (no report)",
+				string.format("Player: %s", tostring(member.name or "?")),
+				string.format("Status: %s", tostring(entry and entry.status or "unknown")),
+			}
+			parts[#parts + 1] = table.concat(lines, "\n")
+		end
+	end
+
+	local header = string.format(
+		"Raidwise Gear Check — raid scan export (%d players, %d reports, %d failed/skipped)",
+		#results,
+		scanned,
+		failed
+	)
+	return header .. "\n" .. string.rep("-", 72) .. "\n\n" .. table.concat(parts, RAID_DUMP_SEPARATOR)
+end
+
+function Addon:ShowGearCheckRaidDump(results)
+	results = results
+		or (self.GetLastGearCheckRaidResults and self:GetLastGearCheckRaidResults())
+		or {}
+	local text = self:FormatGearCheckRaidDump(results)
+	if text == "" then
+		self:Print(self:T("GEAR_CHECK_RAID_EXPORT_EMPTY"))
+		return false
+	end
+	if self.ShowGearCheckDumpText then
+		self:ShowGearCheckDumpText(text)
+	else
+		self:Print(self:T("GEAR_CHECK_STATUS_FAIL"))
+		return false
+	end
+	return true
+end
+
 local function MaybeResumePartyInspects()
 	if Addon.IsGearCheckScanBusy and Addon:IsGearCheckScanBusy() then
 		return

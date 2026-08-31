@@ -229,6 +229,15 @@ SlashCmdList["RAIDWISE"] = function(msg)
 		return
 	end
 
+	if msg == "gearcheck raid dump" or msg == "gear raid dump" then
+		if Addon.ShowGearCheckRaidDump then
+			Addon:ShowGearCheckRaidDump()
+		else
+			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
+		end
+		return
+	end
+
 	if msg == "gearcheck" or msg == "gear" then
 		if Addon.OpenGearCheckTarget then
 			Addon:OpenGearCheckTarget(true)

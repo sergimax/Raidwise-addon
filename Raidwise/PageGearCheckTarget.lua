@@ -1243,6 +1243,24 @@ local function ApplyLocale(page)
 	end
 end
 
+function Addon:ShowGearCheckDumpText(text)
+	local frame = self.mainFrame
+	local page = frame and frame.pages and frame.pages.geartarget
+	if not page or not page.dumpBox then
+		return false
+	end
+	page.dumpBox:SetText(text or "")
+	page.debugMode = true
+	UpdateDebugVisibility(page)
+	self:ShowMainFrame()
+	self:SelectTab("geartarget")
+	if (text or "") ~= "" then
+		page.dumpBox:SetFocus()
+		page.dumpBox:HighlightText()
+	end
+	return true
+end
+
 function Addon:SelectGearCheckDump()
 	local frame = self.mainFrame
 	local page = frame and frame.pages and frame.pages.geartarget

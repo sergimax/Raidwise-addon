@@ -680,8 +680,18 @@ local function CreateRaidRosterPage(parent)
 		Addon:RefreshPartyData(true)
 	end)
 
+	local exportBtn = W.CreatePlainButton(page, 104, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_RAID_EXPORT"))
+	exportBtn:SetPoint("RIGHT", refreshBtn, "LEFT", -RAID_TOOLBAR_BTN_GAP, 0)
+	W.SetPlainButtonTooltip(exportBtn, "GEAR_CHECK_RAID_EXPORT_TIP")
+	exportBtn:SetScript("OnClick", function()
+		local results = ResolveGearCheckResults(page)
+		if Addon.ShowGearCheckRaidDump then
+			Addon:ShowGearCheckRaidDump(results)
+		end
+	end)
+
 	local scanBtn = W.CreatePlainButton(page, 104, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_SCAN"))
-	scanBtn:SetPoint("RIGHT", refreshBtn, "LEFT", -RAID_TOOLBAR_BTN_GAP, 0)
+	scanBtn:SetPoint("RIGHT", exportBtn, "LEFT", -RAID_TOOLBAR_BTN_GAP, 0)
 	W.SetPlainButtonTooltip(scanBtn, "RAID_SCAN_TIP")
 	scanBtn:SetScript("OnClick", function()
 		RunGearCheckRaidScan(page)
@@ -769,6 +779,7 @@ local function CreateRaidRosterPage(parent)
 	page.hint = hint
 	page.refreshBtn = refreshBtn
 	page.gearCheckScanBtn = scanBtn
+	page.gearCheckExportBtn = exportBtn
 	page.gearCheckResults = {}
 	page.gearCheckScanning = false
 	page.layoutVersion = LAYOUT_VERSION
@@ -787,6 +798,9 @@ local function ApplyLocale(page)
 	end
 	if page.gearCheckScanBtn and page.gearCheckScanBtn.label then
 		page.gearCheckScanBtn.label:SetText(W.T("GEAR_CHECK_SCAN"))
+	end
+	if page.gearCheckExportBtn and page.gearCheckExportBtn.label then
+		page.gearCheckExportBtn.label:SetText(W.T("GEAR_CHECK_RAID_EXPORT"))
 	end
 	if page.gearCheckStatusLabel and not page.gearCheckScanning then
 		page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
