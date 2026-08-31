@@ -381,6 +381,10 @@ function W.CreateCopyBox(parent, scrollName, boxName)
 	exportBox:SetAutoFocus(false)
 	exportBox:EnableMouse(true)
 	exportBox:SetTextInsets(0, 0, 3, 3)
+	-- Raid dumps can be very large; default EditBox letter caps truncate mid-report.
+	if exportBox.SetMaxLetters then
+		exportBox:SetMaxLetters(0)
+	end
 	scroll:SetScrollChild(exportBox)
 
 	scroll:SetScript("OnSizeChanged", function(self, width)

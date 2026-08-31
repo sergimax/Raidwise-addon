@@ -1249,11 +1249,17 @@ function Addon:ShowGearCheckDumpText(text)
 	if not page or not page.dumpBox then
 		return false
 	end
+	-- SelectTab refreshes the page dump from the last single report — set text after that.
+	self:ShowMainFrame()
+	self:SelectTab("geartarget")
 	page.dumpBox:SetText(text or "")
 	page.debugMode = true
 	UpdateDebugVisibility(page)
-	self:ShowMainFrame()
-	self:SelectTab("geartarget")
+	if page.dumpBox.Fit then
+		page.dumpBox:Fit()
+	elseif W.FitCopyBoxToText then
+		W.FitCopyBoxToText(page.dumpBox)
+	end
 	if (text or "") ~= "" then
 		page.dumpBox:SetFocus()
 		page.dumpBox:HighlightText()

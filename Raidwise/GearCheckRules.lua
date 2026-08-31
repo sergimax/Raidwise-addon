@@ -24,8 +24,9 @@ local ENCHANT_OPTIONAL = {
 }
 
 local MESSAGES = {
-	SPEC_UNKNOWN = "Specialization is unknown; class-only rules are applied.",
+	SPEC_UNKNOWN = "Specialization is unknown; class-only rules are applied (grades may be less accurate).",
 	PROFILE_MISSING = "No Gear Check profile is available for this class.",
+	INSPECT_INCOMPLETE = "Inspect data is incomplete; gem/enchant grades may be unreliable.",
 	ITEM_NOT_CHECKABLE = "Cannot evaluate this item (incomplete or unknown data).",
 	ARMOR_FORBIDDEN = "Forbidden armor type for this specialization.",
 	ARMOR_UNWANTED = "Unwanted armor type for this specialization.",
@@ -34,12 +35,13 @@ local MESSAGES = {
 	WEAPON_UNWANTED = "Unwanted weapon type for this specialization.",
 	WEAPON_SETUP = "Weapon setup does not match this specialization.",
 	TRINKET_NOT_PREFERRED = "Trinket is not typically used for this specialization.",
+	TRINKET_SITUATIONAL = "Situational DPS trinket — viable for tanks in some encounters.",
 	STAT_FORBIDDEN = "Forbidden stat for this specialization.",
 	STAT_UNWANTED = "Unwanted stat for this specialization.",
 	RESILIENCE_PVE = "Resilience is a PvP stat and is inappropriate for PvE Gear Check.",
 	MISSING_ENCHANT = "Missing enchant.",
 	ENCHANT_NOT_CHECKABLE = "Enchant id is unknown to the catalog (not-checkable).",
-	ENCHANT_LOWER_LEVEL = "Enchant is below the maximum Northrend level.",
+	ENCHANT_LOWER_LEVEL = "Enchant is below the maximum Northrend level (usable, but not max).",
 	ENCHANT_BAD_STAT = "Enchant provides an inappropriate stat for this specialization.",
 	MISSING_GEM = "Socket is missing a gem.",
 	GEM_NOT_CHECKABLE = "Gem id is unknown to the catalog (not-checkable).",
@@ -341,6 +343,21 @@ local function EvaluateTrinket(findings, profile, slot)
 			slot.key,
 			Msg("TRINKET_NOT_PREFERRED", tostring(itemId))
 		)
+		return
+	end
+	local preferred = profile.trinketsPreferred
+	local situational = profile.trinketsSituational
+	if type(situational) == "table" and situational[itemId]
+		and (type(preferred) ~= "table" or not preferred[itemId])
+	then
+		AddFinding(
+			findings,
+			"TRINKET_SITUATIONAL",
+			"info",
+			"item",
+			slot.key,
+			Msg("TRINKET_SITUATIONAL", tostring(itemId))
+		)
 	end
 end
 
@@ -373,8 +390,13 @@ local function EnchantableSlot(slot)
 	if not item then
 		return false
 	end
-	-- Wands cannot be enchanted in WotLK.
-	if item.weaponType == "wand" then
+	-- Wands / bows / guns / crossbows cannot be enchanted in WotLK.
+	-- Only thrown weapons in the ranged slot accept enchants.
+	if item.weaponType == "wand"
+		or item.weaponType == "bow"
+		or item.weaponType == "gun"
+		or item.weaponType == "crossbow"
+	then
 		return false
 	end
 	if slot.key == "offHand" then
@@ -385,7 +407,7 @@ local function EnchantableSlot(slot)
 		return item.category == "weapon" or item.armorType == "shield"
 	end
 	if slot.key == "ranged" then
-		return item.category == "weapon"
+		return item.weaponType == "thrown"
 	end
 	return true
 end
@@ -415,7 +437,8 @@ local function EvaluateEnchant(findings, profile, slot)
 		return
 	end
 	if info.maxLevel ~= true then
-		AddFinding(findings, "ENCHANT_LOWER_LEVEL", "soft", "enchant", slot.key, Msg("ENCHANT_LOWER_LEVEL", info.name or tostring(enchant.enchantId)))
+		-- Below-max enchants are usable; info only so they do not demote to REPLACE.
+		AddFinding(findings, "ENCHANT_LOWER_LEVEL", "info", "enchant", slot.key, Msg("ENCHANT_LOWER_LEVEL", info.name or tostring(enchant.enchantId)))
 	end
 	if type(info.stats) == "table" and not info.allStats then
 		for statId, amount in pairs(info.stats) do
@@ -777,6 +800,14 @@ local function CountResilienceItems(findings)
 	return CountUnique(slots)
 end
 
+local function IsInspectIncomplete(report)
+	if not report then
+		return false
+	end
+	local inspect = (report.collection and report.collection.inspect) or report.inspect or {}
+	return inspect.needed == true and inspect.complete ~= true
+end
+
 function Addon:EvaluateGearCheck(report)
 	local findings = {}
 	if not report or not report.character then
@@ -787,6 +818,11 @@ function Addon:EvaluateGearCheck(report)
 	local profile, source = self:GetGearCheckProfile(character.classFile, character.specTab, character.specKnown)
 	if source == "class" or not character.specKnown then
 		AddFinding(findings, "SPEC_UNKNOWN", "info", "character", nil, Msg("SPEC_UNKNOWN"))
+	end
+	local inspect = (report.collection and report.collection.inspect) or report.inspect or {}
+	local inspectIncomplete = inspect.needed and not inspect.complete
+	if inspectIncomplete then
+		AddFinding(findings, "INSPECT_INCOMPLETE", "info", "character", nil, Msg("INSPECT_INCOMPLETE"))
 	end
 	if not profile then
 		AddFinding(findings, "PROFILE_MISSING", "info", "character", nil, Msg("PROFILE_MISSING"))
@@ -896,7 +932,7 @@ local function TypeQualifiesForGood(profile, slot)
 			return true
 		end
 		-- Acceptable offset pieces (e.g. Umbrage Armbands on Ret) still qualify for GOOD.
-		-- Acceptable cloth (Resto Druid BiS chests) also qualifies — only A_LEATHER_HEAL lists cloth.
+		-- Acceptable cloth (Resto/Balance Druid, Holy Pala, Shaman) qualifies for GOOD.
 		if rank == "acceptable" and (GOOD_OFFSET_SLOTS[slot.key] or armorType == "cloth") then
 			return true
 		end
@@ -1372,7 +1408,7 @@ function Addon:AggregateGearCheckVerdicts(report)
 					verdict = "REPLACE"
 				end
 			end
-			if verdict == "OK" and SlotQualifiesForGood(profile, slot, findings) then
+			if verdict == "OK" and not IsInspectIncomplete(report) and SlotQualifiesForGood(profile, slot, findings) then
 				verdict = "GOOD"
 			end
 			slot.verdict = verdict
@@ -1456,7 +1492,7 @@ function Addon:AggregateGearCheckOverall(report)
 	if status == "OK" then
 		local good = verdicts.good or 0
 		local ok = verdicts.ok or 0
-		if good > 0 and ok == 0 then
+		if good > 0 and ok == 0 and not IsInspectIncomplete(report) then
 			status = "GOOD"
 			reason = "all_good"
 		end
@@ -1471,6 +1507,20 @@ function Addon:AggregateGearCheckOverall(report)
 		EnchantSocketSlotQualifiesForGood,
 		false
 	)
+	if IsInspectIncomplete(report) then
+		if overall.gearGrade == "GOOD" then
+			overall.gearGrade = "OK"
+		end
+		if overall.enchantSocketGrade == "GOOD" then
+			overall.enchantSocketGrade = "OK"
+		end
+		if status == "GOOD" then
+			status = "OK"
+			reason = "inspect_incomplete"
+			overall.status = status
+			overall.reason = reason
+		end
+	end
 	if status == "BAD" then
 		if reason == "resilience" then
 			overall.summary = string.format("%d items have Resilience (PvE: 2+ is BAD).", resilienceItems)
@@ -2381,6 +2431,87 @@ function Addon:GearCheckRulesSelfTest()
 	local fRestoStaff = self:EvaluateGearCheck(restoStaff)
 	Check("resto druid 2H staff → not WEAPON_SETUP", not HasCode(fRestoStaff, "WEAPON_SETUP"))
 	Check("resto druid 2H staff → GOOD", restoStaff.equipment[1].verdict == "GOOD")
+
+	-- Combat Rogue: crossbow in ranged is acceptable; no enchant required.
+	local rogueXbow = {
+		character = { classFile = "ROGUE", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("ranged", "RangedSlot", MakeItem({
+				itemId = 50733,
+				category = "weapon",
+				weaponType = "crossbow",
+				stats = { agility = 62, attackPower = 66, critRating = 41 },
+				enchant = { enchantId = 0, present = false, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fXbow = self:EvaluateGearCheck(rogueXbow)
+	Check("rogue crossbow → not WEAPON_FORBIDDEN", not HasCode(fXbow, "WEAPON_FORBIDDEN"))
+	Check("rogue crossbow → not MISSING_ENCHANT", not HasCodeOnSlot(fXbow, "MISSING_ENCHANT", "ranged"))
+
+	-- Holy Paladin: cloth legs + shield blockValue are acceptable (not BAD).
+	local holyCloth = {
+		character = { classFile = "PALADIN", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("legs", "LegsSlot", MakeItem({
+				itemId = 50694,
+				category = "armor",
+				armorType = "cloth",
+				stats = { intellect = 139, spellPower = 185, hasteRating = 116 },
+				enchant = { enchantId = 3721, present = true, known = true, gaps = {} },
+			})),
+			MakeSlot("offHand", "SecondaryHandSlot", MakeItem({
+				itemId = 50616,
+				category = "armor",
+				armorType = "shield",
+				stats = { intellect = 78, spellPower = 110, blockValue = 259, armor = 9262 },
+				enchant = { enchantId = 1128, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fHoly = self:EvaluateGearCheck(holyCloth)
+	Check("holy cloth legs → not ARMOR_FORBIDDEN", not HasCode(fHoly, "ARMOR_FORBIDDEN"))
+	Check("holy shield blockValue → not STAT_FORBIDDEN", not HasCode(fHoly, "STAT_FORBIDDEN"))
+
+	-- Prot Pala: melee DPS trinkets are situational (info), not REPLACE.
+	local protTrink = {
+		character = { classFile = "PALADIN", specTab = 2, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("trinket1", "Trinket0Slot", MakeItem({
+				itemId = 54590,
+				category = "armor",
+				armorType = "misc",
+				stats = { armorPenetration = 184 },
+			})),
+			MakeSlot("trinket2", "Trinket1Slot", MakeItem({
+				itemId = 50351,
+				category = "armor",
+				armorType = "misc",
+				stats = { hitRating = 85 },
+			})),
+		},
+	}
+	local fProtTrink = self:EvaluateGearCheck(protTrink)
+	Check("prot pala Sharpened Scale → not TRINKET_NOT_PREFERRED", not HasCodeOnSlot(fProtTrink, "TRINKET_NOT_PREFERRED", "trinket1"))
+	Check("prot pala Tiny Abom → not TRINKET_NOT_PREFERRED", not HasCodeOnSlot(fProtTrink, "TRINKET_NOT_PREFERRED", "trinket2"))
+	Check("prot pala Sharpened Scale → TRINKET_SITUATIONAL", HasCodeOnSlot(fProtTrink, "TRINKET_SITUATIONAL", "trinket1"))
+
+	-- Below-max enchant is info only (does not demote to REPLACE).
+	local lowerEnch = {
+		character = { classFile = "PALADIN", specTab = 1, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 70,
+				category = "armor",
+				armorType = "plate",
+				stats = { intellect = 80, spellPower = 100, hasteRating = 60 },
+				enchant = { enchantId = 3233, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	local fLower = self:EvaluateGearCheck(lowerEnch)
+	Check("Mighty Health → ENCHANT_LOWER_LEVEL info", HasCode(fLower, "ENCHANT_LOWER_LEVEL"))
+	Check("Mighty Health → chest not REPLACE", lowerEnch.equipment[1].verdict ~= "REPLACE")
 
 	local profileCount = 0
 	if self.GetGearCheckProfileCount then

@@ -47,6 +47,7 @@ export type GearCheckFindingCategory =
 export type GearCheckFindingCode =
   | "SPEC_UNKNOWN"
   | "PROFILE_MISSING"
+  | "INSPECT_INCOMPLETE"
   | "ITEM_NOT_CHECKABLE"
   | "ARMOR_FORBIDDEN"
   | "ARMOR_UNWANTED"
@@ -56,6 +57,8 @@ export type GearCheckFindingCode =
   | "STAT_FORBIDDEN"
   | "STAT_UNWANTED"
   | "RESILIENCE_PVE"
+  | "TRINKET_NOT_PREFERRED"
+  | "TRINKET_SITUATIONAL"
   | "MISSING_ENCHANT"
   | "ENCHANT_NOT_CHECKABLE"
   | "ENCHANT_LOWER_LEVEL"
