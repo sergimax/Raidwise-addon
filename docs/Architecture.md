@@ -70,7 +70,7 @@ History personal reputation shape (see [Reputation.md](Reputation.md)):
 
 | Kind | Where | Shown | Purpose |
 |------|-------|-------|---------|
-| **Addon semver** | `Addon.version` + TOC `## Version` | Status bar (e.g. `v1.16.0`) | Release / changelog |
+| **Addon semver** | `Addon.version` + TOC `## Version` | Menu title bar (e.g. `v1.16.0`) | Release / changelog |
 | **Layout version** | `*_LAYOUT_VERSION` per view | Shell title bar next to page name (`vN`); profile title bar; shell constant is rebuild-only | Force UI rebuild when structure changes |
 
 Bump layout versions when sizes, named frames, or control layout change. Do **not** bump for pure locale string edits. Keep docs in sync (`UI-Views.md`, `UI-Sizes.md`).

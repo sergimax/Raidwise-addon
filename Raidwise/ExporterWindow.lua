@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 7
+local SHELL_LAYOUT_VERSION = 8
 
 local MENU_ICON_SIZE = 16
 
@@ -304,7 +304,7 @@ function Addon:CreateMainFrame()
 	frame:EnableMouse(true)
 	frame:SetFrameStrata("DIALOG")
 	frame:SetClampedToScreen(true)
-	frame:SetClampRectInsets(-(UI.MENU_WIDTH + UI.MENU_GAP), 0, 0, -(UI.STATUS_H + UI.MENU_GAP))
+	frame:SetClampRectInsets(-UI.MENU_WIDTH, 0, 0, 0)
 	frame:Hide()
 	W.ApplyPlainPanel(frame)
 	frame.layoutVersion = SHELL_LAYOUT_VERSION
@@ -315,8 +315,8 @@ function Addon:CreateMainFrame()
 	local menu = CreateFrame("Frame", "RaidwiseMenu", frame)
 	W.DetachFrameChildren(menu)
 	menu:SetWidth(UI.MENU_WIDTH)
-	menu:SetPoint("TOPRIGHT", frame, "TOPLEFT", -UI.MENU_GAP, 0)
-	menu:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", -UI.MENU_GAP, 0)
+	menu:SetPoint("TOPRIGHT", frame, "TOPLEFT", 0, 0)
+	menu:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", 0, 0)
 	W.ApplyPlainPanel(menu)
 	menu:EnableMouse(true)
 
@@ -327,11 +327,17 @@ function Addon:CreateMainFrame()
 	W.ApplyPlainPanel(menuTitleBar, UI.TITLE_BG)
 	W.AttachDragHandle(menuTitleBar, frame)
 
-	local menuTitle = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	menuTitle:SetPoint("CENTER", 0, 0)
-	menuTitle:SetText(W.T("MENU"))
-	W.SetFontColor(menuTitle, UI.GOLD)
-	frame.menuTitle = menuTitle
+	local menuNameLabel = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	menuNameLabel:SetPoint("LEFT", UI.STATUS_PAD_X, 0)
+	menuNameLabel:SetText("Raidwise")
+	W.SetFontColor(menuNameLabel, UI.GOLD)
+
+	local menuVersionLabel = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	menuVersionLabel:SetPoint("LEFT", menuNameLabel, "RIGHT", UI.STATUS_GAP, 0)
+	menuVersionLabel:SetText("v" .. tostring(Addon.version))
+	W.SetFontColor(menuVersionLabel, UI.TEXT_IDLE)
+	frame.menuNameLabel = menuNameLabel
+	frame.menuVersionLabel = menuVersionLabel
 
 	frame.menuButtons = {}
 	local menuY = -(UI.TITLE_H + 8)
@@ -341,22 +347,6 @@ function Addon:CreateMainFrame()
 		frame.menuButtons[#frame.menuButtons + 1] = button
 		menuY = menuY - UI.MENU_BTN_H - UI.MENU_BTN_GAP
 	end
-
-	local statusBar = CreateFrame("Frame", nil, frame)
-	statusBar:SetHeight(UI.STATUS_H)
-	statusBar:SetPoint("TOPLEFT", menu, "BOTTOMLEFT", 0, -UI.MENU_GAP)
-	statusBar:SetPoint("TOPRIGHT", frame, "BOTTOMRIGHT", 0, -UI.MENU_GAP)
-	W.ApplyPlainPanel(statusBar, UI.TITLE_BG)
-
-	local nameLabel = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	nameLabel:SetPoint("LEFT", UI.STATUS_PAD_X, 0)
-	nameLabel:SetText("Raidwise")
-	W.SetFontColor(nameLabel, UI.GOLD)
-
-	local versionLabel = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	versionLabel:SetPoint("LEFT", nameLabel, "RIGHT", UI.STATUS_GAP, 0)
-	versionLabel:SetText("v" .. tostring(Addon.version))
-	W.SetFontColor(versionLabel, UI.TEXT_IDLE)
 
 	local content = CreateFrame("Frame", nil, frame)
 	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.PAD))
@@ -393,8 +383,8 @@ function Addon:RefreshLocalizedUI()
 		return
 	end
 
-	if frame.menuTitle then
-		frame.menuTitle:SetText(W.T("MENU"))
+	if frame.menuVersionLabel then
+		frame.menuVersionLabel:SetText("v" .. tostring(Addon.version))
 	end
 	for index = 1, #PAGES do
 		local button = frame.menuButtons[index]

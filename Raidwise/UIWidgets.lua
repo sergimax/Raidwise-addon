@@ -12,7 +12,7 @@ Addon.UITheme = {
 
 	-- Left menu (RaidwiseMenu)
 	MENU_WIDTH = 170,
-	MENU_GAP = 2,
+	MENU_GAP = 0,
 	MENU_BTN_H = 22,
 	MENU_BTN_GAP = 2,
 

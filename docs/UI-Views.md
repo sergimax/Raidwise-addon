@@ -6,23 +6,15 @@ Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.m
 
 ## Shell
 
-Classic-theme plain panels: left menu, content page, status bar under both.
+Classic-theme plain panels: left menu flush against content (no gap), no footer.
 
 ```text
-[ Menu 170 ] 2px [ Content 890 x 940 ]
-                 [ title bar 20  {page} vN  X ]
-                 [ page body         ]
-[ addon name ] [ current version ]
+[ Menu 170 ][ Content 890 x 940 ]
+ [ Raidwise v1.x ] [ {page} vN  X ]
+ [ menu tabs... ]  [ page body     ]
 ```
 
-Title bar (left to right): **active menu item name**, that page’s layout badge **`vN`**, close **X**. Shell `SHELL_LAYOUT_VERSION` is used for rebuild only (not shown). Addon semver stays in the status bar.
-
-Status bar:
-
-| Block | In-game text |
-|-------|----------------|
-| addon name | Raidwise |
-| current version | `v` + `Addon.version` |
+Title bar (content, left to right): **active menu item name**, that page’s layout badge **`vN`**, close **X**. Menu title bar (left): **Raidwise** + addon semver (`Addon.version`). Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
 
 Menu tabs (top to bottom; each row has a 16×16 category icon + label):
 
@@ -41,11 +33,11 @@ Menu tabs (top to bottom; each row has a 16×16 category icon + label):
 Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Spell_Holy_PrayerOfFortitude`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
 ## Layout versions
 
-Independent from addon semver (`Addon.version` in the status bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
+Independent from addon semver (`Addon.version` in the menu title bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 7` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 8` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 27` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
