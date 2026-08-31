@@ -660,7 +660,7 @@ function W.FillPartyBuffStatusIcons(hosts, coverage)
 				host.icon:SetVertexColor(1, 1, 1)
 			else
 				host.icon:SetDesaturated(true)
-				host.icon:SetVertexColor(0.55, 0.55, 0.55)
+				host.icon:SetVertexColor(UI.TEXT_ALERT[1], UI.TEXT_ALERT[2], UI.TEXT_ALERT[3])
 			end
 			host:Show()
 		elseif host then

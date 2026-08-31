@@ -179,7 +179,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | averages | Mean GearScore of members that have a value (`-` when none). Average iLvl is omitted (transmog skews it). |
 | role averages | Count and mean GS per role (`Tanks: 2 (6200 gs)`); `-` when none |
 | gear summary | Counts by overall status + failed/skipped inspects; dim until first scan |
-| column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, desaturated = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
+| column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
 | line 1 | Class icon + class-colored name |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
 | line 3 | Spec- and race-specific raid buff icons (hover for name); up to 8 |

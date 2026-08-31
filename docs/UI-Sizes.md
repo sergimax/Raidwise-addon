@@ -135,7 +135,7 @@ Toolbar with **Scan**, **Export**, and **Refresh**, gear-check status hint, opti
 | Player cell | **168 × 152** | Eight text lines + one button row: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
 | Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
-| Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, desaturated = missing; hover shows spell name and provider names |
+| Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
