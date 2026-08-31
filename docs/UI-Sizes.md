@@ -116,16 +116,16 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Description block with **Scan** / **Export** / **Refresh** in a right column, gear-check status, optional progress bar, combined stats line, gear summary, then the scroll host. Two stacked blocks inside the scroll child. `LAYOUT_VERSION = 10`.
+Description block with **Scan** / **Export** / **Refresh** in a fixed right column; left column uses row-aligned hint/stats/summary beside buttons, then progress status + bar at the bottom of the left column; table at a fixed top offset. `LAYOUT_VERSION = 12`.
 
 | Element | Size | Notes |
 |---------|------|-------|
 | Button column | **104** px wide (Refresh **96** px, right-aligned) | **Scan**, **Export**, **Refresh** stacked top → bottom; **4** px gap; **8** px gap from description |
-| Short description | left column | Top-aligned; wraps beside buttons |
-| Gear check status | under description | `GameFontNormalSmall`; rating legend or scan/export/rescan progress; wraps |
-| Progress bar | height **14** | Left column only; shown during raid scan/export/rescan |
-| Stats line | height **16** | One line: `Average GS: {n}` + Tanks / Healers / Melee / Range role summaries |
-| Gear check summary | height **16** | `BAD · REPLACE · OK · GOOD · Failed`; dim until first scan |
+| Short description | left column row 1 | Beside **Scan**; wraps within first button row height |
+| Stats line | left column row 2 | Height **16**; aligned with **Export** |
+| Gear check summary | left column row 3 | Height **16**; aligned with **Refresh** |
+| Progress status | left column only | Below button rows; fixed **32** px height |
+| Progress bar | left column only | Below status (**6** px gap); height **14**; always reserved |
 | Player cell | **168 × 152** | Eight text lines + one button row: class+name, role+spec+GS/iLvl, buff icons, opinion, tags, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
 | Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
