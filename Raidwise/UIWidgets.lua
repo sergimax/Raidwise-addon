@@ -65,8 +65,10 @@ Addon.UITheme = {
 	ROSTER_STATS_H = 16,
 	RAID_STATS_H = 48,
 	RAID_PROGRESS_H = 14,
-	RAID_PROGRESS_STATUS_H = 32,
-	RAID_PROGRESS_STATUS_GAP = 6,
+	RAID_PROGRESS_STATUS_H = 28,
+	RAID_PROGRESS_STATUS_GAP = 4,
+	RAID_DESC_LINE_GAP = 2,
+	RAID_DESC_BLOCK_GAP = 4,
 
 	-- Colors — Classic theme (preview/themes.html #classic)
 	GOLD = { 1.000, 0.824, 0.000 },
@@ -733,10 +735,11 @@ function W.RosterTableTopOffset()
 end
 
 function W.RaidRosterTableTopOffset()
-	-- Fixed description header: 3 button rows + progress block + gap to table.
-	local toolbarH = (3 * UI.CD_TOOLBAR_H) + (2 * 4)
-	return toolbarH
-		+ UI.CD_HINT_TO_TABLE
+	-- Fixed description header: hint + stacked lines + progress block + gap to table.
+	return UI.CD_TOOLBAR_H
+		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
+		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
+		+ UI.RAID_DESC_BLOCK_GAP
 		+ UI.RAID_PROGRESS_STATUS_H
 		+ UI.RAID_PROGRESS_STATUS_GAP
 		+ UI.RAID_PROGRESS_H

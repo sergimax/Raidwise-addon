@@ -116,16 +116,16 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Description block with **Scan** / **Export** / **Refresh** in a fixed right column; left column uses row-aligned hint/stats/summary beside buttons, then progress status + bar at the bottom of the left column; table at a fixed top offset. `LAYOUT_VERSION = 14`.
+Description block with **Scan** / **Export** / **Refresh** in a fixed right column; left column stacks hint, stats, and summary with **2** px line gaps, then progress status + bar; table at a fixed top offset. `LAYOUT_VERSION = 15`.
 
 | Element | Size | Notes |
 |---------|------|-------|
 | Button column | **104** px wide | **Scan**, **Export**, **Refresh** stacked top → bottom; **4** px gap; **8** px gap from description |
-| Short description | left column row 1 | Beside **Scan**; wraps within first button row height |
-| Stats line | left column row 2 | Height **16**; aligned with **Export** |
-| Gear check summary | left column row 3 | Height **16**; aligned with **Refresh** |
-| Progress status | left column only | Below button rows; fixed **32** px height |
-| Progress bar | left column only | Below status (**6** px gap); height **14**; always reserved |
+| Short description | left column | Beside **Scan**; **28** px row height; wraps within column |
+| Stats line | below hint | **2** px gap; height **16** |
+| Gear check summary | below stats | **2** px gap; height **16** |
+| Progress status | below summary | **4** px gap; fixed **28** px height (two lines) |
+| Progress bar | below status | **4** px gap; height **14**; always reserved |
 | Player cell | **168 × 137** | Seven text lines + one button row: class+name, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
 | Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |

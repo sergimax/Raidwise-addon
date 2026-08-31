@@ -42,7 +42,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 14` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 15` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -160,8 +160,8 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 |-------|------------------------|
 | short description | Left column; wraps beside button column |
 | Scan / Export / Refresh | **104 × 28** each, stacked in a right column (4 px gap); top-aligned; fixed position independent of progress |
-| gear check hint / status | Left column only, below button rows; fixed **32** px height; scan/export/rescan messages |
-| progress bar | Left column only, below status; height **14**; track always reserved; fill updates during scan/export/rescan |
+| gear check hint / status | Left column; fixed **28** px height; gear-check legend or scan/export/rescan text |
+| progress bar | Below status (**4** px gap); height **14**; track always reserved |
 | averages + roles | One line: `Average GS: {n}` then Tanks / Healers / Melee / Range counts and GS |
 | gear summary | Counts by overall status + failed/skipped inspects; dim until first scan |
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |

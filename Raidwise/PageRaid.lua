@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 14
+local LAYOUT_VERSION = 15
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 137
@@ -21,9 +21,6 @@ local RAID_BLOCK_GAP = 12
 local RAID_TOOLBAR_BTN_GAP = 4
 local RAID_TOOLBAR_COL_W = 104
 local RAID_TOOLBAR_COL_GAP = 8
-local RAID_TOOLBAR_ROWS = 3
-local RAID_BTN_ROW_STEP = UI.CD_TOOLBAR_H + RAID_TOOLBAR_BTN_GAP
-local RAID_TOOLBAR_H = (RAID_TOOLBAR_ROWS * UI.CD_TOOLBAR_H) + ((RAID_TOOLBAR_ROWS - 1) * RAID_TOOLBAR_BTN_GAP)
 
 local SCAN_PHASE_KEYS = {
 	inspect = "GEAR_CHECK_RAID_PHASE_INSPECT",
@@ -201,13 +198,11 @@ local function UpdateRaidRosterStatsLabels(page, members)
 	page.statsLabel:SetText(FormatRaidRosterStatsLine(overall.gearScore, roles))
 end
 
-local function RaidDescLeftRowY(rowIndex)
-	return -rowIndex * RAID_BTN_ROW_STEP
-end
-
 local function RaidDescHeaderHeight()
-	return RAID_TOOLBAR_H
-		+ UI.CD_HINT_TO_TABLE
+	return UI.CD_TOOLBAR_H
+		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
+		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
+		+ UI.RAID_DESC_BLOCK_GAP
 		+ UI.RAID_PROGRESS_STATUS_H
 		+ UI.RAID_PROGRESS_STATUS_GAP
 		+ UI.RAID_PROGRESS_H
@@ -222,7 +217,8 @@ local function CreateRaidDescriptionLeft(page, toolbarAnchor)
 
 	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", descLeftCol, "TOPLEFT", 0, 0)
-	hint:SetPoint("BOTTOMRIGHT", descLeftCol, "TOPRIGHT", 0, RaidDescLeftRowY(1))
+	hint:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
+	hint:SetHeight(UI.CD_TOOLBAR_H)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
 	hint:SetWordWrap(true)
@@ -231,27 +227,27 @@ local function CreateRaidDescriptionLeft(page, toolbarAnchor)
 	page.hint = hint
 
 	local stats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	stats:SetPoint("TOPLEFT", descLeftCol, "TOPLEFT", 0, RaidDescLeftRowY(1))
+	stats:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
 	stats:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
 	stats:SetHeight(UI.ROSTER_STATS_H)
 	stats:SetJustifyH("LEFT")
-	stats:SetJustifyV("MIDDLE")
+	stats:SetJustifyV("TOP")
 	W.SetFontColor(stats, UI.TEXT_IDLE)
 	stats:SetText(FormatRaidRosterStatsLine(nil, {}))
 	page.statsLabel = stats
 
 	local gearSummary = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	gearSummary:SetPoint("TOPLEFT", descLeftCol, "TOPLEFT", 0, RaidDescLeftRowY(2))
+	gearSummary:SetPoint("TOPLEFT", stats, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
 	gearSummary:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
 	gearSummary:SetHeight(UI.ROSTER_STATS_H)
 	gearSummary:SetJustifyH("LEFT")
-	gearSummary:SetJustifyV("MIDDLE")
+	gearSummary:SetJustifyV("TOP")
 	gearSummary:SetText(W.T("GEAR_CHECK_RAID_SUMMARY_EMPTY"))
 	W.SetFontColor(gearSummary, UI.TEXT_DISABLED)
 	page.gearCheckSummaryLabel = gearSummary
 
 	local gearCheckStatusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	gearCheckStatusLabel:SetPoint("TOPLEFT", descLeftCol, "TOPLEFT", 0, -(RAID_TOOLBAR_H + UI.CD_HINT_TO_TABLE))
+	gearCheckStatusLabel:SetPoint("TOPLEFT", gearSummary, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
 	gearCheckStatusLabel:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
 	gearCheckStatusLabel:SetHeight(UI.RAID_PROGRESS_STATUS_H)
 	gearCheckStatusLabel:SetJustifyH("LEFT")
