@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 8
+local SHELL_LAYOUT_VERSION = 9
 
 local MENU_ICON_SIZE = 16
 
@@ -233,6 +233,35 @@ local function CreateTitleBar(frame)
 	return titleBar
 end
 
+local MENU_HEADER_GAP = 8
+
+local function UpdateMenuHeaderLayout(frame)
+	if not frame or not frame.menuTitleBar or not frame.menuNameLabel or not frame.menuVersionLabel then
+		return
+	end
+	local titleBar = frame.menuTitleBar
+	local nameLabel = frame.menuNameLabel
+	local versionLabel = frame.menuVersionLabel
+	local nameWidth = nameLabel:GetStringWidth() or 0
+	local versionWidth = versionLabel:GetStringWidth() or 0
+	local totalWidth = nameWidth + MENU_HEADER_GAP + versionWidth
+	nameLabel:ClearAllPoints()
+	versionLabel:ClearAllPoints()
+	nameLabel:SetPoint("LEFT", titleBar, "CENTER", -totalWidth / 2, 0)
+	versionLabel:SetPoint("LEFT", nameLabel, "RIGHT", MENU_HEADER_GAP, 0)
+end
+
+local function UpdateMenuHeader(frame)
+	if not frame then
+		return
+	end
+	if frame.menuVersionLabel then
+		frame.menuVersionLabel:SetText("v" .. tostring(Addon.version))
+		W.SetFontColor(frame.menuVersionLabel, UI.TEXT_DISABLED)
+	end
+	UpdateMenuHeaderLayout(frame)
+end
+
 local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
 	local button = CreateFrame("Button", nil, parent)
 	button:SetSize(UI.MENU_WIDTH - 12, UI.MENU_BTN_H)
@@ -327,17 +356,17 @@ function Addon:CreateMainFrame()
 	W.ApplyPlainPanel(menuTitleBar, UI.TITLE_BG)
 	W.AttachDragHandle(menuTitleBar, frame)
 
-	local menuNameLabel = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	menuNameLabel:SetPoint("LEFT", UI.STATUS_PAD_X, 0)
+	local menuNameLabel = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	menuNameLabel:SetText("Raidwise")
 	W.SetFontColor(menuNameLabel, UI.GOLD)
 
 	local menuVersionLabel = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	menuVersionLabel:SetPoint("LEFT", menuNameLabel, "RIGHT", UI.STATUS_GAP, 0)
 	menuVersionLabel:SetText("v" .. tostring(Addon.version))
-	W.SetFontColor(menuVersionLabel, UI.TEXT_IDLE)
+	W.SetFontColor(menuVersionLabel, UI.TEXT_DISABLED)
+	frame.menuTitleBar = menuTitleBar
 	frame.menuNameLabel = menuNameLabel
 	frame.menuVersionLabel = menuVersionLabel
+	UpdateMenuHeaderLayout(frame)
 
 	frame.menuButtons = {}
 	local menuY = -(UI.TITLE_H + 8)
@@ -384,7 +413,7 @@ function Addon:RefreshLocalizedUI()
 	end
 
 	if frame.menuVersionLabel then
-		frame.menuVersionLabel:SetText("v" .. tostring(Addon.version))
+		UpdateMenuHeader(frame)
 	end
 	for index = 1, #PAGES do
 		local button = frame.menuButtons[index]

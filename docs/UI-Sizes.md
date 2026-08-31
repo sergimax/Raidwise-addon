@@ -10,9 +10,8 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 |---------|------|-------|
 | Content frame (`RaidwiseFrame`) | **890 × 940** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
 | Menu panel (`RaidwiseMenu`) | **170 × 940** | Flush against content left edge (no gap) |
-| Menu title bar | height **20** | Top of menu; drag handle; **Raidwise** + addon semver |
-| Menu title padding | 8 px left | Same as former status bar (`STATUS_PAD_X`) |
-| Menu title gap | 12 px | Between name and version (`STATUS_GAP`) |
+| Menu title bar | height **20** | Top of menu; drag handle; centered **Raidwise** + dim addon semver (same fonts/colors as content title + page `vN`) |
+| Menu title gap | 8 px | Between name and version (matches content title bar) |
 | Title bar | height **20** | Top of content; drag handle; **active menu name** + page `vN` + close **X** |
 | Close button | **16 × 16** | Right side of content title bar |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
