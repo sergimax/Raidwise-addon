@@ -33,7 +33,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
 | Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
 
-Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Party roster** (Prayer of Fortitude), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **Gear check (target)** (spyglass), **History** (book), **Settings** (gear), **Info** (question mark).
+Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **Gear check (target)** (spyglass), **History** (book), **Settings** (gear), **Info** (question mark).
 
 ## Content padding
 
@@ -96,24 +96,6 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Vertical scrollbar | **16** | Right of the table; hidden if unused |
 | Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
 
-## Party roster tab
-
-Same toolbar as Character cooldowns, plus an averages line, then the scroll table (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars).
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
-| Averages line | height **16** | `Average iLvl: {n}     Average GS: {n}`; 8 px gap above and below |
-| Columns | **90 + 28 + 28 + 166 + 52 + 44 + 60 + 100 + 176 = 744** | Name, class, spec, buffs, GS, iLvl, Opinion, Tags, Guild |
-| Class column | **18** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
-| Spec column | **18** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
-| Buffs column | **166** | Up to **8** raid-buff icons (**18** px, 2 px gap); hover shows the spell name |
-| Opinion column | **60**, center | Symbol `+` / `=` / `-`; color-coded; tooltip shows full label |
-| Tags column | **100** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
-| Guild column | **176** | `GuildName (Rank)`; `-` when not in a guild |
-
-Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Character profile. Raid members are not listed here.
-
 ## Raid roster tab
 
 Description block with **Scan** / **Export** / **Refresh** / **Show as a text** / **Select all** in a fixed right column; left column stacks hint, stats, and summary with **2** px line gaps, then progress status + bar; roster table or export copy box at a fixed top offset (clears the full **5**-button toolbar). `LAYOUT_VERSION = 18`.
@@ -134,6 +116,7 @@ Description block with **Scan** / **Export** / **Refresh** / **Show as a text** 
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
 | Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
+| Cell hover tooltip | — | Opinion, tags, **Guild: Name (Rank)**, gear-check grades |
 
 Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
 
@@ -172,7 +155,7 @@ Raid-wide gear check is integrated into **Raid roster** (see that section). Ther
 
 ## Character profile
 
-Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Party roster, Raid roster, or History; Esc-close via `UISpecialFrames`. No window scroll — tab panels fill the body below the summary. Layout rebuild gated by `PROFILE_LAYOUT_VERSION` (title-bar badge `vN`).
+Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Raid roster or History; Esc-close via `UISpecialFrames`. No window scroll — tab panels fill the body below the summary. Layout rebuild gated by `PROFILE_LAYOUT_VERSION` (title-bar badge `vN`).
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -200,7 +183,7 @@ Rating editor requires a valid GUID; controls are disabled when GUID is missing.
 
 ## History tab
 
-Same toolbar + scroll table as Party roster (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
+Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
 
 | Element | Size | Notes |
 |---------|------|-------|

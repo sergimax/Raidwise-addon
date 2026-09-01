@@ -821,6 +821,10 @@ function W.ShowMemberRatingTooltip(anchor, member, opts)
 	if tags ~= "" then
 		GameTooltip:AddLine(W.T("COL_TAGS") .. ": " .. tags, 0.8, 0.8, 0.8, true)
 	end
+	local guildText = W.FormatGuildDisplay(member.guildName, member.guildRank)
+	if guildText and guildText ~= "-" then
+		GameTooltip:AddLine(W.T("COL_GUILD") .. ": " .. guildText, 0.8, 0.8, 0.8, true)
+	end
 	if opts and opts.gearCheck then
 		W.AppendGearCheckRaidTooltip(opts.gearEntry)
 	end

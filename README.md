@@ -53,23 +53,15 @@ Esc or the title **X** closes the window.
 - **Select all** highlights the JSON for Ctrl+C
 - `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
 
-**Party roster** tab:
-
-- Table of the current 5-player party (you alone when not grouped)
-- Line above the table: average item level and average GearScore
-- Columns: name, class icon, spec icon, raid-buff icons, GearScore, average item level, personal opinion, tags, guild with rank
-- Click a row to open **Character profile**
-- **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
-
 **Raid roster** tab:
 
-- Two blocks: raid groups **1–5**, then **6–8**
-- Line above the cells: overall average GearScore; second line is per-role count and average GS (`Tanks: 2 (6200 gs)`)
-- Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, personal opinion, tags, and gear-check rows
-- Role icon matches RaidBuffStatus (tank / healer / melee / ranged)
-- Buff icons are spec- and race-specific raid utilities (hover for the name)
-- **Profile** and **Gear check** buttons on filled cards (card click also opens **Character profile**)
+- Two blocks: raid groups **1–5**, then **6–8**; when not in a raid, your party fills group 1
+- Lines above the grid: overall average GearScore; per-role count and average GS; gear-check summary after scan
+- Each player card: class + name, role + spec + GS/iLvl, raid-buff icons, personal opinion line, armor/weap and ench/sock grades, **Profile** / **Gear** / **Rescan**
+- Hover a card for opinion, tags, **guild (rank)**, and gear-check details
+- **Scan** / **Export** / **Show as a text** for raid-wide gear check and text export (see [`docs/UI-Views.md`](docs/UI-Views.md))
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
+- Card click opens **Character profile**
 
 **Raid composition** tab:
 
@@ -89,13 +81,6 @@ Esc or the title **X** closes the window.
 - Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
 - `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
 
-**Raid roster** tab (gear check integrated):
-
-- **Scan** inspects party/raid members one at a time; summary line shows BAD / REPLACE / OK / GOOD / Failed counts
-- Overall meanings match Gear check (target): GOOD = preferred, OK = usable, REPLACE = soft issues, BAD = wrong for spec
-- Each player cell adds two gear-check rows: Overall and BAD / Repl. / issue counts
-- **Profile** opens **Character profile**; **Gear check** opens the full report on **Gear check (target)** when that player has been scanned
-
 **History** tab:
 
 - Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
@@ -110,7 +95,7 @@ Esc or the title **X** closes the window.
 - On **Facts**, set role / identity facts (up to 4)
 - On **Events**, pick a type and **Add event** / **Remove** (draft until **Save and Update**; context captured when adding)
 - On **Memo**, write a private free-form note with **Save** / **Reset** (not shared, not logged in History)
-- Party, Raid, and History show your saved opinion and tag summary; click a row or card to open the profile
+- Raid and History show your saved opinion and tag summary; click a row or card to open the profile
 - **Community note** is currently a mock preview for a future addon exchange / web app feature
 
 **Settings** tab:
@@ -163,7 +148,6 @@ Raidwise/
   GearCheck.lua       # collector + normalize (schemaVersion 2) + evaluate + dump
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
-  PageParty.lua       # Party roster tab
   PageRaid.lua        # Raid roster tab
   PageComposition.lua # Raid composition tab
   PageGearCheckTarget.lua # Gear check (target) tab

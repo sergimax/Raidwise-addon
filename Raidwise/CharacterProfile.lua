@@ -1022,9 +1022,7 @@ end
 function Addon:RefreshRatingViews()
 	local frame = self.mainFrame
 	if frame and frame:IsShown() then
-		if frame.selectedTab == "party" and self.RefreshPartyView then
-			self:RefreshPartyView(false)
-		elseif frame.selectedTab == "raid" and self.RefreshRaidRosterView then
+		if frame.selectedTab == "raid" and self.RefreshRaidRosterView then
 			self:RefreshRaidRosterView(false)
 		elseif frame.selectedTab == "history" and self.RefreshHistoryView then
 			self:RefreshHistoryView()

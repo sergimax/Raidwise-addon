@@ -21,7 +21,6 @@ Menu tabs (top to bottom; each row has a 16×16 category icon + label):
 ```text
 [ watch ] Character cooldowns
 [ note  ] Export gear and CDs
-[ PoF   ] Party roster
 [ glory ] Raid roster
 [ BoK   ] Raid composition
 [ scope ] Gear check (target)
@@ -30,18 +29,17 @@ Menu tabs (top to bottom; each row has a 16×16 category icon + label):
 [  ?    ] Info
 ```
 
-Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Spell_Holy_PrayerOfFortitude`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
+Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
 ## Layout versions
 
 Independent from addon semver (`Addon.version` in the menu title bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 9` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 10` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 27` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
-| Party | `LAYOUT_VERSION = 1` | `PageParty.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 18` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
@@ -100,41 +98,9 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 
 Rows come only from current lockouts; each instance is one row with all size/mode variants combined in character cells (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40). Expired lockouts are dropped.
 
-## Party roster
-
-Current 5-player party (you plus up to four others). Solo shows only you. Raid members are listed on Raid roster. Spec for other members is filled via inspect when they are nearby.
-
-```text
-[ short description ]                              [ Refresh ]
-        8 px gap
-[ Average iLvl: 264     Average GS: 6158 ]
-        8 px gap
-[ Name | (class) | (spec) | (buffs) | GS | iLvl | Opinion | Tags | Guild (rank) ]
-[ Rhee |  SH   |  Enh   |  icons  | 6158 | 264 |   +   | Friendly, Good Tank | MyGuild (Member) ]
-```
-
-| Block | In-game text / control |
-|-------|------------------------|
-| short description | “Current party (5 players max). Refresh after gear or spec changes.” |
-| Refresh | Re-reads GearScore, item levels, guild info; re-queues inspect for specs (hover tip) |
-| averages | Mean iLvl and GearScore of members that have a value (`-` when none) |
-| Name | Class-colored character name |
-| Class | Class icon (`CLASS_ICON_TCOORDS`); hover shows localized class name |
-| Spec | Primary talent tree icon only; hover shows spec name |
-| Buffs | Spec- and race-specific raid buff icons (hover for name); up to 8 |
-| GS | GearScore when the GearScore addon has scanned the player |
-| iLvl | Average equipped item level (tooltip scan when item cache is cold) |
-| Opinion | Saved personal opinion symbol: `+` (Positive), `=` (Neutral), `-` (Negative); color-coded |
-| Tags | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
-| Guild | `GuildName (Rank)` from `GetGuildInfo`; `-` when not in a guild |
-| hover | Tooltip shows full opinion label and tag summary |
-| click | Left-click a row opens **Character profile** |
-
-Personal opinion and tags come from `RaidwiseDB.history` (keyed by GUID). Default opinion is Neutral with no tags.
-
 ## Raid roster
 
-Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1.
+Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1 (same inspect/GS pipeline as before; no separate party tab).
 
 ```text
 [ short description (left, wraps)                         ] [ Scan    ]
@@ -173,7 +139,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 5 | `Armor/weap: {GOOD|OK|REPLACE|BAD}` (colored grade) or fail / not scanned (`—`) |
 | line 6 | `Ench/sock: {GOOD|OK|REPLACE|BAD}` (colored grade); blank when not scanned |
 | line 7 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
-| hover | Opinion + tags tooltip + **gear check** section (both grades with flagged slot details, or scan status) |
+| hover | Opinion + tags + **Guild: Name (Rank)** tooltip + **gear check** section (both grades with flagged slot details, or scan status) |
 | click | Left-click card → **Character profile**; **Profile** / **Gear check** / **Rescan** buttons do their own actions |
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
@@ -258,7 +224,7 @@ Raid-wide gear check lives on **Raid roster** (Scan button + report rows per pla
 
 ## Character profile
 
-Standalone window (**460 × 560**) opened from Party roster, Raid roster, or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
+Standalone window (**460 × 560**) opened from Raid roster or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
 [ Rhee - Character profile                              v27   X ]
@@ -313,7 +279,7 @@ Standalone window (**460 × 560**) opened from Party roster, Raid roster, or His
 | editable | Opinion, tags, facts, events, and notes require a valid GUID; controls are disabled otherwise |
 | persistence | Opinion/tags/facts in `RaidwiseDB.history[guid].rating.personal`; events in `.events`; notes in `.notes`; change log in `.changes`; `meetCount` for party/raid encounters |
 
-Changing opinion, tags, facts, or events (via **Save and Update**) refreshes Party roster, Raid roster, and History when the profile closes or Save and Update is pressed. Closing without Save discards Edit note / Facts / Events drafts.
+Changing opinion, tags, facts, or events (via **Save and Update**) refreshes Raid roster and History when the profile closes or Save and Update is pressed. Closing without Save discards Edit note / Facts / Events drafts.
 
 See also [Reputation.md](Reputation.md) for entity definitions and future share matrix.
 

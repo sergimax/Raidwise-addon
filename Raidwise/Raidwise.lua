@@ -152,9 +152,7 @@ function Addon:OnGuildInfoUpdated()
 	if not frame then
 		return
 	end
-	if frame.selectedTab == "party" and self.RefreshPartyView then
-		self:RefreshPartyView(false)
-	elseif frame.selectedTab == "raid" and self.RefreshRaidRosterView then
+	if frame.selectedTab == "raid" and self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(false)
 	elseif frame.selectedTab == "composition" and self.RefreshCompositionView then
 		self:RefreshCompositionView(false)
@@ -163,7 +161,7 @@ end
 
 function Addon:OnGroupRosterUpdated()
 	local frame = self.mainFrame
-	if frame and frame:IsShown() and (frame.selectedTab == "party" or frame.selectedTab == "raid" or frame.selectedTab == "composition") then
+	if frame and frame:IsShown() and (frame.selectedTab == "raid" or frame.selectedTab == "composition") then
 		self:RefreshPartyData(false)
 		return
 	end

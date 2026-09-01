@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 9
+local SHELL_LAYOUT_VERSION = 10
 
 local MENU_ICON_SIZE = 16
 
@@ -12,7 +12,6 @@ local MENU_ICON_SIZE = 16
 local PAGES = {
 	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01" },
 	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01" },
-	{ id = "party", key = "Party", labelKey = "TAB_PARTY", icon = "Interface\\Icons\\Spell_Holy_PrayerOfFortitude" },
 	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider" },
 	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings" },
 	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03" },
@@ -39,7 +38,7 @@ end
 
 function Addon:GetStartupTab()
 	local tabId = self.db and self.db.startupTab
-	if tabId == "gearraid" then
+	if tabId == "gearraid" or tabId == "party" then
 		tabId = "raid"
 		if self.db then
 			self.db.startupTab = tabId
@@ -48,7 +47,7 @@ function Addon:GetStartupTab()
 	if IsAllowedStartupTab(tabId) then
 		return tabId
 	end
-	if self.db and (self.db.startupTab == "info" or self.db.startupTab == "gearraid") then
+	if self.db and (self.db.startupTab == "info" or self.db.startupTab == "gearraid" or self.db.startupTab == "party") then
 		self.db.startupTab = "cooldowns"
 	end
 	return "cooldowns"
@@ -175,7 +174,7 @@ function Addon:SelectTab(tabId)
 		self:SaveCurrentCharacterLockouts()
 		RequestRaidInfo()
 		self:RefreshCooldownTable()
-	elseif tabId == "party" or tabId == "raid" or tabId == "composition" then
+	elseif tabId == "raid" or tabId == "composition" then
 		self:RefreshPartyData(true)
 	elseif tabId == "history" then
 		if self.RecordCurrentGroupHistory then
@@ -495,17 +494,6 @@ function Addon:RefreshLocalizedUI()
 		end
 	end
 
-	local partyPage = frame.pages.party
-	if partyPage then
-		if partyPage.hint then
-			partyPage.hint:SetText(W.T("PARTY_HINT"))
-		end
-		if partyPage.refreshBtn then
-			partyPage.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
-		end
-		ApplyPageHeaders(partyPage)
-	end
-
 	local raidPage = frame.pages.raid
 	if raidPage then
 		local raidModule = Addon.Pages and Addon.Pages.Raid
@@ -555,9 +543,6 @@ function Addon:RefreshLocalizedUI()
 
 	if self.RefreshCooldownTable then
 		self:RefreshCooldownTable()
-	end
-	if self.RefreshPartyView then
-		self:RefreshPartyView(false)
 	end
 	if self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(false)

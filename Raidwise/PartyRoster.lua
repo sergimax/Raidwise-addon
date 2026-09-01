@@ -675,9 +675,6 @@ function Addon:OnInspectTalentReady()
 
 	inspectPending = nil
 
-	if self.RefreshPartyView then
-		self:RefreshPartyView(false)
-	end
 	if self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(false)
 	end
@@ -694,9 +691,6 @@ end
 function Addon:RefreshPartyData(refreshGearScore)
 	if refreshGearScore == nil then
 		refreshGearScore = true
-	end
-	if self.RefreshPartyView then
-		self:RefreshPartyView(refreshGearScore)
 	end
 	if self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(refreshGearScore)

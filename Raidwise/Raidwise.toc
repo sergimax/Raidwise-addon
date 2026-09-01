@@ -28,7 +28,6 @@ GearCheckSavedReports.lua
 GearCheck.lua
 PageCooldowns.lua
 PageExport.lua
-PageParty.lua
 PageRaid.lua
 PageComposition.lua
 PageGearCheckTarget.lua

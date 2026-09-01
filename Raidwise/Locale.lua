@@ -76,7 +76,8 @@ local Translations = {
 			.. "If the GearScore addon is loaded, the current score is included.",
 		INFO_SECTION_PARTY = "Lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, personal opinion, and tags. "
 			.. "Click a row to open Character profile.",
-		INFO_SECTION_RAID = "Shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl). "
+		INFO_SECTION_RAID = "Shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl, gear check). "
+			.. "When not in a raid, your party fills group 1. Hover a card for opinion, tags, guild (rank), and gear-check details. "
 			.. "Gear check Scan adds Overall and issue counts per player. "
 			.. "Use Profile or Gear check on a filled card (or click the card for Character profile).",
 		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
@@ -616,7 +617,8 @@ local Translations = {
 			.. "Если установлен аддон GearScore, в экспорт попадает текущий счёт.",
 		INFO_SECTION_PARTY = "Текущая группа из 5 игроков: спек, иконки рейд-баффов, GearScore, средний iLvl, гильдия, личное мнение и теги. "
 			.. "Клик по строке открывает профиль персонажа.",
-		INFO_SECTION_RAID = "Группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl). "
+		INFO_SECTION_RAID = "Группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl, проверка экипа). "
+			.. "Вне рейда группа занимает слот 1. Наведение: мнение, теги, гильдия (ранг), детали проверки экипа. "
 			.. "«Сканировать» добавляет итог Gear Check и счётчики проблем. "
 			.. "Кнопки «Профиль» и «Экип» на карточке (или клик по карточке — профиль персонажа).",
 		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "

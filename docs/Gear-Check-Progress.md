@@ -446,7 +446,7 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 5. While raid scan runs, **Gear check (target)** Scan shows busy message.
 6. Spec icons/names in raid cells should match that player (not the previous inspect target); Overall should match a single-target scan for the same player.
 
-Inspect waits for **both** gear slots and talent spec (`INSPECT_TALENT_READY`) before scoring. Spec is not read from the previous inspect buffer. Party roster inspect is paused during gear scans to avoid `NotifyInspect` conflicts.
+Inspect waits for **both** gear slots and talent spec (`INSPECT_TALENT_READY`) before scoring. Spec is not read from the previous inspect buffer. Party inspect queue is paused during gear scans to avoid `NotifyInspect` conflicts.
 
 ---
 

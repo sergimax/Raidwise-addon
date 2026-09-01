@@ -87,8 +87,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `RefreshLocalizedUI` | Shell | `SetLocale` |
 | `RefreshCooldownTable` | Cooldowns page | Lockout events |
 | `FlushExportToWindow` | Export page | Lockout export path |
-| `RefreshPartyView` | Party page | Roster, profile, guild |
-| `RefreshRaidRosterView` | Raid page | Roster, guild |
+| `RefreshRaidRosterView` | Raid page | Roster, gear check, guild in tooltip |
 | `RefreshCompositionView` | Composition page | Roster, guild |
 | `RefreshHistoryView` | History page | History record, profile |
 | `ShowRaidCharacterWindow` | Profile | Party / raid / history clicks |
@@ -131,11 +130,11 @@ Cross-module entry points on `Raidwise` (domain files do not create frames):
 `Addon:RefreshPartyData(refreshGearScore)` (PartyRoster):
 
 1. Rebuilds party/raid roster data (and inspect queue as needed).
-2. Calls `RefreshPartyView`, `RefreshRaidRosterView`, and `RefreshCompositionView` when those methods exist.
+2. Calls `RefreshRaidRosterView` and `RefreshCompositionView` when those methods exist.
 
-Group roster events (`PARTY_MEMBERS_CHANGED` / `RAID_ROSTER_UPDATE`) call `RefreshPartyData` when the main window is open on party/raid/composition; otherwise they only record history.
+Group roster events (`PARTY_MEMBERS_CHANGED` / `RAID_ROSTER_UPDATE`) call `RefreshPartyData` when the main window is open on raid/composition; otherwise they only record history.
 
-Profile save/close refreshes the visible party, raid, or history tab.
+Profile save/close refreshes the visible raid or history tab.
 
 ## Known limitations
 

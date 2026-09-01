@@ -17,7 +17,6 @@ local SECTION_GAP = 12
 local SECTION_BODY_KEYS = {
 	cooldowns = "INFO_SECTION_COOLDOWNS",
 	export = "INFO_SECTION_EXPORT",
-	party = "INFO_SECTION_PARTY",
 	raid = "INFO_SECTION_RAID",
 	composition = "INFO_SECTION_COMPOSITION",
 	geartarget = "INFO_SECTION_GEARTARGET",
