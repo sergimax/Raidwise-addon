@@ -327,9 +327,8 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 
 [ Startup page heading ]
 [ short hint ]
-( ) Cooldowns   ( ) Export      ( ) Party       ( ) Raid
-( ) Composition ( ) Gear target ( ) Gear raid   ( ) History
-( ) Settings
+( ) Cooldowns   ( ) Export      ( ) Raid        ( ) Composition
+( ) Gear target ( ) History     ( ) Settings
 
 [ Unit tooltips heading ]
 [ short hint ]
@@ -352,7 +351,7 @@ Stacked (variant)
 | language heading | Language |
 | short hint | “Interface language. Saved on this account.” |
 | English / Русский | Menu-style buttons; the active locale is selected. Choice is stored in `RaidwiseDB.locale` (`enUS` / `ruRU`). Default is the client locale. |
-| Startup page | Exclusive radio group for left-menu pages (**Info** excluded); selected page opens on `/raidwise`. Stored in `RaidwiseDB.startupTab` (default `cooldowns`). |
+| Startup page | Exclusive radio group for left-menu pages (**Info** excluded); selected page opens on `/raidwise`. Stored in `RaidwiseDB.startupTab` (default `cooldowns`). Saved `party` / `gearraid` migrate to `raid`. |
 | Unit tooltips | Checkboxes stored in `RaidwiseDB.tooltip` (`hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags`); default all shown |
 | Preview | Sample compact (live) and stacked layout lines; updates when checkboxes change |
 

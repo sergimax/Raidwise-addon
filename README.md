@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.16.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--25-blue)
+![](https://img.shields.io/badge/current_version-1.17.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--02-blue)
 
 
 ## Install
@@ -31,10 +31,11 @@ In-game slash commands:
 | `/raidwise close` or `/rw close` | Close the main window |
 | `/raidwise gearcheck` or `/rw gearcheck` | Open Gear check (target) and scan |
 | `/rw gearcheck summary` (also `items`, `enchants`, `gems`, `ok`) | Print that report to your chat (scans first if needed) |
+| `/rw gearcheck raid dump` | Open Raid roster and show the last raid gear-check dump for copy |
 | `/rw gearcheck test` | Offline rules self-test |
 
-Plain panels, a **left menu**, and a content page.
-The status bar shows the addon name and version.
+Plain panels, a **left menu** grouped as Personal / Raiding / Other, and a content page.
+The menu title bar shows **Raidwise** and the addon version.
 Esc or the title **X** closes the window.
 
 **Character cooldowns** tab:
@@ -108,7 +109,7 @@ Esc or the title **X** closes the window.
 
 **Info** tab:
 
-- About overview plus per-menu feature sections (same icons as the left menu, each with that view’s layout `vN`)
+- About overview (one sentence per line, with lists) plus per-menu feature sections (same icons as the left menu, each with that view’s layout `vN`)
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Reputation model: [`docs/Reputation.md`](docs/Reputation.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
