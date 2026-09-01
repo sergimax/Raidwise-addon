@@ -45,6 +45,10 @@ Addon.UITheme = {
 	-- Info tab
 	INFO_BLOCK_GAP = 14,
 	INFO_HEADING_GAP = 8,
+	INFO_SECTION_GAP = 16,
+	INFO_HEADING_SIZE = 16,
+	INFO_BODY_SIZE = 15,
+	INFO_LINE_SPACING = 2,
 	URL_BOX_H = 28,
 
 	-- Cooldowns tab
@@ -181,6 +185,17 @@ end
 
 function W.SetFontColor(fontString, color)
 	fontString:SetTextColor(color[1], color[2], color[3], color[4] or 1)
+end
+
+function W.ApplyFontSize(fontString, size)
+	if not fontString or not size then
+		return
+	end
+	local path, _, flags = fontString:GetFont()
+	if not path then
+		return
+	end
+	fontString:SetFont(path, size, flags or "")
 end
 
 function W.ColorText(color, text)

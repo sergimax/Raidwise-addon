@@ -50,7 +50,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
-| Info | `LAYOUT_VERSION = 3` | `PageInfo.lua` | Shell title bar (next to page name) |
+| Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
 
@@ -362,9 +362,11 @@ Switching language updates the left menu, page labels, and visible tables withou
 
 ```text
 [ about heading ]
-[ short intro + slash commands ]
+[ intro sentences ]
+[ slash command list ]
 [ menu icon ] Menu name  vN
-[ section description ]
+[ section sentences ]
+[ section list ]
 … (one block per menu page except Info)
 [ github heading ]
 [ short hint about copy ]
@@ -374,8 +376,8 @@ Switching language updates the left menu, page labels, and visible tables withou
 | Block | In-game text / control |
 |-------|------------------------|
 | about heading | About |
-| intro | Raid-prep overview and slash commands (`/raidwise`, `/rw`, `close`) |
-| feature sections | Same icons as the left menu; title = menu label; **`vN`** = that page’s `LAYOUT_VERSION`; body describes the view |
+| intro | Raid-prep overview, then a slash-command list (`/raidwise`, `/rw`, `close`, `gearcheck`); one sentence per line |
+| feature sections | Same icons as the left menu; title = menu label; **`vN`** = that page’s `LAYOUT_VERSION`; body is sentences plus a list of what the view does |
 | github heading | GitHub |
 | short hint | “Select the URL, then press Ctrl+C to copy.” |
 | input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |

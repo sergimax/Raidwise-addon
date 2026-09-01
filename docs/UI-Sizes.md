@@ -74,8 +74,9 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Element | Size | Notes |
 |---------|------|-------|
 | Feature icon | **18 × 18** | Same `Interface\Icons\…` as left menu; TexCoord crop `0.07–0.93` |
-| Feature title + `vN` | gold title, disabled version | Version is that page’s `LAYOUT_VERSION` |
-| Gap between feature blocks | **12** px | |
+| Feature title + `vN` | gold title **16** pt, disabled version | Version is that page’s `LAYOUT_VERSION` |
+| Body / intro / repo hint | **15** pt, line spacing **2** | `GameFontHighlight` face via `ApplyFontSize`; sentences and `- ` lists |
+| Gap between feature blocks | **16** px | |
 | Heading → body | 8 px | About / GitHub |
 | Body → next heading | 14 px | |
 | URL copy box | height **28** | Black fill; internal 8 px horizontal / 4 px vertical padding |
@@ -217,6 +218,8 @@ Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels
 | Menu / action buttons | `GameFontNormalSmall` | Idle `{1.00, 0.93, 0.73}`; hover `{1.00, 0.91, 0.55}`; selected gold |
 | Version / status / hints | `GameFontNormalSmall` | Idle text / `TEXT_DISABLED` |
 | Checkbox & section labels | `GameFontHighlight` | |
+| Info headings | `GameFontNormal` at **16** pt | About / GitHub / feature titles |
+| Info body | `GameFontHighlight` at **15** pt | Intro, feature bodies, repo hint |
 | Export JSON / profile notes | `ChatFontNormal` | |
 
 ## Shared widgets (`UIWidgets.lua`)
@@ -227,6 +230,7 @@ Key helpers used across pages (not on `Raidwise` directly):
 |--------|------|
 | `ApplyPlainPanel` / `ApplyPanelBorderColor` | Flat backdrop fill (no border edges) |
 | `CreatePlainButton` / `SetPlainButtonState` / `SetMenuButtonState` | Menu and action buttons |
+| `ApplyFontSize` | Change a FontString’s point size (keeps face and flags) |
 | `CreateCopyBox` / `CreateLineCopyBox` | Export and URL copy areas |
 | `SetSpecOrClassIcon` / `SetSpellIconTexture` / `CreateBuffIconHost` | Class, spec, buff icons |
 | `TableIconInset` / `TableIconTopOffset` | Center icons in table rows |

@@ -69,33 +69,66 @@ local Translations = {
 		EXPORT_SELECTED = "Selected — press Ctrl+C to copy.",
 
 		INFO_ABOUT = "About",
-		INFO_INTRO = "Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a: party and raid rosters, player ratings, meeting history, account-wide lockouts, and character export.\n\n"
-			.. "Slash commands: /raidwise or /rw to open; /raidwise close or /rw close to close; /rw gearcheck [summary|items|enchants|gems|test].",
-		INFO_SECTION_COOLDOWNS = "Shows raid and dungeon lockouts for every character saved on this account, "
-			.. "including when each character was last checked. "
-			.. "Log in on each alt to record their lockouts. "
-			.. "Use Remove on other character columns to drop obsolete alts; logging in again restores them. "
-			.. "A Currency row shows gold and badge icon–quantity pairs from the in-game Currency tab.",
-		INFO_SECTION_EXPORT = "Builds JSON with name, class, spec, equipped gear, bag items, and raid or dungeon lockouts. "
-			.. "Turn on Include item names to add display names next to item ids. "
-			.. "If the GearScore addon is loaded, the current score is included.",
-		INFO_SECTION_PARTY = "Lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, personal opinion, and tags. "
+		INFO_INTRO = "Raidwise is a raid-prep addon for Wrath of the Lich King 3.3.5a.\n"
+			.. "It covers party and raid rosters, player ratings, meeting history, account-wide lockouts, and character export.\n"
+			.. "\n"
+			.. "Slash commands:\n"
+			.. "- /raidwise or /rw — open the window\n"
+			.. "- /raidwise close or /rw close — close the window\n"
+			.. "- /rw gearcheck — open Gear check (target) and scan\n"
+			.. "- /rw gearcheck summary|items|enchants|gems|ok — print that report to your chat\n"
+			.. "- /rw gearcheck test — offline rules self-test",
+		INFO_SECTION_COOLDOWNS = "Lockouts and currency for every character saved on this account.\n"
+			.. "\n"
+			.. "- Raid and dungeon lockouts, with last-check time per character\n"
+			.. "- Log in on each alt to record them\n"
+			.. "- Remove drops an obsolete column; logging in again restores it\n"
+			.. "- Currency row shows gold and badge icon–quantity pairs from the Currency tab",
+		INFO_SECTION_EXPORT = "Export this character as JSON for copy and paste.\n"
+			.. "\n"
+			.. "- Name, class, spec, equipped gear, bag items, and raid or dungeon lockouts\n"
+			.. "- Include item names adds display names next to item ids\n"
+			.. "- GearScore is included when the GearScore addon is loaded",
+		INFO_SECTION_PARTY = "Lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, personal opinion, and tags.\n"
 			.. "Click a row to open Character profile.",
-		INFO_SECTION_RAID = "Shows raid groups 1–5 and 6–8 as player cards (class, role, spec, raid-buff icons, GearScore, iLvl, gear check). "
-			.. "When not in a raid, your party fills group 1. Hover a card for opinion, tags, guild (rank), and gear-check details. "
-			.. "Gear check Scan adds Overall and issue counts per player. "
-			.. "Use Profile or Gear check on a filled card (or click the card for Character profile).",
-		INFO_SECTION_COMPOSITION = "Checks the current party or raid for classes, roles, and Wowhead-style exclusive buffs, external CDs, damage reduction, debuffs, and mana/health regen. "
-			.. "Gold means covered; dim means missing. Section titles show present/total; red title means nothing in that section is present. "
-			.. "Report missing posts absent classes to raid or party chat. Shift-click an effect row to post that effect with provider classes and spells.",
-		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target (or yourself). Overall: GOOD (preferred), OK (usable), REPLACE (soft issues), BAD (wrong for spec). Spec ranks: preferred / acceptable / unwanted / forbidden. Not BiS or build optimization.",
-		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time). Group grid shows Overall per player (GOOD / OK / REPLACE / BAD); Gear check on a scanned card opens the full report on Gear check (target).",
-		INFO_SECTION_HISTORY = "Keeps party and raid players you have grouped with, including where and when you met them. "
-			.. "That list is saved on this account and stays after logout. "
-			.. "Character profile lets you save a personal positive, neutral, or negative opinion, tags, facts, and events. "
-			.. "Community opinion is currently a mock preview for future exchange/web features.",
-		INFO_SECTION_SETTINGS = "Changes the interface language (English or Russian). "
-			.. "Tooltip options control which personal and community rating lines appear on player unit tooltips.",
+		INFO_SECTION_RAID = "Current party or raid as player cards, with integrated gear check.\n"
+			.. "When you are not in a raid, party members fill group 1.\n"
+			.. "\n"
+			.. "- Groups 1–5, then 6–8: class, role, spec, raid buffs, GearScore, iLvl, and grades\n"
+			.. "- Hover a card for opinion, tags, guild (rank), and gear-check details\n"
+			.. "- Scan inspects everyone one at a time and fills armor/weap and ench/sock grades\n"
+			.. "- Export builds text dumps; Back to roster closes them; Select all + Ctrl+C copies\n"
+			.. "- Profile opens Character profile; Gear opens the full report on Gear check (target)",
+		INFO_SECTION_COMPOSITION = "Who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered.\n"
+			.. "Solo shows only your own coverage.\n"
+			.. "\n"
+			.. "- Gold means covered; dim means missing\n"
+			.. "- Section titles show present/total; a red title means nothing in that section is present\n"
+			.. "- Report missing posts absent classes to raid or party chat\n"
+			.. "- Shift-click an effect row to post that effect with provider classes and spells",
+		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target, or yourself if nothing is targeted.\n"
+			.. "This is not a BiS list or build optimizer.\n"
+			.. "\n"
+			.. "- Overall: GOOD (preferred), OK (usable), REPLACE (soft issues), BAD (wrong for spec)\n"
+			.. "- Spec ranks: preferred / acceptable / unwanted / forbidden\n"
+			.. "- Scan, then filter findings by All / Items / Enchants / Gems / OK\n"
+			.. "- Report buttons and slash commands print to your chat only\n"
+			.. "- Show as a text toggles the raw dump; Save report keeps a snapshot for about 14 days",
+		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time).\n"
+			.. "The group grid shows Overall per player (GOOD / OK / REPLACE / BAD).\n"
+			.. "Gear on a scanned card opens the full report on Gear check (target).",
+		INFO_SECTION_HISTORY = "Players you have been in a party or raid with.\n"
+			.. "The list is saved on this account and stays after logout.\n"
+			.. "\n"
+			.. "- Name, class, spec, opinion, tags, GearScore, iLvl, where you met, when, and guild\n"
+			.. "- Click a row to open Character profile\n"
+			.. "- In the profile you can save opinion, tags, facts, events, and a private memo\n"
+			.. "- Community opinion is a mock preview for future exchange and web features",
+		INFO_SECTION_SETTINGS = "Account-wide interface options.\n"
+			.. "\n"
+			.. "- Language: English or Russian\n"
+			.. "- Startup page opened by /raidwise (Info cannot be the startup page)\n"
+			.. "- Unit tooltip toggles for personal and community rating lines",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
 		INFO_REPO_SELECTED = "Selected — press Ctrl+C to copy.",
@@ -615,33 +648,66 @@ local Translations = {
 		EXPORT_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",
 
 		INFO_ABOUT = "Об аддоне",
-		INFO_INTRO = "Raidwise — аддон для подготовки к рейду в Wrath of the Lich King 3.3.5a: составы группы и рейда, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа.\n\n"
-			.. "Команды: /raidwise или /rw — открыть; /raidwise close или /rw close — закрыть; /rw gearcheck [summary|items|enchants|gems|test].",
-		INFO_SECTION_COOLDOWNS = "Показывает рейдовые и подземельные блокировки всех сохранённых персонажей, "
-			.. "включая время последней проверки. "
-			.. "Зайдите на каждого альта, чтобы записать его КД. "
-			.. "Кнопка «Удалить» убирает устаревшие колонки других персонажей; повторный вход восстанавливает данные. "
-			.. "Строка «Валюта» — золото и пары иконка–количество для каждого значка.",
-		INFO_SECTION_EXPORT = "Собирает JSON: имя, класс, спек, надетые вещи, сумки и блокировки. "
-			.. "Включите «Включать названия предметов», чтобы добавить имена рядом с id. "
-			.. "Если установлен аддон GearScore, в экспорт попадает текущий счёт.",
-		INFO_SECTION_PARTY = "Текущая группа из 5 игроков: спек, иконки рейд-баффов, GearScore, средний iLvl, гильдия, личное мнение и теги. "
+		INFO_INTRO = "Raidwise — аддон для подготовки к рейду в Wrath of the Lich King 3.3.5a.\n"
+			.. "Составы группы и рейда, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа.\n"
+			.. "\n"
+			.. "Команды:\n"
+			.. "- /raidwise или /rw — открыть окно\n"
+			.. "- /raidwise close или /rw close — закрыть окно\n"
+			.. "- /rw gearcheck — открыть проверку экипа (цель) и сканировать\n"
+			.. "- /rw gearcheck summary|items|enchants|gems|ok — печать отчёта в ваш чат\n"
+			.. "- /rw gearcheck test — офлайн self-test правил",
+		INFO_SECTION_COOLDOWNS = "КД и валюта всех персонажей, сохранённых на этом аккаунте.\n"
+			.. "\n"
+			.. "- Рейдовые и подземельные блокировки, время последней проверки у каждого персонажа\n"
+			.. "- Зайдите на каждого альта, чтобы записать данные\n"
+			.. "- «Удалить» убирает устаревшую колонку; повторный вход восстанавливает её\n"
+			.. "- Строка «Валюта» — золото и пары иконка–количество со вкладки валюты",
+		INFO_SECTION_EXPORT = "Экспорт этого персонажа в JSON для копирования.\n"
+			.. "\n"
+			.. "- Имя, класс, спек, надетые вещи, сумки и рейдовые или подземельные блокировки\n"
+			.. "- «Включать названия предметов» добавляет имена рядом с id\n"
+			.. "- GearScore попадает в экспорт, если установлен аддон GearScore",
+		INFO_SECTION_PARTY = "Текущая группа из 5 игроков: спек, иконки рейд-баффов, GearScore, средний iLvl, гильдия, личное мнение и теги.\n"
 			.. "Клик по строке открывает профиль персонажа.",
-		INFO_SECTION_RAID = "Группы 1–5 и 6–8 карточками (класс, роль, спек, рейд-баффы, GearScore, iLvl, проверка экипа). "
-			.. "Вне рейда группа занимает слот 1. Наведение: мнение, теги, гильдия (ранг), детали проверки экипа. "
-			.. "«Сканировать» добавляет итог Gear Check и счётчики проблем. "
-			.. "Кнопки «Профиль» и «Экип» на карточке (или клик по карточке — профиль персонажа).",
-		INFO_SECTION_COMPOSITION = "Проверяет текущую группу или рейд: классы, роли и баффы, внешние КД, снижение урона, дебаффы, восполнение маны и здоровья (как на Wowhead). "
-			.. "Золотое — есть, серое — не хватает. В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет. "
-			.. "«Сообщить» пишет отсутствующие классы в чат рейда или группы. Shift+клик по эффекту — эффект, классы и заклинания в чат.",
-		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели (или себя). Итог: GOOD (preferred), OK (подходит), REPLACE (мягкие проблемы), BAD (не для спека). Ранги: preferred / acceptable / unwanted / forbidden. Не BiS и не оптимизация билда.",
-		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному). Сетка групп показывает итог по игроку (GOOD / OK / REPLACE / BAD); «Экип» на просканированной карточке открывает полный отчёт на вкладке «Проверка экипа (цель)».",
-		INFO_SECTION_HISTORY = "Хранит игроков, с которыми вы были в группе или рейде, включая место и время встречи. "
-			.. "Список сохраняется на аккаунте и остаётся после выхода. "
-			.. "В профиле персонажа можно сохранить личное мнение, теги, факты и события. "
-			.. "Мнение сообщества пока показано как мок для будущего обмена и веб-приложения.",
-		INFO_SECTION_SETTINGS = "Смена языка интерфейса (English или Русский). "
-			.. "Параметры подсказки управляют строками личного и общественного рейтинга на подсказках игроков.",
+		INFO_SECTION_RAID = "Текущая группа или рейд карточками игроков, с встроенной проверкой экипа.\n"
+			.. "Вне рейда группа занимает слот 1.\n"
+			.. "\n"
+			.. "- Группы 1–5, затем 6–8: класс, роль, спек, рейд-баффы, GearScore, iLvl и оценки\n"
+			.. "- Наведение: мнение, теги, гильдия (ранг), детали проверки экипа\n"
+			.. "- «Сканировать» осматривает по одному и заполняет оценки брони/оружия и чар/сокетов\n"
+			.. "- «Экспорт» собирает текстовые отчёты; «К составу» закрывает их; «Выделить всё» + Ctrl+C копирует\n"
+			.. "- «Профиль» открывает профиль персонажа; «Экип» — полный отчёт на вкладке проверки экипа (цель)",
+		INFO_SECTION_COMPOSITION = "Кто нужен, и какие уникальные баффы, внешние КД, снижение урона, дебаффы и восполнение уже закрыты.\n"
+			.. "Вне группы показывается только ваше покрытие.\n"
+			.. "\n"
+			.. "- Золотое — есть, серое — не хватает\n"
+			.. "- В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет\n"
+			.. "- «Сообщить» пишет отсутствующие классы в чат рейда или группы\n"
+			.. "- Shift+клик по эффекту — эффект, классы и заклинания в чат",
+		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели, или себя, если цели нет.\n"
+			.. "Это не список BiS и не оптимизация билда.\n"
+			.. "\n"
+			.. "- Итог: GOOD (preferred), OK (подходит), REPLACE (мягкие проблемы), BAD (не для спека)\n"
+			.. "- Ранги спека: preferred / acceptable / unwanted / forbidden\n"
+			.. "- Сканируйте, затем фильтруйте находки: Все / Предметы / Чары / Камни / OK\n"
+			.. "- Кнопки отчёта и команды печатают только в ваш чат\n"
+			.. "- «Показать текстом» включает сырой dump; «Сохранить отчёт» хранит снимок около 14 дней",
+		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному).\n"
+			.. "Сетка групп показывает итог по игроку (GOOD / OK / REPLACE / BAD).\n"
+			.. "«Экип» на просканированной карточке открывает полный отчёт на вкладке «Проверка экипа (цель)».",
+		INFO_SECTION_HISTORY = "Игроки, с которыми вы были в группе или рейде.\n"
+			.. "Список сохраняется на аккаунте и остаётся после выхода.\n"
+			.. "\n"
+			.. "- Имя, класс, спек, мнение, теги, GearScore, iLvl, где встретили, когда и гильдия\n"
+			.. "- Клик по строке открывает профиль персонажа\n"
+			.. "- В профиле можно сохранить мнение, теги, факты, события и личное мемо\n"
+			.. "- Мнение сообщества пока показано как мок для будущего обмена и веб-приложения",
+		INFO_SECTION_SETTINGS = "Настройки интерфейса на аккаунте.\n"
+			.. "\n"
+			.. "- Язык: English или Русский\n"
+			.. "- Стартовая страница по /raidwise (Справку выбрать нельзя)\n"
+			.. "- Переключатели строк личного и общественного рейтинга в подсказках игроков",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
 		INFO_REPO_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",
