@@ -116,7 +116,7 @@ Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Chara
 
 ## Raid roster tab
 
-Description block with **Scan** / **Export** / **Refresh** in a fixed right column; left column stacks hint, stats, and summary with **2** px line gaps, then progress status + bar; table at a fixed top offset. `LAYOUT_VERSION = 15`.
+Description block with **Scan** / **Export** / **Refresh** / **Show as a text** / **Select all** in a fixed right column; left column stacks hint, stats, and summary with **2** px line gaps, then progress status + bar; roster table or export copy box at a fixed top offset (clears the full **5**-button toolbar). `LAYOUT_VERSION = 18`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -135,7 +135,7 @@ Description block with **Scan** / **Export** / **Refresh** in a fixed right colu
 | Gap between blocks | **12** | |
 | Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
 
-Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page) before opening Gear check (target).
+Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
 
 ## Raid composition tab
 

@@ -69,6 +69,8 @@ Addon.UITheme = {
 	RAID_PROGRESS_STATUS_GAP = 4,
 	RAID_DESC_LINE_GAP = 2,
 	RAID_DESC_BLOCK_GAP = 4,
+	RAID_TOOLBAR_BTN_COUNT = 5,
+	RAID_TOOLBAR_BTN_GAP = 4,
 
 	-- Colors — Classic theme (preview/themes.html #classic)
 	GOLD = { 1.000, 0.824, 0.000 },
@@ -736,14 +738,18 @@ end
 
 function W.RaidRosterTableTopOffset()
 	-- Fixed description header: hint + stacked lines + progress block + gap to table.
-	return UI.CD_TOOLBAR_H
+	-- Table must also clear the right toolbar column (Scan … Select all).
+	local leftHeader = UI.CD_TOOLBAR_H
 		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
 		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
 		+ UI.RAID_DESC_BLOCK_GAP
 		+ UI.RAID_PROGRESS_STATUS_H
 		+ UI.RAID_PROGRESS_STATUS_GAP
 		+ UI.RAID_PROGRESS_H
-		+ UI.CD_HINT_TO_TABLE
+	local toolbarCount = UI.RAID_TOOLBAR_BTN_COUNT or 3
+	local toolbarGap = UI.RAID_TOOLBAR_BTN_GAP or 4
+	local toolbarHeader = UI.CD_TOOLBAR_H * toolbarCount + toolbarGap * (toolbarCount - 1)
+	return math.max(leftHeader, toolbarHeader) + UI.CD_HINT_TO_TABLE
 end
 
 function W.FormatGuildDisplay(guildName, guildRank)

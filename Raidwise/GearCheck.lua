@@ -1079,6 +1079,52 @@ function Addon:ResolveGearCheckUnit()
 	return "player"
 end
 
+function Addon:GetLastGearCheckRaidResults()
+	return lastRaidResults
+end
+
+function Addon:SetLastGearCheckRaidResults(results)
+	if type(results) == "table" then
+		lastRaidResults = results
+	else
+		lastRaidResults = nil
+	end
+end
+
+function Addon:IsGearCheckScanBusy()
+	return pendingUnit ~= nil or (raidQueue and raidQueue.active) or false
+end
+
+local function AttachFindings(report)
+	if report and Addon.EvaluateGearCheck then
+		Addon:EvaluateGearCheck(report)
+	end
+	return report
+end
+
+local function SetInspectComplete(report, complete)
+	if not report then
+		return
+	end
+	local inspect = report.inspect
+	if not inspect and report.collection then
+		inspect = report.collection.inspect
+	end
+	if inspect then
+		inspect.complete = complete and true or false
+	end
+end
+
+local function FinalizeGearCheckReport(report, complete)
+	if not report then
+		return report
+	end
+	if complete ~= nil then
+		SetInspectComplete(report, complete)
+	end
+	return AttachFindings(report)
+end
+
 local function ReportGradesNeedRefresh(report)
 	if not report then
 		return false
@@ -1125,52 +1171,6 @@ function Addon:SetLastGearCheckReport(report, status)
 	end
 	self:EnsureGearCheckGrades(report)
 	lastReport = report
-end
-
-function Addon:GetLastGearCheckRaidResults()
-	return lastRaidResults
-end
-
-function Addon:SetLastGearCheckRaidResults(results)
-	if type(results) == "table" then
-		lastRaidResults = results
-	else
-		lastRaidResults = nil
-	end
-end
-
-function Addon:IsGearCheckScanBusy()
-	return pendingUnit ~= nil or (raidQueue and raidQueue.active) or false
-end
-
-local function AttachFindings(report)
-	if report and Addon.EvaluateGearCheck then
-		Addon:EvaluateGearCheck(report)
-	end
-	return report
-end
-
-local function SetInspectComplete(report, complete)
-	if not report then
-		return
-	end
-	local inspect = report.inspect
-	if not inspect and report.collection then
-		inspect = report.collection.inspect
-	end
-	if inspect then
-		inspect.complete = complete and true or false
-	end
-end
-
-local function FinalizeGearCheckReport(report, complete)
-	if not report then
-		return report
-	end
-	if complete ~= nil then
-		SetInspectComplete(report, complete)
-	end
-	return AttachFindings(report)
 end
 
 function Addon:CollectGearCheck(unit)
@@ -1674,7 +1674,9 @@ function Addon:ShowGearCheckRaidDump(results)
 		self:Print(self:T("GEAR_CHECK_RAID_EXPORT_EMPTY"))
 		return false
 	end
-	if self.ShowGearCheckDumpText then
+	if self.ShowRaidGearCheckExportText then
+		self:ShowRaidGearCheckExportText(text)
+	elseif self.ShowGearCheckDumpText then
 		self:ShowGearCheckDumpText(text)
 	else
 		self:Print(self:T("GEAR_CHECK_STATUS_FAIL"))

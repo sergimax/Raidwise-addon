@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 15
+local LAYOUT_VERSION = 18
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 137
@@ -18,7 +18,7 @@ local RAID_BTN_H = 16
 local RAID_BTN_GAP = 2
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
-local RAID_TOOLBAR_BTN_GAP = 4
+local RAID_TOOLBAR_BTN_GAP = UI.RAID_TOOLBAR_BTN_GAP or 4
 local RAID_TOOLBAR_COL_W = 104
 local RAID_TOOLBAR_COL_GAP = 8
 
@@ -287,6 +287,113 @@ local function RaidScanPhaseLabel(phase)
 	return W.T("GEAR_CHECK_RAID_PHASE_INSPECT")
 end
 
+local function PageGearActionsBusy(page)
+	return page
+		and (page.gearCheckScanning or page.gearCheckExporting or page.gearCheckMemberScanning)
+end
+
+local function RaidScanHasResults(page)
+	local results = ResolveGearCheckResults(page)
+	return type(results) == "table" and #results > 0
+end
+
+local function RaidExportDumpReady(page)
+	return page.exportDumpBox and (page.exportDumpBox:GetText() or "") ~= ""
+end
+
+local function UpdateRaidExportActionButtons(page, busy)
+	if not page then
+		return
+	end
+	if busy == nil then
+		busy = PageGearActionsBusy(page)
+	end
+	local scanReady = RaidScanHasResults(page)
+	local dumpReady = RaidExportDumpReady(page)
+	if page.textViewBtn then
+		if busy or not scanReady then
+			page.textViewBtn:Disable()
+		else
+			page.textViewBtn:Enable()
+		end
+	end
+	if page.selectAllBtn then
+		if busy or not (page.exportViewMode and dumpReady) then
+			page.selectAllBtn:Disable()
+		else
+			page.selectAllBtn:Enable()
+		end
+	end
+end
+
+local function UpdateRaidExportView(page)
+	if not page then
+		return
+	end
+	local show = page.exportViewMode == true
+	if page.tableHost then
+		if show then
+			page.tableHost:Hide()
+		else
+			page.tableHost:Show()
+		end
+	end
+	if page.exportCopyHost then
+		if show then
+			page.exportCopyHost:Show()
+		else
+			page.exportCopyHost:Hide()
+		end
+	end
+	if page.textViewBtn and page.textViewBtn.label then
+		page.textViewBtn.label:SetText(
+			show and W.T("GEAR_CHECK_TEXT_VIEW_ON") or W.T("GEAR_CHECK_TEXT_VIEW")
+		)
+	end
+	UpdateRaidExportActionButtons(page)
+end
+
+local function ShowRaidExportText(page, text)
+	if not page or not page.exportDumpBox then
+		return false
+	end
+	page.exportDumpBox:SetText(text or "")
+	page.exportViewMode = true
+	UpdateRaidExportView(page)
+	if W.FitCopyBoxToText then
+		W.FitCopyBoxToText(page.exportDumpBox)
+	end
+	if (text or "") ~= "" then
+		page.exportDumpBox:SetFocus()
+		page.exportDumpBox:HighlightText()
+	end
+	if page.gearCheckStatusLabel then
+		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_EXPORT_READY"))
+	end
+	return true
+end
+
+function Addon:ShowRaidGearCheckExportText(text)
+	local frame = self.mainFrame
+	local page = frame and frame.pages and frame.pages.raid
+	if not page then
+		return false
+	end
+	self:ShowMainFrame()
+	if frame.selectedTab ~= "raid" then
+		self:SelectTab("raid")
+	end
+	return ShowRaidExportText(page, text)
+end
+
+local function ExitRaidExportView(page)
+	if not page or not page.exportViewMode then
+		return
+	end
+	page.exportViewMode = false
+	UpdateRaidExportView(page)
+end
+
 local function SetRaidBusyButtons(page, busy)
 	if page.gearCheckScanBtn then
 		if busy then
@@ -302,6 +409,7 @@ local function SetRaidBusyButtons(page, busy)
 			page.gearCheckExportBtn:Enable()
 		end
 	end
+	UpdateRaidExportActionButtons(page, busy)
 	local blocks = { page.topBlock, page.bottomBlock }
 	for blockIndex = 1, #blocks do
 		local block = blocks[blockIndex]
@@ -320,11 +428,6 @@ local function SetRaidBusyButtons(page, busy)
 			end
 		end
 	end
-end
-
-local function PageGearActionsBusy(page)
-	return page
-		and (page.gearCheckScanning or page.gearCheckExporting or page.gearCheckMemberScanning)
 end
 
 local function UpsertRaidGearResult(page, entry)
@@ -773,6 +876,7 @@ local function RunGearCheckRaidScan(page)
 		return
 	end
 	SetRaidBusyButtons(page, true)
+	ExitRaidExportView(page)
 	if page.gearCheckStatusLabel then
 		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_STATUS_SCANNING"))
 	end
@@ -856,6 +960,7 @@ function Addon:RunGearCheckMemberRescan(page, member)
 
 	page.gearCheckMemberScanning = true
 	SetRaidBusyButtons(page, true)
+	ExitRaidExportView(page)
 	SetRaidProgress(page, 0.5, 1, true)
 	if page.gearCheckStatusLabel then
 		page.gearCheckStatusLabel:SetText(
@@ -959,7 +1064,9 @@ local function RunGearCheckRaidExport(page)
 			local defer = CreateFrame("Frame")
 			defer:SetScript("OnUpdate", function(self)
 				self:SetScript("OnUpdate", nil)
-				if Addon.ShowGearCheckDumpText then
+				if Addon.ShowRaidGearCheckExportText then
+					Addon:ShowRaidGearCheckExportText(pendingText)
+				elseif Addon.ShowGearCheckDumpText then
 					Addon:ShowGearCheckDumpText(pendingText)
 				else
 					Addon:Print(W.T("GEAR_CHECK_STATUS_FAIL"))
@@ -995,8 +1102,6 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 		return
 	end
 
-	page.tableHost:Show()
-
 	local groups = self:BuildRaidGroups(refreshGearScore)
 	UpdateRaidRosterStatsLabels(page, MembersFromRaidGroups(groups))
 
@@ -1021,6 +1126,7 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 	local contentW, contentH = RaidContentSize()
 	page.tableContent:SetSize(contentW, contentH)
 	W.LayoutTableScrollBars(page)
+	UpdateRaidExportView(page)
 end
 
 local function CreateRaidRosterPage(parent)
@@ -1048,9 +1154,52 @@ local function CreateRaidRosterPage(parent)
 		Addon:RefreshPartyData(true)
 	end)
 
+	local textViewBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_TEXT_VIEW"))
+	textViewBtn:SetPoint("TOPRIGHT", refreshBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
+	W.SetPlainButtonTooltip(textViewBtn, "GEAR_CHECK_TEXT_VIEW_TIP")
+	textViewBtn:Disable()
+	textViewBtn:SetScript("OnClick", function()
+		if page.exportViewMode then
+			page.exportViewMode = false
+			UpdateRaidExportView(page)
+			if page.gearCheckStatusLabel and not PageGearActionsBusy(page) then
+				page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
+			end
+			return
+		end
+		local dumpText = page.exportDumpBox and page.exportDumpBox:GetText() or ""
+		if dumpText == "" then
+			Addon:Print(W.T("GEAR_CHECK_RAID_EXPORT_EMPTY"))
+			return
+		end
+		page.exportViewMode = true
+		UpdateRaidExportView(page)
+		if page.gearCheckStatusLabel then
+			page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_EXPORT_READY"))
+		end
+		page.exportDumpBox:SetFocus()
+		page.exportDumpBox:HighlightText()
+	end)
+
+	local selectAllBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_SELECT_ALL"))
+	selectAllBtn:SetPoint("TOPRIGHT", textViewBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
+	W.SetPlainButtonTooltip(selectAllBtn, "GEAR_CHECK_SELECT_ALL_TIP")
+	selectAllBtn:Disable()
+	selectAllBtn:SetScript("OnClick", function()
+		if not page.exportDumpBox then
+			return
+		end
+		page.exportViewMode = true
+		UpdateRaidExportView(page)
+		page.exportDumpBox:SetFocus()
+		page.exportDumpBox:HighlightText()
+	end)
+
 	page.gearCheckScanBtn = scanBtn
 	page.gearCheckExportBtn = exportBtn
 	page.refreshBtn = refreshBtn
+	page.textViewBtn = textViewBtn
+	page.selectAllBtn = selectAllBtn
 
 	CreateRaidDescriptionLeft(page, scanBtn)
 
@@ -1097,6 +1246,18 @@ local function CreateRaidRosterPage(parent)
 	end)
 	page.hBar = hBar
 
+	local exportDumpBox, exportCopyHost = W.CreateCopyBox(
+		page,
+		"RaidwiseRaidExportScrollV" .. tostring(LAYOUT_VERSION),
+		"RaidwiseRaidExportBoxV" .. tostring(LAYOUT_VERSION)
+	)
+	exportCopyHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
+	exportCopyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+	exportCopyHost:SetFrameLevel(tableHost:GetFrameLevel() + 2)
+	exportCopyHost:Hide()
+	page.exportDumpBox = exportDumpBox
+	page.exportCopyHost = exportCopyHost
+
 	scroll:SetScript("OnMouseWheel", function(self, delta)
 		local maxV = math.max(0, (content:GetHeight() or 0) - (self:GetHeight() or 0))
 		local step = RAID_CELL_H
@@ -1116,6 +1277,7 @@ local function CreateRaidRosterPage(parent)
 	page.gearCheckScanning = false
 	page.gearCheckExporting = false
 	page.gearCheckMemberScanning = false
+	page.exportViewMode = false
 	page.layoutVersion = LAYOUT_VERSION
 	return page
 end
@@ -1136,10 +1298,19 @@ local function ApplyLocale(page)
 	if page.gearCheckExportBtn and page.gearCheckExportBtn.label then
 		page.gearCheckExportBtn.label:SetText(W.T("GEAR_CHECK_RAID_EXPORT"))
 	end
+	if page.textViewBtn and page.textViewBtn.label then
+		page.textViewBtn.label:SetText(
+			page.exportViewMode and W.T("GEAR_CHECK_TEXT_VIEW_ON") or W.T("GEAR_CHECK_TEXT_VIEW")
+		)
+	end
+	if page.selectAllBtn and page.selectAllBtn.label then
+		page.selectAllBtn.label:SetText(W.T("BTN_SELECT_ALL"))
+	end
 	if page.gearCheckStatusLabel and not page.gearCheckScanning and not page.gearCheckExporting and not page.gearCheckMemberScanning then
 		page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
 	end
 	UpdateGearCheckSummaryLabel(page, ResolveGearCheckResults(page))
+	UpdateRaidExportActionButtons(page)
 
 	local blocks = { page.topBlock, page.bottomBlock }
 	for blockIndex = 1, #blocks do
