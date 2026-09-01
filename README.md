@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.16.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--08--25-blue)
+![](https://img.shields.io/badge/current_version-1.17.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--02-blue)
 
 
 ## Install
@@ -31,10 +31,11 @@ In-game slash commands:
 | `/raidwise close` or `/rw close` | Close the main window |
 | `/raidwise gearcheck` or `/rw gearcheck` | Open Gear check (target) and scan |
 | `/rw gearcheck summary` (also `items`, `enchants`, `gems`, `ok`) | Print that report to your chat (scans first if needed) |
+| `/rw gearcheck raid dump` | Open Raid roster and show the last raid gear-check dump for copy |
 | `/rw gearcheck test` | Offline rules self-test |
 
-Plain panels, a **left menu**, and a content page.
-The status bar shows the addon name and version.
+Plain panels, a **left menu** grouped as Personal / Raiding / Other, and a content page.
+The menu title bar shows **Raidwise** and the addon version.
 Esc or the title **X** closes the window.
 
 **Character cooldowns** tab:
@@ -53,23 +54,15 @@ Esc or the title **X** closes the window.
 - **Select all** highlights the JSON for Ctrl+C
 - `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
 
-**Party roster** tab:
-
-- Table of the current 5-player party (you alone when not grouped)
-- Line above the table: average item level and average GearScore
-- Columns: name, class icon, spec icon, raid-buff icons, GearScore, average item level, personal opinion, tags, guild with rank
-- Click a row to open **Character profile**
-- **Refresh** re-scans GearScore and re-inspects nearby members for spec updates
-
 **Raid roster** tab:
 
-- Two blocks: raid groups **1–5**, then **6–8**
-- Line above the cells: overall average GearScore; second line is per-role count and average GS (`Tanks: 2 (6200 gs)`)
-- Each group is a column of five player cards: class + name, role + spec + GS/iLvl, raid-buff icons, personal opinion, and tags
-- Role icon matches RaidBuffStatus (tank / healer / melee / ranged)
-- Buff icons are spec- and race-specific raid utilities (hover for the name)
-- Click a filled card to open **Character profile** (`{name} - Character profile`)
+- Two blocks: raid groups **1–5**, then **6–8**; when not in a raid, your party fills group 1
+- Lines above the grid: overall average GearScore; per-role count and average GS; gear-check summary after scan
+- Each player card: class + name, role + spec + GS/iLvl, raid-buff icons, personal opinion line, armor/weap and ench/sock grades, **Profile** / **Gear** / **Rescan**
+- Hover a card for opinion, tags, **guild (rank)**, and gear-check details
+- **Scan** / **Export** for raid-wide gear check; **Export** opens copy text; **Back to roster** closes it; **Select all** + Ctrl+C to copy
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
+- Card click opens **Character profile**
 
 **Raid composition** tab:
 
@@ -82,17 +75,12 @@ Esc or the title **X** closes the window.
 
 **Gear check (target)** tab:
 
-- **Scan** evaluates target or self (Overall, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / OK)
+- **Scan** evaluates target or self (Overall GOOD / OK / REPLACE / BAD, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / OK)
+- Spec ranks: **preferred** / **acceptable** / **unwanted** / **forbidden** (map to GOOD / OK / REPLACE / BAD)
 - **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to **your chat only**
 - **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
 - Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
 - `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
-
-**Gear check (raid)** tab:
-
-- **Scan** inspects party/raid members one at a time on a group grid (parties 1–5, then 6–8)
-- Each cell shows class/spec icons, Overall, and BAD / REPLACE / issue counts
-- Click a scanned player to open the full report on **Gear check (target)** (no rescan)
 
 **History** tab:
 
@@ -108,7 +96,7 @@ Esc or the title **X** closes the window.
 - On **Facts**, set role / identity facts (up to 4)
 - On **Events**, pick a type and **Add event** / **Remove** (draft until **Save and Update**; context captured when adding)
 - On **Memo**, write a private free-form note with **Save** / **Reset** (not shared, not logged in History)
-- Party, Raid, and History show your saved opinion and tag summary; click a row or card to open the profile
+- Raid and History show your saved opinion and tag summary; click a row or card to open the profile
 - **Community note** is currently a mock preview for a future addon exchange / web app feature
 
 **Settings** tab:
@@ -121,7 +109,7 @@ Esc or the title **X** closes the window.
 
 **Info** tab:
 
-- About overview plus per-menu feature sections (same icons as the left menu, each with that view’s layout `vN`)
+- About overview (one sentence per line, with lists) plus per-menu feature sections (same icons as the left menu, each with that view’s layout `vN`)
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Reputation model: [`docs/Reputation.md`](docs/Reputation.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
@@ -161,11 +149,9 @@ Raidwise/
   GearCheck.lua       # collector + normalize (schemaVersion 2) + evaluate + dump
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
-  PageParty.lua       # Party roster tab
   PageRaid.lua        # Raid roster tab
   PageComposition.lua # Raid composition tab
   PageGearCheckTarget.lua # Gear check (target) tab
-  PageGearCheckRaid.lua   # Gear check (raid) tab
   PageHistory.lua     # History tab
   PageSettings.lua    # Settings tab
   PageInfo.lua        # Info tab

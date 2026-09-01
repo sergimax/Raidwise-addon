@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.17.0] - 2026-09-02
+
+### Added
+- **Raid roster** gear check: **Scan** with a progress bar, **Export** of scanned dumps (also `/rw gearcheck raid dump`), per-player **Rescan**, and **Profile** / **Gear** on each card
+- Separate **Armor/weap** and **Ench/sock** grades on raid player cards
+- Left menu groups **Personal**, **Raiding**, and **Other**
+- Hover tips on Scan, Export, Refresh, and related buttons
+
+### Changed
+- When you are not in a raid, the current party fills Raid roster group 1
+- Addon version is shown in the left-menu title bar; the footer status bar is gone, and the menu sits flush against the content panel
+- **Info** uses larger text, one sentence per line, and lists; descriptions match the current pages
+- Gear check catalogs cover more Northrend gems and enchants; incomplete inspects and situational trinkets are called out more clearly
+- Saved startup pages `party` and `gearraid` move to **Raid roster**
+
+### Removed
+- **Party roster** tab (party view lives on Raid roster)
+- **Gear check (raid)** tab (raid scan lives on Raid roster)
+
+### Fixed
+- Missing party-only raid buffs use a red tint so they are easier to spot
+
 ## [1.16.0] - 2026-08-25
 
 ### Added

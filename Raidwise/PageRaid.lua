@@ -1,4 +1,4 @@
--- PageRaid
+-- PageRaid — raid groups grid with integrated gear-check scan and report rows.
 
 local Addon = Raidwise
 local W = Addon.Widgets
@@ -6,16 +6,30 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 18
 
 local RAID_CELL_W = 168
-local RAID_CELL_H = 106
+local RAID_CELL_H = 137
 local RAID_CELL_GAP = 2
 local RAID_CELL_PAD = 4
 local RAID_LINE_H = 14
 local RAID_ICON = 20
+local RAID_BTN_H = 16
+local RAID_BTN_GAP = 2
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
+local RAID_TOOLBAR_BTN_GAP = UI.RAID_TOOLBAR_BTN_GAP or 4
+local RAID_TOOLBAR_COL_W = 104
+local RAID_TOOLBAR_COL_GAP = 8
+
+local SCAN_PHASE_KEYS = {
+	inspect = "GEAR_CHECK_RAID_PHASE_INSPECT",
+	spec = "GEAR_CHECK_RAID_PHASE_SPEC",
+	gems = "GEAR_CHECK_RAID_PHASE_GEMS",
+	evaluate = "GEAR_CHECK_RAID_PHASE_EVALUATE",
+	done = "GEAR_CHECK_RAID_PHASE_DONE",
+	export = "GEAR_CHECK_RAID_PHASE_EXPORT",
+}
 
 local function FormatRaidStatsLine(gearScore, averageIlvl)
 	local parts = {}
@@ -42,6 +56,133 @@ local function FormatRoleGsSummary(label, bucket)
 	return W.T("ROLE_SUMMARY", label, tostring(bucket.count or 0), gsText)
 end
 
+local function IsGearVerdictLabel(label)
+	return label == "BAD" or label == "REPLACE" or label == "OK" or label == "GOOD"
+end
+
+local function GearStatusLabelForEntry(entry)
+	local failLabel = Addon.GetGearCheckRaidEntryStatusLabel and Addon:GetGearCheckRaidEntryStatusLabel(entry)
+	if failLabel then
+		return failLabel
+	end
+	if not entry or not entry.report then
+		return W.T("GEAR_CHECK_RAID_NOT_SCANNED")
+	end
+	local overall = entry.report.overall or {}
+	return overall.status or "OK"
+end
+
+local function CountGearRaidSummary(results)
+	local counts = { bad = 0, replace = 0, ok = 0, good = 0, failed = 0 }
+	if not results then
+		return counts
+	end
+	for index = 1, #results do
+		local entry = results[index]
+		local report = entry and entry.report
+		if not report then
+			counts.failed = counts.failed + 1
+		else
+			local status = (report.overall and report.overall.status) or "OK"
+			if status == "BAD" then
+				counts.bad = counts.bad + 1
+			elseif status == "REPLACE" then
+				counts.replace = counts.replace + 1
+			elseif status == "GOOD" then
+				counts.good = counts.good + 1
+			else
+				counts.ok = counts.ok + 1
+			end
+		end
+	end
+	return counts
+end
+
+local function FormatRaidCategoryGradeLine(localeKey, grade)
+	if not grade or grade == "" then
+		return ""
+	end
+	return W.T(localeKey, W.WrapGearGradation(grade))
+end
+
+local function FormatGearRaidSummaryLine(results)
+	local counts = CountGearRaidSummary(results)
+	local failedSuffix = " · Failed " .. tostring(counts.failed)
+	return W.FormatGearVerdictCountsLine(nil, counts.bad, counts.replace, counts.ok, counts.good, failedSuffix)
+end
+
+local function IndexGearResults(results)
+	local byGuid = {}
+	local byName = {}
+	if type(results) ~= "table" then
+		return byGuid, byName
+	end
+	for index = 1, #results do
+		local entry = results[index]
+		local member = entry and entry.member or {}
+		local character = entry and entry.report and entry.report.character or {}
+		local guid = member.guid or character.guid
+		if type(guid) == "string" and guid ~= "" then
+			byGuid[guid] = entry
+		end
+		local name = member.name or character.name
+		if type(name) == "string" and name ~= "" then
+			byName[name] = entry
+		end
+	end
+	return byGuid, byName
+end
+
+local function GearEntryForMember(member, byGuid, byName)
+	if not member then
+		return nil
+	end
+	if member.guid and byGuid[member.guid] then
+		return byGuid[member.guid]
+	end
+	if member.name and byName[member.name] then
+		return byName[member.name]
+	end
+	return nil
+end
+
+local function ResolveGearCheckResults(page)
+	local results = page and page.gearCheckResults
+	if (not results or #results == 0) and Addon.GetLastGearCheckRaidResults then
+		results = Addon:GetLastGearCheckRaidResults() or {}
+		if page then
+			page.gearCheckResults = results
+		end
+	end
+	return results or {}
+end
+
+local function UpdateGearCheckSummaryLabel(page, results)
+	if not page or not page.gearCheckSummaryLabel then
+		return
+	end
+	if results and #results > 0 then
+		page.gearCheckSummaryLabel:SetText(FormatGearRaidSummaryLine(results))
+		W.SetFontColor(page.gearCheckSummaryLabel, UI.TEXT_IDLE)
+	else
+		page.gearCheckSummaryLabel:SetText(W.T("GEAR_CHECK_RAID_SUMMARY_EMPTY"))
+		W.SetFontColor(page.gearCheckSummaryLabel, UI.TEXT_DISABLED)
+	end
+end
+
+local function FormatRaidRosterStatsLine(gearScore, roles)
+	roles = roles or {}
+	return FormatRaidAverageGs(gearScore)
+		.. "     "
+		.. FormatRoleGsSummary(W.T("ROLE_TANKS"), roles.tank or {})
+		.. "     "
+		.. FormatRoleGsSummary(W.T("ROLE_HEALERS"), roles.healer or {})
+		.. "     "
+		.. FormatRoleGsSummary(W.T("ROLE_MELEE_SHORT"), roles.melee or {})
+		.. "     "
+		.. FormatRoleGsSummary(W.T("ROLE_RANGE"), roles.ranged or {})
+end
+
 local function UpdateRaidRosterStatsLabels(page, members)
 	if not page or not page.statsLabel then
 		return
@@ -53,55 +194,273 @@ local function UpdateRaidRosterStatsLabels(page, members)
 	end
 	overall = overall or {}
 	roles = roles or {}
-	local tank = roles.tank or {}
-	local healer = roles.healer or {}
-	local melee = roles.melee or {}
-	local ranged = roles.ranged or {}
 
-	page.statsLabel:SetText(FormatRaidAverageGs(overall.gearScore))
+	page.statsLabel:SetText(FormatRaidRosterStatsLine(overall.gearScore, roles))
+end
 
-	if page.roleStatsLabel then
-		page.roleStatsLabel:SetText(
-			FormatRoleGsSummary(W.T("ROLE_TANKS"), tank)
-				.. "     "
-				.. FormatRoleGsSummary(W.T("ROLE_HEALERS"), healer)
-				.. "     "
-				.. FormatRoleGsSummary(W.T("ROLE_MELEE_SHORT"), melee)
-				.. "     "
-				.. FormatRoleGsSummary(W.T("ROLE_RANGE"), ranged)
-		)
+local function RaidDescHeaderHeight()
+	return UI.CD_TOOLBAR_H
+		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
+		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
+		+ UI.RAID_DESC_BLOCK_GAP
+		+ UI.RAID_PROGRESS_STATUS_H
+		+ UI.RAID_PROGRESS_STATUS_GAP
+		+ UI.RAID_PROGRESS_H
+end
+
+local function CreateRaidDescriptionLeft(page, toolbarAnchor)
+	local descLeftCol = CreateFrame("Frame", nil, page)
+	descLeftCol:SetPoint("TOPLEFT", page, "TOPLEFT", 0, 0)
+	descLeftCol:SetPoint("RIGHT", toolbarAnchor, "LEFT", -RAID_TOOLBAR_COL_GAP, 0)
+	descLeftCol:SetHeight(RaidDescHeaderHeight())
+	page.descLeftCol = descLeftCol
+
+	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	hint:SetPoint("TOPLEFT", descLeftCol, "TOPLEFT", 0, 0)
+	hint:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
+	hint:SetHeight(UI.CD_TOOLBAR_H)
+	hint:SetJustifyH("LEFT")
+	hint:SetJustifyV("TOP")
+	hint:SetWordWrap(true)
+	hint:SetNonSpaceWrap(false)
+	hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
+	page.hint = hint
+
+	local stats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	stats:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
+	stats:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
+	stats:SetHeight(UI.ROSTER_STATS_H)
+	stats:SetJustifyH("LEFT")
+	stats:SetJustifyV("TOP")
+	W.SetFontColor(stats, UI.TEXT_IDLE)
+	stats:SetText(FormatRaidRosterStatsLine(nil, {}))
+	page.statsLabel = stats
+
+	local gearSummary = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	gearSummary:SetPoint("TOPLEFT", stats, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
+	gearSummary:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
+	gearSummary:SetHeight(UI.ROSTER_STATS_H)
+	gearSummary:SetJustifyH("LEFT")
+	gearSummary:SetJustifyV("TOP")
+	gearSummary:SetText(W.T("GEAR_CHECK_RAID_SUMMARY_EMPTY"))
+	W.SetFontColor(gearSummary, UI.TEXT_DISABLED)
+	page.gearCheckSummaryLabel = gearSummary
+
+	local gearCheckStatusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	gearCheckStatusLabel:SetPoint("TOPLEFT", gearSummary, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
+	gearCheckStatusLabel:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
+	gearCheckStatusLabel:SetHeight(UI.RAID_PROGRESS_STATUS_H)
+	gearCheckStatusLabel:SetJustifyH("LEFT")
+	gearCheckStatusLabel:SetJustifyV("TOP")
+	gearCheckStatusLabel:SetWordWrap(true)
+	gearCheckStatusLabel:SetNonSpaceWrap(false)
+	gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
+	W.SetFontColor(gearCheckStatusLabel, UI.TEXT_IDLE)
+	page.gearCheckStatusLabel = gearCheckStatusLabel
+
+	local progressHost = W.CreateProgressBar(descLeftCol, UI.RAID_PROGRESS_H)
+	progressHost:SetPoint("TOPLEFT", gearCheckStatusLabel, "BOTTOMLEFT", 0, -UI.RAID_PROGRESS_STATUS_GAP)
+	progressHost:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
+	progressHost:Show()
+	page.gearCheckProgressHost = progressHost
+
+	return descLeftCol
+end
+
+local function SetRaidProgress(page, value, maxValue, visible)
+	local host = page and page.gearCheckProgressHost
+	if not host then
+		return
+	end
+	if visible then
+		host:SetProgress(value, maxValue)
+	else
+		host:SetProgress(0, 1)
 	end
 end
 
-local function CreateRaidStatsLabels(page)
-	local stats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	stats:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -(UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE))
-	stats:SetPoint("RIGHT", page, "RIGHT", 0, 0)
-	stats:SetHeight(UI.ROSTER_STATS_H)
-	stats:SetJustifyH("LEFT")
-	stats:SetJustifyV("MIDDLE")
-	W.SetFontColor(stats, UI.TEXT_IDLE)
-	stats:SetText(FormatRaidAverageGs(nil))
-	page.statsLabel = stats
+local function RaidScanPhaseLabel(phase)
+	local key = phase and SCAN_PHASE_KEYS[phase]
+	if key then
+		return W.T(key)
+	end
+	return W.T("GEAR_CHECK_RAID_PHASE_INSPECT")
+end
 
-	local roleStats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	roleStats:SetPoint("TOPLEFT", page.statsLabel, "BOTTOMLEFT", 0, 0)
-	roleStats:SetPoint("RIGHT", page, "RIGHT", 0, 0)
-	roleStats:SetHeight(UI.ROSTER_STATS_H)
-	roleStats:SetJustifyH("LEFT")
-	roleStats:SetJustifyV("MIDDLE")
-	W.SetFontColor(roleStats, UI.TEXT_IDLE)
-	roleStats:SetText(
-		FormatRoleGsSummary(W.T("ROLE_TANKS"))
-			.. "     "
-			.. FormatRoleGsSummary(W.T("ROLE_HEALERS"))
-			.. "     "
-			.. FormatRoleGsSummary(W.T("ROLE_MELEE_SHORT"))
-			.. "     "
-			.. FormatRoleGsSummary(W.T("ROLE_RANGE"))
-	)
-	page.roleStatsLabel = roleStats
-	return page.statsLabel
+local function PageGearActionsBusy(page)
+	return page
+		and (page.gearCheckScanning or page.gearCheckExporting or page.gearCheckMemberScanning)
+end
+
+local function RaidExportDumpReady(page)
+	return page.exportDumpBox and (page.exportDumpBox:GetText() or "") ~= ""
+end
+
+local function UpdateRaidExportActionButtons(page, busy)
+	if not page then
+		return
+	end
+	if busy == nil then
+		busy = PageGearActionsBusy(page)
+	end
+	local dumpReady = RaidExportDumpReady(page)
+	local exportOpen = page.exportViewMode == true
+	if page.textViewBtn then
+		if busy or not exportOpen then
+			page.textViewBtn:Disable()
+		else
+			page.textViewBtn:Enable()
+		end
+	end
+	if page.selectAllBtn then
+		if busy or not (exportOpen and dumpReady) then
+			page.selectAllBtn:Disable()
+		else
+			page.selectAllBtn:Enable()
+		end
+	end
+end
+
+local function UpdateRaidExportView(page)
+	if not page then
+		return
+	end
+	local show = page.exportViewMode == true
+	if page.tableHost then
+		if show then
+			page.tableHost:Hide()
+		else
+			page.tableHost:Show()
+		end
+	end
+	if page.exportCopyHost then
+		if show then
+			page.exportCopyHost:Show()
+		else
+			page.exportCopyHost:Hide()
+		end
+	end
+	UpdateRaidExportActionButtons(page)
+end
+
+local function ShowRaidExportText(page, text)
+	if not page or not page.exportDumpBox then
+		return false
+	end
+	page.exportDumpBox:SetText(text or "")
+	page.exportViewMode = true
+	UpdateRaidExportView(page)
+	if W.FitCopyBoxToText then
+		W.FitCopyBoxToText(page.exportDumpBox)
+	end
+	if (text or "") ~= "" then
+		page.exportDumpBox:SetFocus()
+		page.exportDumpBox:HighlightText()
+	end
+	if page.gearCheckStatusLabel then
+		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_EXPORT_READY"))
+	end
+	return true
+end
+
+function Addon:ShowRaidGearCheckExportText(text)
+	local frame = self.mainFrame
+	local page = frame and frame.pages and frame.pages.raid
+	if not page then
+		return false
+	end
+	self:ShowMainFrame()
+	if frame.selectedTab ~= "raid" then
+		self:SelectTab("raid")
+	end
+	return ShowRaidExportText(page, text)
+end
+
+local function ExitRaidExportView(page)
+	if not page or not page.exportViewMode then
+		return
+	end
+	page.exportViewMode = false
+	UpdateRaidExportView(page)
+	if page.gearCheckStatusLabel and not PageGearActionsBusy(page) then
+		page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
+	end
+end
+
+local function SetRaidBusyButtons(page, busy)
+	if page.gearCheckScanBtn then
+		if busy then
+			page.gearCheckScanBtn:Disable()
+		else
+			page.gearCheckScanBtn:Enable()
+		end
+	end
+	if page.gearCheckExportBtn then
+		if busy then
+			page.gearCheckExportBtn:Disable()
+		else
+			page.gearCheckExportBtn:Enable()
+		end
+	end
+	UpdateRaidExportActionButtons(page, busy)
+	local blocks = { page.topBlock, page.bottomBlock }
+	for blockIndex = 1, #blocks do
+		local block = blocks[blockIndex]
+		if block and block.columns then
+			for _, column in pairs(block.columns) do
+				for slot = 1, 5 do
+					local cell = column.cells and column.cells[slot]
+					if cell and cell.rescanBtn and cell.member then
+						if busy then
+							cell.rescanBtn:Disable()
+						else
+							cell.rescanBtn:Enable()
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+local function UpsertRaidGearResult(page, entry)
+	if not page or not entry or not entry.member then
+		return
+	end
+	local results = page.gearCheckResults
+	if type(results) ~= "table" then
+		results = {}
+		page.gearCheckResults = results
+	end
+
+	local member = entry.member
+	local character = entry.report and entry.report.character or {}
+	local guid = member.guid or character.guid
+	local name = member.name or character.name
+	local replaced = false
+	for index = 1, #results do
+		local existing = results[index]
+		local existingMember = existing and existing.member or {}
+		local existingCharacter = existing and existing.report and existing.report.character or {}
+		local existingGuid = existingMember.guid or existingCharacter.guid
+		local existingName = existingMember.name or existingCharacter.name
+		if guid and existingGuid and guid == existingGuid then
+			results[index] = entry
+			replaced = true
+			break
+		end
+		if name and existingName and name == existingName then
+			results[index] = entry
+			replaced = true
+			break
+		end
+	end
+	if not replaced then
+		results[#results + 1] = entry
+	end
+	if Addon.SetLastGearCheckRaidResults then
+		Addon:SetLastGearCheckRaidResults(results)
+	end
 end
 
 local function MembersFromRaidGroups(groups)
@@ -134,7 +493,6 @@ local function RaidContentSize()
 	return width, height
 end
 
--- REFACTOR candidate: raid grid cell with role/spec/buff/rating sub-layout (~90 lines).
 local function CreateRaidPlayerCell(parent)
 	local cell = CreateFrame("Button", nil, parent)
 	cell:SetSize(RAID_CELL_W, RAID_CELL_H)
@@ -203,18 +561,62 @@ local function CreateRaidPlayerCell(parent)
 	cell.opinionText:SetHeight(RAID_LINE_H)
 	cell.opinionText:SetJustifyH("LEFT")
 
-	cell.tagText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.tagText:SetPoint("TOPLEFT", cell.opinionText, "BOTTOMLEFT", 0, -1)
-	cell.tagText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.tagText:SetHeight(RAID_LINE_H)
-	cell.tagText:SetJustifyH("LEFT")
+	cell.gearGradeText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.gearGradeText:SetPoint("TOPLEFT", cell.opinionText, "BOTTOMLEFT", 0, -1)
+	cell.gearGradeText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
+	cell.gearGradeText:SetHeight(RAID_LINE_H)
+	cell.gearGradeText:SetJustifyH("LEFT")
+
+	cell.enchantSocketGradeText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.enchantSocketGradeText:SetPoint("TOPLEFT", cell.gearGradeText, "BOTTOMLEFT", 0, -1)
+	cell.enchantSocketGradeText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
+	cell.enchantSocketGradeText:SetHeight(RAID_LINE_H)
+	cell.enchantSocketGradeText:SetJustifyH("LEFT")
+
+	local btnCount = 3
+	local btnWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2 - RAID_BTN_GAP * (btnCount - 1)) / btnCount)
+	local profileBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_PROFILE"))
+	profileBtn:SetPoint("BOTTOMLEFT", RAID_CELL_PAD, RAID_CELL_PAD)
+	W.SetPlainButtonTooltip(profileBtn, "BTN_RAID_PROFILE_TIP")
+	profileBtn:SetScript("OnClick", function()
+		if cell.member then
+			Addon:ShowRaidCharacterWindow(cell.member)
+		end
+	end)
+	profileBtn:Hide()
+	cell.profileBtn = profileBtn
+
+	local gearBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_GEAR"))
+	gearBtn:SetPoint("LEFT", profileBtn, "RIGHT", RAID_BTN_GAP, 0)
+	W.SetPlainButtonTooltip(gearBtn, "BTN_RAID_GEAR_TIP")
+	gearBtn:SetScript("OnClick", function()
+		local gearEntry = cell.gearEntry
+		if gearEntry and gearEntry.report and Addon.ShowGearCheckReport then
+			Addon:ShowGearCheckReport(gearEntry.report, gearEntry.status or "ok")
+		end
+	end)
+	gearBtn:Hide()
+	cell.gearBtn = gearBtn
+
+	local rescanBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_RESCAN"))
+	rescanBtn:SetPoint("LEFT", gearBtn, "RIGHT", RAID_BTN_GAP, 0)
+	W.SetPlainButtonTooltip(rescanBtn, "BTN_RAID_RESCAN_TIP")
+	rescanBtn:SetScript("OnClick", function()
+		local frame = Addon.mainFrame
+		local page = frame and frame.pages and frame.pages.raid
+		if page and cell.member then
+			Addon:RunGearCheckMemberRescan(page, cell.member)
+		end
+	end)
+	rescanBtn:Hide()
+	cell.rescanBtn = rescanBtn
 
 	cell:SetScript("OnEnter", function(self)
 		if not self.member then
 			return
 		end
 		self:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
-		W.ShowMemberRatingTooltip(self, self.member)
+		W.ShowMemberRatingTooltip(self, self.member, { gearCheck = true, gearEntry = self.gearEntry })
 	end)
 	cell:SetScript("OnLeave", function(self)
 		local stripe = self.stripe or UI.CD_ROW_A
@@ -230,18 +632,60 @@ local function CreateRaidPlayerCell(parent)
 	return cell
 end
 
+local function CollectGroupMembers(slots)
+	local members = {}
+	if not slots then
+		return members
+	end
+	for slot = 1, 5 do
+		local member = slots[slot]
+		if member then
+			members[#members + 1] = member
+		end
+	end
+	return members
+end
+
+local function UpdateRaidGroupHeader(column, slots)
+	if not column then
+		return
+	end
+	local coverage
+	if Addon.PartyBuffCoverageForGroup then
+		coverage = Addon:PartyBuffCoverageForGroup(CollectGroupMembers(slots))
+	end
+	W.FillPartyBuffStatusIcons(column.partyBuffHosts, coverage)
+end
+
 local function CreateRaidGroupColumn(parent, groupIndex)
 	local column = CreateFrame("Frame", nil, parent)
 	column:SetSize(RAID_CELL_W, RaidBlockHeight())
 
-	local label = column:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	label:SetPoint("TOPLEFT", 0, 0)
-	label:SetPoint("TOPRIGHT", 0, 0)
+	local header = CreateFrame("Frame", nil, column)
+	header:SetPoint("TOPLEFT", 0, 0)
+	header:SetPoint("TOPRIGHT", 0, 0)
+	header:SetHeight(RAID_GROUP_LABEL_H)
+	column.header = header
+
+	local label = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	label:SetPoint("LEFT", 0, 0)
+	label:SetWidth(10)
 	label:SetHeight(RAID_GROUP_LABEL_H)
-	label:SetJustifyH("CENTER")
+	label:SetJustifyH("LEFT")
 	label:SetText(tostring(groupIndex))
 	W.SetFontColor(label, UI.GOLD)
 	column.label = label
+
+	column.partyBuffHosts = {}
+	for buffIndex = 1, UI.PARTY_BUFF_MAX do
+		local host = W.CreatePartyBuffStatusHost(header)
+		if buffIndex == 1 then
+			host:SetPoint("LEFT", label, "RIGHT", 2, 0)
+		else
+			host:SetPoint("LEFT", column.partyBuffHosts[buffIndex - 1], "RIGHT", UI.PARTY_BUFF_GAP, 0)
+		end
+		column.partyBuffHosts[buffIndex] = host
+	end
 
 	column.cells = {}
 	for slot = 1, 5 do
@@ -271,8 +715,56 @@ local function CreateRaidBlock(parent, startGroup, endGroup)
 	return block
 end
 
--- REFACTOR candidate: bind/clear member data across five cell lines.
-local function FillRaidPlayerCell(cell, member, stripe)
+local function FillGearReportRows(cell, member, entry)
+	if not member then
+		cell.gearEntry = nil
+		cell.gearGradeText:SetText("")
+		cell.enchantSocketGradeText:SetText("")
+		if cell.gearBtn then
+			cell.gearBtn:Disable()
+		end
+		return
+	end
+
+	cell.gearEntry = entry
+	local report = entry and entry.report
+	local character = report and report.character or {}
+
+	if not report then
+		local statusLabel = GearStatusLabelForEntry(entry)
+		cell.gearGradeText:SetText(statusLabel)
+		cell.enchantSocketGradeText:SetText("")
+		if IsGearVerdictLabel(statusLabel) then
+			cell.gearGradeText:SetText(W.WrapGearGradation(statusLabel))
+			W.SetFontColor(cell.gearGradeText, UI.TEXT_IDLE)
+		else
+			W.SetFontColor(cell.gearGradeText, UI.TEXT_DISABLED)
+		end
+		if cell.gearBtn then
+			cell.gearBtn:Disable()
+		end
+		return
+	end
+
+	local overall = report.overall or {}
+	local gearGrade = overall.gearGrade or overall.status or "OK"
+	local enchantSocketGrade = overall.enchantSocketGrade or "OK"
+	cell.gearGradeText:SetText(FormatRaidCategoryGradeLine("GEAR_CHECK_RAID_CELL_GEAR", gearGrade))
+	cell.enchantSocketGradeText:SetText(FormatRaidCategoryGradeLine("GEAR_CHECK_RAID_CELL_ENCHANT", enchantSocketGrade))
+	W.SetFontColor(cell.gearGradeText, UI.TEXT_IDLE)
+	W.SetFontColor(cell.enchantSocketGradeText, UI.TEXT_IDLE)
+
+	if cell.gearBtn then
+		cell.gearBtn:Enable()
+	end
+
+	if report and character.specIcon and character.specIcon ~= "" and member.specIcon ~= character.specIcon then
+		W.SetSpecOrClassIcon(cell.specIcon, character.specIcon, member.class)
+		cell.specIcon:Show()
+	end
+end
+
+local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	cell.stripe = stripe
 	cell:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
 
@@ -282,11 +774,20 @@ local function FillRaidPlayerCell(cell, member, stripe)
 		cell.nameText:SetText("")
 		cell.statsText:SetText("")
 		cell.opinionText:SetText("")
-		cell.tagText:SetText("")
 		cell.classIconHost:Hide()
 		cell.roleIconHost:Hide()
 		cell.specIconHost:Hide()
 		W.FillRaidBuffIcons(cell.buffHosts, nil)
+		FillGearReportRows(cell, nil, nil)
+		if cell.profileBtn then
+			cell.profileBtn:Hide()
+		end
+		if cell.gearBtn then
+			cell.gearBtn:Hide()
+		end
+		if cell.rescanBtn then
+			cell.rescanBtn:Hide()
+		end
 		cell:EnableMouse(false)
 		cell:Show()
 		return
@@ -330,34 +831,351 @@ local function FillRaidPlayerCell(cell, member, stripe)
 	cell.opinionText:SetText(W.FormatOpinionLine(member))
 	W.SetFontColor(cell.opinionText, W.RatingOpinionColor(member))
 
-	local tags = W.FormatTagLine(member)
-	cell.tagText:SetText(tags)
-	if tags ~= "" then
-		W.SetFontColor(cell.tagText, UI.TEXT_IDLE)
-	else
-		W.SetFontColor(cell.tagText, UI.TEXT_DISABLED)
+	FillGearReportRows(cell, member, gearEntry)
+	if cell.profileBtn then
+		cell.profileBtn:Show()
+		cell.profileBtn:Enable()
+	end
+	if cell.gearBtn then
+		cell.gearBtn:Show()
+	end
+	if cell.rescanBtn then
+		cell.rescanBtn:Show()
+		local frame = Addon.mainFrame
+		local page = frame and frame.pages and frame.pages.raid
+		if PageGearActionsBusy(page) then
+			cell.rescanBtn:Disable()
+		else
+			cell.rescanBtn:Enable()
+		end
 	end
 	cell:Show()
+end
+
+local function RunGearCheckRaidScan(page)
+	if not Addon.StartGearCheckRaidScan then
+		if page.gearCheckStatusLabel then
+			page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_STATUS_FAIL"))
+		end
+		return
+	end
+	if page.gearCheckExporting or page.gearCheckMemberScanning then
+		return
+	end
+	if Addon.IsGearCheckScanBusy and Addon:IsGearCheckScanBusy() then
+		if page.gearCheckStatusLabel then
+			page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_BUSY"))
+		end
+		return
+	end
+	SetRaidBusyButtons(page, true)
+	ExitRaidExportView(page)
+	if page.gearCheckStatusLabel then
+		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_STATUS_SCANNING"))
+	end
+	SetRaidProgress(page, 0, 1, true)
+	page.gearCheckScanning = true
+	page.gearCheckResults = {}
+
+	local started = Addon:StartGearCheckRaidScan(
+		function(entry, done, total)
+			local name = (entry and entry.member and entry.member.name) or "?"
+			local phase = entry and entry.phase
+			if entry and entry.live then
+				if page.gearCheckStatusLabel then
+					page.gearCheckStatusLabel:SetText(
+						W.T(
+							"GEAR_CHECK_RAID_STATUS_SCANNING_PHASE",
+							done,
+							total,
+							name,
+							RaidScanPhaseLabel(phase)
+						)
+					)
+				end
+				-- Live update: current player in progress counts as a half step.
+				SetRaidProgress(page, done + 0.5, total, true)
+				return
+			end
+			if page.gearCheckStatusLabel then
+				page.gearCheckStatusLabel:SetText(
+					W.T("GEAR_CHECK_RAID_STATUS_SCANNING", done, total, name)
+				)
+			end
+			SetRaidProgress(page, done, total, true)
+			page.gearCheckResults[#page.gearCheckResults + 1] = entry
+			Addon:RefreshRaidRosterView(false)
+		end,
+		function(results, status)
+			page.gearCheckScanning = false
+			page.gearCheckResults = results
+			SetRaidBusyButtons(page, false)
+			SetRaidProgress(page, 0, 1, false)
+			if page.gearCheckStatusLabel then
+				if status == "empty" then
+					page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_EMPTY"))
+				else
+					page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_DONE", #results))
+				end
+			end
+			Addon:RefreshRaidRosterView(false)
+		end
+	)
+	if not started then
+		page.gearCheckScanning = false
+		SetRaidBusyButtons(page, false)
+		SetRaidProgress(page, 0, 1, false)
+		if page.gearCheckStatusLabel then
+			page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_BUSY"))
+		end
+	end
+end
+
+function Addon:RunGearCheckMemberRescan(page, member)
+	if not page or not member or not member.unit then
+		return false
+	end
+	if page.gearCheckScanning or page.gearCheckExporting or page.gearCheckMemberScanning then
+		return false
+	end
+	if Addon.IsGearCheckScanBusy and Addon:IsGearCheckScanBusy() then
+		if page.gearCheckStatusLabel then
+			page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_BUSY"))
+		end
+		return false
+	end
+	if not Addon.StartGearCheckUnitScan then
+		if page.gearCheckStatusLabel then
+			page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_STATUS_FAIL"))
+		end
+		return false
+	end
+
+	page.gearCheckMemberScanning = true
+	SetRaidBusyButtons(page, true)
+	ExitRaidExportView(page)
+	SetRaidProgress(page, 0.5, 1, true)
+	if page.gearCheckStatusLabel then
+		page.gearCheckStatusLabel:SetText(
+			W.T("GEAR_CHECK_RAID_STATUS_RESCANNING", member.name or "?")
+		)
+	end
+
+	local started = Addon:StartGearCheckUnitScan(member.unit, function(report, status)
+		page.gearCheckMemberScanning = false
+		SetRaidBusyButtons(page, false)
+		SetRaidProgress(page, 0, 1, false)
+		UpsertRaidGearResult(page, {
+			member = member,
+			report = report,
+			status = status or (report and "ok") or "failed",
+			phase = "done",
+		})
+		if page.gearCheckStatusLabel then
+			if report then
+				page.gearCheckStatusLabel:SetText(
+					W.T("GEAR_CHECK_RAID_STATUS_RESCAN_DONE", member.name or "?")
+				)
+			else
+				page.gearCheckStatusLabel:SetText(
+					W.T("GEAR_CHECK_RAID_STATUS_RESCAN_FAIL", member.name or "?")
+				)
+			end
+		end
+		Addon:RefreshRaidRosterView(false)
+	end)
+
+	if not started then
+		page.gearCheckMemberScanning = false
+		SetRaidBusyButtons(page, false)
+		SetRaidProgress(page, 0, 1, false)
+		if page.gearCheckStatusLabel then
+			page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_BUSY"))
+		end
+		return false
+	end
+	return true
+end
+
+local function RunGearCheckRaidExport(page)
+	if page.gearCheckScanning or page.gearCheckExporting or page.gearCheckMemberScanning then
+		return
+	end
+	if Addon.IsGearCheckRaidDumpBusy and Addon:IsGearCheckRaidDumpBusy() then
+		return
+	end
+	local results = ResolveGearCheckResults(page)
+	if type(results) ~= "table" or #results == 0 then
+		Addon:Print(W.T("GEAR_CHECK_RAID_EXPORT_EMPTY"))
+		return
+	end
+	if not Addon.BuildGearCheckRaidDumpAsync then
+		if Addon.ShowGearCheckRaidDump then
+			Addon:ShowGearCheckRaidDump(results)
+		end
+		return
+	end
+
+	page.gearCheckExporting = true
+	SetRaidBusyButtons(page, true)
+	SetRaidProgress(page, 0, #results, true)
+	if page.gearCheckStatusLabel then
+		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_EXPORTING", 0, #results))
+	end
+
+	local started = Addon:BuildGearCheckRaidDumpAsync(
+		results,
+		function(done, total, member)
+			if page.gearCheckStatusLabel then
+				page.gearCheckStatusLabel:SetText(
+					W.T(
+						"GEAR_CHECK_RAID_STATUS_EXPORTING_PHASE",
+						done,
+						total,
+						(member and member.name) or "?",
+						RaidScanPhaseLabel("export")
+					)
+				)
+			end
+			SetRaidProgress(page, done, total, true)
+		end,
+		function(text)
+			page.gearCheckExporting = false
+			SetRaidBusyButtons(page, false)
+			SetRaidProgress(page, 0, 1, false)
+			if page.gearCheckStatusLabel then
+				page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
+			end
+			if not text or text == "" then
+				if text == "" then
+					Addon:Print(W.T("GEAR_CHECK_RAID_EXPORT_EMPTY"))
+				end
+				return
+			end
+			-- Defer SetText to the next frame so the progress bar can clear first.
+			local pendingText = text
+			local defer = CreateFrame("Frame")
+			defer:SetScript("OnUpdate", function(self)
+				self:SetScript("OnUpdate", nil)
+				if Addon.ShowRaidGearCheckExportText then
+					Addon:ShowRaidGearCheckExportText(pendingText)
+				elseif Addon.ShowGearCheckDumpText then
+					Addon:ShowGearCheckDumpText(pendingText)
+				else
+					Addon:Print(W.T("GEAR_CHECK_STATUS_FAIL"))
+				end
+			end)
+		end
+	)
+	if not started then
+		page.gearCheckExporting = false
+		SetRaidBusyButtons(page, false)
+		SetRaidProgress(page, 0, 1, false)
+		if Addon.ShowGearCheckRaidDump then
+			Addon:ShowGearCheckRaidDump(results)
+		end
+	end
+end
+
+function Addon:RefreshGearCheckRaidView(_autoScan)
+	self:RefreshRaidRosterView(false)
+end
+
+function Addon:RefreshRaidRosterView(refreshGearScore)
+	local frame = self.mainFrame
+	local page = frame and frame.pages and frame.pages.raid
+	if not page then
+		return
+	end
+
+	if not self.BuildRaidGroups then
+		if page.hint then
+			page.hint:SetText(W.T("RAID_FAIL"))
+		end
+		return
+	end
+
+	local groups = self:BuildRaidGroups(refreshGearScore)
+	UpdateRaidRosterStatsLabels(page, MembersFromRaidGroups(groups))
+
+	local results = ResolveGearCheckResults(page)
+	UpdateGearCheckSummaryLabel(page, results)
+	local byGuid, byName = IndexGearResults(results)
+
+	local blocks = { page.topBlock, page.bottomBlock }
+	for blockIndex = 1, #blocks do
+		local block = blocks[blockIndex]
+		for groupIndex, column in pairs(block.columns) do
+			local slots = groups[groupIndex] or {}
+			UpdateRaidGroupHeader(column, slots)
+			for slot = 1, 5 do
+				local stripe = (slot % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
+				local member = slots[slot]
+				FillRaidPlayerCell(column.cells[slot], member, GearEntryForMember(member, byGuid, byName), stripe)
+			end
+		end
+	end
+
+	local contentW, contentH = RaidContentSize()
+	page.tableContent:SetSize(contentW, contentH)
+	W.LayoutTableScrollBars(page)
+	UpdateRaidExportView(page)
 end
 
 local function CreateRaidRosterPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	hint:SetPoint("TOPLEFT", 0, 0)
-	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
-	hint:SetJustifyH("LEFT")
-	hint:SetJustifyV("TOP")
-	hint:SetText(W.T("RAID_HINT"))
+	local scanBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_SCAN"))
+	scanBtn:SetPoint("TOPRIGHT", 0, 0)
+	W.SetPlainButtonTooltip(scanBtn, "RAID_SCAN_TIP")
+	scanBtn:SetScript("OnClick", function()
+		RunGearCheckRaidScan(page)
+	end)
 
-	local refreshBtn = W.CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
-	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
+	local exportBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_RAID_EXPORT"))
+	exportBtn:SetPoint("TOPRIGHT", scanBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
+	W.SetPlainButtonTooltip(exportBtn, "GEAR_CHECK_RAID_EXPORT_TIP")
+	exportBtn:SetScript("OnClick", function()
+		RunGearCheckRaidExport(page)
+	end)
+
+	local refreshBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
+	refreshBtn:SetPoint("TOPRIGHT", exportBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
+	W.SetPlainButtonTooltip(refreshBtn, "RAID_REFRESH_TIP")
 	refreshBtn:SetScript("OnClick", function()
 		Addon:RefreshPartyData(true)
 	end)
 
-	CreateRaidStatsLabels(page)
+	local textViewBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_RAID_BACK_TO_ROSTER"))
+	textViewBtn:SetPoint("TOPRIGHT", refreshBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
+	W.SetPlainButtonTooltip(textViewBtn, "BTN_RAID_BACK_TO_ROSTER_TIP")
+	textViewBtn:Disable()
+	textViewBtn:SetScript("OnClick", function()
+		ExitRaidExportView(page)
+	end)
+
+	local selectAllBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_SELECT_ALL"))
+	selectAllBtn:SetPoint("TOPRIGHT", textViewBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
+	W.SetPlainButtonTooltip(selectAllBtn, "GEAR_CHECK_SELECT_ALL_TIP")
+	selectAllBtn:Disable()
+	selectAllBtn:SetScript("OnClick", function()
+		if not page.exportDumpBox then
+			return
+		end
+		page.exportViewMode = true
+		UpdateRaidExportView(page)
+		page.exportDumpBox:SetFocus()
+		page.exportDumpBox:HighlightText()
+	end)
+
+	page.gearCheckScanBtn = scanBtn
+	page.gearCheckExportBtn = exportBtn
+	page.refreshBtn = refreshBtn
+	page.textViewBtn = textViewBtn
+	page.selectAllBtn = selectAllBtn
+
+	CreateRaidDescriptionLeft(page, scanBtn)
 
 	local tableTop = -W.RaidRosterTableTopOffset()
 	local tableHost = CreateFrame("Frame", nil, page)
@@ -402,6 +1220,18 @@ local function CreateRaidRosterPage(parent)
 	end)
 	page.hBar = hBar
 
+	local exportDumpBox, exportCopyHost = W.CreateCopyBox(
+		page,
+		"RaidwiseRaidExportScrollV" .. tostring(LAYOUT_VERSION),
+		"RaidwiseRaidExportBoxV" .. tostring(LAYOUT_VERSION)
+	)
+	exportCopyHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
+	exportCopyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+	exportCopyHost:SetFrameLevel(tableHost:GetFrameLevel() + 2)
+	exportCopyHost:Hide()
+	page.exportDumpBox = exportDumpBox
+	page.exportCopyHost = exportCopyHost
+
 	scroll:SetScript("OnMouseWheel", function(self, delta)
 		local maxV = math.max(0, (content:GetHeight() or 0) - (self:GetHeight() or 0))
 		local step = RAID_CELL_H
@@ -417,49 +1247,68 @@ local function CreateRaidRosterPage(parent)
 		Addon:RefreshRaidRosterView(true)
 	end)
 
-	page.hint = hint
-	page.refreshBtn = refreshBtn
+	page.gearCheckResults = {}
+	page.gearCheckScanning = false
+	page.gearCheckExporting = false
+	page.gearCheckMemberScanning = false
+	page.exportViewMode = false
 	page.layoutVersion = LAYOUT_VERSION
 	return page
 end
 
-function Addon:RefreshRaidRosterView(refreshGearScore)
-	local frame = self.mainFrame
-	local page = frame and frame.pages and frame.pages.raid
+local function ApplyLocale(page)
 	if not page then
 		return
 	end
-
-	if not self.BuildRaidGroups then
-		if page.hint then
-			page.hint:SetText(W.T("RAID_FAIL"))
-		end
-		return
+	if page.hint then
+		page.hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
 	end
+	if page.refreshBtn and page.refreshBtn.label then
+		page.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
+	end
+	if page.gearCheckScanBtn and page.gearCheckScanBtn.label then
+		page.gearCheckScanBtn.label:SetText(W.T("GEAR_CHECK_SCAN"))
+	end
+	if page.gearCheckExportBtn and page.gearCheckExportBtn.label then
+		page.gearCheckExportBtn.label:SetText(W.T("GEAR_CHECK_RAID_EXPORT"))
+	end
+	if page.textViewBtn and page.textViewBtn.label then
+		page.textViewBtn.label:SetText(W.T("BTN_RAID_BACK_TO_ROSTER"))
+	end
+	if page.selectAllBtn and page.selectAllBtn.label then
+		page.selectAllBtn.label:SetText(W.T("BTN_SELECT_ALL"))
+	end
+	if page.gearCheckStatusLabel and not page.gearCheckScanning and not page.gearCheckExporting and not page.gearCheckMemberScanning then
+		page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
+	end
+	UpdateGearCheckSummaryLabel(page, ResolveGearCheckResults(page))
+	UpdateRaidExportActionButtons(page)
 
-	page.tableHost:Show()
-
-	local groups = self:BuildRaidGroups(refreshGearScore)
-	UpdateRaidRosterStatsLabels(page, MembersFromRaidGroups(groups))
 	local blocks = { page.topBlock, page.bottomBlock }
 	for blockIndex = 1, #blocks do
 		local block = blocks[blockIndex]
-		for groupIndex, column in pairs(block.columns) do
-			local slots = groups[groupIndex] or {}
-			for slot = 1, 5 do
-				local stripe = (slot % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
-				FillRaidPlayerCell(column.cells[slot], slots[slot], stripe)
+		if block and block.columns then
+			for _, column in pairs(block.columns) do
+				for slot = 1, 5 do
+					local cell = column.cells and column.cells[slot]
+					if cell and cell.profileBtn and cell.profileBtn.label then
+						cell.profileBtn.label:SetText(W.T("BTN_RAID_PROFILE"))
+					end
+					if cell and cell.gearBtn and cell.gearBtn.label then
+						cell.gearBtn.label:SetText(W.T("BTN_RAID_GEAR"))
+					end
+					if cell and cell.rescanBtn and cell.rescanBtn.label then
+						cell.rescanBtn.label:SetText(W.T("BTN_RAID_RESCAN"))
+					end
+				end
 			end
 		end
 	end
-
-	local contentW, contentH = RaidContentSize()
-	page.tableContent:SetSize(contentW, contentH)
-	W.LayoutTableScrollBars(page)
 end
 
 Addon.Pages.Raid = {
 	id = "raid",
 	LAYOUT_VERSION = LAYOUT_VERSION,
 	Create = CreateRaidRosterPage,
+	ApplyLocale = ApplyLocale,
 }

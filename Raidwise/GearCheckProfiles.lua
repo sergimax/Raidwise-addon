@@ -46,12 +46,15 @@ end
 -- Shared armor templates.
 local A_PLATE = Armor({ "plate" }, { "mail" }, { "leather" }, { "cloth" })
 local A_PLATE_TANK = Armor({ "plate" }, {}, { "mail", "leather" }, { "cloth" })
--- Plate DPS / Holy: leather/mail offset pieces appear on BiS lists.
+-- Plate DPS: leather/mail offset pieces appear on BiS lists.
 local A_PLATE_DPS = Armor({ "plate" }, { "mail", "leather" }, {}, { "cloth" })
-local A_MAIL = Armor({ "mail" }, { "leather" }, { "cloth" }, { "plate" })
+-- Holy Pala: cloth SP pieces are commonly used (same as other hybrid healers).
+local A_PLATE_HOLY = Armor({ "plate" }, { "mail", "leather", "cloth" }, {}, {})
+-- Shaman: mail preferred; leather/cloth offsets are normal.
+local A_MAIL = Armor({ "mail" }, { "leather", "cloth" }, {}, { "plate" })
 local A_LEATHER = Armor({ "leather" }, {}, { "cloth", "mail" }, { "plate" })
--- Resto Druid BiS sometimes uses cloth chest.
-local A_LEATHER_HEAL = Armor({ "leather" }, { "cloth" }, { "mail" }, { "plate" })
+-- Balance / Resto Druid: cloth chests and offsets appear on BiS lists.
+local A_LEATHER_CASTER = Armor({ "leather" }, { "cloth" }, { "mail" }, { "plate" })
 local A_CLOTH = Armor({ "cloth" }, {}, {}, { "leather", "mail", "plate" })
 
 -- Shared stat templates (resilience is always soft-flagged in the engine for PvE).
@@ -138,11 +141,12 @@ local S_DK_BLOOD = Stats(
 	{},
 	{ "intellect", "spirit", "spellPower", "spellPenetration", "mp5" }
 )
+-- Frost/Unholy: intellect is soft waste (hybrid mail/leather), not a hard BAD.
 local S_DK_DPS = Stats(
 	{ "strength", "agility", "attackPower", "hitRating", "critRating", "hasteRating", "expertiseRating", "armorPenetration" },
 	{ "stamina", "armor" },
-	{ "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue" },
-	{ "intellect", "spirit", "spellPower", "spellPenetration", "mp5" }
+	{ "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "intellect" },
+	{ "spirit", "spellPower", "spellPenetration", "mp5" }
 )
 -- Priest specs: disc vs holy vs shadow stat gradation.
 local S_PRIEST_DISC = Stats(
@@ -173,9 +177,9 @@ local S_ROGUE = Stats(
 -- Paladin specs: holy healer vs protection tank vs retribution DPS.
 local S_PALADIN_HOLY = Stats(
 	{ "intellect", "spirit", "spellPower", "critRating", "hasteRating", "mp5" },
-	{ "stamina" },
+	{ "stamina", "armor", "blockValue" },
 	{ "strength", "agility", "attackPower", "hitRating" },
-	{ "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue" }
+	{ "expertiseRating", "armorPenetration", "spellPenetration", "defenseRating", "dodgeRating", "parryRating", "blockRating" }
 )
 local S_PALADIN_PROT = Stats(
 	{ "strength", "agility", "stamina", "hitRating", "expertiseRating", "defenseRating", "dodgeRating", "parryRating", "blockRating", "blockValue", "armor" },
@@ -204,35 +208,35 @@ local S_WARRIOR_PROT = Stats(
 )
 
 local W_1H_SHIELD = Weapons(
-	{ "sword1h", "axe1h", "mace1h", "shield" },
-	{},
+	{ "sword1h", "axe1h", "mace1h", "shield", "thrown" },
+	{ "bow", "gun", "crossbow" },
 	{ "sword2h", "axe2h", "mace2h", "polearm", "staff" },
-	{ "bow", "gun", "crossbow", "thrown", "wand", "dagger", "fist", "fishingPole" }
+	{ "wand", "dagger", "fist", "fishingPole" }
 )
 local W_DW_MELEE = Weapons(
-	{ "sword1h", "axe1h", "mace1h", "fist", "dagger" },
-	{},
+	{ "sword1h", "axe1h", "mace1h", "fist", "dagger", "thrown" },
+	{ "bow", "gun", "crossbow" },
 	{ "sword2h", "axe2h", "mace2h", "polearm", "staff", "shield" },
-	{ "bow", "gun", "crossbow", "wand", "fishingPole" }
+	{ "wand", "fishingPole" }
 )
 -- Fury BiS is Titan's Grip dual 2H; 1H remains acceptable.
 local W_FURY = Weapons(
-	{ "sword2h", "axe2h", "mace2h" },
-	{ "sword1h", "axe1h", "mace1h", "fist", "polearm" },
+	{ "sword2h", "axe2h", "mace2h", "thrown" },
+	{ "sword1h", "axe1h", "mace1h", "fist", "polearm", "bow", "gun", "crossbow" },
 	{ "staff", "shield", "dagger" },
-	{ "bow", "gun", "crossbow", "wand", "fishingPole" }
+	{ "wand", "fishingPole" }
 )
 local W_2H_MELEE = Weapons(
-	{ "sword2h", "axe2h", "mace2h", "polearm" },
-	{ "sword1h", "axe1h", "mace1h" },
+	{ "sword2h", "axe2h", "mace2h", "polearm", "thrown" },
+	{ "sword1h", "axe1h", "mace1h", "bow", "gun", "crossbow" },
 	{ "staff", "shield" },
-	{ "bow", "gun", "crossbow", "wand", "fishingPole" }
+	{ "wand", "fishingPole" }
 )
 local W_ROGUE = Weapons(
-	{ "dagger", "fist", "sword1h", "mace1h", "axe1h" },
-	{},
+	{ "dagger", "fist", "sword1h", "mace1h", "axe1h", "thrown" },
+	{ "bow", "gun", "crossbow" },
 	{ "sword2h", "axe2h", "mace2h", "polearm", "staff", "shield" },
-	{ "bow", "gun", "crossbow", "wand", "fishingPole" }
+	{ "wand", "fishingPole" }
 )
 local W_HUNTER = Weapons(
 	{ "bow", "gun", "crossbow", "sword2h", "axe2h", "polearm", "staff", "sword1h", "axe1h" },
@@ -294,16 +298,38 @@ local function ResolveTrinketSets(opts)
 	if opts.trinketPool then
 		local pool = TRINKET_POOLS[opts.trinketPool]
 		if pool then
-			return Set(pool.preferred or {}), Set(pool.allowed or {})
+			local preferred = Set(pool.preferred or {})
+			local allowed = Set(pool.allowed or {})
+			local situational = {}
+			if opts.trinketAlsoAllow then
+				local extra = TRINKET_POOLS[opts.trinketAlsoAllow]
+				if extra then
+					local extraIds = {}
+					for index = 1, #(extra.preferred or {}) do
+						extraIds[#extraIds + 1] = extra.preferred[index]
+					end
+					for index = 1, #(extra.allowed or {}) do
+						extraIds[#extraIds + 1] = extra.allowed[index]
+					end
+					for index = 1, #extraIds do
+						local itemId = extraIds[index]
+						if not preferred[itemId] then
+							allowed[itemId] = true
+							situational[itemId] = true
+						end
+					end
+				end
+			end
+			return preferred, allowed, situational
 		end
 	end
 	local legacy = Set(opts.trinkets or {})
-	return legacy, legacy
+	return legacy, legacy, {}
 end
 
 local function Profile(name, armor, stats, weapons, metaPreferred, opts)
 	opts = opts or {}
-	local trinketsPreferred, trinketsAllowed = ResolveTrinketSets(opts)
+	local trinketsPreferred, trinketsAllowed, trinketsSituational = ResolveTrinketSets(opts)
 	return {
 		name = name,
 		armor = armor,
@@ -314,6 +340,7 @@ local function Profile(name, armor, stats, weapons, metaPreferred, opts)
 		weaponSetup = opts.weaponSetup or "any",
 		trinketsPreferred = trinketsPreferred,
 		trinketsAllowed = trinketsAllowed,
+		trinketsSituational = trinketsSituational,
 	}
 end
 
@@ -328,16 +355,16 @@ local PROFILES = {
 	SHAMAN = Profile("Shaman", A_MAIL, S_CASTER, W_ELE_RESTO_SHAMAN, { 41398, 41395, 41401 }, { weaponSetup = "any", trinketPool = "caster" }),
 	MAGE = Profile("Mage", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
 	WARLOCK = Profile("Warlock", A_CLOTH, S_CASTER, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
-	DRUID = Profile("Druid", A_LEATHER, S_CASTER, W_FERAL, { 41398, 41401, 41376 }, { weaponSetup = "any", trinketPool = "caster" }),
+	DRUID = Profile("Druid", A_LEATHER_CASTER, S_CASTER, W_FERAL, { 41398, 41401, 41376 }, { weaponSetup = "any", trinketPool = "caster" }),
 
 	-- Warrior
 	["WARRIOR-1"] = Profile("Arms", A_PLATE_DPS, S_WARRIOR_DPS, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "phys" }),
 	["WARRIOR-2"] = Profile("Fury", A_PLATE_DPS, S_WARRIOR_DPS, W_FURY, { 41398, 41285 }, { weaponSetup = "dw", trinketPool = "phys" }),
-	["WARRIOR-3"] = Profile("Protection", A_PLATE_TANK, S_WARRIOR_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinketPool = "tank" }),
+	["WARRIOR-3"] = Profile("Protection", A_PLATE_TANK, S_WARRIOR_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinketPool = "tank", trinketAlsoAllow = "phys" }),
 
 	-- Paladin
-	["PALADIN-1"] = Profile("Holy", A_PLATE_DPS, S_PALADIN_HOLY, W_1H_SHIELD, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield", trinketPool = "healer" }),
-	["PALADIN-2"] = Profile("Protection", A_PLATE_TANK, S_PALADIN_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinketPool = "tank" }),
+	["PALADIN-1"] = Profile("Holy", A_PLATE_HOLY, S_PALADIN_HOLY, W_1H_SHIELD, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield", trinketPool = "healer" }),
+	["PALADIN-2"] = Profile("Protection", A_PLATE_TANK, S_PALADIN_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinketPool = "tank", trinketAlsoAllow = "ret" }),
 	["PALADIN-3"] = Profile("Retribution", A_PLATE_DPS, S_PALADIN_RET, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "ret" }),
 
 	-- Hunter
@@ -356,7 +383,7 @@ local PROFILES = {
 	["PRIEST-3"] = Profile("Shadow", A_CLOTH, S_PRIEST_SHADOW, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
 
 	-- Death Knight
-	["DEATHKNIGHT-1"] = Profile("Blood", A_PLATE_TANK, S_DK_BLOOD, W_DK_2H, { 41397, 41396, 41380 }, { weaponSetup = "2h", trinketPool = "tank" }),
+	["DEATHKNIGHT-1"] = Profile("Blood", A_PLATE_TANK, S_DK_BLOOD, W_DK_2H, { 41397, 41396, 41380 }, { weaponSetup = "2h", trinketPool = "tank", trinketAlsoAllow = "phys" }),
 	["DEATHKNIGHT-2"] = Profile("Frost", A_PLATE_DPS, S_DK_DPS, W_DK_DW, { 41398, 41285 }, { weaponSetup = "dw", trinketPool = "phys" }),
 	["DEATHKNIGHT-3"] = Profile("Unholy", A_PLATE_DPS, S_DK_DPS, W_DK_2H, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "phys" }),
 
@@ -376,9 +403,9 @@ local PROFILES = {
 	["WARLOCK-3"] = Profile("Destruction", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
 
 	-- Druid
-	["DRUID-1"] = Profile("Balance", A_LEATHER, S_DRUID_BALANCE, W_FERAL, { 41285, 41333, 41401 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
+	["DRUID-1"] = Profile("Balance", A_LEATHER_CASTER, S_DRUID_BALANCE, W_FERAL, { 41285, 41333, 41401 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
 	["DRUID-2"] = Profile("Feral", A_LEATHER, S_DRUID_FERAL, W_FERAL, { 41398, 41397, 41285 }, { weaponSetup = "2h", trinketPool = "phys" }),
-	["DRUID-3"] = Profile("Restoration", A_LEATHER_HEAL, S_DRUID_RESTO, W_FERAL, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinketPool = "healer" }),
+	["DRUID-3"] = Profile("Restoration", A_LEATHER_CASTER, S_DRUID_RESTO, W_FERAL, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinketPool = "healer" }),
 }
 
 -- Blood DK tank tab is 1 in RaidRoles.

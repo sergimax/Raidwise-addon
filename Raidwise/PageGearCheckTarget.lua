@@ -18,19 +18,19 @@ local ApplyReportToPage
 local RefreshSavedList
 
 local FILTERS = {
-	{ id = "all", labelKey = "GEAR_CHECK_FILTER_ALL" },
-	{ id = "items", labelKey = "GEAR_CHECK_FILTER_ITEMS" },
-	{ id = "enchants", labelKey = "GEAR_CHECK_FILTER_ENCHANTS" },
-	{ id = "gems", labelKey = "GEAR_CHECK_FILTER_GEMS" },
-	{ id = "ok", labelKey = "GEAR_CHECK_FILTER_OK" },
+	{ id = "all", labelKey = "GEAR_CHECK_FILTER_ALL", tipKey = "GEAR_CHECK_FILTER_ALL_TIP" },
+	{ id = "items", labelKey = "GEAR_CHECK_FILTER_ITEMS", tipKey = "GEAR_CHECK_FILTER_ITEMS_TIP" },
+	{ id = "enchants", labelKey = "GEAR_CHECK_FILTER_ENCHANTS", tipKey = "GEAR_CHECK_FILTER_ENCHANTS_TIP" },
+	{ id = "gems", labelKey = "GEAR_CHECK_FILTER_GEMS", tipKey = "GEAR_CHECK_FILTER_GEMS_TIP" },
+	{ id = "ok", labelKey = "GEAR_CHECK_FILTER_OK", tipKey = "GEAR_CHECK_FILTER_OK_TIP" },
 }
 
 local REPORT_BUTTONS = {
-	{ mode = "summary", labelKey = "GEAR_CHECK_REPORT_SUMMARY" },
-	{ mode = "items", labelKey = "GEAR_CHECK_REPORT_ITEMS" },
-	{ mode = "enchants", labelKey = "GEAR_CHECK_REPORT_ENCHANTS" },
-	{ mode = "gems", labelKey = "GEAR_CHECK_REPORT_GEMS" },
-	{ mode = "ok", labelKey = "GEAR_CHECK_REPORT_OK" },
+	{ mode = "summary", labelKey = "GEAR_CHECK_REPORT_SUMMARY", tipKey = "GEAR_CHECK_REPORT_SUMMARY_TIP" },
+	{ mode = "items", labelKey = "GEAR_CHECK_REPORT_ITEMS", tipKey = "GEAR_CHECK_REPORT_ITEMS_TIP" },
+	{ mode = "enchants", labelKey = "GEAR_CHECK_REPORT_ENCHANTS", tipKey = "GEAR_CHECK_REPORT_ENCHANTS_TIP" },
+	{ mode = "gems", labelKey = "GEAR_CHECK_REPORT_GEMS", tipKey = "GEAR_CHECK_REPORT_GEMS_TIP" },
+	{ mode = "ok", labelKey = "GEAR_CHECK_REPORT_OK", tipKey = "GEAR_CHECK_REPORT_OK_TIP" },
 }
 
 local ITEM_CATEGORIES = {
@@ -64,19 +64,6 @@ local function StatusTextForScan(report, status)
 	end
 	local where = isSelf and W.T("GEAR_CHECK_STATUS_SELF") or W.T("GEAR_CHECK_STATUS_TARGET")
 	return W.T("GEAR_CHECK_STATUS_OK", who, where)
-end
-
-local function VerdictColor(verdict)
-	if verdict == "BAD" then
-		return UI.TEXT_ALERT
-	end
-	if verdict == "REPLACE" then
-		return UI.GOLD
-	end
-	if verdict == "GOOD" then
-		return UI.TEXT_GOOD
-	end
-	return UI.TEXT_IDLE
 end
 
 local function FindingMatchesFilter(finding, filterId)
@@ -549,8 +536,8 @@ local function ApplySummary(page, report)
 
 	local overall = report.overall or {}
 	local status = overall.status or "OK"
-	page.overallLabel:SetText(W.T("GEAR_CHECK_OVERALL", status))
-	W.SetFontColor(page.overallLabel, VerdictColor(status))
+	page.overallLabel:SetText(W.T("GEAR_CHECK_OVERALL", W.WrapGearGradation(status)))
+	W.SetFontColor(page.overallLabel, UI.TEXT_IDLE)
 
 	local character = report.character or {}
 	local who = character.name or report.name or "?"
@@ -597,17 +584,14 @@ local function ApplySummary(page, report)
 
 	local issues = overall.issues or {}
 	local verdicts = report.verdicts or {}
-	page.issuesLabel:SetText(W.T(
-		"GEAR_CHECK_ISSUES",
-		verdicts.bad or 0,
-		verdicts.replace or 0,
-		verdicts.ok or 0,
-		verdicts.good or 0,
-		issues.enchants or 0,
-		issues.gems or 0,
-		(issues.meta or 0) == 0 and W.T("GEAR_CHECK_META_OK_SHORT") or tostring(issues.meta or 0)
-	))
-	W.SetFontColor(page.issuesLabel, UI.TEXT_DISABLED)
+	local metaText = (issues.meta or 0) == 0 and W.T("GEAR_CHECK_META_OK_SHORT") or tostring(issues.meta or 0)
+	page.issuesLabel:SetText(
+		W.FormatGearVerdictCountsLine("Items ", verdicts.bad, verdicts.replace, verdicts.ok, verdicts.good, "")
+			.. " · Enchants " .. tostring(issues.enchants or 0)
+			.. " · Gems " .. tostring(issues.gems or 0)
+			.. " · Meta " .. metaText
+	)
+	W.SetFontColor(page.issuesLabel, UI.TEXT_IDLE)
 
 	page.metaLabel:SetText(W.T("GEAR_CHECK_META_LINE", FormatMetaBrief(report.meta)))
 	W.SetFontColor(page.metaLabel, UI.TEXT_DISABLED)
@@ -677,8 +661,8 @@ local function ApplyBreakdown(page, report)
 		row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, y)
 		row.title:SetWidth(width)
 		local verdict = group.verdict or "OK"
-		row.title:SetText(string.format("[%s] %s", verdict, group.label))
-		W.SetFontColor(row.title, VerdictColor(verdict))
+		row.title:SetText(string.format("[%s] %s", W.WrapGearGradation(verdict), group.label))
+		W.SetFontColor(row.title, UI.TEXT_IDLE)
 
 		local detailParts = {}
 		for lineIndex = 1, #group.lines do
@@ -711,6 +695,9 @@ end
 ApplyReportToPage = function(page, report, status, savedEntry)
 	if not page then
 		return
+	end
+	if report and Addon.EnsureGearCheckGrades then
+		Addon:EnsureGearCheckGrades(report)
 	end
 	page.lastReport = report
 	page.lastStatus = status
@@ -809,7 +796,7 @@ local function CreateGearCheckTargetPage(parent)
 	desc:SetWidth(innerW)
 	desc:SetJustifyH("LEFT")
 	desc:SetJustifyV("TOP")
-	desc:SetText(W.T("GEAR_CHECK_TARGET_DESC"))
+	desc:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_TARGET_DESC")))
 	page.desc = desc
 
 	local limit = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -846,6 +833,7 @@ local function CreateGearCheckTargetPage(parent)
 	selectBtn:SetPoint("BOTTOMLEFT", 0, 0)
 	selectBtn:SetPoint("BOTTOMRIGHT", rightTop, "BOTTOMRIGHT", 0, 0)
 	selectBtn:Disable()
+	W.SetPlainButtonTooltip(selectBtn, "GEAR_CHECK_SELECT_ALL_TIP")
 	selectBtn:SetScript("OnClick", function()
 		if Addon.SelectGearCheckDump then
 			Addon:SelectGearCheckDump()
@@ -856,6 +844,7 @@ local function CreateGearCheckTargetPage(parent)
 	local debugBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_TEXT_VIEW"))
 	debugBtn:SetPoint("BOTTOMLEFT", selectBtn, "TOPLEFT", 0, 4)
 	debugBtn:SetPoint("BOTTOMRIGHT", selectBtn, "TOPRIGHT", 0, 4)
+	W.SetPlainButtonTooltip(debugBtn, "GEAR_CHECK_TEXT_VIEW_TIP")
 	debugBtn:SetScript("OnClick", function()
 		page.debugMode = not page.debugMode
 		UpdateDebugVisibility(page)
@@ -865,6 +854,7 @@ local function CreateGearCheckTargetPage(parent)
 	local scanBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
 	scanBtn:SetPoint("BOTTOMLEFT", debugBtn, "TOPLEFT", 0, 4)
 	scanBtn:SetPoint("BOTTOMRIGHT", debugBtn, "TOPRIGHT", 0, 4)
+	W.SetPlainButtonTooltip(scanBtn, "GEAR_CHECK_SCAN_TIP")
 	scanBtn:SetScript("OnClick", function()
 		RunScan(page)
 	end)
@@ -985,6 +975,7 @@ local function CreateGearCheckTargetPage(parent)
 			btn:SetPoint("LEFT", page.reportButtons[index - 1], "RIGHT", UI.ACTION_BTN_GAP, 0)
 		end
 		btn.reportMode = info.mode
+		W.SetPlainButtonTooltip(btn, info.tipKey)
 		btn:SetScript("OnClick", function()
 			RunChatReport(page, info.mode)
 		end)
@@ -1009,6 +1000,7 @@ local function CreateGearCheckTargetPage(parent)
 			btn:SetPoint("LEFT", page.filterButtons[index - 1], "RIGHT", UI.ACTION_BTN_GAP, 0)
 		end
 		btn.filterId = info.id
+		W.SetPlainButtonTooltip(btn, info.tipKey)
 		btn:SetScript("OnClick", function()
 			SetFilterSelected(page, info.id)
 			ApplyBreakdown(page, page.lastReport)
@@ -1027,6 +1019,7 @@ local function CreateGearCheckTargetPage(parent)
 	saveBtn:SetPoint("TOPLEFT", 0, 0)
 	saveBtn:SetPoint("TOPRIGHT", rightSidebar, "TOPRIGHT", 0, 0)
 	saveBtn:Disable()
+	W.SetPlainButtonTooltip(saveBtn, "GEAR_CHECK_SAVE_TIP")
 	saveBtn:SetScript("OnClick", function()
 		SaveCurrentReport(page)
 	end)
@@ -1036,6 +1029,7 @@ local function CreateGearCheckTargetPage(parent)
 	savedDeleteBtn:SetPoint("TOPLEFT", saveBtn, "BOTTOMLEFT", 0, -6)
 	savedDeleteBtn:SetPoint("TOPRIGHT", saveBtn, "BOTTOMRIGHT", 0, -6)
 	savedDeleteBtn:Disable()
+	W.SetPlainButtonTooltip(savedDeleteBtn, "GEAR_CHECK_SAVED_DELETE_TIP")
 	savedDeleteBtn:SetScript("OnClick", function()
 		DeleteViewingSaved(page)
 	end)
@@ -1199,7 +1193,7 @@ local function ApplyLocale(page)
 		return
 	end
 	if page.desc then
-		page.desc:SetText(W.T("GEAR_CHECK_TARGET_DESC"))
+		page.desc:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_TARGET_DESC")))
 	end
 	if page.limit then
 		page.limit:SetText(W.T("GEAR_CHECK_LIMITATION"))
@@ -1250,6 +1244,30 @@ local function ApplyLocale(page)
 		ApplySummary(page, nil)
 		ApplyBreakdown(page, nil)
 	end
+end
+
+function Addon:ShowGearCheckDumpText(text)
+	local frame = self.mainFrame
+	local page = frame and frame.pages and frame.pages.geartarget
+	if not page or not page.dumpBox then
+		return false
+	end
+	-- SelectTab refreshes the page dump from the last single report — set text after that.
+	self:ShowMainFrame()
+	self:SelectTab("geartarget")
+	page.dumpBox:SetText(text or "")
+	page.debugMode = true
+	UpdateDebugVisibility(page)
+	if page.dumpBox.Fit then
+		page.dumpBox:Fit()
+	elseif W.FitCopyBoxToText then
+		W.FitCopyBoxToText(page.dumpBox)
+	end
+	if (text or "") ~= "" then
+		page.dumpBox:SetFocus()
+		page.dumpBox:HighlightText()
+	end
+	return true
 end
 
 function Addon:SelectGearCheckDump()

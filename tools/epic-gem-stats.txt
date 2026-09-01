@@ -1,0 +1,72 @@
+40111	Bold Cardinal Ruby	+20 Strength
+40112	Delicate Cardinal Ruby	+20 Agility
+40113	Runed Cardinal Ruby	+23 Spell Power
+40114	Bright Cardinal Ruby	+40 Attack Power
+40115	Subtle Cardinal Ruby	+20 Dodge Rating
+40116	Flashing Cardinal Ruby	+20 Parry Rating
+40117	Fractured Cardinal Ruby	+20 Armor Penetration Rating
+40118	Precise Cardinal Ruby	+20 Expertise Rating
+40119	Solid Majestic Zircon	+30 Stamina
+40120	Sparkling Majestic Zircon	+20 Spirit
+40121	Lustrous Majestic Zircon	+10 Mana every 5 seconds
+40122	Stormy Majestic Zircon	+25 Spell Penetration
+40123	PARSE	?
+40124	Smooth King's Amber	+20 Critical Strike Rating
+40125	Rigid King's Amber	+20 Hit Rating
+40126	Thick King's Amber	+20 Defense Rating
+40127	Mystic King's Amber	+20 Resilience Rating
+40128	Quick King's Amber	+20 Haste Rating
+40129	Sovereign Dreadstone	+10 Strength and +15 Stamina
+40130	Shifting Dreadstone	+10 Agility and +15 Stamina
+40131	Tenuous Dreadstone	+10 Agility and +5 Mana every 5 seconds
+40132	Glowing Dreadstone	+12 Spell Power and +15 Stamina
+40133	Purified Dreadstone	+12 Spell Power and +10 Spirit
+40134	Royal Dreadstone	+12 Spell Power and +5 Mana every 5 seconds
+40135	Mysterious Dreadstone	+12 Spell Power and +13 Spell Penetration
+40136	Balanced Dreadstone	+20 Attack Power and +15 Stamina
+40137	Infused Dreadstone	+20 Attack Power and +5 Mana every 5 seconds
+40138	Regal Dreadstone	+10 Dodge Rating and +15 Stamina
+40139	Defender's Dreadstone	+10 Parry Rating and +15 Stamina
+40140	Puissant Dreadstone	+10 Armor Penetration Rating and +15 Stamina
+40141	Guardian's Dreadstone	+10 Expertise Rating and +15 Stamina
+40142	Inscribed Ametrine	+10 Strength and +10 Critical Strike Rating
+40143	Etched Ametrine	+10 Strength and +10 Hit Rating
+40144	Champion's Ametrine	+10 Strength and +10 Defense Rating
+40145	Resplendent Ametrine	+10 Strength and +10 Resilience Rating
+40146	Fierce Ametrine	+10 Strength and +10 Haste Rating
+40147	Deadly Ametrine	+10 Agility and +10 Critical Strike Rating
+40148	Glinting Ametrine	+10 Agility and +10 Hit Rating
+40149	Lucent Ametrine	+10 Agility and +10 Resilience Rating
+40150	Deft Ametrine	+10 Agility and +10 Haste Rating
+40151	PARSE	?
+40152	Potent Ametrine	+12 Spell Power and +10 Critical Strike Rating
+40153	Veiled Ametrine	+12 Spell Power and +10 Hit Rating
+40154	Durable Ametrine	+12 Spell Power and +10 Resilience Rating
+40155	Reckless Ametrine	+12 Spell Power and +10 Haste Rating
+40156	Wicked Ametrine	+20 Attack Power and +10 Critical Strike Rating
+40157	WOWHEAD	{"name":"Pristine Ametrine","quality":4,"icon":"inv_jewelcrafting_gem_39","tooltip":"<table><tr><td><table style=\"display:inline-table; vertical-align:inherit\"><tr><td><!--nstart--><b class=\"q4\">Pristine Ametrine</b><!--nend--></td><th><b class=\"q0 whtt-extra\">Phase 3</b></th></tr></table><!--
+40158	Empowered Ametrine	+20 Attack Power and +10 Resilience Rating
+40159	Stark Ametrine	+20 Attack Power and +10 Haste Rating
+40160	Stalwart Ametrine	+10 Dodge Rating and +10 Defense Rating
+40161	Glimmering Ametrine	+10 Parry Rating and +10 Defense Rating
+40162	Accurate Ametrine	+10 Expertise Rating and +10 Hit Rating
+40163	Resolute Ametrine	+10 Expertise Rating and +10 Defense Rating
+40164	PARSE	?
+40165	Jagged Eye of Zul	+10 Critical Strike Rating and +15 Stamina
+40166	Vivid Eye of Zul	+10 Hit Rating and +15 Stamina
+40167	Enduring Eye of Zul	+10 Defense Rating and +15 Stamina
+40168	Steady Eye of Zul	+10 Resilience Rating and +15 Stamina
+40169	Forceful Eye of Zul	+10 Haste Rating and +15 Stamina
+40170	PARSE	?
+40171	Misty Eye of Zul	+10 Critical Strike Rating and +10 Spirit
+40172	Shining Eye of Zul	+10 Hit Rating and +10 Spirit
+40173	Turbid Eye of Zul	+10 Resilience Rating and +10 Spirit
+40174	Intricate Eye of Zul	+10 Haste Rating and +10 Spirit
+40175	PARSE	?
+40176	Sundered Eye of Zul	+10 Critical Strike Rating and +5 Mana every 5 seconds
+40177	Lambent Eye of Zul	+10 Hit Rating and +5 Mana every 5 seconds
+40178	Opaque Eye of Zul	+10 Resilience Rating and +5 Mana every 5 seconds
+40179	Energized Eye of Zul	+10 Haste Rating and +5 Mana every 5 seconds
+40180	Radiant Eye of Zul	+10 Critical Strike Rating and +13 Spell Penetration
+40181	Tense Eye of Zul	+10 Hit Rating and +13 Spell Penetration
+40182	WOWHEAD	{"name":"Shattered Eye of Zul","quality":4,"icon":"inv_jewelcrafting_gem_41","tooltip":"<table><tr><td><table style=\"display:inline-table; vertical-align:inherit\"><tr><td><!--nstart--><b class=\"q4\">Shattered Eye of Zul</b><!--nend--></td><th><b class=\"q0 whtt-extra\">Phase 3</b></th></tr></tabl

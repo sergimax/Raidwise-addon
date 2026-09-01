@@ -6,25 +6,31 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 3
+local LAYOUT_VERSION = 4
 
 local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
 
 local SECTION_ICON_SIZE = 18
-local SECTION_GAP = 12
 
 -- Body locale key per menu page id (Info itself is omitted; intro covers slash commands).
 local SECTION_BODY_KEYS = {
 	cooldowns = "INFO_SECTION_COOLDOWNS",
 	export = "INFO_SECTION_EXPORT",
-	party = "INFO_SECTION_PARTY",
 	raid = "INFO_SECTION_RAID",
 	composition = "INFO_SECTION_COMPOSITION",
 	geartarget = "INFO_SECTION_GEARTARGET",
-	gearraid = "INFO_SECTION_GEARRAID",
 	history = "INFO_SECTION_HISTORY",
 	settings = "INFO_SECTION_SETTINGS",
 }
+
+local function ApplyInfoHeadingFont(fontString)
+	W.ApplyFontSize(fontString, UI.INFO_HEADING_SIZE)
+end
+
+local function ApplyInfoBodyFont(fontString)
+	W.ApplyFontSize(fontString, UI.INFO_BODY_SIZE)
+	fontString:SetSpacing(UI.INFO_LINE_SPACING or 0)
+end
 
 local function PageLayoutVersion(pageKey)
 	local pageModule = Addon.Pages and Addon.Pages[pageKey]
@@ -81,7 +87,7 @@ local function LayoutInfoContent(page)
 			local bodyH = (section.body and section.body:GetStringHeight()) or 40
 			local height = SECTION_ICON_SIZE + 6 + bodyH
 			section:SetHeight(height)
-			y = y + height + SECTION_GAP
+			y = y + height + UI.INFO_SECTION_GAP
 		end
 	end
 
@@ -169,6 +175,7 @@ local function CreateFeatureSection(parent, pageInfo, bodyKey)
 	title:SetPoint("LEFT", icon, "RIGHT", 6, 0)
 	title:SetPoint("TOP", icon, "TOP", 0, 1)
 	title:SetJustifyH("LEFT")
+	ApplyInfoHeadingFont(title)
 	title:SetText(W.T(pageInfo.labelKey))
 	W.SetFontColor(title, UI.GOLD)
 	section.title = title
@@ -184,6 +191,7 @@ local function CreateFeatureSection(parent, pageInfo, bodyKey)
 	body:SetPoint("TOPLEFT", icon, "BOTTOMLEFT", 0, -6)
 	body:SetJustifyH("LEFT")
 	body:SetJustifyV("TOP")
+	ApplyInfoBodyFont(body)
 	body:SetText(W.T(bodyKey))
 	section.body = body
 
@@ -213,6 +221,7 @@ local function CreateInfoPage(parent)
 
 	local aboutHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	aboutHeading:SetJustifyH("LEFT")
+	ApplyInfoHeadingFont(aboutHeading)
 	aboutHeading:SetText(W.T("INFO_ABOUT"))
 	W.SetFontColor(aboutHeading, UI.GOLD)
 	page.aboutHeading = aboutHeading
@@ -220,6 +229,7 @@ local function CreateInfoPage(parent)
 	local intro = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	intro:SetJustifyH("LEFT")
 	intro:SetJustifyV("TOP")
+	ApplyInfoBodyFont(intro)
 	intro:SetText(W.T("INFO_INTRO"))
 	page.intro = intro
 
@@ -234,12 +244,14 @@ local function CreateInfoPage(parent)
 
 	local repoHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	repoHeading:SetJustifyH("LEFT")
+	ApplyInfoHeadingFont(repoHeading)
 	repoHeading:SetText(W.T("INFO_GITHUB"))
 	W.SetFontColor(repoHeading, UI.GOLD)
 	page.repoHeading = repoHeading
 
-	local repoHint = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local repoHint = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	repoHint:SetJustifyH("LEFT")
+	ApplyInfoBodyFont(repoHint)
 	repoHint:SetText(W.T("INFO_REPO_HINT"))
 	page.repoHint = repoHint
 

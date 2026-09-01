@@ -93,16 +93,7 @@ local function CreateCooldownHeaderCell(parent)
 			Addon:RefreshCooldownTable()
 		end
 	end)
-	removeBtn:SetScript("OnEnter", function(self)
-		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		GameTooltip:AddLine(W.T("CD_REMOVE_TIP"))
-		GameTooltip:Show()
-	end)
-	removeBtn:SetScript("OnLeave", function(self)
-		W.SetPlainButtonState(self, W.ActionButtonState(self, false))
-		GameTooltip:Hide()
-	end)
+	W.SetPlainButtonTooltip(removeBtn, "CD_REMOVE_TIP")
 	removeBtn:Hide()
 	cell.removeBtn = removeBtn
 
@@ -179,10 +170,7 @@ local function CreateCurrencyChip(parent)
 end
 
 local function ColorText(color, text)
-	local red = math.floor((color[1] or 1) * 255 + 0.5)
-	local green = math.floor((color[2] or 1) * 255 + 0.5)
-	local blue = math.floor((color[3] or 1) * 255 + 0.5)
-	return string.format("|cff%02x%02x%02x%s|r", red, green, blue, text)
+	return W.ColorText(color, text)
 end
 
 local function FormatLockoutDisplayText(variants)
@@ -393,6 +381,7 @@ local function CreateCooldownsPage(parent)
 
 	local refreshBtn = W.CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
+	W.SetPlainButtonTooltip(refreshBtn, "CD_REFRESH_TIP")
 	refreshBtn:SetScript("OnClick", function()
 		Addon.pendingLockoutTable = true
 		RequestRaidInfo()

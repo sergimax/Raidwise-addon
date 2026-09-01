@@ -8,35 +8,35 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Content frame (`RaidwiseFrame`) | **890 × 690** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Menu panel (`RaidwiseMenu`) | **170 × 690** | Anchored to content `TOPLEFT` with a 2 px gap |
-| Status bar | height **20** | Spans menu left → content right, 2 px below both; name and version |
-| Status bar padding | 8 px | Left / right |
-| Status bar gap | 12 px | Between name and version |
+| Content frame (`RaidwiseFrame`) | **890 × 940** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
+| Menu panel (`RaidwiseMenu`) | **170 × 940** | Flush against content left edge (no gap) |
+| Menu title bar | height **20** | Top of menu; drag handle; centered **Raidwise** + dim addon semver (same fonts/colors as content title + page `vN`) |
+| Menu title gap | 8 px | Between name and version (matches content title bar) |
 | Title bar | height **20** | Top of content; drag handle; **active menu name** + page `vN` + close **X** |
-| Menu title bar | height **20** | Top of menu; drag handle; label “Menu” |
 | Close button | **16 × 16** | Right side of content title bar |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
-| Panel fill | **#12121c** ≈ RGB **0.07, 0.07, 0.11** | Classic theme; alpha 0.98 |
+| Panel fill | **#12121c** ≈ RGB **0.07, 0.07, 0.11** | Classic theme; alpha 0.98; flat fill (no border edges) |
 | Title / status fill | **#1c1c2a** ≈ RGB **0.11, 0.11, 0.165** | Same texture |
-| 1 px border | **#6b5730** ≈ RGB **0.42, 0.34, 0.19** | Four edge textures (bronze) |
-| Accent gold | **#ffd200** ≈ RGB **1.00, 0.82, 0.00** | Titles, selected labels |
+| Gear Check gradation | red → green | `GEAR_BAD` / `GEAR_REPLACE` / `GEAR_OK` / `GEAR_GOOD` — verdicts (BAD…GOOD) and spec ranks (forbidden…preferred) |
 | Idle text | **#ffeebb** ≈ RGB **1.00, 0.93, 0.73** | Body / menu idle |
 
 ## Left menu
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Menu button | **158 × 22** | Width is `MENU_WIDTH - 12`; **16×16** icon left, label to the right |
-| Menu icon | **16 × 16** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
-| Gap between buttons | 2 px | |
-| First button offset | 8 px below menu title | |
+| Menu button | **158 × 28** | Width is `MENU_WIDTH - 12`; **18×18** icon left, label to the right |
+| Menu icon | **18 × 18** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
+| Gap between buttons | 3 px | Inside a group |
+| First button offset | 8 px below menu title | Then group heading, then buttons |
+| Group heading | height **16** | Dim gold (`GOLD_DIM`); 2 px gap above the first button in the group |
+| Gap around separator | 8 px | Extra space above and below the split (in addition to the 3 px button gap) |
+| Group separator | height **1** | Gold-dim line, 10 px inset from menu edges |
 | Idle fill | **0.125, 0.110, 0.165** | Menu + action buttons |
 | Hover fill | **0.180, 0.150, 0.200** | Label `{1.00, 0.91, 0.55}` |
 | Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
 | Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
 
-Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Party roster** (Prayer of Fortitude), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **Gear check (target)** (spyglass), **Gear check (raid)** (plate), **History** (book), **Settings** (gear), **Info** (question mark).
+Groups (top to bottom): **Personal** — Character cooldowns (watch), Export gear and CDs (note); **Raiding** — Raid roster (Glory of the Raider), Raid composition (Greater Blessing of Kings), Gear check (target) (spyglass), History (book); **Other** — Settings (gear), Info (question mark).
 
 ## Content padding
 
@@ -60,11 +60,10 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Gap: buttons → hint | 8 px | |
 | Copy hint | full inner width | `GameFontNormalSmall` |
 | Gap: hint → copy box | 6 px | |
-| Copy box | fills remaining height | WowSims/AceGUI MultiLineEditBox: tooltip border, black fill |
-| Copy box edge | 16 px | `UI-Tooltip-Border` |
-| Copy box insets | 4 / 3 / 4 / 3 | left / right / top / bottom of backdrop |
-| EditBox padding inside border | 5, 6, 4, 4 | left, top, right, bottom |
-| Scrollbar | 20 px wide | Outside the bordered box, 2 px gap; 16 px inset top/bottom |
+| Copy box | fills remaining height | Black fill; spacing from `COPY_PAD_*` and scrollbar gap (no tooltip border) |
+| Copy box insets | — | Padding via scroll anchors: **5 / 4 / 4 / 4** (`COPY_PAD_L/T/R/B`) |
+| EditBox padding inside box | 5, 6, 4, 4 | left, top, right, bottom |
+| Scrollbar | 20 px wide | Outside the copy host, 2 px gap; 16 px inset top/bottom |
 | EditBox line height | from `ChatFontNormal` | Face size + 2, or EditBox `cursorHeight` once known; not a hardcoded 12 px |
 | EditBox min height | 180 | Grows from measured wrapped text height |
 
@@ -75,11 +74,12 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Element | Size | Notes |
 |---------|------|-------|
 | Feature icon | **18 × 18** | Same `Interface\Icons\…` as left menu; TexCoord crop `0.07–0.93` |
-| Feature title + `vN` | gold title, disabled version | Version is that page’s `LAYOUT_VERSION` |
-| Gap between feature blocks | **12** px | |
+| Feature title + `vN` | gold title **16** pt, disabled version | Version is that page’s `LAYOUT_VERSION` |
+| Body / intro / repo hint | **15** pt, line spacing **2** | `GameFontHighlight` face via `ApplyFontSize`; sentences and `- ` lists |
+| Gap between feature blocks | **16** px | |
 | Heading → body | 8 px | About / GitHub |
 | Body → next heading | 14 px | |
-| URL copy box | height **28** | Tooltip border; fills row minus Select all |
+| URL copy box | height **28** | Black fill; internal 8 px horizontal / 4 px vertical padding |
 | Select all | **130 × 28** | Right of the URL box; 8 px gap |
 | Vertical scroll | **16** | Right of content when sections exceed the page |
 
@@ -100,40 +100,29 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Vertical scrollbar | **16** | Right of the table; hidden if unused |
 | Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
 
-## Party roster tab
-
-Same toolbar as Character cooldowns, plus an averages line, then the scroll table (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars).
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
-| Averages line | height **16** | `Average iLvl: {n}     Average GS: {n}`; 8 px gap above and below |
-| Columns | **90 + 28 + 28 + 166 + 52 + 44 + 60 + 100 + 176 = 744** | Name, class, spec, buffs, GS, iLvl, Opinion, Tags, Guild |
-| Class column | **18** px icon | `CLASS_ICON_TCOORDS`; tooltip shows localized class |
-| Spec column | **18** px icon | Talent tree icon from `GetTalentTabInfo`; tooltip shows spec name |
-| Buffs column | **166** | Up to **8** raid-buff icons (**18** px, 2 px gap); hover shows the spell name |
-| Opinion column | **60**, center | Symbol `+` / `=` / `-`; color-coded; tooltip shows full label |
-| Tags column | **100** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
-| Guild column | **176** | `GuildName (Rank)`; `-` when not in a guild |
-
-Max **5** rows (player + `party1`–`party4`). Rows are clickable and open Character profile. Raid members are not listed here.
-
 ## Raid roster tab
 
-Same toolbar as Party roster, then two stats lines, then the scroll host. Two stacked blocks inside the scroll child.
+Description block with **Scan** / **Export** / **Refresh** / **Back to roster** / **Select all** in a fixed right column; left column stacks hint, stats, and summary with **2** px line gaps, then progress status + bar; roster table or export copy box at a fixed top offset (clears the full **5**-button toolbar). `LAYOUT_VERSION = 18`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Averages line | height **16** | `Average GS: {n}` only (no average iLvl; transmog skews it) |
-| Role averages | height **16** | `Tanks: {n} ({gs} gs)` (and Healers, Melee, Range); `-` when no GS |
-| Stats block | height **32** | Combined area for both stats lines (`RAID_STATS_H`) |
-| Player cell | **168 × 106** | Five lines: class+name, role+spec+GS/iLvl, buff icons, personal opinion, tags |
+| Button column | **104** px wide | **Scan**, **Export**, **Refresh** stacked top → bottom; **4** px gap; **8** px gap from description |
+| Short description | left column | Beside **Scan**; **28** px row height; wraps within column |
+| Stats line | below hint | **2** px gap; height **16** |
+| Gear check summary | below stats | **2** px gap; height **16** |
+| Progress status | below summary | **4** px gap; fixed **28** px height (two lines) |
+| Progress bar | below status | **4** px gap; height **14**; always reserved |
+| Player cell | **168 × 137** | Seven text lines + one button row: class+name, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
+| Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
-| Group label | height **16** | Gold number above each party column |
+| Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
 | Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
+| Cell hover tooltip | — | Opinion, tags, **Guild: Name (Rank)**, gear-check grades |
+
+Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
 
 ## Raid composition tab
 
@@ -166,29 +155,11 @@ Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW �
 | Breakdown | left, fills height | Slot groups with verdict color |
 | Saved list | right sidebar below delete | Scroll + vertical bar; all entries (not capped) |
 
-## Gear check (raid) tab
-
-Same party-column grid as **Raid roster** (groups 1–5 / 6–8). `LAYOUT_VERSION = 3`.
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Hint + Scan | toolbar **28** | Scan button **104 × 28** top-right |
-| Status hint | under description | `GameFontNormalSmall` |
-| Summary line | height **20** | `ROSTER_STATS_H`; BAD/REPLACE/OK/GOOD/Failed counts |
-| Cell | **168 × 68** | Gap **2**; pad **4**; icons **18** |
-| Group label | height **16** | Centered group number |
-| Line 1 | class icon + name | Class-colored |
-| Line 2 | spec icon + overall | Verdict color or dim fail / not scanned |
-| Line 3 | counts | `BAD N · Repl. N · Iss. N` |
-| Top block | groups **1–5** | Width **5×168 + 4×2** |
-| Bottom block | groups **6–8** | **12** px gap below top block |
-| Scroll | v + h bars | Same chrome as Raid roster |
-
-Inspect queue runs sequentially; target scan blocked while raid scan is active.
+Raid-wide gear check is integrated into **Raid roster** (see that section). There is no separate gear-check raid tab.
 
 ## Character profile
 
-Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Party roster, Raid roster, or History; Esc-close via `UISpecialFrames`. No window scroll — tab panels fill the body below the summary. Layout rebuild gated by `PROFILE_LAYOUT_VERSION` (title-bar badge `vN`).
+Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Raid roster or History; Esc-close via `UISpecialFrames`. No window scroll — tab panels fill the body below the summary. Layout rebuild gated by `PROFILE_LAYOUT_VERSION` (title-bar badge `vN`).
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -216,7 +187,7 @@ Rating editor requires a valid GUID; controls are disabled when GUID is missing.
 
 ## History tab
 
-Same toolbar + scroll table as Party roster (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
+Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -247,6 +218,8 @@ Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels
 | Menu / action buttons | `GameFontNormalSmall` | Idle `{1.00, 0.93, 0.73}`; hover `{1.00, 0.91, 0.55}`; selected gold |
 | Version / status / hints | `GameFontNormalSmall` | Idle text / `TEXT_DISABLED` |
 | Checkbox & section labels | `GameFontHighlight` | |
+| Info headings | `GameFontNormal` at **16** pt | About / GitHub / feature titles |
+| Info body | `GameFontHighlight` at **15** pt | Intro, feature bodies, repo hint |
 | Export JSON / profile notes | `ChatFontNormal` | |
 
 ## Shared widgets (`UIWidgets.lua`)
@@ -255,8 +228,9 @@ Key helpers used across pages (not on `Raidwise` directly):
 
 | Helper | Role |
 |--------|------|
-| `ApplyPlainPanel` / `ApplyPanelBorderColor` | Backdrop fill + 1 px bronze edge |
+| `ApplyPlainPanel` / `ApplyPanelBorderColor` | Flat backdrop fill (no border edges) |
 | `CreatePlainButton` / `SetPlainButtonState` / `SetMenuButtonState` | Menu and action buttons |
+| `ApplyFontSize` | Change a FontString’s point size (keeps face and flags) |
 | `CreateCopyBox` / `CreateLineCopyBox` | Export and URL copy areas |
 | `SetSpecOrClassIcon` / `SetSpellIconTexture` / `CreateBuffIconHost` | Class, spec, buff icons |
 | `TableIconInset` / `TableIconTopOffset` | Center icons in table rows |

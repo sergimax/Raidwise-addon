@@ -1,0 +1,72 @@
+39900	Bold Bloodstone	red	{'strength': 12}	+12 Strength
+39905	Delicate Bloodstone	red	{'agility': 12}	+12 Agility
+39906	Bright Bloodstone	red	{'attackPower': 24}	+24 Attack Power
+39907	Subtle Bloodstone	red	{'dodgeRating': 12}	+12 Dodge Rating
+39908	Flashing Bloodstone	red	{'parryRating': 12}	+12 Parry Rating
+39909	Fractured Bloodstone	red	{'armorPenetration': 12}	+12 Armor Penetration Rating
+39910	Precise Bloodstone	red	{'expertiseRating': 12}	+12 Expertise Rating
+39911	Runed Bloodstone	red	{'spellPower': 14}	+14 Spell Power
+39912	?	?	{}	HTTP Error 500: Internal Server Error
+39914	Smooth Sun Crystal	yellow	{'critRating': 12}	+12 Critical Strike Rating
+39915	Rigid Sun Crystal	yellow	{'hitRating': 12}	+12 Hit Rating
+39916	Thick Sun Crystal	yellow	{'defenseRating': 12}	+12 Defense Rating
+39917	Mystic Sun Crystal	yellow	{'resilience': 12}	+12 Resilience Rating
+39918	Quick Sun Crystal	yellow	{'hasteRating': 12}	+12 Haste Rating
+39919	Solid Chalcedony	blue	{'stamina': 18}	+18 Stamina
+39920	Sparkling Chalcedony	blue	{'spirit': 12}	+12 Spirit
+39927	Lustrous Chalcedony	blue	{'mp5': 6}	+6 Mana every 5 seconds
+39932	Stormy Chalcedony	blue	{'spellPenetration': 15}	+15 Spell Penetration
+39933	Puissant Shadow Crystal	purple	{'stamina': 9, 'armorPenetration': 6}	+6 Armor Penetration Rating and +9 Stamina
+39934	Sovereign Shadow Crystal	purple	{'strength': 6, 'stamina': 9}	+6 Strength and +9 Stamina
+39935	Shifting Shadow Crystal	purple	{'agility': 6, 'stamina': 9}	+6 Agility and +9 Stamina
+39936	Glowing Shadow Crystal	purple	{'stamina': 9, 'spellPower': 7}	+7 Spell Power and +9 Stamina
+39937	Balanced Shadow Crystal	purple	{'stamina': 9, 'attackPower': 12}	+12 Attack Power and +9 Stamina
+39938	Regal Shadow Crystal	purple	{'stamina': 9, 'dodgeRating': 6}	+6 Dodge Rating and +9 Stamina
+39939	Defender's Shadow Crystal	purple	{'stamina': 9, 'parryRating': 6}	+6 Parry Rating and +9 Stamina
+39940	Guardian's Shadow Crystal	purple	{'stamina': 9, 'expertiseRating': 6}	+6 Expertise Rating and +9 Stamina
+39941	Purified Shadow Crystal	purple	{'spirit': 6, 'spellPower': 7}	+7 Spell Power and +6 Spirit
+39942	Tenuous Shadow Crystal	purple	{'agility': 6, 'mp5': 3}	+6 Agility and +3 Mana every 5 seconds
+39943	Royal Shadow Crystal	purple	{'spellPower': 7, 'mp5': 3}	+7 Spell Power and +3 Mana every 5 seconds
+39944	Infused Shadow Crystal	purple	{'attackPower': 12, 'mp5': 3}	+12 Attack Power and +3 Mana every 5 seconds
+39945	Mysterious Shadow Crystal	purple	{'spellPower': 7, 'spellPenetration': 8}	+7 Spell Power and +8 Spell Penetration
+39946	?	?	{}	HTTP Error 500: Internal Server Error
+39947	Inscribed Huge Citrine	orange	{'strength': 6, 'critRating': 6}	+6 Strength and +6 Critical Strike Rating
+39948	Etched Huge Citrine	orange	{'strength': 6, 'hitRating': 6}	+6 Strength and +6 Hit Rating
+39949	Champion's Huge Citrine	orange	{'strength': 6, 'defenseRating': 6}	+6 Strength and +6 Defense Rating
+39950	Resplendent Huge Citrine	orange	{'strength': 6, 'resilience': 6}	+6 Strength and +6 Resilience Rating
+39951	Fierce Huge Citrine	orange	{'strength': 6, 'hasteRating': 6}	+6 Strength and +6 Haste Rating
+39952	Deadly Huge Citrine	orange	{'agility': 6, 'critRating': 6}	+6 Agility and +6 Critical Strike Rating
+39953	Glinting Huge Citrine	orange	{'agility': 6, 'hitRating': 6}	+6 Agility and +6 Hit Rating
+39954	Lucent Huge Citrine	orange	{'agility': 6, 'resilience': 6}	+6 Agility and +6 Resilience Rating
+39955	Deft Huge Citrine	orange	{'agility': 6, 'hasteRating': 6}	+6 Agility and +6 Haste Rating
+39956	Potent Huge Citrine	orange	{'spellPower': 7, 'critRating': 6}	+7 Spell Power and +6 Critical Strike Rating
+39957	Veiled Huge Citrine	orange	{'spellPower': 7, 'hitRating': 6}	+7 Spell Power and +6 Hit Rating
+39958	Durable Huge Citrine	orange	{'spellPower': 7, 'resilience': 6}	+7 Spell Power and +6 Resilience Rating
+39959	Reckless Huge Citrine	orange	{'spellPower': 7, 'hasteRating': 6}	+7 Spell Power and +6 Haste Rating
+39960	Wicked Huge Citrine	orange	{'attackPower': 12, 'critRating': 6}	+12 Attack Power and +6 Critical Strike Rating
+39961	Pristine Huge Citrine	orange	{'attackPower': 12, 'hitRating': 6}	+12 Attack Power and +6 Hit Rating
+39962	Empowered Huge Citrine	orange	{'attackPower': 12, 'resilience': 6}	+12 Attack Power and +6 Resilience Rating
+39963	Stark Huge Citrine	orange	{'attackPower': 12, 'hasteRating': 6}	+12 Attack Power and +6 Haste Rating
+39964	Stalwart Huge Citrine	orange	{'defenseRating': 6, 'dodgeRating': 6}	+6 Dodge Rating and +6 Defense Rating
+39965	Glimmering Huge Citrine	orange	{'defenseRating': 6, 'parryRating': 6}	+6 Parry Rating and +6 Defense Rating
+39966	Accurate Huge Citrine	orange	{'hitRating': 6, 'expertiseRating': 6}	+6 Expertise Rating and +6 Hit Rating
+39967	Resolute Huge Citrine	orange	{'expertiseRating': 6, 'defenseRating': 6}	+6 Expertise Rating and +6 Defense Rating
+39968	?	?	{}	HTTP Error 500: Internal Server Error
+39974	Jagged Dark Jade	green	{'stamina': 9, 'critRating': 6}	+6 Critical Strike Rating and +9 Stamina
+39975	Vivid Dark Jade	green	{'stamina': 9, 'hitRating': 6}	+6 Hit Rating and +9 Stamina
+39976	Enduring Dark Jade	green	{'stamina': 9, 'defenseRating': 6}	+6 Defense Rating and +9 Stamina
+39977	Steady Dark Jade	green	{'stamina': 9, 'resilience': 6}	+6 Resilience Rating and +9 Stamina
+39978	Forceful Dark Jade	green	{'stamina': 9, 'hasteRating': 6}	+6 Haste Rating and +9 Stamina
+39979	?	?	{}	HTTP Error 500: Internal Server Error
+39980	Misty Dark Jade	green	{'spirit': 6, 'critRating': 6}	+6 Critical Strike Rating and +6 Spirit
+39981	Shining Dark Jade	green	{'spirit': 6, 'hitRating': 6}	+6 Hit Rating and +6 Spirit
+39982	Turbid Dark Jade	green	{'spirit': 6, 'resilience': 6}	+6 Resilience Rating and +6 Spirit
+39983	Intricate Dark Jade	green	{'spirit': 6, 'hasteRating': 6}	+6 Haste Rating and +6 Spirit
+39984	?	?	{}	HTTP Error 500: Internal Server Error
+39985	Sundered Dark Jade	green	{'critRating': 6, 'mp5': 3}	+6 Critical Strike Rating and +3 Mana every 5 seconds
+39986	Lambent Dark Jade	green	{'hitRating': 6, 'mp5': 3}	+6 Hit Rating and +3 Mana every 5 seconds
+39988	Opaque Dark Jade	green	{'resilience': 6, 'mp5': 3}	+6 Resilience Rating and +3 Mana every 5 seconds
+39989	Energized Dark Jade	green	{'hasteRating': 6, 'mp5': 3}	+6 Haste Rating and +3 Mana every 5 seconds
+39990	Radiant Dark Jade	green	{'critRating': 6, 'spellPenetration': 8}	+6 Critical Strike Rating and +8 Spell Penetration
+39991	Tense Dark Jade	green	{'hitRating': 6, 'spellPenetration': 8}	+6 Hit Rating and +8 Spell Penetration
+39992	Shattered Dark Jade	green	{'hasteRating': 6, 'spellPenetration': 8}	+6 Haste Rating and +8 Spell Penetration

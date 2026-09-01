@@ -4,30 +4,43 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 5
+local SHELL_LAYOUT_VERSION = 11
 
-local MENU_ICON_SIZE = 16
+-- Visual groups for the left menu (ids stay stable for a future module split).
+local MENU_GROUPS = {
+	{ id = "personal", labelKey = "MENU_GROUP_PERSONAL" },
+	{ id = "raiding", labelKey = "MENU_GROUP_RAIDING" },
+	{ id = "other", labelKey = "MENU_GROUP_OTHER" },
+}
 
 -- WotLK Interface\Icons paths (one per left-menu category).
 local PAGES = {
-	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01" },
-	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01" },
-	{ id = "party", key = "Party", labelKey = "TAB_PARTY", icon = "Interface\\Icons\\Spell_Holy_PrayerOfFortitude" },
-	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider" },
-	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings" },
-	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03" },
-	{ id = "gearraid", key = "GearCheckRaid", labelKey = "TAB_GEAR_CHECK_RAID", icon = "Interface\\Icons\\INV_Chest_Plate_23" },
-	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11" },
-	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01" },
-	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark" },
+	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", group = "personal" },
+	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "personal" },
+	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider", group = "raiding" },
+	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings", group = "raiding" },
+	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03", group = "raiding" },
+	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "raiding" },
+	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01", group = "other" },
+	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark", group = "other" },
 }
 
+Addon.MenuGroups = MENU_GROUPS
 Addon.MenuPages = PAGES
 
 local function PageInfoById(tabId)
 	for index = 1, #PAGES do
 		if PAGES[index].id == tabId then
 			return PAGES[index]
+		end
+	end
+	return nil
+end
+
+local function MenuGroupById(groupId)
+	for index = 1, #MENU_GROUPS do
+		if MENU_GROUPS[index].id == groupId then
+			return MENU_GROUPS[index]
 		end
 	end
 	return nil
@@ -40,10 +53,16 @@ end
 
 function Addon:GetStartupTab()
 	local tabId = self.db and self.db.startupTab
+	if tabId == "gearraid" or tabId == "party" then
+		tabId = "raid"
+		if self.db then
+			self.db.startupTab = tabId
+		end
+	end
 	if IsAllowedStartupTab(tabId) then
 		return tabId
 	end
-	if self.db and self.db.startupTab == "info" then
+	if self.db and (self.db.startupTab == "info" or self.db.startupTab == "gearraid" or self.db.startupTab == "party") then
 		self.db.startupTab = "cooldowns"
 	end
 	return "cooldowns"
@@ -170,7 +189,7 @@ function Addon:SelectTab(tabId)
 		self:SaveCurrentCharacterLockouts()
 		RequestRaidInfo()
 		self:RefreshCooldownTable()
-	elseif tabId == "party" or tabId == "raid" or tabId == "composition" then
+	elseif tabId == "raid" or tabId == "composition" then
 		self:RefreshPartyData(true)
 	elseif tabId == "history" then
 		if self.RecordCurrentGroupHistory then
@@ -181,10 +200,6 @@ function Addon:SelectTab(tabId)
 	elseif tabId == "geartarget" then
 		if self.RefreshGearCheckTargetView then
 			self:RefreshGearCheckTargetView(false)
-		end
-	elseif tabId == "gearraid" then
-		if self.RefreshGearCheckRaidView then
-			self:RefreshGearCheckRaidView(false)
 		end
 	end
 end
@@ -232,6 +247,58 @@ local function CreateTitleBar(frame)
 	return titleBar
 end
 
+local MENU_HEADER_GAP = 8
+
+local function UpdateMenuHeaderLayout(frame)
+	if not frame or not frame.menuTitleBar or not frame.menuNameLabel or not frame.menuVersionLabel then
+		return
+	end
+	local titleBar = frame.menuTitleBar
+	local nameLabel = frame.menuNameLabel
+	local versionLabel = frame.menuVersionLabel
+	local nameWidth = nameLabel:GetStringWidth() or 0
+	local versionWidth = versionLabel:GetStringWidth() or 0
+	local totalWidth = nameWidth + MENU_HEADER_GAP + versionWidth
+	nameLabel:ClearAllPoints()
+	versionLabel:ClearAllPoints()
+	nameLabel:SetPoint("LEFT", titleBar, "CENTER", -totalWidth / 2, 0)
+	versionLabel:SetPoint("LEFT", nameLabel, "RIGHT", MENU_HEADER_GAP, 0)
+end
+
+local function UpdateMenuHeader(frame)
+	if not frame then
+		return
+	end
+	if frame.menuVersionLabel then
+		frame.menuVersionLabel:SetText("v" .. tostring(Addon.version))
+		W.SetFontColor(frame.menuVersionLabel, UI.TEXT_DISABLED)
+	end
+	UpdateMenuHeaderLayout(frame)
+end
+
+local function CreateMenuGroupHeading(parent, labelKey, yOffset)
+	local heading = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	heading:SetPoint("TOPLEFT", 10, yOffset)
+	heading:SetPoint("TOPRIGHT", -10, yOffset)
+	heading:SetHeight(UI.MENU_GROUP_HEADING_H)
+	heading:SetJustifyH("LEFT")
+	heading:SetJustifyV("MIDDLE")
+	heading:SetText(W.T(labelKey))
+	W.SetFontColor(heading, UI.GOLD_DIM)
+	heading.labelKey = labelKey
+	return heading
+end
+
+local function CreateMenuSeparator(parent, yOffset)
+	local sep = CreateFrame("Frame", nil, parent)
+	sep:SetHeight(UI.MENU_SEP_H)
+	sep:SetPoint("LEFT", 10, 0)
+	sep:SetPoint("RIGHT", -10, 0)
+	sep:SetPoint("TOP", 0, yOffset)
+	W.ApplyPlainPanel(sep, { UI.GOLD_DIM[1], UI.GOLD_DIM[2], UI.GOLD_DIM[3], 0.45 })
+	return sep
+end
+
 local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
 	local button = CreateFrame("Button", nil, parent)
 	button:SetSize(UI.MENU_WIDTH - 12, UI.MENU_BTN_H)
@@ -240,8 +307,8 @@ local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
 	button.tabId = tabId
 
 	local icon = button:CreateTexture(nil, "ARTWORK")
-	icon:SetSize(MENU_ICON_SIZE, MENU_ICON_SIZE)
-	icon:SetPoint("LEFT", 4, 0)
+	icon:SetSize(UI.MENU_ICON, UI.MENU_ICON)
+	icon:SetPoint("LEFT", 6, 0)
 	if iconPath and iconPath ~= "" then
 		icon:SetTexture(iconPath)
 		icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
@@ -249,8 +316,8 @@ local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
 	button.icon = icon
 
 	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	text:SetPoint("LEFT", icon, "RIGHT", 5, 0)
-	text:SetPoint("RIGHT", -4, 0)
+	text:SetPoint("LEFT", icon, "RIGHT", 6, 0)
+	text:SetPoint("RIGHT", -6, 0)
 	text:SetJustifyH("LEFT")
 	text:SetText(label)
 	W.SetFontColor(text, UI.TEXT_IDLE)
@@ -303,7 +370,7 @@ function Addon:CreateMainFrame()
 	frame:EnableMouse(true)
 	frame:SetFrameStrata("DIALOG")
 	frame:SetClampedToScreen(true)
-	frame:SetClampRectInsets(-(UI.MENU_WIDTH + UI.MENU_GAP), 0, 0, -(UI.STATUS_H + UI.MENU_GAP))
+	frame:SetClampRectInsets(-UI.MENU_WIDTH, 0, 0, 0)
 	frame:Hide()
 	W.ApplyPlainPanel(frame)
 	frame.layoutVersion = SHELL_LAYOUT_VERSION
@@ -314,8 +381,8 @@ function Addon:CreateMainFrame()
 	local menu = CreateFrame("Frame", "RaidwiseMenu", frame)
 	W.DetachFrameChildren(menu)
 	menu:SetWidth(UI.MENU_WIDTH)
-	menu:SetPoint("TOPRIGHT", frame, "TOPLEFT", -UI.MENU_GAP, 0)
-	menu:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", -UI.MENU_GAP, 0)
+	menu:SetPoint("TOPRIGHT", frame, "TOPLEFT", 0, 0)
+	menu:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", 0, 0)
 	W.ApplyPlainPanel(menu)
 	menu:EnableMouse(true)
 
@@ -326,36 +393,42 @@ function Addon:CreateMainFrame()
 	W.ApplyPlainPanel(menuTitleBar, UI.TITLE_BG)
 	W.AttachDragHandle(menuTitleBar, frame)
 
-	local menuTitle = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	menuTitle:SetPoint("CENTER", 0, 0)
-	menuTitle:SetText(W.T("MENU"))
-	W.SetFontColor(menuTitle, UI.GOLD)
-	frame.menuTitle = menuTitle
+	local menuNameLabel = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	menuNameLabel:SetText("Raidwise")
+	W.SetFontColor(menuNameLabel, UI.GOLD)
+
+	local menuVersionLabel = menuTitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	menuVersionLabel:SetText("v" .. tostring(Addon.version))
+	W.SetFontColor(menuVersionLabel, UI.TEXT_DISABLED)
+	frame.menuTitleBar = menuTitleBar
+	frame.menuNameLabel = menuNameLabel
+	frame.menuVersionLabel = menuVersionLabel
+	UpdateMenuHeaderLayout(frame)
 
 	frame.menuButtons = {}
+	frame.menuGroupHeadings = {}
 	local menuY = -(UI.TITLE_H + 8)
+	local lastGroup = nil
 	for index = 1, #PAGES do
 		local pageInfo = PAGES[index]
+		if pageInfo.group ~= lastGroup then
+			if lastGroup then
+				menuY = menuY - UI.MENU_GROUP_GAP
+				CreateMenuSeparator(menu, menuY)
+				menuY = menuY - UI.MENU_SEP_H - UI.MENU_GROUP_GAP
+			end
+			local groupInfo = MenuGroupById(pageInfo.group)
+			if groupInfo then
+				local heading = CreateMenuGroupHeading(menu, groupInfo.labelKey, menuY)
+				frame.menuGroupHeadings[#frame.menuGroupHeadings + 1] = heading
+				menuY = menuY - UI.MENU_GROUP_HEADING_H - UI.MENU_GROUP_HEADING_GAP
+			end
+			lastGroup = pageInfo.group
+		end
 		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), menuY, pageInfo.icon)
 		frame.menuButtons[#frame.menuButtons + 1] = button
 		menuY = menuY - UI.MENU_BTN_H - UI.MENU_BTN_GAP
 	end
-
-	local statusBar = CreateFrame("Frame", nil, frame)
-	statusBar:SetHeight(UI.STATUS_H)
-	statusBar:SetPoint("TOPLEFT", menu, "BOTTOMLEFT", 0, -UI.MENU_GAP)
-	statusBar:SetPoint("TOPRIGHT", frame, "BOTTOMRIGHT", 0, -UI.MENU_GAP)
-	W.ApplyPlainPanel(statusBar, UI.TITLE_BG)
-
-	local nameLabel = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	nameLabel:SetPoint("LEFT", UI.STATUS_PAD_X, 0)
-	nameLabel:SetText("Raidwise")
-	W.SetFontColor(nameLabel, UI.GOLD)
-
-	local versionLabel = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	versionLabel:SetPoint("LEFT", nameLabel, "RIGHT", UI.STATUS_GAP, 0)
-	versionLabel:SetText("v" .. tostring(Addon.version))
-	W.SetFontColor(versionLabel, UI.TEXT_IDLE)
 
 	local content = CreateFrame("Frame", nil, frame)
 	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.PAD))
@@ -392,8 +465,16 @@ function Addon:RefreshLocalizedUI()
 		return
 	end
 
-	if frame.menuTitle then
-		frame.menuTitle:SetText(W.T("MENU"))
+	if frame.menuVersionLabel then
+		UpdateMenuHeader(frame)
+	end
+	if frame.menuGroupHeadings then
+		for index = 1, #frame.menuGroupHeadings do
+			local heading = frame.menuGroupHeadings[index]
+			if heading and heading.labelKey then
+				heading:SetText(W.T(heading.labelKey))
+			end
+		end
 	end
 	for index = 1, #PAGES do
 		local button = frame.menuButtons[index]
@@ -475,24 +556,18 @@ function Addon:RefreshLocalizedUI()
 		end
 	end
 
-	local partyPage = frame.pages.party
-	if partyPage then
-		if partyPage.hint then
-			partyPage.hint:SetText(W.T("PARTY_HINT"))
-		end
-		if partyPage.refreshBtn then
-			partyPage.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
-		end
-		ApplyPageHeaders(partyPage)
-	end
-
 	local raidPage = frame.pages.raid
 	if raidPage then
-		if raidPage.hint then
-			raidPage.hint:SetText(W.T("RAID_HINT"))
-		end
-		if raidPage.refreshBtn then
-			raidPage.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
+		local raidModule = Addon.Pages and Addon.Pages.Raid
+		if raidModule and raidModule.ApplyLocale then
+			raidModule.ApplyLocale(raidPage)
+		else
+			if raidPage.hint then
+				raidPage.hint:SetText(W.T("RAID_HINT"))
+			end
+			if raidPage.refreshBtn then
+				raidPage.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
+			end
 		end
 	end
 
@@ -517,14 +592,6 @@ function Addon:RefreshLocalizedUI()
 		end
 	end
 
-	local gearRaidPage = frame.pages.gearraid
-	if gearRaidPage then
-		local gearRaidModule = Addon.Pages and Addon.Pages.GearCheckRaid
-		if gearRaidModule and gearRaidModule.ApplyLocale then
-			gearRaidModule.ApplyLocale(gearRaidPage)
-		end
-	end
-
 	local historyPage = frame.pages.history
 	if historyPage then
 		if historyPage.hint then
@@ -538,9 +605,6 @@ function Addon:RefreshLocalizedUI()
 
 	if self.RefreshCooldownTable then
 		self:RefreshCooldownTable()
-	end
-	if self.RefreshPartyView then
-		self:RefreshPartyView(false)
 	end
 	if self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(false)

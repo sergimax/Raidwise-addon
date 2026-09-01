@@ -3,8 +3,8 @@
 ## Notes: Party and raid rosters, composition checklist, player ratings, meeting history, lockouts, and character export for Wrath of the Lich King 3.3.5a
 ## Notes-ruRU: Составы группы и рейда, анализ состава, рейтинг игроков, история встреч, КД и экспорт персонажа для Wrath of the Lich King 3.3.5a
 ## Author: sergimax
-## Version: 1.16.0
-## X-LastUpdated: 2026-08-25
+## Version: 1.17.0
+## X-LastUpdated: 2026-09-02
 ## OptionalDeps: GearScore
 ## SavedVariables: RaidwiseDB, MrcExporterDB
 
@@ -28,11 +28,9 @@ GearCheckSavedReports.lua
 GearCheck.lua
 PageCooldowns.lua
 PageExport.lua
-PageParty.lua
 PageRaid.lua
 PageComposition.lua
 PageGearCheckTarget.lua
-PageGearCheckRaid.lua
 PageHistory.lua
 PageSettings.lua
 PageInfo.lua

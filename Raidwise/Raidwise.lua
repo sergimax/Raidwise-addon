@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.16.0"
+Addon.version = "1.17.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -152,9 +152,7 @@ function Addon:OnGuildInfoUpdated()
 	if not frame then
 		return
 	end
-	if frame.selectedTab == "party" and self.RefreshPartyView then
-		self:RefreshPartyView(false)
-	elseif frame.selectedTab == "raid" and self.RefreshRaidRosterView then
+	if frame.selectedTab == "raid" and self.RefreshRaidRosterView then
 		self:RefreshRaidRosterView(false)
 	elseif frame.selectedTab == "composition" and self.RefreshCompositionView then
 		self:RefreshCompositionView(false)
@@ -163,7 +161,7 @@ end
 
 function Addon:OnGroupRosterUpdated()
 	local frame = self.mainFrame
-	if frame and frame:IsShown() and (frame.selectedTab == "party" or frame.selectedTab == "raid" or frame.selectedTab == "composition") then
+	if frame and frame:IsShown() and (frame.selectedTab == "raid" or frame.selectedTab == "composition") then
 		self:RefreshPartyData(false)
 		return
 	end
@@ -223,6 +221,15 @@ SlashCmdList["RAIDWISE"] = function(msg)
 		end
 		if Addon.RunGearCheckChatReport then
 			Addon:RunGearCheckChatReport(reportMode, true)
+		else
+			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
+		end
+		return
+	end
+
+	if msg == "gearcheck raid dump" or msg == "gear raid dump" then
+		if Addon.ShowGearCheckRaidDump then
+			Addon:ShowGearCheckRaidDump()
 		else
 			Addon:Print(Addon:T("GEAR_CHECK_STATUS_FAIL"))
 		end

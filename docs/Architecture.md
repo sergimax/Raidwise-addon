@@ -26,7 +26,7 @@ GearCheckRules.lua    findings engine + item verdicts + overall (EvaluateGearChe
 GearCheckSavedReports.lua  manual save / load / prune (~14 days)
 GearCheck.lua         collector + normalize (schemaVersion 2) + evaluate hook + dump
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
-ExporterWindow.lua    main shell (menu, title, status, tab wiring)
+ExporterWindow.lua    main shell (grouped left menu, title, status, tab wiring)
 ```
 
 Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → gear-check (catalog → sets → profiles → rules → **saved reports** → collector) → pages → shell.
@@ -70,7 +70,7 @@ History personal reputation shape (see [Reputation.md](Reputation.md)):
 
 | Kind | Where | Shown | Purpose |
 |------|-------|-------|---------|
-| **Addon semver** | `Addon.version` + TOC `## Version` | Status bar (e.g. `v1.16.0`) | Release / changelog |
+| **Addon semver** | `Addon.version` + TOC `## Version` | Menu title bar (e.g. `v1.17.0`) | Release / changelog |
 | **Layout version** | `*_LAYOUT_VERSION` per view | Shell title bar next to page name (`vN`); profile title bar; shell constant is rebuild-only | Force UI rebuild when structure changes |
 
 Bump layout versions when sizes, named frames, or control layout change. Do **not** bump for pure locale string edits. Keep docs in sync (`UI-Views.md`, `UI-Sizes.md`).
@@ -87,8 +87,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `RefreshLocalizedUI` | Shell | `SetLocale` |
 | `RefreshCooldownTable` | Cooldowns page | Lockout events |
 | `FlushExportToWindow` | Export page | Lockout export path |
-| `RefreshPartyView` | Party page | Roster, profile, guild |
-| `RefreshRaidRosterView` | Raid page | Roster, guild |
+| `RefreshRaidRosterView` | Raid page | Roster, gear check, guild in tooltip |
 | `RefreshCompositionView` | Composition page | Roster, guild |
 | `RefreshHistoryView` | History page | History record, profile |
 | `ShowRaidCharacterWindow` | Profile | Party / raid / history clicks |
@@ -131,11 +130,11 @@ Cross-module entry points on `Raidwise` (domain files do not create frames):
 `Addon:RefreshPartyData(refreshGearScore)` (PartyRoster):
 
 1. Rebuilds party/raid roster data (and inspect queue as needed).
-2. Calls `RefreshPartyView`, `RefreshRaidRosterView`, and `RefreshCompositionView` when those methods exist.
+2. Calls `RefreshRaidRosterView` and `RefreshCompositionView` when those methods exist.
 
-Group roster events (`PARTY_MEMBERS_CHANGED` / `RAID_ROSTER_UPDATE`) call `RefreshPartyData` when the main window is open on party/raid/composition; otherwise they only record history.
+Group roster events (`PARTY_MEMBERS_CHANGED` / `RAID_ROSTER_UPDATE`) call `RefreshPartyData` when the main window is open on raid/composition; otherwise they only record history.
 
-Profile save/close refreshes the visible party, raid, or history tab.
+Profile save/close refreshes the visible raid or history tab.
 
 ## Known limitations
 

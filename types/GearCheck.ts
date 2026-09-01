@@ -47,6 +47,7 @@ export type GearCheckFindingCategory =
 export type GearCheckFindingCode =
   | "SPEC_UNKNOWN"
   | "PROFILE_MISSING"
+  | "INSPECT_INCOMPLETE"
   | "ITEM_NOT_CHECKABLE"
   | "ARMOR_FORBIDDEN"
   | "ARMOR_UNWANTED"
@@ -56,6 +57,8 @@ export type GearCheckFindingCode =
   | "STAT_FORBIDDEN"
   | "STAT_UNWANTED"
   | "RESILIENCE_PVE"
+  | "TRINKET_NOT_PREFERRED"
+  | "TRINKET_SITUATIONAL"
   | "MISSING_ENCHANT"
   | "ENCHANT_NOT_CHECKABLE"
   | "ENCHANT_LOWER_LEVEL"
@@ -128,6 +131,8 @@ export type GearCheckEnchant = {
   present: boolean;
   /** True when id is 0 (no enchant) or the enchant catalog resolved the id. */
   known: boolean;
+  /** Catalog display name when known (e.g. Icewalker). */
+  name?: string;
   gaps: GearCheckGap[];
 };
 
@@ -245,6 +250,10 @@ export type GearCheckIssueCounts = {
 
 export type GearCheckOverall = {
   status: GearCheckItemVerdict;
+  /** Armor, weapons, trinkets, stats — worst slot wins within this category. */
+  gearGrade?: GearCheckItemVerdict;
+  /** Enchants, gems, meta — worst slot wins within this category. */
+  enchantSocketGrade?: GearCheckItemVerdict;
   reason: string;
   summary: string;
   issues: GearCheckIssueCounts;
