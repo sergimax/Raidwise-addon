@@ -13,8 +13,13 @@ Addon.UITheme = {
 	-- Left menu (RaidwiseMenu)
 	MENU_WIDTH = 170,
 	MENU_GAP = 0,
-	MENU_BTN_H = 22,
-	MENU_BTN_GAP = 2,
+	MENU_BTN_H = 28,
+	MENU_BTN_GAP = 3,
+	MENU_ICON = 18,
+	MENU_GROUP_HEADING_H = 16,
+	MENU_GROUP_HEADING_GAP = 2,
+	MENU_GROUP_GAP = 8,
+	MENU_SEP_H = 1,
 
 	-- Status bar (under menu + content)
 	STATUS_H = 20,
@@ -74,7 +79,7 @@ Addon.UITheme = {
 
 	-- Colors — Classic theme (preview/themes.html #classic)
 	GOLD = { 1.000, 0.824, 0.000 },
-	GOLD_DIM = { 0.769, 0.627, 0.290 }, -- DELETE candidate: defined but never referenced in Raidwise/.
+	GOLD_DIM = { 0.769, 0.627, 0.290 }, -- Menu group headings / separators
 	BORDER = { 0.420, 0.341, 0.188, 1 },
 	TEXT_IDLE = { 1.000, 0.933, 0.733 },
 	TEXT_GOOD = { 0.350, 0.850, 0.400 },

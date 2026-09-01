@@ -24,16 +24,19 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Menu button | **158 × 22** | Width is `MENU_WIDTH - 12`; **16×16** icon left, label to the right |
-| Menu icon | **16 × 16** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
-| Gap between buttons | 2 px | |
-| First button offset | 8 px below menu title | |
+| Menu button | **158 × 28** | Width is `MENU_WIDTH - 12`; **18×18** icon left, label to the right |
+| Menu icon | **18 × 18** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
+| Gap between buttons | 3 px | Inside a group |
+| First button offset | 8 px below menu title | Then group heading, then buttons |
+| Group heading | height **16** | Dim gold (`GOLD_DIM`); 2 px gap above the first button in the group |
+| Gap around separator | 8 px | Extra space above and below the split (in addition to the 3 px button gap) |
+| Group separator | height **1** | Gold-dim line, 10 px inset from menu edges |
 | Idle fill | **0.125, 0.110, 0.165** | Menu + action buttons |
 | Hover fill | **0.180, 0.150, 0.200** | Label `{1.00, 0.91, 0.55}` |
 | Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
 | Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
 
-Tabs (in order): **Character cooldowns** (watch), **Export gear and CDs** (note), **Raid roster** (Glory of the Raider), **Raid composition** (Greater Blessing of Kings), **Gear check (target)** (spyglass), **History** (book), **Settings** (gear), **Info** (question mark).
+Groups (top to bottom): **Personal** — Character cooldowns (watch), Export gear and CDs (note); **Raiding** — Raid roster (Glory of the Raider), Raid composition (Greater Blessing of Kings), Gear check (target) (spyglass), History (book); **Other** — Settings (gear), Info (question mark).
 
 ## Content padding
 

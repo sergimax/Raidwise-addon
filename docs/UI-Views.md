@@ -16,15 +16,20 @@ Classic-theme plain panels: left menu flush against content (no gap), no footer.
 
 Title bar (content, left to right): **active menu item name**, that page’s layout badge **`vN`**, close **X**. Menu title bar (centered): **Raidwise** + dim addon semver (`Addon.version`, same style as page `vN`). Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
 
-Menu tabs (top to bottom; each row has a 16×16 category icon + label):
+Menu tabs (top to bottom; each row has an **18×18** category icon + label). Pages are grouped (`PAGES[].group` + `Addon.MenuGroups`) with a dim heading and a 1 px gold split between groups — stable ids for a future module split:
 
 ```text
+  Personal
 [ watch ] Character cooldowns
 [ note  ] Export gear and CDs
+  ────────
+  Raiding
 [ glory ] Raid roster
 [ BoK   ] Raid composition
 [ scope ] Gear check (target)
 [ book  ] History
+  ────────
+  Other
 [ gear  ] Settings
 [  ?    ] Info
 ```
@@ -36,7 +41,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 10` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 11` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 27` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
@@ -379,7 +384,7 @@ Switching language updates the left menu, page labels, and visible tables withou
 
 ## Adding a view
 
-1. Add a tab in `PAGES` in `ExporterWindow.lua` (shell) and a `Page*.lua` module under `Addon.Pages`.
+1. Add a tab in `PAGES` in `ExporterWindow.lua` (shell) with a `group` (`personal` / `raiding` / `other`) and a `Page*.lua` module under `Addon.Pages`.
 2. Give the view a `LAYOUT_VERSION` constant, stamp it on the frame, and show it in the shell title bar next to the menu name (pages) or with `AttachLayoutVersionLabel` (profile popup).
 3. Paste a new `## Title` scheme here (same `[ block ]` style) including the layout `vN`.
 4. Implement the page and record sizes in `UI-Sizes.md`.

@@ -15,6 +15,9 @@ local Translations = {
 		TAB_SETTINGS = "Settings",
 		TAB_INFO = "Info",
 		MENU = "Menu",
+		MENU_GROUP_PERSONAL = "Personal",
+		MENU_GROUP_RAIDING = "Raiding",
+		MENU_GROUP_OTHER = "Other",
 
 		BTN_REFRESH = "Refresh",
 		BTN_COMP_REPORT = "Report missing",
@@ -558,6 +561,9 @@ local Translations = {
 		TAB_SETTINGS = "Настройки",
 		TAB_INFO = "Справка",
 		MENU = "Меню",
+		MENU_GROUP_PERSONAL = "Личное",
+		MENU_GROUP_RAIDING = "Рейд",
+		MENU_GROUP_OTHER = "Прочее",
 
 		BTN_REFRESH = "Обновить",
 		BTN_COMP_REPORT = "Сообщить",

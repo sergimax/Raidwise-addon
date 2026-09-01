@@ -4,28 +4,43 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 10
+local SHELL_LAYOUT_VERSION = 11
 
-local MENU_ICON_SIZE = 16
+-- Visual groups for the left menu (ids stay stable for a future module split).
+local MENU_GROUPS = {
+	{ id = "personal", labelKey = "MENU_GROUP_PERSONAL" },
+	{ id = "raiding", labelKey = "MENU_GROUP_RAIDING" },
+	{ id = "other", labelKey = "MENU_GROUP_OTHER" },
+}
 
 -- WotLK Interface\Icons paths (one per left-menu category).
 local PAGES = {
-	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01" },
-	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01" },
-	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider" },
-	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings" },
-	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03" },
-	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11" },
-	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01" },
-	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark" },
+	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", group = "personal" },
+	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "personal" },
+	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider", group = "raiding" },
+	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings", group = "raiding" },
+	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03", group = "raiding" },
+	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "raiding" },
+	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01", group = "other" },
+	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark", group = "other" },
 }
 
+Addon.MenuGroups = MENU_GROUPS
 Addon.MenuPages = PAGES
 
 local function PageInfoById(tabId)
 	for index = 1, #PAGES do
 		if PAGES[index].id == tabId then
 			return PAGES[index]
+		end
+	end
+	return nil
+end
+
+local function MenuGroupById(groupId)
+	for index = 1, #MENU_GROUPS do
+		if MENU_GROUPS[index].id == groupId then
+			return MENU_GROUPS[index]
 		end
 	end
 	return nil
@@ -261,6 +276,29 @@ local function UpdateMenuHeader(frame)
 	UpdateMenuHeaderLayout(frame)
 end
 
+local function CreateMenuGroupHeading(parent, labelKey, yOffset)
+	local heading = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	heading:SetPoint("TOPLEFT", 10, yOffset)
+	heading:SetPoint("TOPRIGHT", -10, yOffset)
+	heading:SetHeight(UI.MENU_GROUP_HEADING_H)
+	heading:SetJustifyH("LEFT")
+	heading:SetJustifyV("MIDDLE")
+	heading:SetText(W.T(labelKey))
+	W.SetFontColor(heading, UI.GOLD_DIM)
+	heading.labelKey = labelKey
+	return heading
+end
+
+local function CreateMenuSeparator(parent, yOffset)
+	local sep = CreateFrame("Frame", nil, parent)
+	sep:SetHeight(UI.MENU_SEP_H)
+	sep:SetPoint("LEFT", 10, 0)
+	sep:SetPoint("RIGHT", -10, 0)
+	sep:SetPoint("TOP", 0, yOffset)
+	W.ApplyPlainPanel(sep, { UI.GOLD_DIM[1], UI.GOLD_DIM[2], UI.GOLD_DIM[3], 0.45 })
+	return sep
+end
+
 local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
 	local button = CreateFrame("Button", nil, parent)
 	button:SetSize(UI.MENU_WIDTH - 12, UI.MENU_BTN_H)
@@ -269,8 +307,8 @@ local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
 	button.tabId = tabId
 
 	local icon = button:CreateTexture(nil, "ARTWORK")
-	icon:SetSize(MENU_ICON_SIZE, MENU_ICON_SIZE)
-	icon:SetPoint("LEFT", 4, 0)
+	icon:SetSize(UI.MENU_ICON, UI.MENU_ICON)
+	icon:SetPoint("LEFT", 6, 0)
 	if iconPath and iconPath ~= "" then
 		icon:SetTexture(iconPath)
 		icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
@@ -278,8 +316,8 @@ local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
 	button.icon = icon
 
 	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	text:SetPoint("LEFT", icon, "RIGHT", 5, 0)
-	text:SetPoint("RIGHT", -4, 0)
+	text:SetPoint("LEFT", icon, "RIGHT", 6, 0)
+	text:SetPoint("RIGHT", -6, 0)
 	text:SetJustifyH("LEFT")
 	text:SetText(label)
 	W.SetFontColor(text, UI.TEXT_IDLE)
@@ -368,9 +406,25 @@ function Addon:CreateMainFrame()
 	UpdateMenuHeaderLayout(frame)
 
 	frame.menuButtons = {}
+	frame.menuGroupHeadings = {}
 	local menuY = -(UI.TITLE_H + 8)
+	local lastGroup = nil
 	for index = 1, #PAGES do
 		local pageInfo = PAGES[index]
+		if pageInfo.group ~= lastGroup then
+			if lastGroup then
+				menuY = menuY - UI.MENU_GROUP_GAP
+				CreateMenuSeparator(menu, menuY)
+				menuY = menuY - UI.MENU_SEP_H - UI.MENU_GROUP_GAP
+			end
+			local groupInfo = MenuGroupById(pageInfo.group)
+			if groupInfo then
+				local heading = CreateMenuGroupHeading(menu, groupInfo.labelKey, menuY)
+				frame.menuGroupHeadings[#frame.menuGroupHeadings + 1] = heading
+				menuY = menuY - UI.MENU_GROUP_HEADING_H - UI.MENU_GROUP_HEADING_GAP
+			end
+			lastGroup = pageInfo.group
+		end
 		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), menuY, pageInfo.icon)
 		frame.menuButtons[#frame.menuButtons + 1] = button
 		menuY = menuY - UI.MENU_BTN_H - UI.MENU_BTN_GAP
@@ -413,6 +467,14 @@ function Addon:RefreshLocalizedUI()
 
 	if frame.menuVersionLabel then
 		UpdateMenuHeader(frame)
+	end
+	if frame.menuGroupHeadings then
+		for index = 1, #frame.menuGroupHeadings do
+			local heading = frame.menuGroupHeadings[index]
+			if heading and heading.labelKey then
+				heading:SetText(W.T(heading.labelKey))
+			end
+		end
 	end
 	for index = 1, #PAGES do
 		local button = frame.menuButtons[index]

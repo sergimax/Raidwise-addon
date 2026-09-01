@@ -26,7 +26,7 @@ GearCheckRules.lua    findings engine + item verdicts + overall (EvaluateGearChe
 GearCheckSavedReports.lua  manual save / load / prune (~14 days)
 GearCheck.lua         collector + normalize (schemaVersion 2) + evaluate hook + dump
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
-ExporterWindow.lua    main shell (menu, title, status, tab wiring)
+ExporterWindow.lua    main shell (grouped left menu, title, status, tab wiring)
 ```
 
 Order is the dependency graph: bootstrap → locale → domain → shared widgets → tooltips → profile → gear-check (catalog → sets → profiles → rules → **saved reports** → collector) → pages → shell.
