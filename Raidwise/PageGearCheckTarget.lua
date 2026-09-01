@@ -696,6 +696,9 @@ ApplyReportToPage = function(page, report, status, savedEntry)
 	if not page then
 		return
 	end
+	if report and Addon.EnsureGearCheckGrades then
+		Addon:EnsureGearCheckGrades(report)
+	end
 	page.lastReport = report
 	page.lastStatus = status
 	if savedEntry then

@@ -1079,7 +1079,37 @@ function Addon:ResolveGearCheckUnit()
 	return "player"
 end
 
+local function ReportGradesNeedRefresh(report)
+	if not report then
+		return false
+	end
+	local inspect = (report.collection and report.collection.inspect) or report.inspect or {}
+	if not inspect.complete then
+		return false
+	end
+	if not report.verdicts then
+		return true
+	end
+	local findings = report.findings or {}
+	for index = 1, #findings do
+		if findings[index].code == "INSPECT_INCOMPLETE" then
+			return true
+		end
+	end
+	return false
+end
+
+function Addon:EnsureGearCheckGrades(report)
+	if not report or not ReportGradesNeedRefresh(report) then
+		return report
+	end
+	return FinalizeGearCheckReport(report, true)
+end
+
 function Addon:GetLastGearCheckReport()
+	if lastReport then
+		self:EnsureGearCheckGrades(lastReport)
+	end
 	return lastReport
 end
 
@@ -1093,6 +1123,7 @@ function Addon:SetLastGearCheckReport(report, status)
 			report.collection.scanStatus = status
 		end
 	end
+	self:EnsureGearCheckGrades(report)
 	lastReport = report
 end
 
@@ -1117,6 +1148,29 @@ local function AttachFindings(report)
 		Addon:EvaluateGearCheck(report)
 	end
 	return report
+end
+
+local function SetInspectComplete(report, complete)
+	if not report then
+		return
+	end
+	local inspect = report.inspect
+	if not inspect and report.collection then
+		inspect = report.collection.inspect
+	end
+	if inspect then
+		inspect.complete = complete and true or false
+	end
+end
+
+local function FinalizeGearCheckReport(report, complete)
+	if not report then
+		return report
+	end
+	if complete ~= nil then
+		SetInspectComplete(report, complete)
+	end
+	return AttachFindings(report)
 end
 
 function Addon:CollectGearCheck(unit)
@@ -1205,7 +1259,7 @@ function Addon:CollectGearCheck(unit)
 	}
 
 	lastReport = report
-	return AttachFindings(report)
+	return report
 end
 
 function Addon:FormatGearCheckDump(report)
@@ -1768,6 +1822,7 @@ local function TryCollectPending(forceComplete)
 		return
 	end
 	if report.character and report.character.isSelf then
+		FinalizeGearCheckReport(report, true)
 		FinishScan(report, "ok")
 		return
 	end
@@ -1775,9 +1830,7 @@ local function TryCollectPending(forceComplete)
 	local specKnown = report.character and report.character.specKnown
 	local gemsReady = not EquipmentHasUncertainGems(report.equipment)
 	if filled > 0 and specKnown and pendingInspectReady and gemsReady then
-		if report.inspect then
-			report.inspect.complete = true
-		end
+		FinalizeGearCheckReport(report, true)
 		FinishScan(report, "ok")
 		return
 	end
@@ -1816,9 +1869,7 @@ local function TryCollectPending(forceComplete)
 			pendingInspectReady = false
 			return
 		end
-		if report.inspect then
-			report.inspect.complete = filled > 0 and specKnown
-		end
+		FinalizeGearCheckReport(report, filled > 0 and specKnown)
 		if filled > 0 and not specKnown then
 			FinishScan(report, "timeout")
 			return
@@ -1849,6 +1900,7 @@ retryFrame:SetScript("OnUpdate", function(_, elapsed)
 				report.inspect.complete = false
 				report.inspect.timedOut = true
 			end
+			FinalizeGearCheckReport(report, false)
 			FinishScan(report, "timeout")
 		end
 	end
@@ -1884,12 +1936,14 @@ function Addon:StartGearCheckUnitScan(unit, callback)
 	end
 
 	if report.character and report.character.isSelf then
+		FinalizeGearCheckReport(report, true)
 		FinishScan(report, "ok")
 		return true
 	end
 
 	local inspect = report.inspect or {}
 	if not inspect.canInspect then
+		FinalizeGearCheckReport(report, false)
 		FinishScan(report, inspect.tooFar and "too_far" or "cannot_inspect")
 		return true
 	end

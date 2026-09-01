@@ -1676,6 +1676,30 @@ function Addon:GearCheckRulesSelfTest()
 	Check("clean plate chest → GOOD", clean.equipment[1].verdict == "GOOD")
 	Check("clean plate chest → overall GOOD", clean.overall and clean.overall.status == "GOOD")
 
+	-- Target inspect must be marked complete before OK→GOOD promotion.
+	local incompleteInspect = {
+		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
+		inspect = { needed = true, complete = false },
+		collection = { inspect = { needed = true, complete = false } },
+		equipment = {
+			MakeSlot("chest", "ChestSlot", MakeItem({
+				itemId = 5,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 40, stamina = 50 },
+				enchant = { enchantId = 3297, present = true, known = true, gaps = {} },
+			})),
+		},
+	}
+	self:EvaluateGearCheck(incompleteInspect)
+	Check("incomplete target inspect → OK not GOOD", incompleteInspect.equipment[1].verdict == "OK")
+	Check("incomplete target inspect → INSPECT_INCOMPLETE", HasCode(incompleteInspect.findings, "INSPECT_INCOMPLETE"))
+	incompleteInspect.inspect.complete = true
+	incompleteInspect.collection.inspect.complete = true
+	self:EvaluateGearCheck(incompleteInspect)
+	Check("complete target inspect → GOOD", incompleteInspect.equipment[1].verdict == "GOOD")
+	Check("complete target inspect → no INSPECT_INCOMPLETE", not HasCode(incompleteInspect.findings, "INSPECT_INCOMPLETE"))
+
 	-- Acceptable-but-not-preferred stays OK (mail on Arms with max enchant)
 	local mailArms = {
 		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
