@@ -59,7 +59,7 @@ Esc or the title **X** closes the window.
 - Lines above the grid: overall average GearScore; per-role count and average GS; gear-check summary after scan
 - Each player card: class + name, role + spec + GS/iLvl, raid-buff icons, personal opinion line, armor/weap and ench/sock grades, **Profile** / **Gear** / **Rescan**
 - Hover a card for opinion, tags, **guild (rank)**, and gear-check details
-- **Scan** / **Export** / **Show as a text** for raid-wide gear check and text export (see [`docs/UI-Views.md`](docs/UI-Views.md))
+- **Scan** / **Export** for raid-wide gear check; **Export** opens copy text; **Back to roster** closes it; **Select all** + Ctrl+C to copy
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 - Card click opens **Character profile**
 

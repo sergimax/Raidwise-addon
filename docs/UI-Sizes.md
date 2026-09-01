@@ -98,7 +98,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Description block with **Scan** / **Export** / **Refresh** / **Show as a text** / **Select all** in a fixed right column; left column stacks hint, stats, and summary with **2** px line gaps, then progress status + bar; roster table or export copy box at a fixed top offset (clears the full **5**-button toolbar). `LAYOUT_VERSION = 18`.
+Description block with **Scan** / **Export** / **Refresh** / **Back to roster** / **Select all** in a fixed right column; left column stacks hint, stats, and summary with **2** px line gaps, then progress status + bar; roster table or export copy box at a fixed top offset (clears the full **5**-button toolbar). `LAYOUT_VERSION = 18`.
 
 | Element | Size | Notes |
 |---------|------|-------|

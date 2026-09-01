@@ -106,7 +106,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ short description (left, wraps)                         ] [ Scan    ]
 [ Average GS …  Tanks …  Healers …  Melee …  Range …       ] [ Export  ]
 [ BAD · REPLACE · OK · GOOD · Failed                        ] [ Refresh ]
-[ gear check status / scan progress (reserved height)       ] [ Show as a text ]
+[ gear check status / scan progress (reserved height)       ] [ Back to roster ]
 [ progress bar track (always reserved)                      ] [ Select all ]
         8 px gap
 [ roster table — or export copy box when text view is on    ]
@@ -126,7 +126,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 |-------|------------------------|
 | short description | Left column; wraps beside button column |
 | Scan / Export / Refresh | **104 × 28** each, stacked in a right column (4 px gap); top-aligned; fixed position independent of progress |
-| Show as a text / Select all | Same column below Refresh; toggles export copy box over the roster table; Select all enabled in text view |
+| Back to roster / Select all | Same column below Refresh; **Back to roster** enabled only while export text is open; **Select all** enabled in that view |
 | gear check hint / status | Left column; fixed **28** px height; gear-check legend or scan/export/rescan text |
 | progress bar | Below status (**4** px gap); height **14**; track always reserved |
 | averages + roles | One line: `Average GS: {n}` then Tanks / Healers / Melee / Range counts and GS |
