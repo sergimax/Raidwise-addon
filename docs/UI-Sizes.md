@@ -163,8 +163,8 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Ra
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Window | **460 × 560** | Centered, offset +40 / +20 from parent center |
-| Title bar | height **20** | Drag handle; `{name} - Character profile`; layout badge `vN` before close |
+| Window | **460 × 560** | Centered, offset +40 / +20 from parent center; **2** px bronze outer border (`UI.BORDER`) |
+| Title bar | height **20** | Drag handle; inset **2** px from the outer border; `{name} - Character profile`; layout badge `vN` before close |
 | Close button | **16 × 16** | Right of title bar |
 | Body padding | **10** | Same as main shell `PAD` |
 | Content width | **440** | `460 - 10×2` |
@@ -175,12 +175,14 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Ra
 | Opinion radios | **3** equal columns × **22** | Exclusive Positive / Neutral / Negative |
 | Tag checkboxes | scrolling columns by category | Max **3** tags per category; category heading gold |
 | Fact checkboxes | two columns under Facts tab | Max **4** facts |
-| Event type picker | scroll **~96** tall | Full width under pick label; **Add event** top-right with heading |
-| Event list | fills remaining Events tab | Fixed **20** px rows (label + Remove) |
+| Event type picker | scroll **140** tall | **16** px category icons + gold headings, then two-column type buttons; **Add event** top-right with heading |
+| Event list | fills remaining Events tab | Fixed **20** px rows (**14** px category icon + label + Remove) |
 | Memo hint | under heading | `GameFontNormalSmall`; personal-use only (not History) |
 | Memo box | **440 × 96** | Multiline EditBox with inner scroll |
 | Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
 | History Met / party count | first row of History tab | **Met** left-aligned; **Was in the same party** right-aligned (`meetCount`) |
+| History When | below Met | First-meeting timestamp |
+| History change log | fills remaining History tab | Scroll; **20** px rows with **14** px icon (event category, or note/tag/facts/memo kind) |
 | Community mock block | right summary column | Gold heading + wrapped body text |
 
 Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** appears on **Edit note** / **Facts** / **Events** and commits those drafts (not memo). Hidden on **History** and **Memo**. Header personal note/tags/facts stay on saved values until that commit. Closing without Save discards drafts.
@@ -228,7 +230,8 @@ Key helpers used across pages (not on `Raidwise` directly):
 
 | Helper | Role |
 |--------|------|
-| `ApplyPlainPanel` / `ApplyPanelBorderColor` | Flat backdrop fill (no border edges) |
+| `ApplyPlainPanel` / `HidePanelBorder` | Flat backdrop fill (no border edges) |
+| `ApplyOuterBorder` | 2 px bronze edge on a floating window (Character profile) |
 | `CreatePlainButton` / `SetPlainButtonState` / `SetMenuButtonState` | Menu and action buttons |
 | `ApplyFontSize` | Change a FontString’s point size (keeps face and flags) |
 | `CreateCopyBox` / `CreateLineCopyBox` | Export and URL copy areas |

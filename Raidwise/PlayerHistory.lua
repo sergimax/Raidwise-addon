@@ -106,25 +106,54 @@ local FACT_CATALOG = {
 	{ id = "guild_officer", labelKey = "RATING_FACT_GUILD_OFFICER", meta = "fact" },
 }
 
-local EVENT_TYPES = {
-	{ id = "left_raid", labelKey = "RATING_EVENT_LEFT_RAID", lootBased = false },
-	{ id = "left_early", labelKey = "RATING_EVENT_LEFT_EARLY", lootBased = false },
-	{ id = "left_group", labelKey = "RATING_EVENT_LEFT_GROUP", lootBased = false },
-	{ id = "rage_quit", labelKey = "RATING_EVENT_RAGE_QUIT", lootBased = false },
-	{ id = "late_arrival", labelKey = "RATING_EVENT_LATE_ARRIVAL", lootBased = false },
-	{ id = "afk", labelKey = "RATING_EVENT_AFK", lootBased = false },
-	{ id = "no_arrival", labelKey = "RATING_EVENT_NO_ARRIVAL", lootBased = false },
-	{ id = "ninja_loot", labelKey = "RATING_EVENT_NINJA_LOOT", lootBased = true },
-	{ id = "loot_dispute", labelKey = "RATING_EVENT_LOOT_DISPUTE", lootBased = true },
-	{ id = "unfair_loot_distribution", labelKey = "RATING_EVENT_UNFAIR_LOOT_DISTRIBUTION", lootBased = true },
-	{ id = "changed_loot_rules", labelKey = "RATING_EVENT_CHANGED_LOOT_RULES", lootBased = true },
-	{ id = "loot_reservation_violation", labelKey = "RATING_EVENT_LOOT_RESERVATION_VIOLATION", lootBased = true },
-	{ id = "raid_abandoned", labelKey = "RATING_EVENT_RAID_ABANDONED", lootBased = false },
-	{ id = "helped_player", labelKey = "RATING_EVENT_HELPED_PLAYER", lootBased = false },
-	{ id = "helped_with_gear", labelKey = "RATING_EVENT_HELPED_WITH_GEAR", lootBased = false },
-	{ id = "explained_mechanics", labelKey = "RATING_EVENT_EXPLAINED_MECHANICS", lootBased = false },
-	{ id = "toxic_behavior", labelKey = "RATING_EVENT_TOXIC_BEHAVIOR", lootBased = false },
-	{ id = "scam", labelKey = "RATING_EVENT_SCAM", lootBased = false },
+local EVENT_GROUPS = {
+	{
+		id = "attendance",
+		labelKey = "RATING_EVENT_GROUP_ATTENDANCE",
+		icon = "Interface\\Icons\\INV_Misc_PocketWatch_01",
+		events = {
+			{ id = "same_party", labelKey = "RATING_EVENT_SAME_PARTY" },
+			{ id = "left_raid", labelKey = "RATING_EVENT_LEFT_RAID" },
+			{ id = "left_early", labelKey = "RATING_EVENT_LEFT_EARLY" },
+			{ id = "left_group", labelKey = "RATING_EVENT_LEFT_GROUP" },
+			{ id = "rage_quit", labelKey = "RATING_EVENT_RAGE_QUIT" },
+			{ id = "late_arrival", labelKey = "RATING_EVENT_LATE_ARRIVAL" },
+			{ id = "afk", labelKey = "RATING_EVENT_AFK" },
+			{ id = "no_arrival", labelKey = "RATING_EVENT_NO_ARRIVAL" },
+			{ id = "raid_abandoned", labelKey = "RATING_EVENT_RAID_ABANDONED" },
+		},
+	},
+	{
+		id = "loot",
+		labelKey = "RATING_GROUP_LOOT",
+		icon = "Interface\\Icons\\INV_Misc_Coin_01",
+		events = {
+			{ id = "ninja_loot", labelKey = "RATING_EVENT_NINJA_LOOT" },
+			{ id = "loot_dispute", labelKey = "RATING_EVENT_LOOT_DISPUTE" },
+			{ id = "unfair_loot_distribution", labelKey = "RATING_EVENT_UNFAIR_LOOT_DISTRIBUTION" },
+			{ id = "changed_loot_rules", labelKey = "RATING_EVENT_CHANGED_LOOT_RULES" },
+			{ id = "loot_reservation_violation", labelKey = "RATING_EVENT_LOOT_RESERVATION_VIOLATION" },
+		},
+	},
+	{
+		id = "help",
+		labelKey = "RATING_EVENT_GROUP_HELP",
+		icon = "Interface\\Icons\\Spell_Holy_FlashHeal",
+		events = {
+			{ id = "helped_player", labelKey = "RATING_EVENT_HELPED_PLAYER" },
+			{ id = "helped_with_gear", labelKey = "RATING_EVENT_HELPED_WITH_GEAR" },
+			{ id = "explained_mechanics", labelKey = "RATING_EVENT_EXPLAINED_MECHANICS" },
+		},
+	},
+	{
+		id = "behavior",
+		labelKey = "RATING_GROUP_BEHAVIOR",
+		icon = "Interface\\Icons\\Spell_Shadow_PsychicScream",
+		events = {
+			{ id = "toxic_behavior", labelKey = "RATING_EVENT_TOXIC_BEHAVIOR" },
+			{ id = "scam", labelKey = "RATING_EVENT_SCAM" },
+		},
+	},
 }
 
 -- Old personal.tags ids → fact / event / drop during one-shot migration.
@@ -171,9 +200,17 @@ for _, fact in ipairs(FACT_CATALOG) do
 	FACTS_BY_ID[fact.id] = fact
 end
 
+local EVENT_TYPES = {}
 local EVENTS_BY_ID = {}
-for _, eventType in ipairs(EVENT_TYPES) do
-	EVENTS_BY_ID[eventType.id] = eventType
+for _, group in ipairs(EVENT_GROUPS) do
+	for _, eventType in ipairs(group.events) do
+		eventType.groupId = group.id
+		eventType.groupLabelKey = group.labelKey
+		eventType.groupIcon = group.icon
+		eventType.lootBased = group.id == "loot"
+		EVENT_TYPES[#EVENT_TYPES + 1] = eventType
+		EVENTS_BY_ID[eventType.id] = eventType
+	end
 end
 
 local function LocalPlayerCreatorId()
@@ -610,6 +647,10 @@ function Addon:FactCatalog()
 	return FACT_CATALOG
 end
 
+function Addon:EventTypeGroups()
+	return EVENT_GROUPS
+end
+
 function Addon:EventTypes()
 	return EVENT_TYPES
 end
@@ -699,6 +740,48 @@ function Addon:EventTypeLabel(eventTypeId)
 		return tostring(eventTypeId or "")
 	end
 	return self:T(eventType.labelKey)
+end
+
+function Addon:EventTypeGroupLabel(eventTypeId)
+	local eventType = EVENTS_BY_ID[eventTypeId]
+	if not eventType or not eventType.groupLabelKey then
+		return ""
+	end
+	return self:T(eventType.groupLabelKey)
+end
+
+function Addon:EventTypeGroupIcon(eventTypeId)
+	local eventType = EVENTS_BY_ID[eventTypeId]
+	if eventType and eventType.groupIcon and eventType.groupIcon ~= "" then
+		return eventType.groupIcon
+	end
+	return nil
+end
+
+local CHANGE_KIND_ICONS = {
+	opinion = "Interface\\Icons\\INV_Misc_Note_01",
+	tags = "Interface\\Icons\\INV_Misc_Note_02",
+	facts = "Interface\\Icons\\Achievement_General",
+	notes = "Interface\\Icons\\INV_Misc_Book_11",
+}
+
+function Addon:ProfileHistoryChangeIcon(change)
+	if type(change) ~= "table" or not change.kind then
+		return nil
+	end
+	if change.kind == "event_add" or change.kind == "event_remove" then
+		return self:EventTypeGroupIcon(change.detail) or "Interface\\Icons\\INV_Misc_QuestionMark"
+	end
+	return CHANGE_KIND_ICONS[change.kind]
+end
+
+function Addon:EventTypeDisplayLabel(eventTypeId)
+	local typeLabel = self:EventTypeLabel(eventTypeId)
+	local groupLabel = self:EventTypeGroupLabel(eventTypeId)
+	if not groupLabel or groupLabel == "" then
+		return typeLabel
+	end
+	return groupLabel .. " · " .. typeLabel
 end
 
 function Addon:CaptureEventContext()
@@ -963,6 +1046,7 @@ end
 
 -- Gap since lastSeenAt before another party/raid encounter counts as a new meeting.
 local GROUP_MEETING_GAP_SEC = 30 * 60
+local SAME_PARTY_EVENT_TYPE = "same_party"
 
 local function EnsureHistoryFields(entry)
 	if type(entry.notes) ~= "string" then
@@ -1070,6 +1154,7 @@ function Addon:UpsertHistoryMember(member)
 	local zone = MeetingZone()
 	local metRealm = MeetingRealm()
 
+	local countedMeeting = false
 	if not entry.metAt or entry.metAt <= 0 then
 		entry.metZone = zone
 		entry.metAt = now
@@ -1077,20 +1162,22 @@ function Addon:UpsertHistoryMember(member)
 		entry.lastSeenAt = now
 		entry.lastSeenZone = zone
 		entry.meetCount = 1
-		return entry
+		countedMeeting = true
+	else
+		EnsureHistoryFields(entry)
+		local previousSeen = tonumber(entry.lastSeenAt) or 0
+		local meetCount = tonumber(entry.meetCount) or 1
+		if meetCount < 1 then
+			meetCount = 1
+		end
+		-- Count another grouping only after a quiet gap (avoids +1 on every roster refresh).
+		if previousSeen <= 0 or (now - previousSeen) >= GROUP_MEETING_GAP_SEC then
+			meetCount = meetCount + 1
+			countedMeeting = true
+		end
+		entry.meetCount = meetCount
 	end
 
-	EnsureHistoryFields(entry)
-	local previousSeen = tonumber(entry.lastSeenAt) or 0
-	local meetCount = tonumber(entry.meetCount) or 1
-	if meetCount < 1 then
-		meetCount = 1
-	end
-	-- Count another grouping only after a quiet gap (avoids +1 on every roster refresh).
-	if previousSeen <= 0 or (now - previousSeen) >= GROUP_MEETING_GAP_SEC then
-		meetCount = meetCount + 1
-	end
-	entry.meetCount = meetCount
 	CopyIfValue(entry, member, "name")
 	CopyIfValue(entry, member, "class")
 	CopyIfValue(entry, member, "classLabel")
@@ -1115,6 +1202,9 @@ function Addon:UpsertHistoryMember(member)
 	entry.lastSeenAt = now
 	if zone ~= "" then
 		entry.lastSeenZone = zone
+	end
+	if countedMeeting then
+		self:AddHistoryEventForGuid(guid, member, SAME_PARTY_EVENT_TYPE)
 	end
 	return entry
 end
@@ -1389,7 +1479,6 @@ function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 	return entry
 end
 
--- DELETE candidate: no callers; events are drafted in profile then committed via SaveHistoryEventsForGuid.
 function Addon:AddHistoryEventForGuid(guid, seed, eventTypeId)
 	if not guid or guid == "" or not self:IsValidEventType(eventTypeId) then
 		return nil
@@ -1408,6 +1497,9 @@ function Addon:AddHistoryEventForGuid(guid, seed, eventTypeId)
 	}
 	entry.events[#entry.events + 1] = event
 	self:AppendProfileHistoryChange(entry, "event_add", eventTypeId)
+	if self.SyncOpenProfileHistoryEvent then
+		self:SyncOpenProfileHistoryEvent(entry, event)
+	end
 	return entry, event
 end
 
