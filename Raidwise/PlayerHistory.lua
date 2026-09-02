@@ -106,25 +106,49 @@ local FACT_CATALOG = {
 	{ id = "guild_officer", labelKey = "RATING_FACT_GUILD_OFFICER", meta = "fact" },
 }
 
-local EVENT_TYPES = {
-	{ id = "left_raid", labelKey = "RATING_EVENT_LEFT_RAID", lootBased = false },
-	{ id = "left_early", labelKey = "RATING_EVENT_LEFT_EARLY", lootBased = false },
-	{ id = "left_group", labelKey = "RATING_EVENT_LEFT_GROUP", lootBased = false },
-	{ id = "rage_quit", labelKey = "RATING_EVENT_RAGE_QUIT", lootBased = false },
-	{ id = "late_arrival", labelKey = "RATING_EVENT_LATE_ARRIVAL", lootBased = false },
-	{ id = "afk", labelKey = "RATING_EVENT_AFK", lootBased = false },
-	{ id = "no_arrival", labelKey = "RATING_EVENT_NO_ARRIVAL", lootBased = false },
-	{ id = "ninja_loot", labelKey = "RATING_EVENT_NINJA_LOOT", lootBased = true },
-	{ id = "loot_dispute", labelKey = "RATING_EVENT_LOOT_DISPUTE", lootBased = true },
-	{ id = "unfair_loot_distribution", labelKey = "RATING_EVENT_UNFAIR_LOOT_DISTRIBUTION", lootBased = true },
-	{ id = "changed_loot_rules", labelKey = "RATING_EVENT_CHANGED_LOOT_RULES", lootBased = true },
-	{ id = "loot_reservation_violation", labelKey = "RATING_EVENT_LOOT_RESERVATION_VIOLATION", lootBased = true },
-	{ id = "raid_abandoned", labelKey = "RATING_EVENT_RAID_ABANDONED", lootBased = false },
-	{ id = "helped_player", labelKey = "RATING_EVENT_HELPED_PLAYER", lootBased = false },
-	{ id = "helped_with_gear", labelKey = "RATING_EVENT_HELPED_WITH_GEAR", lootBased = false },
-	{ id = "explained_mechanics", labelKey = "RATING_EVENT_EXPLAINED_MECHANICS", lootBased = false },
-	{ id = "toxic_behavior", labelKey = "RATING_EVENT_TOXIC_BEHAVIOR", lootBased = false },
-	{ id = "scam", labelKey = "RATING_EVENT_SCAM", lootBased = false },
+local EVENT_GROUPS = {
+	{
+		id = "attendance",
+		labelKey = "RATING_EVENT_GROUP_ATTENDANCE",
+		events = {
+			{ id = "left_raid", labelKey = "RATING_EVENT_LEFT_RAID" },
+			{ id = "left_early", labelKey = "RATING_EVENT_LEFT_EARLY" },
+			{ id = "left_group", labelKey = "RATING_EVENT_LEFT_GROUP" },
+			{ id = "rage_quit", labelKey = "RATING_EVENT_RAGE_QUIT" },
+			{ id = "late_arrival", labelKey = "RATING_EVENT_LATE_ARRIVAL" },
+			{ id = "afk", labelKey = "RATING_EVENT_AFK" },
+			{ id = "no_arrival", labelKey = "RATING_EVENT_NO_ARRIVAL" },
+			{ id = "raid_abandoned", labelKey = "RATING_EVENT_RAID_ABANDONED" },
+		},
+	},
+	{
+		id = "loot",
+		labelKey = "RATING_GROUP_LOOT",
+		events = {
+			{ id = "ninja_loot", labelKey = "RATING_EVENT_NINJA_LOOT" },
+			{ id = "loot_dispute", labelKey = "RATING_EVENT_LOOT_DISPUTE" },
+			{ id = "unfair_loot_distribution", labelKey = "RATING_EVENT_UNFAIR_LOOT_DISTRIBUTION" },
+			{ id = "changed_loot_rules", labelKey = "RATING_EVENT_CHANGED_LOOT_RULES" },
+			{ id = "loot_reservation_violation", labelKey = "RATING_EVENT_LOOT_RESERVATION_VIOLATION" },
+		},
+	},
+	{
+		id = "help",
+		labelKey = "RATING_EVENT_GROUP_HELP",
+		events = {
+			{ id = "helped_player", labelKey = "RATING_EVENT_HELPED_PLAYER" },
+			{ id = "helped_with_gear", labelKey = "RATING_EVENT_HELPED_WITH_GEAR" },
+			{ id = "explained_mechanics", labelKey = "RATING_EVENT_EXPLAINED_MECHANICS" },
+		},
+	},
+	{
+		id = "behavior",
+		labelKey = "RATING_GROUP_BEHAVIOR",
+		events = {
+			{ id = "toxic_behavior", labelKey = "RATING_EVENT_TOXIC_BEHAVIOR" },
+			{ id = "scam", labelKey = "RATING_EVENT_SCAM" },
+		},
+	},
 }
 
 -- Old personal.tags ids → fact / event / drop during one-shot migration.
@@ -171,9 +195,16 @@ for _, fact in ipairs(FACT_CATALOG) do
 	FACTS_BY_ID[fact.id] = fact
 end
 
+local EVENT_TYPES = {}
 local EVENTS_BY_ID = {}
-for _, eventType in ipairs(EVENT_TYPES) do
-	EVENTS_BY_ID[eventType.id] = eventType
+for _, group in ipairs(EVENT_GROUPS) do
+	for _, eventType in ipairs(group.events) do
+		eventType.groupId = group.id
+		eventType.groupLabelKey = group.labelKey
+		eventType.lootBased = group.id == "loot"
+		EVENT_TYPES[#EVENT_TYPES + 1] = eventType
+		EVENTS_BY_ID[eventType.id] = eventType
+	end
 end
 
 local function LocalPlayerCreatorId()
@@ -610,6 +641,10 @@ function Addon:FactCatalog()
 	return FACT_CATALOG
 end
 
+function Addon:EventTypeGroups()
+	return EVENT_GROUPS
+end
+
 function Addon:EventTypes()
 	return EVENT_TYPES
 end
@@ -699,6 +734,23 @@ function Addon:EventTypeLabel(eventTypeId)
 		return tostring(eventTypeId or "")
 	end
 	return self:T(eventType.labelKey)
+end
+
+function Addon:EventTypeGroupLabel(eventTypeId)
+	local eventType = EVENTS_BY_ID[eventTypeId]
+	if not eventType or not eventType.groupLabelKey then
+		return ""
+	end
+	return self:T(eventType.groupLabelKey)
+end
+
+function Addon:EventTypeDisplayLabel(eventTypeId)
+	local typeLabel = self:EventTypeLabel(eventTypeId)
+	local groupLabel = self:EventTypeGroupLabel(eventTypeId)
+	if not groupLabel or groupLabel == "" then
+		return typeLabel
+	end
+	return groupLabel .. " · " .. typeLabel
 end
 
 function Addon:CaptureEventContext()

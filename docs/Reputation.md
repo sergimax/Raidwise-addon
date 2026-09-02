@@ -9,7 +9,7 @@ Local player reputation for other characters is stored under `RaidwiseDB.history
 | **Opinion** | Overall personal note (positive / neutral / negative) | `rating.personal.opinion` |
 | **Tags** | Subjective labels by category (organization, behavior, trust, loot, discipline, gameplay) | `rating.personal.tags[]` |
 | **Facts** | Persistent roles / identity (Raid Leader, PUG Raid Leader, Guild Master, Guild Officer) | `rating.personal.facts[]` |
-| **Events** | Witnessed occurrences (left raid, late arrival, ninja loot, helped player, …) | `events[]` |
+| **Events** | Witnessed occurrences grouped by category (attendance, loot, help, behavior) | `events[]` |
 | **Memo** | Private free text | `notes` |
 
 Caps: max **3** tags per category; max **4** facts. Events are an unbounded list (change log capped at 50 rows). Opinion, tags, facts, and events are edited as drafts in Character profile until **Save and Update**; memo saves separately and is never logged.
@@ -54,6 +54,7 @@ Used by roster pages, Character profile, and unit tooltips:
 | `FactColoredSummary` / `FactSummary` | Profile header facts line |
 | `FormatHistoryTime` | History tab and change-log timestamps |
 | `GetHistoryEvents` | Events tab and profile drafts |
+| `EventTypeGroups` / `EventTypeLabel` / `EventTypeDisplayLabel` | Categorized event picker and History change log |
 | `BuildUnitTooltipRatingLinesForMember` | Unit tooltip lines (via `UnitTooltips.lua`) |
 
 ## Unit tooltips

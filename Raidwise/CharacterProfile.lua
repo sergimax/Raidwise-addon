@@ -35,7 +35,7 @@ local UI = {
 	-- DELETE candidate: PANEL_BG, BTN_HOVER, BTN_SELECTED, BTN_DISABLED copied but unused (W.ApplyPlainPanel uses Theme directly).
 }
 
-local PROFILE_LAYOUT_VERSION = 27
+local PROFILE_LAYOUT_VERSION = 28
 
 local function GetRatingTagGroups()
 	if Addon.RatingTagGroups then
@@ -250,14 +250,18 @@ local function FormatProfileChangeDetail(change)
 	end
 	if change.kind == "event_add" then
 		local label = change.detail
-		if Addon.EventTypeLabel then
+		if Addon.EventTypeDisplayLabel then
+			label = Addon:EventTypeDisplayLabel(change.detail)
+		elseif Addon.EventTypeLabel then
 			label = Addon:EventTypeLabel(change.detail)
 		end
 		return T("PROFILE_CHANGE_EVENT_ADD", label)
 	end
 	if change.kind == "event_remove" then
 		local label = change.detail
-		if Addon.EventTypeLabel then
+		if Addon.EventTypeDisplayLabel then
+			label = Addon:EventTypeDisplayLabel(change.detail)
+		elseif Addon.EventTypeLabel then
 			label = Addon:EventTypeLabel(change.detail)
 		end
 		return T("PROFILE_CHANGE_EVENT_REMOVE", label)
@@ -649,6 +653,9 @@ local PROFILE_TAG_ROW_H = 22
 local PROFILE_TAG_GROUP_HEADING_H = 18
 local PROFILE_TAG_GROUP_GAP = 8
 local PROFILE_TAG_COL_GAP = 12
+local PROFILE_EVENT_PICKER_H = 140
+local PROFILE_EVENT_TYPE_BTN_H = 20
+local PROFILE_EVENT_TYPE_ROW_H = 22
 
 local ratingViewRefreshScheduled
 
@@ -811,6 +818,13 @@ UpdateProfileEventsPanel = function(frame, member)
 	if frame.eventsPickLabel then
 		frame.eventsPickLabel:SetText(T("PROFILE_EVENTS_PICK_TYPE"))
 	end
+	if frame.eventTypeGroupLabels then
+		for _, heading in ipairs(frame.eventTypeGroupLabels) do
+			if heading.labelKey then
+				heading:SetText(T(heading.labelKey))
+			end
+		end
+	end
 	if frame.eventTypeButtons then
 		for _, button in ipairs(frame.eventTypeButtons) do
 			if button.label and button.eventTypeId and Addon.EventTypeLabel then
@@ -848,7 +862,8 @@ UpdateProfileEventsPanel = function(frame, member)
 		for index = 1, #events do
 			local event = events[index]
 			local when = Addon.FormatHistoryTime and Addon:FormatHistoryTime(event.eventAt) or "?"
-			local label = Addon.EventTypeLabel and Addon:EventTypeLabel(event.type) or tostring(event.type)
+			local label = Addon.EventTypeDisplayLabel and Addon:EventTypeDisplayLabel(event.type)
+				or (Addon.EventTypeLabel and Addon:EventTypeLabel(event.type) or tostring(event.type))
 			local line = when .. " — " .. label .. FormatEventContextSuffix(event)
 
 			local row = CreateFrame("Frame", nil, frame.eventsListContent)
@@ -1710,7 +1725,7 @@ local function CreateRaidCharacterWindow()
 	local typePickerHost = CreateFrame("Frame", nil, eventsPanel)
 	typePickerHost:SetPoint("TOPLEFT", eventsPickLabel, "BOTTOMLEFT", 0, -6)
 	typePickerHost:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
-	typePickerHost:SetHeight(96)
+	typePickerHost:SetHeight(PROFILE_EVENT_PICKER_H)
 	frame.eventTypePickerHost = typePickerHost
 
 	local typeScrollName = "RaidwiseProfileEventTypeScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
@@ -1727,44 +1742,73 @@ local function CreateRaidCharacterWindow()
 	typeContent:SetWidth(tabContentWidth - 28)
 	typeScroll:SetScrollChild(typeContent)
 	frame.eventTypeButtons = {}
+	frame.eventTypeGroupLabels = {}
 	frame.selectedEventType = nil
-	local eventTypes = (Addon.EventTypes and Addon:EventTypes()) or {}
+	local eventGroups = (Addon.EventTypeGroups and Addon:EventTypeGroups()) or {}
 	local typeBtnWidth = math.floor((tabContentWidth - 28 - PROFILE_TAG_COL_GAP) / 2)
 	local typeY = 0
-	for typeIndex = 1, #eventTypes do
-		local eventType = eventTypes[typeIndex]
-		local col = (typeIndex % 2 == 0) and 1 or 0
-		local row = math.floor((typeIndex - 1) / 2)
-		local button = CreateFrame("Button", nil, typeContent)
-		button:SetSize(typeBtnWidth, 20)
-		button:SetPoint("TOPLEFT", typeContent, "TOPLEFT", col * (typeBtnWidth + PROFILE_TAG_COL_GAP), -(row * 22))
-		W.ApplyPlainPanel(button, UI.BTN_IDLE)
-		button.eventTypeId = eventType.id
-		local label = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		label:SetPoint("LEFT", 6, 0)
-		label:SetPoint("RIGHT", -6, 0)
-		label:SetJustifyH("LEFT")
-		label:SetText(Addon.EventTypeLabel and Addon:EventTypeLabel(eventType.id) or eventType.id)
-		button.label = label
-		button:SetScript("OnEnter", function(self)
-			W.SetMenuButtonState(self, frame.selectedEventType == self.eventTypeId, true)
-		end)
-		button:SetScript("OnLeave", function(self)
-			W.SetMenuButtonState(self, frame.selectedEventType == self.eventTypeId, false)
-		end)
-		button:SetScript("OnClick", function(self)
-			frame.selectedEventType = self.eventTypeId
-			for _, other in ipairs(frame.eventTypeButtons) do
-				W.SetMenuButtonState(other, other.eventTypeId == frame.selectedEventType, false)
-			end
-		end)
-		frame.eventTypeButtons[#frame.eventTypeButtons + 1] = button
-		typeY = math.max(typeY, (row + 1) * 22)
+	local function SelectEventType(eventTypeId)
+		frame.selectedEventType = eventTypeId
+		for _, other in ipairs(frame.eventTypeButtons) do
+			W.SetMenuButtonState(other, other.eventTypeId == frame.selectedEventType, false)
+		end
+	end
+	for groupIndex = 1, #eventGroups do
+		local group = eventGroups[groupIndex]
+		if groupIndex > 1 then
+			typeY = typeY + PROFILE_TAG_GROUP_GAP
+		end
+		local heading = typeContent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		heading:SetPoint("TOPLEFT", typeContent, "TOPLEFT", 0, -typeY)
+		heading:SetPoint("RIGHT", typeContent, "RIGHT", 0, 0)
+		heading:SetHeight(PROFILE_TAG_GROUP_HEADING_H)
+		heading:SetJustifyH("LEFT")
+		heading:SetJustifyV("MIDDLE")
+		heading:SetText(T(group.labelKey))
+		W.SetFontColor(heading, UI.GOLD)
+		heading.labelKey = group.labelKey
+		frame.eventTypeGroupLabels[#frame.eventTypeGroupLabels + 1] = heading
+		typeY = typeY + PROFILE_TAG_GROUP_HEADING_H + 2
+
+		local types = group.events or {}
+		for typeIndex = 1, #types do
+			local eventType = types[typeIndex]
+			local col = (typeIndex % 2 == 0) and 1 or 0
+			local row = math.floor((typeIndex - 1) / 2)
+			local button = CreateFrame("Button", nil, typeContent)
+			button:SetSize(typeBtnWidth, PROFILE_EVENT_TYPE_BTN_H)
+			button:SetPoint(
+				"TOPLEFT",
+				typeContent,
+				"TOPLEFT",
+				col * (typeBtnWidth + PROFILE_TAG_COL_GAP),
+				-(typeY + row * PROFILE_EVENT_TYPE_ROW_H)
+			)
+			W.ApplyPlainPanel(button, UI.BTN_IDLE)
+			button.eventTypeId = eventType.id
+			local label = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+			label:SetPoint("LEFT", 6, 0)
+			label:SetPoint("RIGHT", -6, 0)
+			label:SetJustifyH("LEFT")
+			label:SetText(Addon.EventTypeLabel and Addon:EventTypeLabel(eventType.id) or eventType.id)
+			button.label = label
+			button:SetScript("OnEnter", function(self)
+				W.SetMenuButtonState(self, frame.selectedEventType == self.eventTypeId, true)
+			end)
+			button:SetScript("OnLeave", function(self)
+				W.SetMenuButtonState(self, frame.selectedEventType == self.eventTypeId, false)
+			end)
+			button:SetScript("OnClick", function(self)
+				SelectEventType(self.eventTypeId)
+			end)
+			frame.eventTypeButtons[#frame.eventTypeButtons + 1] = button
+		end
+		local rows = math.ceil(math.max(#types, 1) / 2)
+		typeY = typeY + rows * PROFILE_EVENT_TYPE_ROW_H
 	end
 	typeContent:SetHeight(math.max(typeY, 1))
-	if #eventTypes > 0 then
-		frame.selectedEventType = eventTypes[1].id
-		W.SetMenuButtonState(frame.eventTypeButtons[1], true, false)
+	if #frame.eventTypeButtons > 0 then
+		SelectEventType(frame.eventTypeButtons[1].eventTypeId)
 	end
 
 	local eventsListHost = CreateFrame("Frame", nil, eventsPanel)
