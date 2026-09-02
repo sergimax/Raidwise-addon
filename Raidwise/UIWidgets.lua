@@ -85,6 +85,7 @@ Addon.UITheme = {
 	GOLD = { 1.000, 0.824, 0.000 },
 	GOLD_DIM = { 0.769, 0.627, 0.290 }, -- Menu group headings / separators
 	BORDER = { 0.420, 0.341, 0.188, 1 },
+	BORDER_W = 2,
 	TEXT_IDLE = { 1.000, 0.933, 0.733 },
 	TEXT_GOOD = { 0.350, 0.850, 0.400 },
 	PANEL_BG = { 0.071, 0.071, 0.110, 0.98 },
@@ -140,6 +141,47 @@ function W.HidePanelBorder(frame)
 		frame.rwBorderLeft:Hide()
 		frame.rwBorderRight:Hide()
 	end
+end
+
+function W.ApplyOuterBorder(frame, color, thickness)
+	if not frame then
+		return
+	end
+	color = color or UI.BORDER
+	thickness = thickness or UI.BORDER_W or 1
+	local alpha = color[4] or 1
+	local function Edge(texture)
+		if not texture then
+			texture = frame:CreateTexture(nil, "OVERLAY")
+			texture:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+		end
+		texture:SetVertexColor(color[1], color[2], color[3], alpha)
+		texture:Show()
+		return texture
+	end
+	frame.rwBorderTop = Edge(frame.rwBorderTop)
+	frame.rwBorderTop:ClearAllPoints()
+	frame.rwBorderTop:SetHeight(thickness)
+	frame.rwBorderTop:SetPoint("TOPLEFT", 0, 0)
+	frame.rwBorderTop:SetPoint("TOPRIGHT", 0, 0)
+
+	frame.rwBorderBottom = Edge(frame.rwBorderBottom)
+	frame.rwBorderBottom:ClearAllPoints()
+	frame.rwBorderBottom:SetHeight(thickness)
+	frame.rwBorderBottom:SetPoint("BOTTOMLEFT", 0, 0)
+	frame.rwBorderBottom:SetPoint("BOTTOMRIGHT", 0, 0)
+
+	frame.rwBorderLeft = Edge(frame.rwBorderLeft)
+	frame.rwBorderLeft:ClearAllPoints()
+	frame.rwBorderLeft:SetWidth(thickness)
+	frame.rwBorderLeft:SetPoint("TOPLEFT", 0, 0)
+	frame.rwBorderLeft:SetPoint("BOTTOMLEFT", 0, 0)
+
+	frame.rwBorderRight = Edge(frame.rwBorderRight)
+	frame.rwBorderRight:ClearAllPoints()
+	frame.rwBorderRight:SetWidth(thickness)
+	frame.rwBorderRight:SetPoint("TOPRIGHT", 0, 0)
+	frame.rwBorderRight:SetPoint("BOTTOMRIGHT", 0, 0)
 end
 
 function W.ApplyPanelBorderColor(frame)

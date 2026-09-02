@@ -42,7 +42,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 11` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
-| Character profile | `PROFILE_LAYOUT_VERSION = 30` | `CharacterProfile.lua` | Title bar (left of close) |
+| Character profile | `PROFILE_LAYOUT_VERSION = 31` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 18` | `PageRaid.lua` | Shell title bar (next to page name) |
@@ -229,10 +229,10 @@ Raid-wide gear check lives on **Raid roster** (Scan button + report rows per pla
 
 ## Character profile
 
-Standalone window (**460 × 560**) opened from Raid roster or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
+Standalone window (**460 × 560**) opened from Raid roster or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it. Bronze **2** px outer border.
 
 ```text
-[ Rhee - Character profile                              v30   X ]
+[ Rhee - Character profile                              v31   X ]
 | (race)(class) Shaman    | (spec) Enhancement                  |
 | GearScore: 6158         | iLvl: 264                           |
 | Personal note: Positive | Community note                      |

@@ -32,10 +32,11 @@ local UI = {
 	TEXT_HOVER = Theme.TEXT_HOVER,
 	TEXT_DISABLED = Theme.TEXT_DISABLED,
 	BORDER = Theme.BORDER,
+	BORDER_W = Theme.BORDER_W,
 	-- DELETE candidate: PANEL_BG, BTN_HOVER, BTN_SELECTED, BTN_DISABLED copied but unused (W.ApplyPlainPanel uses Theme directly).
 }
 
-local PROFILE_LAYOUT_VERSION = 30
+local PROFILE_LAYOUT_VERSION = 31
 local PROFILE_EVENT_ROW_ICON = 14
 
 local function GetRatingTagGroups()
@@ -1335,6 +1336,7 @@ local function CreateRaidCharacterWindow()
 	frame:SetClampedToScreen(true)
 	frame:Hide()
 	W.ApplyPlainPanel(frame)
+	W.ApplyOuterBorder(frame)
 	frame.layoutVersion = PROFILE_LAYOUT_VERSION
 	frame.opinionButtons = nil
 	frame.profileTabButtons = nil
@@ -1350,8 +1352,8 @@ local function CreateRaidCharacterWindow()
 	end)
 
 	local titleBar = CreateFrame("Frame", nil, frame)
-	titleBar:SetPoint("TOPLEFT", 1, -1)
-	titleBar:SetPoint("TOPRIGHT", -1, -1)
+	titleBar:SetPoint("TOPLEFT", UI.BORDER_W, -UI.BORDER_W)
+	titleBar:SetPoint("TOPRIGHT", -UI.BORDER_W, -UI.BORDER_W)
 	titleBar:SetHeight(UI.TITLE_H)
 	W.ApplyPlainPanel(titleBar, UI.TITLE_BG)
 	W.AttachDragHandle(titleBar, frame)

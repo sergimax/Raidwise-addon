@@ -163,8 +163,8 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Ra
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Window | **460 × 560** | Centered, offset +40 / +20 from parent center |
-| Title bar | height **20** | Drag handle; `{name} - Character profile`; layout badge `vN` before close |
+| Window | **460 × 560** | Centered, offset +40 / +20 from parent center; **2** px bronze outer border (`UI.BORDER`) |
+| Title bar | height **20** | Drag handle; inset **2** px from the outer border; `{name} - Character profile`; layout badge `vN` before close |
 | Close button | **16 × 16** | Right of title bar |
 | Body padding | **10** | Same as main shell `PAD` |
 | Content width | **440** | `460 - 10×2` |
@@ -230,7 +230,8 @@ Key helpers used across pages (not on `Raidwise` directly):
 
 | Helper | Role |
 |--------|------|
-| `ApplyPlainPanel` / `ApplyPanelBorderColor` | Flat backdrop fill (no border edges) |
+| `ApplyPlainPanel` / `HidePanelBorder` | Flat backdrop fill (no border edges) |
+| `ApplyOuterBorder` | 2 px bronze edge on a floating window (Character profile) |
 | `CreatePlainButton` / `SetPlainButtonState` / `SetMenuButtonState` | Menu and action buttons |
 | `ApplyFontSize` | Change a FontString’s point size (keeps face and flags) |
 | `CreateCopyBox` / `CreateLineCopyBox` | Export and URL copy areas |
