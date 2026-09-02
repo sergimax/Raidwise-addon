@@ -940,6 +940,36 @@ UpdateProfileEventsPanel = function(frame, member)
 	frame.eventsListContent:SetHeight(math.max(y, 1))
 end
 
+-- Keep an open Character profile in sync when history auto-records an event
+-- (so Save and Update does not drop it from the Events draft).
+function Addon:SyncOpenProfileHistoryEvent(entry, event)
+	local frame = self.raidDetailFrame
+	if not frame or not frame:IsShown() or type(entry) ~= "table" or type(event) ~= "table" then
+		return
+	end
+	local member = frame.profileMember
+	if not member or member.guid ~= entry.guid then
+		return
+	end
+	member.meetCount = entry.meetCount
+	member.changes = entry.changes
+	member.events = entry.events
+	if type(frame.draftEvents) == "table" then
+		local already = false
+		for index = 1, #frame.draftEvents do
+			if frame.draftEvents[index].id == event.id then
+				already = true
+				break
+			end
+		end
+		if not already then
+			table.insert(frame.draftEvents, 1, event)
+		end
+	end
+	UpdateProfileHistoryPanel(frame, member)
+	UpdateProfileEventsPanel(frame, member)
+end
+
 -- REFACTOR candidate: near-duplicate of CreateProfileTagCheckbox; extract shared draft-checkbox factory.
 local function CreateProfileFactCheckbox(parent, fact, columnWidth)
 	local check = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")

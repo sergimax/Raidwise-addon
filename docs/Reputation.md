@@ -9,7 +9,7 @@ Local player reputation for other characters is stored under `RaidwiseDB.history
 | **Opinion** | Overall personal note (positive / neutral / negative) | `rating.personal.opinion` |
 | **Tags** | Subjective labels by category (organization, behavior, trust, loot, discipline, gameplay) | `rating.personal.tags[]` |
 | **Facts** | Persistent roles / identity (Raid Leader, PUG Raid Leader, Guild Master, Guild Officer) | `rating.personal.facts[]` |
-| **Events** | Witnessed occurrences grouped by category (attendance, loot, help, behavior) | `events[]` |
+| **Events** | Witnessed occurrences grouped by category (attendance, loot, help, behavior) | `events[]`. Attendance includes auto-logged `same_party` when `meetCount` increments |
 | **Memo** | Private free text | `notes` |
 
 Caps: max **3** tags per category; max **4** facts. Events are an unbounded list (change log capped at 50 rows). Opinion, tags, facts, and events are edited as drafts in Character profile until **Save and Update**; memo saves separately and is never logged.

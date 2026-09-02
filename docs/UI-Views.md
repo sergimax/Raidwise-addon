@@ -279,7 +279,7 @@ Standalone window (**460 × 560**) opened from Raid roster or History (left-clic
 | Facts (editor tab) | Role / identity checkboxes (draft until **Save and Update**); max **4** |
 | Events tab | Pick an event type by category (icon + heading), **Add event** / **Remove** edit a draft list; **Save and Update** persists events with auto zone/instance context on add |
 | Memo (editor tab) | Personal-use hint; multiline EditBox; **Save** / **Reset**. Memo is not written to History |
-| History tab | **Met** (left) and **Was in the same party** count (right) on the first row, then **When**, then logged opinion/tag/facts/event changes with a kind or event-category icon (and any older memo rows if present) |
+| History tab | **Met** (left) and **Was in the same party** count (right) on the first row, then **When**, then logged opinion/tag/facts/event changes with a kind or event-category icon (and any older memo rows if present). Joining the same party or raid logs an **In the same party** attendance event whenever the count increments (first meet, or ≥30 min since last seen) |
 | Save and Update | Bottom of window on **Edit note** / **Facts** / **Events** only; saves opinion, tags, facts, and events. Hidden on **History** and **Memo** (memo uses its own **Save** / **Reset**) |
 | editable | Opinion, tags, facts, events, and notes require a valid GUID; controls are disabled otherwise |
 | persistence | Opinion/tags/facts in `RaidwiseDB.history[guid].rating.personal`; events in `.events`; notes in `.notes`; change log in `.changes`; `meetCount` for party/raid encounters |

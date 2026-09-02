@@ -64,7 +64,7 @@ History personal reputation shape (see [Reputation.md](Reputation.md)):
 - `history[guid].events[]` — typed occurrences with `eventAt` + context
 - `history[guid].notes` — private memo (never shared)
 - `history[guid].changes[]` — local change log (`opinion`, `tags`, `facts`, `event_add`, `event_remove`)
-- `history[guid].meetCount` — party/raid encounters with this character (first meet = 1; +1 after ≥30 min since `lastSeenAt`)
+- `history[guid].meetCount` — party/raid encounters with this character (first meet = 1; +1 after ≥30 min since `lastSeenAt`). Each increment also appends an attendance event `same_party` (`In the same party`) with zone/instance context.
 
 ## Two version concepts
 
@@ -122,7 +122,7 @@ Cross-module entry points on `Raidwise` (domain files do not create frames):
 | `BuildCooldownTable` | `CharacterLockouts.lua` | Cooldowns tab rows |
 | `HistoryProfileForMember` / `MergeRatingIntoMember` | `PlayerHistory.lua` | Profile + table opinion/tags |
 | `SavePersonalRatingForGuid` / `SaveHistoryEventsForGuid` / `SaveProfileNotesForGuid` | `PlayerHistory.lua` | Persist profile edits |
-| `RecordCurrentGroupHistory` | `PlayerHistory.lua` | History **Refresh** + group events |
+| `RecordCurrentGroupHistory` / `AddHistoryEventForGuid` | `PlayerHistory.lua` | History **Refresh** + group meetings (`same_party` event when `meetCount` increments) |
 | `FormatEquippedGearExport` | `CharacterExport.lua` | Export tab JSON |
 
 ## Refresh fan-out

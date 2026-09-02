@@ -112,6 +112,7 @@ local EVENT_GROUPS = {
 		labelKey = "RATING_EVENT_GROUP_ATTENDANCE",
 		icon = "Interface\\Icons\\INV_Misc_PocketWatch_01",
 		events = {
+			{ id = "same_party", labelKey = "RATING_EVENT_SAME_PARTY" },
 			{ id = "left_raid", labelKey = "RATING_EVENT_LEFT_RAID" },
 			{ id = "left_early", labelKey = "RATING_EVENT_LEFT_EARLY" },
 			{ id = "left_group", labelKey = "RATING_EVENT_LEFT_GROUP" },
@@ -1045,6 +1046,7 @@ end
 
 -- Gap since lastSeenAt before another party/raid encounter counts as a new meeting.
 local GROUP_MEETING_GAP_SEC = 30 * 60
+local SAME_PARTY_EVENT_TYPE = "same_party"
 
 local function EnsureHistoryFields(entry)
 	if type(entry.notes) ~= "string" then
@@ -1152,6 +1154,7 @@ function Addon:UpsertHistoryMember(member)
 	local zone = MeetingZone()
 	local metRealm = MeetingRealm()
 
+	local countedMeeting = false
 	if not entry.metAt or entry.metAt <= 0 then
 		entry.metZone = zone
 		entry.metAt = now
@@ -1159,20 +1162,22 @@ function Addon:UpsertHistoryMember(member)
 		entry.lastSeenAt = now
 		entry.lastSeenZone = zone
 		entry.meetCount = 1
-		return entry
+		countedMeeting = true
+	else
+		EnsureHistoryFields(entry)
+		local previousSeen = tonumber(entry.lastSeenAt) or 0
+		local meetCount = tonumber(entry.meetCount) or 1
+		if meetCount < 1 then
+			meetCount = 1
+		end
+		-- Count another grouping only after a quiet gap (avoids +1 on every roster refresh).
+		if previousSeen <= 0 or (now - previousSeen) >= GROUP_MEETING_GAP_SEC then
+			meetCount = meetCount + 1
+			countedMeeting = true
+		end
+		entry.meetCount = meetCount
 	end
 
-	EnsureHistoryFields(entry)
-	local previousSeen = tonumber(entry.lastSeenAt) or 0
-	local meetCount = tonumber(entry.meetCount) or 1
-	if meetCount < 1 then
-		meetCount = 1
-	end
-	-- Count another grouping only after a quiet gap (avoids +1 on every roster refresh).
-	if previousSeen <= 0 or (now - previousSeen) >= GROUP_MEETING_GAP_SEC then
-		meetCount = meetCount + 1
-	end
-	entry.meetCount = meetCount
 	CopyIfValue(entry, member, "name")
 	CopyIfValue(entry, member, "class")
 	CopyIfValue(entry, member, "classLabel")
@@ -1197,6 +1202,9 @@ function Addon:UpsertHistoryMember(member)
 	entry.lastSeenAt = now
 	if zone ~= "" then
 		entry.lastSeenZone = zone
+	end
+	if countedMeeting then
+		self:AddHistoryEventForGuid(guid, member, SAME_PARTY_EVENT_TYPE)
 	end
 	return entry
 end
@@ -1471,7 +1479,6 @@ function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 	return entry
 end
 
--- DELETE candidate: no callers; events are drafted in profile then committed via SaveHistoryEventsForGuid.
 function Addon:AddHistoryEventForGuid(guid, seed, eventTypeId)
 	if not guid or guid == "" or not self:IsValidEventType(eventTypeId) then
 		return nil
@@ -1490,6 +1497,9 @@ function Addon:AddHistoryEventForGuid(guid, seed, eventTypeId)
 	}
 	entry.events[#entry.events + 1] = event
 	self:AppendProfileHistoryChange(entry, "event_add", eventTypeId)
+	if self.SyncOpenProfileHistoryEvent then
+		self:SyncOpenProfileHistoryEvent(entry, event)
+	end
 	return entry, event
 end
 
