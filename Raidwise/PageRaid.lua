@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 23
+local LAYOUT_VERSION = 24
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 137
@@ -229,13 +229,13 @@ end
 local function FormatRaidRosterStatsLine(gearScore, roles)
 	roles = roles or {}
 	return FormatRaidAverageGs(gearScore)
-		.. "     "
+		.. "\n"
 		.. FormatRoleGsSummary(W.T("ROLE_TANKS"), roles.tank or {})
-		.. "     "
+		.. "\n"
 		.. FormatRoleGsSummary(W.T("ROLE_HEALERS"), roles.healer or {})
-		.. "     "
+		.. "\n"
 		.. FormatRoleGsSummary(W.T("ROLE_MELEE_SHORT"), roles.melee or {})
-		.. "     "
+		.. "\n"
 		.. FormatRoleGsSummary(W.T("ROLE_RANGE"), roles.ranged or {})
 end
 
@@ -452,41 +452,58 @@ local function CreateRaidRosterHeader(page)
 	headerHost:SetHeight(W.RaidRosterHeaderHeight())
 	page.headerHost = headerHost
 
-	local legendH = UI.RAID_GRADE_LEGEND_H or 32
-	local hintH = UI.RAID_HINT_H or 28
-	local bandH = UI.RAID_SUMMARY_BAND_H or 20
-	local colGap = UI.RAID_SUMMARY_COL_GAP or 8
-	local colCount = UI.RAID_SUMMARY_COL_COUNT or 4
+	local miniH = W.RaidRosterMiniTableHeight()
+	local colGap = UI.RAID_HEADER_COL_GAP or 8
+	local colCount = UI.RAID_HEADER_COL_COUNT or 5
+	local rowH = UI.RAID_SUMMARY_BAND_H or 20
+	local rowGap = UI.RAID_DESC_LINE_GAP or 2
 	local iconSize = UI.RAID_SUMMARY_REPORT_ICON or 16
 	local iconGap = 4
+	local btnGap = UI.RAID_TOOLBAR_BTN_GAP or 4
 
-	local gradeLegend = headerHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	gradeLegend:SetPoint("TOPLEFT", headerHost, "TOPLEFT", 0, 0)
-	gradeLegend:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
-	gradeLegend:SetHeight(legendH)
-	gradeLegend:SetJustifyH("LEFT")
-	gradeLegend:SetJustifyV("TOP")
-	gradeLegend:SetWordWrap(true)
-	gradeLegend:SetNonSpaceWrap(false)
+	local miniTable = CreateFrame("Frame", nil, headerHost)
+	miniTable:SetPoint("TOPLEFT", headerHost, "TOPLEFT", 0, 0)
+	miniTable:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
+	miniTable:SetHeight(miniH)
+	page.miniTable = miniTable
+
+	local function CreateHeaderColumn()
+		return CreateFrame("Frame", nil, miniTable)
+	end
+
+	local function FillColumnText(col, template)
+		local label = col:CreateFontString(nil, "OVERLAY", template)
+		label:SetPoint("TOPLEFT", 0, 0)
+		label:SetPoint("BOTTOMRIGHT", 0, 0)
+		label:SetJustifyH("LEFT")
+		label:SetJustifyV("TOP")
+		label:SetWordWrap(true)
+		label:SetNonSpaceWrap(false)
+		return label
+	end
+
+	local hintCol = CreateHeaderColumn()
+	local hint = FillColumnText(hintCol, "GameFontHighlight")
+	hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
+	page.hintCol = hintCol
+	page.hint = hint
+
+	local legendCol = CreateHeaderColumn()
+	local gradeLegend = FillColumnText(legendCol, "GameFontNormalSmall")
 	gradeLegend:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
 	W.SetFontColor(gradeLegend, UI.TEXT_IDLE)
+	page.legendCol = legendCol
 	page.gradeLegendLabel = gradeLegend
 
-	local stats = headerHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	stats:SetPoint("TOPLEFT", gradeLegend, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
-	stats:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
-	stats:SetHeight(UI.ROSTER_STATS_H)
-	stats:SetJustifyH("LEFT")
-	stats:SetJustifyV("MIDDLE")
+	local statsCol = CreateHeaderColumn()
+	local stats = FillColumnText(statsCol, "GameFontNormalSmall")
 	W.SetFontColor(stats, UI.TEXT_IDLE)
 	stats:SetText(FormatRaidRosterStatsLine(nil, {}))
+	page.statsCol = statsCol
 	page.statsLabel = stats
 
-	local summaryBand = CreateFrame("Frame", nil, headerHost)
-	summaryBand:SetPoint("TOPLEFT", stats, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
-	summaryBand:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
-	summaryBand:SetHeight(bandH)
-	page.summaryBand = summaryBand
+	local summaryCol = CreateHeaderColumn()
+	page.summaryBand = summaryCol
 
 	local function CreateChatReportButton(parent, tooltipKey, onClick)
 		local button = W.CreatePlainButton(parent, iconSize, iconSize, "")
@@ -504,20 +521,20 @@ local function CreateRaidRosterHeader(page)
 	end
 
 	local function CreateSummaryCell(tooltipKey, onClick)
-		local col = CreateFrame("Frame", nil, summaryBand)
-		local reportBtn = CreateChatReportButton(col, tooltipKey, onClick)
-		reportBtn:SetPoint("RIGHT", col, "RIGHT", 0, 0)
-		local body = col:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		body:SetPoint("LEFT", col, "LEFT", 0, 0)
+		local cell = CreateFrame("Frame", nil, summaryCol)
+		local reportBtn = CreateChatReportButton(cell, tooltipKey, onClick)
+		reportBtn:SetPoint("RIGHT", cell, "RIGHT", 0, 0)
+		local body = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		body:SetPoint("LEFT", cell, "LEFT", 0, 0)
 		body:SetPoint("RIGHT", reportBtn, "LEFT", -iconGap, 0)
-		body:SetHeight(bandH)
+		body:SetHeight(rowH)
 		body:SetJustifyH("LEFT")
 		body:SetJustifyV("MIDDLE")
 		body:SetWordWrap(false)
 		body:SetNonSpaceWrap(false)
-		col.body = body
-		col.reportBtn = reportBtn
-		return col
+		cell.body = body
+		cell.reportBtn = reportBtn
+		return cell
 	end
 
 	local flaskCol = CreateSummaryCell("BTN_RAID_REPORT_FLASK_TIP", function()
@@ -548,37 +565,9 @@ local function CreateRaidRosterHeader(page)
 	page.enchantGradeSummaryLabel = enchantGradeCol.body
 	page.reportEnchantBtn = enchantGradeCol.reportBtn
 
-	local summaryCols = { flaskCol, foodCol, gearGradeCol, enchantGradeCol }
+	local summaryRows = { flaskCol, foodCol, gearGradeCol, enchantGradeCol }
 
-	local function LayoutRaidSummaryBand()
-		local colW = EqualColumnWidth(summaryBand:GetWidth() or 1, colCount, colGap)
-		for index = 1, #summaryCols do
-			local col = summaryCols[index]
-			col:ClearAllPoints()
-			col:SetSize(colW, bandH)
-			col:SetPoint("TOPLEFT", (index - 1) * (colW + colGap), 0)
-		end
-	end
-	summaryBand:SetScript("OnSizeChanged", function()
-		LayoutRaidSummaryBand()
-	end)
-	LayoutRaidSummaryBand()
-
-	local hint = headerHost:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	hint:SetPoint("TOPLEFT", summaryBand, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
-	hint:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
-	hint:SetHeight(hintH)
-	hint:SetJustifyH("LEFT")
-	hint:SetJustifyV("TOP")
-	hint:SetWordWrap(true)
-	hint:SetNonSpaceWrap(false)
-	hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
-	page.hint = hint
-
-	local toolbar = CreateFrame("Frame", nil, headerHost)
-	toolbar:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
-	toolbar:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
-	toolbar:SetHeight(UI.CD_TOOLBAR_H)
+	local toolbar = CreateHeaderColumn()
 	page.raidToolbar = toolbar
 
 	local scanBtn = W.CreatePlainButton(toolbar, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_SCAN"))
@@ -602,22 +591,37 @@ local function CreateRaidRosterHeader(page)
 	page.textViewBtn = textViewBtn
 
 	local toolbarBtns = { scanBtn, exportBtn, refreshBtn, textViewBtn }
-	local function LayoutRaidToolbar()
-		local btnW = EqualColumnWidth(toolbar:GetWidth() or 1, colCount, colGap)
+	local headerCols = { hintCol, legendCol, statsCol, summaryCol, toolbar }
+
+	local function LayoutRaidMiniTable()
+		local colW = EqualColumnWidth(miniTable:GetWidth() or 1, colCount, colGap)
+		for index = 1, #headerCols do
+			local col = headerCols[index]
+			col:ClearAllPoints()
+			col:SetSize(colW, miniH)
+			col:SetPoint("TOPLEFT", (index - 1) * (colW + colGap), 0)
+		end
+		for index = 1, #summaryRows do
+			local row = summaryRows[index]
+			row:ClearAllPoints()
+			row:SetHeight(rowH)
+			row:SetPoint("TOPLEFT", summaryCol, "TOPLEFT", 0, -((index - 1) * (rowH + rowGap)))
+			row:SetPoint("RIGHT", summaryCol, "RIGHT", 0, 0)
+		end
 		for index = 1, #toolbarBtns do
 			local button = toolbarBtns[index]
 			button:ClearAllPoints()
-			button:SetSize(btnW, UI.CD_TOOLBAR_H)
-			button:SetPoint("TOPLEFT", (index - 1) * (btnW + colGap), 0)
+			button:SetSize(colW, UI.CD_TOOLBAR_H)
+			button:SetPoint("TOPLEFT", toolbar, "TOPLEFT", 0, -((index - 1) * (UI.CD_TOOLBAR_H + btnGap)))
 		end
 	end
-	toolbar:SetScript("OnSizeChanged", function()
-		LayoutRaidToolbar()
+	miniTable:SetScript("OnSizeChanged", function()
+		LayoutRaidMiniTable()
 	end)
-	LayoutRaidToolbar()
+	LayoutRaidMiniTable()
 
 	local gearCheckStatusLabel = headerHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	gearCheckStatusLabel:SetPoint("TOPLEFT", toolbar, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
+	gearCheckStatusLabel:SetPoint("TOPLEFT", miniTable, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
 	gearCheckStatusLabel:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
 	gearCheckStatusLabel:SetHeight(UI.RAID_PROGRESS_STATUS_H)
 	gearCheckStatusLabel:SetJustifyH("LEFT")

@@ -57,7 +57,7 @@ Esc or the title **X** closes the window.
 **Raid roster** tab:
 
 - Two blocks: raid groups **1–5**, then **6–8**; when not in a raid, your party fills group 1
-- Lines above the grid: grade legend; overall average GearScore and per-role GS; one line of flask / food / armor / ench counts with a note icon to report each to chat; short description; then **Scan** / **Export all** / **Refresh** / **Back to roster**
+- Lines above the grid: five-column header (description, grade legend, GS averages, flask/food/armor/ench with note icons, Scan/Export all/Refresh/Back to roster); then scan status and progress
 - Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, raid-buff icons, personal opinion line, armor/weap and ench/sock grades, **Profile** / **Gear** / **Rescan**
 - Hover a card for opinion, tags, **guild (rank)**, and gear-check details
 - **Scan** / **Export all** for raid-wide gear check; **Export all** opens copy text; **Back to roster** closes it; click the dump + Ctrl+C to copy

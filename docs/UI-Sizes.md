@@ -102,16 +102,17 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Full-width mini table (grade legend, GS averages, one-line flask/food/armor/ench with report icons, description), then **Scan** / **Export all** / **Refresh** / **Back to roster** in one row under it, then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 23`.
+Five-column mini table (description, grade legend, GS averages, flask/food/armor/ench rows, stacked Scan/Export/Refresh/Back), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 24`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Grade legend | full width × **32** | Row 0 of the mini table |
-| Stats line | full width × **16** | Row 1; **2** px gap above |
-| Summary band | full width × **20** | Row 2; **2** px gap above; **4** equal columns (**8** px gaps). One line per cell: gold name + counts, **16×16** report icon on the right |
-| Description | full width × **28** | Row 3; **2** px gap above |
-| Toolbar | full width × **28** | **4** px under the mini table; four equal buttons (**8** px gaps) aligned with the status cells |
-| Progress status | full width × **28** | **4** px under toolbar (two lines) |
+| Mini table | full width × **124** | Five equal columns (**8** px gaps). Height = **4** toolbar buttons **28** + **3×4** px gaps |
+| Col 1 description | equal column | `RAID_HINT`; wraps |
+| Col 2 grade legend | equal column | `GEAR_CHECK_RAID_HINT`; wraps |
+| Col 3 GS averages | equal column | Average GS + four role lines |
+| Col 4 status rows | equal column | Four **20** px rows (**2** px gap); gold name + counts, **16×16** report icon on the right |
+| Col 5 toolbar | equal column | **Scan**, **Export all**, **Refresh**, **Back to roster** stacked |
+| Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
 | Player cell | **168 × 137** | Seven text lines + one button row: class+name+flask/food, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
 | Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |

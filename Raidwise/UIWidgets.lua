@@ -81,6 +81,8 @@ Addon.UITheme = {
 	RAID_CONSUMABLE_ROW_H = 28,
 	RAID_GRADE_LEGEND_H = 32,
 	RAID_HINT_H = 28,
+	RAID_HEADER_COL_COUNT = 5,
+	RAID_HEADER_COL_GAP = 8,
 	RAID_SUMMARY_COL_COUNT = 4,
 	RAID_SUMMARY_COL_GAP = 8,
 	RAID_SUMMARY_HEADING_H = 14,
@@ -88,7 +90,7 @@ Addon.UITheme = {
 	RAID_SUMMARY_REPORT_ICON = 16,
 	RAID_SUMMARY_BAND_H = 20,
 	RAID_TOOLBAR_BTN_COUNT = 4,
-	RAID_TOOLBAR_BTN_GAP = 8,
+	RAID_TOOLBAR_BTN_GAP = 4,
 
 	-- Colors — Classic theme (preview/themes.html #classic)
 	GOLD = { 1.000, 0.824, 0.000 },
@@ -881,17 +883,15 @@ function W.RosterTableTopOffset()
 end
 
 function W.RaidRosterMiniTableHeight()
-	local lineGap = UI.RAID_DESC_LINE_GAP or 2
-	return (UI.RAID_GRADE_LEGEND_H or 32)
-		+ lineGap + UI.ROSTER_STATS_H
-		+ lineGap + (UI.RAID_SUMMARY_BAND_H or 20)
-		+ lineGap + (UI.RAID_HINT_H or 28)
+	local btnH = UI.CD_TOOLBAR_H
+	local count = UI.RAID_TOOLBAR_BTN_COUNT or 4
+	local gap = UI.RAID_TOOLBAR_BTN_GAP or 4
+	return btnH * count + gap * (count - 1)
 end
 
 function W.RaidRosterHeaderHeight()
 	local blockGap = UI.RAID_DESC_BLOCK_GAP or 4
 	return W.RaidRosterMiniTableHeight()
-		+ blockGap + UI.CD_TOOLBAR_H
 		+ blockGap
 		+ UI.RAID_PROGRESS_STATUS_H
 		+ UI.RAID_PROGRESS_STATUS_GAP
@@ -899,7 +899,7 @@ function W.RaidRosterHeaderHeight()
 end
 
 function W.RaidRosterTableTopOffset()
-	-- Mini table (grades, GS, four status cells, description) + toolbar + progress.
+	-- Five-column mini table + scan status + progress bar.
 	return W.RaidRosterHeaderHeight() + UI.CD_HINT_TO_TABLE
 end
 
