@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.18.0] - 2026-09-02
+
+### Added
+- Character profile **Events** grouped by category (**Attendance**, **Loot**, **Help**, **Behavior**) with category icons in the picker and event list
+- **In the same party** attendance event is logged automatically when the meet count increments (first grouping, or again after ≥30 minutes)
+- Icons on Character profile **History** changelog rows (event category or change kind)
+- Starter trinkets for Retribution Paladin in Gear check
+
+### Changed
+- Character profile window has a bronze outer border
+
 ## [1.17.0] - 2026-09-02
 
 ### Added
