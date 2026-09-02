@@ -102,7 +102,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Description block with **Scan** / **Export** / **Refresh** / **Back to roster** / **Select all** in a fixed right column; left column stacks hint, stats, and summary with **2** px line gaps, then progress status + bar; roster table or export copy box at a fixed top offset (clears the full **5**-button toolbar). `LAYOUT_VERSION = 18`.
+Description block with **Scan** / **Export** / **Refresh** / **Back to roster** / **Select all** in a fixed right column; left column stacks hint, stats, gear summary, flask/food summary + report buttons, then progress status + bar; roster table or export copy box at a fixed top offset (clears the full **5**-button toolbar). `LAYOUT_VERSION = 20`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -110,16 +110,17 @@ Description block with **Scan** / **Export** / **Refresh** / **Back to roster** 
 | Short description | left column | Beside **Scan**; **28** px row height; wraps within column |
 | Stats line | below hint | **2** px gap; height **16** |
 | Gear check summary | below stats | **2** px gap; height **16** |
+| Flask/food summary | below gear summary | **2** px gap; height **28**; counts left, **Report flask** / **Report food** **104 × 28** on the right (4 px gap) |
 | Progress status | below summary | **4** px gap; fixed **28** px height (two lines) |
 | Progress bar | below status | **4** px gap; height **14**; always reserved |
-| Player cell | **168 × 137** | Seven text lines + one button row: class+name, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
+| Player cell | **168 × 137** | Seven text lines + one button row: class+name+flask/food, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
 | Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
-| Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
+| Cell content | **20** px class/role/spec; **18** px buffs; **14** px flask/food | Class on line 1 with flask + food status icons on the right (present = full color, missing = red tint, out of range/offline = dim); role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
 | Cell hover tooltip | — | Opinion, tags, **Guild: Name (Rank)**, gear-check grades |
 
 Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
@@ -235,7 +236,7 @@ Key helpers used across pages (not on `Raidwise` directly):
 | `CreatePlainButton` / `SetPlainButtonState` / `SetMenuButtonState` | Menu and action buttons |
 | `ApplyFontSize` | Change a FontString’s point size (keeps face and flags) |
 | `CreateCopyBox` / `CreateLineCopyBox` | Export and URL copy areas |
-| `SetSpecOrClassIcon` / `SetSpellIconTexture` / `CreateBuffIconHost` | Class, spec, buff icons |
+| `SetSpecOrClassIcon` / `SetSpellIconTexture` / `CreateBuffIconHost` / `CreateConsumableStatusHost` | Class, spec, raid-buff, and flask/food status icons |
 | `TableIconInset` / `TableIconTopOffset` | Center icons in table rows |
 | `AttachLayoutVersionLabel` | Profile title-bar `vN` badge |
 | `RatingOpinionSymbol` / `RatingOpinionColor` / `ShowMemberRatingTooltip` | Opinion display in roster tables |

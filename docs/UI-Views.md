@@ -45,7 +45,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character profile | `PROFILE_LAYOUT_VERSION = 31` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 18` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 20` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -111,11 +111,12 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ short description (left, wraps)                         ] [ Scan    ]
 [ Average GS …  Tanks …  Healers …  Melee …  Range …       ] [ Export  ]
 [ BAD · REPLACE · OK · GOOD · Failed                        ] [ Refresh ]
+[ Flask 22/25 (2 missing) · Food 20/25   ] [ Report flask ] [ Report food ]
 [ gear check status / scan progress (reserved height)       ] [ Back to roster ]
 [ progress bar track (always reserved)                      ] [ Select all ]
         8 px gap
 [ roster table — or export copy box when text view is on    ]
-[ (class) Rhee   ][ empty slot     ] ...
+[ (class) Rhee          (flask)(food) ]
 [ (role)(spec) 6158gs 264ilvl ]
 [ (buff)(buff)(buff) ]
 [ Personal opinion: Positive ]
@@ -136,8 +137,9 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | progress bar | Below status (**4** px gap); height **14**; track always reserved |
 | averages + roles | One line: `Average GS: {n}` then Tanks / Healers / Melee / Range counts and GS |
 | gear summary | Counts by overall status + failed/skipped inspects; dim until first scan |
+| flask/food summary | `Flask n/total (x missing) · Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. **Report flask** / **Report food** post missing names to raid or party chat (or print locally if you are not in a group). Out of range / offline players are not listed as missing. |
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
-| line 1 | Class icon + class-colored name |
+| line 1 | Class icon + class-colored name; **flask** and **food** status icons on the right (14 px). Full color = active buff (flask, or battle + guardian elixirs); red tint = missing; dim = out of range or offline. Hover shows the buff name or status. |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
 | line 3 | Spec- and race-specific raid buff icons (hover for name); up to 8 |
 | line 4 | `Personal opinion: {Positive|Neutral|Negative}`; color-coded |

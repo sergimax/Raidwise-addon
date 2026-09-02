@@ -12,7 +12,7 @@ Locale.lua            enUS / ruRU + Addon:T
 CharacterExport.lua   gear / bags / lockout collectors + JSON export
 CharacterLockouts.lua account-wide lockout SV + cooldown table model
 PartyRoster.lua       party/raid snapshots, inspect queue, GS/iLvl
-RaidRoles.lua         role classification, raid buff icons, role GS averages
+RaidRoles.lua         role classification, raid buff icons, flask/food aura scan, role GS averages
 RaidComposition.lua   composition effect catalog + AnalyzeRaidComposition
 PlayerHistory.lua     history store + personal rating domain API
 UIWidgets.lua         shared UI helpers (panels, buttons, icons, layout badge)
@@ -88,6 +88,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `RefreshCooldownTable` | Cooldowns page | Lockout events |
 | `FlushExportToWindow` | Export page | Lockout export path |
 | `RefreshRaidRosterView` | Raid page | Roster, gear check, guild in tooltip |
+| `RefreshRaidConsumableIcons` | Raid page | `UNIT_AURA` flask/food icons (throttled) |
 | `RefreshCompositionView` | Composition page | Roster, guild |
 | `RefreshHistoryView` | History page | History record, profile |
 | `ShowRaidCharacterWindow` | Profile | Party / raid / history clicks |
@@ -121,6 +122,7 @@ Cross-module entry points on `Raidwise` (domain files do not create frames):
 | `AnalyzeRaidComposition` | `RaidComposition.lua` | Composition checklist for current group |
 | `BuildCooldownTable` | `CharacterLockouts.lua` | Cooldowns tab rows |
 | `HistoryProfileForMember` / `MergeRatingIntoMember` | `PlayerHistory.lua` | Profile + table opinion/tags |
+| `UnitConsumableStatus` / `SummarizeRaidConsumables` | `RaidRoles.lua` | Flask / food (or battle + guardian elixirs) from `UnitBuff`; roster present/missing lists |
 | `SavePersonalRatingForGuid` / `SaveHistoryEventsForGuid` / `SaveProfileNotesForGuid` | `PlayerHistory.lua` | Persist profile edits |
 | `RecordCurrentGroupHistory` / `AddHistoryEventForGuid` | `PlayerHistory.lua` | History **Refresh** + group meetings (`same_party` event when `meetCount` increments) |
 | `FormatEquippedGearExport` | `CharacterExport.lua` | Export tab JSON |
@@ -132,7 +134,7 @@ Cross-module entry points on `Raidwise` (domain files do not create frames):
 1. Rebuilds party/raid roster data (and inspect queue as needed).
 2. Calls `RefreshRaidRosterView` and `RefreshCompositionView` when those methods exist.
 
-Group roster events (`PARTY_MEMBERS_CHANGED` / `RAID_ROSTER_UPDATE`) call `RefreshPartyData` when the main window is open on raid/composition; otherwise they only record history.
+Group roster events (`PARTY_MEMBERS_CHANGED` / `RAID_ROSTER_UPDATE`) call `RefreshPartyData` when the main window is open on raid/composition; otherwise they only record history. `UNIT_AURA` refreshes flask/food icons on Raid roster only (coalesced ~0.2s; no inspect).
 
 Profile save/close refreshes the visible raid or history tab.
 

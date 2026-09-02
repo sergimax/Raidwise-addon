@@ -30,11 +30,15 @@ local Translations = {
 		BTN_RAID_PROFILE = "Profile",
 		BTN_RAID_GEAR = "Gear",
 		BTN_RAID_RESCAN = "Rescan",
+		BTN_RAID_REPORT_FLASK = "Report flask",
+		BTN_RAID_REPORT_FOOD = "Report food",
 		BTN_REFRESH_TIP = "Refresh this view with the latest data.",
 		BTN_COMP_REPORT_TIP = "Post missing required classes to raid or party chat.",
 		BTN_RAID_PROFILE_TIP = "Open Character profile for this player.",
 		BTN_RAID_GEAR_TIP = "Open this player's gear check report on Gear check (target). Requires a completed Scan.",
 		BTN_RAID_RESCAN_TIP = "Re-run gear check for this player only and update their roster grades.",
+		BTN_RAID_REPORT_FLASK_TIP = "Post players missing a flask (or battle + guardian elixirs) to raid or party chat.",
+		BTN_RAID_REPORT_FOOD_TIP = "Post players missing a food buff to raid or party chat.",
 		CD_REFRESH_TIP = "Request fresh raid info, then redraw lockouts and currency.",
 		PARTY_REFRESH_TIP = "Re-read GearScore, item levels, and guild info; re-queue inspect for specs.",
 		RAID_REFRESH_TIP = "Re-read GearScore and iLvl; re-queue inspect for spec icons.",
@@ -94,7 +98,9 @@ local Translations = {
 		INFO_SECTION_RAID = "Current party or raid as player cards, with integrated gear check.\n"
 			.. "When you are not in a raid, party members fill group 1.\n"
 			.. "\n"
-			.. "- Groups 1–5, then 6–8: class, role, spec, raid buffs, GearScore, iLvl, and grades\n"
+			.. "- Groups 1–5, then 6–8: class, role, spec, raid buffs, flask/food, GearScore, iLvl, and grades\n"
+			.. "- Flask and food icons on each card: full color = active, red = missing, dim = out of range or offline\n"
+			.. "- Report flask / Report food post missing players to raid or party chat\n"
 			.. "- Hover a card for opinion, tags, guild (rank), and gear-check details\n"
 			.. "- Scan inspects everyone one at a time and fills armor/weap and ench/sock grades\n"
 			.. "- Export builds text dumps; Back to roster closes them; Select all + Ctrl+C copies\n"
@@ -168,6 +174,18 @@ local Translations = {
 		RAID_FAIL = "Raid roster module failed to load. Reload UI (/reload).",
 		RAID_PARTY_BUFF_PRESENT = "Present: %s",
 		RAID_PARTY_BUFF_MISSING = "Missing",
+		RAID_CONSUMABLE_FLASK = "Flask",
+		RAID_CONSUMABLE_FOOD = "Food",
+		RAID_CONSUMABLE_ELIXIRS = "Battle + Guardian elixirs",
+		RAID_CONSUMABLE_OUT_OF_RANGE = "Out of range",
+		RAID_CONSUMABLE_OFFLINE = "Offline",
+		RAID_CONSUMABLE_COUNT = "%s %d/%d",
+		RAID_CONSUMABLE_MISSING_COUNT = "(%d missing)",
+		RAID_CONSUMABLE_SUMMARY_EMPTY = "Flask — · Food —",
+		RAID_CHAT_FLASK_MISSING = "Raidwise: missing flask: %s",
+		RAID_CHAT_FLASK_ALL = "Raidwise: all flasks present.",
+		RAID_CHAT_FOOD_MISSING = "Raidwise: missing food: %s",
+		RAID_CHAT_FOOD_ALL = "Raidwise: all food buffs present.",
 		HISTORY_HINT = "Players from your parties and raids. Saved on this account.",
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
 		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
@@ -612,11 +630,15 @@ local Translations = {
 		BTN_RAID_PROFILE = "Профиль",
 		BTN_RAID_GEAR = "Экип",
 		BTN_RAID_RESCAN = "Рескан",
+		BTN_RAID_REPORT_FLASK = "Сообщить настой",
+		BTN_RAID_REPORT_FOOD = "Сообщить еду",
 		BTN_REFRESH_TIP = "Обновить эту вкладку свежими данными.",
 		BTN_COMP_REPORT_TIP = "Написать в чат рейда или группы, каких классов не хватает.",
 		BTN_RAID_PROFILE_TIP = "Открыть профиль персонажа для этого игрока.",
 		BTN_RAID_GEAR_TIP = "Открыть отчёт Gear Check на вкладке «Проверка экипа (цель)». Нужен завершённый скан.",
 		BTN_RAID_RESCAN_TIP = "Повторить проверку экипа только для этого игрока и обновить оценки на карточке.",
+		BTN_RAID_REPORT_FLASK_TIP = "Написать в чат рейда или группы, у кого нет настоя (или пары эликсиров).",
+		BTN_RAID_REPORT_FOOD_TIP = "Написать в чат рейда или группы, у кого нет баффа еды.",
 		CD_REFRESH_TIP = "Запросить свежие данные о блокировках и перерисовать таблицу.",
 		PARTY_REFRESH_TIP = "Заново считать GearScore, iLvl и гильдию; поставить осмотр для спеков.",
 		RAID_REFRESH_TIP = "Заново считать GearScore и iLvl; поставить осмотр для иконок спека.",
@@ -676,7 +698,9 @@ local Translations = {
 		INFO_SECTION_RAID = "Текущая группа или рейд карточками игроков, с встроенной проверкой экипа.\n"
 			.. "Вне рейда группа занимает слот 1.\n"
 			.. "\n"
-			.. "- Группы 1–5, затем 6–8: класс, роль, спек, рейд-баффы, GearScore, iLvl и оценки\n"
+			.. "- Группы 1–5, затем 6–8: класс, роль, спек, рейд-баффы, настой/еда, GearScore, iLvl и оценки\n"
+			.. "- Иконки настоя и еды на карточке: цветная = есть, красная = нет, тусклая = вне зоны или офлайн\n"
+			.. "- «Сообщить настой» / «Сообщить еду» пишут в чат, у кого нет баффа\n"
 			.. "- Наведение: мнение, теги, гильдия (ранг), детали проверки экипа\n"
 			.. "- «Сканировать» осматривает по одному и заполняет оценки брони/оружия и чар/сокетов\n"
 			.. "- «Экспорт» собирает текстовые отчёты; «К составу» закрывает их; «Выделить всё» + Ctrl+C копирует\n"
@@ -750,6 +774,18 @@ local Translations = {
 		RAID_FAIL = "Модуль состава рейда не загрузился. Перезагрузите интерфейс (/reload).",
 		RAID_PARTY_BUFF_PRESENT = "Есть: %s",
 		RAID_PARTY_BUFF_MISSING = "Нет",
+		RAID_CONSUMABLE_FLASK = "Настой",
+		RAID_CONSUMABLE_FOOD = "Еда",
+		RAID_CONSUMABLE_ELIXIRS = "Боевой и охранный эликсиры",
+		RAID_CONSUMABLE_OUT_OF_RANGE = "Вне зоны видимости",
+		RAID_CONSUMABLE_OFFLINE = "Не в сети",
+		RAID_CONSUMABLE_COUNT = "%s %d/%d",
+		RAID_CONSUMABLE_MISSING_COUNT = "(%d нет)",
+		RAID_CONSUMABLE_SUMMARY_EMPTY = "Настой — · Еда —",
+		RAID_CHAT_FLASK_MISSING = "Raidwise: нет настоя: %s",
+		RAID_CHAT_FLASK_ALL = "Raidwise: настой у всех есть.",
+		RAID_CHAT_FOOD_MISSING = "Raidwise: нет еды: %s",
+		RAID_CHAT_FOOD_ALL = "Raidwise: еда у всех есть.",
 		HISTORY_HINT = "Игроки из ваших групп и рейдов. Сохраняется на этом аккаунте.",
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",

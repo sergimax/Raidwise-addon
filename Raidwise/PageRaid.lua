@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 18
+local LAYOUT_VERSION = 20
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 137
@@ -198,10 +198,149 @@ local function UpdateRaidRosterStatsLabels(page, members)
 	page.statsLabel:SetText(FormatRaidRosterStatsLine(overall.gearScore, roles))
 end
 
+local function RosterMembersFromPage(page)
+	local members = {}
+	if not page then
+		return members
+	end
+	local blocks = { page.topBlock, page.bottomBlock }
+	for blockIndex = 1, #blocks do
+		local block = blocks[blockIndex]
+		if block and block.columns then
+			for _, column in pairs(block.columns) do
+				for slot = 1, 5 do
+					local cell = column.cells and column.cells[slot]
+					if cell and cell.member then
+						members[#members + 1] = cell.member
+					end
+				end
+			end
+		end
+	end
+	return members
+end
+
+local function FormatConsumablePart(label, present, total, missingCount)
+	local part = W.T("RAID_CONSUMABLE_COUNT", label, present, total)
+	if missingCount > 0 then
+		part = part .. " " .. W.T("RAID_CONSUMABLE_MISSING_COUNT", missingCount)
+	end
+	return part
+end
+
+local function UpdateRaidConsumableSummary(page, members)
+	if not page or not page.consumableSummaryLabel then
+		return
+	end
+	local summary
+	if Addon.SummarizeRaidConsumables then
+		summary = Addon:SummarizeRaidConsumables(members or RosterMembersFromPage(page))
+	end
+	summary = summary or { total = 0, flaskPresent = 0, foodPresent = 0, flaskMissing = {}, foodMissing = {} }
+	page.consumableSummary = summary
+	local total = summary.total or 0
+	if total <= 0 then
+		page.consumableSummaryLabel:SetText(W.T("RAID_CONSUMABLE_SUMMARY_EMPTY"))
+		W.SetFontColor(page.consumableSummaryLabel, UI.TEXT_DISABLED)
+		return
+	end
+	local flaskMissing = #(summary.flaskMissing or {})
+	local foodMissing = #(summary.foodMissing or {})
+	page.consumableSummaryLabel:SetText(
+		FormatConsumablePart(W.T("RAID_CONSUMABLE_FLASK"), summary.flaskPresent or 0, total, flaskMissing)
+			.. " · "
+			.. FormatConsumablePart(W.T("RAID_CONSUMABLE_FOOD"), summary.foodPresent or 0, total, foodMissing)
+	)
+	if flaskMissing > 0 or foodMissing > 0 then
+		W.SetFontColor(page.consumableSummaryLabel, UI.TEXT_ALERT)
+	else
+		W.SetFontColor(page.consumableSummaryLabel, UI.TEXT_GOOD)
+	end
+end
+
+local CHAT_LINE_MAX = 240
+
+local function RaidConsumableChatChannel()
+	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
+	if raidCount > 0 then
+		return "RAID"
+	end
+	local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
+	if partyCount > 0 then
+		return "PARTY"
+	end
+	return nil
+end
+
+local function SendRaidConsumableChat(message)
+	local channel = RaidConsumableChatChannel()
+	if not channel then
+		Addon:Print(W.T("COMP_CHAT_NO_GROUP"))
+		Addon:Print(message)
+		return
+	end
+	SendChatMessage(message, channel)
+end
+
+local function SendRaidConsumableNameList(template, names)
+	if type(names) ~= "table" or #names == 0 then
+		return
+	end
+	local batch = {}
+	local function flush()
+		if #batch == 0 then
+			return
+		end
+		SendRaidConsumableChat(string.format(template, table.concat(batch, ", ")))
+		batch = {}
+	end
+	for index = 1, #names do
+		local name = names[index]
+		local trial = name
+		if #batch > 0 then
+			trial = table.concat(batch, ", ") .. ", " .. name
+		end
+		if #batch > 0 and string.len(string.format(template, trial)) > CHAT_LINE_MAX then
+			flush()
+		end
+		batch[#batch + 1] = name
+	end
+	flush()
+end
+
+local function ReportMissingConsumablesToChat(kind)
+	local frame = Addon.mainFrame
+	local page = frame and frame.pages and frame.pages.raid
+	local summary = page and page.consumableSummary
+	if not summary and Addon.SummarizeRaidConsumables then
+		summary = Addon:SummarizeRaidConsumables(RosterMembersFromPage(page))
+		if page then
+			page.consumableSummary = summary
+		end
+	end
+	summary = summary or { flaskMissing = {}, foodMissing = {} }
+	if kind == "food" then
+		local names = summary.foodMissing or {}
+		if #names == 0 then
+			SendRaidConsumableChat(W.T("RAID_CHAT_FOOD_ALL"))
+		else
+			SendRaidConsumableNameList(W.T("RAID_CHAT_FOOD_MISSING"), names)
+		end
+		return
+	end
+	local names = summary.flaskMissing or {}
+	if #names == 0 then
+		SendRaidConsumableChat(W.T("RAID_CHAT_FLASK_ALL"))
+	else
+		SendRaidConsumableNameList(W.T("RAID_CHAT_FLASK_MISSING"), names)
+	end
+end
+
 local function RaidDescHeaderHeight()
 	return UI.CD_TOOLBAR_H
 		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
 		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
+		+ UI.RAID_DESC_LINE_GAP + (UI.RAID_CONSUMABLE_ROW_H or UI.CD_TOOLBAR_H)
 		+ UI.RAID_DESC_BLOCK_GAP
 		+ UI.RAID_PROGRESS_STATUS_H
 		+ UI.RAID_PROGRESS_STATUS_GAP
@@ -246,8 +385,40 @@ local function CreateRaidDescriptionLeft(page, toolbarAnchor)
 	W.SetFontColor(gearSummary, UI.TEXT_DISABLED)
 	page.gearCheckSummaryLabel = gearSummary
 
+	local consumableRow = CreateFrame("Frame", nil, descLeftCol)
+	consumableRow:SetPoint("TOPLEFT", gearSummary, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
+	consumableRow:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
+	consumableRow:SetHeight(UI.RAID_CONSUMABLE_ROW_H or UI.CD_TOOLBAR_H)
+	page.consumableRow = consumableRow
+
+	local reportFoodBtn = W.CreatePlainButton(consumableRow, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_RAID_REPORT_FOOD"))
+	reportFoodBtn:SetPoint("RIGHT", 0, 0)
+	W.SetPlainButtonTooltip(reportFoodBtn, "BTN_RAID_REPORT_FOOD_TIP")
+	reportFoodBtn:SetScript("OnClick", function()
+		ReportMissingConsumablesToChat("food")
+	end)
+	page.reportFoodBtn = reportFoodBtn
+
+	local reportFlaskBtn = W.CreatePlainButton(consumableRow, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_RAID_REPORT_FLASK"))
+	reportFlaskBtn:SetPoint("RIGHT", reportFoodBtn, "LEFT", -RAID_TOOLBAR_BTN_GAP, 0)
+	W.SetPlainButtonTooltip(reportFlaskBtn, "BTN_RAID_REPORT_FLASK_TIP")
+	reportFlaskBtn:SetScript("OnClick", function()
+		ReportMissingConsumablesToChat("flask")
+	end)
+	page.reportFlaskBtn = reportFlaskBtn
+
+	local consumableSummary = consumableRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	consumableSummary:SetPoint("LEFT", 0, 0)
+	consumableSummary:SetPoint("RIGHT", reportFlaskBtn, "LEFT", -8, 0)
+	consumableSummary:SetHeight(UI.RAID_CONSUMABLE_ROW_H or UI.CD_TOOLBAR_H)
+	consumableSummary:SetJustifyH("LEFT")
+	consumableSummary:SetJustifyV("MIDDLE")
+	consumableSummary:SetText(W.T("RAID_CONSUMABLE_SUMMARY_EMPTY"))
+	W.SetFontColor(consumableSummary, UI.TEXT_DISABLED)
+	page.consumableSummaryLabel = consumableSummary
+
 	local gearCheckStatusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	gearCheckStatusLabel:SetPoint("TOPLEFT", gearSummary, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
+	gearCheckStatusLabel:SetPoint("TOPLEFT", consumableRow, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
 	gearCheckStatusLabel:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
 	gearCheckStatusLabel:SetHeight(UI.RAID_PROGRESS_STATUS_H)
 	gearCheckStatusLabel:SetJustifyH("LEFT")
@@ -506,9 +677,14 @@ local function CreateRaidPlayerCell(parent)
 	cell.classIcon = cell.classIconHost:CreateTexture(nil, "ARTWORK")
 	cell.classIcon:SetAllPoints(cell.classIconHost)
 
+	cell.foodHost = W.CreateConsumableStatusHost(cell)
+	cell.foodHost:SetPoint("TOPRIGHT", -RAID_CELL_PAD, -RAID_CELL_PAD)
+	cell.flaskHost = W.CreateConsumableStatusHost(cell)
+	cell.flaskHost:SetPoint("RIGHT", cell.foodHost, "LEFT", -UI.PARTY_BUFF_GAP, 0)
+
 	cell.nameText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	cell.nameText:SetPoint("LEFT", cell.classIconHost, "RIGHT", 4, 0)
-	cell.nameText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
+	cell.nameText:SetPoint("RIGHT", cell.flaskHost, "LEFT", -4, 0)
 	cell.nameText:SetHeight(RAID_LINE_H)
 	cell.nameText:SetJustifyH("LEFT")
 	cell.nameText:SetJustifyV("MIDDLE")
@@ -764,6 +940,24 @@ local function FillGearReportRows(cell, member, entry)
 	end
 end
 
+local function FillRaidConsumableIcons(cell, member)
+	if not cell or not cell.flaskHost or not cell.foodHost then
+		return
+	end
+	if not member or not member.unit or not Addon.UnitConsumableStatus then
+		if cell.flaskHost then
+			cell.flaskHost:Hide()
+		end
+		if cell.foodHost then
+			cell.foodHost:Hide()
+		end
+		return
+	end
+	local status = Addon:UnitConsumableStatus(member.unit)
+	W.FillConsumableStatusIcon(cell.flaskHost, status and status.flask, "RAID_CONSUMABLE_FLASK")
+	W.FillConsumableStatusIcon(cell.foodHost, status and status.food, "RAID_CONSUMABLE_FOOD")
+end
+
 local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	cell.stripe = stripe
 	cell:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
@@ -778,6 +972,7 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		cell.roleIconHost:Hide()
 		cell.specIconHost:Hide()
 		W.FillRaidBuffIcons(cell.buffHosts, nil)
+		FillRaidConsumableIcons(cell, nil)
 		FillGearReportRows(cell, nil, nil)
 		if cell.profileBtn then
 			cell.profileBtn:Hide()
@@ -827,6 +1022,7 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	end
 
 	W.FillRaidBuffIcons(cell.buffHosts, member.raidBuffs)
+	FillRaidConsumableIcons(cell, member)
 
 	cell.opinionText:SetText(W.FormatOpinionLine(member))
 	W.SetFontColor(cell.opinionText, W.RatingOpinionColor(member))
@@ -1096,7 +1292,9 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 	end
 
 	local groups = self:BuildRaidGroups(refreshGearScore)
-	UpdateRaidRosterStatsLabels(page, MembersFromRaidGroups(groups))
+	local members = MembersFromRaidGroups(groups)
+	UpdateRaidRosterStatsLabels(page, members)
+	UpdateRaidConsumableSummary(page, members)
 
 	local results = ResolveGearCheckResults(page)
 	UpdateGearCheckSummaryLabel(page, results)
@@ -1120,6 +1318,29 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 	page.tableContent:SetSize(contentW, contentH)
 	W.LayoutTableScrollBars(page)
 	UpdateRaidExportView(page)
+end
+
+function Addon:RefreshRaidConsumableIcons()
+	local frame = self.mainFrame
+	local page = frame and frame.pages and frame.pages.raid
+	if not frame or not frame:IsShown() or frame.selectedTab ~= "raid" or not page then
+		return
+	end
+	local blocks = { page.topBlock, page.bottomBlock }
+	for blockIndex = 1, #blocks do
+		local block = blocks[blockIndex]
+		if block and block.columns then
+			for _, column in pairs(block.columns) do
+				for slot = 1, 5 do
+					local cell = column.cells and column.cells[slot]
+					if cell then
+						FillRaidConsumableIcons(cell, cell.member)
+					end
+				end
+			end
+		end
+	end
+	UpdateRaidConsumableSummary(page)
 end
 
 local function CreateRaidRosterPage(parent)
@@ -1278,10 +1499,17 @@ local function ApplyLocale(page)
 	if page.selectAllBtn and page.selectAllBtn.label then
 		page.selectAllBtn.label:SetText(W.T("BTN_SELECT_ALL"))
 	end
+	if page.reportFlaskBtn and page.reportFlaskBtn.label then
+		page.reportFlaskBtn.label:SetText(W.T("BTN_RAID_REPORT_FLASK"))
+	end
+	if page.reportFoodBtn and page.reportFoodBtn.label then
+		page.reportFoodBtn.label:SetText(W.T("BTN_RAID_REPORT_FOOD"))
+	end
 	if page.gearCheckStatusLabel and not page.gearCheckScanning and not page.gearCheckExporting and not page.gearCheckMemberScanning then
 		page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
 	end
 	UpdateGearCheckSummaryLabel(page, ResolveGearCheckResults(page))
+	UpdateRaidConsumableSummary(page)
 	UpdateRaidExportActionButtons(page)
 
 	local blocks = { page.topBlock, page.bottomBlock }

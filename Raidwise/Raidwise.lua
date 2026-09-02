@@ -258,6 +258,9 @@ frame:RegisterEvent("PLAYER_GUILD_UPDATE")
 frame:RegisterEvent("GUILD_ROSTER_UPDATE")
 frame:RegisterEvent("PARTY_MEMBERS_CHANGED")
 frame:RegisterEvent("RAID_ROSTER_UPDATE")
+frame:RegisterEvent("UNIT_AURA")
+
+local raidConsumableElapsed = 0
 
 -- Dispatch ADDON_LOADED and PLAYER_LOGIN to addon lifecycle hooks.
 frame:SetScript("OnEvent", function(_, event, arg1)
@@ -275,5 +278,26 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnGuildInfoUpdated()
 	elseif event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then
 		Addon:OnGroupRosterUpdated()
+	elseif event == "UNIT_AURA" then
+		local mainFrame = Addon.mainFrame
+		if mainFrame and mainFrame:IsShown() and mainFrame.selectedTab == "raid" then
+			Addon.raidConsumableDirty = true
+		end
+	end
+end)
+
+frame:SetScript("OnUpdate", function(_, elapsed)
+	if not Addon.raidConsumableDirty then
+		raidConsumableElapsed = 0
+		return
+	end
+	raidConsumableElapsed = raidConsumableElapsed + elapsed
+	if raidConsumableElapsed < 0.2 then
+		return
+	end
+	raidConsumableElapsed = 0
+	Addon.raidConsumableDirty = false
+	if Addon.RefreshRaidConsumableIcons then
+		Addon:RefreshRaidConsumableIcons()
 	end
 end)

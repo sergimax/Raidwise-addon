@@ -78,6 +78,7 @@ Addon.UITheme = {
 	RAID_PROGRESS_STATUS_GAP = 4,
 	RAID_DESC_LINE_GAP = 2,
 	RAID_DESC_BLOCK_GAP = 4,
+	RAID_CONSUMABLE_ROW_H = 28,
 	RAID_TOOLBAR_BTN_COUNT = 5,
 	RAID_TOOLBAR_BTN_GAP = 4,
 
@@ -714,6 +715,71 @@ function W.FillPartyBuffStatusIcons(hosts, coverage)
 	end
 end
 
+function W.CreateConsumableStatusHost(parent)
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetSize(UI.PARTY_BUFF_ICON, UI.PARTY_BUFF_ICON)
+	host.icon = host:CreateTexture(nil, "ARTWORK")
+	host.icon:SetAllPoints(host)
+	host:EnableMouse(true)
+	host:SetScript("OnEnter", function(self)
+		if not self.kindLabel or self.kindLabel == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.kindLabel, 1, 1, 1)
+		if self.unknown then
+			GameTooltip:AddLine(W.T(self.reasonKey or "RAID_CONSUMABLE_OUT_OF_RANGE"), 0.70, 0.70, 0.70)
+		elseif self.present then
+			local detail = self.detail
+			if self.elixirPair then
+				detail = W.T("RAID_CONSUMABLE_ELIXIRS")
+			end
+			if not detail or detail == "" then
+				detail = W.T("RAID_PARTY_BUFF_PRESENT", self.kindLabel)
+			end
+			GameTooltip:AddLine(detail, 0.2, 1, 0.2)
+		else
+			GameTooltip:AddLine(W.T("RAID_PARTY_BUFF_MISSING"), 1, 0.3, 0.3)
+		end
+		GameTooltip:Show()
+	end)
+	host:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+	host:Hide()
+	return host
+end
+
+function W.FillConsumableStatusIcon(host, status, kindLabelKey)
+	if not host then
+		return
+	end
+	if not status then
+		host:Hide()
+		return
+	end
+	host.kindLabel = W.T(kindLabelKey)
+	host.present = status.present and true or false
+	host.unknown = status.unknown and true or false
+	host.elixirPair = status.elixirPair and true or false
+	host.detail = status.name or ""
+	host.reasonKey = status.reasonKey
+	if status.icon then
+		W.SetSpellIconTexture(host.icon, status.icon)
+	end
+	if host.unknown then
+		host.icon:SetDesaturated(true)
+		host.icon:SetVertexColor(0.55, 0.55, 0.55)
+	elseif host.present then
+		host.icon:SetDesaturated(false)
+		host.icon:SetVertexColor(1, 1, 1)
+	else
+		host.icon:SetDesaturated(true)
+		host.icon:SetVertexColor(UI.TEXT_ALERT[1], UI.TEXT_ALERT[2], UI.TEXT_ALERT[3])
+	end
+	host:Show()
+end
+
 function W.HidePoolFrom(pool, startIndex)
 	for index = startIndex, #pool do
 		pool[index]:Hide()
@@ -804,6 +870,7 @@ function W.RaidRosterTableTopOffset()
 	local leftHeader = UI.CD_TOOLBAR_H
 		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
 		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
+		+ UI.RAID_DESC_LINE_GAP + (UI.RAID_CONSUMABLE_ROW_H or UI.CD_TOOLBAR_H)
 		+ UI.RAID_DESC_BLOCK_GAP
 		+ UI.RAID_PROGRESS_STATUS_H
 		+ UI.RAID_PROGRESS_STATUS_GAP
