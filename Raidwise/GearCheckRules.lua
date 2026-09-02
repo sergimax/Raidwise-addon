@@ -2197,6 +2197,29 @@ function Addon:GearCheckRulesSelfTest()
 	Check("fury Death's Choice → not TRINKET_NOT_PREFERRED", not HasCode(fFuryToC, "TRINKET_NOT_PREFERRED"))
 	Check("fury Death's Choice → OK not GOOD", furyToC.equipment[1].verdict == "OK")
 
+	local retStarterTrinkets = {
+		character = { classFile = "PALADIN", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("trinket1", "Trinket0Slot", MakeItem({
+				itemId = 49074,
+				category = "armor",
+				armorType = "misc",
+				stats = { critRating = 84 },
+			})),
+			MakeSlot("trinket2", "Trinket1Slot", MakeItem({
+				itemId = 47734,
+				category = "armor",
+				armorType = "misc",
+				stats = { hitRating = 128 },
+			})),
+		},
+	}
+	local fRetStarter = self:EvaluateGearCheck(retStarterTrinkets)
+	Check("ret Coren's Coaster → not TRINKET_NOT_PREFERRED", not HasCodeOnSlot(fRetStarter, "TRINKET_NOT_PREFERRED", "trinket1"))
+	Check("ret Coren's Coaster → OK not GOOD", retStarterTrinkets.equipment[1].verdict == "OK")
+	Check("ret Mark of Supremacy → not TRINKET_NOT_PREFERRED", not HasCodeOnSlot(fRetStarter, "TRINKET_NOT_PREFERRED", "trinket2"))
+	Check("ret Mark of Supremacy → OK not GOOD", retStarterTrinkets.equipment[2].verdict == "OK")
+
 	local retAbom = {
 		character = { classFile = "PALADIN", specTab = 3, specKnown = true, gaps = {} },
 		equipment = {
