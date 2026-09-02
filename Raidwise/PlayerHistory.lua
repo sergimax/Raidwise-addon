@@ -757,6 +757,23 @@ function Addon:EventTypeGroupIcon(eventTypeId)
 	return nil
 end
 
+local CHANGE_KIND_ICONS = {
+	opinion = "Interface\\Icons\\INV_Misc_Note_01",
+	tags = "Interface\\Icons\\INV_Misc_Note_02",
+	facts = "Interface\\Icons\\Achievement_General",
+	notes = "Interface\\Icons\\INV_Misc_Book_11",
+}
+
+function Addon:ProfileHistoryChangeIcon(change)
+	if type(change) ~= "table" or not change.kind then
+		return nil
+	end
+	if change.kind == "event_add" or change.kind == "event_remove" then
+		return self:EventTypeGroupIcon(change.detail) or "Interface\\Icons\\INV_Misc_QuestionMark"
+	end
+	return CHANGE_KIND_ICONS[change.kind]
+end
+
 function Addon:EventTypeDisplayLabel(eventTypeId)
 	local typeLabel = self:EventTypeLabel(eventTypeId)
 	local groupLabel = self:EventTypeGroupLabel(eventTypeId)

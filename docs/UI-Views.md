@@ -42,7 +42,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 11` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
-| Character profile | `PROFILE_LAYOUT_VERSION = 29` | `CharacterProfile.lua` | Title bar (left of close) |
+| Character profile | `PROFILE_LAYOUT_VERSION = 30` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 18` | `PageRaid.lua` | Shell title bar (next to page name) |
@@ -232,7 +232,7 @@ Raid-wide gear check lives on **Raid roster** (Scan button + report rows per pla
 Standalone window (**460 × 560**) opened from Raid roster or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it.
 
 ```text
-[ Rhee - Character profile                              v29   X ]
+[ Rhee - Character profile                              v30   X ]
 | (race)(class) Shaman    | (spec) Enhancement                  |
 | GearScore: 6158         | iLvl: 264                           |
 | Personal note: Positive | Community note                      |
@@ -261,7 +261,7 @@ Standalone window (**460 × 560**) opened from Raid roster or History (left-clic
 (tab: History)
 [ Met: Icecrown Citadel          Was in the same party: 3 ]
 [ When: 2026-08-18 18:54 ]
-[ change log entries, newest first ]
+[ (icon) change log entries, newest first ]
 [ Save and Update ]```
 
 | Block | In-game text / control |
@@ -279,7 +279,7 @@ Standalone window (**460 × 560**) opened from Raid roster or History (left-clic
 | Facts (editor tab) | Role / identity checkboxes (draft until **Save and Update**); max **4** |
 | Events tab | Pick an event type by category (icon + heading), **Add event** / **Remove** edit a draft list; **Save and Update** persists events with auto zone/instance context on add |
 | Memo (editor tab) | Personal-use hint; multiline EditBox; **Save** / **Reset**. Memo is not written to History |
-| History tab | **Met** (left) and **Was in the same party** count (right) on the first row, then **When**, then logged opinion/tag/facts/event changes (and any older memo rows if present) |
+| History tab | **Met** (left) and **Was in the same party** count (right) on the first row, then **When**, then logged opinion/tag/facts/event changes with a kind or event-category icon (and any older memo rows if present) |
 | Save and Update | Bottom of window on **Edit note** / **Facts** / **Events** only; saves opinion, tags, facts, and events. Hidden on **History** and **Memo** (memo uses its own **Save** / **Reset**) |
 | editable | Opinion, tags, facts, events, and notes require a valid GUID; controls are disabled otherwise |
 | persistence | Opinion/tags/facts in `RaidwiseDB.history[guid].rating.personal`; events in `.events`; notes in `.notes`; change log in `.changes`; `meetCount` for party/raid encounters |

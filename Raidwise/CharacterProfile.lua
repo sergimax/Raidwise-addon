@@ -35,7 +35,8 @@ local UI = {
 	-- DELETE candidate: PANEL_BG, BTN_HOVER, BTN_SELECTED, BTN_DISABLED copied but unused (W.ApplyPlainPanel uses Theme directly).
 }
 
-local PROFILE_LAYOUT_VERSION = 29
+local PROFILE_LAYOUT_VERSION = 30
+local PROFILE_EVENT_ROW_ICON = 14
 
 local function GetRatingTagGroups()
 	if Addon.RatingTagGroups then
@@ -288,32 +289,67 @@ local function UpdateProfileHistoryPanel(frame, member)
 	if frame.historyMetText then
 		frame.historyMetText:SetText(T("PROFILE_MET", metZone))
 	end
-	if not frame.historyText then
-		return
-	end
-	local lines = {}
 	local metWhen = "-"
 	if Addon.FormatHistoryTime and member.metAt then
 		metWhen = Addon:FormatHistoryTime(member.metAt) or "-"
 	end
-	lines[#lines + 1] = T("PROFILE_WHEN", metWhen)
-	lines[#lines + 1] = ""
+	if frame.historyWhenText then
+		frame.historyWhenText:SetText(T("PROFILE_WHEN", metWhen))
+	end
+	if not frame.historyListContent then
+		return
+	end
 
+	if frame.historyRows then
+		for _, row in ipairs(frame.historyRows) do
+			row:Hide()
+			row:SetParent(nil)
+		end
+	end
+	frame.historyRows = {}
+
+	local rowHeight = 20
+	local contentWidth = frame.historyListContent:GetWidth() or 400
+	local y = 0
 	local changes = member.changes
+	local function AddHistoryRow(text, iconPath)
+		local row = CreateFrame("Frame", nil, frame.historyListContent)
+		row:SetSize(contentWidth, rowHeight)
+		row:SetPoint("TOPLEFT", frame.historyListContent, "TOPLEFT", 0, -y)
+
+		local icon = row:CreateTexture(nil, "ARTWORK")
+		icon:SetSize(PROFILE_EVENT_ROW_ICON, PROFILE_EVENT_ROW_ICON)
+		icon:SetPoint("LEFT", 0, 0)
+		local label = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+		label:SetJustifyH("LEFT")
+		label:SetJustifyV("MIDDLE")
+		label:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+		if iconPath then
+			W.SetSpellIconTexture(icon, iconPath)
+			icon:Show()
+			label:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+		else
+			icon:Hide()
+			label:SetPoint("LEFT", 0, 0)
+		end
+		label:SetText(text)
+		row.icon = icon
+		row.label = label
+		frame.historyRows[#frame.historyRows + 1] = row
+		y = y + rowHeight
+	end
+
 	if type(changes) ~= "table" or #changes == 0 then
-		lines[#lines + 1] = T("PROFILE_HISTORY_EMPTY")
+		AddHistoryRow(T("PROFILE_HISTORY_EMPTY"), nil)
 	else
 		for index = #changes, 1, -1 do
 			local change = changes[index]
 			local when = Addon.FormatHistoryTime and Addon:FormatHistoryTime(change.at) or "?"
-			lines[#lines + 1] = when .. " — " .. FormatProfileChangeDetail(change)
+			local iconPath = Addon.ProfileHistoryChangeIcon and Addon:ProfileHistoryChangeIcon(change)
+			AddHistoryRow(when .. " — " .. FormatProfileChangeDetail(change), iconPath)
 		end
 	end
-	frame.historyText:SetText(table.concat(lines, "\n"))
-	local textHeight = frame.historyText:GetStringHeight() or 120
-	if frame.profilePanels and frame.profilePanels.history then
-		frame.profilePanels.history:SetHeight(math.max(120, textHeight + 28))
-	end
+	frame.historyListContent:SetHeight(math.max(y, 1))
 end
 
 UpdateProfileCommitButton = function(frame, tabId)
@@ -657,7 +693,6 @@ local PROFILE_EVENT_PICKER_H = 140
 local PROFILE_EVENT_TYPE_BTN_H = 20
 local PROFILE_EVENT_TYPE_ROW_H = 22
 local PROFILE_EVENT_GROUP_ICON = 16
-local PROFILE_EVENT_ROW_ICON = 14
 
 local ratingViewRefreshScheduled
 
@@ -1902,8 +1937,7 @@ local function CreateRaidCharacterWindow()
 
 	local historyPanel = CreateFrame("Frame", nil, tabContent)
 	historyPanel:SetPoint("TOPLEFT", 0, 0)
-	historyPanel:SetPoint("TOPRIGHT", 0, 0)
-	historyPanel:SetHeight(200)
+	historyPanel:SetPoint("BOTTOMRIGHT", 0, 0)
 	historyPanel:Hide()
 	frame.profilePanels.history = historyPanel
 
@@ -1920,12 +1954,34 @@ local function CreateRaidCharacterWindow()
 	historyMetText:SetJustifyV("TOP")
 	frame.historyMetText = historyMetText
 
-	local historyText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	historyText:SetPoint("TOPLEFT", historyMetText, "BOTTOMLEFT", 0, -6)
-	historyText:SetPoint("RIGHT", historyPanel, "RIGHT", 0, 0)
-	historyText:SetJustifyH("LEFT")
-	historyText:SetJustifyV("TOP")
-	frame.historyText = historyText
+	local historyWhenText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	historyWhenText:SetPoint("TOPLEFT", historyMetText, "BOTTOMLEFT", 0, -6)
+	historyWhenText:SetPoint("RIGHT", historyPanel, "RIGHT", 0, 0)
+	historyWhenText:SetJustifyH("LEFT")
+	historyWhenText:SetJustifyV("TOP")
+	frame.historyWhenText = historyWhenText
+
+	local historyListHost = CreateFrame("Frame", nil, historyPanel)
+	historyListHost:SetPoint("TOPLEFT", historyWhenText, "BOTTOMLEFT", 0, -8)
+	historyListHost:SetPoint("BOTTOMRIGHT", historyPanel, "BOTTOMRIGHT", 0, 0)
+	frame.historyListHost = historyListHost
+
+	local historyScrollName = "RaidwiseProfileHistoryScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
+	local existingHistoryScroll = _G[historyScrollName]
+	if existingHistoryScroll then
+		existingHistoryScroll:Hide()
+		existingHistoryScroll:SetParent(nil)
+	end
+	local historyScroll = CreateFrame("ScrollFrame", historyScrollName, historyListHost, "UIPanelScrollFrameTemplate")
+	historyScroll:SetPoint("TOPLEFT", 0, 0)
+	historyScroll:SetPoint("BOTTOMRIGHT", -24, 0)
+	frame.historyListScroll = historyScroll
+
+	local historyListContent = CreateFrame("Frame", nil, historyScroll)
+	historyListContent:SetWidth(tabContentWidth - 28)
+	historyScroll:SetScrollChild(historyListContent)
+	frame.historyListContent = historyListContent
+	frame.historyRows = {}
 
 	frame.selectedProfileTab = "history"
 
