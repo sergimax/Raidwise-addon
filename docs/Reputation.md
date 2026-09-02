@@ -54,7 +54,7 @@ Used by roster pages, Character profile, and unit tooltips:
 | `FactColoredSummary` / `FactSummary` | Profile header facts line |
 | `FormatHistoryTime` | History tab and change-log timestamps |
 | `GetHistoryEvents` | Events tab and profile drafts |
-| `EventTypeGroups` / `EventTypeLabel` / `EventTypeDisplayLabel` | Categorized event picker and History change log |
+| `EventTypeGroups` / `EventTypeLabel` / `EventTypeDisplayLabel` / `EventTypeGroupIcon` | Categorized event picker, History change log, and category icons |
 | `BuildUnitTooltipRatingLinesForMember` | Unit tooltip lines (via `UnitTooltips.lua`) |
 
 ## Unit tooltips

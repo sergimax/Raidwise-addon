@@ -35,7 +35,7 @@ local UI = {
 	-- DELETE candidate: PANEL_BG, BTN_HOVER, BTN_SELECTED, BTN_DISABLED copied but unused (W.ApplyPlainPanel uses Theme directly).
 }
 
-local PROFILE_LAYOUT_VERSION = 28
+local PROFILE_LAYOUT_VERSION = 29
 
 local function GetRatingTagGroups()
 	if Addon.RatingTagGroups then
@@ -656,6 +656,8 @@ local PROFILE_TAG_COL_GAP = 12
 local PROFILE_EVENT_PICKER_H = 140
 local PROFILE_EVENT_TYPE_BTN_H = 20
 local PROFILE_EVENT_TYPE_ROW_H = 22
+local PROFILE_EVENT_GROUP_ICON = 16
+local PROFILE_EVENT_ROW_ICON = 14
 
 local ratingViewRefreshScheduled
 
@@ -870,8 +872,17 @@ UpdateProfileEventsPanel = function(frame, member)
 			row:SetSize(contentWidth, rowHeight)
 			row:SetPoint("TOPLEFT", frame.eventsListContent, "TOPLEFT", 0, -y)
 
+			local icon = row:CreateTexture(nil, "ARTWORK")
+			icon:SetSize(PROFILE_EVENT_ROW_ICON, PROFILE_EVENT_ROW_ICON)
+			icon:SetPoint("LEFT", 0, 0)
+			local groupIcon = Addon.EventTypeGroupIcon and Addon:EventTypeGroupIcon(event.type)
+			if groupIcon then
+				W.SetSpellIconTexture(icon, groupIcon)
+			end
+			row.icon = icon
+
 			local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-			text:SetPoint("LEFT", 0, 0)
+			text:SetPoint("LEFT", icon, "RIGHT", 4, 0)
 			text:SetPoint("RIGHT", row, "RIGHT", -76, 0)
 			text:SetJustifyH("LEFT")
 			text:SetJustifyV("MIDDLE")
@@ -1758,9 +1769,17 @@ local function CreateRaidCharacterWindow()
 		if groupIndex > 1 then
 			typeY = typeY + PROFILE_TAG_GROUP_GAP
 		end
+		local icon = typeContent:CreateTexture(nil, "ARTWORK")
+		icon:SetSize(PROFILE_EVENT_GROUP_ICON, PROFILE_EVENT_GROUP_ICON)
+		icon:SetPoint("TOPLEFT", typeContent, "TOPLEFT", 0, -typeY)
+		if group.icon then
+			W.SetSpellIconTexture(icon, group.icon)
+		end
+
 		local heading = typeContent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		heading:SetPoint("TOPLEFT", typeContent, "TOPLEFT", 0, -typeY)
+		heading:SetPoint("LEFT", icon, "RIGHT", 4, 0)
 		heading:SetPoint("RIGHT", typeContent, "RIGHT", 0, 0)
+		heading:SetPoint("TOP", icon, "TOP", 0, 1)
 		heading:SetHeight(PROFILE_TAG_GROUP_HEADING_H)
 		heading:SetJustifyH("LEFT")
 		heading:SetJustifyV("MIDDLE")
@@ -1768,7 +1787,7 @@ local function CreateRaidCharacterWindow()
 		W.SetFontColor(heading, UI.GOLD)
 		heading.labelKey = group.labelKey
 		frame.eventTypeGroupLabels[#frame.eventTypeGroupLabels + 1] = heading
-		typeY = typeY + PROFILE_TAG_GROUP_HEADING_H + 2
+		typeY = typeY + math.max(PROFILE_EVENT_GROUP_ICON, PROFILE_TAG_GROUP_HEADING_H) + 2
 
 		local types = group.events or {}
 		for typeIndex = 1, #types do

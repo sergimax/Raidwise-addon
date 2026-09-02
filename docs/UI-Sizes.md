@@ -175,8 +175,8 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Ra
 | Opinion radios | **3** equal columns × **22** | Exclusive Positive / Neutral / Negative |
 | Tag checkboxes | scrolling columns by category | Max **3** tags per category; category heading gold |
 | Fact checkboxes | two columns under Facts tab | Max **4** facts |
-| Event type picker | scroll **140** tall | Category headings + two-column type buttons; **Add event** top-right with heading |
-| Event list | fills remaining Events tab | Fixed **20** px rows (label + Remove) |
+| Event type picker | scroll **140** tall | **16** px category icons + gold headings, then two-column type buttons; **Add event** top-right with heading |
+| Event list | fills remaining Events tab | Fixed **20** px rows (**14** px category icon + label + Remove) |
 | Memo hint | under heading | `GameFontNormalSmall`; personal-use only (not History) |
 | Memo box | **440 × 96** | Multiline EditBox with inner scroll |
 | Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |

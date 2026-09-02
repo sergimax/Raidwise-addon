@@ -110,6 +110,7 @@ local EVENT_GROUPS = {
 	{
 		id = "attendance",
 		labelKey = "RATING_EVENT_GROUP_ATTENDANCE",
+		icon = "Interface\\Icons\\INV_Misc_PocketWatch_01",
 		events = {
 			{ id = "left_raid", labelKey = "RATING_EVENT_LEFT_RAID" },
 			{ id = "left_early", labelKey = "RATING_EVENT_LEFT_EARLY" },
@@ -124,6 +125,7 @@ local EVENT_GROUPS = {
 	{
 		id = "loot",
 		labelKey = "RATING_GROUP_LOOT",
+		icon = "Interface\\Icons\\INV_Misc_Coin_01",
 		events = {
 			{ id = "ninja_loot", labelKey = "RATING_EVENT_NINJA_LOOT" },
 			{ id = "loot_dispute", labelKey = "RATING_EVENT_LOOT_DISPUTE" },
@@ -135,6 +137,7 @@ local EVENT_GROUPS = {
 	{
 		id = "help",
 		labelKey = "RATING_EVENT_GROUP_HELP",
+		icon = "Interface\\Icons\\Spell_Holy_FlashHeal",
 		events = {
 			{ id = "helped_player", labelKey = "RATING_EVENT_HELPED_PLAYER" },
 			{ id = "helped_with_gear", labelKey = "RATING_EVENT_HELPED_WITH_GEAR" },
@@ -144,6 +147,7 @@ local EVENT_GROUPS = {
 	{
 		id = "behavior",
 		labelKey = "RATING_GROUP_BEHAVIOR",
+		icon = "Interface\\Icons\\Spell_Shadow_PsychicScream",
 		events = {
 			{ id = "toxic_behavior", labelKey = "RATING_EVENT_TOXIC_BEHAVIOR" },
 			{ id = "scam", labelKey = "RATING_EVENT_SCAM" },
@@ -201,6 +205,7 @@ for _, group in ipairs(EVENT_GROUPS) do
 	for _, eventType in ipairs(group.events) do
 		eventType.groupId = group.id
 		eventType.groupLabelKey = group.labelKey
+		eventType.groupIcon = group.icon
 		eventType.lootBased = group.id == "loot"
 		EVENT_TYPES[#EVENT_TYPES + 1] = eventType
 		EVENTS_BY_ID[eventType.id] = eventType
@@ -742,6 +747,14 @@ function Addon:EventTypeGroupLabel(eventTypeId)
 		return ""
 	end
 	return self:T(eventType.groupLabelKey)
+end
+
+function Addon:EventTypeGroupIcon(eventTypeId)
+	local eventType = EVENTS_BY_ID[eventTypeId]
+	if eventType and eventType.groupIcon and eventType.groupIcon ~= "" then
+		return eventType.groupIcon
+	end
+	return nil
 end
 
 function Addon:EventTypeDisplayLabel(eventTypeId)
