@@ -79,7 +79,11 @@ Addon.UITheme = {
 	RAID_DESC_LINE_GAP = 2,
 	RAID_DESC_BLOCK_GAP = 4,
 	RAID_CONSUMABLE_ROW_H = 28,
-	RAID_TOOLBAR_BTN_COUNT = 5,
+	RAID_SUMMARY_COL_GAP = 8,
+	RAID_SUMMARY_HEADING_H = 14,
+	RAID_SUMMARY_BODY_H = 32,
+	RAID_SUMMARY_BAND_H = 78,
+	RAID_TOOLBAR_BTN_COUNT = 4,
 	RAID_TOOLBAR_BTN_GAP = 4,
 
 	-- Colors — Classic theme (preview/themes.html #classic)
@@ -866,11 +870,10 @@ end
 
 function W.RaidRosterTableTopOffset()
 	-- Fixed description header: hint + stacked lines + progress block + gap to table.
-	-- Table must also clear the right toolbar column (Scan … Select all).
+	-- Table must also clear the right toolbar column (Scan … Back to roster).
 	local leftHeader = UI.CD_TOOLBAR_H
 		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
-		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
-		+ UI.RAID_DESC_LINE_GAP + (UI.RAID_CONSUMABLE_ROW_H or UI.CD_TOOLBAR_H)
+		+ UI.RAID_DESC_LINE_GAP + (UI.RAID_SUMMARY_BAND_H or 78)
 		+ UI.RAID_DESC_BLOCK_GAP
 		+ UI.RAID_PROGRESS_STATUS_H
 		+ UI.RAID_PROGRESS_STATUS_GAP

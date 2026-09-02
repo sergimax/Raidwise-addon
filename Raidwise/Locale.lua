@@ -39,15 +39,19 @@ local Translations = {
 		BTN_RAID_RESCAN_TIP = "Re-run gear check for this player only and update their roster grades.",
 		BTN_RAID_REPORT_FLASK_TIP = "Post players missing a flask (or battle + guardian elixirs) to raid or party chat.",
 		BTN_RAID_REPORT_FOOD_TIP = "Post players missing a food buff to raid or party chat.",
+		BTN_RAID_REPORT_GEAR = "Report armor",
+		BTN_RAID_REPORT_ENCHANT = "Report ench",
+		BTN_RAID_REPORT_GEAR_TIP = "Post players with armor/weapon issues (BAD or REPLACE) to raid or party chat.",
+		BTN_RAID_REPORT_ENCHANT_TIP = "Post players with enchant/socket issues (BAD or REPLACE) to raid or party chat.",
 		CD_REFRESH_TIP = "Request fresh raid info, then redraw lockouts and currency.",
 		PARTY_REFRESH_TIP = "Re-read GearScore, item levels, and guild info; re-queue inspect for specs.",
 		RAID_REFRESH_TIP = "Re-read GearScore and iLvl; re-queue inspect for spec icons.",
 		RAID_SCAN_TIP = "Run gear check for everyone in the party or raid, one inspect at a time.",
 		BTN_RAID_BACK_TO_ROSTER = "Back to roster",
 		BTN_RAID_BACK_TO_ROSTER_TIP = "Close export text and return to the group grid.",
-		GEAR_CHECK_RAID_EXPORT = "Export",
+		GEAR_CHECK_RAID_EXPORT = "Export all",
 		GEAR_CHECK_RAID_EXPORT_TIP = "Build full text dumps for all scanned players and open them here for copying.",
-		GEAR_CHECK_RAID_EXPORT_READY = "Export ready — use Select all, then Ctrl+C to copy.",
+		GEAR_CHECK_RAID_EXPORT_READY = "Export ready — click the dump, then Ctrl+C to copy.",
 		GEAR_CHECK_RAID_EXPORT_EMPTY = "No raid scan results yet. Run Scan on the Raid roster first.",
 		COMP_REFRESH_TIP = "Re-read the current party or raid and redraw the checklist.",
 		GEAR_CHECK_SCAN_TIP = "Scan the current target (or yourself if nothing is targeted).",
@@ -100,10 +104,10 @@ local Translations = {
 			.. "\n"
 			.. "- Groups 1–5, then 6–8: class, role, spec, raid buffs, flask/food, GearScore, iLvl, and grades\n"
 			.. "- Flask and food icons on each card: full color = active, red = missing, dim = out of range or offline\n"
-			.. "- Report flask / Report food post missing players to raid or party chat\n"
+			.. "- Report flask / food / armor / ench post missing or problem players to raid or party chat\n"
 			.. "- Hover a card for opinion, tags, guild (rank), and gear-check details\n"
 			.. "- Scan inspects everyone one at a time and fills armor/weap and ench/sock grades\n"
-			.. "- Export builds text dumps; Back to roster closes them; Select all + Ctrl+C copies\n"
+			.. "- Export all builds text dumps; Back to roster closes them; click the dump + Ctrl+C copies\n"
 			.. "- Profile opens Character profile; Gear opens the full report on Gear check (target)",
 		INFO_SECTION_COMPOSITION = "Who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered.\n"
 			.. "Solo shows only your own coverage.\n"
@@ -186,6 +190,16 @@ local Translations = {
 		RAID_CHAT_FLASK_ALL = "Raidwise: all flasks present.",
 		RAID_CHAT_FOOD_MISSING = "Raidwise: missing food: %s",
 		RAID_CHAT_FOOD_ALL = "Raidwise: all food buffs present.",
+		RAID_SUMMARY_CONSUMABLES = "Flask / food",
+		RAID_SUMMARY_GEAR = "Armor / weap",
+		RAID_SUMMARY_ENCHANT = "Ench / sock",
+		RAID_GRADE_SUMMARY_EMPTY = "Press Scan to check.",
+		RAID_CHAT_GEAR_ISSUES = "Raidwise: armor/weap issues: %s",
+		RAID_CHAT_GEAR_ALL = "Raidwise: no armor/weap issues.",
+		RAID_CHAT_GEAR_NONE = "Raidwise: no armor/weap scan yet.",
+		RAID_CHAT_ENCHANT_ISSUES = "Raidwise: ench/sock issues: %s",
+		RAID_CHAT_ENCHANT_ALL = "Raidwise: no ench/sock issues.",
+		RAID_CHAT_ENCHANT_NONE = "Raidwise: no ench/sock scan yet.",
 		HISTORY_HINT = "Players from your parties and raids. Saved on this account.",
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
 		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
@@ -639,15 +653,19 @@ local Translations = {
 		BTN_RAID_RESCAN_TIP = "Повторить проверку экипа только для этого игрока и обновить оценки на карточке.",
 		BTN_RAID_REPORT_FLASK_TIP = "Написать в чат рейда или группы, у кого нет настоя (или пары эликсиров).",
 		BTN_RAID_REPORT_FOOD_TIP = "Написать в чат рейда или группы, у кого нет баффа еды.",
+		BTN_RAID_REPORT_GEAR = "Сообщить броню",
+		BTN_RAID_REPORT_ENCHANT = "Сообщить чары",
+		BTN_RAID_REPORT_GEAR_TIP = "Написать в чат, у кого проблемы с бронёй или оружием (BAD или REPLACE).",
+		BTN_RAID_REPORT_ENCHANT_TIP = "Написать в чат, у кого проблемы с чарами или сокетами (BAD или REPLACE).",
 		CD_REFRESH_TIP = "Запросить свежие данные о блокировках и перерисовать таблицу.",
 		PARTY_REFRESH_TIP = "Заново считать GearScore, iLvl и гильдию; поставить осмотр для спеков.",
 		RAID_REFRESH_TIP = "Заново считать GearScore и iLvl; поставить осмотр для иконок спека.",
 		RAID_SCAN_TIP = "Запустить проверку экипа всей группы или рейда, осмотр по одному.",
 		BTN_RAID_BACK_TO_ROSTER = "К составу",
 		BTN_RAID_BACK_TO_ROSTER_TIP = "Закрыть текст экспорта и вернуться к сетке групп.",
-		GEAR_CHECK_RAID_EXPORT = "Экспорт",
+		GEAR_CHECK_RAID_EXPORT = "Экспорт всех",
 		GEAR_CHECK_RAID_EXPORT_TIP = "Собрать полные текстовые отчёты по всем отсканированным игрокам и открыть их здесь для копирования.",
-		GEAR_CHECK_RAID_EXPORT_READY = "Экспорт готов — «Выделить всё», затем Ctrl+C для копирования.",
+		GEAR_CHECK_RAID_EXPORT_READY = "Экспорт готов — кликните по тексту, затем Ctrl+C.",
 		GEAR_CHECK_RAID_EXPORT_EMPTY = "Нет результатов сканирования рейда. Сначала нажмите «Сканировать» на вкладке рейда.",
 		COMP_REFRESH_TIP = "Заново считать текущую группу или рейд и перерисовать чеклист.",
 		GEAR_CHECK_SCAN_TIP = "Сканировать текущую цель (или себя, если цели нет).",
@@ -700,10 +718,10 @@ local Translations = {
 			.. "\n"
 			.. "- Группы 1–5, затем 6–8: класс, роль, спек, рейд-баффы, настой/еда, GearScore, iLvl и оценки\n"
 			.. "- Иконки настоя и еды на карточке: цветная = есть, красная = нет, тусклая = вне зоны или офлайн\n"
-			.. "- «Сообщить настой» / «Сообщить еду» пишут в чат, у кого нет баффа\n"
+			.. "- «Сообщить настой / еду / броню / чары» пишут в чат, у кого нет баффа или есть проблемы с экипом\n"
 			.. "- Наведение: мнение, теги, гильдия (ранг), детали проверки экипа\n"
 			.. "- «Сканировать» осматривает по одному и заполняет оценки брони/оружия и чар/сокетов\n"
-			.. "- «Экспорт» собирает текстовые отчёты; «К составу» закрывает их; «Выделить всё» + Ctrl+C копирует\n"
+			.. "- «Экспорт всех» собирает текстовые отчёты; «К составу» закрывает их; клик по тексту + Ctrl+C копирует\n"
 			.. "- «Профиль» открывает профиль персонажа; «Экип» — полный отчёт на вкладке проверки экипа (цель)",
 		INFO_SECTION_COMPOSITION = "Кто нужен, и какие уникальные баффы, внешние КД, снижение урона, дебаффы и восполнение уже закрыты.\n"
 			.. "Вне группы показывается только ваше покрытие.\n"
@@ -786,6 +804,16 @@ local Translations = {
 		RAID_CHAT_FLASK_ALL = "Raidwise: настой у всех есть.",
 		RAID_CHAT_FOOD_MISSING = "Raidwise: нет еды: %s",
 		RAID_CHAT_FOOD_ALL = "Raidwise: еда у всех есть.",
+		RAID_SUMMARY_CONSUMABLES = "Настой / еда",
+		RAID_SUMMARY_GEAR = "Броня / оруж.",
+		RAID_SUMMARY_ENCHANT = "Чары / сокеты",
+		RAID_GRADE_SUMMARY_EMPTY = "Нажмите «Сканировать».",
+		RAID_CHAT_GEAR_ISSUES = "Raidwise: проблемы брони/оружия: %s",
+		RAID_CHAT_GEAR_ALL = "Raidwise: с бронёй и оружием всё в порядке.",
+		RAID_CHAT_GEAR_NONE = "Raidwise: ещё нет скана брони/оружия.",
+		RAID_CHAT_ENCHANT_ISSUES = "Raidwise: проблемы чар/сокетов: %s",
+		RAID_CHAT_ENCHANT_ALL = "Raidwise: с чарами и сокетами всё в порядке.",
+		RAID_CHAT_ENCHANT_NONE = "Raidwise: ещё нет скана чар/сокетов.",
 		HISTORY_HINT = "Игроки из ваших групп и рейдов. Сохраняется на этом аккаунте.",
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",

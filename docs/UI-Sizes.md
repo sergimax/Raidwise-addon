@@ -102,15 +102,16 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Description block with **Scan** / **Export** / **Refresh** / **Back to roster** / **Select all** in a fixed right column; left column stacks hint, stats, gear summary, flask/food summary + report buttons, then progress status + bar; roster table or export copy box at a fixed top offset (clears the full **5**-button toolbar). `LAYOUT_VERSION = 20`.
+Description block with **Scan** / **Export all** / **Refresh** / **Back to roster** in a fixed right column; left column stacks hint, stats, then a three-column summary band (flask/food, armor/weap, ench/sock), then progress status + bar; roster table or export copy box at a fixed top offset (clears the **4**-button toolbar). `LAYOUT_VERSION = 21`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Button column | **104** px wide | **Scan**, **Export**, **Refresh** stacked top → bottom; **4** px gap; **8** px gap from description |
+| Button column | **104** px wide | **Scan**, **Export all**, **Refresh**, **Back to roster** stacked top → bottom; **4** px gap; **8** px gap from description |
 | Short description | left column | Beside **Scan**; **28** px row height; wraps within column |
 | Stats line | below hint | **2** px gap; height **16** |
-| Gear check summary | below stats | **2** px gap; height **16** |
-| Flask/food summary | below gear summary | **2** px gap; height **28**; counts left, **Report flask** / **Report food** **104 × 28** on the right (4 px gap) |
+| Summary band | below stats | **2** px gap; height **78**; three equal columns (**8** px gaps). Per column: heading **14**, body **32**, report row **28** |
+| Flask/food reports | column 1 | Two half-width **28** tall buttons (**Report flask**, **Report food**) |
+| Armor / ench reports | columns 2–3 | **Report armor** / **Report ench**; width min(**104**, column) |
 | Progress status | below summary | **4** px gap; fixed **28** px height (two lines) |
 | Progress bar | below status | **4** px gap; height **14**; always reserved |
 | Player cell | **168 × 137** | Seven text lines + one button row: class+name+flask/food, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
