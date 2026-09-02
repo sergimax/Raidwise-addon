@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 24
+local LAYOUT_VERSION = 25
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 137
@@ -454,7 +454,7 @@ local function CreateRaidRosterHeader(page)
 
 	local miniH = W.RaidRosterMiniTableHeight()
 	local colGap = UI.RAID_HEADER_COL_GAP or 8
-	local colCount = UI.RAID_HEADER_COL_COUNT or 5
+	local colCount = UI.RAID_HEADER_COL_COUNT or 4
 	local rowH = UI.RAID_SUMMARY_BAND_H or 20
 	local rowGap = UI.RAID_DESC_LINE_GAP or 2
 	local iconSize = UI.RAID_SUMMARY_REPORT_ICON or 16
@@ -481,12 +481,6 @@ local function CreateRaidRosterHeader(page)
 		label:SetNonSpaceWrap(false)
 		return label
 	end
-
-	local hintCol = CreateHeaderColumn()
-	local hint = FillColumnText(hintCol, "GameFontHighlight")
-	hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
-	page.hintCol = hintCol
-	page.hint = hint
 
 	local legendCol = CreateHeaderColumn()
 	local gradeLegend = FillColumnText(legendCol, "GameFontNormalSmall")
@@ -591,7 +585,7 @@ local function CreateRaidRosterHeader(page)
 	page.textViewBtn = textViewBtn
 
 	local toolbarBtns = { scanBtn, exportBtn, refreshBtn, textViewBtn }
-	local headerCols = { hintCol, legendCol, statsCol, summaryCol, toolbar }
+	local headerCols = { legendCol, statsCol, summaryCol, toolbar }
 
 	local function LayoutRaidMiniTable()
 		local colW = EqualColumnWidth(miniTable:GetWidth() or 1, colCount, colGap)
@@ -1483,8 +1477,8 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 	end
 
 	if not self.BuildRaidGroups then
-		if page.hint then
-			page.hint:SetText(W.T("RAID_FAIL"))
+		if page.gradeLegendLabel then
+			page.gradeLegendLabel:SetText(W.T("RAID_FAIL"))
 		end
 		return
 	end
@@ -1641,9 +1635,6 @@ local function ApplyLocale(page)
 	end
 	if page.gradeLegendLabel then
 		page.gradeLegendLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
-	end
-	if page.hint then
-		page.hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
 	end
 	if page.refreshBtn and page.refreshBtn.label then
 		page.refreshBtn.label:SetText(W.T("BTN_REFRESH"))

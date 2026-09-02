@@ -81,7 +81,7 @@ Addon.UITheme = {
 	RAID_CONSUMABLE_ROW_H = 28,
 	RAID_GRADE_LEGEND_H = 32,
 	RAID_HINT_H = 28,
-	RAID_HEADER_COL_COUNT = 5,
+	RAID_HEADER_COL_COUNT = 4,
 	RAID_HEADER_COL_GAP = 8,
 	RAID_SUMMARY_COL_COUNT = 4,
 	RAID_SUMMARY_COL_GAP = 8,
@@ -899,7 +899,7 @@ function W.RaidRosterHeaderHeight()
 end
 
 function W.RaidRosterTableTopOffset()
-	-- Five-column mini table + scan status + progress bar.
+	-- Four-column mini table + scan status + progress bar.
 	return W.RaidRosterHeaderHeight() + UI.CD_HINT_TO_TABLE
 end
 

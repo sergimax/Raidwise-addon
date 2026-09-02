@@ -102,16 +102,15 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Five-column mini table (description, grade legend, GS averages, flask/food/armor/ench rows, stacked Scan/Export/Refresh/Back), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 24`.
+Four-column mini table (grade legend, GS averages, flask/food/armor/ench rows, stacked Scan/Export/Refresh/Back), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 25`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Mini table | full width × **124** | Five equal columns (**8** px gaps). Height = **4** toolbar buttons **28** + **3×4** px gaps |
-| Col 1 description | equal column | `RAID_HINT`; wraps |
-| Col 2 grade legend | equal column | `GEAR_CHECK_RAID_HINT`; wraps |
-| Col 3 GS averages | equal column | Average GS + four role lines |
-| Col 4 status rows | equal column | Four **20** px rows (**2** px gap); gold name + counts, **16×16** report icon on the right |
-| Col 5 toolbar | equal column | **Scan**, **Export all**, **Refresh**, **Back to roster** stacked |
+| Mini table | full width × **124** | Four equal columns (**8** px gaps). Height = **4** toolbar buttons **28** + **3×4** px gaps |
+| Col 1 grade legend | equal column | `GEAR_CHECK_RAID_HINT`; wraps |
+| Col 2 GS averages | equal column | Average GS + four role lines |
+| Col 3 status rows | equal column | Four **20** px rows (**2** px gap); gold name + counts, **16×16** report icon on the right |
+| Col 4 toolbar | equal column | **Scan**, **Export all**, **Refresh**, **Back to roster** stacked |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
 | Player cell | **168 × 137** | Seven text lines + one button row: class+name+flask/food, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
