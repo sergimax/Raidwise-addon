@@ -79,12 +79,16 @@ Addon.UITheme = {
 	RAID_DESC_LINE_GAP = 2,
 	RAID_DESC_BLOCK_GAP = 4,
 	RAID_CONSUMABLE_ROW_H = 28,
+	RAID_GRADE_LEGEND_H = 32,
+	RAID_HINT_H = 28,
+	RAID_SUMMARY_COL_COUNT = 4,
 	RAID_SUMMARY_COL_GAP = 8,
 	RAID_SUMMARY_HEADING_H = 14,
 	RAID_SUMMARY_BODY_H = 32,
-	RAID_SUMMARY_BAND_H = 78,
+	RAID_SUMMARY_REPORT_ICON = 16,
+	RAID_SUMMARY_BAND_H = 20,
 	RAID_TOOLBAR_BTN_COUNT = 4,
-	RAID_TOOLBAR_BTN_GAP = 4,
+	RAID_TOOLBAR_BTN_GAP = 8,
 
 	-- Colors — Classic theme (preview/themes.html #classic)
 	GOLD = { 1.000, 0.824, 0.000 },
@@ -325,16 +329,24 @@ end
 function W.SetPlainButtonState(button, state)
 	if state == "selected" then
 		button:SetBackdropColor(UI.BTN_SELECTED[1], UI.BTN_SELECTED[2], UI.BTN_SELECTED[3], UI.BTN_SELECTED[4])
-		W.SetFontColor(button.label, UI.GOLD)
+		if button.label then
+			W.SetFontColor(button.label, UI.GOLD)
+		end
 	elseif state == "hover" then
 		button:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
-		W.SetFontColor(button.label, UI.TEXT_HOVER)
+		if button.label then
+			W.SetFontColor(button.label, UI.TEXT_HOVER)
+		end
 	elseif state == "disabled" then
 		button:SetBackdropColor(UI.BTN_DISABLED[1], UI.BTN_DISABLED[2], UI.BTN_DISABLED[3], UI.BTN_DISABLED[4])
-		W.SetFontColor(button.label, UI.TEXT_DISABLED)
+		if button.label then
+			W.SetFontColor(button.label, UI.TEXT_DISABLED)
+		end
 	else
 		button:SetBackdropColor(UI.BTN_IDLE[1], UI.BTN_IDLE[2], UI.BTN_IDLE[3], UI.BTN_IDLE[4])
-		W.SetFontColor(button.label, UI.TEXT_IDLE)
+		if button.label then
+			W.SetFontColor(button.label, UI.TEXT_IDLE)
+		end
 	end
 end
 
@@ -868,20 +880,27 @@ function W.RosterTableTopOffset()
 	return UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE + UI.ROSTER_STATS_H + UI.CD_HINT_TO_TABLE
 end
 
-function W.RaidRosterTableTopOffset()
-	-- Fixed description header: hint + stacked lines + progress block + gap to table.
-	-- Table must also clear the right toolbar column (Scan … Back to roster).
-	local leftHeader = UI.CD_TOOLBAR_H
-		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
-		+ UI.RAID_DESC_LINE_GAP + (UI.RAID_SUMMARY_BAND_H or 78)
-		+ UI.RAID_DESC_BLOCK_GAP
+function W.RaidRosterMiniTableHeight()
+	local lineGap = UI.RAID_DESC_LINE_GAP or 2
+	return (UI.RAID_GRADE_LEGEND_H or 32)
+		+ lineGap + UI.ROSTER_STATS_H
+		+ lineGap + (UI.RAID_SUMMARY_BAND_H or 20)
+		+ lineGap + (UI.RAID_HINT_H or 28)
+end
+
+function W.RaidRosterHeaderHeight()
+	local blockGap = UI.RAID_DESC_BLOCK_GAP or 4
+	return W.RaidRosterMiniTableHeight()
+		+ blockGap + UI.CD_TOOLBAR_H
+		+ blockGap
 		+ UI.RAID_PROGRESS_STATUS_H
 		+ UI.RAID_PROGRESS_STATUS_GAP
 		+ UI.RAID_PROGRESS_H
-	local toolbarCount = UI.RAID_TOOLBAR_BTN_COUNT or 3
-	local toolbarGap = UI.RAID_TOOLBAR_BTN_GAP or 4
-	local toolbarHeader = UI.CD_TOOLBAR_H * toolbarCount + toolbarGap * (toolbarCount - 1)
-	return math.max(leftHeader, toolbarHeader) + UI.CD_HINT_TO_TABLE
+end
+
+function W.RaidRosterTableTopOffset()
+	-- Mini table (grades, GS, four status cells, description) + toolbar + progress.
+	return W.RaidRosterHeaderHeight() + UI.CD_HINT_TO_TABLE
 end
 
 function W.FormatGuildDisplay(guildName, guildRank)

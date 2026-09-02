@@ -45,7 +45,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character profile | `PROFILE_LAYOUT_VERSION = 31` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 21` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 23` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -108,16 +108,15 @@ Rows come only from current lockouts; each instance is one row with all size/mod
 Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1 (same inspect/GS pipeline as before; no separate party tab).
 
 ```text
-[ short description (left, wraps)                         ] [ Scan         ]
-[ Average GS …  Tanks …  Healers …  Melee …  Range …       ] [ Export all   ]
-[ Flask / food     | Armor / weap     | Ench / sock        ] [ Refresh      ]
-[ Flask n/total    | BAD · REPLACE …  | BAD · REPLACE …    ] [ Back to roster ]
-[ Food n/total     |                  |                    ]
-[ Report flask][Report food] [ Report armor ] [ Report ench ]
-[ gear check status / scan progress (reserved height)       ]
-[ progress bar track (always reserved)                      ]
+[ 0  GOOD = preferred; OK = usable; REPLACE = …; BAD = …                 ]
+[ 1  Average GS …  Tanks …  Healers …  Melee …  Range …                  ]
+[ 2  Flask 22/25 [note] | Food 20/25 [note] | Armor BAD·REPLACE… [note] | Ench … [note] ]
+[ 3  Raid groups 1–5 and 6–8. Refresh after gear or spec changes. …      ]
+[ Scan ]  [ Export all ]  [ Refresh ]  [ Back to roster ]
+[ scan / export status (reserved height)                                 ]
+[ progress bar track (always reserved)                                   ]
         8 px gap
-[ roster table — or export copy box when text view is on    ]
+[ roster table — or export copy box when text view is on                 ]
 [ (class) Rhee          (flask)(food) ]
 [ (role)(spec) 6158gs 264ilvl ]
 [ (buff)(buff)(buff) ]
@@ -132,15 +131,16 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | Left column; wraps beside button column |
-| Scan / Export all / Refresh / Back to roster | **104 × 28** each, stacked in a right column (4 px gap); top-aligned; **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C — no Select all on this page |
-| gear check hint / status | Left column; fixed **28** px height; gear-check legend or scan/export/rescan text |
+| 0 grade legend | Full-width `GEAR_CHECK_RAID_HINT` (GOOD / OK / REPLACE / BAD meanings); stays visible during scan |
+| 1 GS averages | One line: `Average GS: {n}` then Tanks / Healers / Melee / Range counts and GS |
+| 2 status cells | Four equal columns (8 px gaps) on **one line**: gold name + counts, then a **16×16** note icon that posts that category to raid/party chat |
+| flask / food | `Flask n/total (x missing)` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Out of range / offline are not listed as missing |
+| armor / ench | BAD / REPLACE / OK / GOOD counts (+ Failed). Dim until first scan (`Press Scan to check.`) |
+| report icon | Same note icon on every cell; hover shows the flask / food / armor / ench tip |
+| 3 description | `RAID_HINT` — groups 1–5 / 6–8, refresh, scan |
+| Scan / Export all / Refresh / Back to roster | One row under the mini table; four equal-width **28** tall buttons aligned with the status cells. **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
+| scan status | Below toolbar; reserved **28** px; scan/export/rescan text (empty when idle) |
 | progress bar | Below status (**4** px gap); height **14**; track always reserved |
-| averages + roles | One line: `Average GS: {n}` then Tanks / Healers / Melee / Range counts and GS |
-| summary band | Three equal columns (8 px gaps): **Flask / food**, **Armor / weap**, **Ench / sock**. Each has a heading, two-line counts, and report button(s). Dim until there is data (`Press Scan to check.` for grades) |
-| flask/food column | `Flask n/total (x missing)` then `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. **Report flask** / **Report food** (half width) post missing names to raid or party chat (or print locally if you are not in a group). Out of range / offline players are not listed as missing |
-| armor/weap column | BAD / REPLACE / OK / GOOD counts (+ Failed). **Report armor** posts players with BAD or REPLACE as `Name (GRADE)` |
-| ench/sock column | Same grade counts. **Report ench** posts BAD / REPLACE the same way |
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
 | line 1 | Class icon + class-colored name; **flask** and **food** status icons on the right (14 px). Full color = active buff (flask, or battle + guardian elixirs); red tint = missing; dim = out of range or offline. Hover shows the buff name or status. |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |

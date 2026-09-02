@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 21
+local LAYOUT_VERSION = 23
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 137
@@ -18,9 +18,19 @@ local RAID_BTN_H = 16
 local RAID_BTN_GAP = 2
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
-local RAID_TOOLBAR_BTN_GAP = UI.RAID_TOOLBAR_BTN_GAP or 4
 local RAID_TOOLBAR_COL_W = 104
-local RAID_TOOLBAR_COL_GAP = 8
+local RAID_REPORT_ICON = "Interface\\Icons\\INV_Misc_Note_01"
+
+local function WrapThemeColor(color, text)
+	local r = math.floor(((color and color[1]) or 1) * 255 + 0.5)
+	local g = math.floor(((color and color[2]) or 1) * 255 + 0.5)
+	local b = math.floor(((color and color[3]) or 1) * 255 + 0.5)
+	return string.format("|cff%02x%02x%02x%s|r", r, g, b, tostring(text or ""))
+end
+
+local function SummaryHeadingPrefix(heading)
+	return WrapThemeColor(UI.GOLD, heading) .. "  "
+end
 
 local SCAN_PHASE_KEYS = {
 	inspect = "GEAR_CHECK_RAID_PHASE_INSPECT",
@@ -142,26 +152,19 @@ local function FormatGearCategorySummaryLine(summary)
 	return W.FormatGearVerdictCountsLine(nil, summary.bad, summary.replace, summary.ok, summary.good, failedSuffix)
 end
 
-local function FillGearCategorySummaryLabel(label, summary)
+local function FillGearCategorySummaryLabel(label, heading, summary)
 	if not label then
 		return
 	end
+	local prefix = SummaryHeadingPrefix(heading)
 	local scanned = (summary and summary.scanned) or 0
 	local failed = (summary and summary.failed) or 0
+	label:SetTextColor(1, 1, 1, 1)
 	if scanned + failed <= 0 then
-		label:SetText(W.T("RAID_GRADE_SUMMARY_EMPTY"))
-		W.SetFontColor(label, UI.TEXT_DISABLED)
+		label:SetText(prefix .. WrapThemeColor(UI.TEXT_DISABLED, W.T("RAID_GRADE_SUMMARY_EMPTY")))
 		return
 	end
-	label:SetText(FormatGearCategorySummaryLine(summary))
-	local issues = #((summary and summary.issueNames) or {})
-	if issues > 0 then
-		W.SetFontColor(label, UI.TEXT_ALERT)
-	elseif failed > 0 then
-		W.SetFontColor(label, UI.TEXT_IDLE)
-	else
-		W.SetFontColor(label, UI.TEXT_GOOD)
-	end
+	label:SetText(prefix .. FormatGearCategorySummaryLine(summary))
 end
 
 local function UpdateRaidGradeSummaries(page, results)
@@ -173,8 +176,8 @@ local function UpdateRaidGradeSummaries(page, results)
 	local enchant = SummarizeGearCategory(results, "enchant")
 	page.gearGradeSummary = gear
 	page.enchantGradeSummary = enchant
-	FillGearCategorySummaryLabel(page.gearGradeSummaryLabel, gear)
-	FillGearCategorySummaryLabel(page.enchantGradeSummaryLabel, enchant)
+	FillGearCategorySummaryLabel(page.gearGradeSummaryLabel, W.T("RAID_SUMMARY_GEAR"), gear)
+	FillGearCategorySummaryLabel(page.enchantGradeSummaryLabel, W.T("RAID_SUMMARY_ENCHANT"), enchant)
 end
 
 local function IndexGearResults(results)
@@ -273,16 +276,31 @@ local function RosterMembersFromPage(page)
 	return members
 end
 
-local function FormatConsumablePart(label, present, total, missingCount)
-	local part = W.T("RAID_CONSUMABLE_COUNT", label, present, total)
+local function FormatConsumableStatus(present, total, missingCount)
+	local part = tostring(present) .. "/" .. tostring(total)
 	if missingCount > 0 then
 		part = part .. " " .. W.T("RAID_CONSUMABLE_MISSING_COUNT", missingCount)
 	end
 	return part
 end
 
+local function FillConsumableSummaryLabel(label, heading, present, total, missingCount)
+	if not label then
+		return
+	end
+	local prefix = SummaryHeadingPrefix(heading)
+	label:SetTextColor(1, 1, 1, 1)
+	if (total or 0) <= 0 then
+		label:SetText(prefix .. WrapThemeColor(UI.TEXT_DISABLED, "—"))
+		return
+	end
+	local status = FormatConsumableStatus(present, total, missingCount or 0)
+	local color = ((missingCount or 0) > 0) and UI.TEXT_ALERT or UI.TEXT_GOOD
+	label:SetText(prefix .. WrapThemeColor(color, status))
+end
+
 local function UpdateRaidConsumableSummary(page, members)
-	if not page or not page.consumableSummaryLabel then
+	if not page then
 		return
 	end
 	local summary
@@ -292,25 +310,20 @@ local function UpdateRaidConsumableSummary(page, members)
 	summary = summary or { total = 0, flaskPresent = 0, foodPresent = 0, flaskMissing = {}, foodMissing = {} }
 	page.consumableSummary = summary
 	local total = summary.total or 0
-	if total <= 0 then
-		page.consumableSummaryLabel:SetText(
-			W.T("RAID_CONSUMABLE_FLASK") .. " —\n" .. W.T("RAID_CONSUMABLE_FOOD") .. " —"
-		)
-		W.SetFontColor(page.consumableSummaryLabel, UI.TEXT_DISABLED)
-		return
-	end
-	local flaskMissing = #(summary.flaskMissing or {})
-	local foodMissing = #(summary.foodMissing or {})
-	page.consumableSummaryLabel:SetText(
-		FormatConsumablePart(W.T("RAID_CONSUMABLE_FLASK"), summary.flaskPresent or 0, total, flaskMissing)
-			.. "\n"
-			.. FormatConsumablePart(W.T("RAID_CONSUMABLE_FOOD"), summary.foodPresent or 0, total, foodMissing)
+	FillConsumableSummaryLabel(
+		page.flaskSummaryLabel,
+		W.T("RAID_CONSUMABLE_FLASK"),
+		summary.flaskPresent or 0,
+		total,
+		#(summary.flaskMissing or {})
 	)
-	if flaskMissing > 0 or foodMissing > 0 then
-		W.SetFontColor(page.consumableSummaryLabel, UI.TEXT_ALERT)
-	else
-		W.SetFontColor(page.consumableSummaryLabel, UI.TEXT_GOOD)
-	end
+	FillConsumableSummaryLabel(
+		page.foodSummaryLabel,
+		W.T("RAID_CONSUMABLE_FOOD"),
+		summary.foodPresent or 0,
+		total,
+		#(summary.foodMissing or {})
+	)
 end
 
 local CHAT_LINE_MAX = 240
@@ -426,27 +439,135 @@ local function ReportGearCategoryToChat(kind)
 	end
 end
 
-local function RaidDescHeaderHeight()
-	return UI.CD_TOOLBAR_H
-		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
-		+ UI.RAID_DESC_LINE_GAP + (UI.RAID_SUMMARY_BAND_H or 78)
-		+ UI.RAID_DESC_BLOCK_GAP
-		+ UI.RAID_PROGRESS_STATUS_H
-		+ UI.RAID_PROGRESS_STATUS_GAP
-		+ UI.RAID_PROGRESS_H
+local function EqualColumnWidth(totalWidth, count, gap)
+	count = count or 1
+	gap = gap or 0
+	return math.max(1, math.floor((math.max(1, totalWidth) - gap * (count - 1)) / count))
 end
 
-local function CreateRaidDescriptionLeft(page, toolbarAnchor)
-	local descLeftCol = CreateFrame("Frame", nil, page)
-	descLeftCol:SetPoint("TOPLEFT", page, "TOPLEFT", 0, 0)
-	descLeftCol:SetPoint("RIGHT", toolbarAnchor, "LEFT", -RAID_TOOLBAR_COL_GAP, 0)
-	descLeftCol:SetHeight(RaidDescHeaderHeight())
-	page.descLeftCol = descLeftCol
+local function CreateRaidRosterHeader(page)
+	local headerHost = CreateFrame("Frame", nil, page)
+	headerHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, 0)
+	headerHost:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	headerHost:SetHeight(W.RaidRosterHeaderHeight())
+	page.headerHost = headerHost
 
-	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	hint:SetPoint("TOPLEFT", descLeftCol, "TOPLEFT", 0, 0)
-	hint:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
-	hint:SetHeight(UI.CD_TOOLBAR_H)
+	local legendH = UI.RAID_GRADE_LEGEND_H or 32
+	local hintH = UI.RAID_HINT_H or 28
+	local bandH = UI.RAID_SUMMARY_BAND_H or 20
+	local colGap = UI.RAID_SUMMARY_COL_GAP or 8
+	local colCount = UI.RAID_SUMMARY_COL_COUNT or 4
+	local iconSize = UI.RAID_SUMMARY_REPORT_ICON or 16
+	local iconGap = 4
+
+	local gradeLegend = headerHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	gradeLegend:SetPoint("TOPLEFT", headerHost, "TOPLEFT", 0, 0)
+	gradeLegend:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
+	gradeLegend:SetHeight(legendH)
+	gradeLegend:SetJustifyH("LEFT")
+	gradeLegend:SetJustifyV("TOP")
+	gradeLegend:SetWordWrap(true)
+	gradeLegend:SetNonSpaceWrap(false)
+	gradeLegend:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
+	W.SetFontColor(gradeLegend, UI.TEXT_IDLE)
+	page.gradeLegendLabel = gradeLegend
+
+	local stats = headerHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	stats:SetPoint("TOPLEFT", gradeLegend, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
+	stats:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
+	stats:SetHeight(UI.ROSTER_STATS_H)
+	stats:SetJustifyH("LEFT")
+	stats:SetJustifyV("MIDDLE")
+	W.SetFontColor(stats, UI.TEXT_IDLE)
+	stats:SetText(FormatRaidRosterStatsLine(nil, {}))
+	page.statsLabel = stats
+
+	local summaryBand = CreateFrame("Frame", nil, headerHost)
+	summaryBand:SetPoint("TOPLEFT", stats, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
+	summaryBand:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
+	summaryBand:SetHeight(bandH)
+	page.summaryBand = summaryBand
+
+	local function CreateChatReportButton(parent, tooltipKey, onClick)
+		local button = W.CreatePlainButton(parent, iconSize, iconSize, "")
+		if button.label then
+			button.label:Hide()
+		end
+		local icon = button:CreateTexture(nil, "ARTWORK")
+		icon:SetPoint("CENTER", 0, 0)
+		icon:SetSize(iconSize - 4, iconSize - 4)
+		W.SetSpellIconTexture(icon, RAID_REPORT_ICON)
+		button.icon = icon
+		W.SetPlainButtonTooltip(button, tooltipKey)
+		button:SetScript("OnClick", onClick)
+		return button
+	end
+
+	local function CreateSummaryCell(tooltipKey, onClick)
+		local col = CreateFrame("Frame", nil, summaryBand)
+		local reportBtn = CreateChatReportButton(col, tooltipKey, onClick)
+		reportBtn:SetPoint("RIGHT", col, "RIGHT", 0, 0)
+		local body = col:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		body:SetPoint("LEFT", col, "LEFT", 0, 0)
+		body:SetPoint("RIGHT", reportBtn, "LEFT", -iconGap, 0)
+		body:SetHeight(bandH)
+		body:SetJustifyH("LEFT")
+		body:SetJustifyV("MIDDLE")
+		body:SetWordWrap(false)
+		body:SetNonSpaceWrap(false)
+		col.body = body
+		col.reportBtn = reportBtn
+		return col
+	end
+
+	local flaskCol = CreateSummaryCell("BTN_RAID_REPORT_FLASK_TIP", function()
+		ReportMissingConsumablesToChat("flask")
+	end)
+	page.flaskCol = flaskCol
+	page.flaskSummaryLabel = flaskCol.body
+	page.reportFlaskBtn = flaskCol.reportBtn
+
+	local foodCol = CreateSummaryCell("BTN_RAID_REPORT_FOOD_TIP", function()
+		ReportMissingConsumablesToChat("food")
+	end)
+	page.foodCol = foodCol
+	page.foodSummaryLabel = foodCol.body
+	page.reportFoodBtn = foodCol.reportBtn
+
+	local gearGradeCol = CreateSummaryCell("BTN_RAID_REPORT_GEAR_TIP", function()
+		ReportGearCategoryToChat("gear")
+	end)
+	page.gearGradeCol = gearGradeCol
+	page.gearGradeSummaryLabel = gearGradeCol.body
+	page.reportGearBtn = gearGradeCol.reportBtn
+
+	local enchantGradeCol = CreateSummaryCell("BTN_RAID_REPORT_ENCHANT_TIP", function()
+		ReportGearCategoryToChat("enchant")
+	end)
+	page.enchantGradeCol = enchantGradeCol
+	page.enchantGradeSummaryLabel = enchantGradeCol.body
+	page.reportEnchantBtn = enchantGradeCol.reportBtn
+
+	local summaryCols = { flaskCol, foodCol, gearGradeCol, enchantGradeCol }
+
+	local function LayoutRaidSummaryBand()
+		local colW = EqualColumnWidth(summaryBand:GetWidth() or 1, colCount, colGap)
+		for index = 1, #summaryCols do
+			local col = summaryCols[index]
+			col:ClearAllPoints()
+			col:SetSize(colW, bandH)
+			col:SetPoint("TOPLEFT", (index - 1) * (colW + colGap), 0)
+		end
+	end
+	summaryBand:SetScript("OnSizeChanged", function()
+		LayoutRaidSummaryBand()
+	end)
+	LayoutRaidSummaryBand()
+
+	local hint = headerHost:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	hint:SetPoint("TOPLEFT", summaryBand, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
+	hint:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
+	hint:SetHeight(hintH)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
 	hint:SetWordWrap(true)
@@ -454,148 +575,66 @@ local function CreateRaidDescriptionLeft(page, toolbarAnchor)
 	hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
 	page.hint = hint
 
-	local stats = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	stats:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
-	stats:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
-	stats:SetHeight(UI.ROSTER_STATS_H)
-	stats:SetJustifyH("LEFT")
-	stats:SetJustifyV("TOP")
-	W.SetFontColor(stats, UI.TEXT_IDLE)
-	stats:SetText(FormatRaidRosterStatsLine(nil, {}))
-	page.statsLabel = stats
+	local toolbar = CreateFrame("Frame", nil, headerHost)
+	toolbar:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
+	toolbar:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
+	toolbar:SetHeight(UI.CD_TOOLBAR_H)
+	page.raidToolbar = toolbar
 
-	local bandH = UI.RAID_SUMMARY_BAND_H or 78
-	local headingH = UI.RAID_SUMMARY_HEADING_H or 14
-	local bodyH = UI.RAID_SUMMARY_BODY_H or 32
-	local summaryBand = CreateFrame("Frame", nil, descLeftCol)
-	summaryBand:SetPoint("TOPLEFT", stats, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
-	summaryBand:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
-	summaryBand:SetHeight(bandH)
-	page.summaryBand = summaryBand
+	local scanBtn = W.CreatePlainButton(toolbar, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_SCAN"))
+	W.SetPlainButtonTooltip(scanBtn, "RAID_SCAN_TIP")
+	local exportBtn = W.CreatePlainButton(toolbar, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_RAID_EXPORT"))
+	W.SetPlainButtonTooltip(exportBtn, "GEAR_CHECK_RAID_EXPORT_TIP")
 
-	local function CreateSummaryColumn()
-		local col = CreateFrame("Frame", nil, summaryBand)
-		local heading = col:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		heading:SetPoint("TOPLEFT", 0, 0)
-		heading:SetPoint("RIGHT", col, "RIGHT", 0, 0)
-		heading:SetHeight(headingH)
-		heading:SetJustifyH("LEFT")
-		heading:SetJustifyV("MIDDLE")
-		W.SetFontColor(heading, UI.GOLD)
-		col.heading = heading
-
-		local body = col:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-		body:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -UI.RAID_DESC_LINE_GAP)
-		body:SetPoint("RIGHT", col, "RIGHT", 0, 0)
-		body:SetHeight(bodyH)
-		body:SetJustifyH("LEFT")
-		body:SetJustifyV("TOP")
-		body:SetWordWrap(true)
-		body:SetNonSpaceWrap(false)
-		col.body = body
-
-		local btnHost = CreateFrame("Frame", nil, col)
-		btnHost:SetPoint("BOTTOMLEFT", 0, 0)
-		btnHost:SetPoint("BOTTOMRIGHT", 0, 0)
-		btnHost:SetHeight(UI.CD_TOOLBAR_H)
-		col.btnHost = btnHost
-		return col
-	end
-
-	local consumableCol = CreateSummaryColumn()
-	consumableCol.heading:SetText(W.T("RAID_SUMMARY_CONSUMABLES"))
-	page.consumableCol = consumableCol
-	page.consumableSummaryLabel = consumableCol.body
-	page.consumableSummaryLabel:SetText(W.T("RAID_CONSUMABLE_FLASK") .. " —\n" .. W.T("RAID_CONSUMABLE_FOOD") .. " —")
-	W.SetFontColor(page.consumableSummaryLabel, UI.TEXT_DISABLED)
-
-	local reportFlaskBtn = W.CreatePlainButton(consumableCol.btnHost, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_RAID_REPORT_FLASK"))
-	reportFlaskBtn:SetPoint("LEFT", 0, 0)
-	W.SetPlainButtonTooltip(reportFlaskBtn, "BTN_RAID_REPORT_FLASK_TIP")
-	reportFlaskBtn:SetScript("OnClick", function()
-		ReportMissingConsumablesToChat("flask")
+	local refreshBtn = W.CreatePlainButton(toolbar, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
+	W.SetPlainButtonTooltip(refreshBtn, "RAID_REFRESH_TIP")
+	refreshBtn:SetScript("OnClick", function()
+		Addon:RefreshPartyData(true)
 	end)
-	page.reportFlaskBtn = reportFlaskBtn
 
-	local reportFoodBtn = W.CreatePlainButton(consumableCol.btnHost, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_RAID_REPORT_FOOD"))
-	reportFoodBtn:SetPoint("LEFT", reportFlaskBtn, "RIGHT", RAID_TOOLBAR_BTN_GAP, 0)
-	W.SetPlainButtonTooltip(reportFoodBtn, "BTN_RAID_REPORT_FOOD_TIP")
-	reportFoodBtn:SetScript("OnClick", function()
-		ReportMissingConsumablesToChat("food")
-	end)
-	page.reportFoodBtn = reportFoodBtn
+	local textViewBtn = W.CreatePlainButton(toolbar, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_RAID_BACK_TO_ROSTER"))
+	W.SetPlainButtonTooltip(textViewBtn, "BTN_RAID_BACK_TO_ROSTER_TIP")
+	textViewBtn:Disable()
 
-	local gearGradeCol = CreateSummaryColumn()
-	gearGradeCol.heading:SetText(W.T("RAID_SUMMARY_GEAR"))
-	page.gearGradeCol = gearGradeCol
-	page.gearGradeSummaryLabel = gearGradeCol.body
-	page.gearGradeSummaryLabel:SetText(W.T("RAID_GRADE_SUMMARY_EMPTY"))
-	W.SetFontColor(page.gearGradeSummaryLabel, UI.TEXT_DISABLED)
+	page.gearCheckScanBtn = scanBtn
+	page.gearCheckExportBtn = exportBtn
+	page.refreshBtn = refreshBtn
+	page.textViewBtn = textViewBtn
 
-	local reportGearBtn = W.CreatePlainButton(gearGradeCol.btnHost, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_RAID_REPORT_GEAR"))
-	reportGearBtn:SetPoint("LEFT", 0, 0)
-	W.SetPlainButtonTooltip(reportGearBtn, "BTN_RAID_REPORT_GEAR_TIP")
-	reportGearBtn:SetScript("OnClick", function()
-		ReportGearCategoryToChat("gear")
-	end)
-	page.reportGearBtn = reportGearBtn
-
-	local enchantGradeCol = CreateSummaryColumn()
-	enchantGradeCol.heading:SetText(W.T("RAID_SUMMARY_ENCHANT"))
-	page.enchantGradeCol = enchantGradeCol
-	page.enchantGradeSummaryLabel = enchantGradeCol.body
-	page.enchantGradeSummaryLabel:SetText(W.T("RAID_GRADE_SUMMARY_EMPTY"))
-	W.SetFontColor(page.enchantGradeSummaryLabel, UI.TEXT_DISABLED)
-
-	local reportEnchantBtn = W.CreatePlainButton(enchantGradeCol.btnHost, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_RAID_REPORT_ENCHANT"))
-	reportEnchantBtn:SetPoint("LEFT", 0, 0)
-	W.SetPlainButtonTooltip(reportEnchantBtn, "BTN_RAID_REPORT_ENCHANT_TIP")
-	reportEnchantBtn:SetScript("OnClick", function()
-		ReportGearCategoryToChat("enchant")
-	end)
-	page.reportEnchantBtn = reportEnchantBtn
-
-	local function LayoutRaidSummaryBand()
-		local width = summaryBand:GetWidth() or 1
-		local gap = UI.RAID_SUMMARY_COL_GAP or 8
-		local colW = math.max(1, math.floor((width - gap * 2) / 3))
-		local cols = { consumableCol, gearGradeCol, enchantGradeCol }
-		for index = 1, #cols do
-			local col = cols[index]
-			col:ClearAllPoints()
-			col:SetSize(colW, bandH)
-			col:SetPoint("TOPLEFT", (index - 1) * (colW + gap), 0)
+	local toolbarBtns = { scanBtn, exportBtn, refreshBtn, textViewBtn }
+	local function LayoutRaidToolbar()
+		local btnW = EqualColumnWidth(toolbar:GetWidth() or 1, colCount, colGap)
+		for index = 1, #toolbarBtns do
+			local button = toolbarBtns[index]
+			button:ClearAllPoints()
+			button:SetSize(btnW, UI.CD_TOOLBAR_H)
+			button:SetPoint("TOPLEFT", (index - 1) * (btnW + colGap), 0)
 		end
-		local half = math.max(1, math.floor((colW - RAID_TOOLBAR_BTN_GAP) / 2))
-		reportFlaskBtn:SetWidth(half)
-		reportFoodBtn:SetWidth(half)
-		reportGearBtn:SetWidth(math.min(RAID_TOOLBAR_COL_W, colW))
-		reportEnchantBtn:SetWidth(math.min(RAID_TOOLBAR_COL_W, colW))
 	end
-	summaryBand:SetScript("OnSizeChanged", function()
-		LayoutRaidSummaryBand()
+	toolbar:SetScript("OnSizeChanged", function()
+		LayoutRaidToolbar()
 	end)
-	LayoutRaidSummaryBand()
+	LayoutRaidToolbar()
 
-	local gearCheckStatusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	gearCheckStatusLabel:SetPoint("TOPLEFT", summaryBand, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
-	gearCheckStatusLabel:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
+	local gearCheckStatusLabel = headerHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	gearCheckStatusLabel:SetPoint("TOPLEFT", toolbar, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
+	gearCheckStatusLabel:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
 	gearCheckStatusLabel:SetHeight(UI.RAID_PROGRESS_STATUS_H)
 	gearCheckStatusLabel:SetJustifyH("LEFT")
 	gearCheckStatusLabel:SetJustifyV("TOP")
 	gearCheckStatusLabel:SetWordWrap(true)
 	gearCheckStatusLabel:SetNonSpaceWrap(false)
-	gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
+	gearCheckStatusLabel:SetText("")
 	W.SetFontColor(gearCheckStatusLabel, UI.TEXT_IDLE)
 	page.gearCheckStatusLabel = gearCheckStatusLabel
 
-	local progressHost = W.CreateProgressBar(descLeftCol, UI.RAID_PROGRESS_H)
+	local progressHost = W.CreateProgressBar(headerHost, UI.RAID_PROGRESS_H)
 	progressHost:SetPoint("TOPLEFT", gearCheckStatusLabel, "BOTTOMLEFT", 0, -UI.RAID_PROGRESS_STATUS_GAP)
-	progressHost:SetPoint("RIGHT", descLeftCol, "RIGHT", 0, 0)
+	progressHost:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
 	progressHost:Show()
 	page.gearCheckProgressHost = progressHost
 
-	return descLeftCol
+	return headerHost
 end
 
 local function SetRaidProgress(page, value, maxValue, visible)
@@ -621,6 +660,17 @@ end
 local function PageGearActionsBusy(page)
 	return page
 		and (page.gearCheckScanning or page.gearCheckExporting or page.gearCheckMemberScanning)
+end
+
+local function SetRaidProgressIdleText(page)
+	if not page or not page.gearCheckStatusLabel or PageGearActionsBusy(page) then
+		return
+	end
+	if page.exportViewMode then
+		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_EXPORT_READY"))
+		return
+	end
+	page.gearCheckStatusLabel:SetText("")
 end
 
 local function UpdateRaidExportActionButtons(page, busy)
@@ -701,9 +751,7 @@ local function ExitRaidExportView(page)
 	end
 	page.exportViewMode = false
 	UpdateRaidExportView(page)
-	if page.gearCheckStatusLabel and not PageGearActionsBusy(page) then
-		page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
-	end
+	SetRaidProgressIdleText(page)
 end
 
 local function SetRaidBusyButtons(page, busy)
@@ -1387,9 +1435,7 @@ local function RunGearCheckRaidExport(page)
 			page.gearCheckExporting = false
 			SetRaidBusyButtons(page, false)
 			SetRaidProgress(page, 0, 1, false)
-			if page.gearCheckStatusLabel then
-				page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
-			end
+			SetRaidProgressIdleText(page)
 			if not text or text == "" then
 				if text == "" then
 					Addon:Print(W.T("GEAR_CHECK_RAID_EXPORT_EMPTY"))
@@ -1495,41 +1541,16 @@ local function CreateRaidRosterPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local scanBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_SCAN"))
-	scanBtn:SetPoint("TOPRIGHT", 0, 0)
-	W.SetPlainButtonTooltip(scanBtn, "RAID_SCAN_TIP")
-	scanBtn:SetScript("OnClick", function()
+	CreateRaidRosterHeader(page)
+	page.gearCheckScanBtn:SetScript("OnClick", function()
 		RunGearCheckRaidScan(page)
 	end)
-
-	local exportBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_RAID_EXPORT"))
-	exportBtn:SetPoint("TOPRIGHT", scanBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
-	W.SetPlainButtonTooltip(exportBtn, "GEAR_CHECK_RAID_EXPORT_TIP")
-	exportBtn:SetScript("OnClick", function()
+	page.gearCheckExportBtn:SetScript("OnClick", function()
 		RunGearCheckRaidExport(page)
 	end)
-
-	local refreshBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
-	refreshBtn:SetPoint("TOPRIGHT", exportBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
-	W.SetPlainButtonTooltip(refreshBtn, "RAID_REFRESH_TIP")
-	refreshBtn:SetScript("OnClick", function()
-		Addon:RefreshPartyData(true)
-	end)
-
-	local textViewBtn = W.CreatePlainButton(page, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_RAID_BACK_TO_ROSTER"))
-	textViewBtn:SetPoint("TOPRIGHT", refreshBtn, "BOTTOMRIGHT", 0, -RAID_TOOLBAR_BTN_GAP)
-	W.SetPlainButtonTooltip(textViewBtn, "BTN_RAID_BACK_TO_ROSTER_TIP")
-	textViewBtn:Disable()
-	textViewBtn:SetScript("OnClick", function()
+	page.textViewBtn:SetScript("OnClick", function()
 		ExitRaidExportView(page)
 	end)
-
-	page.gearCheckScanBtn = scanBtn
-	page.gearCheckExportBtn = exportBtn
-	page.refreshBtn = refreshBtn
-	page.textViewBtn = textViewBtn
-
-	CreateRaidDescriptionLeft(page, scanBtn)
 
 	local tableTop = -W.RaidRosterTableTopOffset()
 	local tableHost = CreateFrame("Frame", nil, page)
@@ -1614,6 +1635,9 @@ local function ApplyLocale(page)
 	if not page then
 		return
 	end
+	if page.gradeLegendLabel then
+		page.gradeLegendLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
+	end
 	if page.hint then
 		page.hint:SetText(W.ColorizeGearGradation(W.T("RAID_HINT")))
 	end
@@ -1629,30 +1653,19 @@ local function ApplyLocale(page)
 	if page.textViewBtn and page.textViewBtn.label then
 		page.textViewBtn.label:SetText(W.T("BTN_RAID_BACK_TO_ROSTER"))
 	end
-	if page.reportFlaskBtn and page.reportFlaskBtn.label then
-		page.reportFlaskBtn.label:SetText(W.T("BTN_RAID_REPORT_FLASK"))
+	if page.reportFlaskBtn then
+		page.reportFlaskBtn.tooltipKey = "BTN_RAID_REPORT_FLASK_TIP"
 	end
-	if page.reportFoodBtn and page.reportFoodBtn.label then
-		page.reportFoodBtn.label:SetText(W.T("BTN_RAID_REPORT_FOOD"))
+	if page.reportFoodBtn then
+		page.reportFoodBtn.tooltipKey = "BTN_RAID_REPORT_FOOD_TIP"
 	end
-	if page.reportGearBtn and page.reportGearBtn.label then
-		page.reportGearBtn.label:SetText(W.T("BTN_RAID_REPORT_GEAR"))
+	if page.reportGearBtn then
+		page.reportGearBtn.tooltipKey = "BTN_RAID_REPORT_GEAR_TIP"
 	end
-	if page.reportEnchantBtn and page.reportEnchantBtn.label then
-		page.reportEnchantBtn.label:SetText(W.T("BTN_RAID_REPORT_ENCHANT"))
+	if page.reportEnchantBtn then
+		page.reportEnchantBtn.tooltipKey = "BTN_RAID_REPORT_ENCHANT_TIP"
 	end
-	if page.consumableCol and page.consumableCol.heading then
-		page.consumableCol.heading:SetText(W.T("RAID_SUMMARY_CONSUMABLES"))
-	end
-	if page.gearGradeCol and page.gearGradeCol.heading then
-		page.gearGradeCol.heading:SetText(W.T("RAID_SUMMARY_GEAR"))
-	end
-	if page.enchantGradeCol and page.enchantGradeCol.heading then
-		page.enchantGradeCol.heading:SetText(W.T("RAID_SUMMARY_ENCHANT"))
-	end
-	if page.gearCheckStatusLabel and not page.gearCheckScanning and not page.gearCheckExporting and not page.gearCheckMemberScanning then
-		page.gearCheckStatusLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
-	end
+	SetRaidProgressIdleText(page)
 	UpdateRaidGradeSummaries(page, ResolveGearCheckResults(page))
 	UpdateRaidConsumableSummary(page)
 	UpdateRaidExportActionButtons(page)

@@ -102,18 +102,17 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Description block with **Scan** / **Export all** / **Refresh** / **Back to roster** in a fixed right column; left column stacks hint, stats, then a three-column summary band (flask/food, armor/weap, ench/sock), then progress status + bar; roster table or export copy box at a fixed top offset (clears the **4**-button toolbar). `LAYOUT_VERSION = 21`.
+Full-width mini table (grade legend, GS averages, one-line flask/food/armor/ench with report icons, description), then **Scan** / **Export all** / **Refresh** / **Back to roster** in one row under it, then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 23`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Button column | **104** px wide | **Scan**, **Export all**, **Refresh**, **Back to roster** stacked top → bottom; **4** px gap; **8** px gap from description |
-| Short description | left column | Beside **Scan**; **28** px row height; wraps within column |
-| Stats line | below hint | **2** px gap; height **16** |
-| Summary band | below stats | **2** px gap; height **78**; three equal columns (**8** px gaps). Per column: heading **14**, body **32**, report row **28** |
-| Flask/food reports | column 1 | Two half-width **28** tall buttons (**Report flask**, **Report food**) |
-| Armor / ench reports | columns 2–3 | **Report armor** / **Report ench**; width min(**104**, column) |
-| Progress status | below summary | **4** px gap; fixed **28** px height (two lines) |
-| Progress bar | below status | **4** px gap; height **14**; always reserved |
+| Grade legend | full width × **32** | Row 0 of the mini table |
+| Stats line | full width × **16** | Row 1; **2** px gap above |
+| Summary band | full width × **20** | Row 2; **2** px gap above; **4** equal columns (**8** px gaps). One line per cell: gold name + counts, **16×16** report icon on the right |
+| Description | full width × **28** | Row 3; **2** px gap above |
+| Toolbar | full width × **28** | **4** px under the mini table; four equal buttons (**8** px gaps) aligned with the status cells |
+| Progress status | full width × **28** | **4** px under toolbar (two lines) |
+| Progress bar | full width × **14** | **4** px under status; always reserved |
 | Player cell | **168 × 137** | Seven text lines + one button row: class+name+flask/food, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
 | Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
