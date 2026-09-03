@@ -339,16 +339,26 @@ local function SendRaidConsumableChat(message)
 	Addon:Print(message)
 end
 
-local function SendRaidConsumableNameList(template, names)
-	if type(names) ~= "table" or #names == 0 then
+local function SendRaidChatMessages(messages)
+	if type(messages) ~= "table" then
 		return
+	end
+	for index = 1, #messages do
+		SendRaidConsumableChat(messages[index])
+	end
+end
+
+local function BuildNameListMessages(template, names)
+	local messages = {}
+	if type(names) ~= "table" or #names == 0 then
+		return messages
 	end
 	local batch = {}
 	local function flush()
 		if #batch == 0 then
 			return
 		end
-		SendRaidConsumableChat(string.format(template, table.concat(batch, ", ")))
+		messages[#messages + 1] = string.format(template, table.concat(batch, ", "))
 		batch = {}
 	end
 	for index = 1, #names do
@@ -363,9 +373,10 @@ local function SendRaidConsumableNameList(template, names)
 		batch[#batch + 1] = name
 	end
 	flush()
+	return messages
 end
 
-local function ReportMissingConsumablesToChat(kind)
+local function BuildMissingConsumableMessages(kind)
 	local frame = Addon.mainFrame
 	local page = frame and frame.pages and frame.pages.raid
 	local summary = page and page.consumableSummary
@@ -379,21 +390,18 @@ local function ReportMissingConsumablesToChat(kind)
 	if kind == "food" then
 		local names = summary.foodMissing or {}
 		if #names == 0 then
-			SendRaidConsumableChat(W.T("RAID_CHAT_FOOD_ALL"))
-		else
-			SendRaidConsumableNameList(W.T("RAID_CHAT_FOOD_MISSING"), names)
+			return { W.T("RAID_CHAT_FOOD_ALL") }
 		end
-		return
+		return BuildNameListMessages(W.T("RAID_CHAT_FOOD_MISSING"), names)
 	end
 	local names = summary.flaskMissing or {}
 	if #names == 0 then
-		SendRaidConsumableChat(W.T("RAID_CHAT_FLASK_ALL"))
-	else
-		SendRaidConsumableNameList(W.T("RAID_CHAT_FLASK_MISSING"), names)
+		return { W.T("RAID_CHAT_FLASK_ALL") }
 	end
+	return BuildNameListMessages(W.T("RAID_CHAT_FLASK_MISSING"), names)
 end
 
-local function ReportGearCategoryToChat(kind)
+local function BuildGearCategoryMessages(kind)
 	local frame = Addon.mainFrame
 	local page = frame and frame.pages and frame.pages.raid
 	local summary
@@ -406,26 +414,61 @@ local function ReportGearCategoryToChat(kind)
 	local failed = (summary and summary.failed) or 0
 	if scanned + failed <= 0 then
 		if kind == "enchant" then
-			SendRaidConsumableChat(W.T("RAID_CHAT_ENCHANT_NONE"))
-		else
-			SendRaidConsumableChat(W.T("RAID_CHAT_GEAR_NONE"))
+			return { W.T("RAID_CHAT_ENCHANT_NONE") }
 		end
-		return
+		return { W.T("RAID_CHAT_GEAR_NONE") }
 	end
 	local names = (summary and summary.issueNames) or {}
 	if #names == 0 then
 		if kind == "enchant" then
-			SendRaidConsumableChat(W.T("RAID_CHAT_ENCHANT_ALL"))
-		else
-			SendRaidConsumableChat(W.T("RAID_CHAT_GEAR_ALL"))
+			return { W.T("RAID_CHAT_ENCHANT_ALL") }
 		end
-		return
+		return { W.T("RAID_CHAT_GEAR_ALL") }
 	end
 	if kind == "enchant" then
-		SendRaidConsumableNameList(W.T("RAID_CHAT_ENCHANT_ISSUES"), names)
-	else
-		SendRaidConsumableNameList(W.T("RAID_CHAT_GEAR_ISSUES"), names)
+		return BuildNameListMessages(W.T("RAID_CHAT_ENCHANT_ISSUES"), names)
 	end
+	return BuildNameListMessages(W.T("RAID_CHAT_GEAR_ISSUES"), names)
+end
+
+local function ReportMissingConsumablesToChat(kind)
+	SendRaidChatMessages(BuildMissingConsumableMessages(kind))
+end
+
+local function ReportGearCategoryToChat(kind)
+	SendRaidChatMessages(BuildGearCategoryMessages(kind))
+end
+
+local function ShowChatReportTooltip(button, tipKey, messages)
+	GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+	if tipKey then
+		GameTooltip:AddLine(W.T(tipKey), nil, nil, nil, true)
+	end
+	GameTooltip:AddLine(" ")
+	GameTooltip:AddLine(W.T("RAID_CHAT_PREVIEW"), 0.6, 0.6, 0.6)
+	if type(messages) == "table" then
+		for index = 1, #messages do
+			GameTooltip:AddLine(messages[index], 1, 1, 1, true)
+		end
+	end
+	GameTooltip:Show()
+end
+
+local function SetChatReportButtonTooltip(button, tipKey, buildMessages)
+	if not button then
+		return
+	end
+	button.tooltipKey = tipKey
+	button.buildChatMessages = buildMessages
+	button:SetScript("OnEnter", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		local messages = self.buildChatMessages and self.buildChatMessages() or {}
+		ShowChatReportTooltip(self, self.tooltipKey, messages)
+	end)
+	button:SetScript("OnLeave", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, false))
+		GameTooltip:Hide()
+	end)
 end
 
 local function EqualColumnWidth(totalWidth, count, gap)
@@ -488,7 +531,7 @@ local function CreateRaidRosterHeader(page)
 	local summaryCol = CreateHeaderColumn()
 	page.summaryBand = summaryCol
 
-	local function CreateChatReportButton(parent, tooltipKey, onClick)
+	local function CreateChatReportButton(parent, tooltipKey, buildMessages, onClick)
 		local button = W.CreatePlainButton(parent, iconSize, iconSize, "")
 		if button.label then
 			button.label:Hide()
@@ -498,14 +541,14 @@ local function CreateRaidRosterHeader(page)
 		icon:SetSize(iconSize - 4, iconSize - 4)
 		W.SetSpellIconTexture(icon, RAID_REPORT_ICON)
 		button.icon = icon
-		W.SetPlainButtonTooltip(button, tooltipKey)
+		SetChatReportButtonTooltip(button, tooltipKey, buildMessages)
 		button:SetScript("OnClick", onClick)
 		return button
 	end
 
-	local function CreateSummaryCell(tooltipKey, onClick)
+	local function CreateSummaryCell(tooltipKey, buildMessages, onClick)
 		local cell = CreateFrame("Frame", nil, summaryCol)
-		local reportBtn = CreateChatReportButton(cell, tooltipKey, onClick)
+		local reportBtn = CreateChatReportButton(cell, tooltipKey, buildMessages, onClick)
 		reportBtn:SetPoint("RIGHT", cell, "RIGHT", 0, 0)
 		local body = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 		body:SetPoint("LEFT", cell, "LEFT", 0, 0)
@@ -521,6 +564,8 @@ local function CreateRaidRosterHeader(page)
 	end
 
 	local flaskCol = CreateSummaryCell("BTN_RAID_REPORT_FLASK_TIP", function()
+		return BuildMissingConsumableMessages("flask")
+	end, function()
 		ReportMissingConsumablesToChat("flask")
 	end)
 	page.flaskCol = flaskCol
@@ -528,6 +573,8 @@ local function CreateRaidRosterHeader(page)
 	page.reportFlaskBtn = flaskCol.reportBtn
 
 	local foodCol = CreateSummaryCell("BTN_RAID_REPORT_FOOD_TIP", function()
+		return BuildMissingConsumableMessages("food")
+	end, function()
 		ReportMissingConsumablesToChat("food")
 	end)
 	page.foodCol = foodCol
@@ -535,6 +582,8 @@ local function CreateRaidRosterHeader(page)
 	page.reportFoodBtn = foodCol.reportBtn
 
 	local gearGradeCol = CreateSummaryCell("BTN_RAID_REPORT_GEAR_TIP", function()
+		return BuildGearCategoryMessages("gear")
+	end, function()
 		ReportGearCategoryToChat("gear")
 	end)
 	page.gearGradeCol = gearGradeCol
@@ -542,6 +591,8 @@ local function CreateRaidRosterHeader(page)
 	page.reportGearBtn = gearGradeCol.reportBtn
 
 	local enchantGradeCol = CreateSummaryCell("BTN_RAID_REPORT_ENCHANT_TIP", function()
+		return BuildGearCategoryMessages("enchant")
+	end, function()
 		ReportGearCategoryToChat("enchant")
 	end)
 	page.enchantGradeCol = enchantGradeCol

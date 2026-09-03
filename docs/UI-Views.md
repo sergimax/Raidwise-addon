@@ -136,7 +136,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | col 3 status | Four rows: **Flask**, **Food**, **Armor / weap**, **Ench / sock** — gold name + counts, **16×16** note icon on the right |
 | flask / food | `Flask n/total (x missing)` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Out of range / offline are not listed as missing |
 | armor / ench | S / A / B / C / D counts (+ Failed). Dim until first scan (`Press Scan to check.`) |
-| report icon | Same note icon on every status row; hover shows the flask / food / armor / ench tip |
+| report icon | Same note icon on every status row; hover shows the flask / food / armor / ench tip plus a preview of the chat line(s) that will be posted |
 | col 4 toolbar | **Scan**, **Export all**, **Refresh**, **Back to roster** stacked (**28** tall, **4** px gap). **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
 | scan status | Below the mini table; reserved **28** px; scan/export/rescan text (empty when idle) |
 | progress bar | Below status (**4** px gap); height **14**; track always reserved |
