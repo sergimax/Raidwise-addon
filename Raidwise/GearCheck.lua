@@ -2028,7 +2028,7 @@ function Addon:StartGearCheckRaidScan(onProgress, onComplete)
 	return true
 end
 
--- Phase 7: self-chat reports only (DEFAULT_CHAT_FRAME). Finding text stays English.
+-- Phase 7: chat reports. Destination is Settings report channel. Finding text stays English.
 local CHAT_ITEM_CATEGORIES = {
 	item = true,
 	armor = true,
@@ -2262,6 +2262,25 @@ function Addon:PrintGearCheckReport(mode, report)
 		return false
 	end
 	local lines = self:FormatGearCheckChatReport(report, mode)
+	local chatType, reason
+	if self.ResolveReportChatType then
+		chatType, reason = self:ResolveReportChatType()
+	else
+		reason = "self"
+	end
+	if chatType then
+		for index = 1, #lines do
+			local text = "[GearCheck] " .. lines[index]
+			if string.len(text) > 255 then
+				text = string.sub(text, 1, 252) .. "..."
+			end
+			SendChatMessage(text, chatType)
+		end
+		return true
+	end
+	if reason == "unavailable" then
+		self:Print(self:T("REPORT_CHAT_UNAVAILABLE"))
+	end
 	for index = 1, #lines do
 		DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[GearCheck]|r " .. lines[index])
 	end

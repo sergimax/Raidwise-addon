@@ -46,26 +46,12 @@ local function JoinNames(names)
 	return table.concat(names, ", ")
 end
 
-local function CompositionChatChannel()
-	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
-	if raidCount > 0 then
-		return "RAID"
-	end
-	local partyCount = (GetNumPartyMembers and GetNumPartyMembers()) or 0
-	if partyCount > 0 then
-		return "PARTY"
-	end
-	return nil
-end
-
 local function SendCompositionChat(message)
-	local channel = CompositionChatChannel()
-	if not channel then
-		Addon:Print(W.T("COMP_CHAT_NO_GROUP"))
-		Addon:Print(message)
+	if Addon.SendReportChat then
+		Addon:SendReportChat(message)
 		return
 	end
-	SendChatMessage(message, channel)
+	Addon:Print(message)
 end
 
 local function ReportMissingClassesToChat()

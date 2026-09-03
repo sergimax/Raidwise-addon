@@ -49,7 +49,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 7` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
@@ -177,7 +177,7 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |
 | columns | Three equal columns below; sections pack into the shortest column |
 | section heading | Name left; `present/total` right-aligned above row counts; gold, or **red** when present is `0` |
-| row | Spell icon, name, count of players who can provide it; **Shift-click** posts effect + class/spec — spell lines to raid/party chat |
+| row | Spell icon, name, count of players who can provide it; **Shift-click** posts effect + class/spec — spell lines to the report chat channel (Settings) |
 | present | Gold name and count (`> 0`) |
 | missing | Dim name and `0` |
 | tooltip | Who in the raid has it; then **Brought by:** on its own line, then one source class/spec — spell per line; hint for Shift-click |
@@ -334,6 +334,11 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 ( ) Cooldowns   ( ) Export      ( ) Raid        ( ) Composition
 ( ) Gear target ( ) History     ( ) Settings
 
+[ Report chat channel heading ]
+[ short hint ]
+( ) Auto (raid / party)  ( ) Self (your chat)  ( ) Party         ( ) Raid
+( ) Raid warning         ( ) Guild             ( ) Officer       ( ) Say
+
 [ Unit tooltips heading ]
 [ short hint ]
 [ ] Hide personal opinion
@@ -356,6 +361,7 @@ Stacked (variant)
 | short hint | “Interface language. Saved on this account.” |
 | English / Русский | Menu-style buttons; the active locale is selected. Choice is stored in `RaidwiseDB.locale` (`enUS` / `ruRU`). Default is the client locale. |
 | Startup page | Exclusive radio group for left-menu pages (**Info** excluded); selected page opens on `/raidwise`. Stored in `RaidwiseDB.startupTab` (default `cooldowns`). Saved `party` / `gearraid` migrate to `raid`. |
+| Report chat channel | Exclusive radio group; destination for Raid roster, Composition, and Gear check reports. Stored in `RaidwiseDB.reportChannel` (default `auto` = RAID in a raid, PARTY in a party). Unavailable channels print to the local chat frame instead. |
 | Unit tooltips | Checkboxes stored in `RaidwiseDB.tooltip` (`hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags`); default all shown |
 | Preview | Sample compact (live) and stacked layout lines; updates when checkboxes change |
 

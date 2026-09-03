@@ -33,16 +33,16 @@ local Translations = {
 		BTN_RAID_REPORT_FLASK = "Report flask",
 		BTN_RAID_REPORT_FOOD = "Report food",
 		BTN_REFRESH_TIP = "Refresh this view with the latest data.",
-		BTN_COMP_REPORT_TIP = "Post missing required classes to raid or party chat.",
+		BTN_COMP_REPORT_TIP = "Post missing required classes to the report chat channel (Settings).",
 		BTN_RAID_PROFILE_TIP = "Open Character profile for this player.",
 		BTN_RAID_GEAR_TIP = "Open this player's gear check report on Gear check (target). Requires a completed Scan.",
 		BTN_RAID_RESCAN_TIP = "Re-run gear check for this player only and update their roster grades.",
-		BTN_RAID_REPORT_FLASK_TIP = "Post players missing a flask (or battle + guardian elixirs) to raid or party chat.",
-		BTN_RAID_REPORT_FOOD_TIP = "Post players missing a food buff to raid or party chat.",
+		BTN_RAID_REPORT_FLASK_TIP = "Post players missing a flask (or battle + guardian elixirs) to the report chat channel (Settings).",
+		BTN_RAID_REPORT_FOOD_TIP = "Post players missing a food buff to the report chat channel (Settings).",
 		BTN_RAID_REPORT_GEAR = "Report armor",
 		BTN_RAID_REPORT_ENCHANT = "Report ench",
-		BTN_RAID_REPORT_GEAR_TIP = "Post players with armor/weapon issues (C or D) to raid or party chat.",
-		BTN_RAID_REPORT_ENCHANT_TIP = "Post players with enchant/socket issues (C or D) to raid or party chat.",
+		BTN_RAID_REPORT_GEAR_TIP = "Post players with armor/weapon issues (C or D) to the report chat channel (Settings).",
+		BTN_RAID_REPORT_ENCHANT_TIP = "Post players with enchant/socket issues (C or D) to the report chat channel (Settings).",
 		CD_REFRESH_TIP = "Request fresh raid info, then redraw lockouts and currency.",
 		PARTY_REFRESH_TIP = "Re-read GearScore, item levels, and guild info; re-queue inspect for specs.",
 		RAID_REFRESH_TIP = "Re-read GearScore and iLvl; re-queue inspect for spec icons.",
@@ -59,11 +59,11 @@ local Translations = {
 		GEAR_CHECK_SELECT_ALL_TIP = "Select all dump text so you can copy with Ctrl+C.",
 		GEAR_CHECK_SAVE_TIP = "Save the current report snapshot on this account (~14 days).",
 		GEAR_CHECK_SAVED_DELETE_TIP = "Delete the currently selected saved report.",
-		GEAR_CHECK_REPORT_SUMMARY_TIP = "Print a short overall summary to your chat only.",
-		GEAR_CHECK_REPORT_ITEMS_TIP = "Print item findings to your chat only.",
-		GEAR_CHECK_REPORT_ENCHANTS_TIP = "Print enchant findings to your chat only.",
-		GEAR_CHECK_REPORT_GEMS_TIP = "Print gem findings to your chat only.",
-		GEAR_CHECK_REPORT_OK_TIP = "Print B (not A) items to your chat only.",
+		GEAR_CHECK_REPORT_SUMMARY_TIP = "Print a short overall summary to the report chat channel (Settings).",
+		GEAR_CHECK_REPORT_ITEMS_TIP = "Print item findings to the report chat channel (Settings).",
+		GEAR_CHECK_REPORT_ENCHANTS_TIP = "Print enchant findings to the report chat channel (Settings).",
+		GEAR_CHECK_REPORT_GEMS_TIP = "Print gem findings to the report chat channel (Settings).",
+		GEAR_CHECK_REPORT_OK_TIP = "Print B (not A) items to the report chat channel (Settings).",
 		GEAR_CHECK_FILTER_ALL_TIP = "Show all findings in the breakdown.",
 		GEAR_CHECK_FILTER_ITEMS_TIP = "Show only item and armor findings.",
 		GEAR_CHECK_FILTER_ENCHANTS_TIP = "Show only enchant findings.",
@@ -84,7 +84,7 @@ local Translations = {
 			.. "- /raidwise or /rw — open the window\n"
 			.. "- /raidwise close or /rw close — close the window\n"
 			.. "- /rw gearcheck — open Gear check (target) and scan\n"
-			.. "- /rw gearcheck summary|items|enchants|gems|ok — print that report to your chat\n"
+			.. "- /rw gearcheck summary|items|enchants|gems|ok — print that report to the report chat channel (Settings)\n"
 			.. "- /rw gearcheck test — offline rules self-test",
 		INFO_SECTION_COOLDOWNS = "Lockouts and currency for every character saved on this account.\n"
 			.. "\n"
@@ -104,7 +104,7 @@ local Translations = {
 			.. "\n"
 			.. "- Groups 1–5, then 6–8: class, role, spec, raid buffs, flask/food, GearScore, iLvl, and grades\n"
 			.. "- Flask and food icons on each card: full color = active, red = missing, dim = out of range or offline\n"
-			.. "- Note icons beside flask, food, armor/weap, and ench/sock post missing or problem players to raid or party chat\n"
+			.. "- Note icons beside flask, food, armor/weap, and ench/sock post missing or problem players to the report chat channel (Settings)\n"
 			.. "- Hover a card for opinion, tags, guild (rank), and gear-check details\n"
 			.. "- Scan inspects everyone one at a time and fills armor/weap and ench/sock grades\n"
 			.. "- Export all builds text dumps; Back to roster closes them; click the dump + Ctrl+C copies\n"
@@ -114,7 +114,7 @@ local Translations = {
 			.. "\n"
 			.. "- Gold means covered; dim means missing\n"
 			.. "- Section titles show present/total; a red title means nothing in that section is present\n"
-			.. "- Report missing posts absent classes to raid or party chat\n"
+			.. "- Report missing posts absent classes to the report chat channel (Settings)\n"
 			.. "- Shift-click an effect row to post that effect with provider classes and spells",
 		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target, or yourself if nothing is targeted.\n"
 			.. "This is not a BiS list or build optimizer.\n"
@@ -122,7 +122,7 @@ local Translations = {
 			.. "- Overall: S (on published BiS lists), A (preferred + max ench/gems), B (usable), C (soft issues), D (wrong for spec)\n"
 			.. "- Spec ranks: preferred / acceptable / unwanted / forbidden\n"
 			.. "- Scan, then filter findings by All / Items / Enchants / Gems / B\n"
-			.. "- Report buttons and slash commands print to your chat only\n"
+			.. "- Report buttons and slash commands print to the report chat channel (Settings)\n"
 			.. "- Show as a text toggles the raw dump; Save report keeps a snapshot for about 14 days",
 		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time).\n"
 			.. "The group grid shows armor/weap and ench/sock grades per player (S / A / B / C / D).\n"
@@ -138,6 +138,7 @@ local Translations = {
 			.. "\n"
 			.. "- Language: English or Russian\n"
 			.. "- Startup page opened by /raidwise (Info cannot be the startup page)\n"
+			.. "- Report chat channel for Raid roster, Composition, and Gear check reports\n"
 			.. "- Unit tooltip toggles for personal and community rating lines",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
@@ -256,7 +257,7 @@ local Translations = {
 		GEAR_CHECK_TEXT_VIEW_ON = "Show as a text ✓",
 		GEAR_CHECK_DEBUG = "Show as a text",
 		GEAR_CHECK_DEBUG_ON = "Show as a text ✓",
-		GEAR_CHECK_HINT = "Target a player (or clear target to scan yourself), then press Scan.\nReport buttons print to your chat only.\nShow as a text reveals the raw dump.",
+		GEAR_CHECK_HINT = "Target a player (or clear target to scan yourself), then press Scan.\nReport buttons print to the report chat channel (Settings).\nShow as a text reveals the raw dump.",
 		GEAR_CHECK_STATUS_SCANNING = "Scanning…",
 		GEAR_CHECK_STATUS_OK = "Scanned %s (%s).",
 		GEAR_CHECK_STATUS_SELF = "self",
@@ -304,6 +305,7 @@ local Translations = {
 		COMP_CHAT_MISSING = "Raidwise: missing classes: %s",
 		COMP_CHAT_ALL_PRESENT = "Raidwise: all classes present.",
 		COMP_CHAT_NO_GROUP = "Join a party or raid to post to chat.",
+		REPORT_CHAT_UNAVAILABLE = "That chat channel is not available. Printed to your chat instead.",
 		COMP_CHAT_EFFECT_NEED = "Raidwise: need %s — %s",
 		COMP_CHAT_EFFECT_HAVE = "Raidwise: have %s — %s",
 		COMP_SHIFT_CHAT = "Shift-click to post to chat",
@@ -587,6 +589,16 @@ local Translations = {
 		SETTINGS_LANGUAGE_HINT = "Interface language. Saved on this account.",
 		SETTINGS_STARTUP_TAB = "Startup page",
 		SETTINGS_STARTUP_TAB_HINT = "Which left-menu page opens when you launch Raidwise (/raidwise). Info cannot be the startup page.",
+		SETTINGS_REPORT_CHANNEL = "Report chat channel",
+		SETTINGS_REPORT_CHANNEL_HINT = "Where Raid roster, Composition, and Gear check reports are posted. Auto uses raid chat in a raid and party chat in a party. If the channel is unavailable, reports print to your chat instead.",
+		SETTINGS_REPORT_CHANNEL_AUTO = "Auto (raid / party)",
+		SETTINGS_REPORT_CHANNEL_SELF = "Self (your chat)",
+		SETTINGS_REPORT_CHANNEL_PARTY = "Party",
+		SETTINGS_REPORT_CHANNEL_RAID = "Raid",
+		SETTINGS_REPORT_CHANNEL_RAID_WARNING = "Raid warning",
+		SETTINGS_REPORT_CHANNEL_GUILD = "Guild",
+		SETTINGS_REPORT_CHANNEL_OFFICER = "Officer",
+		SETTINGS_REPORT_CHANNEL_SAY = "Say",
 		SETTINGS_TOOLTIP = "Unit tooltips",
 		SETTINGS_TOOLTIP_HINT = "Add personal and community rating lines to player tooltips (mouseover / target). Community data is a mock preview until exchange is available.",
 		SETTINGS_TIP_HIDE_PERSONAL = "Hide personal opinion",
@@ -647,16 +659,16 @@ local Translations = {
 		BTN_RAID_REPORT_FLASK = "Сообщить настой",
 		BTN_RAID_REPORT_FOOD = "Сообщить еду",
 		BTN_REFRESH_TIP = "Обновить эту вкладку свежими данными.",
-		BTN_COMP_REPORT_TIP = "Написать в чат рейда или группы, каких классов не хватает.",
+		BTN_COMP_REPORT_TIP = "Написать в канал отчётов (Настройки), каких классов не хватает.",
 		BTN_RAID_PROFILE_TIP = "Открыть профиль персонажа для этого игрока.",
 		BTN_RAID_GEAR_TIP = "Открыть отчёт Gear Check на вкладке «Проверка экипа (цель)». Нужен завершённый скан.",
 		BTN_RAID_RESCAN_TIP = "Повторить проверку экипа только для этого игрока и обновить оценки на карточке.",
-		BTN_RAID_REPORT_FLASK_TIP = "Написать в чат рейда или группы, у кого нет настоя (или пары эликсиров).",
-		BTN_RAID_REPORT_FOOD_TIP = "Написать в чат рейда или группы, у кого нет баффа еды.",
+		BTN_RAID_REPORT_FLASK_TIP = "Написать в канал отчётов (Настройки), у кого нет настоя (или пары эликсиров).",
+		BTN_RAID_REPORT_FOOD_TIP = "Написать в канал отчётов (Настройки), у кого нет баффа еды.",
 		BTN_RAID_REPORT_GEAR = "Сообщить броню",
 		BTN_RAID_REPORT_ENCHANT = "Сообщить чары",
-		BTN_RAID_REPORT_GEAR_TIP = "Написать в чат, у кого проблемы с бронёй или оружием (C или D).",
-		BTN_RAID_REPORT_ENCHANT_TIP = "Написать в чат, у кого проблемы с чарами или сокетами (C или D).",
+		BTN_RAID_REPORT_GEAR_TIP = "Написать в канал отчётов (Настройки), у кого проблемы с бронёй или оружием (C или D).",
+		BTN_RAID_REPORT_ENCHANT_TIP = "Написать в канал отчётов (Настройки), у кого проблемы с чарами или сокетами (C или D).",
 		CD_REFRESH_TIP = "Запросить свежие данные о блокировках и перерисовать таблицу.",
 		PARTY_REFRESH_TIP = "Заново считать GearScore, iLvl и гильдию; поставить осмотр для спеков.",
 		RAID_REFRESH_TIP = "Заново считать GearScore и iLvl; поставить осмотр для иконок спека.",
@@ -673,11 +685,11 @@ local Translations = {
 		GEAR_CHECK_SELECT_ALL_TIP = "Выделить весь текст dump для копирования Ctrl+C.",
 		GEAR_CHECK_SAVE_TIP = "Сохранить снимок текущего отчёта на этом аккаунте (~14 дней).",
 		GEAR_CHECK_SAVED_DELETE_TIP = "Удалить выбранный сохранённый отчёт.",
-		GEAR_CHECK_REPORT_SUMMARY_TIP = "Краткая сводка только вам в чат.",
-		GEAR_CHECK_REPORT_ITEMS_TIP = "Находки по предметам только вам в чат.",
-		GEAR_CHECK_REPORT_ENCHANTS_TIP = "Находки по чарам только вам в чат.",
-		GEAR_CHECK_REPORT_GEMS_TIP = "Находки по камням только вам в чат.",
-		GEAR_CHECK_REPORT_OK_TIP = "Предметы B (не A) только вам в чат.",
+		GEAR_CHECK_REPORT_SUMMARY_TIP = "Краткая сводка в канал отчётов (Настройки).",
+		GEAR_CHECK_REPORT_ITEMS_TIP = "Находки по предметам в канал отчётов (Настройки).",
+		GEAR_CHECK_REPORT_ENCHANTS_TIP = "Находки по чарам в канал отчётов (Настройки).",
+		GEAR_CHECK_REPORT_GEMS_TIP = "Находки по камням в канал отчётов (Настройки).",
+		GEAR_CHECK_REPORT_OK_TIP = "Предметы B (не A) в канал отчётов (Настройки).",
 		GEAR_CHECK_FILTER_ALL_TIP = "Показать все находки в разборе.",
 		GEAR_CHECK_FILTER_ITEMS_TIP = "Только находки по предметам и броне.",
 		GEAR_CHECK_FILTER_ENCHANTS_TIP = "Только находки по чарам.",
@@ -698,7 +710,7 @@ local Translations = {
 			.. "- /raidwise или /rw — открыть окно\n"
 			.. "- /raidwise close или /rw close — закрыть окно\n"
 			.. "- /rw gearcheck — открыть проверку экипа (цель) и сканировать\n"
-			.. "- /rw gearcheck summary|items|enchants|gems|ok — печать отчёта в ваш чат\n"
+			.. "- /rw gearcheck summary|items|enchants|gems|ok — печать отчёта в канал отчётов (Настройки)\n"
 			.. "- /rw gearcheck test — офлайн self-test правил",
 		INFO_SECTION_COOLDOWNS = "КД и валюта всех персонажей, сохранённых на этом аккаунте.\n"
 			.. "\n"
@@ -718,7 +730,7 @@ local Translations = {
 			.. "\n"
 			.. "- Группы 1–5, затем 6–8: класс, роль, спек, рейд-баффы, настой/еда, GearScore, iLvl и оценки\n"
 			.. "- Иконки настоя и еды на карточке: цветная = есть, красная = нет, тусклая = вне зоны или офлайн\n"
-			.. "- Иконка записки рядом с настоем, едой, бронёй/оружием и чарами/сокетами пишет в чат, у кого нет баффа или есть проблемы с экипом\n"
+			.. "- Иконка записки рядом с настоем, едой, бронёй/оружием и чарами/сокетами пишет в канал отчётов (Настройки), у кого нет баффа или есть проблемы с экипом\n"
 			.. "- Наведение: мнение, теги, гильдия (ранг), детали проверки экипа\n"
 			.. "- «Сканировать» осматривает по одному и заполняет оценки брони/оружия и чар/сокетов\n"
 			.. "- «Экспорт всех» собирает текстовые отчёты; «К составу» закрывает их; клик по тексту + Ctrl+C копирует\n"
@@ -728,7 +740,7 @@ local Translations = {
 			.. "\n"
 			.. "- Золотое — есть, серое — не хватает\n"
 			.. "- В заголовке секции — сколько есть / всего; красный заголовок — в секции ничего нет\n"
-			.. "- «Сообщить» пишет отсутствующие классы в чат рейда или группы\n"
+			.. "- «Сообщить» пишет отсутствующие классы в канал отчётов (Настройки)\n"
 			.. "- Shift+клик по эффекту — эффект, классы и заклинания в чат",
 		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели, или себя, если цели нет.\n"
 			.. "Это не список BiS и не оптимизация билда.\n"
@@ -736,7 +748,7 @@ local Translations = {
 			.. "- Итог: S (на опубликованных BiS-списках), A (preferred + max чары/камни), B (подходит), C (мягкие проблемы), D (не для спека)\n"
 			.. "- Ранги спека: preferred / acceptable / unwanted / forbidden\n"
 			.. "- Сканируйте, затем фильтруйте находки: Все / Предметы / Чары / Камни / B\n"
-			.. "- Кнопки отчёта и команды печатают только в ваш чат\n"
+			.. "- Кнопки отчёта и команды печатают в канал отчётов (Настройки)\n"
 			.. "- «Показать текстом» включает сырой dump; «Сохранить отчёт» хранит снимок около 14 дней",
 		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному).\n"
 			.. "Сетка групп показывает оценки брони/оружия и чар/сокетов по игроку (S / A / B / C / D).\n"
@@ -752,6 +764,7 @@ local Translations = {
 			.. "\n"
 			.. "- Язык: English или Русский\n"
 			.. "- Стартовая страница по /raidwise (Справку выбрать нельзя)\n"
+			.. "- Канал чата для отчётов состава рейда, анализа состава и проверки экипа\n"
 			.. "- Переключатели строк личного и общественного рейтинга в подсказках игроков",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
@@ -870,7 +883,7 @@ local Translations = {
 		GEAR_CHECK_TEXT_VIEW_ON = "Показать текстом ✓",
 		GEAR_CHECK_DEBUG = "Показать текстом",
 		GEAR_CHECK_DEBUG_ON = "Показать текстом ✓",
-		GEAR_CHECK_HINT = "Возьмите в цель игрока (или снимите цель для проверки себя) и нажмите «Сканировать».\nКнопки Report пишут только вам в чат.\n«Показать текстом» — сырой dump.",
+		GEAR_CHECK_HINT = "Возьмите в цель игрока (или снимите цель для проверки себя) и нажмите «Сканировать».\nКнопки отчёта пишут в канал отчётов (Настройки).\n«Показать текстом» — сырой dump.",
 		GEAR_CHECK_STATUS_SCANNING = "Сканирование…",
 		GEAR_CHECK_STATUS_OK = "Проверен: %s (%s).",
 		GEAR_CHECK_STATUS_SELF = "вы",
@@ -918,6 +931,7 @@ local Translations = {
 		COMP_CHAT_MISSING = "Raidwise: нет классов: %s",
 		COMP_CHAT_ALL_PRESENT = "Raidwise: все классы есть.",
 		COMP_CHAT_NO_GROUP = "Войдите в группу или рейд, чтобы писать в чат.",
+		REPORT_CHAT_UNAVAILABLE = "Этот канал чата недоступен. Сообщение выведено в ваш чат.",
 		COMP_CHAT_EFFECT_NEED = "Raidwise: нужно %s — %s",
 		COMP_CHAT_EFFECT_HAVE = "Raidwise: есть %s — %s",
 		COMP_SHIFT_CHAT = "Shift+клик — в чат",
@@ -1201,6 +1215,16 @@ local Translations = {
 		SETTINGS_LANGUAGE_HINT = "Язык интерфейса. Сохраняется на этом аккаунте.",
 		SETTINGS_STARTUP_TAB = "Стартовая страница",
 		SETTINGS_STARTUP_TAB_HINT = "Какая вкладка левого меню открывается при запуске Raidwise (/raidwise). Справку нельзя выбрать стартовой.",
+		SETTINGS_REPORT_CHANNEL = "Канал отчётов",
+		SETTINGS_REPORT_CHANNEL_HINT = "Куда отправляются отчёты состава рейда, анализа состава и проверки экипа. Авто — чат рейда в рейде и чат группы в группе. Если канал недоступен, отчёт печатается вам в чат.",
+		SETTINGS_REPORT_CHANNEL_AUTO = "Авто (рейд / группа)",
+		SETTINGS_REPORT_CHANNEL_SELF = "Себе (ваш чат)",
+		SETTINGS_REPORT_CHANNEL_PARTY = "Группа",
+		SETTINGS_REPORT_CHANNEL_RAID = "Рейд",
+		SETTINGS_REPORT_CHANNEL_RAID_WARNING = "Объявление рейду",
+		SETTINGS_REPORT_CHANNEL_GUILD = "Гильдия",
+		SETTINGS_REPORT_CHANNEL_OFFICER = "Офицерский",
+		SETTINGS_REPORT_CHANNEL_SAY = "Сказать",
 		SETTINGS_TOOLTIP = "Подсказки игроков",
 		SETTINGS_TOOLTIP_HINT = "Добавлять личный и общественный рейтинг в подсказки при наведении / цели. Общественные данные пока макет до обмена.",
 		SETTINGS_TIP_HIDE_PERSONAL = "Скрыть личное мнение",

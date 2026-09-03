@@ -33,6 +33,7 @@ local defaults = {
 	enabled = true,
 	includeGearNames = true,
 	startupTab = "cooldowns",
+	reportChannel = "auto",
 	characters = {},
 	history = {},
 	tooltip = {
@@ -82,6 +83,147 @@ end
 -- Print a prefixed message to the default chat frame.
 function Addon:Print(msg)
 	DEFAULT_CHAT_FRAME:AddMessage("|cff00ccffRaidwise|r: " .. tostring(msg))
+end
+
+-- Report chat channel (Settings). Auto = RAID in a raid, PARTY in a party.
+Addon.REPORT_CHANNEL_CHOICES = {
+	{ id = "auto", labelKey = "SETTINGS_REPORT_CHANNEL_AUTO" },
+	{ id = "self", labelKey = "SETTINGS_REPORT_CHANNEL_SELF" },
+	{ id = "party", labelKey = "SETTINGS_REPORT_CHANNEL_PARTY" },
+	{ id = "raid", labelKey = "SETTINGS_REPORT_CHANNEL_RAID" },
+	{ id = "raidwarning", labelKey = "SETTINGS_REPORT_CHANNEL_RAID_WARNING" },
+	{ id = "guild", labelKey = "SETTINGS_REPORT_CHANNEL_GUILD" },
+	{ id = "officer", labelKey = "SETTINGS_REPORT_CHANNEL_OFFICER" },
+	{ id = "say", labelKey = "SETTINGS_REPORT_CHANNEL_SAY" },
+}
+
+local REPORT_CHANNEL_IDS = {
+	auto = true,
+	self = true,
+	party = true,
+	raid = true,
+	raidwarning = true,
+	guild = true,
+	officer = true,
+	say = true,
+}
+
+local CHAT_SEND_MAX = 255
+local lastUnavailableWarnAt = 0
+
+local function TruncateChatMessage(message)
+	if type(message) ~= "string" then
+		return ""
+	end
+	if string.len(message) <= CHAT_SEND_MAX then
+		return message
+	end
+	return string.sub(message, 1, CHAT_SEND_MAX - 3) .. "..."
+end
+
+local function IsInRaidGroup()
+	return ((GetNumRaidMembers and GetNumRaidMembers()) or 0) > 0
+end
+
+local function IsInPartyGroup()
+	return ((GetNumPartyMembers and GetNumPartyMembers()) or 0) > 0
+end
+
+local function CanUseOfficerChat()
+	if not (IsInGuild and IsInGuild()) then
+		return false
+	end
+	-- WotLK: officer chat requires officer rights; CanEditOfficerNote is the usual proxy.
+	if type(CanEditOfficerNote) == "function" then
+		return CanEditOfficerNote() and true or false
+	end
+	return true
+end
+
+function Addon:GetReportChannel()
+	local channelId = self.db and self.db.reportChannel
+	if type(channelId) == "string" and REPORT_CHANNEL_IDS[channelId] then
+		return channelId
+	end
+	return "auto"
+end
+
+function Addon:SetReportChannel(channelId)
+	if not self.db or not REPORT_CHANNEL_IDS[channelId] then
+		return
+	end
+	self.db.reportChannel = channelId
+end
+
+-- SendChatMessage chatType, or nil for the local default chat frame.
+-- Second return is "self" or "unavailable" when chatType is nil.
+function Addon:ResolveReportChatType()
+	local channelId = self:GetReportChannel()
+	if channelId == "self" then
+		return nil, "self"
+	end
+	if channelId == "say" then
+		return "SAY"
+	end
+	if channelId == "party" then
+		if IsInRaidGroup() or IsInPartyGroup() then
+			return "PARTY"
+		end
+		return nil, "unavailable"
+	end
+	if channelId == "raid" then
+		if IsInRaidGroup() then
+			return "RAID"
+		end
+		return nil, "unavailable"
+	end
+	if channelId == "raidwarning" then
+		local isLead = IsRaidLeader and IsRaidLeader()
+		local isAssist = IsRaidOfficer and IsRaidOfficer()
+		if IsInRaidGroup() and (isLead or isAssist) then
+			return "RAID_WARNING"
+		end
+		return nil, "unavailable"
+	end
+	if channelId == "guild" then
+		if IsInGuild and IsInGuild() then
+			return "GUILD"
+		end
+		return nil, "unavailable"
+	end
+	if channelId == "officer" then
+		if CanUseOfficerChat() then
+			return "OFFICER"
+		end
+		return nil, "unavailable"
+	end
+	-- auto
+	if IsInRaidGroup() then
+		return "RAID"
+	end
+	if IsInPartyGroup() then
+		return "PARTY"
+	end
+	return nil, "unavailable"
+end
+
+function Addon:SendReportChat(message)
+	if type(message) ~= "string" or message == "" then
+		return
+	end
+	local chatType, reason = self:ResolveReportChatType()
+	if chatType then
+		SendChatMessage(TruncateChatMessage(message), chatType)
+		return
+	end
+	if reason == "unavailable" then
+		local now = (GetTime and GetTime()) or 0
+		if (now - lastUnavailableWarnAt) >= 2 then
+			lastUnavailableWarnAt = now
+			self:Print(self:T("REPORT_CHAT_UNAVAILABLE"))
+		end
+	end
+	DEFAULT_CHAT_FRAME:AddMessage(message)
 end
 
 -- Run once when this addon finishes loading.
@@ -174,7 +316,7 @@ end
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
 
--- /raidwise [close|gearcheck …] — open, close, scan, self-test, or self-chat reports.
+-- /raidwise [close|gearcheck …] — open, close, scan, self-test, or chat reports.
 SlashCmdList["RAIDWISE"] = function(msg)
 	msg = (msg or ""):match("^%s*(.-)%s*$") or ""
 	msg = msg:lower():gsub("%s+", " ")

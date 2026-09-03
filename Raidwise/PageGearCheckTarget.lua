@@ -1,4 +1,4 @@
--- PageGearCheckTarget — summary, breakdown (incl. B-not-A), self-chat reports; raw dump via Show as a text.
+-- PageGearCheckTarget — summary, breakdown (incl. B-not-A), chat reports; raw dump via Show as a text.
 
 local Addon = Raidwise
 local W = Addon.Widgets

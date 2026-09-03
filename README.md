@@ -30,7 +30,7 @@ In-game slash commands:
 | `/raidwise` or `/rw` | Open the main window |
 | `/raidwise close` or `/rw close` | Close the main window |
 | `/raidwise gearcheck` or `/rw gearcheck` | Open Gear check (target) and scan |
-| `/rw gearcheck summary` (also `items`, `enchants`, `gems`, `ok`) | Print that report to your chat (scans first if needed) |
+| `/rw gearcheck summary` (also `items`, `enchants`, `gems`, `ok`) | Print that report to the report chat channel (scans first if needed) |
 | `/rw gearcheck raid dump` | Open Raid roster and show the last raid gear-check dump for copy |
 | `/rw gearcheck test` | Offline rules self-test |
 
@@ -69,15 +69,15 @@ Esc or the title **X** closes the window.
 - Checklist of the current party or raid (solo uses only you)
 - Top band: **Roles** and all 10 **Classes** with counts; then sections: Aggro, buffs, external buffs, damage reduction, debuffs, mana regeneration, health regeneration
 - Gold rows are covered; dim rows are missing. Section titles show present/total (red when nothing in the section is present)
-- Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to raid/party chat
-- **Report missing** posts absent classes to raid or party chat; **Refresh** re-reads the group (same inspect path as Raid roster)
+- Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to the report chat channel (Settings)
+- **Report missing** posts absent classes to the report chat channel (Settings); **Refresh** re-reads the group (same inspect path as Raid roster)
 - Full tracking list: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
 
 **Gear check (target)** tab:
 
 - **Scan** evaluates target or self (Overall S / A / B / C / D, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / B)
 - Spec ranks: **preferred** / **acceptable** / **unwanted** / **forbidden** (map to A / B / C / D). **S** = equipped item ID is on published BiS lists for that spec (not a unique pick)
-- **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to **your chat only**
+- **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to the **report chat channel** (Settings; default Auto = raid/party)
 - **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
 - Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
 - `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
@@ -105,6 +105,7 @@ Esc or the title **X** closes the window.
 - Interface language: **English** or **Русский**
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
 - **Startup page**: which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns; **Info** cannot be selected)
+- **Report chat channel**: where Raid roster, Composition, and Gear check reports are posted (`RaidwiseDB.reportChannel`; default Auto = raid in a raid, party in a party)
 - Unit tooltip toggles: hide personal opinion / personal tags / community rating / community tags (`RaidwiseDB.tooltip`)
 - Preview of compact (live) and stacked tooltip layouts
 

@@ -15,7 +15,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | Specs | Full 30 WotLK specs; UI notes that rules are **being maintained** |
 | Unknown spec | Class-only rules **and** a “spec unknown” banner |
 | Self-check | Yes — use player when there is no friendly player target |
-| Chat reports | Self / default chat only (for now) |
+| Chat reports | Settings **Report chat channel** (default Auto = raid in a raid, party in a party; Self = local chat) |
 | Verdicts | **S / A / B / C / D** (S = item ID on published BiS lists; A = highly appropriate, not a unique BiS pick) |
 | Profile ranks | **preferred / acceptable / unwanted / forbidden** (renamed from *discouraged* → *unwanted*) |
 | Overall status | Worst wins (S < A < B < C < D); C/D summaries note that items have those statuses |
@@ -350,7 +350,7 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 
 ### Checklist
 
-- [x] Self-only chat (`DEFAULT_CHAT_FRAME`, `[GearCheck]` prefix — never raid/party)
+- [x] Chat reports honor Settings report channel (`DEFAULT_CHAT_FRAME` when Self or channel unavailable; `[GearCheck]` prefix)
 - [x] Modes: summary / items / enchants / gems / **ok**
 - [x] UI buttons: Report summary / items / enchants / gems / **Report OK**
 - [x] Slash: `/rw gearcheck summary|items|enchants|gems|ok` (alias `report` → summary)
@@ -360,10 +360,10 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 
 ### How to test
 
-1. Scan someone, then press **Report summary** — only you see `[GearCheck] Name — STATUS`.
+1. Scan someone, then press **Report summary** — `[GearCheck] Name — STATUS` goes to the Settings report channel (Auto = raid/party).
 2. **Report items / enchants / gems / OK** — category lines only; empty category says so.
 3. `/rw gearcheck summary` (and items/enchants/gems/ok) without prior scan — scans then prints.
-4. Confirm nothing is sent to raid/party chat.
+4. Set **Self (your chat)** in Settings and confirm reports stay in the local chat frame.
 
 ### Out of scope this phase
 
