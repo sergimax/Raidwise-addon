@@ -4,7 +4,7 @@
 local Addon = Raidwise
 
 -- Bump when enchant/gem catalog seeds change materially (saved report dataVersion).
-Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-08-26c"
+Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-03"
 
 -- maxLevel: Northrend (or best-in-slot-ish) enchants. stats used for appropriateness only.
 local ENCHANTS = {
@@ -178,6 +178,14 @@ local GEMS = {
 	[40126] = { maxLevel = true, color = "yellow", stats = { defenseRating = 20 } }, -- Thick
 	[40127] = { maxLevel = true, color = "yellow", stats = { resilience = 20 } }, -- Mystic
 	[40128] = { maxLevel = true, color = "yellow", stats = { hasteRating = 20 } }, -- Quick
+	-- Epic Stormjewel (Dalaran fishing dailies; same stats as Cardinal Ruby / King's Amber / Majestic Zircon)
+	[45862] = { maxLevel = true, color = "red", stats = { strength = 20 } }, -- Bold
+	[45879] = { maxLevel = true, color = "red", stats = { agility = 20 } }, -- Delicate
+	[45883] = { maxLevel = true, color = "red", stats = { spellPower = 23 } }, -- Runed
+	[45882] = { maxLevel = true, color = "yellow", stats = { intellect = 20 } }, -- Brilliant
+	[45987] = { maxLevel = true, color = "yellow", stats = { hitRating = 20 } }, -- Rigid
+	[45880] = { maxLevel = true, color = "blue", stats = { stamina = 30 } }, -- Solid
+	[45881] = { maxLevel = true, color = "blue", stats = { spirit = 20 } }, -- Sparkling
 	-- Epic purple (Dreadstone) — ids verified vs WotLK tooltips
 	[40129] = { maxLevel = true, color = "purple", stats = { strength = 10, stamina = 15 } }, -- Sovereign
 	[40130] = { maxLevel = true, color = "purple", stats = { agility = 10, stamina = 15 } }, -- Shifting

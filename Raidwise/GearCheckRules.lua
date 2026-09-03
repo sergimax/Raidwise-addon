@@ -2176,6 +2176,27 @@ function Addon:GearCheckRulesSelfTest()
 	Check("JC Bold Dragon's Eye → not GEM_NOT_CHECKABLE", not HasCode(fJc, "GEM_NOT_CHECKABLE"))
 	Check("JC Bold Dragon's Eye → not GEM_LOWER_LEVEL", not HasCode(fJc, "GEM_LOWER_LEVEL"))
 
+	-- Stormjewel (Dalaran fishing) is catalogued max-level, not unknown
+	local stormjewel = {
+		character = { classFile = "PALADIN", specTab = 3, specKnown = true, gaps = {} },
+		equipment = {
+			MakeSlot("waist", "WaistSlot", MakeItem({
+				itemId = 45824,
+				category = "armor",
+				armorType = "plate",
+				stats = { strength = 87, stamina = 124, critRating = 60, hitRating = 49 },
+				enchant = { enchantId = 0, present = false, known = true, gaps = {} },
+				sockets = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 1, total = 1, empty = 0 },
+				gems = {
+					{ socketIndex = 1, itemId = 45862, present = true, known = true, isMeta = false, color = "red", stats = { strength = 20 }, gaps = {} },
+				},
+			})),
+		},
+	}
+	local fStorm = self:EvaluateGearCheck(stormjewel)
+	Check("Bold Stormjewel → not GEM_NOT_CHECKABLE", not HasCode(fStorm, "GEM_NOT_CHECKABLE"))
+	Check("Bold Stormjewel → not GEM_LOWER_LEVEL", not HasCode(fStorm, "GEM_LOWER_LEVEL"))
+
 	-- Engineering Nitro Boosts on feet is max-level
 	local nitro = {
 		character = { classFile = "SHAMAN", specTab = 2, specKnown = true, gaps = {} },
