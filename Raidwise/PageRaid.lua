@@ -19,7 +19,7 @@ local RAID_BTN_GAP = 2
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
 local RAID_TOOLBAR_COL_W = 104
-local RAID_REPORT_ICON = "Interface\\Icons\\INV_Misc_Note_01"
+local RAID_REPORT_ICON = "Interface\\Icons\\Ability_Warrior_BattleShout"
 
 local function WrapThemeColor(color, text)
 	local r = math.floor(((color and color[1]) or 1) * 255 + 0.5)

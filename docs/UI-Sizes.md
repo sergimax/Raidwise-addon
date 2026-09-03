@@ -109,7 +109,7 @@ Four-column mini table (grade legend, GS averages, flask/food/armor/ench rows, s
 | Mini table | full width × **124** | Four equal columns (**8** px gaps). Height = **4** toolbar buttons **28** + **3×4** px gaps |
 | Col 1 grade legend | equal column | `GEAR_CHECK_RAID_HINT`; wraps |
 | Col 2 GS averages | equal column | Average GS + four role lines |
-| Col 3 status rows | equal column | Four **20** px rows (**2** px gap); gold name + counts, **16×16** report icon on the right |
+| Col 3 status rows | equal column | Four **20** px rows (**2** px gap); gold name + counts, **16×16** Battle Shout report icon on the right |
 | Col 4 toolbar | equal column | **Scan**, **Export all**, **Refresh**, **Back to roster** stacked |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |

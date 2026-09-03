@@ -108,10 +108,10 @@ Rows come only from current lockouts; each instance is one row with all size/mod
 Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1 (same inspect/GS pipeline as before; no separate party tab).
 
 ```text
-[ S=on BiS lists… | Average GS     | Flask 22/25 [note] | Scan           ]
-[ A=preferred…    | Tanks …        | Food 20/25 [note]  | Export all     ]
-[ B=usable…       | Healers …      | Armor S·A·B·C·D [note] | Refresh        ]
-[ C=soft  D=hard  | Melee … Range  | Ench … [note]      | Back to roster ]
+[ S=on BiS lists… | Average GS     | Flask 22/25 [shout] | Scan           ]
+[ A=preferred…    | Tanks …        | Food 20/25 [shout]  | Export all     ]
+[ B=usable…       | Healers …      | Armor S·A·B·C·D [shout] | Refresh        ]
+[ C=soft  D=hard  | Melee … Range  | Ench … [shout]      | Back to roster ]
 [ scan / export status (reserved height)                                 ]
 [ progress bar track (always reserved)                                   ]
         8 px gap
@@ -133,10 +133,10 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | mini table | Four equal columns (8 px gaps); height matches the stacked toolbar (**28×4** + **4** px gaps) |
 | col 1 grade legend | `GEAR_CHECK_RAID_HINT` (S / A / B / C / D meanings); stays visible during scan |
 | col 2 GS averages | `Average GS` then Tanks / Healers / Melee / Range counts and GS, stacked |
-| col 3 status | Four rows: **Flask**, **Food**, **Armor / weap**, **Ench / sock** — gold name + counts, **16×16** note icon on the right |
+| col 3 status | Four rows: **Flask**, **Food**, **Armor / weap**, **Ench / sock** — gold name + counts, **16×16** Battle Shout icon on the right |
 | flask / food | `Flask n/total (x missing)` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Out of range / offline are not listed as missing |
 | armor / ench | S / A / B / C / D counts (+ Failed). Dim until first scan (`Press Scan to check.`) |
-| report icon | Same note icon on every status row; hover shows the flask / food / armor / ench tip plus a preview of the chat line(s) that will be posted |
+| report icon | Same Battle Shout icon on every status row; hover shows the flask / food / armor / ench tip plus a preview of the chat line(s) that will be posted |
 | col 4 toolbar | **Scan**, **Export all**, **Refresh**, **Back to roster** stacked (**28** tall, **4** px gap). **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
 | scan status | Below the mini table; reserved **28** px; scan/export/rescan text (empty when idle) |
 | progress bar | Below status (**4** px gap); height **14**; track always reserved |
