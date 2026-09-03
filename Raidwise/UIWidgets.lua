@@ -1047,9 +1047,33 @@ function W.ShowMemberRatingTooltip(anchor, member, opts)
 	if tags ~= "" then
 		GameTooltip:AddLine(W.T("COL_TAGS") .. ": " .. tags, 0.8, 0.8, 0.8, true)
 	end
+	if Addon.GetCommunityRating then
+		local community = Addon:GetCommunityRating(member)
+		local percent = community and tonumber(community.positivePercent)
+		if percent then
+			GameTooltip:AddLine(W.T("TOOLTIP_COMMUNITY_POSITIVE", percent), 0.8, 0.8, 0.8)
+			if Addon.RatingTagColoredSummary and community.tags then
+				local communityTags = Addon:RatingTagColoredSummary(community.tags, 3)
+				if communityTags ~= "" then
+					GameTooltip:AddLine(communityTags, 0.75, 0.75, 0.75, true)
+				end
+			end
+		end
+	end
 	local guildText = W.FormatGuildDisplay(member.guildName, member.guildRank)
 	if guildText and guildText ~= "-" then
 		GameTooltip:AddLine(W.T("COL_GUILD") .. ": " .. guildText, 0.8, 0.8, 0.8, true)
+	end
+	if opts and type(opts.raidBuffs) == "table" and #opts.raidBuffs > 0 then
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine(W.T("COL_BUFFS"), UI.GOLD[1], UI.GOLD[2], UI.GOLD[3])
+		for buffIndex = 1, #opts.raidBuffs do
+			local buff = opts.raidBuffs[buffIndex]
+			local buffName = buff and buff.name
+			if buffName and buffName ~= "" then
+				GameTooltip:AddLine(buffName, 1, 1, 1)
+			end
+		end
 	end
 	if opts and opts.gearCheck then
 		W.AppendGearCheckRaidTooltip(opts.gearEntry)

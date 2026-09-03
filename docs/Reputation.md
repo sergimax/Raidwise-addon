@@ -40,7 +40,7 @@ One-shot per history entry (`personal.reputationV2`):
 | Events | yes | yes |
 | Memo | never | never |
 
-Roster views continue to show opinion + tags only; facts appear in the profile header; events are listed on the Events / History tabs. Character profile opens on the **History** tab by default; opinion/tags are edited on **Edit note**.
+Roster views show personal opinion on the card; Raid roster also reserves a **Community** line (`n%` from `GetCommunityRating`, or `—`). Tags and full community detail stay on hover / Character profile; facts appear in the profile header; events are listed on the Events / History tabs. Character profile opens on the **History** tab by default; opinion/tags are edited on **Edit note**.
 
 ## Display helpers (`PlayerHistory.lua`)
 

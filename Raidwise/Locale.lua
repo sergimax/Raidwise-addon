@@ -102,11 +102,11 @@ local Translations = {
 		INFO_SECTION_RAID = "Current party or raid as player cards, with integrated gear check.\n"
 			.. "When you are not in a raid, party members fill group 1.\n"
 			.. "\n"
-			.. "- Groups 1–5, then 6–8: class, role, spec, raid buffs, flask/food, GearScore, iLvl, and grades\n"
+			.. "- Groups 1–5, then 6–8: class, role, spec, flask/food, GearScore, iLvl, personal note, community slot, and grades\n"
 			.. "- Compact header: S·A·B·C·D chips (hover for meanings), average GS and role counts, flask/food/armor/ench with report icons, and Scan/Export/Refresh/Back icons\n"
 			.. "- Flask and food icons on each card: full color = active, red = missing, dim = out of range or offline\n"
 			.. "- Report icons beside flask, food, armor/weap, and ench/sock post missing or problem players to the report chat channel (Settings)\n"
-			.. "- Hover a card for opinion, tags, guild (rank), and gear-check details\n"
+			.. "- Hover a card for opinion, tags, community rating, guild (rank), raid buffs, and gear-check details\n"
 			.. "- Scan inspects everyone one at a time and fills armor/weap and ench/sock grades\n"
 			.. "- Export all builds text dumps; Back to roster closes them; click the dump + Ctrl+C copies\n"
 			.. "- Profile opens Character profile; Gear opens the full report on Gear check (target)",
@@ -245,6 +245,11 @@ local Translations = {
 		GEAR_CHECK_RAID_TIP_ENCHANT_CLEAN = "Enchants, gems, and meta look good.",
 		GEAR_CHECK_RAID_TIP_OK_CLEAN = "Usable — nothing flagged in this category.",
 		GEAR_CHECK_RAID_TIP_MORE = "… and %d more (Gear check for full report)",
+		RAID_CELL_PERSONAL = "Personal: %s",
+		RAID_CELL_COMMUNITY = "Community: %d%%",
+		RAID_CELL_COMMUNITY_EMPTY = "Community: —",
+		RAID_CELL_GRADE_GEAR = "Armor %s",
+		RAID_CELL_GRADE_ENCH = "Ench %s",
 		GEAR_CHECK_LIMITATION = "Gear Check is a surface-level evaluation. S means the item ID appears on published BiS lists for this spec (not a unique BiS pick). It does not optimize builds, encounters, or stat weights.",
 		GEAR_CHECK_SCAN = "Scan",
 		GEAR_CHECK_SAVE = "Save report",
@@ -735,11 +740,11 @@ local Translations = {
 		INFO_SECTION_RAID = "Текущая группа или рейд карточками игроков, с встроенной проверкой экипа.\n"
 			.. "Вне рейда группа занимает слот 1.\n"
 			.. "\n"
-			.. "- Группы 1–5, затем 6–8: класс, роль, спек, рейд-баффы, настой/еда, GearScore, iLvl и оценки\n"
+			.. "- Группы 1–5, затем 6–8: класс, роль, спек, настой/еда, GearScore, iLvl, личная заметка, слот сообщества и оценки\n"
 			.. "- Компактная шапка: чипы S·A·B·C·D (наведение — расшифровка), средний GS и роли, настой/еда/броня/чары с иконками отчёта, иконки Сканировать/Экспорт/Обновить/К составу\n"
 			.. "- Иконки настоя и еды на карточке: цветная = есть, красная = нет, тусклая = вне зоны или офлайн\n"
 			.. "- Иконка отчёта рядом с настоем, едой, бронёй/оружием и чарами/сокетами пишет в канал отчётов (Настройки), у кого нет баффа или есть проблемы с экипом\n"
-			.. "- Наведение: мнение, теги, гильдия (ранг), детали проверки экипа\n"
+			.. "- Наведение: мнение, теги, сообщество, гильдия (ранг), рейд-баффы, детали проверки экипа\n"
 			.. "- «Сканировать» осматривает по одному и заполняет оценки брони/оружия и чар/сокетов\n"
 			.. "- «Экспорт всех» собирает текстовые отчёты; «К составу» закрывает их; клик по тексту + Ctrl+C копирует\n"
 			.. "- «Профиль» открывает профиль персонажа; «Экип» — полный отчёт на вкладке проверки экипа (цель)",
@@ -878,6 +883,11 @@ local Translations = {
 		GEAR_CHECK_RAID_TIP_ENCHANT_CLEAN = "Чары, камни и мета в порядке.",
 		GEAR_CHECK_RAID_TIP_OK_CLEAN = "Подходит — в этой категории замечаний нет.",
 		GEAR_CHECK_RAID_TIP_MORE = "… и ещё %d (полный отчёт — «Экип»)",
+		RAID_CELL_PERSONAL = "Личное: %s",
+		RAID_CELL_COMMUNITY = "Сообщество: %d%%",
+		RAID_CELL_COMMUNITY_EMPTY = "Сообщество: —",
+		RAID_CELL_GRADE_GEAR = "Броня %s",
+		RAID_CELL_GRADE_ENCH = "Чары %s",
 		GEAR_CHECK_LIMITATION = "Gear Check — поверхностная оценка. S = ID предмета есть в опубликованных BiS-списках спека, не уникальный выбор. Без оптимизации билдов, энкаунтеров и весов статов.",
 		GEAR_CHECK_SCAN = "Сканировать",
 		GEAR_CHECK_SAVE = "Сохранить отчёт",

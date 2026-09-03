@@ -102,7 +102,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/armor/ench), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 27`.
+Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/armor/ench), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 28`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -113,15 +113,15 @@ Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/a
 | Row 2 status | four equal cells, **8** px gaps, **20** tall | Gold name + compact counts, **16×16** Battle Shout report icon on the right |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
-| Player cell | **168 × 137** | Seven text lines + one button row: class+name+flask/food, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
+| Player cell | **168 × 115** | Six rows: class+name+flask/food, role+spec+GS/iLvl, personal, community (reserved), compact armor+ench grades, **Profile** + **Gear** + **Rescan**. Raid-buff icons moved to hover tip |
 | Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
-| Cell content | **20** px class/role/spec; **18** px buffs; **14** px flask/food | Class on line 1 with flask + food status icons on the right (present = full color, missing = red tint, out of range/offline = dim); role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
-| Cell hover tooltip | — | Opinion, tags, **Guild: Name (Rank)**, gear-check grades |
+| Cell content | **20** px class/role/spec; **14** px flask/food | Class on line 1 with flask + food status icons on the right (present = full color, missing = red tint, out of range/offline = dim); role then spec on line 2; personal + community + compact grades; line height **14**. Raid buffs listed on card hover |
+| Cell hover tooltip | — | Opinion, tags, community percent/tags, **Guild: Name (Rank)**, raid buffs, gear-check grades |
 
 Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
 

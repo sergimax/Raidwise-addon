@@ -6,10 +6,10 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 27
+local LAYOUT_VERSION = 28
 
 local RAID_CELL_W = 168
-local RAID_CELL_H = 137
+local RAID_CELL_H = 115
 local RAID_CELL_GAP = 2
 local RAID_CELL_PAD = 4
 local RAID_LINE_H = 14
@@ -143,11 +143,23 @@ local function SummarizeGearCategory(results, field)
 	return summary
 end
 
-local function FormatRaidCategoryGradeLine(localeKey, grade)
-	if not grade or grade == "" then
-		return ""
+local function FormatCompactGradesLine(gearGrade, enchantGrade)
+	return W.T("RAID_CELL_GRADE_GEAR", W.WrapGearGradation(gearGrade))
+		.. "  "
+		.. W.T("RAID_CELL_GRADE_ENCH", W.WrapGearGradation(enchantGrade))
+end
+
+local function FormatPersonalCellLine(member)
+	return W.T("RAID_CELL_PERSONAL", W.RatingOpinionText(member))
+end
+
+local function FormatCommunityCellLine(member)
+	local community = Addon.GetCommunityRating and Addon:GetCommunityRating(member)
+	local percent = community and tonumber(community.positivePercent)
+	if percent then
+		return W.T("RAID_CELL_COMMUNITY", percent)
 	end
-	return W.T(localeKey, W.WrapGearGradation(grade))
+	return W.T("RAID_CELL_COMMUNITY_EMPTY")
 end
 
 local function FormatGearCategorySummaryLine(summary)
@@ -1092,34 +1104,23 @@ local function CreateRaidPlayerCell(parent)
 	cell.statsText:SetJustifyH("LEFT")
 	cell.statsText:SetJustifyV("MIDDLE")
 
-	cell.buffHosts = {}
-	for buffIndex = 1, UI.RAID_BUFF_MAX do
-		local host = W.CreateBuffIconHost(cell)
-		if buffIndex == 1 then
-			host:SetPoint("TOPLEFT", cell.roleIconHost, "BOTTOMLEFT", 0, -3)
-		else
-			host:SetPoint("LEFT", cell.buffHosts[buffIndex - 1], "RIGHT", UI.RAID_BUFF_GAP, 0)
-		end
-		cell.buffHosts[buffIndex] = host
-	end
-
 	cell.opinionText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.opinionText:SetPoint("TOPLEFT", cell.buffHosts[1], "BOTTOMLEFT", 0, -2)
+	cell.opinionText:SetPoint("TOPLEFT", cell.roleIconHost, "BOTTOMLEFT", 0, -2)
 	cell.opinionText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
 	cell.opinionText:SetHeight(RAID_LINE_H)
 	cell.opinionText:SetJustifyH("LEFT")
 
-	cell.gearGradeText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gearGradeText:SetPoint("TOPLEFT", cell.opinionText, "BOTTOMLEFT", 0, -1)
-	cell.gearGradeText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.gearGradeText:SetHeight(RAID_LINE_H)
-	cell.gearGradeText:SetJustifyH("LEFT")
+	cell.communityText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.communityText:SetPoint("TOPLEFT", cell.opinionText, "BOTTOMLEFT", 0, -1)
+	cell.communityText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
+	cell.communityText:SetHeight(RAID_LINE_H)
+	cell.communityText:SetJustifyH("LEFT")
 
-	cell.enchantSocketGradeText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.enchantSocketGradeText:SetPoint("TOPLEFT", cell.gearGradeText, "BOTTOMLEFT", 0, -1)
-	cell.enchantSocketGradeText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.enchantSocketGradeText:SetHeight(RAID_LINE_H)
-	cell.enchantSocketGradeText:SetJustifyH("LEFT")
+	cell.gradesText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.gradesText:SetPoint("TOPLEFT", cell.communityText, "BOTTOMLEFT", 0, -1)
+	cell.gradesText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
+	cell.gradesText:SetHeight(RAID_LINE_H)
+	cell.gradesText:SetJustifyH("LEFT")
 
 	local btnCount = 3
 	local btnWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2 - RAID_BTN_GAP * (btnCount - 1)) / btnCount)
@@ -1164,7 +1165,11 @@ local function CreateRaidPlayerCell(parent)
 			return
 		end
 		self:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
-		W.ShowMemberRatingTooltip(self, self.member, { gearCheck = true, gearEntry = self.gearEntry })
+		W.ShowMemberRatingTooltip(self, self.member, {
+			gearCheck = true,
+			gearEntry = self.gearEntry,
+			raidBuffs = self.member.raidBuffs,
+		})
 	end)
 	cell:SetScript("OnLeave", function(self)
 		local stripe = self.stripe or UI.CD_ROW_A
@@ -1266,8 +1271,7 @@ end
 local function FillGearReportRows(cell, member, entry)
 	if not member then
 		cell.gearEntry = nil
-		cell.gearGradeText:SetText("")
-		cell.enchantSocketGradeText:SetText("")
+		cell.gradesText:SetText("")
 		if cell.gearBtn then
 			cell.gearBtn:Disable()
 		end
@@ -1280,13 +1284,12 @@ local function FillGearReportRows(cell, member, entry)
 
 	if not report then
 		local statusLabel = GearStatusLabelForEntry(entry)
-		cell.gearGradeText:SetText(statusLabel)
-		cell.enchantSocketGradeText:SetText("")
+		cell.gradesText:SetText(statusLabel)
 		if IsGearVerdictLabel(statusLabel) then
-			cell.gearGradeText:SetText(W.WrapGearGradation(statusLabel))
-			W.SetFontColor(cell.gearGradeText, UI.TEXT_IDLE)
+			cell.gradesText:SetText(W.WrapGearGradation(statusLabel))
+			W.SetFontColor(cell.gradesText, UI.TEXT_IDLE)
 		else
-			W.SetFontColor(cell.gearGradeText, UI.TEXT_DISABLED)
+			W.SetFontColor(cell.gradesText, UI.TEXT_DISABLED)
 		end
 		if cell.gearBtn then
 			cell.gearBtn:Disable()
@@ -1297,10 +1300,8 @@ local function FillGearReportRows(cell, member, entry)
 	local overall = report.overall or {}
 	local gearGrade = overall.gearGrade or overall.status or "B"
 	local enchantSocketGrade = overall.enchantSocketGrade or "B"
-	cell.gearGradeText:SetText(FormatRaidCategoryGradeLine("GEAR_CHECK_RAID_CELL_GEAR", gearGrade))
-	cell.enchantSocketGradeText:SetText(FormatRaidCategoryGradeLine("GEAR_CHECK_RAID_CELL_ENCHANT", enchantSocketGrade))
-	W.SetFontColor(cell.gearGradeText, UI.TEXT_IDLE)
-	W.SetFontColor(cell.enchantSocketGradeText, UI.TEXT_IDLE)
+	cell.gradesText:SetText(FormatCompactGradesLine(gearGrade, enchantSocketGrade))
+	W.SetFontColor(cell.gradesText, UI.TEXT_IDLE)
 
 	if cell.gearBtn then
 		cell.gearBtn:Enable()
@@ -1330,6 +1331,23 @@ local function FillRaidConsumableIcons(cell, member)
 	W.FillConsumableStatusIcon(cell.foodHost, status and status.food, "RAID_CONSUMABLE_FOOD")
 end
 
+local function FillCommunityCellLine(cell, member)
+	if not cell or not cell.communityText then
+		return
+	end
+	if not member then
+		cell.communityText:SetText("")
+		return
+	end
+	cell.communityText:SetText(FormatCommunityCellLine(member))
+	local community = Addon.GetCommunityRating and Addon:GetCommunityRating(member)
+	if community and tonumber(community.positivePercent) then
+		W.SetFontColor(cell.communityText, UI.TEXT_IDLE)
+	else
+		W.SetFontColor(cell.communityText, UI.TEXT_DISABLED)
+	end
+end
+
 local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	cell.stripe = stripe
 	cell:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
@@ -1340,10 +1358,10 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		cell.nameText:SetText("")
 		cell.statsText:SetText("")
 		cell.opinionText:SetText("")
+		FillCommunityCellLine(cell, nil)
 		cell.classIconHost:Hide()
 		cell.roleIconHost:Hide()
 		cell.specIconHost:Hide()
-		W.FillRaidBuffIcons(cell.buffHosts, nil)
 		FillRaidConsumableIcons(cell, nil)
 		FillGearReportRows(cell, nil, nil)
 		if cell.profileBtn then
@@ -1393,11 +1411,11 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		W.SetFontColor(cell.statsText, UI.TEXT_IDLE)
 	end
 
-	W.FillRaidBuffIcons(cell.buffHosts, member.raidBuffs)
 	FillRaidConsumableIcons(cell, member)
 
-	cell.opinionText:SetText(W.FormatOpinionLine(member))
+	cell.opinionText:SetText(FormatPersonalCellLine(member))
 	W.SetFontColor(cell.opinionText, W.RatingOpinionColor(member))
+	FillCommunityCellLine(cell, member)
 
 	FillGearReportRows(cell, member, gearEntry)
 	if cell.profileBtn then
