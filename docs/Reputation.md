@@ -62,6 +62,6 @@ Used by roster pages, Character profile, and unit tooltips:
 `UnitTooltips.lua` hooks `GameTooltip` `OnTooltipSetUnit` (same pattern as GearScore). For player units:
 
 1. **Personal** — if a saved personal note exists: opinion label (colored) and up to 3 tags (`Positive: Fair Loot, …`)
-2. **Community** — if the GUID is in History: mock percent + up to 3 tags until real exchange data lands (`91 % positive:` then tag line)
+2. **Community** — if the GUID is in History: mock percent + up to 3 tags until real exchange data lands (`0 % positive:` then tag line)
 
 Visibility is controlled by `RaidwiseDB.tooltip` hide flags (Settings).

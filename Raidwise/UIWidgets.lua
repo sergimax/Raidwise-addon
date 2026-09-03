@@ -1064,6 +1064,9 @@ function W.ShowMemberRatingTooltip(anchor, member, opts)
 	if guildText and guildText ~= "-" then
 		GameTooltip:AddLine(W.T("COL_GUILD") .. ": " .. guildText, 0.8, 0.8, 0.8, true)
 	end
+	if opts and opts.gearCheck then
+		W.AppendGearCheckRaidTooltip(opts.gearEntry)
+	end
 	if opts and type(opts.raidBuffs) == "table" and #opts.raidBuffs > 0 then
 		GameTooltip:AddLine(" ")
 		GameTooltip:AddLine(W.T("COL_BUFFS"), UI.GOLD[1], UI.GOLD[2], UI.GOLD[3])
@@ -1074,9 +1077,6 @@ function W.ShowMemberRatingTooltip(anchor, member, opts)
 				GameTooltip:AddLine(buffName, 1, 1, 1)
 			end
 		end
-	end
-	if opts and opts.gearCheck then
-		W.AppendGearCheckRaidTooltip(opts.gearEntry)
 	end
 	GameTooltip:Show()
 end

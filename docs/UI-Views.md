@@ -117,7 +117,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ (class) Rhee          (flask)(food) ]
 [ (role)(spec) 6158gs 264ilvl ]
 [ Personal: Positive ]
-[ Community: 91% ]
+[ Community: 0% ]
 [ Armor A  Ench C ]
 [ Profile ][ Gear ][ Rescan ]
         12 px gap
@@ -144,7 +144,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 4 | `Community: {n%}` when history/community data exists (mock until exchange); reserved `Community: —` otherwise |
 | line 5 | Compact grades `Armor {S|A|B|C|D}  Ench {…}` on one line, or fail / not scanned (`—`) |
 | line 6 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
-| hover | Opinion + tags + community percent/tags + **Guild: Name (Rank)** + raid-buff names + **gear check** section (both grades with flagged slot details, or scan status) |
+| hover | Opinion + tags + community percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff names last |
 | click | Left-click card → **Character profile**; **Profile** / **Gear check** / **Rescan** buttons do their own actions |
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
@@ -349,7 +349,7 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 [ Preview ]
 Compact (live tooltip)
 Positive: Good Raid Leader, Fair Loot, Good player
-91 % positive:
+0 % positive:
 Fair Loot, Good Raid Leader, Good player
 Stacked (variant)
 …

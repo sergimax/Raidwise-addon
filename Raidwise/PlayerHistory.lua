@@ -440,7 +440,7 @@ end
 
 -- Community note snapshot (future exchange/web). Mock preview when history exists.
 local COMMUNITY_MOCK_TAGS = { "fair_loot", "good_raid_leader", "good_player" }
-local COMMUNITY_MOCK_PERCENT = 91
+local COMMUNITY_MOCK_PERCENT = 0
 
 function Addon:NormalizeCommunityRating(community)
 	if type(community) ~= "table" then
@@ -550,7 +550,7 @@ function Addon:GetTooltipPreviewSample()
 			updatedAt = 1,
 		},
 		community = {
-			positivePercent = 91,
+			positivePercent = 0,
 			tags = { "fair_loot", "good_raid_leader", "good_player" },
 			isMock = true,
 		},
