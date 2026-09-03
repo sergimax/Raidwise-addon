@@ -5,12 +5,20 @@ Reference extracted from:
 - `examples/bis-list-mix.md` (guild / RU composite)
 - `examples/bis-list-sources.md` (Warmane, Circle, Icy Veins, Titans, …)
 
-**Purpose:** answer “what is *appropriate*” for class/spec so Gear Check can avoid false BAD/REPLACE.  
-**Not purpose:** BiS ranking, upgrade paths, or “this item is best.” Spec §4 / §28 stay out of scope.
+**Purpose:** answer “what is *appropriate*” for class/spec so Gear Check can avoid false D/C.  
+**Not purpose:** BiS ranking, upgrade paths, or “this item is best.” Spec §4 / §28 stay out of scope. **S** on a scanned item is separate: the equipped **item ID** is on the union of built-in web-app BiS presets (`Raidwise/GearCheckBis.lua`), not a unique optimizer pick.
 
 Sources often list **temporary offset pieces** (wrong armor type, better stats). Treat those as **acceptable**, not preferred.
 
 Addon profile keys use WotLK talent tabs: `CLASSFILE-specTab` (e.g. `SHAMAN-2` = Enhancement).
+
+S-grade item IDs are **not** copied from these markdown lists. They come from the sibling web app (`sergimax/Raidwise` `src/data/bis-presets/*.ts`). Regenerate:
+
+```text
+node scripts/generate-gear-check-bis.js
+```
+
+(Requires the web repo next to this one, or `RAIDWISE_BIS_PRESETS` pointing at that folder.) Re-run when those presets change. Do not edit `Raidwise/GearCheckBis.lua` by hand.
 
 ---
 
@@ -40,10 +48,10 @@ Same four ranks for armor, stats, and weapons:
 
 | Rank | Meaning | Engine effect |
 |------|---------|---------------|
-| **preferred** | BiS-appropriate | No finding; required (with max enchant/gems) for **GOOD** |
-| **acceptable** | Usable surface (offsets, hybrid) | No finding; **OK** by default |
-| **unwanted** | Wrong-for-spec soft waste | Soft finding → **REPLACE** |
-| **forbidden** | Explicitly inappropriate | Hard finding → **BAD** |
+| **preferred** | BiS-appropriate | No finding; required (with max enchant/gems) for **A** |
+| **acceptable** | Usable surface (offsets, hybrid) | No finding; **B** by default |
+| **unwanted** | Wrong-for-spec soft waste | Soft finding → **C** |
+| **forbidden** | Explicitly inappropriate | Hard finding → **D** |
 
 ---
 
@@ -234,6 +242,6 @@ Empty or thin sections in the example files (do not invent BiS):
 
 1. ~~**Profiles:** Fury weapons → prefer 2H; Arms/Fury/Hunter/Enh armor → leather acceptable; tank profiles stay strict.~~ **Done** in `GearCheckProfiles.lua`.
 2. ~~**Weapon combos:** enforce setups from §2 (empty OH on DW specs, etc.).~~ **Done** (`weaponSetup` + `WEAPON_SETUP`).
-3. ~~**Trinkets:** allowlists from §3.~~ **Done** — `GearCheckTrinkets.lua`: **preferred** (ICC/RS BiS → GOOD) + **allowed** (+ ToC/Ulduar/badge progression → OK); per-spec `trinketPool` on profiles; expand IDs when reports appear.
+3. ~~**Trinkets:** allowlists from §3.~~ **Done** — `GearCheckTrinkets.lua`: **preferred** (ICC/RS BiS → A) + **allowed** (+ ToC/Ulduar/badge progression → B); per-spec `trinketPool` on profiles; expand IDs when reports appear.
 4. Keep this file updated when BiS example lists change; do not auto-score “closeness to BiS.”
 5. Optional: “must have ranged” for hunters/warriors; richer 1h_oh caster checks.

@@ -16,11 +16,11 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | Unknown spec | Class-only rules **and** a “spec unknown” banner |
 | Self-check | Yes — use player when there is no friendly player target |
 | Chat reports | Self / default chat only (for now) |
-| Verdicts | **OK / GOOD / REPLACE / BAD** (GOOD = highly appropriate, not BiS) |
+| Verdicts | **S / A / B / C / D** (S = item ID on published BiS lists; A = highly appropriate, not a unique BiS pick) |
 | Profile ranks | **preferred / acceptable / unwanted / forbidden** (renamed from *discouraged* → *unwanted*) |
-| Overall status | Worst wins; BAD/REPLACE summaries note that items have those statuses |
-| Resilience (PvE) | 1 item with Resilience → overall **REPLACE**; 2+ → **BAD** |
-| Catalogs | Seed from AtlasLoot lists + hand-built enchantId map; unknown IDs → **not-checkable** (no false BAD) |
+| Overall status | Worst wins (S < A < B < C < D); C/D summaries note that items have those statuses |
+| Resilience (PvE) | 1 item with Resilience → overall **C**; 2+ → **D** |
+| Catalogs | Seed from AtlasLoot lists + hand-built enchantId map; unknown IDs → **not-checkable** (no false D) |
 | Trinkets / relics / shirt / tabard | Relics / shirt / tabard ignored; **trinkets CHECKED** vs per-spec pools (`preferred` / `allowed`) |
 | Finding locale | English only for now (RU later) |
 | Saved reports | Manual save only; ~14-day retention; `rulesetVersion` + `dataVersion` on each snapshot |
@@ -33,16 +33,16 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | Phase | Name | Status | Notes |
 |-------|------|--------|-------|
 | 1 | Data collection | **done** | Target/self unit, slots, item/enchant/gem IDs, class/spec; Phase 1 dump UI |
-| 2 | Normalized gear model | **done** | `schemaVersion = 2`; `types/GearCheck.ts`; dump shows stats/types/gaps |
+| 2 | Normalized gear model | **done** | `schemaVersion = 3`; `types/GearCheck.ts`; dump shows stats/types/gaps (v2 reports used GOOD/OK/REPLACE/BAD until rescan) |
 | 3 | Rules engine | **done** | Hard/soft/info findings; catalogs + 30-spec profiles; `/rw gearcheck test` |
-| 4 | Item verdicts | **done** | Per-slot OK / GOOD / REPLACE / BAD from findings (info ≠ BAD) |
+| 4 | Item verdicts | **done** | Per-slot S / A / B / C / D from findings (info ≠ D); S = BiS-list ID membership |
 | 5 | Gear-level evaluation | **done** | Overall worst-wins; resilience 1/2+; meta activation; T9/T10 counts |
-| 6 | UI | **done** | Two-column summary + filters (incl. OK); **Show as a text**; `LAYOUT_VERSION = 10` |
+| 6 | UI | **done** | Two-column summary + filters (incl. B); **Show as a text**; `LAYOUT_VERSION = 10` |
 | 7 | Chat output | **done** | Self-chat summary/items/enchants/gems/ok; UI + slash |
 | 8 | Ruleset expansion | **done** | Enh intellect; gem not-checkable policy; leg/Engi/weapon catalogs |
 | — | Raid-wide gear check | **done** | `PageRaid.lua` + `StartGearCheckRaidScan` queue (integrated into Raid roster) |
 | — | Saved reports | **done** | Manual save/load/delete in target UI; 14-day prune |
-| — | Trinket analysis | **done** | Per-spec pools in `GearCheckTrinkets.lua`: BiS **preferred** (GOOD) + progression **allowed** (OK); soft `TRINKET_NOT_PREFERRED` outside allowed |
+| — | Trinket analysis | **done** | Per-spec pools in `GearCheckTrinkets.lua`: BiS **preferred** (A) + progression **allowed** (B); soft `TRINKET_NOT_PREFERRED` outside allowed |
 | — | Catalog / profile false positives | **backlog** | New reports after Phase 8 polish (Rhee items addressed) |
 
 ---
@@ -500,9 +500,10 @@ Legacy name: `S_DRUID_BALANCE` is also used for all mage/warlock specs (rename t
 
 | File | Role |
 |------|------|
-| `Raidwise/GearCheck.lua` | Collector, normalize (`schemaVersion` 2), evaluate hook, dump |
+| `Raidwise/GearCheck.lua` | Collector, normalize (`schemaVersion` 3), evaluate hook, dump |
 | `Raidwise/GearCheckCatalog.lua` | Enchant / gem seed catalogs |
 | `Raidwise/GearCheckSets.lua` | T9/T10 item-id → set key (informational) |
+| `Raidwise/GearCheckBis.lua` | Generated spec BiS item-ID sets (S grade); `scripts/generate-gear-check-bis.js` |
 | `Raidwise/GearCheckProfiles.lua` | Class + 30-spec rule profiles |
 | `Raidwise/GearCheckRules.lua` | Findings engine + offline self-test |
 | `Raidwise/GearCheckSavedReports.lua` | Manual save / load / prune (~14 days) |

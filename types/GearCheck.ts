@@ -1,16 +1,17 @@
 /**
- * Normalized Gear Check model (schemaVersion 2).
+ * Normalized Gear Check model (schemaVersion 3).
  *
  * Produced by `Raidwise/GearCheck.lua`. Phase 3+ rules must consume this shape
  * only — no WoW API calls inside the rules engine.
  *
- * `itemLevel` is informational and must never affect OK / REPLACE / BAD.
- * Unknown data uses `gaps[]` (`{ code, detail? }`); never invent a BAD verdict.
+ * `itemLevel` is informational and must never affect S / A / B / C / D.
+ * Unknown data uses `gaps[]` (`{ code, detail? }`); never invent a D verdict.
  *
  * Phase 3 attaches `findings[]` and `profile` after evaluate; verdicts come in Phase 4.
+ * schemaVersion 2 reports used GOOD / OK / REPLACE / BAD; rescan to refresh.
  */
 
-export type GearCheckSchemaVersion = 2;
+export type GearCheckSchemaVersion = 3;
 
 export type SlotPolicy = "CHECKED" | "IGNORED" | "PLANNED";
 
@@ -218,7 +219,7 @@ export type GearCheckItem = {
   gaps: GearCheckGap[];
 };
 
-export type GearCheckItemVerdict = "GOOD" | "OK" | "REPLACE" | "BAD";
+export type GearCheckItemVerdict = "S" | "A" | "B" | "C" | "D";
 
 export type GearCheckSlot = {
   key: string;
@@ -234,10 +235,11 @@ export type GearCheckSlot = {
 };
 
 export type GearCheckVerdictSummary = {
-  good: number;
-  ok: number;
-  replace: number;
-  bad: number;
+  s: number;
+  a: number;
+  b: number;
+  c: number;
+  d: number;
   skipped: number;
 };
 
@@ -318,7 +320,7 @@ export type GearCheckCollection = {
  * Frozen Gear Check report.
  * Rules read `character` + `equipment` (+ top-level `gaps`). Ignore `collection`.
  * After Phase 3 evaluate: `findings` + `profile`.
- * After Phase 4 aggregate: per-slot `verdict` + `verdicts` counts (GOOD / OK / REPLACE / BAD).
+ * After Phase 4 aggregate: per-slot `verdict` + `verdicts` counts (S / A / B / C / D).
  * After Phase 5: `overall`, `meta` activation, informational `sets`.
  *
  * Convenience aliases (`name`, `isSelf`, `inspect`, `slots`, …) may also be present

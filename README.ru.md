@@ -75,8 +75,8 @@ Esc или **X** в заголовке закрывает окно.
 
 Вкладка **Проверка экипа (цель)**:
 
-- **Сканировать** оценивает цель или вас (итог GOOD / OK / REPLACE / BAD, иконки класса/спека, GS/iLvl, находки по фильтрам: Все / Предметы / Чары / Камни / OK)
-- Ранги спека: **preferred** / **acceptable** / **unwanted** / **forbidden** (соответствуют GOOD / OK / REPLACE / BAD)
+- **Сканировать** оценивает цель или вас (итог S / A / B / C / D, иконки класса/спека, GS/iLvl, находки по фильтрам: Все / Предметы / Чары / Камни / B)
+- Ранги спека: **preferred** / **acceptable** / **unwanted** / **forbidden** (соответствуют A / B / C / D). **S** = ID предмета есть в опубликованных BiS-списках спека (не уникальный выбор)
 - Кнопки **Отчёт …** и `/rw gearcheck summary|items|enchants|gems|ok` печатают **только в ваш чат**
 - **Показать текстом** — сырой dump; **Сохранить отчёт** — снимок (~14 дней)
 - Поверхностная оговорка; правила и известные ложные срабатывания: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
@@ -115,7 +115,7 @@ Esc или **X** в заголовке закрывает окно.
 
 Схемы окон: [`docs/UI-Views.md`](docs/UI-Views.md). Размеры в пикселях: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Модель репутации: [`docs/Reputation.md`](docs/Reputation.md). Что проверяет анализ состава: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
-Потребители могут типизировать JSON вкладки Export через `types/CharacterExport.ts`. `types/CooldownsExport.ts` описывает форму JSON КД аккаунта (`FormatCooldownsExport`; пока без кнопки в UI). `types/GearCheck.ts` — нормализованный отчёт Gear Check (`schemaVersion` 2).
+Потребители могут типизировать JSON вкладки Export через `types/CharacterExport.ts`. `types/CooldownsExport.ts` описывает форму JSON КД аккаунта (`FormatCooldownsExport`; пока без кнопки в UI). `types/GearCheck.ts` — нормализованный отчёт Gear Check (`schemaVersion` 3).
 
 ## Скриншоты
 
@@ -145,9 +145,10 @@ Raidwise/
   GearCheckSets.lua   # id кусков T9/T10 (информационно)
   GearCheckTrinkets.lua # пулы тринкетов по роли
   GearCheckProfiles.lua # профили классов + 30 спеков
+  GearCheckBis.lua    # сгенерированные BiS item ID по спеку (оценка S)
   GearCheckRules.lua  # находки + вердикты + итог + офлайн self-test
   GearCheckSavedReports.lua # ручное сохранение / загрузка / очистка (~14 дней)
-  GearCheck.lua       # сбор и нормализация Gear Check (schemaVersion 2)
+  GearCheck.lua       # сбор и нормализация Gear Check (schemaVersion 3)
   PageCooldowns.lua   # вкладка Character cooldowns
   PageExport.lua      # вкладка Export gear and CDs
   PageRaid.lua        # вкладка Raid roster
@@ -157,6 +158,8 @@ Raidwise/
   PageSettings.lua    # вкладка Settings
   PageInfo.lua        # вкладка Info
   ExporterWindow.lua  # оболочка главного окна (меню, заголовок, статус, вкладки)
+scripts/
+  generate-gear-check-bis.js # объединение BiS ID из веб-приложения → GearCheckBis.lua
 docs/
   Architecture.md     # порядок TOC, слои, SavedVariables, API обновления
   UI-Views.md         # ASCII-схемы каждого вида + таблица layout-версий
@@ -176,3 +179,4 @@ types/
 - Сохранённые переменные лежат в `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Настройки старого `MrcExporterDB` переносятся при первой загрузке. КД и валюта персонажей для таблицы кулдаунов — в `RaidwiseDB.characters` (`.lockouts`, `.currency`). Встречи в группе и рейде — в `RaidwiseDB.history` (ключ — GUID), включая личные рейтинги (`.rating.personal` с мнением/тегами/фактами), события (`.events`), заметки (`.notes`), журнал изменений (`.changes`) и счётчик совместных групп (`.meetCount`). Язык интерфейса — `RaidwiseDB.locale` (`enUS` или `ruRU`). Стартовая вкладка меню — `RaidwiseDB.startupTab`. Флаги подсказок — `RaidwiseDB.tooltip`.
 - `## X-LastUpdated` в `.toc` задаётся вручную; бейдж в README нужно держать в синхроне.
 - Необязательная зависимость: **GearScore** (`## OptionalDeps`) для поля `gearScore` в экспорте.
+- Пересборка ID для оценки S: `node scripts/generate-gear-check-bis.js` (читает пресеты соседнего веб-репо `Raidwise`; см. `docs/Gear-Check-Surface-From-BiS.md`).

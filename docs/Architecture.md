@@ -22,9 +22,10 @@ GearCheckCatalog.lua  enchant / gem seed catalogs
 GearCheckSets.lua     T9/T10 set-piece ids (informational)
 GearCheckTrinkets.lua per-role BiS + progression trinket id pools
 GearCheckProfiles.lua class + 30-spec rule profiles
+GearCheckBis.lua      generated spec BiS item-ID sets (S grade)
 GearCheckRules.lua    findings engine + item verdicts + overall (EvaluateGearCheck)
 GearCheckSavedReports.lua  manual save / load / prune (~14 days)
-GearCheck.lua         collector + normalize (schemaVersion 2) + evaluate hook + dump
+GearCheck.lua         collector + normalize (schemaVersion 3) + evaluate hook + dump
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
 ExporterWindow.lua    main shell (grouped left menu, title, status, tab wiring)
 ```

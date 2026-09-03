@@ -75,8 +75,8 @@ Esc or the title **X** closes the window.
 
 **Gear check (target)** tab:
 
-- **Scan** evaluates target or self (Overall GOOD / OK / REPLACE / BAD, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / OK)
-- Spec ranks: **preferred** / **acceptable** / **unwanted** / **forbidden** (map to GOOD / OK / REPLACE / BAD)
+- **Scan** evaluates target or self (Overall S / A / B / C / D, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / B)
+- Spec ranks: **preferred** / **acceptable** / **unwanted** / **forbidden** (map to A / B / C / D). **S** = equipped item ID is on published BiS lists for that spec (not a unique pick)
 - **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to **your chat only**
 - **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
 - Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
@@ -115,7 +115,7 @@ Esc or the title **X** closes the window.
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Reputation model: [`docs/Reputation.md`](docs/Reputation.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
-Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet). `types/GearCheck.ts` describes the Gear Check normalized report (`schemaVersion` 2).
+Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet). `types/GearCheck.ts` describes the Gear Check normalized report (`schemaVersion` 3).
 
 ## Screenshots
 
@@ -145,9 +145,10 @@ Raidwise/
   GearCheckSets.lua   # T9/T10 set-piece ids (informational)
   GearCheckTrinkets.lua # preferred/allowed trinket pools by role
   GearCheckProfiles.lua # class + 30-spec Gear Check profiles
+  GearCheckBis.lua    # generated spec BiS item-ID sets (S grade)
   GearCheckRules.lua  # findings + verdicts + overall + offline self-test
   GearCheckSavedReports.lua # manual save / load / prune (~14 days)
-  GearCheck.lua       # collector + normalize (schemaVersion 2) + evaluate + dump
+  GearCheck.lua       # collector + normalize (schemaVersion 3) + evaluate + dump
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
   PageRaid.lua        # Raid roster tab
@@ -157,6 +158,8 @@ Raidwise/
   PageSettings.lua    # Settings tab
   PageInfo.lua        # Info tab
   ExporterWindow.lua  # main window shell (menu, title, status, tab wiring)
+scripts/
+  generate-gear-check-bis.js # union web-app BiS preset IDs → GearCheckBis.lua
 docs/
   Architecture.md     # TOC order, layers, SavedVariables, refresh API
   UI-Views.md         # ASCII layouts for each view + layout version table
@@ -176,3 +179,4 @@ types/
 - Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts and currency snapshots for the cooldowns table live in `RaidwiseDB.characters` (`.lockouts`, `.currency`). Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal` with opinion/tags/facts), events (`.events`), notes (`.notes`), change log (`.changes`), and party/raid meet count (`.meetCount`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`). Startup left-menu page is `RaidwiseDB.startupTab`. Unit tooltip visibility flags live in `RaidwiseDB.tooltip`.
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.
+- Regenerating S-grade BiS IDs: `node scripts/generate-gear-check-bis.js` (reads sibling `Raidwise` web-app presets; see `docs/Gear-Check-Surface-From-BiS.md`).

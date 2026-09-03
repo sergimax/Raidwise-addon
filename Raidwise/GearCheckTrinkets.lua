@@ -1,6 +1,6 @@
 -- Gear Check trinket pools (WotLK 3.3.5a). Distilled from examples/bis-list-sources.md
 -- and docs/Gear-Check-Surface-From-BiS.md §3. Normal + heroic IDs where known.
--- preferred = endgame BiS from example lists (qualifies for GOOD when rest is max).
+-- preferred = endgame BiS from example lists (qualifies for A when rest is max).
 -- allowed = preferred + ToC / Ulduar / badge progression (no TRINKET_NOT_PREFERRED).
 
 local Addon = Raidwise

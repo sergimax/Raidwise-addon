@@ -41,8 +41,8 @@ local Translations = {
 		BTN_RAID_REPORT_FOOD_TIP = "Post players missing a food buff to raid or party chat.",
 		BTN_RAID_REPORT_GEAR = "Report armor",
 		BTN_RAID_REPORT_ENCHANT = "Report ench",
-		BTN_RAID_REPORT_GEAR_TIP = "Post players with armor/weapon issues (BAD or REPLACE) to raid or party chat.",
-		BTN_RAID_REPORT_ENCHANT_TIP = "Post players with enchant/socket issues (BAD or REPLACE) to raid or party chat.",
+		BTN_RAID_REPORT_GEAR_TIP = "Post players with armor/weapon issues (C or D) to raid or party chat.",
+		BTN_RAID_REPORT_ENCHANT_TIP = "Post players with enchant/socket issues (C or D) to raid or party chat.",
 		CD_REFRESH_TIP = "Request fresh raid info, then redraw lockouts and currency.",
 		PARTY_REFRESH_TIP = "Re-read GearScore, item levels, and guild info; re-queue inspect for specs.",
 		RAID_REFRESH_TIP = "Re-read GearScore and iLvl; re-queue inspect for spec icons.",
@@ -63,12 +63,12 @@ local Translations = {
 		GEAR_CHECK_REPORT_ITEMS_TIP = "Print item findings to your chat only.",
 		GEAR_CHECK_REPORT_ENCHANTS_TIP = "Print enchant findings to your chat only.",
 		GEAR_CHECK_REPORT_GEMS_TIP = "Print gem findings to your chat only.",
-		GEAR_CHECK_REPORT_OK_TIP = "Print OK (not GOOD) items to your chat only.",
+		GEAR_CHECK_REPORT_OK_TIP = "Print B (not A) items to your chat only.",
 		GEAR_CHECK_FILTER_ALL_TIP = "Show all findings in the breakdown.",
 		GEAR_CHECK_FILTER_ITEMS_TIP = "Show only item and armor findings.",
 		GEAR_CHECK_FILTER_ENCHANTS_TIP = "Show only enchant findings.",
 		GEAR_CHECK_FILTER_GEMS_TIP = "Show only gem findings.",
-		GEAR_CHECK_FILTER_OK_TIP = "Show only OK items that are not GOOD.",
+		GEAR_CHECK_FILTER_OK_TIP = "Show only B items that are not A.",
 
 		EXPORT_DESC = "Export this character's gear, bags, and raid lockouts as JSON.",
 		EXPORT_INCLUDE_NAMES = "Include item names",
@@ -119,13 +119,13 @@ local Translations = {
 		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target, or yourself if nothing is targeted.\n"
 			.. "This is not a BiS list or build optimizer.\n"
 			.. "\n"
-			.. "- Overall: GOOD (preferred), OK (usable), REPLACE (soft issues), BAD (wrong for spec)\n"
+			.. "- Overall: S (on published BiS lists), A (preferred + max ench/gems), B (usable), C (soft issues), D (wrong for spec)\n"
 			.. "- Spec ranks: preferred / acceptable / unwanted / forbidden\n"
-			.. "- Scan, then filter findings by All / Items / Enchants / Gems / OK\n"
+			.. "- Scan, then filter findings by All / Items / Enchants / Gems / B\n"
 			.. "- Report buttons and slash commands print to your chat only\n"
 			.. "- Show as a text toggles the raw dump; Save report keeps a snapshot for about 14 days",
 		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time).\n"
-			.. "The group grid shows Overall per player (GOOD / OK / REPLACE / BAD).\n"
+			.. "The group grid shows armor/weap and ench/sock grades per player (S / A / B / C / D).\n"
 			.. "Gear on a scanned card opens the full report on Gear check (target).",
 		INFO_SECTION_HISTORY = "Players you have been in a party or raid with.\n"
 			.. "The list is saved on this account and stays after logout.\n"
@@ -174,7 +174,7 @@ local Translations = {
 
 		PARTY_HINT = "Current party (5 players max). Refresh after gear or spec changes.",
 		PARTY_FAIL = "Party module failed to load. Reload UI (/reload).",
-		RAID_HINT = "Raid groups 1–5 and 6–8. Refresh after gear or spec changes. Scan rates each player GOOD / OK / REPLACE / BAD.",
+		RAID_HINT = "Raid groups 1–5 and 6–8. Refresh after gear or spec changes. Scan rates each player S / A / B / C / D.",
 		RAID_FAIL = "Raid roster module failed to load. Reload UI (/reload).",
 		RAID_PARTY_BUFF_PRESENT = "Present: %s",
 		RAID_PARTY_BUFF_MISSING = "Missing",
@@ -203,9 +203,9 @@ local Translations = {
 		HISTORY_HINT = "Players from your parties and raids. Saved on this account.",
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
 		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
-		GEAR_CHECK_TARGET_DESC = "Gear check of the current target (or yourself). Overall (worst slot wins): GOOD = preferred for the spec; OK = usable / acceptable; REPLACE = unwanted or soft issues; BAD = forbidden or wrong for the spec. Surface-level PvE only — not BiS or build optimization.",
-		GEAR_CHECK_RAID_DESC = "Scan everyone in your party or raid. Each card shows two grades: armor & weapons, and enchants & sockets (GOOD / OK / REPLACE / BAD). Use Gear check on a card for the full report.",
-		GEAR_CHECK_RAID_HINT = "GOOD = preferred; OK = usable; REPLACE = unwanted/soft issues; BAD = forbidden/hard issues. Spec ranks: preferred / acceptable / unwanted / forbidden. Inspects one at a time — stay in range.",
+		GEAR_CHECK_TARGET_DESC = "Gear check of the current target (or yourself). Overall (worst slot wins): S = item ID appears on published BiS lists for this spec (Kingdom / Titans / community), not a unique BiS pick; A = preferred for the spec + max ench/gems; B = usable / acceptable; C = unwanted or soft issues; D = forbidden or wrong for the spec. Surface-level PvE only — not a BiS optimizer.",
+		GEAR_CHECK_RAID_DESC = "Scan everyone in your party or raid. Each card shows two grades: armor & weapons, and enchants & sockets (S / A / B / C / D). Use Gear check on a card for the full report.",
+		GEAR_CHECK_RAID_HINT = "S = on published BiS lists (not a unique pick); A = preferred + max ench/gems; B = usable; C = unwanted/soft; D = forbidden/hard. Spec ranks: preferred / acceptable / unwanted / forbidden. Inspects one at a time — stay in range.",
 		GEAR_CHECK_RAID_STATUS_SCANNING = "Scanning %d/%d: %s…",
 		GEAR_CHECK_RAID_STATUS_SCANNING_PHASE = "Scanning %d/%d: %s — %s…",
 		GEAR_CHECK_RAID_STATUS_RESCANNING = "Rescanning %s…",
@@ -222,11 +222,11 @@ local Translations = {
 		GEAR_CHECK_RAID_STATUS_DONE = "Scan complete — %d players.",
 		GEAR_CHECK_RAID_STATUS_EMPTY = "Not in a party or raid, or roster is empty.",
 		GEAR_CHECK_RAID_STATUS_BUSY = "A gear check scan is already running.",
-		GEAR_CHECK_RAID_SUMMARY = "BAD %d · REPLACE %d · OK %d · GOOD %d · Failed %d",
+		GEAR_CHECK_RAID_SUMMARY = "D %d · C %d · B %d · A %d · S %d · Failed %d",
 		GEAR_CHECK_RAID_SUMMARY_EMPTY = "Press Scan to check your party or raid.",
 		GEAR_CHECK_RAID_CELL_GEAR = "Armor/weap: %s",
 		GEAR_CHECK_RAID_CELL_ENCHANT = "Ench/sock: %s",
-		GEAR_CHECK_RAID_CELL_COUNTS = "BAD %d · Repl. %d · Iss. %d",
+		GEAR_CHECK_RAID_CELL_COUNTS = "D %d · C %d · Iss. %d",
 		GEAR_CHECK_RAID_NOT_SCANNED = "—",
 		GEAR_CHECK_RAID_ROW_FAIL = "—",
 		GEAR_CHECK_RAID_CLICK_HINT = "Gear check opens the full report",
@@ -241,7 +241,7 @@ local Translations = {
 		GEAR_CHECK_RAID_TIP_ENCHANT_CLEAN = "Enchants, gems, and meta look good.",
 		GEAR_CHECK_RAID_TIP_OK_CLEAN = "Usable — nothing flagged in this category.",
 		GEAR_CHECK_RAID_TIP_MORE = "… and %d more (Gear check for full report)",
-		GEAR_CHECK_LIMITATION = "Gear Check is a surface-level evaluation. It does not consider BiS lists, specific gear builds, encounter requirements, or detailed stat weights.",
+		GEAR_CHECK_LIMITATION = "Gear Check is a surface-level evaluation. S means the item ID appears on published BiS lists for this spec (not a unique BiS pick). It does not optimize builds, encounters, or stat weights.",
 		GEAR_CHECK_SCAN = "Scan",
 		GEAR_CHECK_SAVE = "Save report",
 		GEAR_CHECK_SAVED_DELETE = "Delete selected report",
@@ -270,18 +270,18 @@ local Translations = {
 		GEAR_CHECK_FILTER_ITEMS = "Items",
 		GEAR_CHECK_FILTER_ENCHANTS = "Enchants",
 		GEAR_CHECK_FILTER_GEMS = "Gems",
-		GEAR_CHECK_FILTER_OK = "OK",
+		GEAR_CHECK_FILTER_OK = "B",
 		GEAR_CHECK_REPORT_SUMMARY = "Report summary",
 		GEAR_CHECK_REPORT_ITEMS = "Report items",
 		GEAR_CHECK_REPORT_ENCHANTS = "Report enchants",
 		GEAR_CHECK_REPORT_GEMS = "Report gems",
-		GEAR_CHECK_REPORT_OK = "Report OK",
+		GEAR_CHECK_REPORT_OK = "Report B",
 		GEAR_CHECK_OVERALL = "Overall: %s",
 		GEAR_CHECK_OVERALL_NONE = "Overall: —",
 		GEAR_CHECK_WHO = "%s — %s / %s",
 		GEAR_CHECK_GS_ILVL = "GearScore: %s · Avg iLvl: %s",
 		GEAR_CHECK_SPEC_UNKNOWN = "spec unknown",
-		GEAR_CHECK_ISSUES = "Items BAD %d · REPLACE %d · OK %d · GOOD %d · Enchants %d · Gems %d · Meta %s",
+		GEAR_CHECK_ISSUES = "Items S %d · A %d · B %d · C %d · D %d · Enchants %d · Gems %d · Meta %s",
 		GEAR_CHECK_META_LINE = "Meta: %s",
 		GEAR_CHECK_META_NONE = "none",
 		GEAR_CHECK_META_ACTIVE = "active",
@@ -293,8 +293,8 @@ local Translations = {
 		GEAR_CHECK_SCOPE_GEAR = "Gear",
 		GEAR_CHECK_BREAK_EMPTY_SCAN = "Scan a player to see findings.",
 		GEAR_CHECK_BREAK_EMPTY_FILTER = "No issues in this category.",
-		GEAR_CHECK_BREAK_EMPTY_OK = "No OK items — every checked slot is GOOD (or none scanned).",
-		GEAR_CHECK_OK_REASON_GENERIC = "Usable, but not marked GOOD (preferred type, max-level enchant when required, max-level gems).",
+		GEAR_CHECK_BREAK_EMPTY_OK = "No B items — every checked slot is A or S (or none scanned).",
+		GEAR_CHECK_OK_REASON_GENERIC = "Usable, but not marked A (preferred type, max-level enchant when required, max-level gems).",
 		CHAT_GEARCHECK_USAGE = "Usage: /rw gearcheck [summary|items|enchants|gems|ok|test]",
 		CHAT_GEARCHECK_TEST_SUMMARY = "Gear Check rules self-test: %d / %d passed.",
 		CHAT_GEARCHECK_NO_REPORT = "No Gear Check data yet. Scan first (/rw gearcheck).",
@@ -655,8 +655,8 @@ local Translations = {
 		BTN_RAID_REPORT_FOOD_TIP = "Написать в чат рейда или группы, у кого нет баффа еды.",
 		BTN_RAID_REPORT_GEAR = "Сообщить броню",
 		BTN_RAID_REPORT_ENCHANT = "Сообщить чары",
-		BTN_RAID_REPORT_GEAR_TIP = "Написать в чат, у кого проблемы с бронёй или оружием (BAD или REPLACE).",
-		BTN_RAID_REPORT_ENCHANT_TIP = "Написать в чат, у кого проблемы с чарами или сокетами (BAD или REPLACE).",
+		BTN_RAID_REPORT_GEAR_TIP = "Написать в чат, у кого проблемы с бронёй или оружием (C или D).",
+		BTN_RAID_REPORT_ENCHANT_TIP = "Написать в чат, у кого проблемы с чарами или сокетами (C или D).",
 		CD_REFRESH_TIP = "Запросить свежие данные о блокировках и перерисовать таблицу.",
 		PARTY_REFRESH_TIP = "Заново считать GearScore, iLvl и гильдию; поставить осмотр для спеков.",
 		RAID_REFRESH_TIP = "Заново считать GearScore и iLvl; поставить осмотр для иконок спека.",
@@ -677,12 +677,12 @@ local Translations = {
 		GEAR_CHECK_REPORT_ITEMS_TIP = "Находки по предметам только вам в чат.",
 		GEAR_CHECK_REPORT_ENCHANTS_TIP = "Находки по чарам только вам в чат.",
 		GEAR_CHECK_REPORT_GEMS_TIP = "Находки по камням только вам в чат.",
-		GEAR_CHECK_REPORT_OK_TIP = "Предметы OK (не GOOD) только вам в чат.",
+		GEAR_CHECK_REPORT_OK_TIP = "Предметы B (не A) только вам в чат.",
 		GEAR_CHECK_FILTER_ALL_TIP = "Показать все находки в разборе.",
 		GEAR_CHECK_FILTER_ITEMS_TIP = "Только находки по предметам и броне.",
 		GEAR_CHECK_FILTER_ENCHANTS_TIP = "Только находки по чарам.",
 		GEAR_CHECK_FILTER_GEMS_TIP = "Только находки по камням.",
-		GEAR_CHECK_FILTER_OK_TIP = "Только предметы OK, которые не GOOD.",
+		GEAR_CHECK_FILTER_OK_TIP = "Только предметы B, которые не A.",
 
 		EXPORT_DESC = "Экспорт экипировки, сумок и КД этого персонажа в JSON.",
 		EXPORT_INCLUDE_NAMES = "Включать названия предметов",
@@ -733,13 +733,13 @@ local Translations = {
 		INFO_SECTION_GEARTARGET = "Поверхностная PvE-проверка экипировки цели, или себя, если цели нет.\n"
 			.. "Это не список BiS и не оптимизация билда.\n"
 			.. "\n"
-			.. "- Итог: GOOD (preferred), OK (подходит), REPLACE (мягкие проблемы), BAD (не для спека)\n"
+			.. "- Итог: S (на опубликованных BiS-списках), A (preferred + max чары/камни), B (подходит), C (мягкие проблемы), D (не для спека)\n"
 			.. "- Ранги спека: preferred / acceptable / unwanted / forbidden\n"
-			.. "- Сканируйте, затем фильтруйте находки: Все / Предметы / Чары / Камни / OK\n"
+			.. "- Сканируйте, затем фильтруйте находки: Все / Предметы / Чары / Камни / B\n"
 			.. "- Кнопки отчёта и команды печатают только в ваш чат\n"
 			.. "- «Показать текстом» включает сырой dump; «Сохранить отчёт» хранит снимок около 14 дней",
 		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному).\n"
-			.. "Сетка групп показывает итог по игроку (GOOD / OK / REPLACE / BAD).\n"
+			.. "Сетка групп показывает оценки брони/оружия и чар/сокетов по игроку (S / A / B / C / D).\n"
 			.. "«Экип» на просканированной карточке открывает полный отчёт на вкладке «Проверка экипа (цель)».",
 		INFO_SECTION_HISTORY = "Игроки, с которыми вы были в группе или рейде.\n"
 			.. "Список сохраняется на аккаунте и остаётся после выхода.\n"
@@ -788,7 +788,7 @@ local Translations = {
 
 		PARTY_HINT = "Текущая группа (до 5 игроков). Обновите после смены экипировки или спека.",
 		PARTY_FAIL = "Модуль группы не загрузился. Перезагрузите интерфейс (/reload).",
-		RAID_HINT = "Рейдовые группы 1–5 и 6–8. Обновите после смены экипировки или спека. «Сканировать» ставит каждому GOOD / OK / REPLACE / BAD.",
+		RAID_HINT = "Рейдовые группы 1–5 и 6–8. Обновите после смены экипировки или спека. «Сканировать» ставит каждому S / A / B / C / D.",
 		RAID_FAIL = "Модуль состава рейда не загрузился. Перезагрузите интерфейс (/reload).",
 		RAID_PARTY_BUFF_PRESENT = "Есть: %s",
 		RAID_PARTY_BUFF_MISSING = "Нет",
@@ -817,9 +817,9 @@ local Translations = {
 		HISTORY_HINT = "Игроки из ваших групп и рейдов. Сохраняется на этом аккаунте.",
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",
-		GEAR_CHECK_TARGET_DESC = "Проверка экипировки цели (или себя). Итог (худший слот): GOOD = preferred для спека; OK = подходит / acceptable; REPLACE = unwanted или мягкие проблемы; BAD = forbidden или не для спека. Поверхностная PvE-оценка — не BiS и не оптимизация билда.",
-		GEAR_CHECK_RAID_DESC = "Сканирование группы или рейда. На карточке два итога: броня и оружие, зачарования и камни (GOOD / OK / REPLACE / BAD). «Экип» открывает полный отчёт.",
-		GEAR_CHECK_RAID_HINT = "GOOD = preferred; OK = подходит; REPLACE = unwanted/мягкие проблемы; BAD = forbidden/жёсткие. Ранги спека: preferred / acceptable / unwanted / forbidden. Осмотр по одному — держитесь в радиусе.",
+		GEAR_CHECK_TARGET_DESC = "Проверка экипировки цели (или себя). Итог (худший слот): S = ID предмета есть в опубликованных BiS-списках спека (Kingdom / Titans / community), не уникальный выбор BiS; A = preferred для спека + max чары/камни; B = подходит / acceptable; C = unwanted или мягкие проблемы; D = forbidden или не для спека. Поверхностная PvE-оценка — не оптимизатор BiS.",
+		GEAR_CHECK_RAID_DESC = "Сканирование группы или рейда. На карточке два итога: броня и оружие, зачарования и камни (S / A / B / C / D). «Экип» открывает полный отчёт.",
+		GEAR_CHECK_RAID_HINT = "S = в опубликованных BiS-списках (не уникальный выбор); A = preferred + max чары/камни; B = подходит; C = unwanted/мягкие; D = forbidden/жёсткие. Ранги спека: preferred / acceptable / unwanted / forbidden. Осмотр по одному — держитесь в радиусе.",
 		GEAR_CHECK_RAID_STATUS_SCANNING = "Сканирование %d/%d: %s…",
 		GEAR_CHECK_RAID_STATUS_SCANNING_PHASE = "Сканирование %d/%d: %s — %s…",
 		GEAR_CHECK_RAID_STATUS_RESCANNING = "Рескан %s…",
@@ -836,11 +836,11 @@ local Translations = {
 		GEAR_CHECK_RAID_STATUS_DONE = "Сканирование завершено — %d игроков.",
 		GEAR_CHECK_RAID_STATUS_EMPTY = "Вы не в группе/рейде или состав пуст.",
 		GEAR_CHECK_RAID_STATUS_BUSY = "Сканирование Gear Check уже выполняется.",
-		GEAR_CHECK_RAID_SUMMARY = "BAD %d · REPLACE %d · OK %d · GOOD %d · Ошибок %d",
+		GEAR_CHECK_RAID_SUMMARY = "D %d · C %d · B %d · A %d · S %d · Ошибок %d",
 		GEAR_CHECK_RAID_SUMMARY_EMPTY = "Нажмите «Сканировать» для проверки группы или рейда.",
 		GEAR_CHECK_RAID_CELL_GEAR = "Броня/оруж.: %s",
 		GEAR_CHECK_RAID_CELL_ENCHANT = "Зач/сокеты: %s",
-		GEAR_CHECK_RAID_CELL_COUNTS = "BAD %d · Repl. %d · Iss. %d",
+		GEAR_CHECK_RAID_CELL_COUNTS = "D %d · C %d · Iss. %d",
 		GEAR_CHECK_RAID_NOT_SCANNED = "—",
 		GEAR_CHECK_RAID_ROW_FAIL = "—",
 		GEAR_CHECK_RAID_CLICK_HINT = "«Экип» открывает полный отчёт",
@@ -855,7 +855,7 @@ local Translations = {
 		GEAR_CHECK_RAID_TIP_ENCHANT_CLEAN = "Чары, камни и мета в порядке.",
 		GEAR_CHECK_RAID_TIP_OK_CLEAN = "Подходит — в этой категории замечаний нет.",
 		GEAR_CHECK_RAID_TIP_MORE = "… и ещё %d (полный отчёт — «Экип»)",
-		GEAR_CHECK_LIMITATION = "Gear Check — поверхностная оценка. Без BiS, билдов, энкаунтеров и весов статов.",
+		GEAR_CHECK_LIMITATION = "Gear Check — поверхностная оценка. S = ID предмета есть в опубликованных BiS-списках спека, не уникальный выбор. Без оптимизации билдов, энкаунтеров и весов статов.",
 		GEAR_CHECK_SCAN = "Сканировать",
 		GEAR_CHECK_SAVE = "Сохранить отчёт",
 		GEAR_CHECK_SAVED_DELETE = "Удалить выбранный отчёт",
@@ -884,18 +884,18 @@ local Translations = {
 		GEAR_CHECK_FILTER_ITEMS = "Предметы",
 		GEAR_CHECK_FILTER_ENCHANTS = "Чары",
 		GEAR_CHECK_FILTER_GEMS = "Камни",
-		GEAR_CHECK_FILTER_OK = "OK",
+		GEAR_CHECK_FILTER_OK = "B",
 		GEAR_CHECK_REPORT_SUMMARY = "Отчёт: итог",
 		GEAR_CHECK_REPORT_ITEMS = "Отчёт: предметы",
 		GEAR_CHECK_REPORT_ENCHANTS = "Отчёт: чары",
 		GEAR_CHECK_REPORT_GEMS = "Отчёт: камни",
-		GEAR_CHECK_REPORT_OK = "Отчёт: OK",
+		GEAR_CHECK_REPORT_OK = "Отчёт: B",
 		GEAR_CHECK_OVERALL = "Итог: %s",
 		GEAR_CHECK_OVERALL_NONE = "Итог: —",
 		GEAR_CHECK_WHO = "%s — %s / %s",
 		GEAR_CHECK_GS_ILVL = "GearScore: %s · Ср. iLvl: %s",
 		GEAR_CHECK_SPEC_UNKNOWN = "спек неизвестен",
-		GEAR_CHECK_ISSUES = "Предметы BAD %d · REPLACE %d · OK %d · GOOD %d · Чары %d · Камни %d · Мета %s",
+		GEAR_CHECK_ISSUES = "Предметы S %d · A %d · B %d · C %d · D %d · Чары %d · Камни %d · Мета %s",
 		GEAR_CHECK_META_LINE = "Мета: %s",
 		GEAR_CHECK_META_NONE = "нет",
 		GEAR_CHECK_META_ACTIVE = "активна",
@@ -907,8 +907,8 @@ local Translations = {
 		GEAR_CHECK_SCOPE_GEAR = "Экипировка",
 		GEAR_CHECK_BREAK_EMPTY_SCAN = "Сканируйте игрока, чтобы увидеть findings.",
 		GEAR_CHECK_BREAK_EMPTY_FILTER = "В этой категории проблем нет.",
-		GEAR_CHECK_BREAK_EMPTY_OK = "Нет предметов OK — все проверенные слоты GOOD (или нет скана).",
-		GEAR_CHECK_OK_REASON_GENERIC = "Подходит, но не GOOD (нужен preferred тип, max-level чары при необходимости, max-level камни).",
+		GEAR_CHECK_BREAK_EMPTY_OK = "Нет предметов B — все проверенные слоты A или S (или нет скана).",
+		GEAR_CHECK_OK_REASON_GENERIC = "Подходит, но не A (нужен preferred тип, max-level чары при необходимости, max-level камни).",
 		CHAT_GEARCHECK_USAGE = "Использование: /rw gearcheck [summary|items|enchants|gems|ok|test]",
 		CHAT_GEARCHECK_TEST_SUMMARY = "Самотест правил Gear Check: %d / %d пройдено.",
 		CHAT_GEARCHECK_NO_REPORT = "Нет данных Gear Check. Сначала сканируйте (/rw gearcheck).",

@@ -108,7 +108,8 @@ Addon.UITheme = {
 	TEXT_HOVER = { 1.000, 0.910, 0.550 },
 	TEXT_DISABLED = { 0.690, 0.627, 0.439 },
 	TEXT_ALERT = { 1.000, 0.251, 0.251 },
-	-- Gear Check gradation (red → green): verdicts and spec ranks share the same scale.
+	-- Gear Check gradation: S gold, then A green through D red. Spec ranks share A–D.
+	GEAR_S = { 1.000, 0.824, 0.000 },
 	GEAR_BAD = { 1.000, 0.251, 0.251 },
 	GEAR_REPLACE = { 1.000, 0.600, 0.200 },
 	GEAR_OK = { 0.950, 0.780, 0.350 },
@@ -267,14 +268,20 @@ function W.GearGradationColor(step)
 		return UI.GEAR_OK
 	end
 	local key = string.lower(tostring(step))
-	if key == "bad" or key == "forbidden" then
+	if key == "s" then
+		return UI.GEAR_S
+	end
+	if key == "d" or key == "bad" or key == "forbidden" then
 		return UI.GEAR_BAD
 	end
-	if key == "replace" or key == "unwanted" then
+	if key == "c" or key == "replace" or key == "unwanted" then
 		return UI.GEAR_REPLACE
 	end
-	if key == "good" or key == "preferred" then
+	if key == "a" or key == "good" or key == "preferred" then
 		return UI.GEAR_GOOD
+	end
+	if key == "b" or key == "ok" or key == "acceptable" then
+		return UI.GEAR_OK
 	end
 	return UI.GEAR_OK
 end
@@ -292,10 +299,11 @@ local GEAR_GRADATION_TOKENS = {
 	"acceptable",
 	"unwanted",
 	"preferred",
-	"REPLACE",
-	"GOOD",
-	"BAD",
-	"OK",
+	"S",
+	"A",
+	"B",
+	"C",
+	"D",
 }
 
 function W.ColorizeGearGradation(text)
@@ -310,18 +318,21 @@ function W.ColorizeGearGradation(text)
 	return text
 end
 
-function W.FormatGearVerdictCountsLine(prefix, bad, replace, okCount, good, suffix)
+function W.FormatGearVerdictCountsLine(prefix, counts, suffix)
+	counts = counts or {}
 	local parts = {}
 	if prefix and prefix ~= "" then
 		parts[#parts + 1] = prefix
 	end
-	parts[#parts + 1] = W.WrapGearGradation("BAD") .. " " .. tostring(bad or 0)
+	parts[#parts + 1] = W.WrapGearGradation("S") .. " " .. tostring(counts.s or 0)
 	parts[#parts + 1] = " · "
-	parts[#parts + 1] = W.WrapGearGradation("REPLACE") .. " " .. tostring(replace or 0)
+	parts[#parts + 1] = W.WrapGearGradation("A") .. " " .. tostring(counts.a or 0)
 	parts[#parts + 1] = " · "
-	parts[#parts + 1] = W.WrapGearGradation("OK") .. " " .. tostring(okCount or 0)
+	parts[#parts + 1] = W.WrapGearGradation("B") .. " " .. tostring(counts.b or 0)
 	parts[#parts + 1] = " · "
-	parts[#parts + 1] = W.WrapGearGradation("GOOD") .. " " .. tostring(good or 0)
+	parts[#parts + 1] = W.WrapGearGradation("C") .. " " .. tostring(counts.c or 0)
+	parts[#parts + 1] = " · "
+	parts[#parts + 1] = W.WrapGearGradation("D") .. " " .. tostring(counts.d or 0)
 	if suffix and suffix ~= "" then
 		parts[#parts + 1] = suffix
 	end

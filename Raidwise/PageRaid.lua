@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 25
+local LAYOUT_VERSION = 26
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 137
@@ -67,7 +67,7 @@ local function FormatRoleGsSummary(label, bucket)
 end
 
 local function IsGearVerdictLabel(label)
-	return label == "BAD" or label == "REPLACE" or label == "OK" or label == "GOOD"
+	return label == "S" or label == "A" or label == "B" or label == "C" or label == "D"
 end
 
 local function GearStatusLabelForEntry(entry)
@@ -79,7 +79,7 @@ local function GearStatusLabelForEntry(entry)
 		return W.T("GEAR_CHECK_RAID_NOT_SCANNED")
 	end
 	local overall = entry.report.overall or {}
-	return overall.status or "OK"
+	return overall.status or "B"
 end
 
 local function GradeFromEntry(entry, field)
@@ -88,9 +88,9 @@ local function GradeFromEntry(entry, field)
 	end
 	local overall = entry.report.overall or {}
 	if field == "enchant" then
-		return overall.enchantSocketGrade or "OK"
+		return overall.enchantSocketGrade or "B"
 	end
-	return overall.gearGrade or overall.status or "OK"
+	return overall.gearGrade or overall.status or "B"
 end
 
 local function EntryDisplayName(entry)
@@ -102,10 +102,11 @@ end
 local function SummarizeGearCategory(results, field)
 	local summary = {
 		scanned = 0,
-		bad = 0,
-		replace = 0,
-		ok = 0,
-		good = 0,
+		s = 0,
+		a = 0,
+		b = 0,
+		c = 0,
+		d = 0,
 		failed = 0,
 		issueNames = {},
 	}
@@ -119,16 +120,18 @@ local function SummarizeGearCategory(results, field)
 			summary.failed = summary.failed + 1
 		else
 			summary.scanned = summary.scanned + 1
-			if grade == "BAD" then
-				summary.bad = summary.bad + 1
-			elseif grade == "REPLACE" then
-				summary.replace = summary.replace + 1
-			elseif grade == "GOOD" then
-				summary.good = summary.good + 1
+			if grade == "S" then
+				summary.s = summary.s + 1
+			elseif grade == "A" then
+				summary.a = summary.a + 1
+			elseif grade == "C" then
+				summary.c = summary.c + 1
+			elseif grade == "D" then
+				summary.d = summary.d + 1
 			else
-				summary.ok = summary.ok + 1
+				summary.b = summary.b + 1
 			end
-			if grade == "BAD" or grade == "REPLACE" then
+			if grade == "C" or grade == "D" then
 				summary.issueNames[#summary.issueNames + 1] = string.format("%s (%s)", EntryDisplayName(entry), grade)
 			end
 		end
@@ -149,7 +152,7 @@ local function FormatGearCategorySummaryLine(summary)
 	if (summary.failed or 0) > 0 then
 		failedSuffix = " · Failed " .. tostring(summary.failed)
 	end
-	return W.FormatGearVerdictCountsLine(nil, summary.bad, summary.replace, summary.ok, summary.good, failedSuffix)
+	return W.FormatGearVerdictCountsLine(nil, summary, failedSuffix)
 end
 
 local function FillGearCategorySummaryLabel(label, heading, summary)
@@ -1117,8 +1120,8 @@ local function FillGearReportRows(cell, member, entry)
 	end
 
 	local overall = report.overall or {}
-	local gearGrade = overall.gearGrade or overall.status or "OK"
-	local enchantSocketGrade = overall.enchantSocketGrade or "OK"
+	local gearGrade = overall.gearGrade or overall.status or "B"
+	local enchantSocketGrade = overall.enchantSocketGrade or "B"
 	cell.gearGradeText:SetText(FormatRaidCategoryGradeLine("GEAR_CHECK_RAID_CELL_GEAR", gearGrade))
 	cell.enchantSocketGradeText:SetText(FormatRaidCategoryGradeLine("GEAR_CHECK_RAID_CELL_ENCHANT", enchantSocketGrade))
 	W.SetFontColor(cell.gearGradeText, UI.TEXT_IDLE)

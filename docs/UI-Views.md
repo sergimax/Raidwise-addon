@@ -45,7 +45,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character profile | `PROFILE_LAYOUT_VERSION = 31` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 25` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 26` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -108,10 +108,10 @@ Rows come only from current lockouts; each instance is one row with all size/mod
 Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1 (same inspect/GS pipeline as before; no separate party tab).
 
 ```text
-[ GOOD=preferred… | Average GS     | Flask 22/25 [note] | Scan           ]
-[ OK=usable…      | Tanks …        | Food 20/25 [note]  | Export all     ]
-[ REPLACE=…       | Healers …      | Armor BAD·… [note] | Refresh        ]
-[ BAD=…           | Melee … Range  | Ench … [note]      | Back to roster ]
+[ S=on BiS lists… | Average GS     | Flask 22/25 [note] | Scan           ]
+[ A=preferred…    | Tanks …        | Food 20/25 [note]  | Export all     ]
+[ B=usable…       | Healers …      | Armor S·A·B·C·D [note] | Refresh        ]
+[ C=soft  D=hard  | Melee … Range  | Ench … [note]      | Back to roster ]
 [ scan / export status (reserved height)                                 ]
 [ progress bar track (always reserved)                                   ]
         8 px gap
@@ -120,8 +120,8 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ (role)(spec) 6158gs 264ilvl ]
 [ (buff)(buff)(buff) ]
 [ Personal opinion: Positive ]
-[ Armor/weap: GOOD ]
-[ Ench/sock: REPLACE ]
+[ Armor/weap: A ]
+[ Ench/sock: C ]
 [ Profile ][ Gear ][ Rescan ]
         12 px gap
 [ 6              ][ 7              ][ 8              ]
@@ -131,11 +131,11 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | Block | In-game text / control |
 |-------|------------------------|
 | mini table | Four equal columns (8 px gaps); height matches the stacked toolbar (**28×4** + **4** px gaps) |
-| col 1 grade legend | `GEAR_CHECK_RAID_HINT` (GOOD / OK / REPLACE / BAD meanings); stays visible during scan |
+| col 1 grade legend | `GEAR_CHECK_RAID_HINT` (S / A / B / C / D meanings); stays visible during scan |
 | col 2 GS averages | `Average GS` then Tanks / Healers / Melee / Range counts and GS, stacked |
 | col 3 status | Four rows: **Flask**, **Food**, **Armor / weap**, **Ench / sock** — gold name + counts, **16×16** note icon on the right |
 | flask / food | `Flask n/total (x missing)` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Out of range / offline are not listed as missing |
-| armor / ench | BAD / REPLACE / OK / GOOD counts (+ Failed). Dim until first scan (`Press Scan to check.`) |
+| armor / ench | S / A / B / C / D counts (+ Failed). Dim until first scan (`Press Scan to check.`) |
 | report icon | Same note icon on every status row; hover shows the flask / food / armor / ench tip |
 | col 4 toolbar | **Scan**, **Export all**, **Refresh**, **Back to roster** stacked (**28** tall, **4** px gap). **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
 | scan status | Below the mini table; reserved **28** px; scan/export/rescan text (empty when idle) |
@@ -145,8 +145,8 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
 | line 3 | Spec- and race-specific raid buff icons (hover for name); up to 8 |
 | line 4 | `Personal opinion: {Positive|Neutral|Negative}`; color-coded |
-| line 5 | `Armor/weap: {GOOD|OK|REPLACE|BAD}` (colored grade) or fail / not scanned (`—`) |
-| line 6 | `Ench/sock: {GOOD|OK|REPLACE|BAD}` (colored grade); blank when not scanned |
+| line 5 | `Armor/weap: {S|A|B|C|D}` (colored grade) or fail / not scanned (`—`) |
+| line 6 | `Ench/sock: {S|A|B|C|D}` (colored grade); blank when not scanned |
 | line 7 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
 | hover | Opinion + tags + **Guild: Name (Rank)** tooltip + **gear check** section (both grades with flagged slot details, or scan status) |
 | click | Left-click card → **Character profile**; **Profile** / **Gear check** / **Rescan** buttons do their own actions |
@@ -199,8 +199,8 @@ LEFT (~670px)                          RIGHT (~220px)
                                         [ Show as a text ]
                                         [ Select all ]
 
-[ Report summary | … | Report OK ]
-[ All | Items | Enchants | Gems | OK ]
+[ Report summary | … | Report B ]
+[ All | Items | Enchants | Gems | B ]
 
 [ scrollable findings by slot ]         [ Save report ]
                                         [ Delete selected report ]
@@ -211,15 +211,15 @@ LEFT (~670px)                          RIGHT (~220px)
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | Overall: GOOD (preferred) / OK (usable·acceptable) / REPLACE (unwanted·soft) / BAD (forbidden·wrong for spec); surface-level PvE; not BiS |
-| limitation | No BiS lists, builds, encounter requirements, or detailed stat weights |
+| short description | Overall: S (on published BiS lists) / A (preferred) / B (usable·acceptable) / C (unwanted·soft) / D (forbidden·wrong for spec); surface-level PvE; S is list membership, not a unique BiS pick |
+| limitation | S = published BiS-list membership, not a unique pick; no build / encounter / stat-weight optimization |
 | summary (left) | Overall status (colored), class + spec icons + character line, GearScore / avg iLvl, issue counts, meta, sets |
 | status (right) | Multi-line hint or scan result (`\n` breaks + word wrap); sits above Scan |
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI (hover tip) |
 | Show as a text | Toggles raw dump (replaces main columns; stays in top band) (hover tip) |
 | Select all | Enabled in text view when dump has text (hover tip) |
 | report buttons | Print to **self chat only** (`[GearCheck]` lines); hover tip per mode |
-| filters | All / Items / Enchants / Gems / **OK**; hover tip per filter |
+| filters | All / Items / Enchants / Gems / **B**; hover tip per filter |
 | breakdown (left) | Active filter name as gold header (except **All**); then `[VERDICT] Slot — Item` plus finding bullets |
 | Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved (hover tip) |
 | Delete selected report | Removes the currently viewed saved entry (hover tip) |

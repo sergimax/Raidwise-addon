@@ -196,7 +196,7 @@ function Addon:GearCheckSavedReportsSelfTest()
 	Check("saved reports db", saved ~= nil)
 
 	local fixture = {
-		schemaVersion = 2,
+		schemaVersion = 3,
 		character = {
 			name = "TestPlayer",
 			realm = "TestRealm",
@@ -205,7 +205,7 @@ function Addon:GearCheckSavedReportsSelfTest()
 			specKnown = false,
 		},
 		equipment = {},
-		overall = { status = "OK", reason = "test" },
+		overall = { status = "B", reason = "test" },
 		findings = {},
 	}
 

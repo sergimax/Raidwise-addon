@@ -1,5 +1,5 @@
 -- Gear Check set-piece catalog (informational). Seeded from AtlasLoot T9/T10 tables.
--- Counts do not affect OK / GOOD / REPLACE / BAD.
+-- Counts do not affect S / A / B / C / D.
 
 local Addon = Raidwise
 
