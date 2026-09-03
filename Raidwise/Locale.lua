@@ -103,8 +103,9 @@ local Translations = {
 			.. "When you are not in a raid, party members fill group 1.\n"
 			.. "\n"
 			.. "- Groups 1–5, then 6–8: class, role, spec, raid buffs, flask/food, GearScore, iLvl, and grades\n"
+			.. "- Compact header: S·A·B·C·D chips (hover for meanings), average GS and role counts, flask/food/armor/ench with report icons, and Scan/Export/Refresh/Back icons\n"
 			.. "- Flask and food icons on each card: full color = active, red = missing, dim = out of range or offline\n"
-			.. "- Note icons beside flask, food, armor/weap, and ench/sock post missing or problem players to the report chat channel (Settings)\n"
+			.. "- Report icons beside flask, food, armor/weap, and ench/sock post missing or problem players to the report chat channel (Settings)\n"
 			.. "- Hover a card for opinion, tags, guild (rank), and gear-check details\n"
 			.. "- Scan inspects everyone one at a time and fills armor/weap and ench/sock grades\n"
 			.. "- Export all builds text dumps; Back to roster closes them; click the dump + Ctrl+C copies\n"
@@ -188,21 +189,21 @@ local Translations = {
 		RAID_CONSUMABLE_COUNT = "%s %d/%d",
 		RAID_CONSUMABLE_MISSING_COUNT = "(%d missing)",
 		RAID_CONSUMABLE_SUMMARY_EMPTY = "Flask — · Food —",
-		RAID_CHAT_FLASK_MISSING = "Raidwise: missing flask: %s",
-		RAID_CHAT_FLASK_ALL = "Raidwise: all flasks present.",
-		RAID_CHAT_FOOD_MISSING = "Raidwise: missing food: %s",
-		RAID_CHAT_FOOD_ALL = "Raidwise: all food buffs present.",
+		RAID_CHAT_FLASK_MISSING = "[Raidwise] missing flask: %s",
+		RAID_CHAT_FLASK_ALL = "[Raidwise] all flasks present.",
+		RAID_CHAT_FOOD_MISSING = "[Raidwise] missing food: %s",
+		RAID_CHAT_FOOD_ALL = "[Raidwise] all food buffs present.",
 		RAID_CHAT_PREVIEW = "Will post:",
 		RAID_SUMMARY_CONSUMABLES = "Flask / food",
 		RAID_SUMMARY_GEAR = "Armor / weap",
 		RAID_SUMMARY_ENCHANT = "Ench / sock",
 		RAID_GRADE_SUMMARY_EMPTY = "Press Scan to check.",
-		RAID_CHAT_GEAR_ISSUES = "Raidwise: armor/weap issues: %s",
-		RAID_CHAT_GEAR_ALL = "Raidwise: no armor/weap issues.",
-		RAID_CHAT_GEAR_NONE = "Raidwise: no armor/weap scan yet.",
-		RAID_CHAT_ENCHANT_ISSUES = "Raidwise: ench/sock issues: %s",
-		RAID_CHAT_ENCHANT_ALL = "Raidwise: no ench/sock issues.",
-		RAID_CHAT_ENCHANT_NONE = "Raidwise: no ench/sock scan yet.",
+		RAID_CHAT_GEAR_ISSUES = "[Raidwise] armor/weap issues: %s",
+		RAID_CHAT_GEAR_ALL = "[Raidwise] no armor/weap issues.",
+		RAID_CHAT_GEAR_NONE = "[Raidwise] no armor/weap scan yet.",
+		RAID_CHAT_ENCHANT_ISSUES = "[Raidwise] ench/sock issues: %s",
+		RAID_CHAT_ENCHANT_ALL = "[Raidwise] no ench/sock issues.",
+		RAID_CHAT_ENCHANT_NONE = "[Raidwise] no ench/sock scan yet.",
 		HISTORY_HINT = "Players from your parties and raids. Saved on this account.",
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
 		COMP_HINT = "Who is needed, and which raid buffs, debuffs, and utility are already covered. Shift-click a row to post it to chat.",
@@ -304,12 +305,12 @@ local Translations = {
 		CHAT_GEARCHECK_SCANNING = "Scanning for Gear Check report…",
 		COMP_FAIL = "Composition module failed to load. Reload UI (/reload).",
 		COMP_EMPTY = "Join a party or raid, or play solo to see your own coverage.",
-		COMP_CHAT_MISSING = "Raidwise: missing classes: %s",
-		COMP_CHAT_ALL_PRESENT = "Raidwise: all classes present.",
+		COMP_CHAT_MISSING = "[Raidwise] missing classes: %s",
+		COMP_CHAT_ALL_PRESENT = "[Raidwise] all classes present.",
 		COMP_CHAT_NO_GROUP = "Join a party or raid to post to chat.",
 		REPORT_CHAT_UNAVAILABLE = "That chat channel is not available. Printed to your chat instead.",
-		COMP_CHAT_EFFECT_NEED = "Raidwise: need %s — %s",
-		COMP_CHAT_EFFECT_HAVE = "Raidwise: have %s — %s",
+		COMP_CHAT_EFFECT_NEED = "[Raidwise] need %s — %s",
+		COMP_CHAT_EFFECT_HAVE = "[Raidwise] have %s — %s",
 		COMP_SHIFT_CHAT = "Shift-click to post to chat",
 		COMP_SECTION_ROLES = "Roles",
 		COMP_SECTION_CLASSES = "Classes",
@@ -735,8 +736,9 @@ local Translations = {
 			.. "Вне рейда группа занимает слот 1.\n"
 			.. "\n"
 			.. "- Группы 1–5, затем 6–8: класс, роль, спек, рейд-баффы, настой/еда, GearScore, iLvl и оценки\n"
+			.. "- Компактная шапка: чипы S·A·B·C·D (наведение — расшифровка), средний GS и роли, настой/еда/броня/чары с иконками отчёта, иконки Сканировать/Экспорт/Обновить/К составу\n"
 			.. "- Иконки настоя и еды на карточке: цветная = есть, красная = нет, тусклая = вне зоны или офлайн\n"
-			.. "- Иконка записки рядом с настоем, едой, бронёй/оружием и чарами/сокетами пишет в канал отчётов (Настройки), у кого нет баффа или есть проблемы с экипом\n"
+			.. "- Иконка отчёта рядом с настоем, едой, бронёй/оружием и чарами/сокетами пишет в канал отчётов (Настройки), у кого нет баффа или есть проблемы с экипом\n"
 			.. "- Наведение: мнение, теги, гильдия (ранг), детали проверки экипа\n"
 			.. "- «Сканировать» осматривает по одному и заполняет оценки брони/оружия и чар/сокетов\n"
 			.. "- «Экспорт всех» собирает текстовые отчёты; «К составу» закрывает их; клик по тексту + Ctrl+C копирует\n"
@@ -820,21 +822,21 @@ local Translations = {
 		RAID_CONSUMABLE_COUNT = "%s %d/%d",
 		RAID_CONSUMABLE_MISSING_COUNT = "(%d нет)",
 		RAID_CONSUMABLE_SUMMARY_EMPTY = "Настой — · Еда —",
-		RAID_CHAT_FLASK_MISSING = "Raidwise: нет настоя: %s",
-		RAID_CHAT_FLASK_ALL = "Raidwise: настой у всех есть.",
-		RAID_CHAT_FOOD_MISSING = "Raidwise: нет еды: %s",
-		RAID_CHAT_FOOD_ALL = "Raidwise: еда у всех есть.",
+		RAID_CHAT_FLASK_MISSING = "[Raidwise] нет настоя: %s",
+		RAID_CHAT_FLASK_ALL = "[Raidwise] настой у всех есть.",
+		RAID_CHAT_FOOD_MISSING = "[Raidwise] нет еды: %s",
+		RAID_CHAT_FOOD_ALL = "[Raidwise] еда у всех есть.",
 		RAID_CHAT_PREVIEW = "Будет отправлено:",
 		RAID_SUMMARY_CONSUMABLES = "Настой / еда",
 		RAID_SUMMARY_GEAR = "Броня / оруж.",
 		RAID_SUMMARY_ENCHANT = "Чары / сокеты",
 		RAID_GRADE_SUMMARY_EMPTY = "Нажмите «Сканировать».",
-		RAID_CHAT_GEAR_ISSUES = "Raidwise: проблемы брони/оружия: %s",
-		RAID_CHAT_GEAR_ALL = "Raidwise: с бронёй и оружием всё в порядке.",
-		RAID_CHAT_GEAR_NONE = "Raidwise: ещё нет скана брони/оружия.",
-		RAID_CHAT_ENCHANT_ISSUES = "Raidwise: проблемы чар/сокетов: %s",
-		RAID_CHAT_ENCHANT_ALL = "Raidwise: с чарами и сокетами всё в порядке.",
-		RAID_CHAT_ENCHANT_NONE = "Raidwise: ещё нет скана чар/сокетов.",
+		RAID_CHAT_GEAR_ISSUES = "[Raidwise] проблемы брони/оружия: %s",
+		RAID_CHAT_GEAR_ALL = "[Raidwise] с бронёй и оружием всё в порядке.",
+		RAID_CHAT_GEAR_NONE = "[Raidwise] ещё нет скана брони/оружия.",
+		RAID_CHAT_ENCHANT_ISSUES = "[Raidwise] проблемы чар/сокетов: %s",
+		RAID_CHAT_ENCHANT_ALL = "[Raidwise] с чарами и сокетами всё в порядке.",
+		RAID_CHAT_ENCHANT_NONE = "[Raidwise] ещё нет скана чар/сокетов.",
 		HISTORY_HINT = "Игроки из ваших групп и рейдов. Сохраняется на этом аккаунте.",
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_HINT = "Кого не хватает и какие баффы, дебаффы и утилиты уже есть в рейде. Shift+клик по строке — в чат.",
@@ -936,12 +938,12 @@ local Translations = {
 		CHAT_GEARCHECK_SCANNING = "Сканирование для отчёта Gear Check…",
 		COMP_FAIL = "Модуль анализа состава не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_EMPTY = "Войдите в группу или рейд — или смотрите покрытие только своего персонажа.",
-		COMP_CHAT_MISSING = "Raidwise: нет классов: %s",
-		COMP_CHAT_ALL_PRESENT = "Raidwise: все классы есть.",
+		COMP_CHAT_MISSING = "[Raidwise] нет классов: %s",
+		COMP_CHAT_ALL_PRESENT = "[Raidwise] все классы есть.",
 		COMP_CHAT_NO_GROUP = "Войдите в группу или рейд, чтобы писать в чат.",
 		REPORT_CHAT_UNAVAILABLE = "Этот канал чата недоступен. Сообщение выведено в ваш чат.",
-		COMP_CHAT_EFFECT_NEED = "Raidwise: нужно %s — %s",
-		COMP_CHAT_EFFECT_HAVE = "Raidwise: есть %s — %s",
+		COMP_CHAT_EFFECT_NEED = "[Raidwise] нужно %s — %s",
+		COMP_CHAT_EFFECT_HAVE = "[Raidwise] есть %s — %s",
 		COMP_SHIFT_CHAT = "Shift+клик — в чат",
 		COMP_SECTION_ROLES = "Роли",
 		COMP_SECTION_CLASSES = "Классы",

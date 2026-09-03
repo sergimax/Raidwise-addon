@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 26
+local LAYOUT_VERSION = 27
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 137
@@ -18,8 +18,12 @@ local RAID_BTN_H = 16
 local RAID_BTN_GAP = 2
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
-local RAID_TOOLBAR_COL_W = 104
 local RAID_REPORT_ICON = "Interface\\Icons\\Ability_Warrior_BattleShout"
+local RAID_TOOLBAR_SCAN_ICON = "Interface\\Icons\\INV_Misc_Spyglass_03"
+local RAID_TOOLBAR_EXPORT_ICON = "Interface\\Icons\\INV_Misc_Note_01"
+local RAID_TOOLBAR_REFRESH_ICON = "Interface\\Icons\\INV_Misc_PocketWatch_01"
+local RAID_TOOLBAR_BACK_ICON = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider"
+local GRADE_CHIP_LABELS = { "S", "A", "B", "C", "D" }
 
 local function WrapThemeColor(color, text)
 	local r = math.floor(((color and color[1]) or 1) * 255 + 0.5)
@@ -229,17 +233,57 @@ local function ResolveGearCheckResults(page)
 	return results or {}
 end
 
-local function FormatRaidRosterStatsLine(gearScore, roles)
+local function FormatGradeChipLine()
+	local parts = {}
+	for index = 1, #GRADE_CHIP_LABELS do
+		parts[#parts + 1] = W.WrapGearGradation(GRADE_CHIP_LABELS[index])
+	end
+	return table.concat(parts, " · ")
+end
+
+local function FormatRaidRoleChip(label, bucket)
+	bucket = bucket or {}
+	return label .. " " .. tostring(bucket.count or 0)
+end
+
+local function FormatRaidRosterStatsCompact(gearScore, roles)
 	roles = roles or {}
 	return FormatRaidAverageGs(gearScore)
-		.. "\n"
-		.. FormatRoleGsSummary(W.T("ROLE_TANKS"), roles.tank or {})
-		.. "\n"
-		.. FormatRoleGsSummary(W.T("ROLE_HEALERS"), roles.healer or {})
-		.. "\n"
-		.. FormatRoleGsSummary(W.T("ROLE_MELEE_SHORT"), roles.melee or {})
-		.. "\n"
-		.. FormatRoleGsSummary(W.T("ROLE_RANGE"), roles.ranged or {})
+		.. "   "
+		.. FormatRaidRoleChip(W.T("ROLE_TANKS"), roles.tank or {})
+		.. " · "
+		.. FormatRaidRoleChip(W.T("ROLE_HEALERS"), roles.healer or {})
+		.. " · "
+		.. FormatRaidRoleChip(W.T("ROLE_MELEE_SHORT"), roles.melee or {})
+		.. " · "
+		.. FormatRaidRoleChip(W.T("ROLE_RANGE"), roles.ranged or {})
+end
+
+local function RosterStatsTipLines(gearScore, roles)
+	roles = roles or {}
+	return {
+		FormatRaidAverageGs(gearScore),
+		FormatRoleGsSummary(W.T("ROLE_TANKS"), roles.tank or {}),
+		FormatRoleGsSummary(W.T("ROLE_HEALERS"), roles.healer or {}),
+		FormatRoleGsSummary(W.T("ROLE_MELEE_SHORT"), roles.melee or {}),
+		FormatRoleGsSummary(W.T("ROLE_RANGE"), roles.ranged or {}),
+	}
+end
+
+local function ShowRosterStatsTooltip(owner, page)
+	GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
+	local lines = page and page.rosterStatsTipLines
+	if type(lines) ~= "table" or #lines == 0 then
+		lines = RosterStatsTipLines(nil, {})
+	end
+	for index = 1, #lines do
+		local r, g, b = 1, 1, 1
+		if index == 1 then
+			r, g, b = UI.GOLD[1], UI.GOLD[2], UI.GOLD[3]
+		end
+		GameTooltip:AddLine(lines[index], r, g, b)
+	end
+	GameTooltip:Show()
 end
 
 local function UpdateRaidRosterStatsLabels(page, members)
@@ -254,7 +298,8 @@ local function UpdateRaidRosterStatsLabels(page, members)
 	overall = overall or {}
 	roles = roles or {}
 
-	page.statsLabel:SetText(FormatRaidRosterStatsLine(overall.gearScore, roles))
+	page.rosterStatsTipLines = RosterStatsTipLines(overall.gearScore, roles)
+	page.statsLabel:SetText(FormatRaidRosterStatsCompact(overall.gearScore, roles))
 end
 
 local function RosterMembersFromPage(page)
@@ -279,12 +324,8 @@ local function RosterMembersFromPage(page)
 	return members
 end
 
-local function FormatConsumableStatus(present, total, missingCount)
-	local part = tostring(present) .. "/" .. tostring(total)
-	if missingCount > 0 then
-		part = part .. " " .. W.T("RAID_CONSUMABLE_MISSING_COUNT", missingCount)
-	end
-	return part
+local function FormatConsumableStatus(present, total)
+	return tostring(present) .. "/" .. tostring(total)
 end
 
 local function FillConsumableSummaryLabel(label, heading, present, total, missingCount)
@@ -293,11 +334,15 @@ local function FillConsumableSummaryLabel(label, heading, present, total, missin
 	end
 	local prefix = SummaryHeadingPrefix(heading)
 	label:SetTextColor(1, 1, 1, 1)
+	local cell = label:GetParent()
+	if cell then
+		cell.missingCount = missingCount or 0
+	end
 	if (total or 0) <= 0 then
 		label:SetText(prefix .. WrapThemeColor(UI.TEXT_DISABLED, "—"))
 		return
 	end
-	local status = FormatConsumableStatus(present, total, missingCount or 0)
+	local status = FormatConsumableStatus(present, total)
 	local color = ((missingCount or 0) > 0) and UI.TEXT_ALERT or UI.TEXT_GOOD
 	label:SetText(prefix .. WrapThemeColor(color, status))
 end
@@ -439,10 +484,37 @@ local function ReportGearCategoryToChat(kind)
 	SendRaidChatMessages(BuildGearCategoryMessages(kind))
 end
 
-local function ShowChatReportTooltip(button, tipKey, messages)
-	GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+local function SummaryStatusText(owner)
+	if not owner then
+		return nil
+	end
+	local body = owner.body
+	if not body and owner.GetParent then
+		local parent = owner:GetParent()
+		body = parent and parent.body
+	end
+	if body and body.GetText then
+		local text = body:GetText()
+		if text and text ~= "" then
+			return text
+		end
+	end
+	return nil
+end
+
+local function ShowChatReportTooltip(owner, tipKey, messages)
+	GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
 	if tipKey then
 		GameTooltip:AddLine(W.T(tipKey), nil, nil, nil, true)
+	end
+	local statusText = SummaryStatusText(owner)
+	if statusText then
+		GameTooltip:AddLine(statusText, 1, 1, 1, true)
+	end
+	local cell = owner.body and owner or (owner.GetParent and owner:GetParent())
+	local missingCount = cell and cell.missingCount
+	if missingCount and missingCount > 0 then
+		GameTooltip:AddLine(W.T("RAID_CONSUMABLE_MISSING_COUNT", missingCount), UI.TEXT_ALERT[1], UI.TEXT_ALERT[2], UI.TEXT_ALERT[3])
 	end
 	GameTooltip:AddLine(" ")
 	GameTooltip:AddLine(W.T("RAID_CHAT_PREVIEW"), 0.6, 0.6, 0.6)
@@ -471,6 +543,21 @@ local function SetChatReportButtonTooltip(button, tipKey, buildMessages)
 	end)
 end
 
+local function SetSummaryCellTooltip(cell)
+	if not cell then
+		return
+	end
+	cell:EnableMouse(true)
+	cell:SetScript("OnEnter", function(self)
+		local reportBtn = self.reportBtn
+		local messages = reportBtn and reportBtn.buildChatMessages and reportBtn.buildChatMessages() or {}
+		ShowChatReportTooltip(self, reportBtn and reportBtn.tooltipKey, messages)
+	end)
+	cell:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+end
+
 local function EqualColumnWidth(totalWidth, count, gap)
 	count = count or 1
 	gap = gap or 0
@@ -486,12 +573,14 @@ local function CreateRaidRosterHeader(page)
 
 	local miniH = W.RaidRosterMiniTableHeight()
 	local colGap = UI.RAID_HEADER_COL_GAP or 8
-	local colCount = UI.RAID_HEADER_COL_COUNT or 4
-	local rowH = UI.RAID_SUMMARY_BAND_H or 20
-	local rowGap = UI.RAID_DESC_LINE_GAP or 2
+	local summaryCount = UI.RAID_SUMMARY_COL_COUNT or 4
+	local row1H = UI.CD_TOOLBAR_H
+	local row2H = UI.RAID_SUMMARY_BAND_H or 20
+	local rowGap = UI.RAID_HEADER_ROW_GAP or 4
 	local iconSize = UI.RAID_SUMMARY_REPORT_ICON or 16
 	local iconGap = 4
 	local btnGap = UI.RAID_TOOLBAR_BTN_GAP or 4
+	local btnCount = UI.RAID_TOOLBAR_BTN_COUNT or 4
 
 	local miniTable = CreateFrame("Frame", nil, headerHost)
 	miniTable:SetPoint("TOPLEFT", headerHost, "TOPLEFT", 0, 0)
@@ -508,23 +597,39 @@ local function CreateRaidRosterHeader(page)
 		label:SetPoint("TOPLEFT", 0, 0)
 		label:SetPoint("BOTTOMRIGHT", 0, 0)
 		label:SetJustifyH("LEFT")
-		label:SetJustifyV("TOP")
-		label:SetWordWrap(true)
+		label:SetJustifyV("MIDDLE")
+		label:SetWordWrap(false)
 		label:SetNonSpaceWrap(false)
 		return label
 	end
 
 	local legendCol = CreateHeaderColumn()
 	local gradeLegend = FillColumnText(legendCol, "GameFontNormalSmall")
-	gradeLegend:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
+	gradeLegend:SetText(FormatGradeChipLine())
 	W.SetFontColor(gradeLegend, UI.TEXT_IDLE)
+	legendCol:EnableMouse(true)
+	legendCol:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+		GameTooltip:AddLine(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")), nil, nil, nil, true)
+		GameTooltip:Show()
+	end)
+	legendCol:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
 	page.legendCol = legendCol
 	page.gradeLegendLabel = gradeLegend
 
 	local statsCol = CreateHeaderColumn()
 	local stats = FillColumnText(statsCol, "GameFontNormalSmall")
 	W.SetFontColor(stats, UI.TEXT_IDLE)
-	stats:SetText(FormatRaidRosterStatsLine(nil, {}))
+	stats:SetText(FormatRaidRosterStatsCompact(nil, {}))
+	statsCol:EnableMouse(true)
+	statsCol:SetScript("OnEnter", function(self)
+		ShowRosterStatsTooltip(self, page)
+	end)
+	statsCol:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
 	page.statsCol = statsCol
 	page.statsLabel = stats
 
@@ -553,13 +658,14 @@ local function CreateRaidRosterHeader(page)
 		local body = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 		body:SetPoint("LEFT", cell, "LEFT", 0, 0)
 		body:SetPoint("RIGHT", reportBtn, "LEFT", -iconGap, 0)
-		body:SetHeight(rowH)
+		body:SetHeight(row2H)
 		body:SetJustifyH("LEFT")
 		body:SetJustifyV("MIDDLE")
 		body:SetWordWrap(false)
 		body:SetNonSpaceWrap(false)
 		cell.body = body
 		cell.reportBtn = reportBtn
+		SetSummaryCellTooltip(cell)
 		return cell
 	end
 
@@ -604,19 +710,39 @@ local function CreateRaidRosterHeader(page)
 	local toolbar = CreateHeaderColumn()
 	page.raidToolbar = toolbar
 
-	local scanBtn = W.CreatePlainButton(toolbar, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_SCAN"))
-	W.SetPlainButtonTooltip(scanBtn, "RAID_SCAN_TIP")
-	local exportBtn = W.CreatePlainButton(toolbar, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("GEAR_CHECK_RAID_EXPORT"))
-	W.SetPlainButtonTooltip(exportBtn, "GEAR_CHECK_RAID_EXPORT_TIP")
+	local scanBtn = W.CreatePlainIconButton(
+		toolbar,
+		row1H,
+		RAID_TOOLBAR_SCAN_ICON,
+		"GEAR_CHECK_SCAN",
+		"RAID_SCAN_TIP"
+	)
+	local exportBtn = W.CreatePlainIconButton(
+		toolbar,
+		row1H,
+		RAID_TOOLBAR_EXPORT_ICON,
+		"GEAR_CHECK_RAID_EXPORT",
+		"GEAR_CHECK_RAID_EXPORT_TIP"
+	)
 
-	local refreshBtn = W.CreatePlainButton(toolbar, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
-	W.SetPlainButtonTooltip(refreshBtn, "RAID_REFRESH_TIP")
+	local refreshBtn = W.CreatePlainIconButton(
+		toolbar,
+		row1H,
+		RAID_TOOLBAR_REFRESH_ICON,
+		"BTN_REFRESH",
+		"RAID_REFRESH_TIP"
+	)
 	refreshBtn:SetScript("OnClick", function()
 		Addon:RefreshPartyData(true)
 	end)
 
-	local textViewBtn = W.CreatePlainButton(toolbar, RAID_TOOLBAR_COL_W, UI.CD_TOOLBAR_H, W.T("BTN_RAID_BACK_TO_ROSTER"))
-	W.SetPlainButtonTooltip(textViewBtn, "BTN_RAID_BACK_TO_ROSTER_TIP")
+	local textViewBtn = W.CreatePlainIconButton(
+		toolbar,
+		row1H,
+		RAID_TOOLBAR_BACK_ICON,
+		"BTN_RAID_BACK_TO_ROSTER",
+		"BTN_RAID_BACK_TO_ROSTER_TIP"
+	)
 	textViewBtn:Disable()
 
 	page.gearCheckScanBtn = scanBtn
@@ -625,28 +751,40 @@ local function CreateRaidRosterHeader(page)
 	page.textViewBtn = textViewBtn
 
 	local toolbarBtns = { scanBtn, exportBtn, refreshBtn, textViewBtn }
-	local headerCols = { legendCol, statsCol, summaryCol, toolbar }
 
 	local function LayoutRaidMiniTable()
-		local colW = EqualColumnWidth(miniTable:GetWidth() or 1, colCount, colGap)
-		for index = 1, #headerCols do
-			local col = headerCols[index]
-			col:ClearAllPoints()
-			col:SetSize(colW, miniH)
-			col:SetPoint("TOPLEFT", (index - 1) * (colW + colGap), 0)
-		end
+		local toolbarW = row1H * btnCount + btnGap * (btnCount - 1)
+		toolbar:ClearAllPoints()
+		toolbar:SetSize(toolbarW, row1H)
+		toolbar:SetPoint("TOPRIGHT", miniTable, "TOPRIGHT", 0, 0)
+
+		local chipW = math.max(UI.RAID_GRADE_CHIPS_W or 72, (gradeLegend:GetStringWidth() or 72) + 4)
+		legendCol:ClearAllPoints()
+		legendCol:SetSize(chipW, row1H)
+		legendCol:SetPoint("TOPLEFT", miniTable, "TOPLEFT", 0, 0)
+
+		statsCol:ClearAllPoints()
+		statsCol:SetHeight(row1H)
+		statsCol:SetPoint("TOPLEFT", legendCol, "TOPRIGHT", colGap, 0)
+		statsCol:SetPoint("TOPRIGHT", toolbar, "TOPLEFT", -colGap, 0)
+
+		summaryCol:ClearAllPoints()
+		summaryCol:SetHeight(row2H)
+		summaryCol:SetPoint("TOPLEFT", legendCol, "BOTTOMLEFT", 0, -rowGap)
+		summaryCol:SetPoint("RIGHT", miniTable, "RIGHT", 0, 0)
+
+		local cellW = EqualColumnWidth(summaryCol:GetWidth() or 1, summaryCount, colGap)
 		for index = 1, #summaryRows do
-			local row = summaryRows[index]
-			row:ClearAllPoints()
-			row:SetHeight(rowH)
-			row:SetPoint("TOPLEFT", summaryCol, "TOPLEFT", 0, -((index - 1) * (rowH + rowGap)))
-			row:SetPoint("RIGHT", summaryCol, "RIGHT", 0, 0)
+			local cell = summaryRows[index]
+			cell:ClearAllPoints()
+			cell:SetSize(cellW, row2H)
+			cell:SetPoint("TOPLEFT", summaryCol, "TOPLEFT", (index - 1) * (cellW + colGap), 0)
 		end
 		for index = 1, #toolbarBtns do
 			local button = toolbarBtns[index]
 			button:ClearAllPoints()
-			button:SetSize(colW, UI.CD_TOOLBAR_H)
-			button:SetPoint("TOPLEFT", toolbar, "TOPLEFT", 0, -((index - 1) * (UI.CD_TOOLBAR_H + btnGap)))
+			button:SetSize(row1H, row1H)
+			button:SetPoint("TOPLEFT", toolbar, "TOPLEFT", (index - 1) * (row1H + btnGap), 0)
 		end
 	end
 	miniTable:SetScript("OnSizeChanged", function()
@@ -1517,8 +1655,8 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 	end
 
 	if not self.BuildRaidGroups then
-		if page.gradeLegendLabel then
-			page.gradeLegendLabel:SetText(W.T("RAID_FAIL"))
+		if page.statsLabel then
+			page.statsLabel:SetText(W.T("RAID_FAIL"))
 		end
 		return
 	end
@@ -1674,19 +1812,7 @@ local function ApplyLocale(page)
 		return
 	end
 	if page.gradeLegendLabel then
-		page.gradeLegendLabel:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_RAID_HINT")))
-	end
-	if page.refreshBtn and page.refreshBtn.label then
-		page.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
-	end
-	if page.gearCheckScanBtn and page.gearCheckScanBtn.label then
-		page.gearCheckScanBtn.label:SetText(W.T("GEAR_CHECK_SCAN"))
-	end
-	if page.gearCheckExportBtn and page.gearCheckExportBtn.label then
-		page.gearCheckExportBtn.label:SetText(W.T("GEAR_CHECK_RAID_EXPORT"))
-	end
-	if page.textViewBtn and page.textViewBtn.label then
-		page.textViewBtn.label:SetText(W.T("BTN_RAID_BACK_TO_ROSTER"))
+		page.gradeLegendLabel:SetText(FormatGradeChipLine())
 	end
 	if page.reportFlaskBtn then
 		page.reportFlaskBtn.tooltipKey = "BTN_RAID_REPORT_FLASK_TIP"
@@ -1703,6 +1829,7 @@ local function ApplyLocale(page)
 	SetRaidProgressIdleText(page)
 	UpdateRaidGradeSummaries(page, ResolveGearCheckResults(page))
 	UpdateRaidConsumableSummary(page)
+	UpdateRaidRosterStatsLabels(page, RosterMembersFromPage(page))
 	UpdateRaidExportActionButtons(page)
 
 	local blocks = { page.topBlock, page.bottomBlock }

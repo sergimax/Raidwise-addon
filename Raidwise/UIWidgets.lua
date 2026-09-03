@@ -72,17 +72,19 @@ Addon.UITheme = {
 	PARTY_BUFF_MAX = 3,
 	PARTY_BUFF_GAP = 1,
 	ROSTER_STATS_H = 16,
-	RAID_STATS_H = 48,
+	RAID_STATS_H = 28,
 	RAID_PROGRESS_H = 14,
 	RAID_PROGRESS_STATUS_H = 28,
 	RAID_PROGRESS_STATUS_GAP = 4,
 	RAID_DESC_LINE_GAP = 2,
 	RAID_DESC_BLOCK_GAP = 4,
 	RAID_CONSUMABLE_ROW_H = 28,
-	RAID_GRADE_LEGEND_H = 32,
+	RAID_GRADE_LEGEND_H = 28,
+	RAID_GRADE_CHIPS_W = 72,
 	RAID_HINT_H = 28,
 	RAID_HEADER_COL_COUNT = 4,
 	RAID_HEADER_COL_GAP = 8,
+	RAID_HEADER_ROW_GAP = 4,
 	RAID_SUMMARY_COL_COUNT = 4,
 	RAID_SUMMARY_COL_GAP = 8,
 	RAID_SUMMARY_HEADING_H = 14,
@@ -418,6 +420,68 @@ function W.SetPlainButtonTooltip(button, tipKey)
 		W.SetPlainButtonState(self, W.ActionButtonState(self, false))
 		GameTooltip:Hide()
 	end)
+end
+
+function W.SyncPlainIconButton(button)
+	if not button or not button.icon then
+		return
+	end
+	if button:IsEnabled() then
+		button.icon:SetDesaturated(false)
+		button.icon:SetVertexColor(1, 1, 1)
+	else
+		button.icon:SetDesaturated(true)
+		button.icon:SetVertexColor(0.45, 0.45, 0.45)
+	end
+end
+
+-- Square icon button; titleKey is the gold tooltip title, tipKey the body.
+function W.CreatePlainIconButton(parent, size, iconPath, titleKey, tipKey)
+	size = size or UI.CD_TOOLBAR_H
+	local button = W.CreatePlainButton(parent, size, size, "")
+	if button.label then
+		button.label:Hide()
+	end
+	local inset = 6
+	local icon = button:CreateTexture(nil, "ARTWORK")
+	icon:SetPoint("CENTER", 0, 0)
+	icon:SetSize(math.max(8, size - inset * 2), math.max(8, size - inset * 2))
+	W.SetSpellIconTexture(icon, iconPath)
+	button.icon = icon
+	button.titleKey = titleKey
+	button.tooltipKey = tipKey
+
+	button:SetScript("OnEnter", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		if self.titleKey then
+			GameTooltip:AddLine(W.T(self.titleKey), UI.GOLD[1], UI.GOLD[2], UI.GOLD[3])
+		end
+		if self.tooltipKey then
+			GameTooltip:AddLine(W.T(self.tooltipKey), nil, nil, nil, true)
+		end
+		GameTooltip:Show()
+	end)
+	button:SetScript("OnLeave", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, false))
+		GameTooltip:Hide()
+	end)
+	local onEnable = button:GetScript("OnEnable")
+	button:SetScript("OnEnable", function(self)
+		if onEnable then
+			onEnable(self)
+		end
+		W.SyncPlainIconButton(self)
+	end)
+	local onDisable = button:GetScript("OnDisable")
+	button:SetScript("OnDisable", function(self)
+		if onDisable then
+			onDisable(self)
+		end
+		W.SyncPlainIconButton(self)
+	end)
+	W.SyncPlainIconButton(button)
+	return button
 end
 
 W.COPY_BACKDROP = {
@@ -894,10 +958,10 @@ function W.RosterTableTopOffset()
 end
 
 function W.RaidRosterMiniTableHeight()
-	local btnH = UI.CD_TOOLBAR_H
-	local count = UI.RAID_TOOLBAR_BTN_COUNT or 4
-	local gap = UI.RAID_TOOLBAR_BTN_GAP or 4
-	return btnH * count + gap * (count - 1)
+	local row1 = UI.CD_TOOLBAR_H
+	local row2 = UI.RAID_SUMMARY_BAND_H or 20
+	local gap = UI.RAID_HEADER_ROW_GAP or 4
+	return row1 + gap + row2
 end
 
 function W.RaidRosterHeaderHeight()
@@ -910,7 +974,7 @@ function W.RaidRosterHeaderHeight()
 end
 
 function W.RaidRosterTableTopOffset()
-	-- Four-column mini table + scan status + progress bar.
+	-- Compact header (chips + stats + icon toolbar, then status row) + scan status + progress bar.
 	return W.RaidRosterHeaderHeight() + UI.CD_HINT_TO_TABLE
 end
 
