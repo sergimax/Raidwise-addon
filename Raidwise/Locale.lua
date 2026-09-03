@@ -139,6 +139,7 @@ local Translations = {
 			.. "- Language: English or Russian\n"
 			.. "- Startup page opened by /raidwise (Info cannot be the startup page)\n"
 			.. "- Report chat channel for Raid roster, Composition, and Gear check reports\n"
+			.. "- Short or full Gear check report wording\n"
 			.. "- Unit tooltip toggles for personal and community rating lines",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
@@ -599,6 +600,10 @@ local Translations = {
 		SETTINGS_REPORT_CHANNEL_GUILD = "Guild",
 		SETTINGS_REPORT_CHANNEL_OFFICER = "Officer",
 		SETTINGS_REPORT_CHANNEL_SAY = "Say",
+		SETTINGS_REPORT_FORM = "Gear check report form",
+		SETTINGS_REPORT_FORM_HINT = "How Gear check Report buttons and /rw gearcheck chat lines are worded. Short packs into fewer lines (better for raid/party). Full keeps the detailed multi-line format.",
+		SETTINGS_REPORT_FORM_SHORT = "Short",
+		SETTINGS_REPORT_FORM_FULL = "Full",
 		SETTINGS_TOOLTIP = "Unit tooltips",
 		SETTINGS_TOOLTIP_HINT = "Add personal and community rating lines to player tooltips (mouseover / target). Community data is a mock preview until exchange is available.",
 		SETTINGS_TIP_HIDE_PERSONAL = "Hide personal opinion",
@@ -765,6 +770,7 @@ local Translations = {
 			.. "- Язык: English или Русский\n"
 			.. "- Стартовая страница по /raidwise (Справку выбрать нельзя)\n"
 			.. "- Канал чата для отчётов состава рейда, анализа состава и проверки экипа\n"
+			.. "- Короткая или полная форма отчёта проверки экипа\n"
 			.. "- Переключатели строк личного и общественного рейтинга в подсказках игроков",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
@@ -1225,6 +1231,10 @@ local Translations = {
 		SETTINGS_REPORT_CHANNEL_GUILD = "Гильдия",
 		SETTINGS_REPORT_CHANNEL_OFFICER = "Офицерский",
 		SETTINGS_REPORT_CHANNEL_SAY = "Сказать",
+		SETTINGS_REPORT_FORM = "Форма отчёта проверки экипа",
+		SETTINGS_REPORT_FORM_HINT = "Как выглядят кнопки отчёта Gear Check и строки /rw gearcheck. Короткая — меньше строк (удобнее в рейд/группу). Полная — подробный многострочный формат.",
+		SETTINGS_REPORT_FORM_SHORT = "Короткая",
+		SETTINGS_REPORT_FORM_FULL = "Полная",
 		SETTINGS_TOOLTIP = "Подсказки игроков",
 		SETTINGS_TOOLTIP_HINT = "Добавлять личный и общественный рейтинг в подсказки при наведении / цели. Общественные данные пока макет до обмена.",
 		SETTINGS_TIP_HIDE_PERSONAL = "Скрыть личное мнение",

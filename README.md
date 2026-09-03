@@ -106,6 +106,7 @@ Esc or the title **X** closes the window.
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
 - **Startup page**: which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns; **Info** cannot be selected)
 - **Report chat channel**: where Raid roster, Composition, and Gear check reports are posted (`RaidwiseDB.reportChannel`; default Auto = raid in a raid, party in a party)
+- **Gear check report form**: Short (default, fewer chat lines) or Full detailed wording (`RaidwiseDB.reportForm`)
 - Unit tooltip toggles: hide personal opinion / personal tags / community rating / community tags (`RaidwiseDB.tooltip`)
 - Preview of compact (live) and stacked tooltip layouts
 

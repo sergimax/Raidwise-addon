@@ -213,7 +213,9 @@ Below: **Startup page** heading, hint, then an **4-column** radio group (`UIRadi
 
 Below: **Report chat channel** heading, hint, then an **4-column** radio group (same sizes) for `RaidwiseDB.reportChannel` (default `auto`).
 
-Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels, then **Preview** with compact + stacked sample blocks (`LAYOUT_VERSION = 7`).
+Below: **Gear check report form** heading, hint, then **Short** / **Full** radios (`RaidwiseDB.reportForm`, default `short`).
+
+Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels, then **Preview** with compact + stacked sample blocks (`LAYOUT_VERSION = 8`).
 
 ## Fonts
 

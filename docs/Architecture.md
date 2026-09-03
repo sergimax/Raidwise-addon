@@ -53,6 +53,7 @@ TOC: `RaidwiseDB`, `MrcExporterDB` (legacy migrate-only).
 | `locale` | `Locale.lua` | `enUS` / `ruRU` |
 | `startupTab` | Settings / shell | Left-menu page id opened on `/raidwise` (default `cooldowns`; `info` not allowed) |
 | `reportChannel` | Settings / `Raidwise.lua` | Chat destination for reports (`auto` / `self` / `party` / `raid` / `raidwarning` / `guild` / `officer` / `say`) |
+| `reportForm` | Settings / `Raidwise.lua` | Gear check chat wording (`short` default / `full`) |
 | `tooltip` | `UnitTooltips.lua` / Settings | Hide flags for unit tooltip rating lines |
 | `characters` | `CharacterLockouts.lua` | Per-character lockout columns |
 | `history` | `PlayerHistory.lua` | GUID-keyed meetings, opinion/tags/facts, events, notes |

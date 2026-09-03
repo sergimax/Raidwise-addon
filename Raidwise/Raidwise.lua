@@ -34,6 +34,7 @@ local defaults = {
 	includeGearNames = true,
 	startupTab = "cooldowns",
 	reportChannel = "auto",
+	reportForm = "short",
 	characters = {},
 	history = {},
 	tooltip = {
@@ -224,6 +225,32 @@ function Addon:SendReportChat(message)
 		end
 	end
 	DEFAULT_CHAT_FRAME:AddMessage(message)
+end
+
+-- Gear Check chat report form (Settings): short (default) or full.
+Addon.REPORT_FORM_CHOICES = {
+	{ id = "short", labelKey = "SETTINGS_REPORT_FORM_SHORT" },
+	{ id = "full", labelKey = "SETTINGS_REPORT_FORM_FULL" },
+}
+
+local REPORT_FORM_IDS = {
+	short = true,
+	full = true,
+}
+
+function Addon:GetReportForm()
+	local formId = self.db and self.db.reportForm
+	if type(formId) == "string" and REPORT_FORM_IDS[formId] then
+		return formId
+	end
+	return "short"
+end
+
+function Addon:SetReportForm(formId)
+	if not self.db or not REPORT_FORM_IDS[formId] then
+		return
+	end
+	self.db.reportForm = formId
 end
 
 -- Run once when this addon finishes loading.
