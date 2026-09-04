@@ -131,7 +131,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | row 1 grade chips | Colored `S · A · B · C · D`; hover shows `GEAR_CHECK_RAID_HINT` |
 | row 1 GS / roles | `Average GS` plus role counts on one line; hover shows per-role count and average GS |
 | row 1 toolbar | Icon buttons **Scan**, **Export all**, **Refresh**, **Back to roster** in a horizontal strip (**28×28**, **4** px gap). Hover shows the action name and tip. **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
-| row 2 status | Four equal cells: **Flask**, **Food**, **Armor / weap**, **Ench / sock** — gold name + compact counts, **16×16** Battle Shout icon on the right |
+| row 2 status | Four equal cells: **Flask**, **Food**, **Armor&Weap**, **Ench&Gems** — gold name + compact counts, **16×16** Battle Shout icon on the right |
 | flask / food | `Flask n/total` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Missing names and `(n missing)` live in the hover tip. Out of range / offline are not listed as missing |
 | armor / ench | S / A / B / C / D counts (+ Failed). Dim until first scan (`Press Scan to check.`) |
 | report icon | Same Battle Shout icon on every status cell; hover (cell or icon) shows the flask / food / armor / ench tip, current counts, plus a preview of the chat line(s) that will be posted |
@@ -144,7 +144,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 4 | `Community: {n%}` when history/community data exists (mock until exchange); reserved `Community: —` otherwise |
 | line 5 | Compact grades `Armor {S|A|B|C|D}  Ench {…}` on one line, or fail / not scanned (`—`) |
 | line 6 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
-| hover | Opinion + tags + community percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff names last |
+| hover | Opinion + tags + community percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff icons and names last |
 | click | Left-click card → **Character profile**; **Profile** / **Gear check** / **Rescan** buttons do their own actions |
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.

@@ -692,6 +692,17 @@ function W.SetSpellIconTexture(texture, iconPath)
 	texture:SetTexCoord(ICON_TEX_INSET, ICON_TEX_MAX, ICON_TEX_INSET, ICON_TEX_MAX)
 end
 
+-- Inline icon for FontString / GameTooltip lines (|T…|t). Crops the default border like SetSpellIconTexture.
+function W.IconMarkup(iconPath, size)
+	if not iconPath or iconPath == "" then
+		return ""
+	end
+	size = size or 14
+	local left = math.floor(64 * ICON_TEX_INSET + 0.5)
+	local right = 64 - left
+	return string.format("|T%s:%d:%d:0:0:64:64:%d:%d:%d:%d|t", iconPath, size, size, left, right, left, right)
+end
+
 function W.SetSpecOrClassIcon(texture, specIcon, classToken)
 	if specIcon and specIcon ~= "" then
 		W.SetSpellIconTexture(texture, specIcon)
@@ -1074,7 +1085,12 @@ function W.ShowMemberRatingTooltip(anchor, member, opts)
 			local buff = opts.raidBuffs[buffIndex]
 			local buffName = buff and buff.name
 			if buffName and buffName ~= "" then
-				GameTooltip:AddLine(buffName, 1, 1, 1)
+				local icon = W.IconMarkup(buff.icon, 14)
+				if icon ~= "" then
+					GameTooltip:AddLine(icon .. " " .. buffName, 1, 1, 1)
+				else
+					GameTooltip:AddLine(buffName, 1, 1, 1)
+				end
 			end
 		end
 	end
