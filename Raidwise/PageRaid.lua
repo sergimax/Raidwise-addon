@@ -6,10 +6,10 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 28
+local LAYOUT_VERSION = 29
 
 local RAID_CELL_W = 168
-local RAID_CELL_H = 115
+local RAID_CELL_H = 100
 local RAID_CELL_GAP = 2
 local RAID_CELL_PAD = 4
 local RAID_LINE_H = 14
@@ -149,17 +149,28 @@ local function FormatCompactGradesLine(gearGrade, enchantGrade)
 		.. W.T("RAID_CELL_GRADE_ENCH", W.WrapGearGradation(enchantGrade))
 end
 
-local function FormatPersonalCellLine(member)
-	return W.T("RAID_CELL_PERSONAL", W.RatingOpinionText(member))
-end
+-- Compact rating row: personal opinion symbol + community percent (e.g. "P: +  C: 75%").
+local function FormatRatingCellLine(member)
+	local symbol = W.RatingOpinionSymbol(member)
+	if Addon.RatingWrapColor then
+		symbol = Addon:RatingWrapColor(symbol, W.RatingOpinionColor(member))
+	end
+	local personalPart = W.T("RAID_CELL_PERSONAL", symbol)
 
-local function FormatCommunityCellLine(member)
 	local community = Addon.GetCommunityRating and Addon:GetCommunityRating(member)
 	local percent = community and tonumber(community.positivePercent)
+	local communityPart
+	local communityColor = UI.TEXT_DISABLED
 	if percent then
-		return W.T("RAID_CELL_COMMUNITY", percent)
+		communityPart = W.T("RAID_CELL_COMMUNITY", percent)
+		communityColor = UI.TEXT_IDLE
+	else
+		communityPart = W.T("RAID_CELL_COMMUNITY_EMPTY")
 	end
-	return W.T("RAID_CELL_COMMUNITY_EMPTY")
+	if Addon.RatingWrapColor then
+		communityPart = Addon:RatingWrapColor(communityPart, communityColor)
+	end
+	return personalPart .. "  " .. communityPart
 end
 
 local function FormatGearCategorySummaryLine(summary)
@@ -1110,14 +1121,8 @@ local function CreateRaidPlayerCell(parent)
 	cell.opinionText:SetHeight(RAID_LINE_H)
 	cell.opinionText:SetJustifyH("LEFT")
 
-	cell.communityText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.communityText:SetPoint("TOPLEFT", cell.opinionText, "BOTTOMLEFT", 0, -1)
-	cell.communityText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.communityText:SetHeight(RAID_LINE_H)
-	cell.communityText:SetJustifyH("LEFT")
-
 	cell.gradesText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gradesText:SetPoint("TOPLEFT", cell.communityText, "BOTTOMLEFT", 0, -1)
+	cell.gradesText:SetPoint("TOPLEFT", cell.opinionText, "BOTTOMLEFT", 0, -1)
 	cell.gradesText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
 	cell.gradesText:SetHeight(RAID_LINE_H)
 	cell.gradesText:SetJustifyH("LEFT")
@@ -1331,23 +1336,6 @@ local function FillRaidConsumableIcons(cell, member)
 	W.FillConsumableStatusIcon(cell.foodHost, status and status.food, "RAID_CONSUMABLE_FOOD")
 end
 
-local function FillCommunityCellLine(cell, member)
-	if not cell or not cell.communityText then
-		return
-	end
-	if not member then
-		cell.communityText:SetText("")
-		return
-	end
-	cell.communityText:SetText(FormatCommunityCellLine(member))
-	local community = Addon.GetCommunityRating and Addon:GetCommunityRating(member)
-	if community and tonumber(community.positivePercent) then
-		W.SetFontColor(cell.communityText, UI.TEXT_IDLE)
-	else
-		W.SetFontColor(cell.communityText, UI.TEXT_DISABLED)
-	end
-end
-
 local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	cell.stripe = stripe
 	cell:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
@@ -1358,7 +1346,6 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		cell.nameText:SetText("")
 		cell.statsText:SetText("")
 		cell.opinionText:SetText("")
-		FillCommunityCellLine(cell, nil)
 		cell.classIconHost:Hide()
 		cell.roleIconHost:Hide()
 		cell.specIconHost:Hide()
@@ -1413,9 +1400,9 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 
 	FillRaidConsumableIcons(cell, member)
 
-	cell.opinionText:SetText(FormatPersonalCellLine(member))
-	W.SetFontColor(cell.opinionText, W.RatingOpinionColor(member))
-	FillCommunityCellLine(cell, member)
+	-- Embedded |cff colors for symbol vs community; keep base text white.
+	cell.opinionText:SetText(FormatRatingCellLine(member))
+	cell.opinionText:SetTextColor(1, 1, 1, 1)
 
 	FillGearReportRows(cell, member, gearEntry)
 	if cell.profileBtn then

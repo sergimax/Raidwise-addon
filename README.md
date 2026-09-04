@@ -58,7 +58,7 @@ Esc or the title **X** closes the window.
 
 - Two blocks: raid groups **1–5**, then **6–8**; when not in a raid, your party fills group 1
 - Lines above the grid: compact header (S·A·B·C·D chips, GS and role counts, flask/food/armor/ench with report icons, Scan/Export/Refresh/Back icons); then scan status and progress
-- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, personal note, community rating slot, compact armor/ench grades, **Profile** / **Gear** / **Rescan**
+- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, compact `P:`/`C:` ratings, compact armor/ench grades, **Profile** / **Gear** / **Rescan**
 - Hover a card for opinion, tags, community data, **guild (rank)**, raid buffs, and gear-check details
 - **Scan** / **Export all** for raid-wide gear check; **Export all** opens copy text; **Back to roster** closes it; click the dump + Ctrl+C to copy
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons

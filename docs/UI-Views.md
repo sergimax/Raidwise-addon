@@ -45,7 +45,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character profile | `PROFILE_LAYOUT_VERSION = 31` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 28` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 29` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -116,8 +116,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ roster table — or export copy box when text view is on                 ]
 [ (class) Rhee          (flask)(food) ]
 [ (role)(spec) 6158gs 264ilvl ]
-[ Personal: Positive ]
-[ Community: 0% ]
+[ P: +  C: 75% ]
 [ Armor A  Ench C ]
 [ Profile ][ Gear ][ Rescan ]
         12 px gap
@@ -140,10 +139,9 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
 | line 1 | Class icon + class-colored name; **flask** and **food** status icons on the right (14 px). Full color = active buff (flask, or battle + guardian elixirs); red tint = missing; dim = out of range or offline. Hover shows the buff name or status. |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
-| line 3 | `Personal: {Positive|Neutral|Negative}`; color-coded |
-| line 4 | `Community: {n%}` when history/community data exists (mock until exchange); reserved `Community: —` otherwise |
-| line 5 | Compact grades `Armor {S|A|B|C|D}  Ench {…}` on one line, or fail / not scanned (`—`) |
-| line 6 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
+| line 3 | Compact ratings `P: {+||=|−}` (opinion color) and `C: {n%}` (or `C: —`); tags stay on hover |
+| line 4 | Compact grades `Armor {S|A|B|C|D}  Ench {…}` on one line, or fail / not scanned (`—`) |
+| line 5 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
 | hover | Opinion + tags + community percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff icons and names last |
 | click | Left-click card → **Character profile**; **Profile** / **Gear check** / **Rescan** buttons do their own actions |
 
