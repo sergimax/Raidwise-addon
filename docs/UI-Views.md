@@ -116,7 +116,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ roster table — or export copy box when text view is on                 ]
 [ (class) Rhee          (flask)(food) ]
 [ (role)(spec) 6158gs 264ilvl ]
-[ P: +  C: 75% ]
+[ P: (crystal)  C: 75% ]
 [ Armor A  Ench C ]
 [ Profile ][ Gear ][ Rescan ]
         12 px gap
@@ -139,7 +139,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
 | line 1 | Class icon + class-colored name; **flask** and **food** status icons on the right (14 px). Full color = active buff (flask, or battle + guardian elixirs); red tint = missing; dim = out of range or offline. Hover shows the buff name or status. |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
-| line 3 | Compact ratings `P: {+||=|−}` (opinion color) and `C: {n%}` (or `C: —`); tags stay on hover |
+| line 3 | Compact ratings `P:` + Qiraji crystal icon (green / yellow / red) and `C: {n%}` (or `C: —`); tags stay on hover |
 | line 4 | Compact grades `Armor {S|A|B|C|D}  Ench {…}` on one line, or fail / not scanned (`—`) |
 | line 5 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
 | hover | Opinion + tags + community percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff icons and names last |
@@ -304,7 +304,7 @@ Players you have been in a party or raid with (not yourself). Each GUID is store
 | Name | Class-colored character name |
 | Class | Class icon; hover shows localized class name |
 | Spec | Primary talent tree icon; hover shows spec name |
-| Opinion | Saved personal opinion symbol: `+`, `=`, or `-`; color-coded |
+| Opinion | Saved personal opinion Qiraji crystal: green / yellow / red |
 | Tags | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
 | GS | Last stored GearScore |
 | iLvl | Last stored average item level |

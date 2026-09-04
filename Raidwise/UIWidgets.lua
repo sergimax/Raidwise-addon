@@ -1023,6 +1023,14 @@ function W.RatingOpinionSymbol(member)
 	return "="
 end
 
+function W.RatingOpinionIcon(member)
+	local opinion = W.RatingOpinion(member)
+	if Addon.RatingOpinionIcon then
+		return Addon:RatingOpinionIcon(opinion)
+	end
+	return nil
+end
+
 function W.RatingOpinionColor(member)
 	local opinion = W.RatingOpinion(member)
 	if Addon.RatingOpinionColor then

@@ -40,7 +40,7 @@ One-shot per history entry (`personal.reputationV2`):
 | Events | yes | yes |
 | Memo | never | never |
 
-Roster views show personal opinion on the card; Raid roster uses one compact line (`P: +  C: 75%`) with the opinion symbol and community percent from `GetCommunityRating` (`C: —` when missing). Tags and full community detail stay on hover / Character profile; facts appear in the profile header; events are listed on the Events / History tabs. Character profile opens on the **History** tab by default; opinion/tags are edited on **Edit note**.
+Roster views show personal opinion on the card; Raid roster uses one compact line (`P:` Qiraji crystal icon + `C: 75%`) with community percent from `GetCommunityRating` (`C: —` when missing). Crystals: green = positive, yellow = neutral, red = negative. Tags and full community detail stay on hover / Character profile; facts appear in the profile header; events are listed on the Events / History tabs. Character profile opens on the **History** tab by default; opinion/tags are edited on **Edit note**.
 
 ## Display helpers (`PlayerHistory.lua`)
 
@@ -49,7 +49,7 @@ Used by roster pages, Character profile, and unit tooltips:
 | Method | Role |
 |--------|------|
 | `MergeRatingIntoMember` | Attach saved opinion/tags/facts to a roster row |
-| `RatingOpinionSymbol` / `RatingOpinionLabel` / `RatingOpinionColor` | Opinion column and tooltips |
+| `RatingOpinionSymbol` / `RatingOpinionIcon` / `RatingOpinionLabel` / `RatingOpinionColor` | Opinion column (History crystals), raid rating line, and tooltips |
 | `RatingTagColoredSummary` / `RatingTagSummary` | Tag column and tooltips |
 | `FactColoredSummary` / `FactSummary` | Profile header facts line |
 | `FormatHistoryTime` | History tab and change-log timestamps |

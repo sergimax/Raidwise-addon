@@ -120,7 +120,7 @@ Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/a
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
-| Cell content | **20** px class/role/spec; **14** px flask/food | Class on line 1 with flask + food status icons on the right (present = full color, missing = red tint, out of range/offline = dim); role then spec on line 2; one compact rating line (`P: +  C: 75%`) + grades; line height **14**. Raid buffs listed on card hover |
+| Cell content | **20** px class/role/spec; **14** px flask/food | Class on line 1 with flask + food status icons on the right (present = full color, missing = red tint, out of range/offline = dim); role then spec on line 2; one compact rating line (`P:` Qiraji crystal + `C: 75%`) + grades; line height **14**. Raid buffs listed on card hover |
 | Cell hover tooltip | — | Opinion, tags, community percent/tags, **Guild: Name (Rank)**, raid buffs, gear-check grades |
 
 Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
@@ -197,7 +197,7 @@ Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADE
 | Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
 | Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 140 + 130 + 120 = 822** | Name, class, spec, Opinion, Tags, GS, iLvl, Met in, When, Guild |
 | Class / spec icons | **18** px | Centered in 28 px columns |
-| Opinion column | **70**, center | Symbol `+` / `=` / `-`; color-coded |
+| Opinion column | **70**, center | Qiraji crystal icon (green / yellow / red) |
 | Tags column | **120** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
 | Met in | **140** | First meeting instance or zone |
 | When | **130** | `YYYY-MM-DD HH:MM` |
@@ -243,7 +243,7 @@ Key helpers used across pages (not on `Raidwise` directly):
 | `SetSpecOrClassIcon` / `SetSpellIconTexture` / `CreateBuffIconHost` / `CreateConsumableStatusHost` | Class, spec, raid-buff, and flask/food status icons |
 | `TableIconInset` / `TableIconTopOffset` | Center icons in table rows |
 | `AttachLayoutVersionLabel` | Profile title-bar `vN` badge |
-| `RatingOpinionSymbol` / `RatingOpinionColor` / `ShowMemberRatingTooltip` | Opinion display in roster tables |
+| `RatingOpinionIcon` / `RatingOpinionSymbol` / `RatingOpinionColor` / `ShowMemberRatingTooltip` | Opinion display in roster tables |
 
 ## Changing sizes
 

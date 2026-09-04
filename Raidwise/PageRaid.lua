@@ -149,13 +149,16 @@ local function FormatCompactGradesLine(gearGrade, enchantGrade)
 		.. W.T("RAID_CELL_GRADE_ENCH", W.WrapGearGradation(enchantGrade))
 end
 
--- Compact rating row: personal opinion symbol + community percent (e.g. "P: +  C: 75%").
+-- Compact rating row: personal Qiraji crystal icon + community percent (e.g. "P: [icon]  C: 75%").
 local function FormatRatingCellLine(member)
-	local symbol = W.RatingOpinionSymbol(member)
-	if Addon.RatingWrapColor then
-		symbol = Addon:RatingWrapColor(symbol, W.RatingOpinionColor(member))
+	local iconMarkup = W.IconMarkup(W.RatingOpinionIcon(member), RAID_LINE_H)
+	if iconMarkup == "" then
+		iconMarkup = W.RatingOpinionSymbol(member)
+		if Addon.RatingWrapColor then
+			iconMarkup = Addon:RatingWrapColor(iconMarkup, W.RatingOpinionColor(member))
+		end
 	end
-	local personalPart = W.T("RAID_CELL_PERSONAL", symbol)
+	local personalPart = W.T("RAID_CELL_PERSONAL", iconMarkup)
 
 	local community = Addon.GetCommunityRating and Addon:GetCommunityRating(member)
 	local percent = community and tonumber(community.positivePercent)
