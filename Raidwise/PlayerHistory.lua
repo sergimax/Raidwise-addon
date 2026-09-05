@@ -11,18 +11,21 @@ local OPINIONS = {
 		id = "positive",
 		labelKey = "RATING_OPINION_POSITIVE",
 		symbol = "+",
+		icon = "Interface\\Icons\\INV_Misc_QirajiCrystal_03", -- green
 		color = { 0.35, 0.90, 0.35 },
 	},
 	neutral = {
 		id = "neutral",
 		labelKey = "RATING_OPINION_NEUTRAL",
 		symbol = "=",
+		icon = "Interface\\Icons\\INV_Misc_QirajiCrystal_01", -- yellow
 		color = { 0.90, 0.82, 0.35 },
 	},
 	negative = {
 		id = "negative",
 		labelKey = "RATING_OPINION_NEGATIVE",
 		symbol = "-",
+		icon = "Interface\\Icons\\INV_Misc_QirajiCrystal_02", -- red
 		color = { 0.95, 0.35, 0.35 },
 	},
 }
@@ -440,7 +443,7 @@ end
 
 -- Community note snapshot (future exchange/web). Mock preview when history exists.
 local COMMUNITY_MOCK_TAGS = { "fair_loot", "good_raid_leader", "good_player" }
-local COMMUNITY_MOCK_PERCENT = 91
+local COMMUNITY_MOCK_PERCENT = 0
 
 function Addon:NormalizeCommunityRating(community)
 	if type(community) ~= "table" then
@@ -550,7 +553,7 @@ function Addon:GetTooltipPreviewSample()
 			updatedAt = 1,
 		},
 		community = {
-			positivePercent = 91,
+			positivePercent = 0,
 			tags = { "fair_loot", "good_raid_leader", "good_player" },
 			isMock = true,
 		},
@@ -857,6 +860,11 @@ end
 function Addon:RatingOpinionSymbol(opinion)
 	local data = OPINIONS[self:NormalizePersonalOpinion(opinion)] or OPINIONS.neutral
 	return data.symbol
+end
+
+function Addon:RatingOpinionIcon(opinion)
+	local data = OPINIONS[self:NormalizePersonalOpinion(opinion)] or OPINIONS.neutral
+	return data.icon
 end
 
 function Addon:RatingTagLabel(tagId)

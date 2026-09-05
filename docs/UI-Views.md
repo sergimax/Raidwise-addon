@@ -45,11 +45,11 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character profile | `PROFILE_LAYOUT_VERSION = 31` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 18` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 29` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 10` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 6` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 8` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
@@ -108,19 +108,16 @@ Rows come only from current lockouts; each instance is one row with all size/mod
 Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1 (same inspect/GS pipeline as before; no separate party tab).
 
 ```text
-[ short description (left, wraps)                         ] [ Scan    ]
-[ Average GS …  Tanks …  Healers …  Melee …  Range …       ] [ Export  ]
-[ BAD · REPLACE · OK · GOOD · Failed                        ] [ Refresh ]
-[ gear check status / scan progress (reserved height)       ] [ Back to roster ]
-[ progress bar track (always reserved)                      ] [ Select all ]
+[ S·A·B·C·D  Average GS 6158  Tanks 2 · Healers 6 · Melee 12 · Range 5   [scan][export][refresh][back] ]
+[ Flask 22/25 [shout] | Food 20/25 [shout] | Armor S·A·B·C·D [shout] | Ench … [shout] ]
+[ scan / export status (reserved height)                                 ]
+[ progress bar track (always reserved)                                   ]
         8 px gap
-[ roster table — or export copy box when text view is on    ]
-[ (class) Rhee   ][ empty slot     ] ...
+[ roster table — or export copy box when text view is on                 ]
+[ (class) Rhee          (flask)(food) ]
 [ (role)(spec) 6158gs 264ilvl ]
-[ (buff)(buff)(buff) ]
-[ Personal opinion: Positive ]
-[ Armor/weap: GOOD ]
-[ Ench/sock: REPLACE ]
+[ P: (crystal)  C: 75% ]
+[ Armor A  Ench C ]
 [ Profile ][ Gear ][ Rescan ]
         12 px gap
 [ 6              ][ 7              ][ 8              ]
@@ -129,22 +126,23 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | Left column; wraps beside button column |
-| Scan / Export / Refresh | **104 × 28** each, stacked in a right column (4 px gap); top-aligned; fixed position independent of progress |
-| Back to roster / Select all | Same column below Refresh; **Back to roster** enabled only while export text is open; **Select all** enabled in that view |
-| gear check hint / status | Left column; fixed **28** px height; gear-check legend or scan/export/rescan text |
+| mini table | Two rows: chips + GS/roles + icon toolbar (**28**), then four status cells (**20**); **4** px between rows |
+| row 1 grade chips | Colored `S · A · B · C · D`; hover shows `GEAR_CHECK_RAID_HINT` |
+| row 1 GS / roles | `Average GS` plus role counts on one line; hover shows per-role count and average GS |
+| row 1 toolbar | Icon buttons **Scan**, **Export all**, **Refresh**, **Back to roster** in a horizontal strip (**28×28**, **4** px gap). Hover shows the action name and tip. **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
+| row 2 status | Four equal cells: **Flask**, **Food**, **Armor&Weap**, **Ench&Gems** — gold name + compact counts, **16×16** Battle Shout icon on the right |
+| flask / food | `Flask n/total` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Missing names and `(n missing)` live in the hover tip. Out of range / offline are not listed as missing |
+| armor / ench | S / A / B / C / D counts (+ Failed). Dim until first scan (`Press Scan to check.`) |
+| report icon | Same Battle Shout icon on every status cell; hover (cell or icon) shows the flask / food / armor / ench tip, current counts, plus a preview of the chat line(s) that will be posted |
+| scan status | Below the mini table; reserved **28** px; scan/export/rescan text (empty when idle) |
 | progress bar | Below status (**4** px gap); height **14**; track always reserved |
-| averages + roles | One line: `Average GS: {n}` then Tanks / Healers / Melee / Range counts and GS |
-| gear summary | Counts by overall status + failed/skipped inspects; dim until first scan |
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
-| line 1 | Class icon + class-colored name |
+| line 1 | Class icon + class-colored name; **flask** and **food** status icons on the right (14 px). Full color = active buff (flask, or battle + guardian elixirs); red tint = missing; dim = out of range or offline. Hover shows the buff name or status. |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
-| line 3 | Spec- and race-specific raid buff icons (hover for name); up to 8 |
-| line 4 | `Personal opinion: {Positive|Neutral|Negative}`; color-coded |
-| line 5 | `Armor/weap: {GOOD|OK|REPLACE|BAD}` (colored grade) or fail / not scanned (`—`) |
-| line 6 | `Ench/sock: {GOOD|OK|REPLACE|BAD}` (colored grade); blank when not scanned |
-| line 7 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
-| hover | Opinion + tags + **Guild: Name (Rank)** tooltip + **gear check** section (both grades with flagged slot details, or scan status) |
+| line 3 | Compact ratings `P:` + Qiraji crystal icon (green / yellow / red) and `C: {n%}` (or `C: —`); tags stay on hover |
+| line 4 | Compact grades `Armor {S|A|B|C|D}  Ench {…}` on one line, or fail / not scanned (`—`) |
+| line 5 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
+| hover | Opinion + tags + community percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff icons and names last |
 | click | Left-click card → **Character profile**; **Profile** / **Gear check** / **Rescan** buttons do their own actions |
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
@@ -173,7 +171,7 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |
 | columns | Three equal columns below; sections pack into the shortest column |
 | section heading | Name left; `present/total` right-aligned above row counts; gold, or **red** when present is `0` |
-| row | Spell icon, name, count of players who can provide it; **Shift-click** posts effect + class/spec — spell lines to raid/party chat |
+| row | Spell icon, name, count of players who can provide it; **Shift-click** posts effect + class/spec — spell lines to the report chat channel (Settings) |
 | present | Gold name and count (`> 0`) |
 | missing | Dim name and `0` |
 | tooltip | Who in the raid has it; then **Brought by:** on its own line, then one source class/spec — spell per line; hint for Shift-click |
@@ -195,8 +193,8 @@ LEFT (~670px)                          RIGHT (~220px)
                                         [ Show as a text ]
                                         [ Select all ]
 
-[ Report summary | … | Report OK ]
-[ All | Items | Enchants | Gems | OK ]
+[ Report summary | … | Report B ]
+[ All | Items | Enchants | Gems | B ]
 
 [ scrollable findings by slot ]         [ Save report ]
                                         [ Delete selected report ]
@@ -207,15 +205,15 @@ LEFT (~670px)                          RIGHT (~220px)
 
 | Block | In-game text / control |
 |-------|------------------------|
-| short description | Overall: GOOD (preferred) / OK (usable·acceptable) / REPLACE (unwanted·soft) / BAD (forbidden·wrong for spec); surface-level PvE; not BiS |
-| limitation | No BiS lists, builds, encounter requirements, or detailed stat weights |
+| short description | Overall: S (on published BiS lists) / A (preferred) / B (usable·acceptable) / C (unwanted·soft) / D (forbidden·wrong for spec); surface-level PvE; S is list membership, not a unique BiS pick |
+| limitation | S = published BiS-list membership, not a unique pick; no build / encounter / stat-weight optimization |
 | summary (left) | Overall status (colored), class + spec icons + character line, GearScore / avg iLvl, issue counts, meta, sets |
 | status (right) | Multi-line hint or scan result (`\n` breaks + word wrap); sits above Scan |
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI (hover tip) |
 | Show as a text | Toggles raw dump (replaces main columns; stays in top band) (hover tip) |
 | Select all | Enabled in text view when dump has text (hover tip) |
 | report buttons | Print to **self chat only** (`[GearCheck]` lines); hover tip per mode |
-| filters | All / Items / Enchants / Gems / **OK**; hover tip per filter |
+| filters | All / Items / Enchants / Gems / **B**; hover tip per filter |
 | breakdown (left) | Active filter name as gold header (except **All**); then `[VERDICT] Slot — Item` plus finding bullets |
 | Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved (hover tip) |
 | Delete selected report | Removes the currently viewed saved entry (hover tip) |
@@ -306,7 +304,7 @@ Players you have been in a party or raid with (not yourself). Each GUID is store
 | Name | Class-colored character name |
 | Class | Class icon; hover shows localized class name |
 | Spec | Primary talent tree icon; hover shows spec name |
-| Opinion | Saved personal opinion symbol: `+`, `=`, or `-`; color-coded |
+| Opinion | Saved personal opinion Qiraji crystal: green / yellow / red |
 | Tags | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
 | GS | Last stored GearScore |
 | iLvl | Last stored average item level |
@@ -330,6 +328,15 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 ( ) Cooldowns   ( ) Export      ( ) Raid        ( ) Composition
 ( ) Gear target ( ) History     ( ) Settings
 
+[ Report chat channel heading ]
+[ short hint ]
+( ) Auto (raid / party)  ( ) Self (your chat)  ( ) Party         ( ) Raid
+( ) Raid warning         ( ) Guild             ( ) Officer       ( ) Say
+
+[ Gear check report form heading ]
+[ short hint ]
+( ) Short   ( ) Full
+
 [ Unit tooltips heading ]
 [ short hint ]
 [ ] Hide personal opinion
@@ -340,7 +347,7 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 [ Preview ]
 Compact (live tooltip)
 Positive: Good Raid Leader, Fair Loot, Good player
-91 % positive:
+0 % positive:
 Fair Loot, Good Raid Leader, Good player
 Stacked (variant)
 …
@@ -352,6 +359,8 @@ Stacked (variant)
 | short hint | “Interface language. Saved on this account.” |
 | English / Русский | Menu-style buttons; the active locale is selected. Choice is stored in `RaidwiseDB.locale` (`enUS` / `ruRU`). Default is the client locale. |
 | Startup page | Exclusive radio group for left-menu pages (**Info** excluded); selected page opens on `/raidwise`. Stored in `RaidwiseDB.startupTab` (default `cooldowns`). Saved `party` / `gearraid` migrate to `raid`. |
+| Report chat channel | Exclusive radio group; destination for Raid roster, Composition, and Gear check reports. Stored in `RaidwiseDB.reportChannel` (default `auto` = RAID in a raid, PARTY in a party). Unavailable channels print to the local chat frame instead. |
+| Gear check report form | Short (default) or Full wording for Gear check Report buttons / `/rw gearcheck …`. Stored in `RaidwiseDB.reportForm`. |
 | Unit tooltips | Checkboxes stored in `RaidwiseDB.tooltip` (`hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags`); default all shown |
 | Preview | Sample compact (live) and stacked layout lines; updates when checkboxes change |
 

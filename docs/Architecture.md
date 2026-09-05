@@ -12,7 +12,7 @@ Locale.lua            enUS / ruRU + Addon:T
 CharacterExport.lua   gear / bags / lockout collectors + JSON export
 CharacterLockouts.lua account-wide lockout SV + cooldown table model
 PartyRoster.lua       party/raid snapshots, inspect queue, GS/iLvl
-RaidRoles.lua         role classification, raid buff icons, role GS averages
+RaidRoles.lua         role classification, raid buff icons, flask/food aura scan, role GS averages
 RaidComposition.lua   composition effect catalog + AnalyzeRaidComposition
 PlayerHistory.lua     history store + personal rating domain API
 UIWidgets.lua         shared UI helpers (panels, buttons, icons, layout badge)
@@ -22,9 +22,10 @@ GearCheckCatalog.lua  enchant / gem seed catalogs
 GearCheckSets.lua     T9/T10 set-piece ids (informational)
 GearCheckTrinkets.lua per-role BiS + progression trinket id pools
 GearCheckProfiles.lua class + 30-spec rule profiles
+GearCheckBis.lua      generated spec BiS item-ID sets (S grade)
 GearCheckRules.lua    findings engine + item verdicts + overall (EvaluateGearCheck)
 GearCheckSavedReports.lua  manual save / load / prune (~14 days)
-GearCheck.lua         collector + normalize (schemaVersion 2) + evaluate hook + dump
+GearCheck.lua         collector + normalize (schemaVersion 3) + evaluate hook + dump
 PageCooldowns.lua     … PageInfo.lua   content pages (Addon.Pages.*)
 ExporterWindow.lua    main shell (grouped left menu, title, status, tab wiring)
 ```
@@ -51,6 +52,8 @@ TOC: `RaidwiseDB`, `MrcExporterDB` (legacy migrate-only).
 | `includeGearNames` | Export page / `CharacterExport` | JSON export option |
 | `locale` | `Locale.lua` | `enUS` / `ruRU` |
 | `startupTab` | Settings / shell | Left-menu page id opened on `/raidwise` (default `cooldowns`; `info` not allowed) |
+| `reportChannel` | Settings / `Raidwise.lua` | Chat destination for reports (`auto` / `self` / `party` / `raid` / `raidwarning` / `guild` / `officer` / `say`) |
+| `reportForm` | Settings / `Raidwise.lua` | Gear check chat wording (`short` default / `full`) |
 | `tooltip` | `UnitTooltips.lua` / Settings | Hide flags for unit tooltip rating lines |
 | `characters` | `CharacterLockouts.lua` | Per-character lockout columns |
 | `history` | `PlayerHistory.lua` | GUID-keyed meetings, opinion/tags/facts, events, notes |
@@ -88,6 +91,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `RefreshCooldownTable` | Cooldowns page | Lockout events |
 | `FlushExportToWindow` | Export page | Lockout export path |
 | `RefreshRaidRosterView` | Raid page | Roster, gear check, guild in tooltip |
+| `RefreshRaidConsumableIcons` | Raid page | `UNIT_AURA` flask/food icons (throttled) |
 | `RefreshCompositionView` | Composition page | Roster, guild |
 | `RefreshHistoryView` | History page | History record, profile |
 | `ShowRaidCharacterWindow` | Profile | Party / raid / history clicks |
@@ -95,6 +99,7 @@ Optional duck-typed methods on `Raidwise` (callers check `if self.Foo then`):
 | `CommitProfileRating` | Profile | **Save and Update** button |
 | `RefreshRatingViews` | Profile | After rating save / profile close |
 | `RefreshPartyData` | `PartyRoster.lua` | Fan-out refresh (below) |
+| `GetReportChannel` / `SetReportChannel` / `ResolveReportChatType` / `SendReportChat` | Settings / `Raidwise.lua` | Report buttons (raid, composition, gear check) |
 | `OpenGearCheckTarget` / `RefreshGearCheckTargetView` / `ShowGearCheckReport` / `StartGearCheckScan` / `StartGearCheckRaidScan` / `EvaluateGearCheck` / `GearCheckRulesSelfTest` / `PrintGearCheckReport` / `RunGearCheckChatReport` | GearCheck stack + target/raid pages | `/rw gearcheck …`, Scan / Report buttons |
 | `SaveGearCheckReport` / `ListGearCheckSavedReports` / `GetGearCheckSavedReport` / `DeleteGearCheckSavedReport` / `PruneExpiredGearCheckReports` | `GearCheckSavedReports.lua` | Save report / saved list UI |
 
@@ -121,6 +126,7 @@ Cross-module entry points on `Raidwise` (domain files do not create frames):
 | `AnalyzeRaidComposition` | `RaidComposition.lua` | Composition checklist for current group |
 | `BuildCooldownTable` | `CharacterLockouts.lua` | Cooldowns tab rows |
 | `HistoryProfileForMember` / `MergeRatingIntoMember` | `PlayerHistory.lua` | Profile + table opinion/tags |
+| `UnitConsumableStatus` / `SummarizeRaidConsumables` | `RaidRoles.lua` | Flask / food (or battle + guardian elixirs) from `UnitBuff`; roster present/missing lists |
 | `SavePersonalRatingForGuid` / `SaveHistoryEventsForGuid` / `SaveProfileNotesForGuid` | `PlayerHistory.lua` | Persist profile edits |
 | `RecordCurrentGroupHistory` / `AddHistoryEventForGuid` | `PlayerHistory.lua` | History **Refresh** + group meetings (`same_party` event when `meetCount` increments) |
 | `FormatEquippedGearExport` | `CharacterExport.lua` | Export tab JSON |
@@ -132,7 +138,7 @@ Cross-module entry points on `Raidwise` (domain files do not create frames):
 1. Rebuilds party/raid roster data (and inspect queue as needed).
 2. Calls `RefreshRaidRosterView` and `RefreshCompositionView` when those methods exist.
 
-Group roster events (`PARTY_MEMBERS_CHANGED` / `RAID_ROSTER_UPDATE`) call `RefreshPartyData` when the main window is open on raid/composition; otherwise they only record history.
+Group roster events (`PARTY_MEMBERS_CHANGED` / `RAID_ROSTER_UPDATE`) call `RefreshPartyData` when the main window is open on raid/composition; otherwise they only record history. `UNIT_AURA` refreshes flask/food icons on Raid roster only (coalesced ~0.2s; no inspect).
 
 Profile save/close refreshes the visible raid or history tab.
 

@@ -292,8 +292,14 @@ function Addon:RefreshHistoryView()
 		W.SetSpecOrClassIcon(row.classIcon, nil, member.class)
 		W.SetSpecOrClassIcon(row.specIcon, member.specIcon, member.class)
 
-		row.opinionText:SetText(W.RatingOpinionSymbol(member))
-		W.SetFontColor(row.opinionText, W.RatingOpinionColor(member))
+		local opinionIcon = W.IconMarkup(W.RatingOpinionIcon(member), 16)
+		if opinionIcon ~= "" then
+			row.opinionText:SetText(opinionIcon)
+			row.opinionText:SetTextColor(1, 1, 1, 1)
+		else
+			row.opinionText:SetText(W.RatingOpinionSymbol(member))
+			W.SetFontColor(row.opinionText, W.RatingOpinionColor(member))
+		end
 
 		local tags = W.FormatTagLine(member)
 		if tags ~= "" then

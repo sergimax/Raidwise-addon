@@ -1,9 +1,9 @@
--- Gear Check: collect equipped gear into a normalized model (schemaVersion 2).
+-- Gear Check: collect equipped gear into a normalized model (schemaVersion 3).
 -- Phase 2: no suitability rules. Phase 3+ must use this table only — no WoW API in rules.
 
 local Addon = Raidwise
 
-Addon.GEAR_CHECK_SCHEMA_VERSION = 2
+Addon.GEAR_CHECK_SCHEMA_VERSION = 3
 
 -- Slot order for collection / dump. Policy drives later evaluation skips.
 local SLOT_DEFS = {
@@ -996,7 +996,7 @@ local function CountFilledCheckedSlots(slots)
 	return filled, checked
 end
 
--- Informational only — never used by OK / REPLACE / BAD rules.
+-- Informational only — never used by S / A / B / C / D rules.
 local function AverageItemLevelFromEquipment(equipment)
 	local total = 0
 	local count = 0
@@ -1282,7 +1282,7 @@ function Addon:FormatGearCheckDump(report)
 	local lines = {}
 	lines[#lines + 1] = "Raidwise Gear Check — Phase 5 snapshot (overall + meta + sets)"
 	lines[#lines + 1] = "schemaVersion=" .. tostring(report.schemaVersion or "?")
-	lines[#lines + 1] = "Overall is worst-wins of item verdicts (GOOD < OK < REPLACE < BAD); Resilience 1→REPLACE, 2+→BAD. Set counts are informational."
+	lines[#lines + 1] = "Overall is worst-wins of item verdicts (S < A < B < C < D); Resilience 1→C, 2+→D. S = item ID on published BiS lists. Set counts are informational."
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = string.format(
 		"Unit: %s (%s)%s",
@@ -1342,11 +1342,12 @@ function Addon:FormatGearCheckDump(report)
 	end
 	if verdicts then
 		lines[#lines + 1] = string.format(
-			"Item verdicts: GOOD=%d  OK=%d  REPLACE=%d  BAD=%d  (skipped=%d)",
-			verdicts.good or 0,
-			verdicts.ok or 0,
-			verdicts.replace or 0,
-			verdicts.bad or 0,
+			"Item verdicts: S=%d  A=%d  B=%d  C=%d  D=%d  (skipped=%d)",
+			verdicts.s or 0,
+			verdicts.a or 0,
+			verdicts.b or 0,
+			verdicts.c or 0,
+			verdicts.d or 0,
 			verdicts.skipped or 0
 		)
 	end
@@ -2027,7 +2028,7 @@ function Addon:StartGearCheckRaidScan(onProgress, onComplete)
 	return true
 end
 
--- Phase 7: self-chat reports only (DEFAULT_CHAT_FRAME). Finding text stays English.
+-- Phase 7: chat reports. Destination is Settings report channel. Finding text stays English.
 local CHAT_ITEM_CATEGORIES = {
 	item = true,
 	armor = true,
@@ -2035,21 +2036,49 @@ local CHAT_ITEM_CATEGORIES = {
 	stat = true,
 }
 local CHAT_MAX_DETAIL = 15
+local CHAT_SHORT_LINE_MAX = 220
+
+local SLOT_SHORT = {
+	head = "head",
+	neck = "neck",
+	shoulder = "shoulder",
+	back = "back",
+	chest = "chest",
+	wrist = "wrist",
+	hands = "hands",
+	waist = "waist",
+	legs = "legs",
+	feet = "feet",
+	finger1 = "finger1",
+	finger2 = "finger2",
+	trinket1 = "trinket1",
+	trinket2 = "trinket2",
+	mainHand = "MH",
+	offHand = "OH",
+	ranged = "ranged",
+}
+
+local function IsShortReportForm()
+	return not Addon.GetReportForm or Addon:GetReportForm() ~= "full"
+end
 
 local function ChatPlayerName(report)
 	local character = report.character or {}
 	return character.name or report.name or "?"
 end
 
-local function ChatSlotShort(report, slotKey)
+local function ChatSlotShort(report, slotKey, compact)
 	if not slotKey then
 		return "Gear"
+	end
+	if compact then
+		return SLOT_SHORT[slotKey] or tostring(slotKey)
 	end
 	local equipment = report.equipment or report.slots or {}
 	for index = 1, #equipment do
 		local slot = equipment[index]
 		if slot.key == slotKey then
-			return slot.slotName or slotKey
+			return slot.slotName or slot.key
 		end
 	end
 	return tostring(slotKey)
@@ -2078,6 +2107,19 @@ local function FormatItemIdIlvl(item)
 	return string.format("id=%s ilvl=%s", id, ilvl)
 end
 
+local function ShortFindingText(finding)
+	local code = finding.code or "?"
+	local message = finding.message or ""
+	local detail = message:match("%(([^%)]+)%)%s*$")
+	if code == "MISSING_ENCHANT" then
+		return "missing"
+	end
+	if detail and detail ~= "" then
+		return code .. "(" .. detail .. ")"
+	end
+	return code
+end
+
 local function ChatFindingMatches(finding, mode)
 	local category = finding.category
 	if mode == "items" then
@@ -2092,17 +2134,54 @@ local function ChatFindingMatches(finding, mode)
 	return false
 end
 
-local function ChatDetailLines(report, mode)
+local function PackChatLines(prefix, parts, maxLen)
+	local lines = {}
+	if #parts == 0 then
+		return lines
+	end
+	local current = prefix
+	for index = 1, #parts do
+		local part = parts[index]
+		local trial
+		if current == prefix then
+			trial = prefix .. part
+		else
+			trial = current .. "; " .. part
+		end
+		if current ~= prefix and string.len(trial) > maxLen then
+			lines[#lines + 1] = current
+			current = prefix .. part
+		else
+			current = trial
+		end
+	end
+	if current ~= prefix then
+		lines[#lines + 1] = current
+	end
+	return lines
+end
+
+local function ChatDetailLines(report, mode, shortForm)
 	local lines = {}
 
 	if mode == "ok" then
 		local equipment = report.equipment or report.slots or {}
+		if shortForm then
+			local parts = {}
+			for index = 1, #equipment do
+				local slot = equipment[index]
+				if slot.policy == "CHECKED" and slot.item and slot.verdict == "B" then
+					parts[#parts + 1] = ChatSlotShort(report, slot.key, true)
+				end
+			end
+			return parts
+		end
 		for index = 1, #equipment do
 			local slot = equipment[index]
-			if slot.policy == "CHECKED" and slot.item and slot.verdict == "OK" then
+			if slot.policy == "CHECKED" and slot.item and slot.verdict == "B" then
 				local slotName = slot.slotName or slot.key
 				local reasons = Addon.ExplainGearCheckNotGood and Addon:ExplainGearCheckNotGood(report, slot) or {}
-				local detail = reasons[1] or "Usable, but not GOOD."
+				local detail = reasons[1] or "Usable, but not A."
 				if #reasons > 1 then
 					detail = detail .. " (+" .. tostring(#reasons - 1) .. " more)"
 				end
@@ -2131,19 +2210,55 @@ local function ChatDetailLines(report, mode)
 				bySlot[key] = bucket
 				order[#order + 1] = key
 			end
-			bucket[#bucket + 1] = finding.message or finding.code or "?"
+			bucket[#bucket + 1] = finding
+		end
+	end
+
+	if shortForm and mode == "enchants" then
+		local allMissing = #order > 0
+		for index = 1, #order do
+			local bucket = bySlot[order[index]]
+			for findingIndex = 1, #bucket do
+				if bucket[findingIndex].code ~= "MISSING_ENCHANT" then
+					allMissing = false
+					break
+				end
+			end
+			if not allMissing then
+				break
+			end
+		end
+		if allMissing then
+			local slots = {}
+			for index = 1, #order do
+				slots[#slots + 1] = ChatSlotShort(report, order[index] ~= "_gear" and order[index] or nil, true)
+			end
+			return { "missing " .. table.concat(slots, ", ") }
 		end
 	end
 
 	for index = 1, #order do
 		local key = order[index]
-		local messages = bySlot[key]
-		local slotName = ChatSlotShort(report, key ~= "_gear" and key or nil)
-		local meta = FormatItemIdIlvl(ChatSlotItem(report, key ~= "_gear" and key or nil))
-		if meta then
-			lines[#lines + 1] = string.format("%s (%s): %s", slotName, meta, table.concat(messages, "; "))
+		local findingsForSlot = bySlot[key]
+		local slotName = ChatSlotShort(report, key ~= "_gear" and key or nil, shortForm)
+		if shortForm then
+			local texts = {}
+			for findingIndex = 1, #findingsForSlot do
+				texts[#texts + 1] = ShortFindingText(findingsForSlot[findingIndex])
+			end
+			lines[#lines + 1] = string.format("%s %s", slotName, table.concat(texts, ","))
 		else
-			lines[#lines + 1] = string.format("%s: %s", slotName, table.concat(messages, "; "))
+			local messages = {}
+			for findingIndex = 1, #findingsForSlot do
+				local finding = findingsForSlot[findingIndex]
+				messages[#messages + 1] = finding.message or finding.code or "?"
+			end
+			local meta = FormatItemIdIlvl(ChatSlotItem(report, key ~= "_gear" and key or nil))
+			if meta then
+				lines[#lines + 1] = string.format("%s (%s): %s", slotName, meta, table.concat(messages, "; "))
+			else
+				lines[#lines + 1] = string.format("%s: %s", slotName, table.concat(messages, "; "))
+			end
 		end
 	end
 	return lines
@@ -2159,44 +2274,78 @@ function Addon:FormatGearCheckChatReport(report, mode)
 		return lines
 	end
 
+	local shortForm = IsShortReportForm()
 	local name = ChatPlayerName(report)
 	local overall = report.overall or {}
-	local status = overall.status or "OK"
+	local status = overall.status or "B"
 	local issues = overall.issues or {}
 	local verdicts = report.verdicts or {}
 
 	if mode == "summary" then
-		lines[#lines + 1] = string.format("%s — %s", name, status)
 		local stats = report.stats or {}
 		local character = report.character or {}
 		local gearScore = stats.gearScore or character.gearScore
 		local averageIlvl = stats.averageIlvl or character.averageIlvl
+		local parts = {}
+		local dCount = verdicts.d or 0
+		local cCount = verdicts.c or 0
+		local bCount = verdicts.b or 0
+		local aCount = verdicts.a or 0
+		local sCount = verdicts.s or 0
+		local enchantN = issues.enchants or 0
+		local gemN = issues.gems or 0
+		local metaN = issues.meta or 0
+		if dCount > 0 then
+			parts[#parts + 1] = string.format("%d D", dCount)
+		end
+		if cCount > 0 then
+			parts[#parts + 1] = string.format("%d C", cCount)
+		end
+		if bCount > 0 then
+			parts[#parts + 1] = string.format("%d B", bCount)
+		end
+		if aCount > 0 then
+			parts[#parts + 1] = string.format("%d A", aCount)
+		end
+		if sCount > 0 then
+			parts[#parts + 1] = string.format("%d S", sCount)
+		end
+		if shortForm then
+			if enchantN > 0 then
+				parts[#parts + 1] = string.format("%dench", enchantN)
+			end
+			if gemN > 0 then
+				parts[#parts + 1] = string.format("%dgem", gemN)
+			end
+			if metaN > 0 then
+				parts[#parts + 1] = string.format("%dmeta", metaN)
+			elseif report.meta and report.meta.present and report.meta.active == true then
+				parts[#parts + 1] = "metaOK"
+			end
+			if #parts == 0 then
+				parts[1] = "ok"
+			end
+			local head = string.format("%s — %s", name, status)
+			if gearScore ~= nil then
+				head = head .. " · GS " .. tostring(gearScore)
+			end
+			if averageIlvl ~= nil then
+				head = head .. " · iLvl " .. tostring(averageIlvl)
+			end
+			head = head .. " · " .. table.concat(parts, " ")
+			if overall.resilienceItems and overall.resilienceItems > 0 then
+				head = head .. " · " .. tostring(overall.resilienceItems) .. "resil"
+			end
+			lines[#lines + 1] = head
+			return lines
+		end
+		lines[#lines + 1] = string.format("%s — %s", name, status)
 		if gearScore ~= nil or averageIlvl ~= nil then
 			lines[#lines + 1] = string.format(
 				"GearScore: %s · Avg iLvl: %s",
 				gearScore ~= nil and tostring(gearScore) or "-",
 				averageIlvl ~= nil and tostring(averageIlvl) or "-"
 			)
-		end
-		local parts = {}
-		local bad = verdicts.bad or 0
-		local replace = verdicts.replace or 0
-		local enchantN = issues.enchants or 0
-		local gemN = issues.gems or 0
-		local metaN = issues.meta or 0
-		if bad > 0 then
-			parts[#parts + 1] = string.format("%d bad item%s", bad, bad == 1 and "" or "s")
-		end
-		if replace > 0 then
-			parts[#parts + 1] = string.format("%d REPLACE", replace)
-		end
-		local good = verdicts.good or 0
-		local ok = verdicts.ok or 0
-		if good > 0 then
-			parts[#parts + 1] = string.format("%d GOOD", good)
-		end
-		if ok > 0 then
-			parts[#parts + 1] = string.format("%d OK", ok)
 		end
 		if enchantN > 0 then
 			parts[#parts + 1] = string.format("%d enchant issue%s", enchantN, enchantN == 1 and "" or "s")
@@ -2227,19 +2376,33 @@ function Addon:FormatGearCheckChatReport(report, mode)
 	elseif mode == "gems" then
 		title = "Gems"
 	elseif mode == "ok" then
-		title = "OK (not GOOD)"
+		title = shortForm and "B" or "B (not A)"
 	end
-	lines[#lines + 1] = string.format("%s — %s:", name, title)
 
-	local details = ChatDetailLines(report, mode)
+	local details = ChatDetailLines(report, mode, shortForm)
 	if #details == 0 then
-		if mode == "ok" then
-			lines[#lines + 1] = "No OK items (all checked slots are GOOD, or none scanned)."
+		if shortForm then
+			lines[#lines + 1] = string.format("%s — %s: none", name, title)
+		elseif mode == "ok" then
+			lines[#lines + 1] = string.format("%s — %s:", name, title)
+			lines[#lines + 1] = "No B items (all checked slots are A or S, or none scanned)."
 		else
+			lines[#lines + 1] = string.format("%s — %s:", name, title)
 			lines[#lines + 1] = "No issues in this category."
 		end
 		return lines
 	end
+
+	if shortForm then
+		local prefix = string.format("%s — %s: ", name, title)
+		local packed = PackChatLines(prefix, details, CHAT_SHORT_LINE_MAX)
+		for index = 1, #packed do
+			lines[#lines + 1] = packed[index]
+		end
+		return lines
+	end
+
+	lines[#lines + 1] = string.format("%s — %s:", name, title)
 	local limit = math.min(#details, CHAT_MAX_DETAIL)
 	for index = 1, limit do
 		lines[#lines + 1] = details[index]
@@ -2257,6 +2420,25 @@ function Addon:PrintGearCheckReport(mode, report)
 		return false
 	end
 	local lines = self:FormatGearCheckChatReport(report, mode)
+	local chatType, reason
+	if self.ResolveReportChatType then
+		chatType, reason = self:ResolveReportChatType()
+	else
+		reason = "self"
+	end
+	if chatType then
+		for index = 1, #lines do
+			local text = "[GearCheck] " .. lines[index]
+			if string.len(text) > 255 then
+				text = string.sub(text, 1, 252) .. "..."
+			end
+			SendChatMessage(text, chatType)
+		end
+		return true
+	end
+	if reason == "unavailable" then
+		self:Print(self:T("REPORT_CHAT_UNAVAILABLE"))
+	end
 	for index = 1, #lines do
 		DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[GearCheck]|r " .. lines[index])
 	end

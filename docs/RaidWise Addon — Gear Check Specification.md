@@ -103,8 +103,7 @@ It must not affect the item verdict.
 
 The first version must NOT attempt to perform:
 
-- BiS evaluation;
-- BiS list comparison;
+- BiS *optimization* or choosing a unique best item;
 - build-specific evaluation;
 - detailed stat-weight calculations;
 - gear optimization;
@@ -116,26 +115,31 @@ The first version must NOT attempt to perform:
 - automatic gear history;
 - automatic report persistence.
 
+**S** is only item-ID membership on published built-in BiS lists (Kingdom / Titans / community), not a BiS optimizer. Enchant/gem IDs are not graded S.
+
 The Gear Check is a **surface-level rule-based evaluation**.
 
 Display this limitation in the Gear Check UI:
 
-> **Gear Check is a surface-level evaluation. It does not consider BiS lists, specific gear builds, encounter requirements, or detailed stat weights.**
+> **Gear Check is a surface-level evaluation. S means the equipped item ID appears on published BiS lists for this spec — not a unique BiS pick. It does not optimize builds, encounters, or stat weights.**
 
 ---
 
 # 5. Item Verdicts
 
-Each checked item can receive one of four verdicts:
+Each checked item can receive one of five grades (skip **E**):
 
 ```text
-BAD
-REPLACE
-OK
-GOOD
+S
+A
+B
+C
+D
 ```
 
-## BAD
+Worst-wins order: S < A < B < C < D.
+
+## D
 
 The item has a significant compatibility problem or violates a hard rule.
 
@@ -146,7 +150,7 @@ Examples:
 - incompatible weapon type;
 - obviously unsuitable itemization.
 
-## REPLACE
+## C
 
 The item is usable but has an obvious problem or is clearly not the preferred choice.
 
@@ -154,31 +158,41 @@ Examples:
 
 - acceptable but unwanted armor type;
 - valid item with a significant itemization issue;
-- lower-quality enchant;
+- missing enchant;
 - other correctable soft issue.
 
-## OK
+## B
 
 The item is appropriate for the specialization and has no significant obvious problem.
 
-## GOOD
+## A
 
 Definition:
 
 > **Item is highly appropriate for the specialization and requires no obvious correction.**
 
-`GOOD` does NOT mean:
+`A` does NOT mean:
 
 - BiS;
 - mathematically optimal;
 - best item for every build;
 - best item for every encounter.
 
----
+`A` is the old **GOOD** bar: preferred surface type plus max-level enchant (when required) and max-level gems.
+
+## S
+
+The equipped **item ID** is on the union of all built-in BiS presets for this spec in the Raidwise web app (Kingdom / Titans / community). This is **list membership**, not a BiS optimizer and not a unique pick.
+
+- Hard or soft *item* findings (wrong spec stats, forbidden armor, resilience, …) block S → **C** or **D**.
+- Unknown spec → no S (cannot pick a list).
+- A BiS item with a missing enchant can still be **S** on armor/weap and **C** on ench/sock.
+- Ench/sock has no BiS ID list → that category never becomes S (`A` is the ceiling).
+- Overall **S** only if every filled checked slot’s combined grade is S (item on the lists and ench/sock at A).
 
 # 6. Finding-Based Evaluation
 
-Do not implement the item verdict as a collection of hardcoded `BAD / REPLACE / OK / GOOD` conditions.
+Do not implement the item verdict as a collection of hardcoded `D / C / B / A / S` conditions.
 
 Instead, each check should produce structured findings.
 
@@ -228,7 +242,7 @@ Examples:
 Hard violations should normally result in:
 
 ```text
-BAD
+D
 ```
 
 ## Soft violation
@@ -245,26 +259,32 @@ Examples:
 Soft violations should normally result in:
 
 ```text
-REPLACE
+C
 ```
 
 If no significant findings exist, the item can be:
 
 ```text
-OK
+B
 ```
 
 or:
 
 ```text
-GOOD
+A
+```
+
+or, when the item ID is on the spec BiS union:
+
+```text
+S
 ```
 
 ---
 
 # 8. Unknown / Not Checkable State
 
-Do not classify an item as `BAD` when the addon lacks sufficient data to evaluate it.
+Do not classify an item as `D` when the addon lacks sufficient data to evaluate it.
 
 The system must support an explicit unknown/not-checkable state.
 
@@ -370,10 +390,10 @@ forbidden
 
 | Rank | Meaning | Verdict effect |
 |------|---------|----------------|
-| **preferred** | BiS-appropriate for the spec | No finding; required (with max enchant/gems) for **GOOD** |
-| **acceptable** | Usable surface choice (offsets, hybrid leftovers) | No finding; **OK** by default; can still be **GOOD** on offset slots / special rules |
-| **unwanted** | Wrong-for-spec soft waste | Soft finding → slot **REPLACE** |
-| **forbidden** | Explicitly inappropriate | Hard finding → slot **BAD** |
+| **preferred** | BiS-appropriate for the spec | No finding; required (with max enchant/gems) for **A** |
+| **acceptable** | Usable surface choice (offsets, hybrid leftovers) | No finding; **B** by default; can still be **A** on offset slots / special rules |
+| **unwanted** | Wrong-for-spec soft waste | Soft finding → slot **C** |
+| **forbidden** | Explicitly inappropriate | Hard finding → slot **D** |
 
 The initial rules should identify obviously inappropriate stats.
 
@@ -386,7 +406,7 @@ Examples:
 
 Important:
 
-A stat being non-preferred does not automatically mean that the item is `BAD`.
+A stat being non-preferred does not automatically mean that the item is `D`.
 
 Distinguish between:
 
@@ -400,7 +420,7 @@ and:
 UNWANTED
 ```
 
-**unwanted** is the canonical soft rank name (formerly “discouraged” in early drafts). It produces a soft finding that maps to **REPLACE**, not **BAD**.
+**unwanted** is the canonical soft rank name (formerly “discouraged” in early drafts). It produces a soft finding that maps to **C**, not **D**.
 
 The initial system must avoid attempting to determine exact stat weights.
 
@@ -598,10 +618,11 @@ That requires build-aware analysis and is outside the first version.
 Item level must not be used to determine:
 
 ```text
-BAD
-REPLACE
-OK
-GOOD
+S
+A
+B
+C
+D
 ```
 
 The same addon can be used in raids with very different average gear levels.
@@ -730,7 +751,7 @@ Example:
 Gear Check
 ────────────────────
 
-Overall: REPLACE
+Overall: C
 
 Items:    1 issue
 Enchants: 2 issues
@@ -749,7 +770,7 @@ The addon must support several report modes.
 Example:
 
 ```text
-[GearCheck] PlayerName — REPLACE
+[GearCheck] PlayerName — C
 1 bad item, 2 enchant issues, 3 gem issues.
 ```
 
@@ -805,13 +826,13 @@ Conceptually:
 The system should not only say:
 
 ```text
-Chest — REPLACE
+Chest — C
 ```
 
 It should be able to explain:
 
 ```text
-Chest — REPLACE
+Chest — C
 Leather armor
 Plate armor is recommended for this specialization.
 ```
@@ -967,10 +988,11 @@ Implement:
 Implement:
 
 ```text
-BAD
-REPLACE
-OK
-GOOD
+S
+A
+B
+C
+D
 ```
 
 based on findings.
@@ -1028,8 +1050,8 @@ The implementation is considered complete for the initial version when:
 - the target's class/spec rules are selected;
 - every supported item is evaluated against those rules;
 - hard and soft violations are distinguished;
-- every evaluated item receives `BAD`, `REPLACE`, `OK`, or `GOOD`;
-- unknown data does not produce false `BAD` results;
+- every evaluated item receives `S`, `A`, `B`, `C`, or `D`;
+- unknown data does not produce false `D` results;
 - enchant problems are reported separately;
 - gem problems are reported separately;
 - meta gem compatibility and activation are checked;

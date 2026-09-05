@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.19.0] - 2026-09-04
+
+### Added
+- **Raid roster** compact header with S·A·B·C·D chips, flask/food/armor/ench status cells, and Battle Shout report icons (hover shows a preview of the chat line)
+- Flask and food status icons on each raid player card
+- Compact personal / community rating line on raid cards (`P:` / `C:`); personal opinion uses green / yellow / red Qiraji crystal icons (same icons in **History**)
+- **Settings**: **Report chat channel** (Auto, Self, Party, Raid, Raid warning, Guild, Officer, Say) for Raid roster, Composition, and Gear check reports
+- **Settings**: **Gear check report form** — Short (default) or Full wording
+- Gear check **S** grade when an equipped item ID is on published BiS lists for the spec (`GearCheckBis.lua`)
+- Stormjewel entries in the gem catalog
+
+### Changed
+- Gear check overall and slot grades use **S / A / B / C / D** (was GOOD / OK / REPLACE / BAD); B filter replaces OK on Gear check (target)
+- Raid roster, Composition, and Gear check reports post to the configured report chat channel (default Auto = raid/party) instead of always self-chat
+- Raid roster player cards show compact armor/ench grades on one line; raid buffs moved to card hover
+
 ## [1.18.0] - 2026-09-02
 
 ### Added

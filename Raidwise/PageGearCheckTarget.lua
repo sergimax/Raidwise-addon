@@ -1,4 +1,4 @@
--- PageGearCheckTarget — summary, breakdown (incl. OK-not-GOOD), self-chat reports; raw dump via Show as a text.
+-- PageGearCheckTarget — summary, breakdown (incl. B-not-A), chat reports; raw dump via Show as a text.
 
 local Addon = Raidwise
 local W = Addon.Widgets
@@ -144,7 +144,7 @@ local function SlotVerdict(report, slotKey)
 end
 
 -- Group hard/soft findings (and info not-checkable) by slot for the active filter.
--- All / OK also list slots that stayed OK (not GOOD), with why.
+-- All / B also list slots that stayed B (not A), with why.
 local function BuildBreakdownGroups(report, filterId)
 	local findings = report.findings or {}
 	local groups = {}
@@ -170,9 +170,9 @@ local function BuildBreakdownGroups(report, filterId)
 		local equipment = report.equipment or report.slots or {}
 		for index = 1, #equipment do
 			local slot = equipment[index]
-			if slot.policy == "CHECKED" and slot.item and slot.verdict == "OK" then
+			if slot.policy == "CHECKED" and slot.item and slot.verdict == "B" then
 				local group = EnsureGroup(slot.key)
-				group.verdict = "OK"
+				group.verdict = "B"
 				if #group.lines == 0 then
 					local reasons = Addon.ExplainGearCheckNotGood and Addon:ExplainGearCheckNotGood(report, slot) or {}
 					if #reasons == 0 then
@@ -212,9 +212,9 @@ local function BuildBreakdownGroups(report, filterId)
 						message = finding.message or finding.code or "?",
 					}
 					if severity == "hard" then
-						group.verdict = "BAD"
-					elseif severity == "soft" and group.verdict ~= "BAD" then
-						group.verdict = "REPLACE"
+						group.verdict = "D"
+					elseif severity == "soft" and group.verdict ~= "D" then
+						group.verdict = "C"
 					end
 				end
 			end
@@ -535,7 +535,7 @@ local function ApplySummary(page, report)
 	end
 
 	local overall = report.overall or {}
-	local status = overall.status or "OK"
+	local status = overall.status or "B"
 	page.overallLabel:SetText(W.T("GEAR_CHECK_OVERALL", W.WrapGearGradation(status)))
 	W.SetFontColor(page.overallLabel, UI.TEXT_IDLE)
 
@@ -586,7 +586,7 @@ local function ApplySummary(page, report)
 	local verdicts = report.verdicts or {}
 	local metaText = (issues.meta or 0) == 0 and W.T("GEAR_CHECK_META_OK_SHORT") or tostring(issues.meta or 0)
 	page.issuesLabel:SetText(
-		W.FormatGearVerdictCountsLine("Items ", verdicts.bad, verdicts.replace, verdicts.ok, verdicts.good, "")
+		W.FormatGearVerdictCountsLine("Items ", verdicts, "")
 			.. " · Enchants " .. tostring(issues.enchants or 0)
 			.. " · Gems " .. tostring(issues.gems or 0)
 			.. " · Meta " .. metaText
@@ -660,7 +660,7 @@ local function ApplyBreakdown(page, report)
 		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, y)
 		row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, y)
 		row.title:SetWidth(width)
-		local verdict = group.verdict or "OK"
+		local verdict = group.verdict or "B"
 		row.title:SetText(string.format("[%s] %s", W.WrapGearGradation(verdict), group.label))
 		W.SetFontColor(row.title, UI.TEXT_IDLE)
 

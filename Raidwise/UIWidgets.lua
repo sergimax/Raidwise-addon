@@ -72,13 +72,26 @@ Addon.UITheme = {
 	PARTY_BUFF_MAX = 3,
 	PARTY_BUFF_GAP = 1,
 	ROSTER_STATS_H = 16,
-	RAID_STATS_H = 48,
+	RAID_STATS_H = 28,
 	RAID_PROGRESS_H = 14,
 	RAID_PROGRESS_STATUS_H = 28,
 	RAID_PROGRESS_STATUS_GAP = 4,
 	RAID_DESC_LINE_GAP = 2,
 	RAID_DESC_BLOCK_GAP = 4,
-	RAID_TOOLBAR_BTN_COUNT = 5,
+	RAID_CONSUMABLE_ROW_H = 28,
+	RAID_GRADE_LEGEND_H = 28,
+	RAID_GRADE_CHIPS_W = 72,
+	RAID_HINT_H = 28,
+	RAID_HEADER_COL_COUNT = 4,
+	RAID_HEADER_COL_GAP = 8,
+	RAID_HEADER_ROW_GAP = 4,
+	RAID_SUMMARY_COL_COUNT = 4,
+	RAID_SUMMARY_COL_GAP = 8,
+	RAID_SUMMARY_HEADING_H = 14,
+	RAID_SUMMARY_BODY_H = 32,
+	RAID_SUMMARY_REPORT_ICON = 16,
+	RAID_SUMMARY_BAND_H = 20,
+	RAID_TOOLBAR_BTN_COUNT = 4,
 	RAID_TOOLBAR_BTN_GAP = 4,
 
 	-- Colors — Classic theme (preview/themes.html #classic)
@@ -97,7 +110,8 @@ Addon.UITheme = {
 	TEXT_HOVER = { 1.000, 0.910, 0.550 },
 	TEXT_DISABLED = { 0.690, 0.627, 0.439 },
 	TEXT_ALERT = { 1.000, 0.251, 0.251 },
-	-- Gear Check gradation (red → green): verdicts and spec ranks share the same scale.
+	-- Gear Check gradation: S gold, then A green through D red. Spec ranks share A–D.
+	GEAR_S = { 1.000, 0.824, 0.000 },
 	GEAR_BAD = { 1.000, 0.251, 0.251 },
 	GEAR_REPLACE = { 1.000, 0.600, 0.200 },
 	GEAR_OK = { 0.950, 0.780, 0.350 },
@@ -256,14 +270,20 @@ function W.GearGradationColor(step)
 		return UI.GEAR_OK
 	end
 	local key = string.lower(tostring(step))
-	if key == "bad" or key == "forbidden" then
+	if key == "s" then
+		return UI.GEAR_S
+	end
+	if key == "d" or key == "bad" or key == "forbidden" then
 		return UI.GEAR_BAD
 	end
-	if key == "replace" or key == "unwanted" then
+	if key == "c" or key == "replace" or key == "unwanted" then
 		return UI.GEAR_REPLACE
 	end
-	if key == "good" or key == "preferred" then
+	if key == "a" or key == "good" or key == "preferred" then
 		return UI.GEAR_GOOD
+	end
+	if key == "b" or key == "ok" or key == "acceptable" then
+		return UI.GEAR_OK
 	end
 	return UI.GEAR_OK
 end
@@ -281,10 +301,11 @@ local GEAR_GRADATION_TOKENS = {
 	"acceptable",
 	"unwanted",
 	"preferred",
-	"REPLACE",
-	"GOOD",
-	"BAD",
-	"OK",
+	"S",
+	"A",
+	"B",
+	"C",
+	"D",
 }
 
 function W.ColorizeGearGradation(text)
@@ -299,18 +320,21 @@ function W.ColorizeGearGradation(text)
 	return text
 end
 
-function W.FormatGearVerdictCountsLine(prefix, bad, replace, okCount, good, suffix)
+function W.FormatGearVerdictCountsLine(prefix, counts, suffix)
+	counts = counts or {}
 	local parts = {}
 	if prefix and prefix ~= "" then
 		parts[#parts + 1] = prefix
 	end
-	parts[#parts + 1] = W.WrapGearGradation("BAD") .. " " .. tostring(bad or 0)
+	parts[#parts + 1] = W.WrapGearGradation("S") .. " " .. tostring(counts.s or 0)
 	parts[#parts + 1] = " · "
-	parts[#parts + 1] = W.WrapGearGradation("REPLACE") .. " " .. tostring(replace or 0)
+	parts[#parts + 1] = W.WrapGearGradation("A") .. " " .. tostring(counts.a or 0)
 	parts[#parts + 1] = " · "
-	parts[#parts + 1] = W.WrapGearGradation("OK") .. " " .. tostring(okCount or 0)
+	parts[#parts + 1] = W.WrapGearGradation("B") .. " " .. tostring(counts.b or 0)
 	parts[#parts + 1] = " · "
-	parts[#parts + 1] = W.WrapGearGradation("GOOD") .. " " .. tostring(good or 0)
+	parts[#parts + 1] = W.WrapGearGradation("C") .. " " .. tostring(counts.c or 0)
+	parts[#parts + 1] = " · "
+	parts[#parts + 1] = W.WrapGearGradation("D") .. " " .. tostring(counts.d or 0)
 	if suffix and suffix ~= "" then
 		parts[#parts + 1] = suffix
 	end
@@ -320,16 +344,24 @@ end
 function W.SetPlainButtonState(button, state)
 	if state == "selected" then
 		button:SetBackdropColor(UI.BTN_SELECTED[1], UI.BTN_SELECTED[2], UI.BTN_SELECTED[3], UI.BTN_SELECTED[4])
-		W.SetFontColor(button.label, UI.GOLD)
+		if button.label then
+			W.SetFontColor(button.label, UI.GOLD)
+		end
 	elseif state == "hover" then
 		button:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
-		W.SetFontColor(button.label, UI.TEXT_HOVER)
+		if button.label then
+			W.SetFontColor(button.label, UI.TEXT_HOVER)
+		end
 	elseif state == "disabled" then
 		button:SetBackdropColor(UI.BTN_DISABLED[1], UI.BTN_DISABLED[2], UI.BTN_DISABLED[3], UI.BTN_DISABLED[4])
-		W.SetFontColor(button.label, UI.TEXT_DISABLED)
+		if button.label then
+			W.SetFontColor(button.label, UI.TEXT_DISABLED)
+		end
 	else
 		button:SetBackdropColor(UI.BTN_IDLE[1], UI.BTN_IDLE[2], UI.BTN_IDLE[3], UI.BTN_IDLE[4])
-		W.SetFontColor(button.label, UI.TEXT_IDLE)
+		if button.label then
+			W.SetFontColor(button.label, UI.TEXT_IDLE)
+		end
 	end
 end
 
@@ -388,6 +420,68 @@ function W.SetPlainButtonTooltip(button, tipKey)
 		W.SetPlainButtonState(self, W.ActionButtonState(self, false))
 		GameTooltip:Hide()
 	end)
+end
+
+function W.SyncPlainIconButton(button)
+	if not button or not button.icon then
+		return
+	end
+	if button:IsEnabled() then
+		button.icon:SetDesaturated(false)
+		button.icon:SetVertexColor(1, 1, 1)
+	else
+		button.icon:SetDesaturated(true)
+		button.icon:SetVertexColor(0.45, 0.45, 0.45)
+	end
+end
+
+-- Square icon button; titleKey is the gold tooltip title, tipKey the body.
+function W.CreatePlainIconButton(parent, size, iconPath, titleKey, tipKey)
+	size = size or UI.CD_TOOLBAR_H
+	local button = W.CreatePlainButton(parent, size, size, "")
+	if button.label then
+		button.label:Hide()
+	end
+	local inset = 6
+	local icon = button:CreateTexture(nil, "ARTWORK")
+	icon:SetPoint("CENTER", 0, 0)
+	icon:SetSize(math.max(8, size - inset * 2), math.max(8, size - inset * 2))
+	W.SetSpellIconTexture(icon, iconPath)
+	button.icon = icon
+	button.titleKey = titleKey
+	button.tooltipKey = tipKey
+
+	button:SetScript("OnEnter", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		if self.titleKey then
+			GameTooltip:AddLine(W.T(self.titleKey), UI.GOLD[1], UI.GOLD[2], UI.GOLD[3])
+		end
+		if self.tooltipKey then
+			GameTooltip:AddLine(W.T(self.tooltipKey), nil, nil, nil, true)
+		end
+		GameTooltip:Show()
+	end)
+	button:SetScript("OnLeave", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, false))
+		GameTooltip:Hide()
+	end)
+	local onEnable = button:GetScript("OnEnable")
+	button:SetScript("OnEnable", function(self)
+		if onEnable then
+			onEnable(self)
+		end
+		W.SyncPlainIconButton(self)
+	end)
+	local onDisable = button:GetScript("OnDisable")
+	button:SetScript("OnDisable", function(self)
+		if onDisable then
+			onDisable(self)
+		end
+		W.SyncPlainIconButton(self)
+	end)
+	W.SyncPlainIconButton(button)
+	return button
 end
 
 W.COPY_BACKDROP = {
@@ -598,6 +692,17 @@ function W.SetSpellIconTexture(texture, iconPath)
 	texture:SetTexCoord(ICON_TEX_INSET, ICON_TEX_MAX, ICON_TEX_INSET, ICON_TEX_MAX)
 end
 
+-- Inline icon for FontString / GameTooltip lines (|T…|t). Crops the default border like SetSpellIconTexture.
+function W.IconMarkup(iconPath, size)
+	if not iconPath or iconPath == "" then
+		return ""
+	end
+	size = size or 14
+	local left = math.floor(64 * ICON_TEX_INSET + 0.5)
+	local right = 64 - left
+	return string.format("|T%s:%d:%d:0:0:64:64:%d:%d:%d:%d|t", iconPath, size, size, left, right, left, right)
+end
+
 function W.SetSpecOrClassIcon(texture, specIcon, classToken)
 	if specIcon and specIcon ~= "" then
 		W.SetSpellIconTexture(texture, specIcon)
@@ -714,6 +819,71 @@ function W.FillPartyBuffStatusIcons(hosts, coverage)
 	end
 end
 
+function W.CreateConsumableStatusHost(parent)
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetSize(UI.PARTY_BUFF_ICON, UI.PARTY_BUFF_ICON)
+	host.icon = host:CreateTexture(nil, "ARTWORK")
+	host.icon:SetAllPoints(host)
+	host:EnableMouse(true)
+	host:SetScript("OnEnter", function(self)
+		if not self.kindLabel or self.kindLabel == "" then
+			return
+		end
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(self.kindLabel, 1, 1, 1)
+		if self.unknown then
+			GameTooltip:AddLine(W.T(self.reasonKey or "RAID_CONSUMABLE_OUT_OF_RANGE"), 0.70, 0.70, 0.70)
+		elseif self.present then
+			local detail = self.detail
+			if self.elixirPair then
+				detail = W.T("RAID_CONSUMABLE_ELIXIRS")
+			end
+			if not detail or detail == "" then
+				detail = W.T("RAID_PARTY_BUFF_PRESENT", self.kindLabel)
+			end
+			GameTooltip:AddLine(detail, 0.2, 1, 0.2)
+		else
+			GameTooltip:AddLine(W.T("RAID_PARTY_BUFF_MISSING"), 1, 0.3, 0.3)
+		end
+		GameTooltip:Show()
+	end)
+	host:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+	host:Hide()
+	return host
+end
+
+function W.FillConsumableStatusIcon(host, status, kindLabelKey)
+	if not host then
+		return
+	end
+	if not status then
+		host:Hide()
+		return
+	end
+	host.kindLabel = W.T(kindLabelKey)
+	host.present = status.present and true or false
+	host.unknown = status.unknown and true or false
+	host.elixirPair = status.elixirPair and true or false
+	host.detail = status.name or ""
+	host.reasonKey = status.reasonKey
+	if status.icon then
+		W.SetSpellIconTexture(host.icon, status.icon)
+	end
+	if host.unknown then
+		host.icon:SetDesaturated(true)
+		host.icon:SetVertexColor(0.55, 0.55, 0.55)
+	elseif host.present then
+		host.icon:SetDesaturated(false)
+		host.icon:SetVertexColor(1, 1, 1)
+	else
+		host.icon:SetDesaturated(true)
+		host.icon:SetVertexColor(UI.TEXT_ALERT[1], UI.TEXT_ALERT[2], UI.TEXT_ALERT[3])
+	end
+	host:Show()
+end
+
 function W.HidePoolFrom(pool, startIndex)
 	for index = startIndex, #pool do
 		pool[index]:Hide()
@@ -798,20 +968,25 @@ function W.RosterTableTopOffset()
 	return UI.CD_TOOLBAR_H + UI.CD_HINT_TO_TABLE + UI.ROSTER_STATS_H + UI.CD_HINT_TO_TABLE
 end
 
-function W.RaidRosterTableTopOffset()
-	-- Fixed description header: hint + stacked lines + progress block + gap to table.
-	-- Table must also clear the right toolbar column (Scan … Select all).
-	local leftHeader = UI.CD_TOOLBAR_H
-		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
-		+ UI.RAID_DESC_LINE_GAP + UI.ROSTER_STATS_H
-		+ UI.RAID_DESC_BLOCK_GAP
+function W.RaidRosterMiniTableHeight()
+	local row1 = UI.CD_TOOLBAR_H
+	local row2 = UI.RAID_SUMMARY_BAND_H or 20
+	local gap = UI.RAID_HEADER_ROW_GAP or 4
+	return row1 + gap + row2
+end
+
+function W.RaidRosterHeaderHeight()
+	local blockGap = UI.RAID_DESC_BLOCK_GAP or 4
+	return W.RaidRosterMiniTableHeight()
+		+ blockGap
 		+ UI.RAID_PROGRESS_STATUS_H
 		+ UI.RAID_PROGRESS_STATUS_GAP
 		+ UI.RAID_PROGRESS_H
-	local toolbarCount = UI.RAID_TOOLBAR_BTN_COUNT or 3
-	local toolbarGap = UI.RAID_TOOLBAR_BTN_GAP or 4
-	local toolbarHeader = UI.CD_TOOLBAR_H * toolbarCount + toolbarGap * (toolbarCount - 1)
-	return math.max(leftHeader, toolbarHeader) + UI.CD_HINT_TO_TABLE
+end
+
+function W.RaidRosterTableTopOffset()
+	-- Compact header (chips + stats + icon toolbar, then status row) + scan status + progress bar.
+	return W.RaidRosterHeaderHeight() + UI.CD_HINT_TO_TABLE
 end
 
 function W.FormatGuildDisplay(guildName, guildRank)
@@ -846,6 +1021,14 @@ function W.RatingOpinionSymbol(member)
 		return Addon:RatingOpinionSymbol(opinion)
 	end
 	return "="
+end
+
+function W.RatingOpinionIcon(member)
+	local opinion = W.RatingOpinion(member)
+	if Addon.RatingOpinionIcon then
+		return Addon:RatingOpinionIcon(opinion)
+	end
+	return nil
 end
 
 function W.RatingOpinionColor(member)
@@ -883,12 +1066,41 @@ function W.ShowMemberRatingTooltip(anchor, member, opts)
 	if tags ~= "" then
 		GameTooltip:AddLine(W.T("COL_TAGS") .. ": " .. tags, 0.8, 0.8, 0.8, true)
 	end
+	if Addon.GetCommunityRating then
+		local community = Addon:GetCommunityRating(member)
+		local percent = community and tonumber(community.positivePercent)
+		if percent then
+			GameTooltip:AddLine(W.T("TOOLTIP_COMMUNITY_POSITIVE", percent), 0.8, 0.8, 0.8)
+			if Addon.RatingTagColoredSummary and community.tags then
+				local communityTags = Addon:RatingTagColoredSummary(community.tags, 3)
+				if communityTags ~= "" then
+					GameTooltip:AddLine(communityTags, 0.75, 0.75, 0.75, true)
+				end
+			end
+		end
+	end
 	local guildText = W.FormatGuildDisplay(member.guildName, member.guildRank)
 	if guildText and guildText ~= "-" then
 		GameTooltip:AddLine(W.T("COL_GUILD") .. ": " .. guildText, 0.8, 0.8, 0.8, true)
 	end
 	if opts and opts.gearCheck then
 		W.AppendGearCheckRaidTooltip(opts.gearEntry)
+	end
+	if opts and type(opts.raidBuffs) == "table" and #opts.raidBuffs > 0 then
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine(W.T("COL_BUFFS"), UI.GOLD[1], UI.GOLD[2], UI.GOLD[3])
+		for buffIndex = 1, #opts.raidBuffs do
+			local buff = opts.raidBuffs[buffIndex]
+			local buffName = buff and buff.name
+			if buffName and buffName ~= "" then
+				local icon = W.IconMarkup(buff.icon, 14)
+				if icon ~= "" then
+					GameTooltip:AddLine(icon .. " " .. buffName, 1, 1, 1)
+				else
+					GameTooltip:AddLine(buffName, 1, 1, 1)
+				end
+			end
+		end
 	end
 	GameTooltip:Show()
 end

@@ -258,6 +258,207 @@ function Addon:PartyBuffCoverageForGroup(members)
 	return coverage
 end
 
+local function IdSet(ids)
+	local set = {}
+	for index = 1, #ids do
+		set[ids[index]] = true
+	end
+	return set
+end
+
+-- Raid-prep consumables (WotLK 3.3.5a). Flask icon is also satisfied by a battle + guardian elixir pair.
+local FLASK_IDS = IdSet({
+	53755, 53758, 53760, 54212,
+	67016, 67017, 67018, 67019,
+	53752, 62380,
+	17626, 17627, 17628, 17629,
+	28518, 28519, 28520, 28521, 28540, 42735,
+	41608, 41609, 41610, 41611, 46837, 46839, 32900,
+	40567, 40568, 40572, 40573, 40575, 40576, 32600,
+})
+local BATTLE_ELIXIR_IDS = IdSet({
+	33720, 33721, 33726,
+	53746, 53748, 53749,
+	28490, 28491, 28497, 38954,
+	11406, 17538, 11390, 11474, 17539,
+	60340, 60341, 60344, 60345, 60346,
+	45373,
+})
+local GUARDIAN_ELIXIR_IDS = IdSet({
+	53747, 53748, 53751, 53763, 53764, 60343,
+	28509, 28514,
+	39625, 39626, 39627, 39628,
+	11348, 11349,
+	32062, 32067, 32068,
+	3593,
+})
+local FOOD_IDS = IdSet({
+	46899,
+	57294, 57325, 57327, 57329, 57332, 57334,
+	57356, 57358, 57360, 57365, 57367, 57371,
+	53284, 57079, 57097, 57100, 57102, 57107, 57111, 57139,
+	65363, 65410, 65412, 65414, 65415, 65416, 66623, 58067,
+	35272, 43722, 43764,
+})
+local FOOD_EATING_IDS = IdSet({ 430, 431, 432, 433 })
+
+local wellFedName
+local foodEatingName
+local flaskNames
+local defaultFlaskIcon
+local defaultFoodIcon
+
+local function SpellNameAndIcon(spellId)
+	if type(GetSpellInfo) ~= "function" or not spellId then
+		return nil, nil
+	end
+	local name, _, icon = GetSpellInfo(spellId)
+	if not name or name == "" then
+		return nil, icon
+	end
+	return name, icon
+end
+
+local function EnsureConsumableLookups()
+	if wellFedName and defaultFlaskIcon and flaskNames then
+		return
+	end
+	wellFedName, defaultFoodIcon = SpellNameAndIcon(46899)
+	if not wellFedName then
+		wellFedName, defaultFoodIcon = SpellNameAndIcon(57325)
+	end
+	foodEatingName = SpellNameAndIcon(433)
+	flaskNames = {}
+	for spellId in pairs(FLASK_IDS) do
+		local name, icon = SpellNameAndIcon(spellId)
+		if name then
+			flaskNames[name] = true
+		end
+		if not defaultFlaskIcon and icon then
+			defaultFlaskIcon = icon
+		end
+	end
+end
+
+local function ConsumableSlot(present, unknown, name, icon, extra)
+	extra = extra or {}
+	return {
+		present = present and true or false,
+		unknown = unknown and true or false,
+		name = name or "",
+		icon = icon,
+		elixirPair = extra.elixirPair and true or false,
+		reasonKey = extra.reasonKey,
+	}
+end
+
+local function UnknownConsumables(reasonKey)
+	EnsureConsumableLookups()
+	return {
+		flask = ConsumableSlot(false, true, "", defaultFlaskIcon, { reasonKey = reasonKey }),
+		food = ConsumableSlot(false, true, "", defaultFoodIcon, { reasonKey = reasonKey }),
+	}
+end
+
+function Addon:UnitConsumableStatus(unit)
+	EnsureConsumableLookups()
+	if not unit or unit == "" or not UnitExists(unit) then
+		return UnknownConsumables("RAID_CONSUMABLE_OUT_OF_RANGE")
+	end
+	if UnitIsConnected and not UnitIsConnected(unit) then
+		return UnknownConsumables("RAID_CONSUMABLE_OFFLINE")
+	end
+	if UnitIsVisible and not UnitIsVisible(unit) then
+		return UnknownConsumables("RAID_CONSUMABLE_OUT_OF_RANGE")
+	end
+
+	local flaskName, flaskIcon
+	local foodName, foodIcon
+	local hasBattle = false
+	local hasGuardian = false
+	if type(UnitBuff) == "function" then
+		for index = 1, 40 do
+			local name, _, icon, _, _, _, _, _, _, _, spellId = UnitBuff(unit, index)
+			if not name then
+				break
+			end
+			spellId = tonumber(spellId)
+			local eating = (spellId and FOOD_EATING_IDS[spellId]) or (foodEatingName and name == foodEatingName)
+			if not eating then
+				if (spellId and FLASK_IDS[spellId]) or (flaskNames and flaskNames[name]) then
+					flaskName = name
+					flaskIcon = icon
+				elseif (spellId and FOOD_IDS[spellId]) or (wellFedName and name == wellFedName) then
+					foodName = name
+					foodIcon = icon
+				elseif spellId and BATTLE_ELIXIR_IDS[spellId] then
+					hasBattle = true
+					if GUARDIAN_ELIXIR_IDS[spellId] then
+						hasGuardian = true
+					end
+				elseif spellId and GUARDIAN_ELIXIR_IDS[spellId] then
+					hasGuardian = true
+				end
+			end
+			if (flaskName or (hasBattle and hasGuardian)) and foodName then
+				break
+			end
+		end
+	end
+
+	local flaskPresent = flaskName ~= nil
+	local elixirPair = false
+	if not flaskPresent and hasBattle and hasGuardian then
+		flaskPresent = true
+		elixirPair = true
+	end
+
+	return {
+		flask = ConsumableSlot(flaskPresent, false, flaskName or "", flaskIcon or defaultFlaskIcon, { elixirPair = elixirPair }),
+		food = ConsumableSlot(foodName ~= nil, false, foodName or "", foodIcon or defaultFoodIcon, {}),
+	}
+end
+
+function Addon:SummarizeRaidConsumables(members)
+	local summary = {
+		total = 0,
+		flaskPresent = 0,
+		foodPresent = 0,
+		flaskMissing = {},
+		foodMissing = {},
+		flaskUnknown = {},
+		foodUnknown = {},
+	}
+	if type(members) ~= "table" then
+		return summary
+	end
+	for index = 1, #members do
+		local member = members[index]
+		if member then
+			summary.total = summary.total + 1
+			local status = self:UnitConsumableStatus(member.unit)
+			local name = member.name or "?"
+			local flask = status and status.flask
+			if flask and flask.present then
+				summary.flaskPresent = summary.flaskPresent + 1
+			elseif flask and flask.unknown then
+				summary.flaskUnknown[#summary.flaskUnknown + 1] = name
+			else
+				summary.flaskMissing[#summary.flaskMissing + 1] = name
+			end
+			local food = status and status.food
+			if food and food.present then
+				summary.foodPresent = summary.foodPresent + 1
+			elseif food and food.unknown then
+				summary.foodUnknown[#summary.foodUnknown + 1] = name
+			else
+				summary.foodMissing[#summary.foodMissing + 1] = name
+			end
+		end
+	end
+	return summary
+end
+
 local function RoleAverageBucket()
 	return { gearScore = nil, averageIlvl = nil, count = 0, gsTotal = 0, gsCount = 0, ilvlTotal = 0, ilvlCount = 0 }
 end

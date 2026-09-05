@@ -17,7 +17,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
 | Panel fill | **#12121c** ≈ RGB **0.07, 0.07, 0.11** | Classic theme; alpha 0.98; flat fill (no border edges) |
 | Title / status fill | **#1c1c2a** ≈ RGB **0.11, 0.11, 0.165** | Same texture |
-| Gear Check gradation | red → green | `GEAR_BAD` / `GEAR_REPLACE` / `GEAR_OK` / `GEAR_GOOD` — verdicts (BAD…GOOD) and spec ranks (forbidden…preferred) |
+| Gear Check gradation | S gold → A green → D red | `GEAR_S` / `GEAR_GOOD` / `GEAR_OK` / `GEAR_REPLACE` / `GEAR_BAD` — grades S…D and spec ranks (preferred…forbidden) |
 | Idle text | **#ffeebb** ≈ RGB **1.00, 0.93, 0.73** | Body / menu idle |
 
 ## Left menu
@@ -102,25 +102,26 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Description block with **Scan** / **Export** / **Refresh** / **Back to roster** / **Select all** in a fixed right column; left column stacks hint, stats, and summary with **2** px line gaps, then progress status + bar; roster table or export copy box at a fixed top offset (clears the full **5**-button toolbar). `LAYOUT_VERSION = 18`.
+Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/armor/ench), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 29`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Button column | **104** px wide | **Scan**, **Export**, **Refresh** stacked top → bottom; **4** px gap; **8** px gap from description |
-| Short description | left column | Beside **Scan**; **28** px row height; wraps within column |
-| Stats line | below hint | **2** px gap; height **16** |
-| Gear check summary | below stats | **2** px gap; height **16** |
-| Progress status | below summary | **4** px gap; fixed **28** px height (two lines) |
-| Progress bar | below status | **4** px gap; height **14**; always reserved |
-| Player cell | **168 × 137** | Seven text lines + one button row: class+name, role+spec+GS/iLvl, buff icons, opinion, **armor/weap grade**, **ench/sock grade**, **Profile** + **Gear** + **Rescan** |
+| Mini table | full width × **52** | Row 1 **28** + **4** px gap + row 2 **20** |
+| Row 1 chips | **≥72** wide | Colored `S · A · B · C · D`; full `GEAR_CHECK_RAID_HINT` on hover |
+| Row 1 GS / roles | remaining width | One line; per-role GS on hover |
+| Row 1 toolbar | **4×28** icons, **4** px gaps (**124** wide) | Scan, Export all, Refresh, Back to roster (icon + tooltip) |
+| Row 2 status | four equal cells, **8** px gaps, **20** tall | Gold name + compact counts, **16×16** Battle Shout report icon on the right |
+| Progress status | full width × **28** | **4** px under mini table (two lines) |
+| Progress bar | full width × **14** | **4** px under status; always reserved |
+| Player cell | **168 × 100** | Five rows: class+name+flask/food, role+spec+GS/iLvl, compact `P:`/`C:` ratings, compact armor+ench grades, **Profile** + **Gear** + **Rescan**. Raid-buff icons moved to hover tip |
 | Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
-| Cell content | **20** px class/role/spec; **18** px buffs | Class on line 1; role then spec on line 2; up to **8** buff icons on line 3; line height **14** |
-| Cell hover tooltip | — | Opinion, tags, **Guild: Name (Rank)**, gear-check grades |
+| Cell content | **20** px class/role/spec; **14** px flask/food | Class on line 1 with flask + food status icons on the right (present = full color, missing = red tint, out of range/offline = dim); role then spec on line 2; one compact rating line (`P:` Qiraji crystal + `C: 75%`) + grades; line height **14**. Raid buffs listed on card hover |
+| Cell hover tooltip | — | Opinion, tags, community percent/tags, **Guild: Name (Rank)**, raid buffs, gear-check grades |
 
 Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
 
@@ -196,7 +197,7 @@ Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADE
 | Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
 | Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 140 + 130 + 120 = 822** | Name, class, spec, Opinion, Tags, GS, iLvl, Met in, When, Guild |
 | Class / spec icons | **18** px | Centered in 28 px columns |
-| Opinion column | **70**, center | Symbol `+` / `=` / `-`; color-coded |
+| Opinion column | **70**, center | Qiraji crystal icon (green / yellow / red) |
 | Tags column | **120** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
 | Met in | **140** | First meeting instance or zone |
 | When | **130** | `YYYY-MM-DD HH:MM` |
@@ -210,7 +211,11 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 
 Below: **Startup page** heading, hint, then an **4-column** radio group (`UIRadioButtonTemplate`, **16** px, row **22**, 8 px gaps); selected page is stored in `RaidwiseDB.startupTab`.
 
-Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels, then **Preview** with compact + stacked sample blocks (`LAYOUT_VERSION = 6`).
+Below: **Report chat channel** heading, hint, then an **4-column** radio group (same sizes) for `RaidwiseDB.reportChannel` (default `auto`).
+
+Below: **Gear check report form** heading, hint, then **Short** / **Full** radios (`RaidwiseDB.reportForm`, default `short`).
+
+Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels, then **Preview** with compact + stacked sample blocks (`LAYOUT_VERSION = 8`).
 
 ## Fonts
 
@@ -235,10 +240,10 @@ Key helpers used across pages (not on `Raidwise` directly):
 | `CreatePlainButton` / `SetPlainButtonState` / `SetMenuButtonState` | Menu and action buttons |
 | `ApplyFontSize` | Change a FontString’s point size (keeps face and flags) |
 | `CreateCopyBox` / `CreateLineCopyBox` | Export and URL copy areas |
-| `SetSpecOrClassIcon` / `SetSpellIconTexture` / `CreateBuffIconHost` | Class, spec, buff icons |
+| `SetSpecOrClassIcon` / `SetSpellIconTexture` / `CreateBuffIconHost` / `CreateConsumableStatusHost` | Class, spec, raid-buff, and flask/food status icons |
 | `TableIconInset` / `TableIconTopOffset` | Center icons in table rows |
 | `AttachLayoutVersionLabel` | Profile title-bar `vN` badge |
-| `RatingOpinionSymbol` / `RatingOpinionColor` / `ShowMemberRatingTooltip` | Opinion display in roster tables |
+| `RatingOpinionIcon` / `RatingOpinionSymbol` / `RatingOpinionColor` / `ShowMemberRatingTooltip` | Opinion display in roster tables |
 
 ## Changing sizes
 

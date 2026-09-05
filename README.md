@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.18.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--09--02-blue)
+![](https://img.shields.io/badge/current_version-1.19.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--04-blue)
 
 
 ## Install
@@ -30,7 +30,7 @@ In-game slash commands:
 | `/raidwise` or `/rw` | Open the main window |
 | `/raidwise close` or `/rw close` | Close the main window |
 | `/raidwise gearcheck` or `/rw gearcheck` | Open Gear check (target) and scan |
-| `/rw gearcheck summary` (also `items`, `enchants`, `gems`, `ok`) | Print that report to your chat (scans first if needed) |
+| `/rw gearcheck summary` (also `items`, `enchants`, `gems`, `ok`) | Print that report to the report chat channel (scans first if needed) |
 | `/rw gearcheck raid dump` | Open Raid roster and show the last raid gear-check dump for copy |
 | `/rw gearcheck test` | Offline rules self-test |
 
@@ -57,10 +57,10 @@ Esc or the title **X** closes the window.
 **Raid roster** tab:
 
 - Two blocks: raid groups **1–5**, then **6–8**; when not in a raid, your party fills group 1
-- Lines above the grid: overall average GearScore; per-role count and average GS; gear-check summary after scan
-- Each player card: class + name, role + spec + GS/iLvl, raid-buff icons, personal opinion line, armor/weap and ench/sock grades, **Profile** / **Gear** / **Rescan**
-- Hover a card for opinion, tags, **guild (rank)**, and gear-check details
-- **Scan** / **Export** for raid-wide gear check; **Export** opens copy text; **Back to roster** closes it; **Select all** + Ctrl+C to copy
+- Lines above the grid: compact header (S·A·B·C·D chips, GS and role counts, flask/food/armor/ench with report icons, Scan/Export/Refresh/Back icons); then scan status and progress
+- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, compact `P:`/`C:` ratings, compact armor/ench grades, **Profile** / **Gear** / **Rescan**
+- Hover a card for opinion, tags, community data, **guild (rank)**, raid buffs, and gear-check details
+- **Scan** / **Export all** for raid-wide gear check; **Export all** opens copy text; **Back to roster** closes it; click the dump + Ctrl+C to copy
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 - Card click opens **Character profile**
 
@@ -69,15 +69,15 @@ Esc or the title **X** closes the window.
 - Checklist of the current party or raid (solo uses only you)
 - Top band: **Roles** and all 10 **Classes** with counts; then sections: Aggro, buffs, external buffs, damage reduction, debuffs, mana regeneration, health regeneration
 - Gold rows are covered; dim rows are missing. Section titles show present/total (red when nothing in the section is present)
-- Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to raid/party chat
-- **Report missing** posts absent classes to raid or party chat; **Refresh** re-reads the group (same inspect path as Raid roster)
+- Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to the report chat channel (Settings)
+- **Report missing** posts absent classes to the report chat channel (Settings); **Refresh** re-reads the group (same inspect path as Raid roster)
 - Full tracking list: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
 
 **Gear check (target)** tab:
 
-- **Scan** evaluates target or self (Overall GOOD / OK / REPLACE / BAD, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / OK)
-- Spec ranks: **preferred** / **acceptable** / **unwanted** / **forbidden** (map to GOOD / OK / REPLACE / BAD)
-- **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to **your chat only**
+- **Scan** evaluates target or self (Overall S / A / B / C / D, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / B)
+- Spec ranks: **preferred** / **acceptable** / **unwanted** / **forbidden** (map to A / B / C / D). **S** = equipped item ID is on published BiS lists for that spec (not a unique pick)
+- **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to the **report chat channel** (Settings; default Auto = raid/party)
 - **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
 - Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
 - `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
@@ -85,7 +85,7 @@ Esc or the title **X** closes the window.
 **History** tab:
 
 - Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
-- Columns: name, class icon, spec icon, personal opinion, tags, GearScore, iLvl, where you met, when, guild
+- Columns: name, class icon, spec icon, personal opinion (Qiraji crystal), tags, GearScore, iLvl, where you met, when, guild
 - Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
 - **Refresh** records the current group again and redraws the list
 
@@ -105,6 +105,8 @@ Esc or the title **X** closes the window.
 - Interface language: **English** or **Русский**
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
 - **Startup page**: which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns; **Info** cannot be selected)
+- **Report chat channel**: where Raid roster, Composition, and Gear check reports are posted (`RaidwiseDB.reportChannel`; default Auto = raid in a raid, party in a party)
+- **Gear check report form**: Short (default, fewer chat lines) or Full detailed wording (`RaidwiseDB.reportForm`)
 - Unit tooltip toggles: hide personal opinion / personal tags / community rating / community tags (`RaidwiseDB.tooltip`)
 - Preview of compact (live) and stacked tooltip layouts
 
@@ -115,7 +117,7 @@ Esc or the title **X** closes the window.
 
 View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Reputation model: [`docs/Reputation.md`](docs/Reputation.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
 
-Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet). `types/GearCheck.ts` describes the Gear Check normalized report (`schemaVersion` 2).
+Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet). `types/GearCheck.ts` describes the Gear Check normalized report (`schemaVersion` 3).
 
 ## Screenshots
 
@@ -145,9 +147,10 @@ Raidwise/
   GearCheckSets.lua   # T9/T10 set-piece ids (informational)
   GearCheckTrinkets.lua # preferred/allowed trinket pools by role
   GearCheckProfiles.lua # class + 30-spec Gear Check profiles
+  GearCheckBis.lua    # generated spec BiS item-ID sets (S grade)
   GearCheckRules.lua  # findings + verdicts + overall + offline self-test
   GearCheckSavedReports.lua # manual save / load / prune (~14 days)
-  GearCheck.lua       # collector + normalize (schemaVersion 2) + evaluate + dump
+  GearCheck.lua       # collector + normalize (schemaVersion 3) + evaluate + dump
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
   PageRaid.lua        # Raid roster tab
@@ -157,6 +160,8 @@ Raidwise/
   PageSettings.lua    # Settings tab
   PageInfo.lua        # Info tab
   ExporterWindow.lua  # main window shell (menu, title, status, tab wiring)
+scripts/
+  generate-gear-check-bis.js # union web-app BiS preset IDs → GearCheckBis.lua
 docs/
   Architecture.md     # TOC order, layers, SavedVariables, refresh API
   UI-Views.md         # ASCII layouts for each view + layout version table
@@ -176,3 +181,4 @@ types/
 - Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts and currency snapshots for the cooldowns table live in `RaidwiseDB.characters` (`.lockouts`, `.currency`). Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal` with opinion/tags/facts), events (`.events`), notes (`.notes`), change log (`.changes`), and party/raid meet count (`.meetCount`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`). Startup left-menu page is `RaidwiseDB.startupTab`. Unit tooltip visibility flags live in `RaidwiseDB.tooltip`.
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.
+- Regenerating S-grade BiS IDs: `node scripts/generate-gear-check-bis.js` (reads sibling `Raidwise` web-app presets; see `docs/Gear-Check-Surface-From-BiS.md`).

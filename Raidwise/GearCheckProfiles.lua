@@ -1,9 +1,9 @@
 -- Gear Check class/spec profiles (WotLK 3.3.5a). Keys: CLASSFILE or CLASSFILE-specTab.
 -- Rank gradation (armor / stats / weapons):
---   preferred  — BiS-appropriate; no finding; required (with max enchant/gems) for GOOD
---   acceptable — usable surface choice (offsets, hybrid); no finding; OK by default
---   unwanted   — wrong-for-spec soft waste → soft finding → REPLACE
---   forbidden  — explicitly inappropriate → hard finding → BAD
+--   preferred  — BiS-appropriate; no finding; required (with max enchant/gems) for A
+--   acceptable — usable surface (offsets, hybrid leftovers); no finding; B by default
+--   unwanted   — wrong-for-spec soft waste → soft finding → C
+--   forbidden  — explicitly inappropriate → hard finding → D
 -- Surface rules distilled from docs/Gear-Check-Surface-From-BiS.md (example BiS lists).
 
 local Addon = Raidwise
