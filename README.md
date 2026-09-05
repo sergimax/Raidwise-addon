@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.18.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--09--02-blue)
+![](https://img.shields.io/badge/current_version-1.19.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--04-blue)
 
 
 ## Install
@@ -85,7 +85,7 @@ Esc or the title **X** closes the window.
 **History** tab:
 
 - Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
-- Columns: name, class icon, spec icon, personal opinion, tags, GearScore, iLvl, where you met, when, guild
+- Columns: name, class icon, spec icon, personal opinion (Qiraji crystal), tags, GearScore, iLvl, where you met, when, guild
 - Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
 - **Refresh** records the current group again and redraws the list
 
