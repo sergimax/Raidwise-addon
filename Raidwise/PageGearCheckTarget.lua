@@ -6,12 +6,12 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 10
+local LAYOUT_VERSION = 11
 
 local RIGHT_COL_W = 220
 local COL_GAP = 10
 local SUMMARY_H = 124
-local RIGHT_TOP_H = UI.ACTION_BTN_H * 3 + 12 + 44
+local RIGHT_TOP_H = UI.ACTION_BTN_H * 4 + 16 + 44
 local TOP_BLOCK_H = math.max(SUMMARY_H, RIGHT_TOP_H)
 
 local ApplyReportToPage
@@ -700,6 +700,14 @@ ApplyReportToPage = function(page, report, status, savedEntry)
 		Addon:EnsureGearCheckGrades(report)
 	end
 	page.lastReport = report
+	if page.profileBtn then
+		local character = report and report.character
+		if character and character.guid and character.guid ~= "" then
+			page.profileBtn:Enable()
+		else
+			page.profileBtn:Disable()
+		end
+	end
 	page.lastStatus = status
 	if savedEntry then
 		page.viewingSavedId = savedEntry.id
@@ -720,6 +728,27 @@ ApplyReportToPage = function(page, report, status, savedEntry)
 	ApplyBreakdown(page, report)
 	UpdateDebugVisibility(page)
 	RefreshSavedList(page)
+end
+
+-- Use the displayed report identity, never a potentially changed target unit.
+function Addon:OpenGearCheckCharacterProfile(report)
+	local character = report and report.character
+	if not character or not character.guid or character.guid == "" then
+		return
+	end
+	local member = {
+		guid = character.guid,
+		name = character.name,
+		realm = character.realm,
+		class = character.classFile,
+		classLabel = character.className,
+		spec = character.specKnown and character.specName or nil,
+		specIcon = character.specKnown and character.specIcon or nil,
+		gearScore = character.gearScore,
+		averageIlvl = character.averageIlvl,
+	}
+	self:EnsureHistoryEntryForGuid(member.guid, member)
+	self:ShowRaidCharacterWindow(member)
 end
 
 local function RunScan(page)
@@ -851,9 +880,19 @@ local function CreateGearCheckTargetPage(parent)
 	end)
 	page.debugBtn = debugBtn
 
+	local profileBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_PROFILE"))
+	profileBtn:SetPoint("BOTTOMLEFT", debugBtn, "TOPLEFT", 0, 4)
+	profileBtn:SetPoint("BOTTOMRIGHT", debugBtn, "TOPRIGHT", 0, 4)
+	profileBtn:Disable()
+	W.SetPlainButtonTooltip(profileBtn, "GEAR_CHECK_PROFILE_TIP")
+	profileBtn:SetScript("OnClick", function()
+		Addon:OpenGearCheckCharacterProfile(page.lastReport)
+	end)
+	page.profileBtn = profileBtn
+
 	local scanBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
-	scanBtn:SetPoint("BOTTOMLEFT", debugBtn, "TOPLEFT", 0, 4)
-	scanBtn:SetPoint("BOTTOMRIGHT", debugBtn, "TOPRIGHT", 0, 4)
+	scanBtn:SetPoint("BOTTOMLEFT", profileBtn, "TOPLEFT", 0, 4)
+	scanBtn:SetPoint("BOTTOMRIGHT", profileBtn, "TOPRIGHT", 0, 4)
 	W.SetPlainButtonTooltip(scanBtn, "GEAR_CHECK_SCAN_TIP")
 	scanBtn:SetScript("OnClick", function()
 		RunScan(page)
@@ -1197,6 +1236,9 @@ local function ApplyLocale(page)
 	end
 	if page.limit then
 		page.limit:SetText(W.T("GEAR_CHECK_LIMITATION"))
+	end
+	if page.profileBtn then
+		page.profileBtn.label:SetText(W.T("GEAR_CHECK_PROFILE"))
 	end
 	if page.scanBtn and page.scanBtn.label then
 		page.scanBtn.label:SetText(W.T("GEAR_CHECK_SCAN"))
