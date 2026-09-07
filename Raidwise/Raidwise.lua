@@ -256,6 +256,9 @@ end
 -- Run once when this addon finishes loading.
 function Addon:OnInitialize()
 	EnsureDB()
+	if self.CreateMinimapButton then
+		self:CreateMinimapButton()
+	end
 	self.lastUpdated = GetAddOnMetadata(ADDON_NAME, "X-LastUpdated") or ""
 	if not self.db.locale or (self.db.locale ~= "enUS" and self.db.locale ~= "ruRU") then
 		self.db.locale = self.DetectClientLocale and self:DetectClientLocale() or "enUS"
