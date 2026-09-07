@@ -1978,7 +1978,12 @@ function Addon:StartGearCheckUnitScan(unit, callback)
 end
 
 function Addon:StartGearCheckScan(callback)
-	return self:StartGearCheckUnitScan(self:ResolveGearCheckUnit(), callback)
+	return self:StartGearCheckUnitScan(self:ResolveGearCheckUnit(), function(report, status)
+		self:RecordTargetScanHistory(report)
+		if callback then
+			callback(report, status)
+		end
+	end)
 end
 
 function Addon:GetGearCheckRaidEntryStatusLabel(entry)

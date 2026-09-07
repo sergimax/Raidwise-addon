@@ -1209,6 +1209,38 @@ function Addon:EnsureHistoryEntryForGuid(guid, seed)
 	return EnsureHistoryFields(entry)
 end
 
+-- Target scans create first encounters without adding a same-party event.
+function Addon:RecordTargetScanHistory(report)
+	local character = report and report.character
+	if not character or character.isSelf or not character.guid or character.guid == "" then
+		return
+	end
+	if self:GetHistoryEntry(character.guid) then
+		return
+	end
+	local entry = self:EnsureHistoryEntryForGuid(character.guid, {
+		name = character.name,
+		realm = character.realm,
+		class = character.classFile,
+		classLabel = character.className,
+		spec = character.specKnown and character.specName or nil,
+		specIcon = character.specKnown and character.specIcon or nil,
+		gearScore = character.gearScore,
+		averageIlvl = character.averageIlvl,
+	})
+	local scannedAt = tonumber(report.collection and report.collection.collectedAt) or time()
+	entry.metZone = self:T("HISTORY_TARGET_SCAN")
+	entry.metAt = scannedAt
+	entry.metRealm = MeetingRealm()
+	entry.lastSeenAt = scannedAt
+	entry.lastSeenZone = entry.metZone
+	entry.meetCount = 1
+	local frame = self.mainFrame
+	if frame and frame:IsShown() and frame.selectedTab == "history" and self.RefreshHistoryView then
+		self:RefreshHistoryView()
+	end
+end
+
 function Addon:UpsertHistoryMember(member)
 	if type(member) ~= "table" then
 		return nil
