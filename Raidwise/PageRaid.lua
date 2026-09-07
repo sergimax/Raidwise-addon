@@ -619,7 +619,7 @@ local function CreateRaidRosterHeader(page)
 	end
 
 	local function FillColumnText(col, template)
-		local label = col:CreateFontString(nil, "OVERLAY", template)
+		local label = W.CreateFontString(col, nil, "OVERLAY", template)
 		label:SetPoint("TOPLEFT", 0, 0)
 		label:SetPoint("BOTTOMRIGHT", 0, 0)
 		label:SetJustifyH("LEFT")
@@ -681,7 +681,7 @@ local function CreateRaidRosterHeader(page)
 		local cell = CreateFrame("Frame", nil, summaryCol)
 		local reportBtn = CreateChatReportButton(cell, tooltipKey, buildMessages, onClick)
 		reportBtn:SetPoint("RIGHT", cell, "RIGHT", 0, 0)
-		local body = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		local body = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
 		body:SetPoint("LEFT", cell, "LEFT", 0, 0)
 		body:SetPoint("RIGHT", reportBtn, "LEFT", -iconGap, 0)
 		body:SetHeight(row2H)
@@ -818,7 +818,7 @@ local function CreateRaidRosterHeader(page)
 	end)
 	LayoutRaidMiniTable()
 
-	local gearCheckStatusLabel = headerHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local gearCheckStatusLabel = W.CreateFontString(headerHost, nil, "OVERLAY", "GameFontNormalSmall")
 	gearCheckStatusLabel:SetPoint("TOPLEFT", miniTable, "BOTTOMLEFT", 0, -UI.RAID_DESC_BLOCK_GAP)
 	gearCheckStatusLabel:SetPoint("RIGHT", headerHost, "RIGHT", 0, 0)
 	gearCheckStatusLabel:SetHeight(UI.RAID_PROGRESS_STATUS_H)
@@ -1080,7 +1080,7 @@ local function CreateRaidPlayerCell(parent)
 	cell.flaskHost = W.CreateConsumableStatusHost(cell)
 	cell.flaskHost:SetPoint("RIGHT", cell.foodHost, "LEFT", -UI.PARTY_BUFF_GAP, 0)
 
-	cell.nameText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.nameText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
 	cell.nameText:SetPoint("LEFT", cell.classIconHost, "RIGHT", 4, 0)
 	cell.nameText:SetPoint("RIGHT", cell.flaskHost, "LEFT", -4, 0)
 	cell.nameText:SetHeight(RAID_LINE_H)
@@ -1111,20 +1111,20 @@ local function CreateRaidPlayerCell(parent)
 	cell.specIcon = cell.specIconHost:CreateTexture(nil, "ARTWORK")
 	cell.specIcon:SetAllPoints(cell.specIconHost)
 
-	cell.statsText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.statsText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
 	cell.statsText:SetPoint("LEFT", cell.specIconHost, "RIGHT", 4, 0)
 	cell.statsText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
 	cell.statsText:SetHeight(RAID_LINE_H)
 	cell.statsText:SetJustifyH("LEFT")
 	cell.statsText:SetJustifyV("MIDDLE")
 
-	cell.opinionText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.opinionText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
 	cell.opinionText:SetPoint("TOPLEFT", cell.roleIconHost, "BOTTOMLEFT", 0, -2)
 	cell.opinionText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
 	cell.opinionText:SetHeight(RAID_LINE_H)
 	cell.opinionText:SetJustifyH("LEFT")
 
-	cell.gradesText = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	cell.gradesText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
 	cell.gradesText:SetPoint("TOPLEFT", cell.opinionText, "BOTTOMLEFT", 0, -1)
 	cell.gradesText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
 	cell.gradesText:SetHeight(RAID_LINE_H)
@@ -1172,7 +1172,7 @@ local function CreateRaidPlayerCell(parent)
 		if not self.member then
 			return
 		end
-		self:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
+		W.SetBackdropColor(self, UI.BTN_HOVER)
 		W.ShowMemberRatingTooltip(self, self.member, {
 			gearCheck = true,
 			gearEntry = self.gearEntry,
@@ -1228,7 +1228,7 @@ local function CreateRaidGroupColumn(parent, groupIndex)
 	header:SetHeight(RAID_GROUP_LABEL_H)
 	column.header = header
 
-	local label = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local label = W.CreateFontString(header, nil, "OVERLAY", "GameFontNormalSmall")
 	label:SetPoint("LEFT", 0, 0)
 	label:SetWidth(10)
 	label:SetHeight(RAID_GROUP_LABEL_H)

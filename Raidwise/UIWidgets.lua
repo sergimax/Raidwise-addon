@@ -94,6 +94,8 @@ Addon.UITheme = {
 	RAID_TOOLBAR_BTN_COUNT = 4,
 	RAID_TOOLBAR_BTN_GAP = 4,
 
+	TEXT_BODY = { 1, 1, 1 },
+	INPUT_BG = { 0, 0, 0, 1 },
 	-- Colors — Classic theme (preview/themes.html #classic)
 	GOLD = { 1.000, 0.824, 0.000 },
 	GOLD_DIM = { 0.769, 0.627, 0.290 }, -- Menu group headings / separators
@@ -122,6 +124,106 @@ Addon.Widgets = {}
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
+-- Keep color tables stable: page modules retain references to them.
+local lightPalette = {
+	PANEL_BG = { 0.94, 0.93, 0.90, 1 },
+	TITLE_BG = { 0.84, 0.82, 0.77, 1 },
+	INPUT_BG = { 1, 0.99, 0.97, 1 },
+	CD_ROW_A = { 0.88, 0.87, 0.83, 1 },
+	CD_ROW_B = { 0.96, 0.95, 0.92, 1 },
+	BTN_IDLE = { 0.85, 0.83, 0.78, 1 },
+	BTN_HOVER = { 0.78, 0.75, 0.67, 1 },
+	BTN_SELECTED = { 0.75, 0.65, 0.43, 1 },
+	BTN_DISABLED = { 0.89, 0.88, 0.85, 1 },
+	TEXT_BODY = { 0.12, 0.12, 0.15 },
+	TEXT_IDLE = { 0.20, 0.18, 0.14 },
+	TEXT_HOVER = { 0.12, 0.10, 0.06 },
+	TEXT_DISABLED = { 0.43, 0.40, 0.35 },
+	GOLD = { 0.38, 0.25, 0.02 },
+	GOLD_DIM = { 0.46, 0.34, 0.14 },
+	BORDER = { 0.51, 0.44, 0.29, 1 },
+	TEXT_GOOD = { 0.12, 0.42, 0.17 },
+	TEXT_ALERT = { 0.72, 0.12, 0.12 },
+	GEAR_S = { 0.48, 0.32, 0.00 },
+	GEAR_BAD = { 0.72, 0.12, 0.12 },
+	GEAR_REPLACE = { 0.66, 0.29, 0.03 },
+	GEAR_OK = { 0.48, 0.38, 0.09 },
+	GEAR_GOOD = { 0.12, 0.42, 0.17 },
+}
+local darkPalette = {}
+for key in pairs(lightPalette) do
+	darkPalette[key] = { unpack(UI[key]) }
+end
+
+local themeBindings = setmetatable({}, { __mode = "k" })
+local applyingColor = false
+local function SetThemeColor(region, method, color)
+	local bindings = themeBindings[region]
+	if not bindings then
+		bindings = {}
+		themeBindings[region] = bindings
+	end
+	if not bindings[method] then
+		-- Direct color changes (class colors, hover effects) release the old binding.
+		hooksecurefunc(region, method, function()
+			if not applyingColor then
+				bindings[method].color = nil
+			end
+		end)
+		bindings[method] = {}
+	end
+	bindings[method].color = color
+	applyingColor = true
+	region[method](region, color[1], color[2], color[3], color[4] or 1)
+	applyingColor = false
+end
+
+function W.SetBackdropColor(frame, color)
+	SetThemeColor(frame, "SetBackdropColor", color)
+end
+
+function W.SetTextureColor(texture, color)
+	SetThemeColor(texture, "SetVertexColor", color)
+end
+
+function W.CreateFontString(parent, name, layer, template)
+	local label = parent:CreateFontString(name, layer, template)
+	W.SetFontColor(label, template and string.find(template, "Normal") and UI.GOLD or UI.TEXT_BODY)
+	return label
+end
+
+function Addon:GetTheme()
+	return self.db and self.db.theme == "light" and "light" or "dark"
+end
+
+function Addon:ApplyTheme()
+	local palette = self:GetTheme() == "light" and lightPalette or darkPalette
+	for key, color in pairs(palette) do
+		for index = 1, 4 do
+			UI[key][index] = color[index]
+		end
+	end
+	for region, bindings in pairs(themeBindings) do
+		for method, binding in pairs(bindings) do
+			if binding.color then
+				SetThemeColor(region, method, binding.color)
+			end
+		end
+	end
+end
+
+function Addon:SetTheme(theme)
+	if not self.db or (theme ~= "light" and theme ~= "dark") then
+		return
+	end
+	self.db.theme = theme
+	self:ApplyTheme()
+	-- Refresh strings containing inline palette colors and the settings selection.
+	if self.RefreshLocalizedUI then
+		self:RefreshLocalizedUI()
+	end
+end
+
 function W.T(key, ...)
 	if Addon.T then
 		return Addon:T(key, ...)
@@ -141,7 +243,7 @@ function W.ApplyPlainPanel(frame, color)
 		tile = true,
 		tileSize = 16,
 	})
-	frame:SetBackdropColor(color[1], color[2], color[3], color[4] or 1)
+	W.SetBackdropColor(frame, color)
 	W.HidePanelBorder(frame)
 end
 
@@ -163,13 +265,12 @@ function W.ApplyOuterBorder(frame, color, thickness)
 	end
 	color = color or UI.BORDER
 	thickness = thickness or UI.BORDER_W or 1
-	local alpha = color[4] or 1
 	local function Edge(texture)
 		if not texture then
 			texture = frame:CreateTexture(nil, "OVERLAY")
 			texture:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
 		end
-		texture:SetVertexColor(color[1], color[2], color[3], alpha)
+		W.SetTextureColor(texture, color)
 		texture:Show()
 		return texture
 	end
@@ -211,7 +312,7 @@ function W.CreateProgressBar(parent, height)
 	local bg = host:CreateTexture(nil, "BACKGROUND")
 	bg:SetAllPoints(host)
 	bg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
-	bg:SetVertexColor(0.05, 0.05, 0.08, 0.95)
+	W.SetTextureColor(bg, UI.INPUT_BG)
 
 	local bar = CreateFrame("StatusBar", nil, host)
 	bar:SetPoint("TOPLEFT", 1, -1)
@@ -220,7 +321,7 @@ function W.CreateProgressBar(parent, height)
 	local fill = bar:GetStatusBarTexture()
 	if fill then
 		local gold = UI.GOLD_DIM or UI.GOLD or { 0.77, 0.63, 0.29 }
-		fill:SetVertexColor(gold[1], gold[2], gold[3], 1)
+		W.SetTextureColor(fill, gold)
 	end
 	bar:SetMinMaxValues(0, 1)
 	bar:SetValue(0)
@@ -240,7 +341,7 @@ function W.CreateProgressBar(parent, height)
 end
 
 function W.SetFontColor(fontString, color)
-	fontString:SetTextColor(color[1], color[2], color[3], color[4] or 1)
+	SetThemeColor(fontString, "SetTextColor", color)
 end
 
 function W.ApplyFontSize(fontString, size)
@@ -343,22 +444,22 @@ end
 
 function W.SetPlainButtonState(button, state)
 	if state == "selected" then
-		button:SetBackdropColor(UI.BTN_SELECTED[1], UI.BTN_SELECTED[2], UI.BTN_SELECTED[3], UI.BTN_SELECTED[4])
+		W.SetBackdropColor(button, UI.BTN_SELECTED)
 		if button.label then
 			W.SetFontColor(button.label, UI.GOLD)
 		end
 	elseif state == "hover" then
-		button:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
+		W.SetBackdropColor(button, UI.BTN_HOVER)
 		if button.label then
 			W.SetFontColor(button.label, UI.TEXT_HOVER)
 		end
 	elseif state == "disabled" then
-		button:SetBackdropColor(UI.BTN_DISABLED[1], UI.BTN_DISABLED[2], UI.BTN_DISABLED[3], UI.BTN_DISABLED[4])
+		W.SetBackdropColor(button, UI.BTN_DISABLED)
 		if button.label then
 			W.SetFontColor(button.label, UI.TEXT_DISABLED)
 		end
 	else
-		button:SetBackdropColor(UI.BTN_IDLE[1], UI.BTN_IDLE[2], UI.BTN_IDLE[3], UI.BTN_IDLE[4])
+		W.SetBackdropColor(button, UI.BTN_IDLE)
 		if button.label then
 			W.SetFontColor(button.label, UI.TEXT_IDLE)
 		end
@@ -380,7 +481,7 @@ function W.CreatePlainButton(parent, width, height, label)
 	button:SetSize(width, height)
 	W.ApplyPlainPanel(button, UI.BTN_IDLE)
 
-	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local text = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 	text:SetPoint("CENTER", 0, 0)
 	text:SetText(label)
 	W.SetFontColor(text, UI.TEXT_IDLE)
@@ -522,7 +623,7 @@ function W.FitCopyBoxToText(box)
 	if width > 1 then
 		local probe = box.rwProbe
 		if not probe then
-			probe = box:CreateFontString(nil, "ARTWORK")
+			probe = W.CreateFontString(box, nil, "ARTWORK")
 			probe:SetFontObject(ChatFontNormal)
 			probe:SetJustifyH("LEFT")
 			probe:Hide()
@@ -552,7 +653,7 @@ function W.CreateCopyBox(parent, scrollName, boxName)
 	scrollBG:SetPoint("TOPLEFT", 0, 0)
 	scrollBG:SetPoint("BOTTOMRIGHT", -UI.COPY_SCROLLBAR_W, 0)
 	scrollBG:SetBackdrop(W.COPY_BACKDROP)
-	scrollBG:SetBackdropColor(0, 0, 0, 1)
+	W.SetBackdropColor(scrollBG, UI.INPUT_BG)
 
 	local scroll = CreateFrame("ScrollFrame", scrollName, host, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", scrollBG, "TOPLEFT", UI.COPY_PAD_L, -UI.COPY_PAD_T)
@@ -566,6 +667,7 @@ function W.CreateCopyBox(parent, scrollName, boxName)
 	local exportBox = CreateFrame("EditBox", boxName, scroll)
 	exportBox:SetMultiLine(true)
 	exportBox:SetFontObject(ChatFontNormal)
+	W.SetFontColor(exportBox, UI.TEXT_BODY)
 	exportBox:SetAutoFocus(false)
 	exportBox:EnableMouse(true)
 	exportBox:SetTextInsets(0, 0, 3, 3)
@@ -627,12 +729,13 @@ function W.CreateLineCopyBox(parent, boxName)
 	local host = CreateFrame("Frame", nil, parent)
 	host:SetHeight(UI.URL_BOX_H)
 	host:SetBackdrop(W.COPY_BACKDROP)
-	host:SetBackdropColor(0, 0, 0, 1)
+	W.SetBackdropColor(host, UI.INPUT_BG)
 
 	local box = CreateFrame("EditBox", boxName, host)
 	box:SetPoint("TOPLEFT", 8, -4)
 	box:SetPoint("BOTTOMRIGHT", -8, 4)
 	box:SetFontObject(ChatFontNormal)
+	W.SetFontColor(box, UI.TEXT_BODY)
 	box:SetAutoFocus(false)
 	box:SetMultiLine(false)
 	box:EnableMouse(true)
@@ -1164,7 +1267,7 @@ function W.AppendGearCheckRaidTooltip(gearEntry)
 end
 
 function W.AttachLayoutVersionLabel(titleBarOrParent, version, anchorRightOf)
-	local label = titleBarOrParent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local label = W.CreateFontString(titleBarOrParent, nil, "OVERLAY", "GameFontNormalSmall")
 	label:SetJustifyH("RIGHT")
 	label:SetText("v" .. tostring(version))
 	W.SetFontColor(label, UI.TEXT_DISABLED)

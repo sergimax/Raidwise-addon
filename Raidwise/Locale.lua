@@ -612,6 +612,9 @@ local Translations = {
 		RATING_EVENT_TOXIC_BEHAVIOR = "Toxic Behavior",
 		RATING_EVENT_SCAM = "Scam",
 
+		SETTINGS_THEME_LIGHT = "Theme: Light",
+		SETTINGS_THEME_DARK = "Theme: Dark",
+		SETTINGS_THEME_HINT = "Switch between light and dark themes. Saved on this account.",
 		SETTINGS_LANGUAGE = "Language",
 		SETTINGS_LANGUAGE_HINT = "Interface language. Saved on this account.",
 		SETTINGS_STARTUP_TAB = "Startup page",
@@ -1269,6 +1272,9 @@ local Translations = {
 		RATING_EVENT_TOXIC_BEHAVIOR = "Токсичное поведение",
 		RATING_EVENT_SCAM = "Мошенничество",
 
+		SETTINGS_THEME_LIGHT = "Тема: светлая",
+		SETTINGS_THEME_DARK = "Тема: тёмная",
+		SETTINGS_THEME_HINT = "Переключить тему. Сохраняется на этом аккаунте.",
 		SETTINGS_LANGUAGE = "Язык",
 		SETTINGS_LANGUAGE_HINT = "Язык интерфейса. Сохраняется на этом аккаунте.",
 		SETTINGS_STARTUP_TAB = "Стартовая страница",

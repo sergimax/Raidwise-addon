@@ -93,7 +93,7 @@ local function CreateProfileNotesBox(parent, width, height)
 	local host = CreateFrame("Frame", nil, parent)
 	host:SetSize(width, height)
 	host:SetBackdrop(W.COPY_BACKDROP)
-	host:SetBackdropColor(0, 0, 0, 1)
+	W.SetBackdropColor(host, Theme.INPUT_BG)
 
 	local scroll = CreateFrame("ScrollFrame", nil, host, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", 6, -6)
@@ -109,6 +109,7 @@ local function CreateProfileNotesBox(parent, width, height)
 	local box = CreateFrame("EditBox", nil, scroll)
 	box:SetMultiLine(true)
 	box:SetFontObject(ChatFontNormal)
+	W.SetFontColor(box, Theme.TEXT_BODY)
 	box:SetAutoFocus(false)
 	box:SetWidth(width - 36)
 	box:SetHeight(height - 12)
@@ -321,7 +322,7 @@ local function UpdateProfileHistoryPanel(frame, member)
 		local icon = row:CreateTexture(nil, "ARTWORK")
 		icon:SetSize(PROFILE_EVENT_ROW_ICON, PROFILE_EVENT_ROW_ICON)
 		icon:SetPoint("LEFT", 0, 0)
-		local label = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+		local label = W.CreateFontString(row, nil, "OVERLAY", "GameFontHighlightSmall")
 		label:SetJustifyH("LEFT")
 		label:SetJustifyV("MIDDLE")
 		label:SetPoint("RIGHT", row, "RIGHT", 0, 0)
@@ -420,7 +421,7 @@ local function CreateProfileTabButton(parent, tabId, label, width)
 	W.ApplyPlainPanel(button, UI.BTN_IDLE)
 	button.tabId = tabId
 
-	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local text = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 	text:SetPoint("LEFT", 6, 0)
 	text:SetPoint("RIGHT", -6, 0)
 	text:SetJustifyH("CENTER")
@@ -654,7 +655,7 @@ local function CreateOpinionRadio(parent, opinionId, columnWidth)
 	radio:SetPoint("LEFT", 0, 0)
 	radio.opinionId = opinionId
 
-	local label = host:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local label = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
 	label:SetPoint("LEFT", radio, "RIGHT", 4, 0)
 	label:SetPoint("RIGHT", host, "RIGHT", 0, 0)
 	label:SetJustifyH("LEFT")
@@ -888,7 +889,7 @@ UpdateProfileEventsPanel = function(frame, member)
 		local row = CreateFrame("Frame", nil, frame.eventsListContent)
 		row:SetSize(contentWidth, rowHeight)
 		row:SetPoint("TOPLEFT", frame.eventsListContent, "TOPLEFT", 0, 0)
-		local empty = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		local empty = W.CreateFontString(row, nil, "OVERLAY", "GameFontHighlight")
 		empty:SetPoint("LEFT", 0, 0)
 		empty:SetPoint("RIGHT", 0, 0)
 		empty:SetJustifyH("LEFT")
@@ -917,7 +918,7 @@ UpdateProfileEventsPanel = function(frame, member)
 			end
 			row.icon = icon
 
-			local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+			local text = W.CreateFontString(row, nil, "OVERLAY", "GameFontHighlightSmall")
 			text:SetPoint("LEFT", icon, "RIGHT", 4, 0)
 			text:SetPoint("RIGHT", row, "RIGHT", -76, 0)
 			text:SetJustifyH("LEFT")
@@ -982,7 +983,7 @@ local function CreateProfileFactCheckbox(parent, fact, columnWidth)
 	end
 	check.factId = fact.id
 
-	local label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	local label = W.CreateFontString(parent, nil, "OVERLAY", "GameFontHighlightSmall")
 	label:SetPoint("LEFT", check, "RIGHT", 4, 0)
 	label:SetWidth(columnWidth - UI.CHECK_SIZE - 4)
 	label:SetJustifyH("LEFT")
@@ -1034,7 +1035,7 @@ local function CreateProfileTagCheckbox(parent, tag, group, columnWidth)
 	check.tagId = tag.id
 	check.groupId = group.id
 
-	local label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	local label = W.CreateFontString(parent, nil, "OVERLAY", "GameFontHighlightSmall")
 	label:SetPoint("LEFT", check, "RIGHT", 4, 0)
 	label:SetWidth(columnWidth - UI.CHECK_SIZE - 4)
 	label:SetJustifyH("LEFT")
@@ -1391,7 +1392,7 @@ local function CreateRaidCharacterWindow()
 	local close = CreateFrame("Button", nil, titleBar)
 	close:SetSize(UI.CLOSE_SIZE, UI.CLOSE_SIZE)
 	close:SetPoint("RIGHT", -3, 0)
-	local closeText = close:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local closeText = W.CreateFontString(close, nil, "OVERLAY", "GameFontNormalSmall")
 	closeText:SetPoint("CENTER", 1, 1)
 	closeText:SetText("X")
 	W.SetFontColor(closeText, UI.GOLD)
@@ -1408,7 +1409,7 @@ local function CreateRaidCharacterWindow()
 	local layoutVersionText = W.AttachLayoutVersionLabel(titleBar, PROFILE_LAYOUT_VERSION, close)
 	frame.layoutVersionText = layoutVersionText
 
-	local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local title = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormal")
 	title:SetPoint("LEFT", 8, 0)
 	title:SetPoint("RIGHT", layoutVersionText, "LEFT", -8, 0)
 	title:SetJustifyH("LEFT")
@@ -1471,7 +1472,7 @@ local function CreateRaidCharacterWindow()
 	classIcon:SetAllPoints(classIconHost)
 	frame.classIcon = classIcon
 
-	local classText = classCell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local classText = W.CreateFontString(classCell, nil, "OVERLAY", "GameFontNormalSmall")
 	classText:SetPoint("TOPLEFT", classIconHost, "TOPRIGHT", 4, 0)
 	classText:SetPoint("BOTTOMLEFT", classIconHost, "BOTTOMRIGHT", 4, 0)
 	classText:SetPoint("RIGHT", classCell, "RIGHT", 0, 0)
@@ -1488,7 +1489,7 @@ local function CreateRaidCharacterWindow()
 	specIcon:SetAllPoints(specIconHost)
 	frame.specIcon = specIcon
 
-	local specText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local specText = W.CreateFontString(header, nil, "OVERLAY", "GameFontNormalSmall")
 	specText:SetPoint("TOPLEFT", specIconHost, "TOPRIGHT", 6, 0)
 	specText:SetPoint("BOTTOMLEFT", specIconHost, "BOTTOMRIGHT", 6, 0)
 	specText:SetPoint("RIGHT", header, "RIGHT", 0, 0)
@@ -1496,14 +1497,14 @@ local function CreateRaidCharacterWindow()
 	specText:SetJustifyV("MIDDLE")
 	frame.specText = specText
 
-	local gsText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local gsText = W.CreateFontString(header, nil, "OVERLAY", "GameFontNormalSmall")
 	gsText:SetPoint("TOPLEFT", classCell, "BOTTOMLEFT", 0, -4)
 	gsText:SetWidth(columnWidth)
 	gsText:SetJustifyH("LEFT")
 	W.SetFontColor(gsText, UI.TEXT_IDLE)
 	frame.gsText = gsText
 
-	local ilvlText = header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local ilvlText = W.CreateFontString(header, nil, "OVERLAY", "GameFontNormalSmall")
 	ilvlText:SetPoint("TOPLEFT", specIconHost, "BOTTOMLEFT", 0, -4)
 	ilvlText:SetWidth(columnWidth)
 	ilvlText:SetJustifyH("LEFT")
@@ -1517,7 +1518,7 @@ local function CreateRaidCharacterWindow()
 	frame.summarySection = summary
 
 	local function CreateSummaryLine(parent, anchor, topOffset, width)
-		local text = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		local text = W.CreateFontString(parent, nil, "OVERLAY", "GameFontNormalSmall")
 		if anchor then
 			text:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, topOffset or -6)
 		else
@@ -1537,14 +1538,14 @@ local function CreateRaidCharacterWindow()
 	frame.guidText = CreateSummaryLine(summary, frame.guildText, -6, columnWidth)
 	frame.metRealmText = CreateSummaryLine(summary, frame.guidText, -6, columnWidth)
 
-	local communityHeading = summary:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local communityHeading = W.CreateFontString(summary, nil, "OVERLAY", "GameFontNormal")
 	communityHeading:SetPoint("TOPLEFT", columnWidth + columnGap, 0)
 	communityHeading:SetWidth(columnWidth)
 	communityHeading:SetJustifyH("LEFT")
 	W.SetFontColor(communityHeading, UI.GOLD)
 	frame.communityHeading = communityHeading
 
-	local communityText = summary:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local communityText = W.CreateFontString(summary, nil, "OVERLAY", "GameFontHighlight")
 	communityText:SetPoint("TOPLEFT", communityHeading, "BOTTOMLEFT", 0, -4)
 	communityText:SetWidth(columnWidth)
 	communityText:SetJustifyH("LEFT")
@@ -1606,7 +1607,7 @@ local function CreateRaidCharacterWindow()
 	opinionHeader:SetFrameLevel(opinionPanel:GetFrameLevel() + 40)
 	frame.opinionHeader = opinionHeader
 
-	local summaryLine = opinionHeader:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local summaryLine = W.CreateFontString(opinionHeader, nil, "OVERLAY", "GameFontNormalSmall")
 	summaryLine:SetPoint("TOPLEFT", 0, 0)
 	summaryLine:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
 	summaryLine:SetHeight(16)
@@ -1635,7 +1636,7 @@ local function CreateRaidCharacterWindow()
 		frame.opinionButtons[index] = radio
 	end
 
-	local tagsHeading = opinionHeader:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local tagsHeading = W.CreateFontString(opinionHeader, nil, "OVERLAY", "GameFontNormal")
 	tagsHeading:SetPoint("TOPLEFT", opinionRow, "BOTTOMLEFT", 0, -6)
 	tagsHeading:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
 	tagsHeading:SetJustifyH("LEFT")
@@ -1682,7 +1683,7 @@ local function CreateRaidCharacterWindow()
 	local columnWidth = math.floor((tabContentWidth - PROFILE_TAG_COL_GAP - 28) / 2)
 	for groupIndex = 1, #groups do
 		local group = groups[groupIndex]
-		local label = tagContent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		local label = W.CreateFontString(tagContent, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("TOPLEFT", tagContent, "TOPLEFT", 0, -currentY)
 		label:SetPoint("RIGHT", tagContent, "RIGHT", 0, 0)
 		label:SetJustifyH("LEFT")
@@ -1730,7 +1731,7 @@ local function CreateRaidCharacterWindow()
 	factsPanel:Hide()
 	frame.profilePanels.facts = factsPanel
 
-	local factsHeading = factsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local factsHeading = W.CreateFontString(factsPanel, nil, "OVERLAY", "GameFontNormal")
 	factsHeading:SetPoint("TOPLEFT", 0, 0)
 	factsHeading:SetPoint("RIGHT", factsPanel, "RIGHT", 0, 0)
 	factsHeading:SetJustifyH("LEFT")
@@ -1738,7 +1739,7 @@ local function CreateRaidCharacterWindow()
 	W.SetFontColor(factsHeading, UI.GOLD)
 	frame.factsHeading = factsHeading
 
-	local factsHint = factsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local factsHint = W.CreateFontString(factsPanel, nil, "OVERLAY", "GameFontNormalSmall")
 	factsHint:SetPoint("TOPLEFT", factsHeading, "BOTTOMLEFT", 0, -4)
 	factsHint:SetPoint("RIGHT", factsPanel, "RIGHT", 0, 0)
 	factsHint:SetJustifyH("LEFT")
@@ -1784,7 +1785,7 @@ local function CreateRaidCharacterWindow()
 	end)
 	frame.eventsAddBtn = eventsAddBtn
 
-	local eventsHeading = eventsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local eventsHeading = W.CreateFontString(eventsPanel, nil, "OVERLAY", "GameFontNormal")
 	eventsHeading:SetPoint("TOPLEFT", 0, 0)
 	eventsHeading:SetPoint("RIGHT", eventsAddBtn, "LEFT", -8, 0)
 	eventsHeading:SetJustifyH("LEFT")
@@ -1792,7 +1793,7 @@ local function CreateRaidCharacterWindow()
 	W.SetFontColor(eventsHeading, UI.GOLD)
 	frame.eventsHeading = eventsHeading
 
-	local eventsPickLabel = eventsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local eventsPickLabel = W.CreateFontString(eventsPanel, nil, "OVERLAY", "GameFontNormalSmall")
 	eventsPickLabel:SetPoint("TOPLEFT", eventsHeading, "BOTTOMLEFT", 0, -4)
 	eventsPickLabel:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
 	eventsPickLabel:SetJustifyH("LEFT")
@@ -1843,7 +1844,7 @@ local function CreateRaidCharacterWindow()
 			W.SetSpellIconTexture(icon, group.icon)
 		end
 
-		local heading = typeContent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		local heading = W.CreateFontString(typeContent, nil, "OVERLAY", "GameFontNormalSmall")
 		heading:SetPoint("LEFT", icon, "RIGHT", 4, 0)
 		heading:SetPoint("RIGHT", typeContent, "RIGHT", 0, 0)
 		heading:SetPoint("TOP", icon, "TOP", 0, 1)
@@ -1872,7 +1873,7 @@ local function CreateRaidCharacterWindow()
 			)
 			W.ApplyPlainPanel(button, UI.BTN_IDLE)
 			button.eventTypeId = eventType.id
-			local label = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+			local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 			label:SetPoint("LEFT", 6, 0)
 			label:SetPoint("RIGHT", -6, 0)
 			label:SetJustifyH("LEFT")
@@ -1927,7 +1928,7 @@ local function CreateRaidCharacterWindow()
 	notesPanel:Hide()
 	frame.profilePanels.notes = notesPanel
 
-	local notesHeading = notesPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local notesHeading = W.CreateFontString(notesPanel, nil, "OVERLAY", "GameFontNormal")
 	notesHeading:SetPoint("TOPLEFT", 0, 0)
 	notesHeading:SetPoint("RIGHT", notesPanel, "RIGHT", 0, 0)
 	notesHeading:SetJustifyH("LEFT")
@@ -1935,7 +1936,7 @@ local function CreateRaidCharacterWindow()
 	W.SetFontColor(notesHeading, UI.GOLD)
 	frame.notesHeading = notesHeading
 
-	local notesHint = notesPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local notesHint = W.CreateFontString(notesPanel, nil, "OVERLAY", "GameFontNormalSmall")
 	notesHint:SetPoint("TOPLEFT", notesHeading, "BOTTOMLEFT", 0, -4)
 	notesHint:SetPoint("RIGHT", notesPanel, "RIGHT", 0, 0)
 	notesHint:SetJustifyH("LEFT")
@@ -1973,20 +1974,20 @@ local function CreateRaidCharacterWindow()
 	historyPanel:Hide()
 	frame.profilePanels.history = historyPanel
 
-	local historyTogetherText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local historyTogetherText = W.CreateFontString(historyPanel, nil, "OVERLAY", "GameFontHighlight")
 	historyTogetherText:SetPoint("TOPRIGHT", 0, 0)
 	historyTogetherText:SetJustifyH("RIGHT")
 	historyTogetherText:SetJustifyV("TOP")
 	frame.historyTogetherText = historyTogetherText
 
-	local historyMetText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local historyMetText = W.CreateFontString(historyPanel, nil, "OVERLAY", "GameFontHighlight")
 	historyMetText:SetPoint("TOPLEFT", 0, 0)
 	historyMetText:SetPoint("RIGHT", historyTogetherText, "LEFT", -8, 0)
 	historyMetText:SetJustifyH("LEFT")
 	historyMetText:SetJustifyV("TOP")
 	frame.historyMetText = historyMetText
 
-	local historyWhenText = historyPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local historyWhenText = W.CreateFontString(historyPanel, nil, "OVERLAY", "GameFontHighlight")
 	historyWhenText:SetPoint("TOPLEFT", historyMetText, "BOTTOMLEFT", 0, -6)
 	historyWhenText:SetPoint("RIGHT", historyPanel, "RIGHT", 0, 0)
 	historyWhenText:SetJustifyH("LEFT")
@@ -2199,13 +2200,13 @@ function Addon:ShowRaidCharacterWindow(member)
 		if editable then
 			frame.notesBox:EnableMouse(true)
 			frame.notesBox:EnableKeyboard(true)
-			frame.notesBox:SetTextColor(1, 1, 1)
+			W.SetFontColor(frame.notesBox, Theme.TEXT_BODY)
 			frame.notesHost:SetAlpha(1)
 		else
 			frame.notesBox:ClearFocus()
 			frame.notesBox:EnableMouse(false)
 			frame.notesBox:EnableKeyboard(false)
-			frame.notesBox:SetTextColor(0.6, 0.6, 0.6)
+			W.SetFontColor(frame.notesBox, Theme.TEXT_DISABLED)
 			frame.notesHost:SetAlpha(0.6)
 		end
 	end

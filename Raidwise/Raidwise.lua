@@ -31,6 +31,7 @@ end
 
 local defaults = {
 	enabled = true,
+	theme = "dark",
 	includeGearNames = true,
 	startupTab = "cooldowns",
 	reportChannel = "auto",
@@ -76,6 +77,9 @@ local function EnsureDB()
 		end
 	end
 	Addon.db = RaidwiseDB
+	if Addon.ApplyTheme then
+		Addon:ApplyTheme()
+	end
 	if Addon.PruneExpiredGearCheckReports then
 		Addon:PruneExpiredGearCheckReports()
 	end

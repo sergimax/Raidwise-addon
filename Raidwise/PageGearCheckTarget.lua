@@ -261,11 +261,11 @@ local function EnsureBreakdownRows(page, needed)
 	while #page.breakRows < needed do
 		local row = CreateFrame("Frame", nil, page.breakContent)
 		row:SetHeight(18)
-		local title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		local title = W.CreateFontString(row, nil, "OVERLAY", "GameFontNormal")
 		title:SetPoint("TOPLEFT", 0, 0)
 		title:SetJustifyH("LEFT")
 		row.title = title
-		local detail = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		local detail = W.CreateFontString(row, nil, "OVERLAY", "GameFontNormalSmall")
 		detail:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 12, -2)
 		detail:SetJustifyH("LEFT")
 		detail:SetJustifyV("TOP")
@@ -284,12 +284,12 @@ local function SetFilterSelected(page, filterId)
 		local btn = buttons[index]
 		local selected = btn.filterId == filterId
 		if selected then
-			btn:SetBackdropColor(UI.BTN_SELECTED[1], UI.BTN_SELECTED[2], UI.BTN_SELECTED[3], UI.BTN_SELECTED[4] or 1)
+			W.SetBackdropColor(btn, UI.BTN_SELECTED)
 			if btn.label then
 				W.SetFontColor(btn.label, UI.GOLD)
 			end
 		else
-			btn:SetBackdropColor(UI.BTN_IDLE[1], UI.BTN_IDLE[2], UI.BTN_IDLE[3], UI.BTN_IDLE[4] or 1)
+			W.SetBackdropColor(btn, UI.BTN_IDLE)
 			if btn.label then
 				W.SetFontColor(btn.label, UI.TEXT_IDLE)
 			end
@@ -820,7 +820,7 @@ local function CreateGearCheckTargetPage(parent)
 
 	local innerW = W.ContentInnerWidth()
 
-	local desc = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local desc = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	desc:SetPoint("TOPLEFT", 0, 0)
 	desc:SetWidth(innerW)
 	desc:SetJustifyH("LEFT")
@@ -828,7 +828,7 @@ local function CreateGearCheckTargetPage(parent)
 	desc:SetText(W.ColorizeGearGradation(W.T("GEAR_CHECK_TARGET_DESC")))
 	page.desc = desc
 
-	local limit = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local limit = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
 	limit:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	limit:SetWidth(innerW)
 	limit:SetJustifyH("LEFT")
@@ -899,7 +899,7 @@ local function CreateGearCheckTargetPage(parent)
 	end)
 	page.scanBtn = scanBtn
 
-	local statusLabel = rightTop:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local statusLabel = W.CreateFontString(rightTop, nil, "OVERLAY", "GameFontNormalSmall")
 	statusLabel:SetPoint("TOPLEFT", rightTop, "TOPLEFT", 0, -4)
 	statusLabel:SetPoint("BOTTOMRIGHT", scanBtn, "TOPRIGHT", 0, -4)
 	statusLabel:SetJustifyH("LEFT")
@@ -911,7 +911,7 @@ local function CreateGearCheckTargetPage(parent)
 
 	page.topBlockH = TOP_BLOCK_H
 
-	local overallLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local overallLabel = W.CreateFontString(summaryHost, nil, "OVERLAY", "GameFontNormal")
 	overallLabel:SetPoint("TOPLEFT", 8, -8)
 	overallLabel:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
 	overallLabel:SetJustifyH("LEFT")
@@ -959,37 +959,37 @@ local function CreateGearCheckTargetPage(parent)
 	page.specIcon = specIcon
 	specIconHost:Hide()
 
-	local whoLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local whoLabel = W.CreateFontString(summaryHost, nil, "OVERLAY", "GameFontNormalSmall")
 	whoLabel:SetPoint("LEFT", specIconHost, "RIGHT", 6, 0)
 	whoLabel:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
 	whoLabel:SetJustifyH("LEFT")
 	page.whoLabel = whoLabel
 
-	local statsLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local statsLabel = W.CreateFontString(summaryHost, nil, "OVERLAY", "GameFontNormalSmall")
 	statsLabel:SetPoint("TOPLEFT", classIconHost, "BOTTOMLEFT", 0, -4)
 	statsLabel:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
 	statsLabel:SetJustifyH("LEFT")
 	page.statsLabel = statsLabel
 
-	local issuesLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local issuesLabel = W.CreateFontString(summaryHost, nil, "OVERLAY", "GameFontNormalSmall")
 	issuesLabel:SetPoint("TOPLEFT", statsLabel, "BOTTOMLEFT", 0, -4)
 	issuesLabel:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
 	issuesLabel:SetJustifyH("LEFT")
 	page.issuesLabel = issuesLabel
 
-	local metaLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local metaLabel = W.CreateFontString(summaryHost, nil, "OVERLAY", "GameFontNormalSmall")
 	metaLabel:SetPoint("TOPLEFT", issuesLabel, "BOTTOMLEFT", 0, -2)
 	metaLabel:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
 	metaLabel:SetJustifyH("LEFT")
 	page.metaLabel = metaLabel
 
-	local setsLabel = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local setsLabel = W.CreateFontString(summaryHost, nil, "OVERLAY", "GameFontNormalSmall")
 	setsLabel:SetPoint("TOPLEFT", metaLabel, "BOTTOMLEFT", 0, -2)
 	setsLabel:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
 	setsLabel:SetJustifyH("LEFT")
 	page.setsLabel = setsLabel
 
-	local summaryNote = summaryHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local summaryNote = W.CreateFontString(summaryHost, nil, "OVERLAY", "GameFontNormalSmall")
 	summaryNote:SetPoint("TOPLEFT", setsLabel, "BOTTOMLEFT", 0, -2)
 	summaryNote:SetPoint("RIGHT", summaryHost, "RIGHT", -8, 0)
 	summaryNote:SetJustifyH("LEFT")
@@ -1081,7 +1081,7 @@ local function CreateGearCheckTargetPage(parent)
 	W.ApplyPlainPanel(savedHost, UI.PANEL_BG)
 	page.savedHost = savedHost
 
-	local savedTitle = savedHost:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local savedTitle = W.CreateFontString(savedHost, nil, "OVERLAY", "GameFontNormalSmall")
 	savedTitle:SetPoint("TOPLEFT", 8, -6)
 	savedTitle:SetPoint("TOPRIGHT", savedHost, "TOPRIGHT", -(UI.CD_SCROLLBAR_W + 8), -6)
 	savedTitle:SetJustifyH("LEFT")
@@ -1107,7 +1107,7 @@ local function CreateGearCheckTargetPage(parent)
 	page.savedContent = savedContent
 	page.savedRowW = savedContent:GetWidth()
 
-	local savedEmptyLabel = savedContent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local savedEmptyLabel = W.CreateFontString(savedContent, nil, "OVERLAY", "GameFontNormalSmall")
 	savedEmptyLabel:SetPoint("TOPLEFT", 0, 0)
 	savedEmptyLabel:SetWidth(savedContent:GetWidth())
 	savedEmptyLabel:SetJustifyH("LEFT")
@@ -1167,7 +1167,7 @@ local function CreateGearCheckTargetPage(parent)
 	page.breakContent = breakContent
 	page.breakRows = {}
 
-	local breakFilterHeader = breakContent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local breakFilterHeader = W.CreateFontString(breakContent, nil, "OVERLAY", "GameFontNormal")
 	breakFilterHeader:SetPoint("TOPLEFT", 0, 0)
 	breakFilterHeader:SetPoint("TOPRIGHT", breakContent, "TOPRIGHT", 0, 0)
 	breakFilterHeader:SetJustifyH("LEFT")

@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 8
+local LAYOUT_VERSION = 9
 
 local STARTUP_COLS = 4
 local STARTUP_RADIO_SIZE = 16
@@ -153,7 +153,7 @@ local function CreateSettingsCheck(page, nameSuffix, labelKey, dbKey, anchor)
 		templateCheckText:Hide()
 	end
 
-	local label = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local label = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	label:SetPoint("LEFT", check, "RIGHT", 4, 0)
 	label:SetText(W.T(labelKey))
 
@@ -212,7 +212,7 @@ local function CreateStartupRadio(page, parent, pageInfo, columnWidth)
 	radio.tabId = pageInfo.id
 	radio.labelKey = pageInfo.labelKey
 
-	local label = host:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local label = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
 	label:SetPoint("LEFT", radio, "RIGHT", 4, 0)
 	label:SetPoint("RIGHT", host, "RIGHT", 0, 0)
 	label:SetJustifyH("LEFT")
@@ -296,7 +296,7 @@ local function CreateReportChannelRadio(page, parent, choice, columnWidth)
 	radio.channelId = choice.id
 	radio.labelKey = choice.labelKey
 
-	local label = host:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local label = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
 	label:SetPoint("LEFT", radio, "RIGHT", 4, 0)
 	label:SetPoint("RIGHT", host, "RIGHT", 0, 0)
 	label:SetJustifyH("LEFT")
@@ -371,7 +371,7 @@ local function CreateReportFormRadio(page, parent, choice, columnWidth)
 	radio.formId = choice.id
 	radio.labelKey = choice.labelKey
 
-	local label = host:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local label = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
 	label:SetPoint("LEFT", radio, "RIGHT", 4, 0)
 	label:SetPoint("RIGHT", host, "RIGHT", 0, 0)
 	label:SetJustifyH("LEFT")
@@ -433,13 +433,13 @@ local function CreateSettingsPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local heading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local heading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
 	heading:SetPoint("TOPLEFT", 0, 0)
 	heading:SetText(W.T("SETTINGS_LANGUAGE"))
 	W.SetFontColor(heading, UI.GOLD)
 	page.heading = heading
 
-	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local hint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	hint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	hint:SetJustifyH("LEFT")
@@ -474,13 +474,22 @@ local function CreateSettingsPage(parent)
 	end)
 	page.ruBtn = ruBtn
 
-	local startupHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local themeButton = W.CreatePlainButton(page, 160, UI.ACTION_BTN_H, "")
+	themeButton:SetPoint("LEFT", ruBtn, "RIGHT", UI.ACTION_BTN_GAP * 3, 0)
+	themeButton:SetScript("OnClick", function()
+		Addon:SetTheme(Addon:GetTheme() == "dark" and "light" or "dark")
+	end)
+	page.themeButton = themeButton
+	themeButton.label:SetText(W.T(Addon:GetTheme() == "light" and "SETTINGS_THEME_LIGHT" or "SETTINGS_THEME_DARK"))
+	W.SetPlainButtonTooltip(themeButton, "SETTINGS_THEME_HINT")
+
+	local startupHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
 	startupHeading:SetPoint("TOPLEFT", enBtn, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
 	startupHeading:SetText(W.T("SETTINGS_STARTUP_TAB"))
 	W.SetFontColor(startupHeading, UI.GOLD)
 	page.startupHeading = startupHeading
 
-	local startupHint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local startupHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	startupHint:SetPoint("TOPLEFT", startupHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	startupHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	startupHint:SetJustifyH("LEFT")
@@ -489,13 +498,13 @@ local function CreateSettingsPage(parent)
 
 	local startupAnchor = CreateStartupTabRadios(page, startupHint)
 
-	local reportHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local reportHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
 	reportHeading:SetPoint("TOPLEFT", startupAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
 	reportHeading:SetText(W.T("SETTINGS_REPORT_CHANNEL"))
 	W.SetFontColor(reportHeading, UI.GOLD)
 	page.reportHeading = reportHeading
 
-	local reportHint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local reportHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	reportHint:SetPoint("TOPLEFT", reportHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	reportHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	reportHint:SetJustifyH("LEFT")
@@ -504,13 +513,13 @@ local function CreateSettingsPage(parent)
 
 	local reportAnchor = CreateReportChannelRadios(page, reportHint)
 
-	local formHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local formHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
 	formHeading:SetPoint("TOPLEFT", reportAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
 	formHeading:SetText(W.T("SETTINGS_REPORT_FORM"))
 	W.SetFontColor(formHeading, UI.GOLD)
 	page.formHeading = formHeading
 
-	local formHint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local formHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	formHint:SetPoint("TOPLEFT", formHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	formHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	formHint:SetJustifyH("LEFT")
@@ -519,13 +528,13 @@ local function CreateSettingsPage(parent)
 
 	local formAnchor = CreateReportFormRadios(page, formHint)
 
-	local tipHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local tipHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
 	tipHeading:SetPoint("TOPLEFT", formAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
 	tipHeading:SetText(W.T("SETTINGS_TOOLTIP"))
 	W.SetFontColor(tipHeading, UI.GOLD)
 	page.tipHeading = tipHeading
 
-	local tipHint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local tipHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	tipHint:SetPoint("TOPLEFT", tipHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	tipHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	tipHint:SetJustifyH("LEFT")
@@ -543,19 +552,19 @@ local function CreateSettingsPage(parent)
 		checkAnchor = check
 	end
 
-	local previewHeading = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local previewHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
 	previewHeading:SetPoint("TOPLEFT", checkAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
 	previewHeading:SetText(W.T("SETTINGS_TIP_PREVIEW"))
 	W.SetFontColor(previewHeading, UI.GOLD)
 	page.previewHeading = previewHeading
 
-	local compactLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local compactLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
 	compactLabel:SetPoint("TOPLEFT", previewHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	compactLabel:SetText(W.T("SETTINGS_TIP_LAYOUT_COMPACT"))
 	W.SetFontColor(compactLabel, UI.TEXT_IDLE)
 	page.compactLabel = compactLabel
 
-	local previewCompact = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local previewCompact = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	previewCompact:SetPoint("TOPLEFT", compactLabel, "BOTTOMLEFT", 0, -4)
 	previewCompact:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	previewCompact:SetJustifyH("LEFT")
@@ -563,13 +572,13 @@ local function CreateSettingsPage(parent)
 	previewCompact:SetNonSpaceWrap(true)
 	page.previewCompact = previewCompact
 
-	local stackedLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local stackedLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
 	stackedLabel:SetPoint("TOPLEFT", previewCompact, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	stackedLabel:SetText(W.T("SETTINGS_TIP_LAYOUT_STACKED"))
 	W.SetFontColor(stackedLabel, UI.TEXT_IDLE)
 	page.stackedLabel = stackedLabel
 
-	local previewStacked = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local previewStacked = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	previewStacked:SetPoint("TOPLEFT", stackedLabel, "BOTTOMLEFT", 0, -4)
 	previewStacked:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	previewStacked:SetJustifyH("LEFT")
@@ -587,6 +596,9 @@ end
 local function ApplySettingsLocale(page)
 	if not page then
 		return
+	end
+	if page.themeButton then
+		page.themeButton.label:SetText(W.T(Addon:GetTheme() == "light" and "SETTINGS_THEME_LIGHT" or "SETTINGS_THEME_DARK"))
 	end
 	if page.heading then
 		page.heading:SetText(W.T("SETTINGS_LANGUAGE"))

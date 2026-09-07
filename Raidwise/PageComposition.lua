@@ -127,7 +127,7 @@ local function CreateCompositionHeading(parent)
 	local heading = CreateFrame("Frame", nil, parent)
 	heading:SetHeight(COMP_HEADING_H)
 
-	local count = heading:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local count = W.CreateFontString(heading, nil, "OVERLAY", "GameFontNormalSmall")
 	count:SetPoint("RIGHT", -2, 0)
 	count:SetWidth(COMP_COUNT_W)
 	count:SetJustifyH("RIGHT")
@@ -136,7 +136,7 @@ local function CreateCompositionHeading(parent)
 	W.SetFontColor(count, UI.GOLD)
 	heading.count = count
 
-	local title = heading:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local title = W.CreateFontString(heading, nil, "OVERLAY", "GameFontNormal")
 	title:SetPoint("LEFT", 0, 0)
 	title:SetPoint("RIGHT", count, "LEFT", -4, 0)
 	title:SetJustifyH("LEFT")
@@ -157,14 +157,14 @@ local function CreateCompositionRow(parent)
 	icon:SetPoint("LEFT", 2, 0)
 	row.icon = icon
 
-	local count = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local count = W.CreateFontString(row, nil, "OVERLAY", "GameFontNormalSmall")
 	count:SetPoint("RIGHT", -2, 0)
 	count:SetWidth(COMP_COUNT_W)
 	count:SetJustifyH("RIGHT")
 	count:SetNonSpaceWrap(false)
 	row.count = count
 
-	local name = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local name = W.CreateFontString(row, nil, "OVERLAY", "GameFontNormalSmall")
 	name:SetPoint("LEFT", icon, "RIGHT", 4, 0)
 	name:SetPoint("RIGHT", count, "LEFT", -4, 0)
 	name:SetJustifyH("LEFT")
@@ -212,7 +212,7 @@ local function CreateClassIconChip(parent)
 	icon:SetPoint("LEFT", 0, 0)
 	chip.icon = icon
 
-	local count = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local count = W.CreateFontString(chip, nil, "OVERLAY", "GameFontNormalSmall")
 	count:SetPoint("LEFT", icon, "RIGHT", 2, 0)
 	count:SetPoint("RIGHT", chip, "RIGHT", 0, 0)
 	count:SetJustifyH("LEFT")
@@ -247,7 +247,7 @@ local function CreateRoleChip(parent)
 	icon:SetPoint("LEFT", 0, 0)
 	chip.icon = icon
 
-	local count = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local count = W.CreateFontString(chip, nil, "OVERLAY", "GameFontNormalSmall")
 	count:SetPoint("LEFT", icon, "RIGHT", 2, 0)
 	count:SetPoint("RIGHT", chip, "RIGHT", 0, 0)
 	count:SetJustifyH("LEFT")
@@ -276,7 +276,7 @@ local function CreateCompositionPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local hint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
 	hint:SetPoint("RIGHT", page, "RIGHT", -220, 0)
 	hint:SetJustifyH("LEFT")
