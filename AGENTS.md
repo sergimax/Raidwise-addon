@@ -26,11 +26,16 @@ This file is the shared source of project rules for Codex and Cursor.
 
 ## Commit messages
 
-When creating commits, use Conventional Commits: `<type>[optional scope]: <description>`.
-Use `feat` for features, `fix` for fixes, `docs` for documentation, `style` for formatting,
-`refactor` for refactoring, `perf` for performance, `test` for tests, and `chore` for tooling.
-Mark breaking changes with `!` after the type/scope or a `BREAKING CHANGE` footer.
-Example: `feat(export): add glyph socket export`.
+[Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) is the basis for commit messages in these repositories. It structures messages by change type, affected area, and a short description to make history easy to read and process.
+
+- Always include a scope: `<type>(<scope>): <description>`. Scope is required here, even though the base specification makes it optional.
+- Choose a scope describing the affected area or module, such as `settings`, `ui`, `export`, or `files`.
+- Keep the message to a concise subject describing the main outcome. Do not add a detailed change list or a full implementation summary in the commit body.
+- Update relevant documentation during development for behavior, design, and usage details; do not use commit messages as a substitute for documentation.
+- Use `feat` for features, `fix` for fixes, `docs` for documentation, `style` for formatting, `refactor` for refactoring, `perf` for performance, `test` for tests, and `chore` for tooling.
+- Mark breaking changes with `!` after the scope, as in `feat(export)!: ...`, or a concise `BREAKING CHANGE:` footer explaining the incompatibility.
+
+Example: `feat(settings): add light and dark theme toggle`.
 
 ## Versioning and changelog
 

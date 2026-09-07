@@ -5,20 +5,11 @@ alwaysApply: true
 
 # Commit Messages
 
-Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
+Read and follow the [Commit messages section in AGENTS.md](AGENTS.md#commit-messages),
+the shared source of project rules for Codex and Cursor.
 
-```
-<type>[optional scope]: <description>
-```
+The basis is [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/),
+with a required scope: `<type>(<scope>): <description>`. Keep messages concise and
+document detailed changes during development instead of listing them in commit bodies.
 
-- **feat:** new feature (MINOR)
-- **fix:** bug fix (PATCH)
-- **docs:** documentation only
-- **style:** formatting, no code change
-- **refactor:** code change that neither fixes nor adds a feature
-- **perf:** performance improvement
-- **test:** adding or updating tests
-- **chore:** build, CI, tooling
-- **BREAKING CHANGE:** use `!` after type/scope or footer (MAJOR)
-
-Example: `feat(export): add glyph socket export`
+Example: `feat(settings): add light and dark theme toggle`
