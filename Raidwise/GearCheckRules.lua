@@ -468,6 +468,15 @@ local function EvaluateGems(findings, profile, slot)
 			slot.key,
 			Msg("GEM_NOT_CHECKABLE", "inspect socket data unavailable")
 		)
+		local metaResolved = false
+		for index = 1, #gems do
+			if gems[index].isMeta then
+				metaResolved = true
+			end
+		end
+		if (tonumber(sockets.meta) or 0) > 0 and not metaResolved then
+			AddFinding(findings, "META_NOT_CHECKABLE", "info", "meta", slot.key, Msg("META_NOT_CHECKABLE", "unresolved socket data"))
+		end
 		return
 	end
 	local socketTotal = tonumber(sockets.total) or 0
@@ -488,12 +497,16 @@ local function EvaluateGems(findings, profile, slot)
 
 	local metaSockets = tonumber(sockets.meta) or 0
 	local hasMetaGem = false
+	local hasUnknownGem = false
 	for index = 1, #gems do
 		local gem = gems[index]
 		if gem.isMeta then
 			hasMetaGem = true
 		end
 		local catalog = Addon:GetGearCheckGemInfo(gem.itemId)
+		if not catalog and (not gem.color or gem.color == "unknown") then
+			hasUnknownGem = true
+		end
 		local stats = gem.stats
 		if catalog and type(catalog.stats) == "table" and (not stats or not next(stats)) then
 			stats = catalog.stats
@@ -526,10 +539,14 @@ local function EvaluateGems(findings, profile, slot)
 
 	if metaSockets > 0 then
 		if not hasMetaGem then
-			if #gems >= metaSockets then
+			if hasUnknownGem then
+				AddFinding(findings, "META_NOT_CHECKABLE", "info", "meta", slot.key, Msg("META_NOT_CHECKABLE", "unknown gem identity"))
+			elseif sockets.emptyConfirmed and (sockets.empty or 0) > 0 then
+				AddFinding(findings, "META_MISSING", "soft", "meta", slot.key, Msg("META_MISSING"))
+			elseif #gems >= math.max(metaSockets, tonumber(sockets.total) or 0) then
 				AddFinding(findings, "META_NOT_META", "hard", "meta", slot.key, Msg("META_NOT_META"))
 			else
-				AddFinding(findings, "META_MISSING", "soft", "meta", slot.key, Msg("META_MISSING"))
+				AddFinding(findings, "META_NOT_CHECKABLE", "info", "meta", slot.key, Msg("META_NOT_CHECKABLE", "socket occupancy unavailable"))
 			end
 		end
 	end
@@ -601,14 +618,21 @@ end
 
 local function CountMatchingGems(equipment)
 	local have = { red = 0, yellow = 0, blue = 0 }
+	local uncertain = false
 	for index = 1, #equipment do
 		local slot = equipment[index]
 		if slot.policy == "CHECKED" and slot.item and slot.item.gems then
 			local gems = slot.item.gems
+			if slot.item.sockets and slot.item.sockets.gemDataUncertain then
+				uncertain = true
+			end
 			for g = 1, #gems do
 				local gem = gems[g]
 				if not gem.isMeta then
 					local color = GemColor(gem)
+					if color == "unknown" then
+						uncertain = true
+					end
 					if COLOR_MATCH.red[color] then
 						have.red = have.red + 1
 					end
@@ -622,7 +646,7 @@ local function CountMatchingGems(equipment)
 			end
 		end
 	end
-	return have
+	return have, uncertain
 end
 
 local function FormatRequireBrief(requires, have)
@@ -639,7 +663,7 @@ local function FormatRequireBrief(requires, have)
 end
 
 local function EvaluateMetaActivation(findings, report, equipment)
-	local have = CountMatchingGems(equipment)
+	local have, uncertain = CountMatchingGems(equipment)
 	local metaInfo = {
 		present = false,
 		active = nil,
@@ -682,7 +706,11 @@ local function EvaluateMetaActivation(findings, report, equipment)
 							end
 						end
 						metaInfo.active = ok
-						if not ok then
+						if not ok and uncertain then
+							metaInfo.known = false
+							metaInfo.active = nil
+							AddFinding(findings, "META_NOT_CHECKABLE", "info", "meta", slot.key, Msg("META_NOT_CHECKABLE", "unknown gem colors"))
+						elseif not ok then
 							AddFinding(
 								findings,
 								"META_INACTIVE",

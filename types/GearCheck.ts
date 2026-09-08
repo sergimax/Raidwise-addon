@@ -125,6 +125,11 @@ export type GearCheckSockets = {
   blue: number;
   prismatic: number;
   total: number;
+  empty?: number;
+  emptyConfirmed?: boolean;
+  gemDataUncertain?: boolean;
+  /** Per-socket state; unresolved may mean occupancy itself is unavailable. */
+  states?: Array<"empty" | "unresolved" | "resolved">;
 };
 
 export type GearCheckEnchant = {
@@ -151,7 +156,11 @@ export type GearCheckGemColor =
 
 export type GearCheckGem = {
   socketIndex: number;
+  /** 0 when an occupied socket's gem item ID could not be resolved. */
   itemId: number;
+  /** Raw socket enchant ID, never an item ID. */
+  enchantId?: number;
+  state?: "unresolved" | "resolved";
   present: true;
   known: boolean;
   isMeta: boolean;

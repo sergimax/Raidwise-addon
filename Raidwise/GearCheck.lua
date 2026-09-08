@@ -310,39 +310,36 @@ end
 local scanTip
 local inspectGemCache = {}
 
-local function GemCacheKey(unit, slotKey, itemId, enchantId)
-	if not unit or not slotKey or not itemId then
+-- Cache only the exact equipped hyperlink, including socket enchant fields.
+-- A different link replaces the slot entry; short expiry also bounds stale reads.
+local function GemCacheKey(unit, slotKey)
+	local guid = unit and UnitGUID(unit)
+	if not guid or not slotKey then
 		return nil
 	end
-	local guid = UnitGUID(unit)
-	if not guid then
-		return nil
-	end
-	return tostring(guid) .. ":" .. tostring(slotKey) .. ":" .. tostring(itemId) .. ":" .. tostring(enchantId or 0)
+	return tostring(guid) .. ":" .. slotKey
 end
 
-local function ReadGemCache(unit, slotKey, itemId, enchantId)
-	local key = GemCacheKey(unit, slotKey, itemId, enchantId)
-	if not key then
-		return nil
+local function MergeGemReads(gems, previous)
+	local bySocket = {}
+	for index = 1, #(previous or {}) do
+		local gem = previous[index]
+		bySocket[gem.socketIndex] = gem
 	end
-	return inspectGemCache[key]
-end
-
-local function WriteGemCache(unit, slotKey, itemId, enchantId, gems)
-	local key = GemCacheKey(unit, slotKey, itemId, enchantId)
-	if not key or type(gems) ~= "table" or #gems == 0 then
-		return
-	end
-	local copy = {}
 	for index = 1, #gems do
-		copy[index] = {
-			socketIndex = gems[index].socketIndex,
-			itemId = gems[index].itemId,
-			link = gems[index].link,
-		}
+		local gem = gems[index]
+		local old = bySocket[gem.socketIndex]
+		if not old or (gem.itemId or 0) > 0 or old.enchantId ~= gem.enchantId then
+			bySocket[gem.socketIndex] = gem
+		end
 	end
-	inspectGemCache[key] = copy
+	local merged = {}
+	for socketIndex = 1, 4 do
+		if bySocket[socketIndex] then
+			merged[#merged + 1] = bySocket[socketIndex]
+		end
+	end
+	return merged
 end
 
 local function EnsureScanTip()
@@ -374,18 +371,6 @@ local function PopulateScanTip(itemLink, unit, slotId)
 		end
 	end)
 	return ok
-end
-
-local function GetItemLinkFromScanTip()
-	local tip = EnsureScanTip()
-	if not tip or type(tip.GetItem) ~= "function" then
-		return nil
-	end
-	local _, link = tip:GetItem()
-	if type(link) == "string" and link ~= "" then
-		return link
-	end
-	return nil
 end
 
 local function HideScanTip()
@@ -473,7 +458,7 @@ local function ParseItemLinkParts(itemLink)
 	return {
 		itemId = itemId,
 		enchantId = tonumber(fields[2]) or 0,
-		gemIdsFromLink = {
+		gemEnchantIds = {
 			tonumber(fields[3]) or 0,
 			tonumber(fields[4]) or 0,
 			tonumber(fields[5]) or 0,
@@ -484,88 +469,36 @@ end
 
 local function CollectGemsFromItemLink(itemLink, parsed)
 	local gems = {}
-	if type(GetItemGem) == "function" and itemLink then
-		for index = 1, 4 do
-			local _, gemLink = GetItemGem(itemLink, index)
-			if gemLink then
-				local gemId = tonumber(gemLink:match("item:(%d+)"))
-				if gemId and gemId > 0 then
-					gems[#gems + 1] = {
-						socketIndex = index,
-						itemId = gemId,
-						link = gemLink,
-					}
-				end
-			end
+	for socketIndex = 1, 4 do
+		local enchantId = parsed and parsed.gemEnchantIds[socketIndex] or 0
+		local gemLink
+		if type(GetItemGem) == "function" and itemLink then
+			local _, link = GetItemGem(itemLink, socketIndex)
+			gemLink = link
 		end
-	end
-	if #gems == 0 and parsed and parsed.gemIdsFromLink then
-		for index = 1, 4 do
-			local gemId = parsed.gemIdsFromLink[index]
-			if gemId and gemId > 0 then
-				gems[#gems + 1] = {
-					socketIndex = index,
-					itemId = gemId,
-					link = nil,
-				}
-			end
+		local itemId = type(gemLink) == "string" and tonumber(gemLink:match("item:(%d+)")) or 0
+		if (itemId or 0) > 0 or enchantId > 0 then
+			gems[#gems + 1] = {
+				socketIndex = socketIndex,
+				itemId = itemId or 0,
+				enchantId = enchantId,
+				link = gemLink,
+			}
 		end
 	end
 	return gems
 end
 
-local function CollectItemLinksForGems(itemLink, unit, slotId)
-	local links = {}
-	local seen = {}
-	local function add(link)
-		if type(link) ~= "string" or link == "" or seen[link] then
-			return
-		end
-		seen[link] = true
-		links[#links + 1] = link
-	end
-	if unit and slotId and type(GetInventoryItemLink) == "function" then
-		add(GetInventoryItemLink(unit, slotId))
-	end
-	add(itemLink)
-	return links
-end
-
 local function ScanInventorySocketData(itemLink, parsed, unit, slotId)
 	local empty = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 0 }
-	local gems = {}
-	local links = CollectItemLinksForGems(itemLink, unit, slotId)
-	for index = 1, #links do
-		local link = links[index]
-		gems = CollectGemsFromItemLink(link, ParseItemLinkParts(link) or parsed)
-		if #gems > 0 then
-			return gems, empty
-		end
-	end
-	if not unit or not slotId then
+	local gems = CollectGemsFromItemLink(itemLink, parsed)
+	if not unit or not slotId or not PopulateScanTip(itemLink, unit, slotId) then
 		return gems, empty
 	end
-	if not PopulateScanTip(itemLink, unit, slotId) then
-		return gems, empty
-	end
+	-- Tooltip population can resolve more gem links. Merge only the same snapshot.
+	gems = MergeGemReads(CollectGemsFromItemLink(itemLink, parsed), gems)
 	local tip = EnsureScanTip()
 	local tipName = tip:GetName()
-	if #gems == 0 then
-		local tipLink = GetItemLinkFromScanTip()
-		if tipLink then
-			gems = CollectGemsFromItemLink(tipLink, ParseItemLinkParts(tipLink) or parsed)
-		end
-		if #gems == 0 and type(GetInventoryItemLink) == "function" then
-			local afterTipLink = GetInventoryItemLink(unit, slotId)
-			if type(afterTipLink) == "string" and afterTipLink ~= "" then
-				gems = CollectGemsFromItemLink(afterTipLink, ParseItemLinkParts(afterTipLink) or parsed)
-			end
-		end
-	end
-	if #gems > 0 then
-		HideScanTip()
-		return gems, empty
-	end
 	local labels = BuildEmptySocketLabels()
 	local lineCount = tip:NumLines() or 0
 	for index = 1, lineCount do
@@ -573,7 +506,7 @@ local function ScanInventorySocketData(itemLink, parsed, unit, slotId)
 		local text = fontString and fontString:GetText()
 		if type(text) == "string" and text ~= "" then
 			-- Gem/enchant lines use [Name]; empty socket placeholders are plain text.
-			if not text:find("%[", 1, true) then
+			if not text:find("[", 1, true) then
 				local color = labels[strlower(text)]
 				if color then
 					empty[color] = (empty[color] or 0) + 1
@@ -587,15 +520,24 @@ local function ScanInventorySocketData(itemLink, parsed, unit, slotId)
 end
 
 local function CollectGemItemIds(itemLink, parsed, unit, slotId, slotKey)
-	local noEmpty = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 0 }
+	-- Keep gems tied to the same link used for this item's stats and identity.
 	local gems, fromTip = ScanInventorySocketData(itemLink, parsed, unit, slotId)
-	if #gems > 0 then
-		WriteGemCache(unit, slotKey, parsed and parsed.itemId, parsed and parsed.enchantId, gems)
-		return gems, noEmpty
-	end
-	local cached = ReadGemCache(unit, slotKey, parsed and parsed.itemId, parsed and parsed.enchantId)
-	if cached then
-		return cached, noEmpty
+	local key = GemCacheKey(unit, slotKey)
+	if key then
+		local cached = inspectGemCache[key]
+		local now = GetTime()
+		if cached and cached.link == itemLink and now - cached.time < 10 then
+			gems = MergeGemReads(gems, cached.gems)
+		end
+		-- Expiry is measured from the first read, not extended by cache hits.
+		local cacheTime = cached and cached.link == itemLink and now - cached.time < 10 and cached.time or now
+		local cacheable = {}
+		for index = 1, #gems do
+			if (gems[index].enchantId or 0) > 0 then
+				cacheable[#cacheable + 1] = gems[index]
+			end
+		end
+		inspectGemCache[key] = { link = itemLink, gems = cacheable, time = cacheTime }
 	end
 	return gems, fromTip
 end
@@ -668,6 +610,8 @@ local function NormalizeGem(rawGem)
 	local gem = {
 		socketIndex = rawGem.socketIndex,
 		itemId = rawGem.itemId,
+		enchantId = rawGem.enchantId,
+		state = "unresolved",
 		present = true,
 		known = false,
 		isMeta = false,
@@ -676,6 +620,10 @@ local function NormalizeGem(rawGem)
 		stats = {},
 		gaps = gaps,
 	}
+	if not rawGem.itemId or rawGem.itemId <= 0 then
+		AddGap(gaps, "GEM_INFO_UNKNOWN", "socket enchant " .. tostring(rawGem.enchantId))
+		return gem
+	end
 	local name, itemType, itemSubType
 	local ok = pcall(function()
 		name, _, _, _, _, itemType, itemSubType = GetItemInfo(rawGem.link or rawGem.itemId)
@@ -691,10 +639,11 @@ local function NormalizeGem(rawGem)
 			gem.stats = catalog.stats
 		end
 	end
-	if ok and type(name) == "string" and name ~= "" then
+	local resolvedColor = ok and LookupMappedName(gemSubTypeMap, GEM_NAME_FALLBACK, itemSubType)
+	if ok and type(name) == "string" and name ~= "" and (catalog or resolvedColor) then
 		gem.name = name
 		gem.known = true
-		local color = LookupMappedName(gemSubTypeMap, GEM_NAME_FALLBACK, itemSubType)
+		local color = resolvedColor
 		if color then
 			gem.color = color
 			gem.isMeta = color == "meta"
@@ -710,6 +659,12 @@ local function NormalizeGem(rawGem)
 		end
 	elseif not catalog then
 		AddGap(gaps, "GEM_INFO_UNKNOWN", tostring(rawGem.itemId))
+	end
+	if gem.known and gem.color ~= "unknown" then
+		gem.state = "resolved"
+	elseif not catalog then
+		-- A non-gem item returned by the client must never acquire gem stats/name.
+		gem.itemId = 0
 	end
 	return gem
 end
@@ -782,26 +737,28 @@ local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey)
 
 	if #gems > 0 then
 		layoutTotal = math.max(fromStats, #gems)
+		for index = 1, #gems do
+			layoutTotal = math.max(layoutTotal, gems[index].socketIndex)
+		end
 		remainingEmpty = math.max(0, layoutTotal - #gems)
-		emptyConfirmed = remainingEmpty > 0
+		-- Partial inspect reads do not establish empty sockets.
+		emptyConfirmed = remainingEmpty > 0 and isSelf and fromTip.total >= remainingEmpty or false
+		gemDataUncertain = remainingEmpty > 0 and not emptyConfirmed
 	elseif fromTip.total > 0 and isSelf then
 		remainingEmpty = fromTip.total
 		layoutTotal = math.max(fromStats, fromTip.total)
-		emptyConfirmed = true
-	elseif fromTip.total > 0 and fromStats == 0 then
-		remainingEmpty = fromTip.total
-		layoutTotal = fromTip.total
 		emptyConfirmed = true
 	elseif fromStats > 0 then
 		layoutTotal = fromStats
 		remainingEmpty = 0
 		emptyConfirmed = false
 		-- Inspect: layout present, no gem ids yet (or tip lied about empties).
-		gemDataUncertain = not isSelf
+		gemDataUncertain = true
 	else
 		layoutTotal = fromTip.total
 		remainingEmpty = fromTip.total
-		emptyConfirmed = fromTip.total > 0
+		emptyConfirmed = fromTip.total > 0 and isSelf or false
+		gemDataUncertain = fromTip.total > 0 and not emptyConfirmed
 	end
 
 	if fromTip.total > 0 and fromStats == 0 and #gems == 0 then
@@ -810,6 +767,18 @@ local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey)
 		sockets.yellow = fromTip.yellow
 		sockets.blue = fromTip.blue
 		sockets.prismatic = fromTip.prismatic
+	end
+	for index = 1, #gems do
+		if gems[index].state ~= "resolved" then
+			gemDataUncertain = true
+		end
+	end
+	sockets.states = {}
+	for socketIndex = 1, layoutTotal do
+		sockets.states[socketIndex] = emptyConfirmed and "empty" or "unresolved"
+	end
+	for index = 1, #gems do
+		sockets.states[gems[index].socketIndex] = gems[index].state
 	end
 	sockets.total = layoutTotal
 	sockets.empty = remainingEmpty
@@ -1449,6 +1418,9 @@ function Addon:FormatGearCheckDump(report)
 				tostring(sockets.blue or 0),
 				tostring(sockets.prismatic or 0)
 			)
+			lines[#lines + 1] = "      socketData: uncertain=" .. tostring(sockets.gemDataUncertain == true)
+				.. " emptyConfirmed=" .. tostring(sockets.emptyConfirmed == true)
+			lines[#lines + 1] = "      itemLink: " .. tostring(item.link or "-")
 			local enchant = item.enchant or {}
 			local enchantName = ResolveEnchantDumpName(enchant)
 			if enchantName then
@@ -1472,6 +1444,9 @@ function Addon:FormatGearCheckDump(report)
 				for g = 1, #item.gems do
 					local gem = item.gems[g]
 					local gemName = ResolveGemDumpName(gem)
+					lines[#lines + 1] = "      socket #" .. tostring(gem.socketIndex or g)
+						.. ": state=" .. tostring(gem.state or "unknown")
+						.. " enchantId=" .. tostring(gem.enchantId or 0)
 					if gemName then
 						gemParts[#gemParts + 1] = string.format(
 							"#%d=%s %s%s name=%s",
