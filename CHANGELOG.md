@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.20.0] - 2026-09-09
+
+### Added
+- Minimap button: left-click opens Raid roster, right-click opens Character cooldowns, and dragging saves its position; hover shows raid readiness, consumables, and account-wide character lockouts.
+- Light and dark interface themes in Settings, saved per account.
+- Personal opinion markers in chat: green, yellow, or red `<Rw>` prefixes for players with saved ratings.
+- Character profile button on Gear check (target); target scans also record the player in History.
+- Detected specialization icons and counts beneath classes in Raid composition.
+- Per-player gear/weapon and gem/enchant report icons on raid cards, with chat previews and compact findings grouped by code and slot.
+- Successful full raid scans show the last completion date and time beside the success message.
+
+### Changed
+- Raid cards retain Gear and Rescan controls; clicking the card opens Character profile, replacing the separate Profile button.
+- Settings groups tooltip controls beside a live preview; interface colors and font shadows adapt to the selected theme.
+
+### Fixed
+- Gem scans distinguish socket enchant IDs from gem item IDs and avoid stale gem reads after equipment changes.
+- Completed inspect reads can confirm empty sockets as `MISSING_GEM`; unresolved socket data is described accurately and no longer causes false missing/wrong-meta or inactive-meta findings.
+- Whispering Fanged Skull is accepted as a progression trinket for physical damage specializations.
+- Charred Twilight Scale remains valid for caster damage dealers; among healers it is accepted only for Holy Paladin, capped at B.
+
 ## [1.19.0] - 2026-09-04
 
 ### Added
