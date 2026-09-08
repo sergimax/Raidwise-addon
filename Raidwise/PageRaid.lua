@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 29
+local LAYOUT_VERSION = 30
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -1130,21 +1130,10 @@ local function CreateRaidPlayerCell(parent)
 	cell.gradesText:SetHeight(RAID_LINE_H)
 	cell.gradesText:SetJustifyH("LEFT")
 
-	local btnCount = 3
-	local btnWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2 - RAID_BTN_GAP * (btnCount - 1)) / btnCount)
-	local profileBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_PROFILE"))
-	profileBtn:SetPoint("BOTTOMLEFT", RAID_CELL_PAD, RAID_CELL_PAD)
-	W.SetPlainButtonTooltip(profileBtn, "BTN_RAID_PROFILE_TIP")
-	profileBtn:SetScript("OnClick", function()
-		if cell.member then
-			Addon:ShowRaidCharacterWindow(cell.member)
-		end
-	end)
-	profileBtn:Hide()
-	cell.profileBtn = profileBtn
-
+	local reportSize = RAID_BTN_H
+	local btnWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2 - RAID_BTN_GAP * 3 - reportSize * 2) / 2)
 	local gearBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_GEAR"))
-	gearBtn:SetPoint("LEFT", profileBtn, "RIGHT", RAID_BTN_GAP, 0)
+	gearBtn:SetPoint("BOTTOMLEFT", RAID_CELL_PAD, RAID_CELL_PAD)
 	W.SetPlainButtonTooltip(gearBtn, "BTN_RAID_GEAR_TIP")
 	gearBtn:SetScript("OnClick", function()
 		local gearEntry = cell.gearEntry
@@ -1167,6 +1156,28 @@ local function CreateRaidPlayerCell(parent)
 	end)
 	rescanBtn:Hide()
 	cell.rescanBtn = rescanBtn
+
+	cell.issueReportButtons = {}
+	local previous = rescanBtn
+	for _, category in ipairs({ "gear", "enchant" }) do
+		local reportCategory = category
+		local button = W.CreatePlainButton(cell, reportSize, reportSize, "")
+		button:SetPoint("LEFT", previous, "RIGHT", RAID_BTN_GAP, 0)
+		local icon = button:CreateTexture(nil, "ARTWORK")
+		icon:SetPoint("CENTER", 0, 0)
+		icon:SetSize(reportSize - 2, reportSize - 2)
+		W.SetSpellIconTexture(icon, category == "gear" and "Interface\\Icons\\INV_Sword_04" or "Interface\\Icons\\INV_Misc_Gem_Diamond_01")
+		local function BuildMessages()
+			return Addon:FormatGearCheckMemberIssues(cell.gearEntry and cell.gearEntry.report, reportCategory)
+		end
+		SetChatReportButtonTooltip(button, category == "gear" and "BTN_RAID_MEMBER_GEAR_REPORT_TIP" or "BTN_RAID_MEMBER_ENCHANT_REPORT_TIP", BuildMessages)
+		button:SetScript("OnClick", function()
+			SendRaidChatMessages(BuildMessages())
+		end)
+		button:Hide()
+		cell.issueReportButtons[#cell.issueReportButtons + 1] = button
+		previous = button
+	end
 
 	cell:SetScript("OnEnter", function(self)
 		if not self.member then
@@ -1354,8 +1365,8 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		cell.specIconHost:Hide()
 		FillRaidConsumableIcons(cell, nil)
 		FillGearReportRows(cell, nil, nil)
-		if cell.profileBtn then
-			cell.profileBtn:Hide()
+		for _, button in ipairs(cell.issueReportButtons or {}) do
+			button:Hide()
 		end
 		if cell.gearBtn then
 			cell.gearBtn:Hide()
@@ -1408,9 +1419,13 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	W.SetFontColor(cell.opinionText, UI.TEXT_BODY)
 
 	FillGearReportRows(cell, member, gearEntry)
-	if cell.profileBtn then
-		cell.profileBtn:Show()
-		cell.profileBtn:Enable()
+	for _, button in ipairs(cell.issueReportButtons or {}) do
+		button:Show()
+		if gearEntry and gearEntry.report then
+			button:Enable()
+		else
+			button:Disable()
+		end
 	end
 	if cell.gearBtn then
 		cell.gearBtn:Show()
@@ -1847,9 +1862,6 @@ local function ApplyLocale(page)
 			for _, column in pairs(block.columns) do
 				for slot = 1, 5 do
 					local cell = column.cells and column.cells[slot]
-					if cell and cell.profileBtn and cell.profileBtn.label then
-						cell.profileBtn.label:SetText(W.T("BTN_RAID_PROFILE"))
-					end
 					if cell and cell.gearBtn and cell.gearBtn.label then
 						cell.gearBtn.label:SetText(W.T("BTN_RAID_GEAR"))
 					end

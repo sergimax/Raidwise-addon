@@ -2141,6 +2141,48 @@ local function PackChatLines(prefix, parts, maxLen)
 	return lines
 end
 
+-- Roster reports always use code/slot groups, including unavailable checks.
+function Addon:FormatGearCheckMemberIssues(report, category)
+	if not report then
+		return {}
+	end
+	local groups, order = {}, {}
+	for _, finding in ipairs(report.findings or {}) do
+		local matches = category == "gear" and ChatFindingMatches(finding, "items")
+			or category == "enchant" and (ChatFindingMatches(finding, "enchants") or ChatFindingMatches(finding, "gems"))
+		local code = finding.code or "UNKNOWN"
+		if matches and (finding.severity == "hard" or finding.severity == "soft" or string.find(code, "NOT_CHECKABLE", 1, true)) then
+			if not groups[code] then
+				groups[code] = { slots = {}, seen = {} }
+				order[#order + 1] = code
+			end
+			local group = groups[code]
+			local slot = ChatSlotShort(report, finding.slot, true)
+			if not group.seen[slot] then
+				group.seen[slot] = true
+				group.slots[#group.slots + 1] = slot
+			end
+		end
+	end
+	local prefix = ChatPlayerName(report) .. ": "
+	local parts = {}
+	for _, code in ipairs(order) do
+		local part = code .. " - "
+		for _, slot in ipairs(groups[code].slots) do
+			if #prefix + #part + #slot + 1 > CHAT_SHORT_LINE_MAX then
+				parts[#parts + 1] = part
+				part = code .. " - "
+			end
+			part = part .. (string.sub(part, -3) == " - " and "" or ",") .. slot
+		end
+		parts[#parts + 1] = part
+	end
+	if #parts == 0 then
+		parts[1] = "No issues in this category."
+	end
+	return PackChatLines(prefix, parts, CHAT_SHORT_LINE_MAX)
+end
+
 local function ChatDetailLines(report, mode, shortForm)
 	local lines = {}
 

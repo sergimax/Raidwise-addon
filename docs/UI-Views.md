@@ -45,7 +45,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character profile | `PROFILE_LAYOUT_VERSION = 31` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 29` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 30` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 9` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 11` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -118,7 +118,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ (role)(spec) 6158gs 264ilvl ]
 [ P: (crystal)  C: 75% ]
 [ Armor A  Ench C ]
-[ Profile ][ Gear ][ Rescan ]
+[ Gear ][ Rescan ][sword][gem]
         12 px gap
 [ 6              ][ 7              ][ 8              ]
 [ player cell    ] ...
@@ -141,9 +141,9 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
 | line 3 | Compact ratings `P:` + Qiraji crystal icon (green / yellow / red) and `C: {n%}` (or `C: —`); tags stay on hover |
 | line 4 | Compact grades `Armor {S|A|B|C|D}  Ench {…}` on one line, or fail / not scanned (`—`) |
-| line 5 | **Profile** + **Gear** + **Rescan** (equal width; opens profile, gear report, or single-player rescan) |
+| line 5 | **Gear** + **Rescan** + sword and gem report icons; icons post this player's gear/weapon or gem/enchant findings grouped as `CODE - slot,slot; CODE - slot`, including unavailable checks, with chat previews on hover |
 | hover | Opinion + tags + community percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff icons and names last |
-| click | Left-click card → **Character profile**; **Profile** / **Gear check** / **Rescan** buttons do their own actions |
+| click | Left-click card → **Character profile**; **Gear check** / **Rescan** / report buttons do their own actions |
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
 
