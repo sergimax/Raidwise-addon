@@ -2669,6 +2669,60 @@ function Addon:GearCheckRulesSelfTest()
 	Check("Mighty Health → ENCHANT_LOWER_LEVEL info", HasCode(fLower, "ENCHANT_LOWER_LEVEL"))
 	Check("Mighty Health → chest not REPLACE", lowerEnch.equipment[1].verdict ~= "C")
 
+	-- Accepted physical progression trinkets must not be flagged for replacement.
+	local physicalSpecs = {
+		{ "WARRIOR", 1 }, { "WARRIOR", 2 }, { "PALADIN", 3 },
+		{ "HUNTER", 1 }, { "HUNTER", 2 }, { "HUNTER", 3 },
+		{ "ROGUE", 1 }, { "ROGUE", 2 }, { "ROGUE", 3 },
+		{ "DEATHKNIGHT", 2 }, { "DEATHKNIGHT", 3 },
+		{ "SHAMAN", 2 }, { "DRUID", 2 },
+	}
+	for specIndex = 1, #physicalSpecs do
+		local spec = physicalSpecs[specIndex]
+		local skullReport = {
+			character = { classFile = spec[1], specTab = spec[2], specKnown = true, gaps = {} },
+			equipment = {},
+		}
+		for variant = 1, 2 do
+			skullReport.equipment[variant] = MakeSlot("trinket" .. variant, "Trinket" .. (variant - 1) .. "Slot", MakeItem({
+				itemId = 50341 + variant,
+				category = "armor",
+				armorType = "misc",
+				stats = { critRating = 131 },
+			}))
+		end
+		local skullFindings = self:EvaluateGearCheck(skullReport)
+		Check(spec[1] .. spec[2] .. " accepts both Whispering Fanged Skull variants", not HasCode(skullFindings, "TRINKET_NOT_PREFERRED"))
+	end
+
+	-- Acceptable healer enchants remain B, without replacement/bad-stat findings.
+	local healerSpecs = { { "PALADIN", 1 }, { "PRIEST", 1 }, { "PRIEST", 2 }, { "SHAMAN", 3 }, { "DRUID", 3 } }
+	for specIndex = 1, #healerSpecs do
+		local spec = healerSpecs[specIndex]
+		local healerReport = {
+			character = { classFile = spec[1], specTab = spec[2], specKnown = true, gaps = {} },
+			equipment = {
+				MakeSlot("chest", "ChestSlot", MakeItem({
+					category = "armor", armorType = "cloth",
+					stats = { intellect = 80, spellPower = 100 },
+					enchant = { enchantId = 3233, present = true, known = true, gaps = {} },
+				})),
+			},
+		}
+		if (spec[1] == "PRIEST" and spec[2] == 2) or spec[1] == "DRUID" then
+			healerReport.equipment[2] = MakeSlot("wrist", "WristSlot", MakeItem({
+				category = "armor", armorType = "cloth",
+				stats = { intellect = 80, spellPower = 100, spirit = 60 },
+				enchant = { enchantId = 2326, present = true, known = true, gaps = {} },
+			}))
+		end
+		local healerFindings = self:EvaluateGearCheck(healerReport)
+		Check(spec[1] .. spec[2] .. " accepts healer enchants", not HasCode(healerFindings, "ENCHANT_BAD_STAT"))
+		for slotIndex = 1, #healerReport.equipment do
+			Check(spec[1] .. spec[2] .. " acceptable enchant slot " .. slotIndex .. " stays B", healerReport.equipment[slotIndex].verdict == "B")
+		end
+	end
+
 	local profileCount = 0
 	if self.GetGearCheckProfileCount then
 		profileCount = self:GetGearCheckProfileCount() or 0

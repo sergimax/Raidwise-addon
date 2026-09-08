@@ -4,7 +4,7 @@
 local Addon = Raidwise
 
 -- Bump when enchant/gem catalog seeds change materially (saved report dataVersion).
-Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-03"
+Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-08"
 
 -- maxLevel: Northrend (or best-in-slot-ish) enchants. stats used for appropriateness only.
 local ENCHANTS = {
