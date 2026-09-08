@@ -29,10 +29,13 @@ local gems = collect(link, parse(link))
 assert(#gems == 2 and gems[1].itemId == 0 and gems[2].enchantId == 3525)
 local unresolved = normalize(gems[2])
 assert(unresolved.state == "unresolved" and not unresolved.name)
-reads[2] = "item:40111"
+reads[2] = "item:40152"
 gems = collect(link, parse(link))
-assert(#gems == 2 and gems[1].itemId == 0 and gems[2].itemId == 40111)
-assert(normalize(gems[2]).state == "resolved")
+assert(#gems == 2 and gems[1].itemId == 0 and gems[2].itemId == 40152)
+local potent = normalize(gems[2])
+assert(potent.state == "resolved" and potent.color == "orange")
+assert(potent.stats.spellPower == 12 and potent.stats.critRating == 10)
+assert(Raidwise:GetGearCheckGemInfo(3519) == nil)
 local wrong = normalize({socketIndex=1, itemId=3525, enchantId=3525})
 assert(wrong.itemId == 0 and not wrong.name and not next(wrong.stats))
 
@@ -44,7 +47,7 @@ function GetInventoryItemLink() return link end
 local cached = collectCached(link, parse(link), "target", nil, "head")
 reads = {[1]="item:41398"}
 cached = collectCached(link, parse(link), "target", nil, "head")
-assert(cached[1].itemId == 41398 and cached[2].itemId == 40111)
+assert(cached[1].itemId == 41398 and cached[2].itemId == 40152)
 link = "item:47674:3817:3625:3518:0:0:0:0:80"
 cached = collectCached(link, parse(link), "target", nil, "head")
 assert(cached[2].itemId == 0 and cached[2].enchantId == 3518)
