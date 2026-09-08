@@ -46,7 +46,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 29` | `PageRaid.lua` | Shell title bar (next to page name) |
-| Composition | `LAYOUT_VERSION = 8` | `PageComposition.lua` | Shell title bar (next to page name) |
+| Composition | `LAYOUT_VERSION = 9` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 11` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 9` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -149,13 +149,16 @@ API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckRepo
 
 ## Raid composition
 
-Wowhead-style checklist of the current party or raid: who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered. Tracking list: [`Raid-Composition.md`](Raid-Composition.md).
+Wowhead-style checklist of the current party or raid: who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered. Tracking list: [`Raid-Composition.md`](Raid-Composition.md). Detected primary specs appear as icon/count rows beneath their corresponding class, in talent-tree order; hover for the spec name and players.
 
 ```text
 [ short description ]                   [ Report missing ] [ Refresh ]
         8 px gap
 [ Roles ]                    [ Classes ]
 [ (tank)2 (heal)6 (m)12 (r)5 ] [ W2 Pa1 Hu0 Ro1 … Dr0 ]
+                             [ spec icons + counts under each class ]
+                             [ next detected spec + count           ]
+                             [ next detected spec + count           ]
         gap
 [ Aggro              ] [ Buffs              ] [ External buffs    ]
 [ (icon) Misdirect 1 ] [ (icon) 10% stats 1 ] [ (icon) Focus Magic 0 ]

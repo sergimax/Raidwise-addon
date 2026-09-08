@@ -135,6 +135,7 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 | Top summary | full width | Roles (left) + Classes (right) on one band |
 | Role chip | icon **16** + count, width **34** | Gap **6** px (same as class chips) |
 | Class chip | icon **16** + count, width **34** | Gap **6** px; all 10 classes |
+| Spec chip | icon **16** + count, **34 x 20** | Up to 3 detected specs stacked under each class; summary grows by **20** px per row (maximum **60** px) |
 | Gap under summary | **12** px | Before 3-column checklist |
 | Columns | **3** | Equal width; `COMP_COL_GAP` **12** px |
 | Section heading | height **20** | Gold `GameFontNormal` |

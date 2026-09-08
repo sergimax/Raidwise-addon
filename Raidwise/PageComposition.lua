@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 8
+local LAYOUT_VERSION = 9
 
 local COMP_COLS = 3
 local COMP_COL_GAP = 12
@@ -318,6 +318,7 @@ local function CreateCompositionPage(parent)
 	page.headings = {}
 	page.rows = {}
 	page.classIcons = {}
+	page.specIcons = {}
 	page.roleChips = {}
 
 	local vBar = W.CreateCooldownScrollBar(tableHost, "VERTICAL")
@@ -391,6 +392,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 	end
 
 	page.classIcons = page.classIcons or {}
+	page.specIcons = page.specIcons or {}
 	page.roleChips = page.roleChips or {}
 
 	local headingIndex = 0
@@ -473,6 +475,8 @@ function Addon:RefreshCompositionView(refreshGearScore)
 	end
 
 	local classes = analysis.classes or {}
+	local specIconIndex = 0
+	local maxSpecRows = 0
 	W.HidePoolFrom(page.classIcons, #classes + 1)
 	for classIndex = 1, #classes do
 		local entry = classes[classIndex]
@@ -508,8 +512,29 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			chip.tooltipProviders = W.T("COMP_MISSING")
 		end
 		chip:Show()
+
+		local specs = entry.specs or {}
+		maxSpecRows = math.max(maxSpecRows, #specs)
+		for specIndex = 1, #specs do
+			local spec = specs[specIndex]
+			specIconIndex = specIconIndex + 1
+			local specChip = page.specIcons[specIconIndex]
+			if not specChip then
+				specChip = CreateClassIconChip(content)
+				page.specIcons[specIconIndex] = specChip
+			end
+			specChip:ClearAllPoints()
+			specChip:SetPoint("TOPLEFT", chip, "TOPLEFT", 0, -specIndex * COMP_ROW_H)
+			W.SetSpecOrClassIcon(specChip.icon, spec.icon or "Interface\\Icons\\INV_Misc_QuestionMark", entry.class)
+			specChip.count:SetText(tostring(spec.count))
+			W.SetFontColor(specChip.count, UI.GOLD)
+			specChip.tooltipTitle = (entry.label or entry.class) .. " - " .. spec.label
+			specChip.tooltipProviders = W.T("COMP_PROVIDERS", JoinNames(spec.names))
+			specChip:Show()
+		end
 	end
-	yTop = yTop - COMP_ROW_H - COMP_TOP_GAP
+	W.HidePoolFrom(page.specIcons, specIconIndex + 1)
+	yTop = yTop - (1 + maxSpecRows) * COMP_ROW_H - COMP_TOP_GAP
 
 	-- Masonry effect sections (no Roles)
 	local blocks = {}

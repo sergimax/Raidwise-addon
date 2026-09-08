@@ -23,6 +23,8 @@ Already used on Raid roster. Counted here from the same tank / healer / melee / 
 
 Top summary (right of Roles) lists all **10** WotLK classes in fixed order with a player count next to each icon. Present classes are full/gold; missing classes are dim (`0`). Tooltip shows who is in the raid for that class, or Missing. **Report missing** posts the absent class names to the report chat channel (Settings).
 
+Detected primary talent trees from the roster scan are listed vertically beneath each class as spec icons with player counts, in talent-tree order. Hover a spec to see its name and players. Only detected specs are shown; players whose spec is still unknown remain in the class total. Counts update as scan results arrive and when the roster changes.
+
 ## Buffs
 
 Raid-wide stat and throughput buffs. Spells in the same row **do not stack**.
