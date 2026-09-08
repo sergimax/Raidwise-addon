@@ -872,6 +872,14 @@ local function SetRaidProgressIdleText(page)
 		page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_EXPORT_READY"))
 		return
 	end
+	if page.lastFullScanAt then
+		page.gearCheckStatusLabel:SetText(W.T(
+			"GEAR_CHECK_RAID_STATUS_DONE",
+			page.lastFullScanCount,
+			date("%d %b %H:%M:%S", page.lastFullScanAt)
+		))
+		return
+	end
 	page.gearCheckStatusLabel:SetText("")
 end
 
@@ -1502,11 +1510,17 @@ local function RunGearCheckRaidScan(page)
 			page.gearCheckResults = results
 			SetRaidBusyButtons(page, false)
 			SetRaidProgress(page, 0, 1, false)
+			if status == "ok" then
+				page.lastFullScanAt = time()
+				page.lastFullScanCount = #results
+			end
 			if page.gearCheckStatusLabel then
 				if status == "empty" then
 					page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_EMPTY"))
+				elseif status == "ok" then
+					SetRaidProgressIdleText(page)
 				else
-					page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_RAID_STATUS_DONE", #results))
+					page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_STATUS_FAIL"))
 				end
 			end
 			Addon:RefreshRaidRosterView(false)

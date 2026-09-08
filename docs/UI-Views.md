@@ -134,7 +134,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | flask / food | `Flask n/total` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Missing names and `(n missing)` live in the hover tip. Out of range / offline are not listed as missing |
 | armor / ench | S / A / B / C / D counts (+ Failed). Dim until first scan (`Press Scan to check.`) |
 | report icon | Same Battle Shout icon on every status cell; hover (cell or icon) shows the flask / food / armor / ench tip, current counts, plus a preview of the chat line(s) that will be posted |
-| scan status | Below the mini table; reserved **28** px; scan/export/rescan text (empty when idle) |
+| scan status | Below the mini table; reserved **28** px; scan/export/rescan text. After a successful full scan, shows the completion message, player count, and last full-scan date/time (local clock, including seconds). Restored when returning from export or refreshing locale; individual rescans do not change the full-scan timestamp. Before the first full scan, idle text is empty. |
 | progress bar | Below status (**4** px gap); height **14**; track always reserved |
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
 | line 1 | Class icon + class-colored name; **flask** and **food** status icons on the right (14 px). Full color = active buff (flask, or battle + guardian elixirs); red tint = missing; dim = out of range or offline. Hover shows the buff name or status. |
