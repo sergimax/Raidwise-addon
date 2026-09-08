@@ -157,6 +157,65 @@ end
 
 local themeBindings = setmetatable({}, { __mode = "k" })
 local fontShadows = setmetatable({}, { __mode = "k" })
+local inlineTextBindings = setmetatable({}, { __mode = "k" })
+local applyingText = false
+
+local function Luminance(color)
+	local function Linear(value)
+		return value <= 0.04045 and value / 12.92 or ((value + 0.055) / 1.055) ^ 2.4
+	end
+	return 0.2126 * Linear(color[1]) + 0.7152 * Linear(color[2]) + 0.0722 * Linear(color[3])
+end
+
+local function TextBackgroundLuminance()
+	local light = Addon:GetTheme() == "light"
+	local value = Luminance(UI.PANEL_BG)
+	for _, key in ipairs({ "TITLE_BG", "INPUT_BG", "CD_ROW_A", "CD_ROW_B", "BTN_IDLE", "BTN_HOVER", "BTN_SELECTED", "BTN_DISABLED" }) do
+		local background = Luminance(UI[key])
+		value = light and math.min(value, background) or math.max(value, background)
+	end
+	return value
+end
+
+-- Preserve the source hue as far as possible while keeping small UI text legible.
+-- Only addon text is adjusted; icons, class definitions, and game tooltips retain their colors.
+function W.ReadableTextColor(color)
+	local background = TextBackgroundLuminance()
+	local function Contrast(candidate)
+		local foreground = Luminance(candidate)
+		return (math.max(foreground, background) + 0.05) / (math.min(foreground, background) + 0.05)
+	end
+	if Contrast(color) >= 4.5 then
+		return color
+	end
+	local target = Addon:GetTheme() == "light" and 0 or 1
+	local low, high = 0, 1
+	local adjusted = { color[1], color[2], color[3], color[4] or 1 }
+	for iteration = 1, 14 do
+		local amount = (low + high) / 2
+		for channel = 1, 3 do
+			adjusted[channel] = color[channel] + (target - color[channel]) * amount
+		end
+		if Contrast(adjusted) >= 4.5 then high = amount else low = amount end
+	end
+	for channel = 1, 3 do
+		adjusted[channel] = color[channel] + (target - color[channel]) * high
+	end
+	return adjusted
+end
+
+local function ApplyInlineText(fontString, text)
+	if type(text) ~= "string" then return end
+	local formatted = text:gsub("|c(%x%x)(%x%x)(%x%x)(%x%x)", function(alpha, red, green, blue)
+		local color = W.ReadableTextColor({ tonumber(red, 16) / 255, tonumber(green, 16) / 255, tonumber(blue, 16) / 255 })
+		-- Round toward higher contrast when encoding the adjusted color.
+		local round = Addon:GetTheme() == "light" and math.floor or math.ceil
+		return string.format("|c%s%02x%02x%02x", alpha, round(color[1] * 255), round(color[2] * 255), round(color[3] * 255))
+	end)
+	applyingText = true
+	fontString:SetText(formatted)
+	applyingText = false
+end
 
 local function ApplyFontShadow(fontString)
 	if not fontString.GetShadowOffset or not fontString.SetShadowOffset
@@ -191,16 +250,22 @@ local function SetThemeColor(region, method, color)
 	end
 	if not bindings[method] then
 		-- Direct color changes (class colors, hover effects) release the old binding.
-		hooksecurefunc(region, method, function()
+		hooksecurefunc(region, method, function(_, red, green, blue, alpha)
 			if not applyingColor then
-				bindings[method].color = nil
+				if method == "SetTextColor" then
+					-- Class colors and direct hover changes also need theme-aware contrast.
+					SetThemeColor(region, method, { red, green, blue, alpha or 1 })
+				else
+					bindings[method].color = nil
+				end
 			end
 		end)
 		bindings[method] = {}
 	end
 	bindings[method].color = color
+	local rendered = method == "SetTextColor" and W.ReadableTextColor(color) or color
 	applyingColor = true
-	region[method](region, color[1], color[2], color[3], color[4] or 1)
+	region[method](region, rendered[1], rendered[2], rendered[3], rendered[4] or 1)
 	applyingColor = false
 end
 
@@ -238,6 +303,9 @@ function Addon:ApplyTheme()
 	end
 	for fontString in pairs(fontShadows) do
 		ApplyFontShadow(fontString)
+	end
+	for fontString, binding in pairs(inlineTextBindings) do
+		ApplyInlineText(fontString, binding.text)
 	end
 end
 
@@ -371,6 +439,17 @@ end
 
 function W.SetFontColor(fontString, color)
 	ApplyFontShadow(fontString)
+	if fontString.GetObjectType and fontString:GetObjectType() == "FontString" and not inlineTextBindings[fontString] then
+		local binding = { text = fontString:GetText() }
+		inlineTextBindings[fontString] = binding
+		hooksecurefunc(fontString, "SetText", function(_, text)
+			if not applyingText then
+				binding.text = text
+				ApplyInlineText(fontString, text)
+			end
+		end)
+		ApplyInlineText(fontString, binding.text)
+	end
 	SetThemeColor(fontString, "SetTextColor", color)
 end
 

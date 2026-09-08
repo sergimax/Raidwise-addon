@@ -559,7 +559,7 @@ function Addon:RefreshCooldownTable()
 		yOffset = yOffset + rowHeight
 		local stripe = (rowIndex % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
 		row.stripe = stripe
-		row:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+		W.SetBackdropColor(row, stripe)
 		if rowData.kind == "currency" then
 			ConfigureCurrencyRowHeading(row, rowData.name, rowData.entrySummaries or rowData.entryLabels)
 		else

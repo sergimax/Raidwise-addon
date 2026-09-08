@@ -192,7 +192,7 @@ local function FillGearCategorySummaryLabel(label, heading, summary)
 	local prefix = SummaryHeadingPrefix(heading)
 	local scanned = (summary and summary.scanned) or 0
 	local failed = (summary and summary.failed) or 0
-	label:SetTextColor(1, 1, 1, 1)
+	W.SetFontColor(label, UI.TEXT_BODY)
 	if scanned + failed <= 0 then
 		label:SetText(prefix .. WrapThemeColor(UI.TEXT_DISABLED, W.T("RAID_GRADE_SUMMARY_EMPTY")))
 		return
@@ -359,7 +359,7 @@ local function FillConsumableSummaryLabel(label, heading, present, total, missin
 		return
 	end
 	local prefix = SummaryHeadingPrefix(heading)
-	label:SetTextColor(1, 1, 1, 1)
+	W.SetFontColor(label, UI.TEXT_BODY)
 	local cell = label:GetParent()
 	if cell then
 		cell.missingCount = missingCount or 0
@@ -1181,7 +1181,7 @@ local function CreateRaidPlayerCell(parent)
 	end)
 	cell:SetScript("OnLeave", function(self)
 		local stripe = self.stripe or UI.CD_ROW_A
-		self:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+		W.SetBackdropColor(self, stripe)
 		GameTooltip:Hide()
 	end)
 	cell:SetScript("OnClick", function(self)
@@ -1341,7 +1341,7 @@ end
 
 local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	cell.stripe = stripe
-	cell:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+	W.SetBackdropColor(cell, stripe)
 
 	if not member then
 		cell.member = nil
@@ -1403,9 +1403,9 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 
 	FillRaidConsumableIcons(cell, member)
 
-	-- Embedded |cff colors for symbol vs community; keep base text white.
+	-- Embedded colors mark ratings; uncolored separators use the theme body color.
 	cell.opinionText:SetText(FormatRatingCellLine(member))
-	cell.opinionText:SetTextColor(1, 1, 1, 1)
+	W.SetFontColor(cell.opinionText, UI.TEXT_BODY)
 
 	FillGearReportRows(cell, member, gearEntry)
 	if cell.profileBtn then

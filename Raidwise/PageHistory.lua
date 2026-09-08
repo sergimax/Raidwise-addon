@@ -129,7 +129,7 @@ local function CreateHistoryRow(parent)
 	end)
 	row:SetScript("OnLeave", function(self)
 		local stripe = self.stripe or UI.CD_ROW_A
-		self:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+		W.SetBackdropColor(self, stripe)
 		GameTooltip:Hide()
 	end)
 	row:SetScript("OnClick", function(self)
@@ -282,7 +282,7 @@ function Addon:RefreshHistoryView()
 		row:SetSize(tableW, UI.CD_ROW_H)
 		local stripe = (rowIndex % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
 		row.stripe = stripe
-		row:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+		W.SetBackdropColor(row, stripe)
 		row.member = member
 
 		row.nameText:SetText(member.name or "")
@@ -295,7 +295,7 @@ function Addon:RefreshHistoryView()
 		local opinionIcon = W.IconMarkup(W.RatingOpinionIcon(member), 16)
 		if opinionIcon ~= "" then
 			row.opinionText:SetText(opinionIcon)
-			row.opinionText:SetTextColor(1, 1, 1, 1)
+			W.SetFontColor(row.opinionText, UI.TEXT_BODY)
 		else
 			row.opinionText:SetText(W.RatingOpinionSymbol(member))
 			W.SetFontColor(row.opinionText, W.RatingOpinionColor(member))
