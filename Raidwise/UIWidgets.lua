@@ -156,6 +156,32 @@ for key in pairs(lightPalette) do
 end
 
 local themeBindings = setmetatable({}, { __mode = "k" })
+local fontShadows = setmetatable({}, { __mode = "k" })
+
+local function ApplyFontShadow(fontString)
+	if not fontString.GetShadowOffset or not fontString.SetShadowOffset
+		or not fontString.GetShadowColor or not fontString.SetShadowColor then
+		return
+	end
+	local shadow = fontShadows[fontString]
+	if not shadow then
+		local x, y = fontString:GetShadowOffset()
+		shadow = { x = x, y = y, color = { fontString:GetShadowColor() } }
+		fontShadows[fontString] = shadow
+		-- Pooled rows can reassign their font object after creation.
+		hooksecurefunc(fontString, "SetFontObject", function()
+			ApplyFontShadow(fontString)
+		end)
+	end
+	if Addon:GetTheme() == "light" then
+		fontString:SetShadowOffset(0, 0)
+		fontString:SetShadowColor(0, 0, 0, 0)
+	else
+		fontString:SetShadowOffset(shadow.x, shadow.y)
+		fontString:SetShadowColor(unpack(shadow.color))
+	end
+end
+
 local applyingColor = false
 local function SetThemeColor(region, method, color)
 	local bindings = themeBindings[region]
@@ -209,6 +235,9 @@ function Addon:ApplyTheme()
 				SetThemeColor(region, method, binding.color)
 			end
 		end
+	end
+	for fontString in pairs(fontShadows) do
+		ApplyFontShadow(fontString)
 	end
 end
 
@@ -341,6 +370,7 @@ function W.CreateProgressBar(parent, height)
 end
 
 function W.SetFontColor(fontString, color)
+	ApplyFontShadow(fontString)
 	SetThemeColor(fontString, "SetTextColor", color)
 end
 
