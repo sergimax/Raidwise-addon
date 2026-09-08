@@ -466,7 +466,7 @@ local function EvaluateGems(findings, profile, slot)
 			"info",
 			"gem",
 			slot.key,
-			Msg("GEM_NOT_CHECKABLE", "inspect socket data unavailable")
+			"Socket contents are unavailable or unresolved from inspect; empty sockets are not confirmed."
 		)
 		local metaResolved = false
 		for index = 1, #gems do

@@ -356,12 +356,14 @@ local function PopulateScanTip(itemLink, unit, slotId)
 	if not tip then
 		return false
 	end
+	local inventoryRead = false
 	local ok = pcall(function()
 		tip:SetOwner(UIParent, "ANCHOR_NONE")
 		tip:ClearLines()
 		if unit and slotId and type(tip.SetInventoryItem) == "function" then
 			tip:SetInventoryItem(unit, slotId)
 			if (tip:NumLines() or 0) > 0 then
+				inventoryRead = true
 				return
 			end
 			tip:ClearLines()
@@ -370,7 +372,7 @@ local function PopulateScanTip(itemLink, unit, slotId)
 			tip:SetHyperlink(itemLink)
 		end
 	end)
-	return ok
+	return ok, ok and inventoryRead
 end
 
 local function HideScanTip()
@@ -458,6 +460,8 @@ local function ParseItemLinkParts(itemLink)
 	return {
 		itemId = itemId,
 		enchantId = tonumber(fields[2]) or 0,
+		gemFieldsComplete = tonumber(fields[3]) ~= nil and tonumber(fields[4]) ~= nil
+			and tonumber(fields[5]) ~= nil and tonumber(fields[6]) ~= nil,
 		gemEnchantIds = {
 			tonumber(fields[3]) or 0,
 			tonumber(fields[4]) or 0,
@@ -492,9 +496,14 @@ end
 local function ScanInventorySocketData(itemLink, parsed, unit, slotId)
 	local empty = { meta = 0, red = 0, yellow = 0, blue = 0, prismatic = 0, total = 0 }
 	local gems = CollectGemsFromItemLink(itemLink, parsed)
-	if not unit or not slotId or not PopulateScanTip(itemLink, unit, slotId) then
+	if not unit or not slotId then
 		return gems, empty
 	end
+	local populated, inventoryRead = PopulateScanTip(itemLink, unit, slotId)
+	if not populated then
+		return gems, empty
+	end
+	empty.inventoryRead = inventoryRead
 	-- Tooltip population can resolve more gem links. Merge only the same snapshot.
 	gems = MergeGemReads(CollectGemsFromItemLink(itemLink, parsed), gems)
 	local tip = EnsureScanTip()
@@ -505,6 +514,7 @@ local function ScanInventorySocketData(itemLink, parsed, unit, slotId)
 		local fontString = _G[tipName .. "TextLeft" .. index]
 		local text = fontString and fontString:GetText()
 		if type(text) == "string" and text ~= "" then
+			text = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):match("^%s*(.-)%s*$")
 			-- Gem/enchant lines use [Name]; empty socket placeholders are plain text.
 			if not text:find("[", 1, true) then
 				local color = labels[strlower(text)]
@@ -695,7 +705,7 @@ local function ItemInfoBundle(itemId, itemLink)
 	}
 end
 
-local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey)
+local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey, inspectReady)
 	local gaps = {}
 	local stats, sockets, statGaps = CollectStatsAndSockets(itemLink or parsed.itemId)
 	for index = 1, #statGaps do
@@ -725,10 +735,12 @@ local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey)
 
 	-- Resolve socket totals carefully:
 	-- GetItemStats EMPTY_SOCKET_* is layout (still present when gemmed).
-	-- When gems are detected, derive empties from layout − gem count (ignore tooltip).
-	-- Tooltip empty lines are reliable for self; on inspect they often show layout
-	-- as "empty" before gem ids arrive — never treat that as confirmed missing.
+	-- When gems are detected, derive empty counts from layout minus gem count.
+	-- Inspect placeholders can show the layout before gem data arrives; wait for readiness.
 	local isSelf = unit and type(UnitIsUnit) == "function" and UnitIsUnit(unit, "player")
+	-- Require a completed inspect, explicit gem fields, and an inventory tooltip.
+	-- A hyperlink fallback or a pre-inspect placeholder cannot confirm empties.
+	local canConfirmEmpty = isSelf or (inspectReady and parsed.gemFieldsComplete and fromTip.inventoryRead)
 	local fromStats = sockets.total
 	local layoutTotal = fromStats
 	local remainingEmpty = 0
@@ -742,9 +754,9 @@ local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey)
 		end
 		remainingEmpty = math.max(0, layoutTotal - #gems)
 		-- Partial inspect reads do not establish empty sockets.
-		emptyConfirmed = remainingEmpty > 0 and isSelf and fromTip.total >= remainingEmpty or false
+		emptyConfirmed = remainingEmpty > 0 and canConfirmEmpty and fromTip.total == remainingEmpty or false
 		gemDataUncertain = remainingEmpty > 0 and not emptyConfirmed
-	elseif fromTip.total > 0 and isSelf then
+	elseif fromTip.total > 0 and canConfirmEmpty and fromTip.total >= fromStats then
 		remainingEmpty = fromTip.total
 		layoutTotal = math.max(fromStats, fromTip.total)
 		emptyConfirmed = true
@@ -757,7 +769,7 @@ local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey)
 	else
 		layoutTotal = fromTip.total
 		remainingEmpty = fromTip.total
-		emptyConfirmed = fromTip.total > 0 and isSelf or false
+		emptyConfirmed = fromTip.total > 0 and canConfirmEmpty or false
 		gemDataUncertain = fromTip.total > 0 and not emptyConfirmed
 	end
 
@@ -810,7 +822,7 @@ local function NormalizeItem(parsed, itemLink, info, unit, slotId, slotKey)
 	}
 end
 
-local function CollectSlot(unit, def)
+local function CollectSlot(unit, def, inspectReady)
 	local slotId = GetInventorySlotInfo(def.slotName)
 	local gaps = {}
 	local entry = {
@@ -875,7 +887,7 @@ local function CollectSlot(unit, def)
 	end
 
 	local info = ItemInfoBundle(parsed.itemId, itemLink)
-	local item = NormalizeItem(parsed, itemLink, info, unit, slotId, def.key)
+	local item = NormalizeItem(parsed, itemLink, info, unit, slotId, def.key, inspectReady)
 
 	if entry.policy == "CHECKED" and item.isRelic then
 		entry.policy = "IGNORED"
@@ -1154,7 +1166,7 @@ function Addon:CollectGearCheck(unit)
 	local identity = CollectClassSpec(unit, inspectReady)
 	local equipment = {}
 	for index = 1, #SLOT_DEFS do
-		equipment[#equipment + 1] = CollectSlot(unit, SLOT_DEFS[index])
+		equipment[#equipment + 1] = CollectSlot(unit, SLOT_DEFS[index], inspectReady)
 	end
 
 	local filled, checked = CountFilledCheckedSlots(equipment)

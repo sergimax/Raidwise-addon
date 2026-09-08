@@ -363,7 +363,7 @@ local PROFILES = {
 	["WARRIOR-3"] = Profile("Protection", A_PLATE_TANK, S_WARRIOR_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinketPool = "tank", trinketAlsoAllow = "phys" }),
 
 	-- Paladin
-	["PALADIN-1"] = Profile("Holy", A_PLATE_HOLY, S_PALADIN_HOLY, W_1H_SHIELD, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield", trinketPool = "healer" }),
+	["PALADIN-1"] = Profile("Holy", A_PLATE_HOLY, S_PALADIN_HOLY, W_1H_SHIELD, { 41376, 41401, 41395 }, { weaponSetup = "1h_shield", trinketPool = "holyPaladin" }),
 	["PALADIN-2"] = Profile("Protection", A_PLATE_TANK, S_PALADIN_PROT, W_1H_SHIELD, { 41397, 41396, 41380 }, { weaponSetup = "1h_shield", trinketPool = "tank", trinketAlsoAllow = "ret" }),
 	["PALADIN-3"] = Profile("Retribution", A_PLATE_DPS, S_PALADIN_RET, W_2H_MELEE, { 41398, 41285 }, { weaponSetup = "2h", trinketPool = "ret" }),
 

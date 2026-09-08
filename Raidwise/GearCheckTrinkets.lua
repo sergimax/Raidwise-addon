@@ -84,7 +84,7 @@ local P_CASTER = Ids(TR_CHARRED, TR_PHYLACTERY, TR_DISLODGED)
 local A_CASTER = Ids(P_CASTER, TR_REIGN, TR_SUNDIAL, TR_VOLATILE, TR_JETZE, TR_SHARD_HEART, TR_ILLUSTRATION, TR_FLARE, TR_EYE_BROOD, TR_TALISMAN_RESURGENCE)
 
 local P_HEALER = Ids(TR_GLOWING, TR_ALTHORS, TR_SOLACE, TR_PURIFIED, TR_METEORITE, TR_TALISMAN_RESURGENCE)
-local A_HEALER = Ids(P_HEALER, TR_CHARRED, TR_JETZE, TR_SCALE_FATES, TR_SHARD_HEART)
+local A_HEALER = Ids(P_HEALER, TR_JETZE, TR_SCALE_FATES, TR_SHARD_HEART)
 
 local P_TANK = Ids(TR_FANG, TR_PETRIFIED, TR_SKELETON, TR_SATRINA, TR_JUGGERNAUT, TR_EITRIGG)
 local A_TANK = Ids(P_TANK, TR_ICKS_THUMB, TR_GLYPH_INDOMITABILITY, TR_BLACK_HEART, TR_ESSENCE_GOSSAMER, TR_DARK_MATTER_ICC)
@@ -98,6 +98,8 @@ Addon.GearCheckTrinketPools = {
 	hunter = { preferred = P_HUNTER, allowed = A_HUNTER },
 	caster = { preferred = P_CASTER, allowed = A_CASTER },
 	healer = { preferred = P_HEALER, allowed = A_HEALER },
+	-- Charred is a B-only healer option for Holy Paladin.
+	holyPaladin = { preferred = P_HEALER, allowed = Ids(A_HEALER, TR_CHARRED) },
 	tank = { preferred = P_TANK, allowed = A_TANK },
 	enhance = { preferred = P_ENHANCE, allowed = A_ENHANCE },
 }

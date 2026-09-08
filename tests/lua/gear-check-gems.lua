@@ -96,3 +96,74 @@ head.item.gems = {{itemId=41398,isMeta=true,color="meta"}}
 findings = {}
 evaluateGems(findings, profile, head)
 assert(has(findings,"MISSING_GEM"))
+
+-- Inspect placeholders only establish empties after the inventory data is ready.
+local tooltipLines = {}
+local inventoryAvailable = true
+function CreateFrame(_, name)
+    return {
+        Hide = function() end, SetOwner = function() end, ClearLines = function() end,
+        SetInventoryItem = function() end, SetHyperlink = function() end,
+        GetName = function() return name end,
+        NumLines = function() return inventoryAvailable and #tooltipLines or 0 end,
+    }
+end
+EMPTY_SOCKET_RED = "Красное гнездо"
+EMPTY_SOCKET_META = "Особое гнездо"
+local function setTooltip(lines)
+    tooltipLines = lines
+    for index, text in ipairs(lines) do
+        local lineText = text
+        _G["RaidwiseGearCheckScanTipTextLeft" .. index] = { GetText = function() return lineText end }
+    end
+end
+reads = {}
+link = "item:51137:0:0:0:0:0:0:0:80"
+setTooltip({"Test helm", "|cffffffffОсобое гнездо|r", "  Красное гнездо  "})
+item = normalizeItem(parse(link), link, info, "target", 1, "head", false)
+assert(item.sockets.gemDataUncertain and not item.sockets.emptyConfirmed)
+item = normalizeItem(parse(link), link, info, "target", 1, "head", true)
+assert(item.sockets.empty == 2 and item.sockets.emptyConfirmed and not item.sockets.gemDataUncertain)
+assert(item.sockets.states[1] == "empty" and item.sockets.states[2] == "empty")
+findings = {}
+evaluateGems(findings, profile, {key="head", policy="CHECKED", item=item})
+assert(has(findings, "MISSING_GEM") and not has(findings, "GEM_NOT_CHECKABLE"))
+local shortLink = "item:51137"
+item = normalizeItem(parse(shortLink), shortLink, info, "target", 1, "head", true)
+assert(item.sockets.gemDataUncertain and not item.sockets.emptyConfirmed)
+inventoryAvailable = false
+item = normalizeItem(parse(link), link, info, "target", 1, "head", true)
+assert(item.sockets.gemDataUncertain and not item.sockets.emptyConfirmed)
+inventoryAvailable = true
+
+-- One filled socket plus one confirmed empty socket is still missing a gem.
+link = "item:51137:0:3625:0:0:0:0:0:80"
+reads = {[1]="item:41398"}
+setTooltip({"Test helm", "Красное гнездо"})
+item = normalizeItem(parse(link), link, info, "target", 1, "head", true)
+assert(item.sockets.empty == 1 and item.sockets.emptyConfirmed and not item.sockets.gemDataUncertain)
+-- A present but unresolved gem is never classified as empty.
+reads = {}
+link = "item:51137:0:99999:0:0:0:0:0:80"
+item = normalizeItem(parse(link), link, info, "target", 1, "head", true)
+assert(item.sockets.gemDataUncertain and item.sockets.states[1] == "unresolved")
+
+-- Both Charred Twilight Scale variants: caster DPS, B-only Holy Paladin, C other healers.
+for _, itemId in ipairs({54572, 54588}) do
+    for _, spec in ipairs({{"PALADIN",1,"B"}, {"DRUID",3,"C"}, {"PRIEST",1,"C"}, {"PRIEST",2,"C"}, {"SHAMAN",3,"C"}, {"MAGE",1,"A"}}) do
+        local trinketReport = {
+            character={classFile=spec[1],specTab=spec[2],specKnown=true},
+            equipment={{key="trinket1",policy="CHECKED",item={
+                itemId=itemId,infoKnown=true,category="armor",armorType="misc",equipLoc="INVTYPE_TRINKET",
+                stats={hasteRating=184},sockets={total=0},gems={},enchant={present=false},
+            }}},
+        }
+        Raidwise:EvaluateGearCheck(trinketReport)
+        local verdict = trinketReport.equipment[1].verdict
+        if spec[1] == "MAGE" then
+            assert(verdict == "A" or verdict == "S", verdict)
+        else
+            assert(verdict == spec[3], spec[1] .. " " .. tostring(verdict))
+        end
+    end
+end
