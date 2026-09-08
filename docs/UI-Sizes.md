@@ -102,7 +102,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/armor/ench), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 29`.
+Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/armor/ench), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 30`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -113,8 +113,8 @@ Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/a
 | Row 2 status | four equal cells, **8** px gaps, **20** tall | Gold name + compact counts, **16×16** Battle Shout report icon on the right |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
-| Player cell | **168 × 100** | Five rows: class+name+flask/food, role+spec+GS/iLvl, compact `P:`/`C:` ratings, compact armor+ench grades, **Profile** + **Gear** + **Rescan**. Raid-buff icons moved to hover tip |
-| Cell buttons | **16** tall | One row of three equal buttons (~**52** px each). Gear check disabled until scanned; Rescan disabled while any scan/export runs |
+| Player cell | **168 × 100** | Five rows: class+name+flask/food, role+spec+GS/iLvl, compact `P:`/`C:` ratings, compact armor+ench grades, **Gear** + **Rescan** + sword/gem report icons. Raid-buff icons moved to hover tip |
+| Cell buttons | **16** tall | One row: two **61** px text buttons and two **16 x 16** report icons, **2** px gaps. Gear and reports disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
@@ -135,6 +135,7 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 | Top summary | full width | Roles (left) + Classes (right) on one band |
 | Role chip | icon **16** + count, width **34** | Gap **6** px (same as class chips) |
 | Class chip | icon **16** + count, width **34** | Gap **6** px; all 10 classes |
+| Spec chip | icon **16** + count, **34 x 20** | Up to 3 detected specs stacked under each class; summary grows by **20** px per row (maximum **60** px) |
 | Gap under summary | **12** px | Before 3-column checklist |
 | Columns | **3** | Equal width; `COMP_COL_GAP` **12** px |
 | Section heading | height **20** | Gold `GameFontNormal` |
@@ -143,7 +144,7 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
-Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**~144** px): multi-line status, **Scan**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 10`.
+Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**176** px): multi-line status, **Scan**, **Character profile**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 11`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -207,6 +208,10 @@ Rows are clickable and open Character profile. Notes are stored on the history r
 
 ## Settings tab
 
+Theme toggle: **160 x 28**, 24 px to the right of the Russian language button; no added vertical space. Light uses warm pale panels and dark text; dark retains the original palette. Choice is saved in `RaidwiseDB.theme`.
+
+Addon labels and text inputs have no text shadow in the light theme. Switching back to dark restores each region's original shadow; shared Blizzard font objects and game tooltips are unchanged.
+
 Language heading, hint, then two **120 × 28** locale buttons (**English**, **Русский**) with an 8 px gap. Selected button uses the same gold fill as the left menu.
 
 Below: **Startup page** heading, hint, then an **4-column** radio group (`UIRadioButtonTemplate`, **16** px, row **22**, 8 px gaps); selected page is stored in `RaidwiseDB.startupTab`.
@@ -215,7 +220,9 @@ Below: **Report chat channel** heading, hint, then an **4-column** radio group (
 
 Below: **Gear check report form** heading, hint, then **Short** / **Full** radios (`RaidwiseDB.reportForm`, default `short`).
 
-Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels, then **Preview** with compact + stacked sample blocks (`LAYOUT_VERSION = 8`).
+Category bars: **28** px high, **16** pt gold text, theme-aware `TITLE_BG` fill, **3** px gold left accent, **10** px text inset; **20** px gap above each subsequent category. Hint/control content uses the same **10** px inset; radio grids use inner width minus **20** px.
+
+Below: **Unit tooltips** category bar and hint, then one shared panel with **10** px padding. Left: **360** px options column with four **24 × 24** checkboxes and **6** px row gaps. Right: remaining width after a **20** px column gap, containing a small **Live tooltip preview** label and compact + stacked samples. Preview text wraps within the right column. Panel height follows sample text height with a **120** px minimum content height plus **20** px padding (`LAYOUT_VERSION = 10`).
 
 ## Fonts
 

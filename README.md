@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.19.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--09--04-blue)
+![](https://img.shields.io/badge/current_version-1.20.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--09-blue)
 
 
 ## Install
@@ -38,6 +38,8 @@ Plain panels, a **left menu** grouped as Personal / Raiding / Other, and a conte
 The menu title bar shows **Raidwise** and the addon version.
 Esc or the title **X** closes the window.
 
+The draggable minimap button opens **Raid roster** on left-click and **Character cooldowns** on right-click. Hover for raid readiness, consumables, and account-wide character lockouts.
+
 **Character cooldowns** tab:
 
 - Table of raid and dungeon lockouts for every character saved on this account
@@ -58,7 +60,9 @@ Esc or the title **X** closes the window.
 
 - Two blocks: raid groups **1–5**, then **6–8**; when not in a raid, your party fills group 1
 - Lines above the grid: compact header (S·A·B·C·D chips, GS and role counts, flask/food/armor/ench with report icons, Scan/Export/Refresh/Back icons); then scan status and progress
-- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, compact `P:`/`C:` ratings, compact armor/ench grades, **Profile** / **Gear** / **Rescan**
+- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, compact `P:`/`C:` ratings, compact armor/ench grades, **Gear** / **Rescan**, and sword/gem report icons
+- Sword/gem icons post that player's gear/weapon or gem/enchant findings to the configured report channel, always in short form (`CODE - slot,slot; CODE - slot`); hover previews the message
+- A successful full scan shows its completion date and time with the success message; individual rescans do not change that timestamp
 - Hover a card for opinion, tags, community data, **guild (rank)**, raid buffs, and gear-check details
 - **Scan** / **Export all** for raid-wide gear check; **Export all** opens copy text; **Back to roster** closes it; click the dump + Ctrl+C to copy
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
@@ -67,6 +71,7 @@ Esc or the title **X** closes the window.
 **Raid composition** tab:
 
 - Checklist of the current party or raid (solo uses only you)
+- Detected specialization icons and counts appear beneath each class; hover lists the players
 - Top band: **Roles** and all 10 **Classes** with counts; then sections: Aggro, buffs, external buffs, damage reduction, debuffs, mana regeneration, health regeneration
 - Gold rows are covered; dim rows are missing. Section titles show present/total (red when nothing in the section is present)
 - Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to the report chat channel (Settings)
@@ -79,12 +84,13 @@ Esc or the title **X** closes the window.
 - Spec ranks: **preferred** / **acceptable** / **unwanted** / **forbidden** (map to A / B / C / D). **S** = equipped item ID is on published BiS lists for that spec (not a unique pick)
 - **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to the **report chat channel** (Settings; default Auto = raid/party)
 - **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
+- **Character profile** opens the scanned player's profile; target scans also record that player in History
 - Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
 - `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
 
 **History** tab:
 
-- Table of players you have been in a party or raid with (saved in `RaidwiseDB.history`, survives logout)
+- Table of players encountered in parties, raids, or target scans (saved in `RaidwiseDB.history`, survives logout)
 - Columns: name, class icon, spec icon, personal opinion (Qiraji crystal), tags, GearScore, iLvl, where you met, when, guild
 - Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
 - **Refresh** records the current group again and redraws the list
@@ -98,17 +104,21 @@ Esc or the title **X** closes the window.
 - On **Events**, pick a type by category (**Attendance**, **Loot**, **Help**, **Behavior** — each with an icon) and **Add event** / **Remove** (draft until **Save and Update**; context captured when adding). Joining a party or raid also logs **In the same party** when the meet count goes up (first meet, or ≥30 minutes since last seen)
 - On **Memo**, write a private free-form note with **Save** / **Reset** (not shared, not logged in History)
 - Raid and History show your saved opinion and tag summary; click a row or card to open the profile
+- Chat messages from players with saved opinions receive a green, yellow, or red `<Rw>` marker
 - **Community note** is currently a mock preview for a future addon exchange / web app feature
 
 **Settings** tab:
 
 - Interface language: **English** or **Русский**
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
+- **Theme**: switch between light and dark; saved per account in `RaidwiseDB.theme`
 - **Startup page**: which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns; **Info** cannot be selected)
 - **Report chat channel**: where Raid roster, Composition, and Gear check reports are posted (`RaidwiseDB.reportChannel`; default Auto = raid in a raid, party in a party)
 - **Gear check report form**: Short (default, fewer chat lines) or Full detailed wording (`RaidwiseDB.reportForm`)
 - Unit tooltip toggles: hide personal opinion / personal tags / community rating / community tags (`RaidwiseDB.tooltip`)
 - Preview of compact (live) and stacked tooltip layouts
+
+The minimap button position is saved in `RaidwiseDB.minimapAngle`.
 
 **Info** tab:
 
@@ -140,6 +150,7 @@ Raidwise/
   RaidRoles.lua       # raid role and spec/race buff lookups
   RaidComposition.lua # party/raid buff, debuff, and utility coverage
   PlayerHistory.lua   # saved party/raid encounter list + personal ratings
+  Minimap.lua         # draggable launcher and raid/lockout summary tooltip
   UnitTooltips.lua    # personal/community lines on player unit tooltips
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
@@ -176,6 +187,10 @@ types/
 ```
 
 ## Notes
+
+Offline development checks use TypeScript, Node.js 24, and a Lua 5.1 WebAssembly
+runtime: `npm ci --ignore-scripts`, then `npm run check`. See
+[tests/README.md](tests/README.md) for test organization, watch mode, and manual CI.
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
 - Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts and currency snapshots for the cooldowns table live in `RaidwiseDB.characters` (`.lockouts`, `.currency`). Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal` with opinion/tags/facts), events (`.events`), notes (`.notes`), change log (`.changes`), and party/raid meet count (`.meetCount`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`). Startup left-menu page is `RaidwiseDB.startupTab`. Unit tooltip visibility flags live in `RaidwiseDB.tooltip`.

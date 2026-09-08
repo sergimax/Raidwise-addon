@@ -3,22 +3,7 @@ description: Conventional Commits format for git messages
 alwaysApply: true
 ---
 
-# Commit Messages
+# Commit messages
 
-Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
-
-```
-<type>[optional scope]: <description>
-```
-
-- **feat:** new feature (MINOR)
-- **fix:** bug fix (PATCH)
-- **docs:** documentation only
-- **style:** formatting, no code change
-- **refactor:** code change that neither fixes nor adds a feature
-- **perf:** performance improvement
-- **test:** adding or updating tests
-- **chore:** build, CI, tooling
-- **BREAKING CHANGE:** use `!` after type/scope or footer (MAJOR)
-
-Example: `feat(export): add glyph socket export`
+Read and follow the Commit messages section in [AGENTS.md](../../AGENTS.md).
+The repository-root AGENTS.md is the shared source of project rules.

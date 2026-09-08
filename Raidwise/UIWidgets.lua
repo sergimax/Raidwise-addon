@@ -94,6 +94,8 @@ Addon.UITheme = {
 	RAID_TOOLBAR_BTN_COUNT = 4,
 	RAID_TOOLBAR_BTN_GAP = 4,
 
+	TEXT_BODY = { 1, 1, 1 },
+	INPUT_BG = { 0, 0, 0, 1 },
 	-- Colors — Classic theme (preview/themes.html #classic)
 	GOLD = { 1.000, 0.824, 0.000 },
 	GOLD_DIM = { 0.769, 0.627, 0.290 }, -- Menu group headings / separators
@@ -122,6 +124,203 @@ Addon.Widgets = {}
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
+-- Keep color tables stable: page modules retain references to them.
+local lightPalette = {
+	PANEL_BG = { 0.94, 0.93, 0.90, 1 },
+	TITLE_BG = { 0.84, 0.82, 0.77, 1 },
+	INPUT_BG = { 1, 0.99, 0.97, 1 },
+	CD_ROW_A = { 0.88, 0.87, 0.83, 1 },
+	CD_ROW_B = { 0.96, 0.95, 0.92, 1 },
+	BTN_IDLE = { 0.85, 0.83, 0.78, 1 },
+	BTN_HOVER = { 0.78, 0.75, 0.67, 1 },
+	BTN_SELECTED = { 0.75, 0.65, 0.43, 1 },
+	BTN_DISABLED = { 0.89, 0.88, 0.85, 1 },
+	TEXT_BODY = { 0.12, 0.12, 0.15 },
+	TEXT_IDLE = { 0.20, 0.18, 0.14 },
+	TEXT_HOVER = { 0.12, 0.10, 0.06 },
+	TEXT_DISABLED = { 0.43, 0.40, 0.35 },
+	GOLD = { 0.38, 0.25, 0.02 },
+	GOLD_DIM = { 0.46, 0.34, 0.14 },
+	BORDER = { 0.51, 0.44, 0.29, 1 },
+	TEXT_GOOD = { 0.12, 0.42, 0.17 },
+	TEXT_ALERT = { 0.72, 0.12, 0.12 },
+	GEAR_S = { 0.48, 0.32, 0.00 },
+	GEAR_BAD = { 0.72, 0.12, 0.12 },
+	GEAR_REPLACE = { 0.66, 0.29, 0.03 },
+	GEAR_OK = { 0.48, 0.38, 0.09 },
+	GEAR_GOOD = { 0.12, 0.42, 0.17 },
+}
+local darkPalette = {}
+for key in pairs(lightPalette) do
+	darkPalette[key] = { unpack(UI[key]) }
+end
+
+local themeBindings = setmetatable({}, { __mode = "k" })
+local fontShadows = setmetatable({}, { __mode = "k" })
+local inlineTextBindings = setmetatable({}, { __mode = "k" })
+local applyingText = false
+
+local function Luminance(color)
+	local function Linear(value)
+		return value <= 0.04045 and value / 12.92 or ((value + 0.055) / 1.055) ^ 2.4
+	end
+	return 0.2126 * Linear(color[1]) + 0.7152 * Linear(color[2]) + 0.0722 * Linear(color[3])
+end
+
+local function TextBackgroundLuminance()
+	local light = Addon:GetTheme() == "light"
+	local value = Luminance(UI.PANEL_BG)
+	for _, key in ipairs({ "TITLE_BG", "INPUT_BG", "CD_ROW_A", "CD_ROW_B", "BTN_IDLE", "BTN_HOVER", "BTN_SELECTED", "BTN_DISABLED" }) do
+		local background = Luminance(UI[key])
+		value = light and math.min(value, background) or math.max(value, background)
+	end
+	return value
+end
+
+-- Preserve the source hue as far as possible while keeping small UI text legible.
+-- Only addon text is adjusted; icons, class definitions, and game tooltips retain their colors.
+function W.ReadableTextColor(color)
+	local background = TextBackgroundLuminance()
+	local function Contrast(candidate)
+		local foreground = Luminance(candidate)
+		return (math.max(foreground, background) + 0.05) / (math.min(foreground, background) + 0.05)
+	end
+	if Contrast(color) >= 4.5 then
+		return color
+	end
+	local target = Addon:GetTheme() == "light" and 0 or 1
+	local low, high = 0, 1
+	local adjusted = { color[1], color[2], color[3], color[4] or 1 }
+	for iteration = 1, 14 do
+		local amount = (low + high) / 2
+		for channel = 1, 3 do
+			adjusted[channel] = color[channel] + (target - color[channel]) * amount
+		end
+		if Contrast(adjusted) >= 4.5 then high = amount else low = amount end
+	end
+	for channel = 1, 3 do
+		adjusted[channel] = color[channel] + (target - color[channel]) * high
+	end
+	return adjusted
+end
+
+local function ApplyInlineText(fontString, text)
+	if type(text) ~= "string" then return end
+	local formatted = text:gsub("|c(%x%x)(%x%x)(%x%x)(%x%x)", function(alpha, red, green, blue)
+		local color = W.ReadableTextColor({ tonumber(red, 16) / 255, tonumber(green, 16) / 255, tonumber(blue, 16) / 255 })
+		-- Round toward higher contrast when encoding the adjusted color.
+		local round = Addon:GetTheme() == "light" and math.floor or math.ceil
+		return string.format("|c%s%02x%02x%02x", alpha, round(color[1] * 255), round(color[2] * 255), round(color[3] * 255))
+	end)
+	applyingText = true
+	fontString:SetText(formatted)
+	applyingText = false
+end
+
+local function ApplyFontShadow(fontString)
+	if not fontString.GetShadowOffset or not fontString.SetShadowOffset
+		or not fontString.GetShadowColor or not fontString.SetShadowColor then
+		return
+	end
+	local shadow = fontShadows[fontString]
+	if not shadow then
+		local x, y = fontString:GetShadowOffset()
+		shadow = { x = x, y = y, color = { fontString:GetShadowColor() } }
+		fontShadows[fontString] = shadow
+		-- Pooled rows can reassign their font object after creation.
+		hooksecurefunc(fontString, "SetFontObject", function()
+			ApplyFontShadow(fontString)
+		end)
+	end
+	if Addon:GetTheme() == "light" then
+		fontString:SetShadowOffset(0, 0)
+		fontString:SetShadowColor(0, 0, 0, 0)
+	else
+		fontString:SetShadowOffset(shadow.x, shadow.y)
+		fontString:SetShadowColor(unpack(shadow.color))
+	end
+end
+
+local applyingColor = false
+local function SetThemeColor(region, method, color)
+	local bindings = themeBindings[region]
+	if not bindings then
+		bindings = {}
+		themeBindings[region] = bindings
+	end
+	if not bindings[method] then
+		-- Direct color changes (class colors, hover effects) release the old binding.
+		hooksecurefunc(region, method, function(_, red, green, blue, alpha)
+			if not applyingColor then
+				if method == "SetTextColor" then
+					-- Class colors and direct hover changes also need theme-aware contrast.
+					SetThemeColor(region, method, { red, green, blue, alpha or 1 })
+				else
+					bindings[method].color = nil
+				end
+			end
+		end)
+		bindings[method] = {}
+	end
+	bindings[method].color = color
+	local rendered = method == "SetTextColor" and W.ReadableTextColor(color) or color
+	applyingColor = true
+	region[method](region, rendered[1], rendered[2], rendered[3], rendered[4] or 1)
+	applyingColor = false
+end
+
+function W.SetBackdropColor(frame, color)
+	SetThemeColor(frame, "SetBackdropColor", color)
+end
+
+function W.SetTextureColor(texture, color)
+	SetThemeColor(texture, "SetVertexColor", color)
+end
+
+function W.CreateFontString(parent, name, layer, template)
+	local label = parent:CreateFontString(name, layer, template)
+	W.SetFontColor(label, template and string.find(template, "Normal") and UI.GOLD or UI.TEXT_BODY)
+	return label
+end
+
+function Addon:GetTheme()
+	return self.db and self.db.theme == "light" and "light" or "dark"
+end
+
+function Addon:ApplyTheme()
+	local palette = self:GetTheme() == "light" and lightPalette or darkPalette
+	for key, color in pairs(palette) do
+		for index = 1, 4 do
+			UI[key][index] = color[index]
+		end
+	end
+	for region, bindings in pairs(themeBindings) do
+		for method, binding in pairs(bindings) do
+			if binding.color then
+				SetThemeColor(region, method, binding.color)
+			end
+		end
+	end
+	for fontString in pairs(fontShadows) do
+		ApplyFontShadow(fontString)
+	end
+	for fontString, binding in pairs(inlineTextBindings) do
+		ApplyInlineText(fontString, binding.text)
+	end
+end
+
+function Addon:SetTheme(theme)
+	if not self.db or (theme ~= "light" and theme ~= "dark") then
+		return
+	end
+	self.db.theme = theme
+	self:ApplyTheme()
+	-- Refresh strings containing inline palette colors and the settings selection.
+	if self.RefreshLocalizedUI then
+		self:RefreshLocalizedUI()
+	end
+end
+
 function W.T(key, ...)
 	if Addon.T then
 		return Addon:T(key, ...)
@@ -141,7 +340,7 @@ function W.ApplyPlainPanel(frame, color)
 		tile = true,
 		tileSize = 16,
 	})
-	frame:SetBackdropColor(color[1], color[2], color[3], color[4] or 1)
+	W.SetBackdropColor(frame, color)
 	W.HidePanelBorder(frame)
 end
 
@@ -163,13 +362,12 @@ function W.ApplyOuterBorder(frame, color, thickness)
 	end
 	color = color or UI.BORDER
 	thickness = thickness or UI.BORDER_W or 1
-	local alpha = color[4] or 1
 	local function Edge(texture)
 		if not texture then
 			texture = frame:CreateTexture(nil, "OVERLAY")
 			texture:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
 		end
-		texture:SetVertexColor(color[1], color[2], color[3], alpha)
+		W.SetTextureColor(texture, color)
 		texture:Show()
 		return texture
 	end
@@ -211,7 +409,7 @@ function W.CreateProgressBar(parent, height)
 	local bg = host:CreateTexture(nil, "BACKGROUND")
 	bg:SetAllPoints(host)
 	bg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
-	bg:SetVertexColor(0.05, 0.05, 0.08, 0.95)
+	W.SetTextureColor(bg, UI.INPUT_BG)
 
 	local bar = CreateFrame("StatusBar", nil, host)
 	bar:SetPoint("TOPLEFT", 1, -1)
@@ -220,7 +418,7 @@ function W.CreateProgressBar(parent, height)
 	local fill = bar:GetStatusBarTexture()
 	if fill then
 		local gold = UI.GOLD_DIM or UI.GOLD or { 0.77, 0.63, 0.29 }
-		fill:SetVertexColor(gold[1], gold[2], gold[3], 1)
+		W.SetTextureColor(fill, gold)
 	end
 	bar:SetMinMaxValues(0, 1)
 	bar:SetValue(0)
@@ -240,7 +438,19 @@ function W.CreateProgressBar(parent, height)
 end
 
 function W.SetFontColor(fontString, color)
-	fontString:SetTextColor(color[1], color[2], color[3], color[4] or 1)
+	ApplyFontShadow(fontString)
+	if fontString.GetObjectType and fontString:GetObjectType() == "FontString" and not inlineTextBindings[fontString] then
+		local binding = { text = fontString:GetText() }
+		inlineTextBindings[fontString] = binding
+		hooksecurefunc(fontString, "SetText", function(_, text)
+			if not applyingText then
+				binding.text = text
+				ApplyInlineText(fontString, text)
+			end
+		end)
+		ApplyInlineText(fontString, binding.text)
+	end
+	SetThemeColor(fontString, "SetTextColor", color)
 end
 
 function W.ApplyFontSize(fontString, size)
@@ -343,22 +553,22 @@ end
 
 function W.SetPlainButtonState(button, state)
 	if state == "selected" then
-		button:SetBackdropColor(UI.BTN_SELECTED[1], UI.BTN_SELECTED[2], UI.BTN_SELECTED[3], UI.BTN_SELECTED[4])
+		W.SetBackdropColor(button, UI.BTN_SELECTED)
 		if button.label then
 			W.SetFontColor(button.label, UI.GOLD)
 		end
 	elseif state == "hover" then
-		button:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
+		W.SetBackdropColor(button, UI.BTN_HOVER)
 		if button.label then
 			W.SetFontColor(button.label, UI.TEXT_HOVER)
 		end
 	elseif state == "disabled" then
-		button:SetBackdropColor(UI.BTN_DISABLED[1], UI.BTN_DISABLED[2], UI.BTN_DISABLED[3], UI.BTN_DISABLED[4])
+		W.SetBackdropColor(button, UI.BTN_DISABLED)
 		if button.label then
 			W.SetFontColor(button.label, UI.TEXT_DISABLED)
 		end
 	else
-		button:SetBackdropColor(UI.BTN_IDLE[1], UI.BTN_IDLE[2], UI.BTN_IDLE[3], UI.BTN_IDLE[4])
+		W.SetBackdropColor(button, UI.BTN_IDLE)
 		if button.label then
 			W.SetFontColor(button.label, UI.TEXT_IDLE)
 		end
@@ -380,7 +590,7 @@ function W.CreatePlainButton(parent, width, height, label)
 	button:SetSize(width, height)
 	W.ApplyPlainPanel(button, UI.BTN_IDLE)
 
-	local text = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local text = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 	text:SetPoint("CENTER", 0, 0)
 	text:SetText(label)
 	W.SetFontColor(text, UI.TEXT_IDLE)
@@ -522,7 +732,7 @@ function W.FitCopyBoxToText(box)
 	if width > 1 then
 		local probe = box.rwProbe
 		if not probe then
-			probe = box:CreateFontString(nil, "ARTWORK")
+			probe = W.CreateFontString(box, nil, "ARTWORK")
 			probe:SetFontObject(ChatFontNormal)
 			probe:SetJustifyH("LEFT")
 			probe:Hide()
@@ -552,7 +762,7 @@ function W.CreateCopyBox(parent, scrollName, boxName)
 	scrollBG:SetPoint("TOPLEFT", 0, 0)
 	scrollBG:SetPoint("BOTTOMRIGHT", -UI.COPY_SCROLLBAR_W, 0)
 	scrollBG:SetBackdrop(W.COPY_BACKDROP)
-	scrollBG:SetBackdropColor(0, 0, 0, 1)
+	W.SetBackdropColor(scrollBG, UI.INPUT_BG)
 
 	local scroll = CreateFrame("ScrollFrame", scrollName, host, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", scrollBG, "TOPLEFT", UI.COPY_PAD_L, -UI.COPY_PAD_T)
@@ -566,6 +776,7 @@ function W.CreateCopyBox(parent, scrollName, boxName)
 	local exportBox = CreateFrame("EditBox", boxName, scroll)
 	exportBox:SetMultiLine(true)
 	exportBox:SetFontObject(ChatFontNormal)
+	W.SetFontColor(exportBox, UI.TEXT_BODY)
 	exportBox:SetAutoFocus(false)
 	exportBox:EnableMouse(true)
 	exportBox:SetTextInsets(0, 0, 3, 3)
@@ -627,12 +838,13 @@ function W.CreateLineCopyBox(parent, boxName)
 	local host = CreateFrame("Frame", nil, parent)
 	host:SetHeight(UI.URL_BOX_H)
 	host:SetBackdrop(W.COPY_BACKDROP)
-	host:SetBackdropColor(0, 0, 0, 1)
+	W.SetBackdropColor(host, UI.INPUT_BG)
 
 	local box = CreateFrame("EditBox", boxName, host)
 	box:SetPoint("TOPLEFT", 8, -4)
 	box:SetPoint("BOTTOMRIGHT", -8, 4)
 	box:SetFontObject(ChatFontNormal)
+	W.SetFontColor(box, UI.TEXT_BODY)
 	box:SetAutoFocus(false)
 	box:SetMultiLine(false)
 	box:EnableMouse(true)
@@ -1164,7 +1376,7 @@ function W.AppendGearCheckRaidTooltip(gearEntry)
 end
 
 function W.AttachLayoutVersionLabel(titleBarOrParent, version, anchorRightOf)
-	local label = titleBarOrParent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local label = W.CreateFontString(titleBarOrParent, nil, "OVERLAY", "GameFontNormalSmall")
 	label:SetJustifyH("RIGHT")
 	label:SetText("v" .. tostring(version))
 	W.SetFontColor(label, UI.TEXT_DISABLED)

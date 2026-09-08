@@ -14,7 +14,7 @@ local function CreateExportPage(parent)
 
 	local innerW = W.ContentInnerWidth()
 
-	local desc = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local desc = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	desc:SetPoint("TOPLEFT", 0, 0)
 	desc:SetWidth(innerW)
 	desc:SetJustifyH("LEFT")
@@ -34,7 +34,7 @@ local function CreateExportPage(parent)
 		Addon.db.includeGearNames = btn:GetChecked() and true or false
 	end)
 
-	local namesLabel = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local namesLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	namesLabel:SetPoint("LEFT", namesCheck, "RIGHT", 4, 0)
 	namesLabel:SetText(W.T("EXPORT_INCLUDE_NAMES"))
 
@@ -62,7 +62,7 @@ local function CreateExportPage(parent)
 		Addon:SelectExportText()
 	end)
 
-	local statusLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local statusLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
 	statusLabel:SetPoint("TOPLEFT", exportBtn, "BOTTOMLEFT", 0, -UI.BUTTONS_TO_HINT)
 	statusLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	statusLabel:SetJustifyH("LEFT")

@@ -4,6 +4,68 @@
 
 local Addon = Raidwise
 
+local CHAT_OPINION_MARKS = {
+	positive = { prefix = "<Rw>", color = "|cff00ff00" },
+	neutral = { prefix = "<Rw>", color = "|cffffff00" },
+	negative = { prefix = "<Rw>", color = "|cffff0000" },
+}
+
+local function ChatRealmKey(realm)
+	return string.lower((realm or ""):gsub("%s+", ""))
+end
+
+local function FindChatHistoryEntry(sender, guid)
+	local store = Addon:HistoryStore()
+	if guid and guid ~= "" and store[guid] then
+		return store[guid]
+	end
+	local name, realm = sender:match("^([^-]+)%-(.+)$")
+	name = name or sender
+	local currentRealm = ChatRealmKey(GetRealmName())
+	local senderRealm = realm and ChatRealmKey(realm) or currentRealm
+	for _, entry in pairs(store) do
+		if type(entry) == "table" and entry.name == name then
+			local entryRealm = ChatRealmKey(entry.realm)
+			if entryRealm == "" then
+				entryRealm = currentRealm
+			end
+			if entryRealm == senderRealm then
+				return entry
+			end
+		end
+	end
+end
+
+local function PersonalOpinionChatFilter(frame, event, message, sender, ...)
+	if type(message) ~= "string" or type(sender) ~= "string" or sender == "" then
+		return
+	end
+	-- Sender GUID is chat argument 12 in Wrath; older servers may omit it.
+	local entry = FindChatHistoryEntry(sender, select(10, ...))
+	if not entry then
+		return
+	end
+	local personal = Addon:GetPersonalRating(entry)
+	if not Addon:HasPersonalRatingData(personal) then
+		return
+	end
+	local mark = CHAT_OPINION_MARKS[personal.opinion]
+	if not mark then
+		return
+	end
+	return false, mark.color .. mark.prefix .. "|r " .. message, sender, ...
+end
+
+for _, event in ipairs({
+	"CHAT_MSG_CHANNEL", "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_WHISPER",
+	"CHAT_MSG_WHISPER_INFORM", "CHAT_MSG_PARTY", "CHAT_MSG_PARTY_LEADER",
+	"CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER", "CHAT_MSG_RAID_WARNING",
+	"CHAT_MSG_GUILD", "CHAT_MSG_OFFICER", "CHAT_MSG_BATTLEGROUND",
+	"CHAT_MSG_BATTLEGROUND_LEADER", "CHAT_MSG_EMOTE", "CHAT_MSG_TEXT_EMOTE",
+}) do
+	ChatFrame_AddMessageEventFilter(event, PersonalOpinionChatFilter)
+end
+
 local OPINION_ORDER = { "positive", "neutral", "negative" }
 
 local OPINIONS = {
@@ -1145,6 +1207,38 @@ function Addon:EnsureHistoryEntryForGuid(guid, seed)
 		store[guid] = entry
 	end
 	return EnsureHistoryFields(entry)
+end
+
+-- Target scans create first encounters without adding a same-party event.
+function Addon:RecordTargetScanHistory(report)
+	local character = report and report.character
+	if not character or character.isSelf or not character.guid or character.guid == "" then
+		return
+	end
+	if self:GetHistoryEntry(character.guid) then
+		return
+	end
+	local entry = self:EnsureHistoryEntryForGuid(character.guid, {
+		name = character.name,
+		realm = character.realm,
+		class = character.classFile,
+		classLabel = character.className,
+		spec = character.specKnown and character.specName or nil,
+		specIcon = character.specKnown and character.specIcon or nil,
+		gearScore = character.gearScore,
+		averageIlvl = character.averageIlvl,
+	})
+	local scannedAt = tonumber(report.collection and report.collection.collectedAt) or time()
+	entry.metZone = self:T("HISTORY_TARGET_SCAN")
+	entry.metAt = scannedAt
+	entry.metRealm = MeetingRealm()
+	entry.lastSeenAt = scannedAt
+	entry.lastSeenZone = entry.metZone
+	entry.meetCount = 1
+	local frame = self.mainFrame
+	if frame and frame:IsShown() and frame.selectedTab == "history" and self.RefreshHistoryView then
+		self:RefreshHistoryView()
+	end
 end
 
 function Addon:UpsertHistoryMember(member)

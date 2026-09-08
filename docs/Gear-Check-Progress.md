@@ -449,6 +449,8 @@ UI copy still says rules are **being maintained** — catalogs remain expandable
 
 Inspect waits for **both** gear slots and talent spec (`INSPECT_TALENT_READY`) before scoring. Spec is not read from the previous inspect buffer. Party inspect queue is paused during gear scans to avoid `NotifyInspect` conflicts.
 
+Empty sockets on inspected players are confirmed only after inspect readiness, with explicit gem fields in the item link and matching empty-socket labels from the inventory tooltip. Localized labels tolerate color markup and surrounding whitespace. Pre-inspect placeholders, incomplete links, and hyperlink-only fallbacks remain uncertain; unavailable socket data has its own explanatory text rather than claiming a gem ID is absent from the catalog. Confirmed empty sockets produce `MISSING_GEM`.
+
 ---
 
 ## Trinket pools (maintenance)
@@ -463,7 +465,8 @@ Inspect waits for **both** gear slots and talent spec (`INSPECT_TALENT_READY`) b
 | `ret` | Ret Paladin | + Tiny Abomination | same as phys allowed |
 | `hunter` | BM/MM/SV | DBW, Sharpened | ToC, Needle, Mirror, Banner |
 | `caster` | Ele, Shadow, Mage, Lock, Balance | Charred, Phylactery, Dislodged | Reign, Sundial, Je'Tze, … |
-| `healer` | Disc/Holy Priest, Holy Pal, Resto Shaman/Druid | Glowing, Althor's, Solace, … | Charred (Holy Pal), Scale of Fates, … |
+| `healer` | Disc/Holy Priest, Resto Shaman/Druid | Glowing, Althor's, Solace, … | Scale of Fates, … |
+| `holyPaladin` | Holy Paladin | Same as healer | Healer pool + Charred Twilight Scale (normal/heroic), capped at B |
 | `tank` | Prot Warrior/Pal, Blood DK | Fang, Petrified, Skeleton Key, … | Ick's Thumb, Glyph, entry tank, … |
 | `enhance` | Enh Shaman | phys ICC + Herkuml + caster ICC | full phys + caster progression |
 

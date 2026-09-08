@@ -171,7 +171,7 @@ local function CreateFeatureSection(parent, pageInfo, bodyKey)
 	end
 	section.icon = icon
 
-	local title = section:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local title = W.CreateFontString(section, nil, "OVERLAY", "GameFontNormal")
 	title:SetPoint("LEFT", icon, "RIGHT", 6, 0)
 	title:SetPoint("TOP", icon, "TOP", 0, 1)
 	title:SetJustifyH("LEFT")
@@ -180,14 +180,14 @@ local function CreateFeatureSection(parent, pageInfo, bodyKey)
 	W.SetFontColor(title, UI.GOLD)
 	section.title = title
 
-	local version = section:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local version = W.CreateFontString(section, nil, "OVERLAY", "GameFontNormalSmall")
 	version:SetPoint("LEFT", title, "RIGHT", 6, 0)
 	version:SetJustifyH("LEFT")
 	version:SetText("v" .. tostring(PageLayoutVersion(pageInfo.key)))
 	W.SetFontColor(version, UI.TEXT_DISABLED)
 	section.version = version
 
-	local body = section:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local body = W.CreateFontString(section, nil, "OVERLAY", "GameFontHighlight")
 	body:SetPoint("TOPLEFT", icon, "BOTTOMLEFT", 0, -6)
 	body:SetJustifyH("LEFT")
 	body:SetJustifyV("TOP")
@@ -219,14 +219,14 @@ local function CreateInfoPage(parent)
 	scroll:SetScrollChild(content)
 	page.content = content
 
-	local aboutHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local aboutHeading = W.CreateFontString(content, nil, "OVERLAY", "GameFontNormal")
 	aboutHeading:SetJustifyH("LEFT")
 	ApplyInfoHeadingFont(aboutHeading)
 	aboutHeading:SetText(W.T("INFO_ABOUT"))
 	W.SetFontColor(aboutHeading, UI.GOLD)
 	page.aboutHeading = aboutHeading
 
-	local intro = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local intro = W.CreateFontString(content, nil, "OVERLAY", "GameFontHighlight")
 	intro:SetJustifyH("LEFT")
 	intro:SetJustifyV("TOP")
 	ApplyInfoBodyFont(intro)
@@ -242,14 +242,14 @@ local function CreateInfoPage(parent)
 		page.featureSections[#page.featureSections + 1] = section
 	end
 
-	local repoHeading = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local repoHeading = W.CreateFontString(content, nil, "OVERLAY", "GameFontNormal")
 	repoHeading:SetJustifyH("LEFT")
 	ApplyInfoHeadingFont(repoHeading)
 	repoHeading:SetText(W.T("INFO_GITHUB"))
 	W.SetFontColor(repoHeading, UI.GOLD)
 	page.repoHeading = repoHeading
 
-	local repoHint = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local repoHint = W.CreateFontString(content, nil, "OVERLAY", "GameFontHighlight")
 	repoHint:SetJustifyH("LEFT")
 	ApplyInfoBodyFont(repoHint)
 	repoHint:SetText(W.T("INFO_REPO_HINT"))

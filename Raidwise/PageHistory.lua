@@ -55,7 +55,7 @@ local function CreateHistoryRow(parent)
 	row:RegisterForClicks("LeftButtonUp")
 
 	local function AddTextColumn(index, justify, insetLeft)
-		local text = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		local text = W.CreateFontString(row, nil, "OVERLAY", "GameFontNormalSmall")
 		text:SetPoint("TOPLEFT", row, "TOPLEFT", HistoryColumnOffset(index) + (insetLeft or 4), -4)
 		text:SetWidth(HISTORY_COLUMN_WIDTHS[index] - (insetLeft or 4) - 4)
 		text:SetJustifyH(justify or "LEFT")
@@ -124,12 +124,12 @@ local function CreateHistoryRow(parent)
 	end)
 
 	row:SetScript("OnEnter", function(self)
-		self:SetBackdropColor(UI.BTN_HOVER[1], UI.BTN_HOVER[2], UI.BTN_HOVER[3], UI.BTN_HOVER[4])
+		W.SetBackdropColor(self, UI.BTN_HOVER)
 		W.ShowMemberRatingTooltip(self, self.member)
 	end)
 	row:SetScript("OnLeave", function(self)
 		local stripe = self.stripe or UI.CD_ROW_A
-		self:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+		W.SetBackdropColor(self, stripe)
 		GameTooltip:Hide()
 	end)
 	row:SetScript("OnClick", function(self)
@@ -145,7 +145,7 @@ local function CreateHistoryPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local hint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
 	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
 	hint:SetJustifyH("LEFT")
@@ -196,7 +196,7 @@ local function CreateHistoryPage(parent)
 	}
 	page.headerLabels = {}
 	for index = 1, #headers do
-		local label = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		local label = W.CreateFontString(headerBg, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("TOPLEFT", headerBg, "TOPLEFT", HistoryColumnOffset(index) + 4, -10)
 		label:SetWidth(HISTORY_COLUMN_WIDTHS[index] - 8)
 		label:SetJustifyH((index == 4 or index == 6 or index == 7) and "CENTER" or "LEFT")
@@ -282,7 +282,7 @@ function Addon:RefreshHistoryView()
 		row:SetSize(tableW, UI.CD_ROW_H)
 		local stripe = (rowIndex % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
 		row.stripe = stripe
-		row:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+		W.SetBackdropColor(row, stripe)
 		row.member = member
 
 		row.nameText:SetText(member.name or "")
@@ -295,7 +295,7 @@ function Addon:RefreshHistoryView()
 		local opinionIcon = W.IconMarkup(W.RatingOpinionIcon(member), 16)
 		if opinionIcon ~= "" then
 			row.opinionText:SetText(opinionIcon)
-			row.opinionText:SetTextColor(1, 1, 1, 1)
+			W.SetFontColor(row.opinionText, UI.TEXT_BODY)
 		else
 			row.opinionText:SetText(W.RatingOpinionSymbol(member))
 			W.SetFontColor(row.opinionText, W.RatingOpinionColor(member))

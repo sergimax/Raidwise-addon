@@ -466,8 +466,17 @@ local function EvaluateGems(findings, profile, slot)
 			"info",
 			"gem",
 			slot.key,
-			Msg("GEM_NOT_CHECKABLE", "inspect socket data unavailable")
+			"Socket contents are unavailable or unresolved from inspect; empty sockets are not confirmed."
 		)
+		local metaResolved = false
+		for index = 1, #gems do
+			if gems[index].isMeta then
+				metaResolved = true
+			end
+		end
+		if (tonumber(sockets.meta) or 0) > 0 and not metaResolved then
+			AddFinding(findings, "META_NOT_CHECKABLE", "info", "meta", slot.key, Msg("META_NOT_CHECKABLE", "unresolved socket data"))
+		end
 		return
 	end
 	local socketTotal = tonumber(sockets.total) or 0
@@ -488,12 +497,16 @@ local function EvaluateGems(findings, profile, slot)
 
 	local metaSockets = tonumber(sockets.meta) or 0
 	local hasMetaGem = false
+	local hasUnknownGem = false
 	for index = 1, #gems do
 		local gem = gems[index]
 		if gem.isMeta then
 			hasMetaGem = true
 		end
 		local catalog = Addon:GetGearCheckGemInfo(gem.itemId)
+		if not catalog and (not gem.color or gem.color == "unknown") then
+			hasUnknownGem = true
+		end
 		local stats = gem.stats
 		if catalog and type(catalog.stats) == "table" and (not stats or not next(stats)) then
 			stats = catalog.stats
@@ -526,10 +539,14 @@ local function EvaluateGems(findings, profile, slot)
 
 	if metaSockets > 0 then
 		if not hasMetaGem then
-			if #gems >= metaSockets then
+			if hasUnknownGem then
+				AddFinding(findings, "META_NOT_CHECKABLE", "info", "meta", slot.key, Msg("META_NOT_CHECKABLE", "unknown gem identity"))
+			elseif sockets.emptyConfirmed and (sockets.empty or 0) > 0 then
+				AddFinding(findings, "META_MISSING", "soft", "meta", slot.key, Msg("META_MISSING"))
+			elseif #gems >= math.max(metaSockets, tonumber(sockets.total) or 0) then
 				AddFinding(findings, "META_NOT_META", "hard", "meta", slot.key, Msg("META_NOT_META"))
 			else
-				AddFinding(findings, "META_MISSING", "soft", "meta", slot.key, Msg("META_MISSING"))
+				AddFinding(findings, "META_NOT_CHECKABLE", "info", "meta", slot.key, Msg("META_NOT_CHECKABLE", "socket occupancy unavailable"))
 			end
 		end
 	end
@@ -601,14 +618,21 @@ end
 
 local function CountMatchingGems(equipment)
 	local have = { red = 0, yellow = 0, blue = 0 }
+	local uncertain = false
 	for index = 1, #equipment do
 		local slot = equipment[index]
 		if slot.policy == "CHECKED" and slot.item and slot.item.gems then
 			local gems = slot.item.gems
+			if slot.item.sockets and slot.item.sockets.gemDataUncertain then
+				uncertain = true
+			end
 			for g = 1, #gems do
 				local gem = gems[g]
 				if not gem.isMeta then
 					local color = GemColor(gem)
+					if color == "unknown" then
+						uncertain = true
+					end
 					if COLOR_MATCH.red[color] then
 						have.red = have.red + 1
 					end
@@ -622,7 +646,7 @@ local function CountMatchingGems(equipment)
 			end
 		end
 	end
-	return have
+	return have, uncertain
 end
 
 local function FormatRequireBrief(requires, have)
@@ -639,7 +663,7 @@ local function FormatRequireBrief(requires, have)
 end
 
 local function EvaluateMetaActivation(findings, report, equipment)
-	local have = CountMatchingGems(equipment)
+	local have, uncertain = CountMatchingGems(equipment)
 	local metaInfo = {
 		present = false,
 		active = nil,
@@ -682,7 +706,11 @@ local function EvaluateMetaActivation(findings, report, equipment)
 							end
 						end
 						metaInfo.active = ok
-						if not ok then
+						if not ok and uncertain then
+							metaInfo.known = false
+							metaInfo.active = nil
+							AddFinding(findings, "META_NOT_CHECKABLE", "info", "meta", slot.key, Msg("META_NOT_CHECKABLE", "unknown gem colors"))
+						elseif not ok then
 							AddFinding(
 								findings,
 								"META_INACTIVE",
@@ -2668,6 +2696,60 @@ function Addon:GearCheckRulesSelfTest()
 	local fLower = self:EvaluateGearCheck(lowerEnch)
 	Check("Mighty Health → ENCHANT_LOWER_LEVEL info", HasCode(fLower, "ENCHANT_LOWER_LEVEL"))
 	Check("Mighty Health → chest not REPLACE", lowerEnch.equipment[1].verdict ~= "C")
+
+	-- Accepted physical progression trinkets must not be flagged for replacement.
+	local physicalSpecs = {
+		{ "WARRIOR", 1 }, { "WARRIOR", 2 }, { "PALADIN", 3 },
+		{ "HUNTER", 1 }, { "HUNTER", 2 }, { "HUNTER", 3 },
+		{ "ROGUE", 1 }, { "ROGUE", 2 }, { "ROGUE", 3 },
+		{ "DEATHKNIGHT", 2 }, { "DEATHKNIGHT", 3 },
+		{ "SHAMAN", 2 }, { "DRUID", 2 },
+	}
+	for specIndex = 1, #physicalSpecs do
+		local spec = physicalSpecs[specIndex]
+		local skullReport = {
+			character = { classFile = spec[1], specTab = spec[2], specKnown = true, gaps = {} },
+			equipment = {},
+		}
+		for variant = 1, 2 do
+			skullReport.equipment[variant] = MakeSlot("trinket" .. variant, "Trinket" .. (variant - 1) .. "Slot", MakeItem({
+				itemId = 50341 + variant,
+				category = "armor",
+				armorType = "misc",
+				stats = { critRating = 131 },
+			}))
+		end
+		local skullFindings = self:EvaluateGearCheck(skullReport)
+		Check(spec[1] .. spec[2] .. " accepts both Whispering Fanged Skull variants", not HasCode(skullFindings, "TRINKET_NOT_PREFERRED"))
+	end
+
+	-- Acceptable healer enchants remain B, without replacement/bad-stat findings.
+	local healerSpecs = { { "PALADIN", 1 }, { "PRIEST", 1 }, { "PRIEST", 2 }, { "SHAMAN", 3 }, { "DRUID", 3 } }
+	for specIndex = 1, #healerSpecs do
+		local spec = healerSpecs[specIndex]
+		local healerReport = {
+			character = { classFile = spec[1], specTab = spec[2], specKnown = true, gaps = {} },
+			equipment = {
+				MakeSlot("chest", "ChestSlot", MakeItem({
+					category = "armor", armorType = "cloth",
+					stats = { intellect = 80, spellPower = 100 },
+					enchant = { enchantId = 3233, present = true, known = true, gaps = {} },
+				})),
+			},
+		}
+		if (spec[1] == "PRIEST" and spec[2] == 2) or spec[1] == "DRUID" then
+			healerReport.equipment[2] = MakeSlot("wrist", "WristSlot", MakeItem({
+				category = "armor", armorType = "cloth",
+				stats = { intellect = 80, spellPower = 100, spirit = 60 },
+				enchant = { enchantId = 2326, present = true, known = true, gaps = {} },
+			}))
+		end
+		local healerFindings = self:EvaluateGearCheck(healerReport)
+		Check(spec[1] .. spec[2] .. " accepts healer enchants", not HasCode(healerFindings, "ENCHANT_BAD_STAT"))
+		for slotIndex = 1, #healerReport.equipment do
+			Check(spec[1] .. spec[2] .. " acceptable enchant slot " .. slotIndex .. " stays B", healerReport.equipment[slotIndex].verdict == "B")
+		end
+	end
 
 	local profileCount = 0
 	if self.GetGearCheckProfileCount then

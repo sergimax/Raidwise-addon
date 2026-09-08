@@ -67,7 +67,7 @@ local function CreateCooldownHeaderCell(parent)
 	icon:SetPoint("TOPLEFT", 6, -4)
 	cell.icon = icon
 
-	local name = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local name = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
 	name:SetPoint("TOPLEFT", icon, "TOPRIGHT", 4, 0)
 	name:SetPoint("RIGHT", cell, "RIGHT", -4, 0)
 	name:SetHeight(14)
@@ -75,7 +75,7 @@ local function CreateCooldownHeaderCell(parent)
 	name:SetJustifyV("MIDDLE")
 	cell.name = name
 
-	local lastCheck = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local lastCheck = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
 	lastCheck:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -1)
 	lastCheck:SetPoint("RIGHT", cell, "RIGHT", -4, 0)
 	lastCheck:SetJustifyH("LEFT")
@@ -124,14 +124,14 @@ local function CreateCooldownRow(parent)
 	row:SetHeight(UI.CD_ROW_H)
 	W.ApplyPlainPanel(row, UI.CD_ROW_A)
 
-	local name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local name = W.CreateFontString(row, nil, "OVERLAY", "GameFontHighlight")
 	name:SetPoint("TOPLEFT", 6, -4)
 	name:SetPoint("RIGHT", row, "LEFT", CD_INSTANCE_COL_W - 4, 0)
 	name:SetJustifyH("LEFT")
 	name:SetJustifyV("TOP")
 	row.instanceName = name
 
-	local typeLabel = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local typeLabel = W.CreateFontString(row, nil, "OVERLAY", "GameFontNormalSmall")
 	typeLabel:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -1)
 	typeLabel:SetPoint("RIGHT", row, "LEFT", CD_INSTANCE_COL_W - 4, 0)
 	typeLabel:SetJustifyH("LEFT")
@@ -158,7 +158,7 @@ local function CreateCurrencyChip(parent)
 	icon:SetPoint("LEFT", 0, 0)
 	chip.icon = icon
 
-	local count = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local count = W.CreateFontString(chip, nil, "OVERLAY", "GameFontNormalSmall")
 	count:SetPoint("LEFT", icon, "RIGHT", 2, 0)
 	count:SetPoint("RIGHT", chip, "RIGHT", 0, 0)
 	count:SetJustifyH("LEFT")
@@ -191,7 +191,7 @@ local function CreateCooldownValueCell(parent)
 	cell:SetHeight(UI.CD_ROW_H)
 	cell.chips = {}
 
-	local text = cell:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local text = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
 	text:SetPoint("LEFT", 4, 0)
 	text:SetPoint("RIGHT", -4, 0)
 	text:SetJustifyH("CENTER")
@@ -288,7 +288,7 @@ local function HideCurrencyRowLabels(row)
 end
 
 local function CreateCurrencyRowLabel(parent)
-	local label = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local label = W.CreateFontString(parent, nil, "OVERLAY", "GameFontNormalSmall")
 	label:SetHeight(CD_CURRENCY_CHIP_H)
 	label:SetJustifyH("LEFT")
 	label:SetJustifyV("MIDDLE")
@@ -372,7 +372,7 @@ local function CreateCooldownsPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	local hint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
 	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
 	hint:SetJustifyH("LEFT")
@@ -390,7 +390,7 @@ local function CreateCooldownsPage(parent)
 
 	local tableTop = -W.CooldownTableTopOffset()
 
-	local emptyLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local emptyLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
 	emptyLabel:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
 	emptyLabel:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 	emptyLabel:SetJustifyH("CENTER")
@@ -424,13 +424,13 @@ local function CreateCooldownsPage(parent)
 	W.ApplyPlainPanel(headerBg, UI.TITLE_BG)
 	page.headerBg = headerBg
 
-	local instanceHeader = headerBg:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local instanceHeader = W.CreateFontString(headerBg, nil, "OVERLAY", "GameFontNormal")
 	instanceHeader:SetPoint("LEFT", 6, 0)
 	instanceHeader:SetText(W.T("CD_INSTANCE"))
 	W.SetFontColor(instanceHeader, UI.GOLD)
 	page.instanceHeader = instanceHeader
 
-	local noRowsLabel = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local noRowsLabel = W.CreateFontString(content, nil, "OVERLAY", "GameFontNormalSmall")
 	noRowsLabel:SetPoint("TOPLEFT", headerBg, "BOTTOMLEFT", 8, -10)
 	noRowsLabel:SetPoint("RIGHT", content, "RIGHT", -8, 0)
 	noRowsLabel:SetJustifyH("LEFT")
@@ -559,7 +559,7 @@ function Addon:RefreshCooldownTable()
 		yOffset = yOffset + rowHeight
 		local stripe = (rowIndex % 2 == 1) and UI.CD_ROW_A or UI.CD_ROW_B
 		row.stripe = stripe
-		row:SetBackdropColor(stripe[1], stripe[2], stripe[3], stripe[4])
+		W.SetBackdropColor(row, stripe)
 		if rowData.kind == "currency" then
 			ConfigureCurrencyRowHeading(row, rowData.name, rowData.entrySummaries or rowData.entryLabels)
 		else

@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.19.0"
+Addon.version = "1.20.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -31,6 +31,7 @@ end
 
 local defaults = {
 	enabled = true,
+	theme = "dark",
 	includeGearNames = true,
 	startupTab = "cooldowns",
 	reportChannel = "auto",
@@ -76,6 +77,9 @@ local function EnsureDB()
 		end
 	end
 	Addon.db = RaidwiseDB
+	if Addon.ApplyTheme then
+		Addon:ApplyTheme()
+	end
 	if Addon.PruneExpiredGearCheckReports then
 		Addon:PruneExpiredGearCheckReports()
 	end
@@ -256,6 +260,9 @@ end
 -- Run once when this addon finishes loading.
 function Addon:OnInitialize()
 	EnsureDB()
+	if self.CreateMinimapButton then
+		self:CreateMinimapButton()
+	end
 	self.lastUpdated = GetAddOnMetadata(ADDON_NAME, "X-LastUpdated") or ""
 	if not self.db.locale or (self.db.locale ~= "enUS" and self.db.locale ~= "ruRU") then
 		self.db.locale = self.DetectClientLocale and self:DetectClientLocale() or "enUS"

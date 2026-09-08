@@ -860,7 +860,7 @@ function Addon:AnalyzeRaidComposition(members)
 	local classBuckets = {}
 	for classIndex = 1, #CLASS_ORDER do
 		local classToken = CLASS_ORDER[classIndex]
-		classBuckets[classToken] = { count = 0, names = {} }
+		classBuckets[classToken] = { count = 0, names = {}, specs = {} }
 	end
 
 	members = members or {}
@@ -877,6 +877,19 @@ function Addon:AnalyzeRaidComposition(members)
 			if classBucket then
 				classBucket.count = classBucket.count + 1
 				classBucket.names[#classBucket.names + 1] = member.name or "?"
+				local specTab = tonumber(member.specTab)
+				if specTab and specTab >= 1 and specTab <= 3 and specTab == math.floor(specTab) then
+					local spec = classBucket.specs[specTab]
+					if not spec then
+						spec = { specTab = specTab, label = SpecLabel(member.class, specTab), count = 0, names = {} }
+						classBucket.specs[specTab] = spec
+					end
+					spec.count = spec.count + 1
+					spec.names[#spec.names + 1] = member.name or "?"
+					if member.specIcon and member.specIcon ~= "" then
+						spec.icon = member.specIcon
+					end
+				end
 			end
 		end
 	end
@@ -885,12 +898,19 @@ function Addon:AnalyzeRaidComposition(members)
 	for classIndex = 1, #CLASS_ORDER do
 		local classToken = CLASS_ORDER[classIndex]
 		local classBucket = classBuckets[classToken]
+		local specs = {}
+		for specTab = 1, 3 do
+			if classBucket.specs[specTab] then
+				specs[#specs + 1] = classBucket.specs[specTab]
+			end
+		end
 		classes[#classes + 1] = {
 			class = classToken,
 			label = ClassLabel(classToken),
 			count = classBucket.count,
 			present = classBucket.count > 0,
 			names = classBucket.names,
+			specs = specs,
 		}
 	end
 
