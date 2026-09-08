@@ -218,7 +218,9 @@ Below: **Report chat channel** heading, hint, then an **4-column** radio group (
 
 Below: **Gear check report form** heading, hint, then **Short** / **Full** radios (`RaidwiseDB.reportForm`, default `short`).
 
-Below: **Unit tooltips** heading, hint, four **24 × 24** checkboxes with labels, then **Preview** with compact + stacked sample blocks (`LAYOUT_VERSION = 9`).
+Category bars: **28** px high, **16** pt gold text, theme-aware `TITLE_BG` fill, **3** px gold left accent, **10** px text inset; **20** px gap above each subsequent category. Hint/control content uses the same **10** px inset; radio grids use inner width minus **20** px.
+
+Below: **Unit tooltips** category bar and hint, then one shared panel with **10** px padding. Left: **360** px options column with four **24 × 24** checkboxes and **6** px row gaps. Right: remaining width after a **20** px column gap, containing a small **Live tooltip preview** label and compact + stacked samples. Preview text wraps within the right column. Panel height follows sample text height with a **120** px minimum content height plus **20** px padding (`LAYOUT_VERSION = 10`).
 
 ## Fonts
 

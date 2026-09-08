@@ -49,7 +49,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Composition | `LAYOUT_VERSION = 9` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 11` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 9` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 10` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
@@ -325,6 +325,8 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 
 A **Theme: Dark / Theme: Light** toggle beside the language buttons applies immediately and persists in `RaidwiseDB.theme`. Dark is the default.
 
+Category titles use full-width shaded bars with a gold left accent and larger text. The unit-tooltip controls and live preview share one panel; the preview is a subordinate label, not another category.
+
 ```text
 [ language heading ]
 [ short hint ]
@@ -344,20 +346,14 @@ A **Theme: Dark / Theme: Light** toggle beside the language buttons applies imme
 [ short hint ]
 ( ) Short   ( ) Full
 
-[ Unit tooltips heading ]
+[ Unit tooltips category bar ]
 [ short hint ]
-[ ] Hide personal opinion
-[ ] Hide personal tags
-[ ] Hide community rating
-[ ] Hide community tags
-
-[ Preview ]
-Compact (live tooltip)
-Positive: Good Raid Leader, Fair Loot, Good player
-0 % positive:
-Fair Loot, Good Raid Leader, Good player
-Stacked (variant)
-…
++------------------------------------------------------------------+
+| [ ] Hide personal opinion   | Live tooltip preview                |
+| [ ] Hide personal tags      | Compact: sample lines               |
+| [ ] Hide community rating   | Stacked: sample lines               |
+| [ ] Hide community tags     |                                    |
++------------------------------------------------------------------+
 ```
 
 | Block | In-game text / control |
@@ -369,7 +365,7 @@ Stacked (variant)
 | Report chat channel | Exclusive radio group; destination for Raid roster, Composition, and Gear check reports. Stored in `RaidwiseDB.reportChannel` (default `auto` = RAID in a raid, PARTY in a party). Unavailable channels print to the local chat frame instead. |
 | Gear check report form | Short (default) or Full wording for Gear check Report buttons / `/rw gearcheck …`. Stored in `RaidwiseDB.reportForm`. |
 | Unit tooltips | Checkboxes stored in `RaidwiseDB.tooltip` (`hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags`); default all shown |
-| Preview | Sample compact (live) and stacked layout lines; updates when checkboxes change |
+| Live tooltip preview | Inside the Unit tooltips panel, beside its checkboxes; compact and stacked sample lines update when options change |
 
 Switching language updates the left menu, page labels, and visible tables without `/reload`. Player unit tooltips (mouseover/target) append personal opinion + top 3 tags and, for players in History, community mock percent + top 3 tags (`UnitTooltips.lua`).
 

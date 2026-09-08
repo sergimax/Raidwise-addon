@@ -6,7 +6,13 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 9
+local LAYOUT_VERSION = 10
+
+local SECTION_HEADER_H = 28
+local SECTION_GAP = 20
+local SECTION_INSET = 10
+local TOOLTIP_OPTIONS_W = 360
+local TOOLTIP_COL_GAP = 20
 
 local STARTUP_COLS = 4
 local STARTUP_RADIO_SIZE = 16
@@ -19,6 +25,36 @@ local CHECK_KEYS = {
 	{ key = "hideCommunity", labelKey = "SETTINGS_TIP_HIDE_COMMUNITY" },
 	{ key = "hideCommunityTags", labelKey = "SETTINGS_TIP_HIDE_COMMUNITY_TAGS" },
 }
+
+local function CreateSettingsHeading(page, labelKey, anchor)
+	local heading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
+	if anchor then
+		heading:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -SECTION_GAP)
+	else
+		heading:SetPoint("TOPLEFT", SECTION_INSET, 0)
+	end
+	heading:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
+	heading:SetHeight(SECTION_HEADER_H)
+	heading:SetJustifyH("LEFT")
+	heading:SetJustifyV("MIDDLE")
+	W.ApplyFontSize(heading, 16)
+	heading:SetText(W.T(labelKey))
+	W.SetFontColor(heading, UI.GOLD)
+
+	local background = page:CreateTexture(nil, "BACKGROUND")
+	background:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+	background:SetPoint("TOPLEFT", heading, "TOPLEFT", -SECTION_INSET, 0)
+	background:SetPoint("BOTTOMRIGHT", heading, "BOTTOMRIGHT", SECTION_INSET, 0)
+	W.SetTextureColor(background, UI.TITLE_BG)
+
+	local accent = page:CreateTexture(nil, "BORDER")
+	accent:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+	accent:SetPoint("TOPLEFT", background, "TOPLEFT", 0, 0)
+	accent:SetPoint("BOTTOMLEFT", background, "BOTTOMLEFT", 0, 0)
+	accent:SetWidth(3)
+	W.SetTextureColor(accent, UI.GOLD_DIM)
+	return heading
+end
 
 local function UpdateLocaleButtons(page)
 	if not page or not page.enBtn or not page.ruBtn then
@@ -135,11 +171,11 @@ local function ApplyReportFormChoice(page, formId)
 	UpdateReportFormRadios(page)
 end
 
-local function CreateSettingsCheck(page, nameSuffix, labelKey, dbKey, anchor)
+local function CreateSettingsCheck(page, parent, nameSuffix, labelKey, dbKey, anchor)
 	local check = CreateFrame(
 		"CheckButton",
 		"RaidwiseSettingsCheck" .. nameSuffix .. "V" .. tostring(LAYOUT_VERSION),
-		page,
+		parent,
 		"UICheckButtonTemplate"
 	)
 	check:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
@@ -153,13 +189,15 @@ local function CreateSettingsCheck(page, nameSuffix, labelKey, dbKey, anchor)
 		templateCheckText:Hide()
 	end
 
-	local label = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
+	local label = W.CreateFontString(parent, nil, "OVERLAY", "GameFontHighlight")
 	label:SetPoint("LEFT", check, "RIGHT", 4, 0)
+	label:SetPoint("RIGHT", parent, "RIGHT", 0, 0)
+	label:SetJustifyH("LEFT")
 	label:SetText(W.T(labelKey))
 
-	local hit = CreateFrame("Button", nil, page)
+	local hit = CreateFrame("Button", nil, parent)
 	hit:SetPoint("LEFT", check, "RIGHT", 0, 0)
-	hit:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	hit:SetPoint("RIGHT", parent, "RIGHT", 0, 0)
 	hit:SetHeight(UI.OPTIONS_H)
 	hit:SetScript("OnClick", function()
 		check:Click()
@@ -199,6 +237,12 @@ local function RefreshTooltipPreviews(page)
 	end
 	if page.previewStacked then
 		page.previewStacked:SetText(FormatPreviewText("stacked"))
+	end
+	if page.tooltipBody then
+		local previewHeight = page.previewHeading:GetStringHeight() + page.compactLabel:GetStringHeight()
+			+ page.previewCompact:GetStringHeight() + page.stackedLabel:GetStringHeight()
+			+ page.previewStacked:GetStringHeight() + 24
+		page.tooltipBody:SetHeight(math.max(4 * (UI.CHECK_SIZE + 6), previewHeight) + SECTION_INSET * 2)
 	end
 end
 
@@ -254,7 +298,7 @@ local function CreateStartupTabRadios(page, anchor)
 		return anchor
 	end
 
-	local innerWidth = W.ContentInnerWidth()
+	local innerWidth = W.ContentInnerWidth() - SECTION_INSET * 2
 	local colWidth = math.floor((innerWidth - STARTUP_GAP * (STARTUP_COLS - 1)) / STARTUP_COLS)
 	local firstHost = nil
 	local lastHost = nil
@@ -330,7 +374,7 @@ local function CreateReportChannelRadios(page, anchor)
 		return anchor
 	end
 
-	local innerWidth = W.ContentInnerWidth()
+	local innerWidth = W.ContentInnerWidth() - SECTION_INSET * 2
 	local colWidth = math.floor((innerWidth - STARTUP_GAP * (STARTUP_COLS - 1)) / STARTUP_COLS)
 	local firstHost = nil
 	local lastHost = nil
@@ -405,7 +449,7 @@ local function CreateReportFormRadios(page, anchor)
 		return anchor
 	end
 
-	local innerWidth = W.ContentInnerWidth()
+	local innerWidth = W.ContentInnerWidth() - SECTION_INSET * 2
 	local cols = math.min(#choices, STARTUP_COLS)
 	local colWidth = math.floor((innerWidth - STARTUP_GAP * (cols - 1)) / cols)
 	local firstHost = nil
@@ -433,15 +477,12 @@ local function CreateSettingsPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local heading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
-	heading:SetPoint("TOPLEFT", 0, 0)
-	heading:SetText(W.T("SETTINGS_LANGUAGE"))
-	W.SetFontColor(heading, UI.GOLD)
+	local heading = CreateSettingsHeading(page, "SETTINGS_LANGUAGE")
 	page.heading = heading
 
 	local hint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
-	hint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	hint:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetText(W.T("SETTINGS_LANGUAGE_HINT"))
 	page.hint = hint
@@ -483,104 +524,106 @@ local function CreateSettingsPage(parent)
 	themeButton.label:SetText(W.T(Addon:GetTheme() == "light" and "SETTINGS_THEME_LIGHT" or "SETTINGS_THEME_DARK"))
 	W.SetPlainButtonTooltip(themeButton, "SETTINGS_THEME_HINT")
 
-	local startupHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
-	startupHeading:SetPoint("TOPLEFT", enBtn, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
-	startupHeading:SetText(W.T("SETTINGS_STARTUP_TAB"))
-	W.SetFontColor(startupHeading, UI.GOLD)
+	local startupHeading = CreateSettingsHeading(page, "SETTINGS_STARTUP_TAB", enBtn)
 	page.startupHeading = startupHeading
 
 	local startupHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	startupHint:SetPoint("TOPLEFT", startupHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
-	startupHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	startupHint:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
 	startupHint:SetJustifyH("LEFT")
 	startupHint:SetText(W.T("SETTINGS_STARTUP_TAB_HINT"))
 	page.startupHint = startupHint
 
 	local startupAnchor = CreateStartupTabRadios(page, startupHint)
 
-	local reportHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
-	reportHeading:SetPoint("TOPLEFT", startupAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
-	reportHeading:SetText(W.T("SETTINGS_REPORT_CHANNEL"))
-	W.SetFontColor(reportHeading, UI.GOLD)
+	local reportHeading = CreateSettingsHeading(page, "SETTINGS_REPORT_CHANNEL", startupAnchor)
 	page.reportHeading = reportHeading
 
 	local reportHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	reportHint:SetPoint("TOPLEFT", reportHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
-	reportHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	reportHint:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
 	reportHint:SetJustifyH("LEFT")
 	reportHint:SetText(W.T("SETTINGS_REPORT_CHANNEL_HINT"))
 	page.reportHint = reportHint
 
 	local reportAnchor = CreateReportChannelRadios(page, reportHint)
 
-	local formHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
-	formHeading:SetPoint("TOPLEFT", reportAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
-	formHeading:SetText(W.T("SETTINGS_REPORT_FORM"))
-	W.SetFontColor(formHeading, UI.GOLD)
+	local formHeading = CreateSettingsHeading(page, "SETTINGS_REPORT_FORM", reportAnchor)
 	page.formHeading = formHeading
 
 	local formHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	formHint:SetPoint("TOPLEFT", formHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
-	formHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	formHint:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
 	formHint:SetJustifyH("LEFT")
 	formHint:SetText(W.T("SETTINGS_REPORT_FORM_HINT"))
 	page.formHint = formHint
 
 	local formAnchor = CreateReportFormRadios(page, formHint)
 
-	local tipHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
-	tipHeading:SetPoint("TOPLEFT", formAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
-	tipHeading:SetText(W.T("SETTINGS_TOOLTIP"))
-	W.SetFontColor(tipHeading, UI.GOLD)
+	local tipHeading = CreateSettingsHeading(page, "SETTINGS_TOOLTIP", formAnchor)
 	page.tipHeading = tipHeading
 
 	local tipHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	tipHint:SetPoint("TOPLEFT", tipHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
-	tipHint:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	tipHint:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
 	tipHint:SetJustifyH("LEFT")
 	tipHint:SetText(W.T("SETTINGS_TOOLTIP_HINT"))
 	page.tipHint = tipHint
 
+	local tooltipBody = CreateFrame("Frame", nil, page)
+	tooltipBody:SetPoint("TOPLEFT", tipHint, "BOTTOMLEFT", -SECTION_INSET, -8)
+	tooltipBody:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	tooltipBody:SetHeight(200)
+	W.ApplyPlainPanel(tooltipBody, UI.PANEL_BG)
+	page.tooltipBody = tooltipBody
+
+	local options = CreateFrame("Frame", nil, tooltipBody)
+	options:SetPoint("TOPLEFT", SECTION_INSET, -SECTION_INSET)
+	options:SetSize(TOOLTIP_OPTIONS_W, 4 * (UI.CHECK_SIZE + 6))
+	local checkAnchor = options:CreateTexture(nil, "BACKGROUND")
+	checkAnchor:SetPoint("TOPLEFT", 0, 6)
+	checkAnchor:SetSize(1, 1)
 	page.tipChecks = {}
 	page.tipLabels = {}
-	local checkAnchor = tipHint
 	for index = 1, #CHECK_KEYS do
 		local def = CHECK_KEYS[index]
-		local check, label = CreateSettingsCheck(page, tostring(index), def.labelKey, def.key, checkAnchor)
+		local check, label = CreateSettingsCheck(page, options, tostring(index), def.labelKey, def.key, checkAnchor)
 		page.tipChecks[index] = check
 		page.tipLabels[index] = label
 		checkAnchor = check
 	end
 
-	local previewHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
-	previewHeading:SetPoint("TOPLEFT", checkAnchor, "BOTTOMLEFT", 0, -UI.INFO_BLOCK_GAP)
+	local previewHeading = W.CreateFontString(tooltipBody, nil, "OVERLAY", "GameFontNormalSmall")
+	previewHeading:SetPoint("TOPLEFT", options, "TOPRIGHT", TOOLTIP_COL_GAP, 0)
+	previewHeading:SetPoint("RIGHT", tooltipBody, "RIGHT", -SECTION_INSET, 0)
+	previewHeading:SetJustifyH("LEFT")
 	previewHeading:SetText(W.T("SETTINGS_TIP_PREVIEW"))
-	W.SetFontColor(previewHeading, UI.GOLD)
+	W.SetFontColor(previewHeading, UI.TEXT_BODY)
 	page.previewHeading = previewHeading
 
-	local compactLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
-	compactLabel:SetPoint("TOPLEFT", previewHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	local compactLabel = W.CreateFontString(tooltipBody, nil, "OVERLAY", "GameFontNormalSmall")
+	compactLabel:SetPoint("TOPLEFT", previewHeading, "BOTTOMLEFT", 0, -8)
 	compactLabel:SetText(W.T("SETTINGS_TIP_LAYOUT_COMPACT"))
-	W.SetFontColor(compactLabel, UI.TEXT_IDLE)
+	W.SetFontColor(compactLabel, UI.TEXT_DISABLED)
 	page.compactLabel = compactLabel
 
-	local previewCompact = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
+	local previewCompact = W.CreateFontString(tooltipBody, nil, "OVERLAY", "GameFontHighlight")
 	previewCompact:SetPoint("TOPLEFT", compactLabel, "BOTTOMLEFT", 0, -4)
-	previewCompact:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	previewCompact:SetPoint("RIGHT", tooltipBody, "RIGHT", -SECTION_INSET, 0)
 	previewCompact:SetJustifyH("LEFT")
 	previewCompact:SetJustifyV("TOP")
 	previewCompact:SetNonSpaceWrap(true)
 	page.previewCompact = previewCompact
 
-	local stackedLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
-	stackedLabel:SetPoint("TOPLEFT", previewCompact, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
+	local stackedLabel = W.CreateFontString(tooltipBody, nil, "OVERLAY", "GameFontNormalSmall")
+	stackedLabel:SetPoint("TOPLEFT", previewCompact, "BOTTOMLEFT", 0, -8)
 	stackedLabel:SetText(W.T("SETTINGS_TIP_LAYOUT_STACKED"))
-	W.SetFontColor(stackedLabel, UI.TEXT_IDLE)
+	W.SetFontColor(stackedLabel, UI.TEXT_DISABLED)
 	page.stackedLabel = stackedLabel
 
-	local previewStacked = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
+	local previewStacked = W.CreateFontString(tooltipBody, nil, "OVERLAY", "GameFontHighlight")
 	previewStacked:SetPoint("TOPLEFT", stackedLabel, "BOTTOMLEFT", 0, -4)
-	previewStacked:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	previewStacked:SetPoint("RIGHT", tooltipBody, "RIGHT", -SECTION_INSET, 0)
 	previewStacked:SetJustifyH("LEFT")
 	previewStacked:SetJustifyV("TOP")
 	previewStacked:SetNonSpaceWrap(true)
