@@ -147,6 +147,8 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
 
+Offline characters use a muted card background, muted names, and dimmed grayscale class/role/spec icons; line 2 shows **Offline** instead of cached stats. Characters without a gear-check report use a highlighted background and an amber **Not scanned** label (or the specific scan failure). Offline styling takes priority when both apply, while the scan status remains visible on line 4. Existing reports remain accessible. Normal styling returns on roster refresh after reconnecting or receiving a report. Card geometry and layout version are unchanged.
+
 ## Raid composition
 
 Wowhead-style checklist of the current party or raid: who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered. Tracking list: [`Raid-Composition.md`](Raid-Composition.md). Detected primary specs appear as icon/count rows beneath their corresponding class, in talent-tree order; hover for the spec name and players.
