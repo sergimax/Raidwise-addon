@@ -104,7 +104,7 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 - On **Events**, pick a type by category (**Attendance**, **Loot**, **Help**, **Behavior** — each with an icon) and **Add event** / **Remove** (draft until **Save and Update**; context captured when adding). Joining a party or raid also logs **In the same party** when the meet count goes up (first meet, or ≥30 minutes since last seen)
 - On **Memo**, write a private free-form note with **Save** / **Reset** (not shared, not logged in History)
 - Raid and History show your saved opinion and tag summary; click a row or card to open the profile
-- Chat messages from players with saved opinions receive a green, yellow, or red `<Rw>` marker
+- Chat messages from players with saved opinions receive a `[Rw]` marker with white brackets and mint (positive), lavender (neutral), or coral (negative) text; the message keeps its channel color
 - **Community note** is currently a mock preview for a future addon exchange / web app feature
 
 **Settings** tab:
