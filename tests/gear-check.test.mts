@@ -141,6 +141,17 @@ test("header chat radios preserve choices, colors, and exclusive selection", asy
       assert(Raidwise.db.reportForm=="full")
       assert(frame.reportFormRadios[2].checked and not frame.reportFormRadios[1].checked)
       assert(Raidwise.Pages.Settings.LAYOUT_VERSION==12)
+      local updateHeader=findLocal(Raidwise.SelectTab,"UpdateShellHeader")
+      for _,host in ipairs({frame.reportChannelHost,frame.reportFormHost}) do
+        host.Show=function(self) self.visible=true end
+        host.Hide=function(self) self.visible=false end
+      end
+      for _,tab in ipairs({"raid","composition","geartarget","cooldowns","export","history","settings","info"}) do
+        updateHeader(frame,tab)
+        assert(frame.reportChannelHost.visible==(tab=="raid" or tab=="composition" or tab=="geartarget"),tab)
+        assert(frame.reportFormHost.visible==(tab=="geartarget"),tab)
+      end
+      assert(Raidwise.db.reportForm=="full" and Raidwise.db.reportChannel=="auto")
     `);
   });
 });

@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 14
+local SHELL_LAYOUT_VERSION = 15
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -205,6 +205,14 @@ local function UpdateShellHeader(frame, tabId)
 	Addon:RefreshHeaderReportChannels()
 	Addon:RefreshHeaderReportForm()
 	local pageInfo = PageInfoById(tabId)
+	local usesReportChat = tabId == "raid" or tabId == "composition" or tabId == "geartarget"
+	local usesReportForm = tabId == "geartarget"
+	if frame.reportChannelHost then
+		if usesReportChat then frame.reportChannelHost:Show() else frame.reportChannelHost:Hide() end
+	end
+	if frame.reportFormHost then
+		if usesReportForm then frame.reportFormHost:Show() else frame.reportFormHost:Hide() end
+	end
 	if frame.titleText then
 		if pageInfo then
 			frame.titleText:SetText(W.T(pageInfo.labelKey))
