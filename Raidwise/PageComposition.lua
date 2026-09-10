@@ -54,9 +54,8 @@ local function SendCompositionChat(message)
 	Addon:Print(message)
 end
 
-local function ReportMissingClassesToChat()
+local function BuildMissingClassesMessage()
 	if not Addon.AnalyzeRaidComposition or not Addon.CompositionMembers then
-		Addon:Print(W.T("COMP_FAIL"))
 		return
 	end
 	local analysis = Addon:AnalyzeRaidComposition(Addon:CompositionMembers(false))
@@ -75,10 +74,19 @@ local function ReportMissingClassesToChat()
 	else
 		message = W.T("COMP_CHAT_MISSING", table.concat(missing, ", "))
 	end
-	SendCompositionChat(message)
+	return message
 end
 
-local function ReportEffectRowToChat(row)
+local function ReportMissingClassesToChat()
+	local message = BuildMissingClassesMessage()
+	if message then
+		SendCompositionChat(message)
+	else
+		Addon:Print(W.T("COMP_FAIL"))
+	end
+end
+
+local function BuildEffectRowMessage(row)
 	local effectName = row.tooltipTitle
 	if not effectName or effectName == "" then
 		return
@@ -97,7 +105,23 @@ local function ReportEffectRowToChat(row)
 	else
 		message = W.T("COMP_CHAT_EFFECT_HAVE", effectName, detail)
 	end
-	SendCompositionChat(message)
+	return message
+end
+
+local function ReportEffectRowToChat(row)
+	local message = BuildEffectRowMessage(row)
+	if message then
+		SendCompositionChat(message)
+	end
+end
+
+local function AddChatPreview(message)
+	if not message then
+		return
+	end
+	GameTooltip:AddLine(" ")
+	GameTooltip:AddLine(W.T("RAID_CHAT_PREVIEW"), 0.6, 0.6, 0.6)
+	GameTooltip:AddLine(message, 1, 1, 1, true)
 end
 
 local function LayoutCompositionScrollBars(page)
@@ -187,6 +211,7 @@ local function CreateCompositionRow(parent)
 			end
 		end
 		GameTooltip:AddLine(W.T("COMP_SHIFT_CHAT"), 0.6, 0.6, 0.6)
+		AddChatPreview(BuildEffectRowMessage(self))
 		GameTooltip:Show()
 	end)
 	row:SetScript("OnLeave", function()
@@ -293,6 +318,13 @@ local function CreateCompositionPage(parent)
 	local reportBtn = W.CreatePlainButton(page, 110, UI.CD_TOOLBAR_H, W.T("BTN_COMP_REPORT"))
 	reportBtn:SetPoint("TOPRIGHT", refreshBtn, "TOPLEFT", -4, 0)
 	W.SetPlainButtonTooltip(reportBtn, "BTN_COMP_REPORT_TIP")
+	reportBtn:SetScript("OnEnter", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(W.T(self.tooltipKey), nil, nil, nil, true)
+		AddChatPreview(BuildMissingClassesMessage())
+		GameTooltip:Show()
+	end)
 	reportBtn:SetScript("OnClick", function()
 		ReportMissingClassesToChat()
 	end)

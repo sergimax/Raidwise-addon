@@ -170,3 +170,5 @@ One Replenishment source covers 10 people; 25-man raids usually want two.
 - Blessings and totems are “can provide”, not “currently assigned on this subgroup”.
 - Party (5) and raid (40) both feed the same checklist; solo shows only your own rows as present.
 - Rows marked **hidden** (self-targeted defensives, Sacred Shield, Intervene, Shadowfiend, Gift of the Naaru) are not shown in the tab.
+
+Report tooltips preview the same message used by the Report button and Shift-click effect rows. The preview is omitted when no report message can be built.
