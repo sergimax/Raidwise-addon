@@ -41,7 +41,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 11` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 12` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 31` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
@@ -49,7 +49,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Composition | `LAYOUT_VERSION = 9` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 12` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 10` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 11` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
@@ -176,7 +176,7 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |
 | columns | Three equal columns below; sections pack into the shortest column |
 | section heading | Name left; `present/total` right-aligned above row counts; gold, or **red** when present is `0` |
-| row | Spell icon, name, count of players who can provide it; **Shift-click** posts effect + class/spec — spell lines to the report chat channel (Settings) |
+| row | Spell icon, name, count of players who can provide it; **Shift-click** posts effect + class/spec — spell lines to the report chat channel (title bar) |
 | present | Gold name and count (`> 0`) |
 | missing | Dim name and `0` |
 | tooltip | Who in the raid has it; then **Brought by:** on its own line, then one source class/spec — spell per line; hint for Shift-click |
@@ -221,7 +221,7 @@ LEFT (~670px)                          RIGHT (~220px)
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI (hover tip) |
 | Show as a text | Toggles raw dump (replaces main columns; stays in top band) (hover tip) |
 | Select all | Enabled in text view when dump has text (hover tip) |
-| report buttons | Print to the Settings report channel (`[Rw]-gear` lines); hover previews the report |
+| report buttons | Print to the title-bar report channel (`[Rw]-gear` lines); hover previews the report |
 | filters | All / Items / Enchants / Gems / **B**; hover tip per filter |
 | breakdown (left) | Active filter name as gold header (except **All**); then `[VERDICT] Slot — Item` plus finding bullets |
 | Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved (hover tip) |
@@ -341,11 +341,6 @@ Category titles use full-width shaded bars with a gold left accent and larger te
 ( ) Cooldowns   ( ) Export      ( ) Raid        ( ) Composition
 ( ) Gear target ( ) History     ( ) Settings
 
-[ Report chat channel heading ]
-[ short hint ]
-( ) Auto (raid / party)  ( ) Self (your chat)  ( ) Party         ( ) Raid
-( ) Raid warning         ( ) Guild             ( ) Officer       ( ) Say
-
 [ Gear check report form heading ]
 [ short hint ]
 ( ) Short   ( ) Full
@@ -366,7 +361,7 @@ Category titles use full-width shaded bars with a gold left accent and larger te
 | short hint | “Interface language. Saved on this account.” |
 | English / Русский | Menu-style buttons; the active locale is selected. Choice is stored in `RaidwiseDB.locale` (`enUS` / `ruRU`). Default is the client locale. |
 | Startup page | Exclusive radio group for left-menu pages (**Info** excluded); selected page opens on `/raidwise`. Stored in `RaidwiseDB.startupTab` (default `cooldowns`). Saved `party` / `gearraid` migrate to `raid`. |
-| Report chat channel | Exclusive radio group; destination for Raid roster, Composition, and Gear check reports. Stored in `RaidwiseDB.reportChannel` (default `auto` = RAID in a raid, PARTY in a party). Unavailable channels print to the local chat frame instead. |
+| Report chat channel (shared title bar) | `Slf`, `Say`, `Prt`, `Rd`, `Rdw`, `Gld`, `Gof`, `Aut` exclusive radios with chat-colored labels and full-name tooltips; destination for Raid roster, Composition, and Gear check reports. Stored in `RaidwiseDB.reportChannel` (default `auto` = RAID in a raid, PARTY in a party). Unavailable channels print to the local chat frame instead. |
 | Gear check report form | Short (default) or Full wording for Gear check Report buttons / `/rw gearcheck …`. Stored in `RaidwiseDB.reportForm`. |
 | Unit tooltips | Checkboxes stored in `RaidwiseDB.tooltip` (`hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags`); default all shown |
 | Live tooltip preview | Inside the Unit tooltips panel, beside its checkboxes; compact and stacked sample lines update when options change |

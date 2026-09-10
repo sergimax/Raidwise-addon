@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 11
+local SHELL_LAYOUT_VERSION = 12
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -79,10 +79,76 @@ function Addon:IsAllowedStartupTab(tabId)
 	return IsAllowedStartupTab(tabId)
 end
 
+local HEADER_CHAT_CHOICES = {
+	{ id = "self", label = "Slf", chatType = "SYSTEM", key = "SELF" },
+	{ id = "say", label = "Say", chatType = "SAY", key = "SAY" },
+	{ id = "party", label = "Prt", chatType = "PARTY", key = "PARTY" },
+	{ id = "raid", label = "Rd", chatType = "RAID", key = "RAID" },
+	{ id = "raidwarning", label = "Rdw", chatType = "RAID_WARNING", key = "RAID_WARNING" },
+	{ id = "guild", label = "Gld", chatType = "GUILD", key = "GUILD" },
+	{ id = "officer", label = "Gof", chatType = "OFFICER", key = "OFFICER" },
+	{ id = "auto", label = "Aut", key = "AUTO" },
+}
+
+function Addon:RefreshHeaderReportChannels()
+	local frame = self.mainFrame
+	if not frame or not frame.reportChannelRadios then return end
+	local selected = self:GetReportChannel()
+	for _, radio in ipairs(frame.reportChannelRadios) do
+		radio:SetChecked(radio.channelId == selected)
+		local color = ChatTypeInfo and radio.chatType and ChatTypeInfo[radio.chatType]
+		if color then
+			radio.label:SetTextColor(color.r, color.g, color.b)
+		else
+			W.SetFontColor(radio.label, UI.TEXT_BODY)
+		end
+	end
+end
+
+local function CreateHeaderReportChannels(frame, titleBar, close)
+	local host = CreateFrame("Frame", nil, titleBar)
+	host:SetSize(392, 18)
+	host:SetPoint("RIGHT", close, "LEFT", -8, 0)
+	frame.reportChannelHost = host
+	frame.reportChannelRadios = {}
+	for index, choice in ipairs(HEADER_CHAT_CHOICES) do
+		local button = CreateFrame("Button", nil, host)
+		button:SetSize(49, 18)
+		button:SetPoint("LEFT", (index - 1) * 49, 0)
+		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("LEFT", 0, 0)
+		label:SetText(choice.label)
+		local radio = CreateFrame("CheckButton", nil, button, "UIRadioButtonTemplate")
+		radio:SetSize(14, 14)
+		radio:SetPoint("RIGHT", -2, 0)
+		radio.channelId = choice.id
+		radio.chatType = choice.chatType
+		radio.label = label
+		local function SelectChannel()
+			Addon:SetReportChannel(radio.channelId)
+		end
+		local function ShowTooltip(owner)
+			GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
+			GameTooltip:AddLine(W.T("SETTINGS_REPORT_CHANNEL"))
+			GameTooltip:AddLine(W.T("SETTINGS_REPORT_CHANNEL_" .. choice.key), 1, 1, 1, true)
+			GameTooltip:Show()
+		end
+		button:SetScript("OnClick", SelectChannel)
+		radio:SetScript("OnClick", SelectChannel)
+		button:SetScript("OnEnter", ShowTooltip)
+		radio:SetScript("OnEnter", ShowTooltip)
+		button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		radio:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		frame.reportChannelRadios[index] = radio
+	end
+	host:SetScript("OnShow", function() Addon:RefreshHeaderReportChannels() end)
+end
+
 local function UpdateShellHeader(frame, tabId)
 	if not frame then
 		return
 	end
+	Addon:RefreshHeaderReportChannels()
 	local pageInfo = PageInfoById(tabId)
 	if frame.titleText then
 		if pageInfo then
@@ -90,6 +156,9 @@ local function UpdateShellHeader(frame, tabId)
 		else
 			frame.titleText:SetText("Raidwise")
 		end
+	end
+	if frame.titleText then
+		frame.titleText:SetWidth(math.min(360, frame.titleText:GetStringWidth() or 360))
 	end
 	if not frame.pageLayoutVersionText then
 		return
@@ -231,6 +300,7 @@ local function CreateTitleBar(frame)
 
 	local title = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormal")
 	title:SetPoint("LEFT", 8, 0)
+	title:SetWidth(360)
 	title:SetJustifyH("LEFT")
 	title:SetText("Raidwise")
 	W.SetFontColor(title, UI.GOLD)
@@ -240,6 +310,8 @@ local function CreateTitleBar(frame)
 	pageLayoutVersionText:SetJustifyH("LEFT")
 	pageLayoutVersionText:SetText("")
 	W.SetFontColor(pageLayoutVersionText, UI.TEXT_DISABLED)
+
+	CreateHeaderReportChannels(frame, titleBar, close)
 
 	frame.titleBar = titleBar
 	frame.titleText = title

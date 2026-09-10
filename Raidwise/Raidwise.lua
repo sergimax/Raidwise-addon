@@ -158,6 +158,9 @@ function Addon:SetReportChannel(channelId)
 		return
 	end
 	self.db.reportChannel = channelId
+	if self.RefreshHeaderReportChannels then
+		self:RefreshHeaderReportChannels()
+	end
 end
 
 -- SendChatMessage chatType, or nil for the local default chat frame.

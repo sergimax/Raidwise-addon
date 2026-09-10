@@ -49,18 +49,18 @@ local Translations = {
 		BTN_RAID_REPORT_FLASK = "Report flask",
 		BTN_RAID_REPORT_FOOD = "Report food",
 		BTN_REFRESH_TIP = "Refresh this view with the latest data.",
-		BTN_COMP_REPORT_TIP = "Post missing required classes to the report chat channel (Settings).",
+		BTN_COMP_REPORT_TIP = "Post missing required classes to the report chat channel (title bar).",
 		BTN_RAID_PROFILE_TIP = "Open Character profile for this player.",
 		BTN_RAID_GEAR_TIP = "Open this player's gear check report on Gear check (target). Requires a completed Scan.",
 		BTN_RAID_RESCAN_TIP = "Re-run gear check for this player only and update their roster grades.",
-		BTN_RAID_REPORT_FLASK_TIP = "Post players missing a flask (or battle + guardian elixirs) to the report chat channel (Settings).",
-		BTN_RAID_REPORT_FOOD_TIP = "Post players missing a food buff to the report chat channel (Settings).",
+		BTN_RAID_REPORT_FLASK_TIP = "Post players missing a flask (or battle + guardian elixirs) to the report chat channel (title bar).",
+		BTN_RAID_REPORT_FOOD_TIP = "Post players missing a food buff to the report chat channel (title bar).",
 		BTN_RAID_REPORT_GEAR = "Report armor",
 		BTN_RAID_REPORT_ENCHANT = "Report ench",
-		BTN_RAID_MEMBER_GEAR_REPORT_TIP = "Report this player's gear/weapon issues to the report chat channel (Settings).",
-		BTN_RAID_MEMBER_ENCHANT_REPORT_TIP = "Report this player's gem/enchant issues to the report chat channel (Settings).",
-		BTN_RAID_REPORT_GEAR_TIP = "Post players with armor/weapon issues (C or D) to the report chat channel (Settings).",
-		BTN_RAID_REPORT_ENCHANT_TIP = "Post players with enchant/socket issues (C or D) to the report chat channel (Settings).",
+		BTN_RAID_MEMBER_GEAR_REPORT_TIP = "Report this player's gear/weapon issues to the report chat channel (title bar).",
+		BTN_RAID_MEMBER_ENCHANT_REPORT_TIP = "Report this player's gem/enchant issues to the report chat channel (title bar).",
+		BTN_RAID_REPORT_GEAR_TIP = "Post players with armor/weapon issues (C or D) to the report chat channel (title bar).",
+		BTN_RAID_REPORT_ENCHANT_TIP = "Post players with enchant/socket issues (C or D) to the report chat channel (title bar).",
 		CD_REFRESH_TIP = "Request fresh raid info, then redraw lockouts and currency.",
 		PARTY_REFRESH_TIP = "Re-read GearScore, item levels, and guild info; re-queue inspect for specs.",
 		RAID_REFRESH_TIP = "Re-read GearScore and iLvl; re-queue inspect for spec icons.",
@@ -77,11 +77,11 @@ local Translations = {
 		GEAR_CHECK_SELECT_ALL_TIP = "Select all dump text so you can copy with Ctrl+C.",
 		GEAR_CHECK_SAVE_TIP = "Save the current report snapshot on this account (~14 days).",
 		GEAR_CHECK_SAVED_DELETE_TIP = "Delete the currently selected saved report.",
-		GEAR_CHECK_REPORT_SUMMARY_TIP = "Print a short overall summary to the report chat channel (Settings).",
-		GEAR_CHECK_REPORT_ITEMS_TIP = "Print item findings to the report chat channel (Settings).",
-		GEAR_CHECK_REPORT_ENCHANTS_TIP = "Print enchant findings to the report chat channel (Settings).",
-		GEAR_CHECK_REPORT_GEMS_TIP = "Print gem findings to the report chat channel (Settings).",
-		GEAR_CHECK_REPORT_OK_TIP = "Print B (not A) items to the report chat channel (Settings).",
+		GEAR_CHECK_REPORT_SUMMARY_TIP = "Print a short overall summary to the report chat channel (title bar).",
+		GEAR_CHECK_REPORT_ITEMS_TIP = "Print item findings to the report chat channel (title bar).",
+		GEAR_CHECK_REPORT_ENCHANTS_TIP = "Print enchant findings to the report chat channel (title bar).",
+		GEAR_CHECK_REPORT_GEMS_TIP = "Print gem findings to the report chat channel (title bar).",
+		GEAR_CHECK_REPORT_OK_TIP = "Print B (not A) items to the report chat channel (title bar).",
 		GEAR_CHECK_FILTER_ALL_TIP = "Show all findings in the breakdown.",
 		GEAR_CHECK_FILTER_ITEMS_TIP = "Show only item and armor findings.",
 		GEAR_CHECK_FILTER_ENCHANTS_TIP = "Show only enchant findings.",
@@ -102,7 +102,7 @@ local Translations = {
 			.. "- /raidwise or /rw — open the window\n"
 			.. "- /raidwise close or /rw close — close the window\n"
 			.. "- /rw gearcheck — open Gear check (target) and scan\n"
-			.. "- /rw gearcheck summary|items|enchants|gems|ok — print that report to the report chat channel (Settings)\n"
+			.. "- /rw gearcheck summary|items|enchants|gems|ok — print that report to the report chat channel (title bar)\n"
 			.. "- /rw gearcheck test — offline rules self-test",
 		INFO_SECTION_COOLDOWNS = "Lockouts and currency for every character saved on this account.\n"
 			.. "\n"
@@ -123,7 +123,7 @@ local Translations = {
 			.. "- Groups 1–5, then 6–8: class, role, spec, flask/food, GearScore, iLvl, compact P:/C: ratings, and grades\n"
 			.. "- Compact header: S·A·B·C·D chips (hover for meanings), average GS and role counts, flask/food/armor/ench with report icons, and Scan/Export/Refresh/Back icons\n"
 			.. "- Flask and food icons on each card: full color = active, red = missing, dim = out of range or offline\n"
-			.. "- Report icons beside flask, food, armor/weap, and ench/sock post missing or problem players to the report chat channel (Settings)\n"
+			.. "- Report icons beside flask, food, armor/weap, and ench/sock post missing or problem players to the report chat channel (title bar)\n"
 			.. "- Hover a card for opinion, tags, community rating, guild (rank), raid buffs, and gear-check details\n"
 			.. "- Scan inspects everyone one at a time and fills armor/weap and ench/sock grades\n"
 			.. "- Export all builds text dumps; Back to roster closes them; click the dump + Ctrl+C copies\n"
@@ -133,7 +133,7 @@ local Translations = {
 			.. "\n"
 			.. "- Gold means covered; dim means missing\n"
 			.. "- Section titles show present/total; a red title means nothing in that section is present\n"
-			.. "- Report missing posts absent classes to the report chat channel (Settings)\n"
+			.. "- Report missing posts absent classes to the report chat channel (title bar)\n"
 			.. "- Shift-click an effect row to post that effect with provider classes and spells",
 		INFO_SECTION_GEARTARGET = "Surface-level PvE gear check for the current target, or yourself if nothing is targeted.\n"
 			.. "This is not a BiS list or build optimizer.\n"
@@ -141,7 +141,7 @@ local Translations = {
 			.. "- Overall: S (on published BiS lists), A (preferred + max ench/gems), B (usable), C (soft issues), D (wrong for spec)\n"
 			.. "- Spec ranks: preferred / acceptable / unwanted / forbidden\n"
 			.. "- Scan, then filter findings by All / Items / Enchants / Gems / B\n"
-			.. "- Report buttons and slash commands print to the report chat channel (Settings)\n"
+			.. "- Report buttons and slash commands print to the report chat channel (title bar)\n"
 			.. "- Show as a text toggles the raw dump; Save report keeps a snapshot for about 14 days",
 		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time).\n"
 			.. "The group grid shows armor/weap and ench/sock grades per player (S / A / B / C / D).\n"
@@ -287,7 +287,7 @@ local Translations = {
 		GEAR_CHECK_TEXT_VIEW_ON = "Show as a text ✓",
 		GEAR_CHECK_DEBUG = "Show as a text",
 		GEAR_CHECK_DEBUG_ON = "Show as a text ✓",
-		GEAR_CHECK_HINT = "Target a player (or clear target to scan yourself), then press Scan.\nReport buttons print to the report chat channel (Settings).\nShow as a text reveals the raw dump.",
+		GEAR_CHECK_HINT = "Target a player (or clear target to scan yourself), then press Scan.\nReport buttons print to the report chat channel (title bar).\nShow as a text reveals the raw dump.",
 		GEAR_CHECK_STATUS_SCANNING = "Scanning…",
 		GEAR_CHECK_STATUS_OK = "Scanned %s (%s).",
 		GEAR_CHECK_STATUS_SELF = "self",

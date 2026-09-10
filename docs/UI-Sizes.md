@@ -216,7 +216,7 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 
 Below: **Startup page** heading, hint, then an **4-column** radio group (`UIRadioButtonTemplate`, **16** px, row **22**, 8 px gaps); selected page is stored in `RaidwiseDB.startupTab`.
 
-Below: **Report chat channel** heading, hint, then an **4-column** radio group (same sizes) for `RaidwiseDB.reportChannel` (default `auto`).
+Report chat channel selection lives in the shared title bar: **392 x 18** px group, eight **49 x 18** px cells with **14** px radios, **8** px before Close. Labels: Slf / Say / Prt / Rd / Rdw / Gld / Gof / Aut. The page title is capped at **360** px, with its version immediately after it. The Settings channel section is removed (Settings layout v11; shell layout v12).
 
 Below: **Gear check report form** heading, hint, then **Short** / **Full** radios (`RaidwiseDB.reportForm`, default `short`).
 

@@ -75,3 +75,60 @@ test("roster issue reports group codes, separate categories, and retain unknown 
     `);
   });
 });
+
+test("header chat radios preserve choices, colors, and exclusive selection", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      local function widget()
+        return setmetatable({scripts={}}, {__index=function(_, key)
+          if key == "SetScript" then return function(self,event,fn) self.scripts[event]=fn end end
+          if key == "SetChecked" then return function(self,value) self.checked=value end end
+          if key == "SetTextColor" then return function(self,r,g,b) self.color={r,g,b} end end
+          if key == "SetText" then return function(self,value) self.text=value end end
+          return function() end
+        end})
+      end
+      CreateFrame = widget
+      Raidwise.Widgets = {CreateFontString=widget,SetFontColor=function() end,T=function(key) return key end}
+      Raidwise.UITheme = {TEXT_BODY={1,1,1}}
+      Raidwise.db = {reportChannel="auto"}
+      Raidwise.GetReportChannel = function(self) return self.db.reportChannel end
+      Raidwise.SetReportChannel = function(self,id)
+        self.db.reportChannel=id
+        self:RefreshHeaderReportChannels()
+      end
+      ChatTypeInfo = {SAY={r=1,g=1,b=1},PARTY={r=0.5,g=0.5,b=1}}
+      function findLocal(fn, wanted)
+        for index=1,100 do
+          local name,value=debug.getupvalue(fn,index)
+          if not name then break end
+          if name==wanted then return value end
+        end
+        error(wanted)
+      end
+    `);
+    for (const module of ["ExporterWindow", "PageSettings"]) {
+      lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
+    }
+    lua.doStringSync(`
+      local createTitle=findLocal(Raidwise.CreateMainFrame,"CreateTitleBar")
+      local createRadios=findLocal(createTitle,"CreateHeaderReportChannels")
+      local frame={}
+      Raidwise.mainFrame=frame
+      createRadios(frame,{}, {})
+      Raidwise:RefreshHeaderReportChannels()
+      local radios=frame.reportChannelRadios
+      assert(#radios==8 and radios[8].checked)
+      for _,radio in ipairs(radios) do
+        assert(#radio.label.text<=3)
+        radio.scripts.OnClick(radio)
+        assert(Raidwise.db.reportChannel==radio.channelId)
+        local checked=0
+        for _,other in ipairs(radios) do if other.checked then checked=checked+1 end end
+        assert(checked==1)
+      end
+      assert(radios[3].label.color[1]==0.5 and radios[3].label.color[3]==1)
+      assert(Raidwise.Pages.Settings.LAYOUT_VERSION==11)
+    `);
+  });
+});
