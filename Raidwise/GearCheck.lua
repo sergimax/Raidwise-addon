@@ -481,6 +481,9 @@ local function CollectGemsFromItemLink(itemLink, parsed)
 			gemLink = link
 		end
 		local itemId = type(gemLink) == "string" and tonumber(gemLink:match("item:(%d+)")) or 0
+		if (itemId or 0) == 0 and Addon.GetGearCheckGemItemId then
+			itemId = Addon:GetGearCheckGemItemId(enchantId) or 0
+		end
 		if (itemId or 0) > 0 or enchantId > 0 then
 			gems[#gems + 1] = {
 				socketIndex = socketIndex,
@@ -641,6 +644,7 @@ local function NormalizeGem(rawGem)
 	local catalog = Addon.GetGearCheckGemInfo and Addon:GetGearCheckGemInfo(rawGem.itemId)
 	if catalog then
 		gem.known = true
+		gem.name = catalog.name
 		if catalog.color then
 			gem.color = catalog.color
 			gem.isMeta = catalog.color == "meta"
@@ -1133,6 +1137,25 @@ function Addon:EnsureGearCheckGrades(report)
 	return FinalizeGearCheckReport(report, true)
 end
 
+function Addon:GetGearCheckMetaSummary(report)
+	local count = report and report.overall and report.overall.issues and report.overall.issues.meta or 0
+	if count > 0 then
+		return tostring(count)
+	end
+	for _, finding in ipairs(report and report.findings or {}) do
+		if finding.code == "META_NOT_CHECKABLE" then
+			return "Unknown"
+		end
+	end
+	local meta = report and report.meta
+	if meta and meta.present then
+		if meta.active == true then return "OK" end
+		if meta.active == false then return "Inactive" end
+		return "Unknown"
+	end
+	return "None"
+end
+
 function Addon:GetLastGearCheckReport()
 	if lastReport then
 		self:EnsureGearCheckGrades(lastReport)
@@ -1344,7 +1367,7 @@ function Addon:FormatGearCheckDump(report)
 			issues.items or 0,
 			issues.enchants or 0,
 			issues.gems or 0,
-			(issues.meta or 0) == 0 and "OK" or tostring(issues.meta),
+			self:GetGearCheckMetaSummary(report),
 			overall.resilienceItems or 0
 		)
 	end

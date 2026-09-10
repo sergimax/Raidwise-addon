@@ -520,3 +520,11 @@ Legacy name: `S_DRUID_BALANCE` is also used for all mage/warlock specs (rename t
 | `docs/Gear-Check-Surface-From-BiS.md` | Armor / weapon / trinket surface rules distilled from example BiS lists |
 
 Scans are **not** auto-persisted; user must press **Save report** (spec §25).
+
+### Report 1 corrections (2026-09-10)
+
+- Meta summaries show OK only for a confirmed active meta. Unresolved inspect data shows not checkable; confirmed missing metas retain their issue count.
+- Precision glove enchant (3234, +20 hit rating) is recognized as a valid Northrend enchant for physical DPS.
+- Legacy socket enchants 2711 and 2752 resolve to Sovereign Shadow Draenite (23111, +3 strength/+4 stamina) and Inscribed Flame Spessarite (23098, +3 strength/+3 crit). Both produce lower-level gem findings, including when inspect cannot resolve their gem links.
+- Sphere of Red Dragon's Blood (37166) and Darkmoon Card: Death (42990) are allowed starter physical DPS trinkets (B, not preferred A).
+- The original report remains a captured snapshot; rescan the target to obtain updated findings.

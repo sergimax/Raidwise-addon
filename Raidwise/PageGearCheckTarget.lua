@@ -584,7 +584,11 @@ local function ApplySummary(page, report)
 
 	local issues = overall.issues or {}
 	local verdicts = report.verdicts or {}
-	local metaText = (issues.meta or 0) == 0 and W.T("GEAR_CHECK_META_OK_SHORT") or tostring(issues.meta or 0)
+	local metaText = Addon:GetGearCheckMetaSummary(report)
+	if metaText == "OK" then metaText = W.T("GEAR_CHECK_META_OK_SHORT")
+	elseif metaText == "Unknown" then metaText = W.T("GEAR_CHECK_META_UNKNOWN")
+	elseif metaText == "None" then metaText = W.T("GEAR_CHECK_META_NONE")
+	elseif metaText == "Inactive" then metaText = W.T("GEAR_CHECK_META_INACTIVE") end
 	page.issuesLabel:SetText(
 		W.FormatGearVerdictCountsLine("Items ", verdicts, "")
 			.. " · Enchants " .. tostring(issues.enchants or 0)

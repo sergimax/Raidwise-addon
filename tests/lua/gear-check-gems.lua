@@ -167,3 +167,44 @@ for _, itemId in ipairs({54572, 54588}) do
         end
     end
 end
+
+-- Report 1: legacy socket enchant IDs resolve even when GetItemGem is unavailable.
+reads = {}
+local legacyLink = "item:47184:0:2711:2752:0:0:0:0:80"
+local legacyGems = collect(legacyLink, parse(legacyLink))
+assert(legacyGems[1].itemId == 23111 and legacyGems[2].itemId == 23098)
+local sovereign, inscribed = normalize(legacyGems[1]), normalize(legacyGems[2])
+assert(sovereign.state == "resolved" and sovereign.color == "purple")
+assert(sovereign.stats.strength == 3 and sovereign.stats.stamina == 4)
+assert(inscribed.state == "resolved" and inscribed.color == "orange")
+assert(inscribed.stats.strength == 3 and inscribed.stats.critRating == 3)
+local ret = Raidwise:GetGearCheckProfile("PALADIN", 3, true)
+findings = {}
+evaluateGems(findings, ret, {key="legs",item={sockets={total=2},gems={sovereign,inscribed}}})
+assert(has(findings,"GEM_LOWER_LEVEL") and not has(findings,"GEM_NOT_CHECKABLE"))
+local lowerCount = 0
+for _, finding in ipairs(findings) do
+    if finding.code == "GEM_LOWER_LEVEL" then lowerCount = lowerCount + 1 end
+end
+assert(lowerCount == 2)
+local precision = private("NormalizeEnchant")(3234)
+findings = {}
+private("EvaluateEnchant")(findings, ret, {key="hands",item={enchant=precision}})
+assert(precision.known and #findings == 0)
+for _, entry in ipairs({{37166,{hitRating=55}}, {42990,{critRating=85}}}) do
+    local starterReport = {character={classFile="PALADIN",specTab=3,specKnown=true},equipment={
+        {key="trinket1",policy="CHECKED",item={itemId=entry[1],infoKnown=true,category="armor",
+        armorType="misc",equipLoc="INVTYPE_TRINKET",stats=entry[2],sockets={total=0},gems={},enchant={present=false}}}}}
+    local starterFindings = Raidwise:EvaluateGearCheck(starterReport)
+    assert(not has(starterFindings,"TRINKET_NOT_PREFERRED"))
+    assert(starterReport.equipment[1].verdict == "B")
+end
+assert(Raidwise:GetGearCheckMetaSummary({findings={{code="META_NOT_CHECKABLE"}}}) == "Unknown")
+assert(Raidwise:GetGearCheckMetaSummary({overall={issues={meta=1}}}) == "1")
+assert(Raidwise:GetGearCheckMetaSummary({meta={present=true,active=true}}) == "OK")
+assert(Raidwise:GetGearCheckMetaSummary({meta={present=true}}) == "Unknown")
+assert(Raidwise:GetGearCheckMetaSummary({}) == "None")
+head.item = {sockets={total=1,meta=1,empty=1,emptyConfirmed=true},gems={}}
+findings = {}
+evaluateGems(findings, ret, head)
+assert(has(findings,"META_MISSING") and not has(findings,"META_NOT_CHECKABLE"))

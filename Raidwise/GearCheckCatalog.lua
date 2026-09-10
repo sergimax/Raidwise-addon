@@ -4,10 +4,11 @@
 local Addon = Raidwise
 
 -- Bump when enchant/gem catalog seeds change materially (saved report dataVersion).
-Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-08"
+Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-10"
 
 -- maxLevel: Northrend (or best-in-slot-ish) enchants. stats used for appropriateness only.
 local ENCHANTS = {
+	[3234] = { name = "Precision", maxLevel = true, stats = { hitRating = 20 } },
 	-- Chest
 	[3832] = { name = "Powerful Stats", maxLevel = true, allStats = true, stats = { strength = 10, agility = 10, stamina = 10, intellect = 10, spirit = 10 } },
 	[3297] = { name = "Super Health", maxLevel = true, stats = { } },
@@ -135,6 +136,9 @@ local ENCHANTS = {
 
 -- Northrend epic (and Nightmare Tear) gems. maxLevel = true means ICC-era epic quality.
 local GEMS = {
+	-- Burning Crusade gems: usable stats, below Northrend gem strength.
+	[23111] = { name = "Sovereign Shadow Draenite", maxLevel = false, color = "purple", stats = { strength = 3, stamina = 4 } },
+	[23098] = { name = "Inscribed Flame Spessarite", maxLevel = false, color = "orange", stats = { strength = 3, critRating = 3 } },
 	-- Meta (Earthsiege / Skyflare). requires = gem colors across the full set (not the meta itself).
 	[41380] = { maxLevel = true, color = "meta", stats = {}, requires = { blue = 2 } }, -- Austere
 	[41389] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2, yellow = 1 } }, -- Beaming
@@ -416,6 +420,13 @@ function Addon:GetGearCheckEnchantInfo(enchantId)
 		return nil
 	end
 	return ENCHANTS[enchantId]
+end
+
+-- Explicit socket-enchant mappings only; enchant ids are not gem item ids.
+local GEM_ENCHANT_ITEMS = { [2711] = 23111, [2752] = 23098 }
+
+function Addon:GetGearCheckGemItemId(enchantId)
+	return GEM_ENCHANT_ITEMS[tonumber(enchantId)]
 end
 
 function Addon:GetGearCheckGemInfo(itemId)
