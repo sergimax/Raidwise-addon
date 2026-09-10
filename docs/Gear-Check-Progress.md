@@ -350,7 +350,7 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 
 ### Checklist
 
-- [x] Chat reports honor Settings report channel (`DEFAULT_CHAT_FRAME` when Self or channel unavailable; `[Raidwise]-gear` prefix)
+- [x] Chat reports honor Settings report channel (`DEFAULT_CHAT_FRAME` when Self or channel unavailable; `[Rw]-gear` prefix)
 - [x] Modes: summary / items / enchants / gems / **ok**
 - [x] UI buttons: Report summary / items / enchants / gems / **Report OK**
 - [x] Slash: `/rw gearcheck summary|items|enchants|gems|ok` (alias `report` → summary)
@@ -360,7 +360,7 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 
 ### How to test
 
-1. Scan someone, then press **Report summary** — `[Raidwise]-gear Name — STATUS` goes to the Settings report channel (Auto = raid/party).
+1. Scan someone, then press **Report summary** — `[Rw]-gear Name — STATUS` goes to the Settings report channel (Auto = raid/party).
 2. **Report items / enchants / gems / OK** — category lines only; empty category says so.
 3. `/rw gearcheck summary` (and items/enchants/gems/ok) without prior scan — scans then prints.
 4. Set **Self (your chat)** in Settings and confirm reports stay in the local chat frame.
@@ -531,7 +531,7 @@ Scans are **not** auto-persisted; user must press **Save report** (spec §25).
 
 Summary chat reports and their tooltip previews list every item grade in order (`S: 0 A: 0 B: 8 C: 3 D: 1`), including zero counts, in both Short and Full forms.
 
-Raid roster personal report buttons and previews prefix every line with `[Raidwise]-raid NAME Gear: ` or `[Raidwise]-raid NAME Enchants/Gems: `. The latter includes enchants, gems, and meta findings. Continuation lines repeat the player and category within the chat length limit.
+Raid roster personal report buttons and previews prefix every line with `[Rw]-raid NAME Gear: ` or `[Rw]-raid NAME Enchants/Gems: `. The latter includes enchants, gems, and meta findings. Continuation lines repeat the player and category within the chat length limit.
 
 Target gem reports (Short and Full) group findings by warning theme, list each affected slot once per theme, and omit gem IDs. Tooltip previews use the same grouping. Detailed findings and raw dumps retain gem identities.
 
@@ -542,3 +542,5 @@ Target gem reports (Short and Full) group findings by warning theme, list each a
 - Do not treat immediate multi-message bursts as safe. Flood thresholds depend on realm configuration; there is no universal allowed burst count.
 - Current limitation: split reports are still sent immediately by the existing sender. These template constraints do not implement pacing or guarantee protection from server spam filters.
 - References: historical 3.3.x ChatThrottleLib enforces the 255-byte limit (https://repos.curseforge.com/wow/guilder/file/c25618699222/Libs/ChatThrottleLib/ChatThrottleLib.lua); AzerothCore exposes ChatFlood.MessageCount and ChatFlood.MessageDelay (https://github.com/azerothcore/azerothcore-wotlk/blob/master/src/server/apps/worldserver/worldserver.conf.dist).
+
+Chat prefixes use `[Rw]` (including `[Rw]-gear` and `[Rw]-raid`). The colored Personal opinion chat mark uses `<Rw>` to distinguish it from report prefixes.

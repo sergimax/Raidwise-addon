@@ -2200,7 +2200,7 @@ function Addon:FormatGearCheckMemberIssues(report, category)
 		end
 	end
 	local categoryLabel = category == "gear" and "Gear" or "Enchants/Gems"
-	local prefix = "[Raidwise]-raid " .. ChatPlayerName(report) .. " " .. categoryLabel .. ": "
+	local prefix = "[Rw]-raid " .. ChatPlayerName(report) .. " " .. categoryLabel .. ": "
 	local parts = {}
 	for _, code in ipairs(order) do
 		local part = code .. " - "
@@ -2515,7 +2515,7 @@ function Addon:PrintGearCheckReport(mode, report)
 	end
 	if chatType then
 		for index = 1, #lines do
-			local text = "[Raidwise]-gear " .. lines[index]
+			local text = "[Rw]-gear " .. lines[index]
 			if string.len(text) > 255 then
 				text = string.sub(text, 1, 252) .. "..."
 			end
@@ -2527,7 +2527,7 @@ function Addon:PrintGearCheckReport(mode, report)
 		self:Print(self:T("REPORT_CHAT_UNAVAILABLE"))
 	end
 	for index = 1, #lines do
-		DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[Raidwise]-gear|r " .. lines[index])
+		DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[Rw]-gear|r " .. lines[index])
 	end
 	return true
 end

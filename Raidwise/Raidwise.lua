@@ -87,7 +87,7 @@ end
 
 -- Print a prefixed message to the default chat frame.
 function Addon:Print(msg)
-	DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[Raidwise]|r " .. tostring(msg))
+	DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[Rw]|r " .. tostring(msg))
 end
 
 -- Report chat channel (Settings). Auto = RAID in a raid, PARTY in a party.

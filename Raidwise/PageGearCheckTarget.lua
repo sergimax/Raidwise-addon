@@ -58,7 +58,7 @@ local function SetReportButtonTooltip(button, page, info)
 			local lines = Addon:FormatGearCheckChatReport(report, self.reportMode)
 			local chatType = Addon.ResolveReportChatType and Addon:ResolveReportChatType()
 			for index = 1, #lines do
-				local text = "[Raidwise]-gear " .. lines[index]
+				local text = "[Rw]-gear " .. lines[index]
 				if chatType and string.len(text) > 255 then
 					text = string.sub(text, 1, 252) .. "..."
 				end

@@ -53,7 +53,7 @@ local function PersonalOpinionChatFilter(frame, event, message, sender, ...)
 	if not mark then
 		return
 	end
-	return false, "|cffffffff[" .. mark.color .. mark.prefix .. "|cffffffff]|r " .. message, sender, ...
+	return false, "|cffffffff<" .. mark.color .. mark.prefix .. "|cffffffff>|r " .. message, sender, ...
 end
 
 for _, event in ipairs({

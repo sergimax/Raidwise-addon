@@ -221,7 +221,7 @@ LEFT (~670px)                          RIGHT (~220px)
 | Scan | Resolves target or self, inspects if needed, evaluate + refresh UI (hover tip) |
 | Show as a text | Toggles raw dump (replaces main columns; stays in top band) (hover tip) |
 | Select all | Enabled in text view when dump has text (hover tip) |
-| report buttons | Print to the Settings report channel (`[Raidwise]-gear` lines); hover previews the report |
+| report buttons | Print to the Settings report channel (`[Rw]-gear` lines); hover previews the report |
 | filters | All / Items / Enchants / Gems / **B**; hover tip per filter |
 | breakdown (left) | Active filter name as gold header (except **All**); then `[VERDICT] Slot — Item` plus finding bullets |
 | Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved (hover tip) |
