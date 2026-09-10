@@ -208,3 +208,21 @@ head.item = {sockets={total=1,meta=1,empty=1,emptyConfirmed=true},gems={}}
 findings = {}
 evaluateGems(findings, ret, head)
 assert(has(findings,"META_MISSING") and not has(findings,"META_NOT_CHECKABLE"))
+
+-- Gem chat groups warning themes and deduplicates slots without exposing IDs.
+local gemChatReport = {character={name="Tester"},findings={
+    {code="MISSING_GEM",category="gem",severity="soft",slot="head",message="Missing gem (0/2)"},
+    {code="META_MISSING",category="meta",severity="soft",slot="head"},
+    {code="GEM_LOWER_LEVEL",category="gem",severity="soft",slot="hands",message="Old gem (23098)"},
+    {code="GEM_LOWER_LEVEL",category="gem",severity="soft",slot="hands",message="Old gem (23098)"},
+    {code="GEM_LOWER_LEVEL",category="gem",severity="soft",slot="waist",message="Old gem (23111)"},
+}}
+for _, form in ipairs({"short", "full"}) do
+    Raidwise.GetReportForm = function() return form end
+    local output = table.concat(Raidwise:FormatGearCheckChatReport(gemChatReport,"gems"), "\n")
+    assert(string.find(output,"Missing gems: head",1,true))
+    assert(string.find(output,"Missing meta: head",1,true))
+    assert(string.find(output,"Lower-level gems: hands; waist",1,true))
+    assert(not string.find(output,"23098",1,true) and not string.find(output,"23111",1,true))
+    assert(not string.find(output,"hands; hands",1,true))
+end

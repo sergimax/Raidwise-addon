@@ -530,3 +530,15 @@ Scans are **not** auto-persisted; user must press **Save report** (spec §25).
 - The original report remains a captured snapshot; rescan the target to obtain updated findings.
 
 Summary chat reports and their tooltip previews list every item grade in order (`S: 0 A: 0 B: 8 C: 3 D: 1`), including zero counts, in both Short and Full forms.
+
+Raid roster personal report buttons and previews prefix every line with `[Raidwise]-raid NAME Gear: ` or `[Raidwise]-raid NAME Enchants/Gems: `. The latter includes enchants, gems, and meta findings. Continuation lines repeat the player and category within the chat length limit.
+
+Target gem reports (Short and Full) group findings by warning theme, list each affected slot once per theme, and omit gem IDs. Tooltip previews use the same grouping. Detailed findings and raw dumps retain gem identities.
+
+### Chat template constraints
+
+- Prefer one compact chat message per report action. Group warning themes, deduplicate slots, and omit diagnostic IDs from player-facing summaries.
+- Budget at most 255 UTF-8 bytes for the complete outgoing message, including the Raidwise prefix, player name, category, separators, and any other added text. Cyrillic characters consume multiple bytes. Never split a UTF-8 character when shortening a message.
+- Do not treat immediate multi-message bursts as safe. Flood thresholds depend on realm configuration; there is no universal allowed burst count.
+- Current limitation: split reports are still sent immediately by the existing sender. These template constraints do not implement pacing or guarantee protection from server spam filters.
+- References: historical 3.3.x ChatThrottleLib enforces the 255-byte limit (https://repos.curseforge.com/wow/guilder/file/c25618699222/Libs/ChatThrottleLib/ChatThrottleLib.lua); AzerothCore exposes ChatFlood.MessageCount and ChatFlood.MessageDelay (https://github.com/azerothcore/azerothcore-wotlk/blob/master/src/server/apps/worldserver/worldserver.conf.dist).

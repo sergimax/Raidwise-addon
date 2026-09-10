@@ -2199,7 +2199,8 @@ function Addon:FormatGearCheckMemberIssues(report, category)
 			end
 		end
 	end
-	local prefix = ChatPlayerName(report) .. ": "
+	local categoryLabel = category == "gear" and "Gear" or "Enchants/Gems"
+	local prefix = "[Raidwise]-raid " .. ChatPlayerName(report) .. " " .. categoryLabel .. ": "
 	local parts = {}
 	for _, code in ipairs(order) do
 		local part = code .. " - "
@@ -2218,7 +2219,50 @@ function Addon:FormatGearCheckMemberIssues(report, category)
 	return PackChatLines(prefix, parts, CHAT_SHORT_LINE_MAX)
 end
 
+local GEM_CHAT_LABELS = {
+	MISSING_GEM = "Missing gems",
+	GEM_LOWER_LEVEL = "Lower-level gems",
+	GEM_BAD_STAT = "Inappropriate gem stats",
+	RESILIENCE_PVE = "PvP gems",
+	META_MISSING = "Missing meta",
+	META_NOT_META = "Wrong gem in meta socket",
+	META_NOT_PREFERRED = "Non-preferred meta",
+	META_INACTIVE = "Inactive meta",
+}
+
+local function GemChatDetailLines(report)
+	local groups, order = {}, {}
+	for _, finding in ipairs(report.findings or {}) do
+		if ChatFindingMatches(finding, "gems") and (finding.severity == "hard" or finding.severity == "soft") then
+			local code = finding.code or "UNKNOWN"
+			if not groups[code] then
+				groups[code] = { slots = {}, seen = {} }
+				order[#order + 1] = code
+			end
+			local group = groups[code]
+			local slot = ChatSlotShort(report, finding.slot, true)
+			if not group.seen[slot] then
+				group.seen[slot] = true
+				group.slots[#group.slots + 1] = slot
+			end
+		end
+	end
+	local lines = {}
+	for _, code in ipairs(order) do
+		local prefix = (GEM_CHAT_LABELS[code] or code) .. ": "
+		-- Leave room for the player/category prefix when packing short reports.
+		local grouped = PackChatLines(prefix, groups[code].slots, 140)
+		for _, line in ipairs(grouped) do
+			lines[#lines + 1] = line
+		end
+	end
+	return lines
+end
+
 local function ChatDetailLines(report, mode, shortForm)
+	if mode == "gems" then
+		return GemChatDetailLines(report)
+	end
 	local lines = {}
 
 	if mode == "ok" then
