@@ -350,7 +350,7 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 
 ### Checklist
 
-- [x] Chat reports honor Settings report channel (`DEFAULT_CHAT_FRAME` when Self or channel unavailable; `[GearCheck]` prefix)
+- [x] Chat reports honor Settings report channel (`DEFAULT_CHAT_FRAME` when Self or channel unavailable; `[Raidwise]-gear` prefix)
 - [x] Modes: summary / items / enchants / gems / **ok**
 - [x] UI buttons: Report summary / items / enchants / gems / **Report OK**
 - [x] Slash: `/rw gearcheck summary|items|enchants|gems|ok` (alias `report` → summary)
@@ -360,7 +360,7 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 
 ### How to test
 
-1. Scan someone, then press **Report summary** — `[GearCheck] Name — STATUS` goes to the Settings report channel (Auto = raid/party).
+1. Scan someone, then press **Report summary** — `[Raidwise]-gear Name — STATUS` goes to the Settings report channel (Auto = raid/party).
 2. **Report items / enchants / gems / OK** — category lines only; empty category says so.
 3. `/rw gearcheck summary` (and items/enchants/gems/ok) without prior scan — scans then prints.
 4. Set **Self (your chat)** in Settings and confirm reports stay in the local chat frame.

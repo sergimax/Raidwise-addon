@@ -2471,7 +2471,7 @@ function Addon:PrintGearCheckReport(mode, report)
 	end
 	if chatType then
 		for index = 1, #lines do
-			local text = "[GearCheck] " .. lines[index]
+			local text = "[Raidwise]-gear " .. lines[index]
 			if string.len(text) > 255 then
 				text = string.sub(text, 1, 252) .. "..."
 			end
@@ -2483,7 +2483,7 @@ function Addon:PrintGearCheckReport(mode, report)
 		self:Print(self:T("REPORT_CHAT_UNAVAILABLE"))
 	end
 	for index = 1, #lines do
-		DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[GearCheck]|r " .. lines[index])
+		DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[Raidwise]-gear|r " .. lines[index])
 	end
 	return true
 end

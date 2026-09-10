@@ -770,7 +770,7 @@ The addon must support several report modes.
 Example:
 
 ```text
-[GearCheck] PlayerName — C
+[Raidwise]-gear PlayerName — C
 1 bad item, 2 enchant issues, 3 gem issues.
 ```
 
@@ -779,7 +779,7 @@ Example:
 Example:
 
 ```text
-[GearCheck] PlayerName — Items:
+[Raidwise]-gear PlayerName — Items:
 Chest: leather armor — plate is recommended
 Ring: resilience — inappropriate PvP stat
 ```
@@ -789,7 +789,7 @@ Ring: resilience — inappropriate PvP stat
 Example:
 
 ```text
-[GearCheck] PlayerName — Enchants:
+[Raidwise]-gear PlayerName — Enchants:
 Chest: missing enchant
 Gloves: lower-level enchant
 ```
@@ -799,7 +799,7 @@ Gloves: lower-level enchant
 Example:
 
 ```text
-[GearCheck] PlayerName — Gems:
+[Raidwise]-gear PlayerName — Gems:
 Chest: lower-level gem
 Legs: inappropriate stat gem
 ```
