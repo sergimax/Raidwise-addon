@@ -2352,21 +2352,7 @@ function Addon:FormatGearCheckChatReport(report, mode)
 		local enchantN = issues.enchants or 0
 		local gemN = issues.gems or 0
 		local metaN = issues.meta or 0
-		if dCount > 0 then
-			parts[#parts + 1] = string.format("%d D", dCount)
-		end
-		if cCount > 0 then
-			parts[#parts + 1] = string.format("%d C", cCount)
-		end
-		if bCount > 0 then
-			parts[#parts + 1] = string.format("%d B", bCount)
-		end
-		if aCount > 0 then
-			parts[#parts + 1] = string.format("%d A", aCount)
-		end
-		if sCount > 0 then
-			parts[#parts + 1] = string.format("%d S", sCount)
-		end
+		parts[#parts + 1] = string.format("S: %d A: %d B: %d C: %d D: %d", sCount, aCount, bCount, cCount, dCount)
 		if shortForm then
 			if enchantN > 0 then
 				parts[#parts + 1] = string.format("%dench", enchantN)

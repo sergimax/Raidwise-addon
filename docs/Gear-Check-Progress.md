@@ -528,3 +528,5 @@ Scans are **not** auto-persisted; user must press **Save report** (spec §25).
 - Legacy socket enchants 2711 and 2752 resolve to Sovereign Shadow Draenite (23111, +3 strength/+4 stamina) and Inscribed Flame Spessarite (23098, +3 strength/+3 crit). Both produce lower-level gem findings, including when inspect cannot resolve their gem links.
 - Sphere of Red Dragon's Blood (37166) and Darkmoon Card: Death (42990) are allowed starter physical DPS trinkets (B, not preferred A).
 - The original report remains a captured snapshot; rescan the target to obtain updated findings.
+
+Summary chat reports and their tooltip previews list every item grade in order (`S: 0 A: 0 B: 8 C: 3 D: 1`), including zero counts, in both Short and Full forms.
