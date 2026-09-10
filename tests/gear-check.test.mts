@@ -132,3 +132,59 @@ test("header chat radios preserve choices, colors, and exclusive selection", asy
     `);
   });
 });
+
+test("composition reports preserve spell links and fit one chat message", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      Raidwise.Widgets = {T=function(key, name, detail)
+        if key == "COMP_CHAT_EFFECT_NEED" then return "[Rw] need " .. name .. " - " .. detail end
+        if key == "COMP_CHAT_EFFECT_HAVE" then return "[Rw] have " .. name .. " - " .. detail end
+        return key
+      end}
+      Raidwise.UITheme = {}
+      Raidwise.T = function(self,key,who,spell)
+        if key == "COMP_SRC_SPELL" then return who .. " - " .. spell end
+        return who or key
+      end
+      GetSpellInfo = function() return "Wisdom" end
+      GetSpellLink = function(id) return "|cff71d5ff|Hspell:" .. id .. "|h[Wisdom]|h|r" end
+      function nestedLocal(fn,wanted,seen)
+        seen=seen or {}
+        if type(fn)~="function" or seen[fn] then return end
+        seen[fn]=true
+        for index=1,100 do
+          local name,value=debug.getupvalue(fn,index)
+          if not name then break end
+          if name==wanted then return value end
+          local found=nestedLocal(value,wanted,seen)
+          if found then return found end
+        end
+      end
+    `);
+    for (const module of ["RaidComposition", "PageComposition"]) {
+      lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
+    }
+    lua.doStringSync(`
+      local formatSource=nestedLocal(Raidwise.AnalyzeRaidComposition,"FormatSource")
+      local plain,spell,linked=formatSource({race="Draenei"},20186)
+      assert(spell=="Wisdom" and not string.find(plain,"|H",1,true))
+      assert(string.find(linked,"|Hspell:20186",1,true))
+      GetSpellLink=nil
+      local fallback,_,chatFallback=formatSource({race="Draenei"},20186)
+      assert(fallback==chatFallback)
+      local build=nestedLocal(Raidwise.RefreshCompositionView,"BuildEffectRowMessage")
+      assert(build)
+      local row={tooltipTitle="Judgement of Wisdom",chatCount=0,chatSources={linked}}
+      local message=build(row)
+      assert(#message<=255 and string.find(message,linked,1,true))
+      row.chatSources={linked,linked,linked,linked,linked,linked}
+      message=build(row)
+      assert(#message<=255 and string.find(message,"(+",1,true))
+      local _,opens=string.gsub(message,"|Hspell:","")
+      local _,closes=string.gsub(message,"|h|r","")
+      assert(opens==closes and opens>0)
+      row.chatCount=1
+      assert(string.find(build(row),"[Rw] have",1,true)==1)
+    `);
+  });
+});

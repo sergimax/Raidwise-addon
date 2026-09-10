@@ -761,9 +761,11 @@ local function FormatSource(source, fallbackSpellId)
 	end
 	local spellName = ResolveSpellName(source.spellId or fallbackSpellId)
 	if spellName then
-		return Addon:T("COMP_SRC_SPELL", who, spellName), spellName
+		local link = type(GetSpellLink) == "function" and GetSpellLink(source.spellId or fallbackSpellId)
+		return Addon:T("COMP_SRC_SPELL", who, spellName), spellName,
+			Addon:T("COMP_SRC_SPELL", who, link or spellName)
 	end
-	return who, nil
+	return who, nil, who
 end
 
 local function ClientLocaleMatchesAddon()
@@ -935,10 +937,12 @@ function Addon:AnalyzeRaidComposition(members)
 				end
 				local sourceLabels = {}
 				local sourceSpells = {}
+				local chatSources = {}
 				local seenSpells = {}
 				for sourceIndex = 1, #effect.sources do
-					local label, spellName = FormatSource(effect.sources[sourceIndex], effect.spellId)
+					local label, spellName, chatLabel = FormatSource(effect.sources[sourceIndex], effect.spellId)
 					sourceLabels[#sourceLabels + 1] = label
+					chatSources[#chatSources + 1] = chatLabel
 					if spellName and not seenSpells[spellName] then
 						seenSpells[spellName] = true
 						sourceSpells[#sourceSpells + 1] = spellName
@@ -952,6 +956,7 @@ function Addon:AnalyzeRaidComposition(members)
 					count = #providers,
 					providers = providers,
 					sourceLabels = sourceLabels,
+					chatSources = chatSources,
 					sourceSpells = sourceSpells,
 					priority = effect.priority and true or nil,
 				}
