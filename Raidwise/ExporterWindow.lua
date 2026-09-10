@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 12
+local SHELL_LAYOUT_VERSION = 13
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -107,20 +107,22 @@ end
 
 local function CreateHeaderReportChannels(frame, titleBar, close)
 	local host = CreateFrame("Frame", nil, titleBar)
-	host:SetSize(392, 18)
-	host:SetPoint("RIGHT", close, "LEFT", -8, 0)
+	host:SetSize(406, 18)
+	host:SetPoint("RIGHT", close, "LEFT", -24, 0)
 	frame.reportChannelHost = host
 	frame.reportChannelRadios = {}
 	for index, choice in ipairs(HEADER_CHAT_CHOICES) do
 		local button = CreateFrame("Button", nil, host)
-		button:SetSize(49, 18)
-		button:SetPoint("LEFT", (index - 1) * 49, 0)
+		button:SetSize(42, 18)
+		button:SetPoint("LEFT", (index - 1) * 52, 0)
 		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("LEFT", 0, 0)
+		label:SetWidth(24)
+		label:SetJustifyH("RIGHT")
 		label:SetText(choice.label)
 		local radio = CreateFrame("CheckButton", nil, button, "UIRadioButtonTemplate")
 		radio:SetSize(14, 14)
-		radio:SetPoint("RIGHT", -2, 0)
+		radio:SetPoint("LEFT", label, "RIGHT", 2, 0)
 		radio.channelId = choice.id
 		radio.chatType = choice.chatType
 		radio.label = label
