@@ -286,3 +286,32 @@ local tearReport={}
 activate({},tearReport,{{key="head",policy="CHECKED",item={sockets={},gems={
     {itemId=41398,isMeta=true,color="meta"},tear}}}})
 assert(tearReport.meta.active==true)
+
+-- New cuts flow through normalization and grading, not just catalog lookups.
+local perfect=normalize({itemId=41429,socketIndex=1})
+assert(perfect.state=="resolved" and perfect.color=="orange")
+assert(perfect.stats.attackPower==14 and perfect.stats.critRating==7)
+findings={}
+evaluateGems(findings,ret,{key="hands",item={sockets={total=1},gems={perfect}}})
+assert(has(findings,"GEM_LOWER_LEVEL") and not has(findings,"GEM_NOT_CHECKABLE"))
+local pearl=normalize({itemId=42701,socketIndex=2})
+local pearlReport={}
+activate({},pearlReport,{{key="head",policy="CHECKED",item={sockets={},gems={
+    {itemId=41398,isMeta=true,color="meta"},pearl}}}})
+assert(pearlReport.meta.active==true)
+findings={}
+evaluateGems(findings,ret,{key="chest",item={sockets={total=1},gems={pearl}}})
+assert(has(findings,"GEM_LOWER_LEVEL") and not has(findings,"GEM_BAD_STAT"))
+local kharmaa=normalize({itemId=44066,socketIndex=1})
+findings={}
+evaluateGems(findings,ret,{key="chest",item={sockets={total=1},gems={kharmaa}}})
+assert(has(findings,"RESILIENCE_PVE") and not has(findings,"GEM_LOWER_LEVEL"))
+local subtle=normalize({itemId=42151,socketIndex=2})
+local tankMetaReport={}
+activate({},tankMetaReport,{{key="head",policy="CHECKED",item={sockets={},gems={
+    {itemId=41380,isMeta=true,color="meta"},subtle,{color="blue"},{color="blue"}}}}})
+assert(tankMetaReport.meta.active==true)
+assert(Raidwise:GetGearCheckGemInfo(42151).jcUnique)
+-- Existing data and inspect mappings remain intact.
+assert(Raidwise:GetGearCheckGemInfo(23111).stats.strength==3)
+assert(Raidwise:GetGearCheckGemItemId(3750)==42702)

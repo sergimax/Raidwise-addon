@@ -551,3 +551,13 @@ Chat prefixes use `[Rw]` (including `[Rw]-gear` and `[Rw]-raid`). The colored Pe
 - Audited all 21 Earthsiege/Skyflare meta requirements and static stats; corrected Austere, Bracing, Destructive, Eternal, Forlorn, and Invigorating requirements, plus Powerful's three-blue requirement. Added all eight lower-strength Starflare/Earthshatter vendor metas with their own requirements.
 - META_NOT_CHECKABLE wording now covers unavailable gem colors as well as unknown catalog requirements. Missing inspect data is never treated as proof that a meta is active.
 - Reference data: [WoWSims WotLK meta conditions](https://github.com/wowsims/wotlk/blob/master/ui/core/proto_utils/gems.ts), [gem stats](https://github.com/wowsims/wotlk/blob/master/assets/database/db.json), and [Outfitter socket enchant mapping](https://github.com/cdmichaelb/Outfitter/blob/master/Outfitter.lua). Catalog revision: catalog-2026-09-10-meta2. Rescan to replace the captured report snapshot.
+
+### WoWSims gem comparison (2026-09-10)
+
+Compared the existing catalog with the [WoWSims WotLK gem database](https://github.com/wowsims/wotlk/blob/master/assets/database/db.json), using its [stat/color schema](https://github.com/wowsims/wotlk/blob/master/proto/common.proto). This is an incremental Northrend catalog update, not a replacement or runtime dependency.
+
+- Added 72 Perfect uncommon cuts, Enchanted Pearl (42701), and Kharmaa's Grace (44066). Perfect cuts and Enchanted Pearl remain below ICC epic strength; Kharmaa's Grace retains its max-strength resilience stat and existing PvE warning behavior.
+- Corrected Subtle Dragon's Eye (42151) from yellow to red. All existing overlapping gem stats matched the reference.
+- Preserve existing meta requirements, profession flags, grading exceptions, legacy gems, and explicit socket-enchant mappings. Older-expansion gems absent from Raidwise were outside this Northrend update.
+- WoWSims stores spell/melee hit, crit, haste, and melee/ranged attack power separately. These are deduplicated into Raidwise's single corresponding in-game stat, never added together. Enchanted Pearl is an all-stat prismatic gem and counts for each meta color.
+- Catalog revision: catalog-2026-09-10-gems3. New gem recognition still needs a resolved gem item ID unless an explicit socket-enchant mapping exists.
