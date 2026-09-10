@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 13
+local SHELL_LAYOUT_VERSION = 14
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -146,11 +146,64 @@ local function CreateHeaderReportChannels(frame, titleBar, close)
 	host:SetScript("OnShow", function() Addon:RefreshHeaderReportChannels() end)
 end
 
+function Addon:RefreshHeaderReportForm()
+	local frame = self.mainFrame
+	if not frame or not frame.reportFormRadios then return end
+	local selected = self:GetReportForm()
+	for _, radio in ipairs(frame.reportFormRadios) do
+		local checked = radio.formId == selected
+		radio:SetChecked(checked)
+		W.SetFontColor(radio.label, checked and UI.GOLD or UI.TEXT_IDLE)
+	end
+end
+
+local function CreateHeaderReportForm(frame, titleBar)
+	local host = CreateFrame("Frame", nil, titleBar)
+	host:SetSize(132, 18)
+	host:SetPoint("RIGHT", frame.reportChannelHost, "LEFT", -16, 0)
+	frame.reportFormHost = host
+	frame.reportFormRadios = {}
+	for index, formId in ipairs({ "short", "full" }) do
+		local button = CreateFrame("Button", nil, host)
+		button:SetSize(62, 18)
+		button:SetPoint("LEFT", (index - 1) * 70, 0)
+		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("LEFT", 0, 0)
+		label:SetWidth(44)
+		label:SetJustifyH("RIGHT")
+		label:SetText(formId == "short" and "Short" or "Full")
+		local radio = CreateFrame("CheckButton", nil, button, "UIRadioButtonTemplate")
+		radio:SetSize(14, 14)
+		radio:SetPoint("LEFT", label, "RIGHT", 2, 0)
+		radio.formId = formId
+		radio.label = label
+		local function SelectForm()
+			Addon:SetReportForm(radio.formId)
+		end
+		local function ShowTooltip(owner)
+			GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
+			GameTooltip:AddLine(W.T("SETTINGS_REPORT_FORM"))
+			GameTooltip:AddLine(W.T("SETTINGS_REPORT_FORM_" .. string.upper(radio.formId)), 1, 1, 1, true)
+			GameTooltip:AddLine(W.T("SETTINGS_REPORT_FORM_HINT"), 0.7, 0.7, 0.7, true)
+			GameTooltip:Show()
+		end
+		button:SetScript("OnClick", SelectForm)
+		radio:SetScript("OnClick", SelectForm)
+		button:SetScript("OnEnter", ShowTooltip)
+		radio:SetScript("OnEnter", ShowTooltip)
+		button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		radio:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		frame.reportFormRadios[index] = radio
+	end
+	host:SetScript("OnShow", function() Addon:RefreshHeaderReportForm() end)
+end
+
 local function UpdateShellHeader(frame, tabId)
 	if not frame then
 		return
 	end
 	Addon:RefreshHeaderReportChannels()
+	Addon:RefreshHeaderReportForm()
 	local pageInfo = PageInfoById(tabId)
 	if frame.titleText then
 		if pageInfo then
@@ -160,7 +213,7 @@ local function UpdateShellHeader(frame, tabId)
 		end
 	end
 	if frame.titleText then
-		frame.titleText:SetWidth(math.min(360, frame.titleText:GetStringWidth() or 360))
+		frame.titleText:SetWidth(math.min(230, frame.titleText:GetStringWidth() or 230))
 	end
 	if not frame.pageLayoutVersionText then
 		return
@@ -302,7 +355,7 @@ local function CreateTitleBar(frame)
 
 	local title = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormal")
 	title:SetPoint("LEFT", 8, 0)
-	title:SetWidth(360)
+	title:SetWidth(230)
 	title:SetJustifyH("LEFT")
 	title:SetText("Raidwise")
 	W.SetFontColor(title, UI.GOLD)
@@ -314,6 +367,7 @@ local function CreateTitleBar(frame)
 	W.SetFontColor(pageLayoutVersionText, UI.TEXT_DISABLED)
 
 	CreateHeaderReportChannels(frame, titleBar, close)
+	CreateHeaderReportForm(frame, titleBar)
 
 	frame.titleBar = titleBar
 	frame.titleText = title

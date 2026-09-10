@@ -41,7 +41,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 13` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 14` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Character profile | `PROFILE_LAYOUT_VERSION = 31` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
@@ -49,7 +49,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Composition | `LAYOUT_VERSION = 9` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 12` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 11` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 12` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
@@ -341,10 +341,6 @@ Category titles use full-width shaded bars with a gold left accent and larger te
 ( ) Cooldowns   ( ) Export      ( ) Raid        ( ) Composition
 ( ) Gear target ( ) History     ( ) Settings
 
-[ Gear check report form heading ]
-[ short hint ]
-( ) Short   ( ) Full
-
 [ Unit tooltips category bar ]
 [ short hint ]
 +------------------------------------------------------------------+
@@ -362,7 +358,7 @@ Category titles use full-width shaded bars with a gold left accent and larger te
 | English / Русский | Menu-style buttons; the active locale is selected. Choice is stored in `RaidwiseDB.locale` (`enUS` / `ruRU`). Default is the client locale. |
 | Startup page | Exclusive radio group for left-menu pages (**Info** excluded); selected page opens on `/raidwise`. Stored in `RaidwiseDB.startupTab` (default `cooldowns`). Saved `party` / `gearraid` migrate to `raid`. |
 | Report chat channel (shared title bar) | `Slf`, `Say`, `Prt`, `Rd`, `Rdw`, `Gld`, `Gof`, `Aut` exclusive radios with chat-colored labels and full-name tooltips; destination for Raid roster, Composition, and Gear check reports. Stored in `RaidwiseDB.reportChannel` (default `auto` = RAID in a raid, PARTY in a party). Unavailable channels print to the local chat frame instead. |
-| Gear check report form | Short (default) or Full wording for Gear check Report buttons / `/rw gearcheck …`. Stored in `RaidwiseDB.reportForm`. |
+| Gear check report form (shared title bar) | Short (default) or Full wording for Gear check Report buttons / `/rw gearcheck …`. Stored in `RaidwiseDB.reportForm`. |
 | Unit tooltips | Checkboxes stored in `RaidwiseDB.tooltip` (`hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags`); default all shown |
 | Live tooltip preview | Inside the Unit tooltips panel, beside its checkboxes; compact and stacked sample lines update when options change |
 
@@ -403,3 +399,5 @@ Switching language updates the left menu, page labels, and visible tables withou
 5. See [`Architecture.md`](Architecture.md) for load order and the two version concepts (addon semver vs layout).
 
 > **Note:** Shell and per-page layout versions force recreate when constants bump (see Architecture). Named scroll/edit frames use a `V` + layout version suffix.
+
+The shared header contains Short / Full exclusive report-form radios immediately before the chat channels. They retain `RaidwiseDB.reportForm` and are removed from Settings. Full form names and help remain localized in tooltips.

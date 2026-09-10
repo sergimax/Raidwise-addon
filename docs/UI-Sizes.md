@@ -216,9 +216,9 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 
 Below: **Startup page** heading, hint, then an **4-column** radio group (`UIRadioButtonTemplate`, **16** px, row **22**, 8 px gaps); selected page is stored in `RaidwiseDB.startupTab`.
 
-Report chat channel selection lives in the shared title bar: **406 x 18** px group, eight **42 x 18** px cells spaced **10** px apart. Each right-aligned **24** px label is followed by its **14** px radio with a **2** px gap; the group ends **24** px before Close. Labels: Slf / Say / Prt / Rd / Rdw / Gld / Gof / Aut. The page title is capped at **360** px, with its version immediately after it. The Settings channel section is removed (Settings layout v11; shell layout v13).
+Report chat channel selection lives in the shared title bar: **406 x 18** px group, eight **42 x 18** px cells spaced **10** px apart. Each right-aligned **24** px label is followed by its **14** px radio with a **2** px gap; the group ends **24** px before Close. Labels: Slf / Say / Prt / Rd / Rdw / Gld / Gof / Aut. The page title is capped at **230** px, with its version immediately after it. The Settings channel section is removed (Settings layout v12; shell layout v14).
 
-Below: **Gear check report form** heading, hint, then **Short** / **Full** radios (`RaidwiseDB.reportForm`, default `short`).
+The shared header has a **132 x 18** px Short / Full radio group, **16** px before the chat-channel group. Each cell is **62 x 18** px, with **8** px between cells; a **44** px label precedes its **14** px radio by **2** px. Stored in `RaidwiseDB.reportForm`, default `short`; the Settings form section is removed.
 
 Category bars: **28** px high, **16** pt gold text, theme-aware `TITLE_BG` fill, **3** px gold left accent, **10** px text inset; **20** px gap above each subsequent category. Hint/control content uses the same **10** px inset; radio grids use inner width minus **20** px.
 

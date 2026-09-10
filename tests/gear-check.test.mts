@@ -128,7 +128,19 @@ test("header chat radios preserve choices, colors, and exclusive selection", asy
         assert(checked==1)
       end
       assert(radios[3].label.color[1]==0.5 and radios[3].label.color[3]==1)
-      assert(Raidwise.Pages.Settings.LAYOUT_VERSION==11)
+      local createForms=findLocal(createTitle,"CreateHeaderReportForm")
+      Raidwise.GetReportForm=function(self) return self.db.reportForm or "short" end
+      Raidwise.SetReportForm=function(self,id)
+        self.db.reportForm=id
+        self:RefreshHeaderReportForm()
+      end
+      createForms(frame,{})
+      Raidwise:RefreshHeaderReportForm()
+      assert(frame.reportFormRadios[1].checked and not frame.reportFormRadios[2].checked)
+      frame.reportFormRadios[2].scripts.OnClick()
+      assert(Raidwise.db.reportForm=="full")
+      assert(frame.reportFormRadios[2].checked and not frame.reportFormRadios[1].checked)
+      assert(Raidwise.Pages.Settings.LAYOUT_VERSION==12)
     `);
   });
 });

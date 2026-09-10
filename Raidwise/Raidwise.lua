@@ -258,6 +258,9 @@ function Addon:SetReportForm(formId)
 		return
 	end
 	self.db.reportForm = formId
+	if self.RefreshHeaderReportForm then
+		self:RefreshHeaderReportForm()
+	end
 end
 
 -- Run once when this addon finishes loading.
