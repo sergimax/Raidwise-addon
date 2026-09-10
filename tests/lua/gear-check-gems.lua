@@ -226,3 +226,63 @@ for _, form in ipairs({"short", "full"}) do
     assert(not string.find(output,"23098",1,true) and not string.find(output,"23111",1,true))
     assert(not string.find(output,"hands; hands",1,true))
 end
+
+-- Audited Northrend meta requirements (red, yellow, blue).
+local metaRequirements = {
+    {41285, 0, 0, 2},
+    {41307, 1, 1, 1},
+    {41333, 3, 0, 0},
+    {41335, 2, 1, 0},
+    {41339, 1, 2, 0},
+    {41375, 1, 1, 1},
+    {41376, 2, 0, 0},
+    {41377, 1, 0, 2},
+    {41378, 0, 2, 1},
+    {41379, 2, 0, 1},
+    {41380, 1, 0, 2},
+    {41381, 0, 2, 1},
+    {41382, 1, 1, 1},
+    {41385, 1, 0, 2},
+    {41389, 2, 1, 0},
+    {41395, 2, 0, 1},
+    {41396, 2, 0, 1},
+    {41397, 0, 0, 3},
+    {41398, 1, 1, 1},
+    {41400, 1, 1, 1},
+    {41401, 1, 1, 1},
+    {44076, 1, 2, 0},
+    {44078, 1, 1, 1},
+    {44081, 2, 0, 1},
+    {44082, 1, 0, 2},
+    {44084, 0, 2, 1},
+    {44087, 0, 0, 3},
+    {44088, 0, 1, 2},
+    {44089, 1, 1, 1}
+}
+for _, expected in ipairs(metaRequirements) do
+    local catalog = Raidwise:GetGearCheckGemInfo(expected[1])
+    assert(catalog and catalog.color == "meta")
+    local gems = {{itemId=expected[1],isMeta=true,color="meta"}}
+    for index,color in ipairs({"red","yellow","blue"}) do
+        assert((catalog.requires[color] or 0) == expected[index+1], tostring(expected[1]) .. color)
+        for count=1,expected[index+1] do gems[#gems+1]={color=color} end
+    end
+    local equipment={{key="head",policy="CHECKED",item={gems=gems,sockets={}}}}
+    local metaReport={}
+    activate({},metaReport,equipment)
+    assert(metaReport.meta.active == true,tostring(expected[1]))
+    table.remove(gems)
+    local missingFindings={}
+    activate(missingFindings,metaReport,equipment)
+    assert(metaReport.meta.active == false and has(missingFindings,"META_INACTIVE"),tostring(expected[1]))
+end
+reads={}
+local tearLink="item:48378:0:3625:3750:0:0:0:0:80"
+local tearGems=collect(tearLink,parse(tearLink))
+assert(tearGems[2].itemId==42702)
+local tear=normalize(tearGems[2])
+assert(tear.color=="prismatic" and tear.stats.strength==6)
+local tearReport={}
+activate({},tearReport,{{key="head",policy="CHECKED",item={sockets={},gems={
+    {itemId=41398,isMeta=true,color="meta"},tear}}}})
+assert(tearReport.meta.active==true)

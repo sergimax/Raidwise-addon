@@ -4,7 +4,7 @@
 local Addon = Raidwise
 
 -- Bump when enchant/gem catalog seeds change materially (saved report dataVersion).
-Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-10"
+Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-10-meta2"
 
 -- maxLevel: Northrend (or best-in-slot-ish) enchants. stats used for appropriateness only.
 local ENCHANTS = {
@@ -140,28 +140,38 @@ local GEMS = {
 	[23111] = { name = "Sovereign Shadow Draenite", maxLevel = false, color = "purple", stats = { strength = 3, stamina = 4 } },
 	[23098] = { name = "Inscribed Flame Spessarite", maxLevel = false, color = "orange", stats = { strength = 3, critRating = 3 } },
 	-- Meta (Earthsiege / Skyflare). requires = gem colors across the full set (not the meta itself).
-	[41380] = { maxLevel = true, color = "meta", stats = {}, requires = { blue = 2 } }, -- Austere
-	[41389] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2, yellow = 1 } }, -- Beaming
-	[41395] = { maxLevel = true, color = "meta", stats = { spellPower = 21 }, requires = { red = 2 } }, -- Bracing
+	[41380] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { red = 1, blue = 2 } }, -- Austere
+	[41389] = { maxLevel = true, color = "meta", stats = { critRating = 21 }, requires = { red = 2, yellow = 1 } }, -- Beaming
+	[41395] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 2, blue = 1 } }, -- Bracing
 	[41285] = { maxLevel = true, color = "meta", stats = { critRating = 21 }, requires = { blue = 2 } }, -- Chaotic
-	[41307] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2 } }, -- Destructive
-	[41377] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { blue = 2, red = 1 } }, -- Effulgent (later Shielded)
+	[41307] = { maxLevel = true, color = "meta", stats = { critRating = 25 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Destructive
+	[41377] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { red = 1, blue = 2 } }, -- Effulgent (later Shielded)
 	[41333] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 3 } }, -- Ember
-	[41335] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2, yellow = 1 } }, -- Enigmatic
-	[41396] = { maxLevel = true, color = "meta", stats = { defenseRating = 21 }, requires = { blue = 2 } }, -- Eternal
-	[41378] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { yellow = 2, red = 1 } }, -- Forlorn
+	[41335] = { maxLevel = true, color = "meta", stats = { critRating = 21 }, requires = { red = 2, yellow = 1 } }, -- Enigmatic
+	[41396] = { maxLevel = true, color = "meta", stats = { defenseRating = 21 }, requires = { red = 2, blue = 1 } }, -- Eternal
+	[41378] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { yellow = 2, blue = 1 } }, -- Forlorn
 	[41379] = { maxLevel = true, color = "meta", stats = { critRating = 21 }, requires = { red = 2, blue = 1 } }, -- Impassive
 	[41401] = { maxLevel = true, color = "meta", stats = { intellect = 21 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Insightful
-	[41385] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { blue = 2 } }, -- Invigorating
+	[41385] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { red = 1, blue = 2 } }, -- Invigorating
 	[41381] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { yellow = 2, blue = 1 } }, -- Persistent
-	[41397] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { blue = 2 } }, -- Powerful
+	[41397] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { blue = 3 } }, -- Powerful
 	[41398] = { maxLevel = true, color = "meta", stats = { agility = 21 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Relentless
-	[41376] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 2 } }, -- Revitalizing
-	[41339] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { yellow = 2, red = 1 } }, -- Swift
+	[41376] = { maxLevel = true, color = "meta", stats = { mp5 = 11 }, requires = { red = 2 } }, -- Revitalizing
+	[41339] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { red = 1, yellow = 2 } }, -- Swift
 	[41400] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 1, yellow = 1, blue = 1 } }, -- Thundering
 	[41375] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Tireless
-	[41382] = { maxLevel = true, color = "meta", stats = { spellPower = 21 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Trenchant
+	[41382] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Trenchant
+	-- Lower-strength Northrend vendor metas.
+	[44076] = { name = "Swift Starflare Diamond", maxLevel = false, color = "meta", stats = { attackPower = 34 }, requires = { red = 1, yellow = 2 } },
+	[44078] = { name = "Tireless Starflare Diamond", maxLevel = false, color = "meta", stats = { spellPower = 20 }, requires = { red = 1, yellow = 1, blue = 1 } },
+	[44081] = { name = "Enigmatic Starflare Diamond", maxLevel = false, color = "meta", stats = { critRating = 17 }, requires = { red = 2, blue = 1 } },
+	[44082] = { name = "Impassive Starflare Diamond", maxLevel = false, color = "meta", stats = { critRating = 17 }, requires = { red = 1, blue = 2 } },
+	[44084] = { name = "Forlorn Starflare Diamond", maxLevel = false, color = "meta", stats = { spellPower = 20 }, requires = { yellow = 2, blue = 1 } },
+	[44087] = { name = "Persistent Earthshatter Diamond", maxLevel = false, color = "meta", stats = { attackPower = 34 }, requires = { blue = 3 } },
+	[44088] = { name = "Powerful Earthshatter Diamond", maxLevel = false, color = "meta", stats = { stamina = 26 }, requires = { yellow = 1, blue = 2 } },
+	[44089] = { name = "Trenchant Earthshatter Diamond", maxLevel = false, color = "meta", stats = { spellPower = 20 }, requires = { red = 1, yellow = 1, blue = 1 } },
 	-- Prismatic
+	[42702] = { name = "Enchanted Tear", maxLevel = false, color = "prismatic", allStats = true, stats = { strength = 6, agility = 6, stamina = 6, intellect = 6, spirit = 6 } },
 	[49110] = { maxLevel = true, color = "prismatic", allStats = true, stats = { strength = 10, agility = 10, stamina = 10, intellect = 10, spirit = 10 } },
 	-- Epic red (Cardinal Ruby) / blue (Majestic Zircon) / yellow (King's Amber)
 	[40111] = { maxLevel = true, color = "red", stats = { strength = 20 } }, -- Bold
@@ -423,7 +433,7 @@ function Addon:GetGearCheckEnchantInfo(enchantId)
 end
 
 -- Explicit socket-enchant mappings only; enchant ids are not gem item ids.
-local GEM_ENCHANT_ITEMS = { [2711] = 23111, [2752] = 23098 }
+local GEM_ENCHANT_ITEMS = { [2711] = 23111, [2752] = 23098, [3750] = 42702 }
 
 function Addon:GetGearCheckGemItemId(enchantId)
 	return GEM_ENCHANT_ITEMS[tonumber(enchantId)]

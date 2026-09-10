@@ -544,3 +544,10 @@ Target gem reports (Short and Full) group findings by warning theme, list each a
 - References: historical 3.3.x ChatThrottleLib enforces the 255-byte limit (https://repos.curseforge.com/wow/guilder/file/c25618699222/Libs/ChatThrottleLib/ChatThrottleLib.lua); AzerothCore exposes ChatFlood.MessageCount and ChatFlood.MessageDelay (https://github.com/azerothcore/azerothcore-wotlk/blob/master/src/server/apps/worldserver/worldserver.conf.dist).
 
 Chat prefixes use `[Rw]` (including `[Rw]-gear` and `[Rw]-raid`). The colored Personal opinion chat mark uses `<Rw>` to distinguish it from report prefixes.
+
+### Northrend meta-gem catalog corrections
+
+- Relentless Earthsiege Diamond (41398) requires one red, one yellow, and one blue gem. Its requirement was already correct; the report's unknown activation was caused by unresolved socket enchant 3750. This now resolves to Enchanted Tear (42702), a +6 all-stat prismatic gem that counts toward all three colors. It remains below maximum gem strength.
+- Audited all 21 Earthsiege/Skyflare meta requirements and static stats; corrected Austere, Bracing, Destructive, Eternal, Forlorn, and Invigorating requirements, plus Powerful's three-blue requirement. Added all eight lower-strength Starflare/Earthshatter vendor metas with their own requirements.
+- META_NOT_CHECKABLE wording now covers unavailable gem colors as well as unknown catalog requirements. Missing inspect data is never treated as proof that a meta is active.
+- Reference data: [WoWSims WotLK meta conditions](https://github.com/wowsims/wotlk/blob/master/ui/core/proto_utils/gems.ts), [gem stats](https://github.com/wowsims/wotlk/blob/master/assets/database/db.json), and [Outfitter socket enchant mapping](https://github.com/cdmichaelb/Outfitter/blob/master/Outfitter.lua). Catalog revision: catalog-2026-09-10-meta2. Rescan to replace the captured report snapshot.

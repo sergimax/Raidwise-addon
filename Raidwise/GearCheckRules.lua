@@ -51,7 +51,7 @@ local MESSAGES = {
 	META_NOT_META = "Meta socket does not contain a meta gem.",
 	META_NOT_PREFERRED = "Meta gem is not preferred for this specialization.",
 	META_INACTIVE = "Meta gem requirements are not met across equipped gems.",
-	META_NOT_CHECKABLE = "Meta gem activation requirements are unknown to the catalog (not-checkable).",
+	META_NOT_CHECKABLE = "Meta gem activation cannot be determined from the available gem data.",
 }
 
 local function Msg(code, detail)
