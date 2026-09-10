@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 11
+local LAYOUT_VERSION = 12
 
 local RIGHT_COL_W = 220
 local COL_GAP = 10
@@ -32,6 +32,45 @@ local REPORT_BUTTONS = {
 	{ mode = "gems", labelKey = "GEAR_CHECK_REPORT_GEMS", tipKey = "GEAR_CHECK_REPORT_GEMS_TIP" },
 	{ mode = "ok", labelKey = "GEAR_CHECK_REPORT_OK", tipKey = "GEAR_CHECK_REPORT_OK_TIP" },
 }
+
+local REPORT_ICONS = {
+	summary = "Interface\\Icons\\Ability_Warrior_BattleShout",
+	items = "Interface\\Icons\\INV_Sword_04",
+	enchants = "Interface\\Icons\\INV_Misc_Gem_Diamond_01",
+	gems = "Interface\\Icons\\INV_Misc_Gem_Ruby_02",
+	ok = "Interface\\Icons\\Spell_Holy_BlessingOfStrength",
+}
+
+local function ReportButtonLabel(info)
+	return W.IconMarkup(REPORT_ICONS[info.mode], 14) .. " " .. W.T(info.labelKey)
+end
+
+local function SetReportButtonTooltip(button, page, info)
+	W.SetPlainButtonTooltip(button, info.tipKey)
+	button:SetScript("OnEnter", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(W.T(self.tooltipKey), nil, nil, nil, true)
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddLine(W.T("RAID_CHAT_PREVIEW"), 0.6, 0.6, 0.6)
+		local report = page.lastReport or (Addon.GetLastGearCheckReport and Addon:GetLastGearCheckReport())
+		if report then
+			local lines = Addon:FormatGearCheckChatReport(report, self.reportMode)
+			local chatType = Addon.ResolveReportChatType and Addon:ResolveReportChatType()
+			for index = 1, #lines do
+				local text = "[GearCheck] " .. lines[index]
+				if chatType and string.len(text) > 255 then
+					text = string.sub(text, 1, 252) .. "..."
+				end
+				GameTooltip:AddLine(text, 1, 1, 1, true)
+			end
+		else
+			GameTooltip:AddLine(W.T("CHAT_GEARCHECK_NO_REPORT"), 1, 1, 1, true)
+			GameTooltip:AddLine(W.T("CHAT_GEARCHECK_SCANNING"), 0.6, 0.6, 0.6, true)
+		end
+		GameTooltip:Show()
+	end)
+end
 
 local ITEM_CATEGORIES = {
 	item = true,
@@ -1011,14 +1050,14 @@ local function CreateGearCheckTargetPage(parent)
 	local reportW = (leftW - UI.ACTION_BTN_GAP * (#REPORT_BUTTONS - 1)) / #REPORT_BUTTONS
 	for index = 1, #REPORT_BUTTONS do
 		local info = REPORT_BUTTONS[index]
-		local btn = W.CreatePlainButton(reportHost, reportW, UI.ACTION_BTN_H, W.T(info.labelKey))
+		local btn = W.CreatePlainButton(reportHost, reportW, UI.ACTION_BTN_H, ReportButtonLabel(info))
 		if index == 1 then
 			btn:SetPoint("TOPLEFT", 0, 0)
 		else
 			btn:SetPoint("LEFT", page.reportButtons[index - 1], "RIGHT", UI.ACTION_BTN_GAP, 0)
 		end
 		btn.reportMode = info.mode
-		W.SetPlainButtonTooltip(btn, info.tipKey)
+		SetReportButtonTooltip(btn, page, info)
 		btn:SetScript("OnClick", function()
 			RunChatReport(page, info.mode)
 		end)
@@ -1269,7 +1308,7 @@ local function ApplyLocale(page)
 		local btn = reportButtons[index]
 		local info = REPORT_BUTTONS[index]
 		if btn and btn.label and info then
-			btn.label:SetText(W.T(info.labelKey))
+			btn.label:SetText(ReportButtonLabel(info))
 		end
 	end
 	if page.savedTitle then

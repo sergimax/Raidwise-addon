@@ -47,7 +47,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 30` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 9` | `PageComposition.lua` | Shell title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 11` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 12` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 10` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |
@@ -184,6 +184,8 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 Spec is the primary talent tree (same as Raid roster). Solo shows only your own coverage.
 
 ## Gear check (target)
+
+Report buttons include 14 px icons and Chat preview tooltips for the displayed report, using the current Short/Full setting. With no report, the tooltip indicates that a scan is needed.
 
 Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, Scan, Character profile, Show as a text, Select all (top band), then Save report, Delete selected report, scrollable saved list. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
 

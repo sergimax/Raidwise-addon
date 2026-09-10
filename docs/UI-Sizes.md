@@ -144,7 +144,7 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
-Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**176** px): multi-line status, **Scan**, **Character profile**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 11`.
+Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**176** px): multi-line status, **Scan**, **Character profile**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 12`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -153,7 +153,7 @@ Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW �
 | Summary (left) | height **124** | Top block; report row below `max(124, right top)` |
 | Class / spec icons | **18** px | On who line under Overall; tooltips show class / spec names |
 | Right top band | height **~144** | Status + 3 stacked buttons |
-| Report / filter rows | left width only | Five equal buttons each |
+| Report / filter rows | left width only | Five equal buttons each; report labels include 14 px icons and hover previews of the current chat output |
 | Breakdown | left, fills height | Slot groups with verdict color |
 | Saved list | right sidebar below delete | Scroll + vertical bar; all entries (not capped) |
 
