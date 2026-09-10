@@ -49,7 +49,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Composition | `LAYOUT_VERSION = 9` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 12` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 12` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 13` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
@@ -327,7 +327,7 @@ Notes are stored on each history record (`notes`) and edited in Character profil
 
 ## Settings
 
-A **Theme: Dark / Theme: Light** toggle beside the language buttons applies immediately and persists in `RaidwiseDB.theme`. Dark is the default.
+A **Theme: Dark / Theme: Light** toggle in its own **Theme** category below Language applies immediately and persists in `RaidwiseDB.theme`. Dark is the default.
 
 Category titles use full-width shaded bars with a gold left accent and larger text. The unit-tooltip controls and live preview share one panel; the preview is a subordinate label, not another category.
 
@@ -335,6 +335,9 @@ Category titles use full-width shaded bars with a gold left accent and larger te
 [ language heading ]
 [ short hint ]
 [ English button ] [ Русский button ]
+
+[ Theme category bar ]
+[ Theme: Dark / Theme: Light button ]
 
 [ Startup page heading ]
 [ short hint ]

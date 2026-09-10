@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 12
+local LAYOUT_VERSION = 13
 
 local SECTION_HEADER_H = 28
 local SECTION_GAP = 20
@@ -302,8 +302,11 @@ local function CreateSettingsPage(parent)
 	end)
 	page.ruBtn = ruBtn
 
+	local themeHeading = CreateSettingsHeading(page, "SETTINGS_THEME", enBtn)
+	page.themeHeading = themeHeading
+
 	local themeButton = W.CreatePlainButton(page, 160, UI.ACTION_BTN_H, "")
-	themeButton:SetPoint("LEFT", ruBtn, "RIGHT", UI.ACTION_BTN_GAP * 3, 0)
+	themeButton:SetPoint("TOPLEFT", themeHeading, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
 	themeButton:SetScript("OnClick", function()
 		Addon:SetTheme(Addon:GetTheme() == "dark" and "light" or "dark")
 	end)
@@ -311,7 +314,7 @@ local function CreateSettingsPage(parent)
 	themeButton.label:SetText(W.T(Addon:GetTheme() == "light" and "SETTINGS_THEME_LIGHT" or "SETTINGS_THEME_DARK"))
 	W.SetPlainButtonTooltip(themeButton, "SETTINGS_THEME_HINT")
 
-	local startupHeading = CreateSettingsHeading(page, "SETTINGS_STARTUP_TAB", enBtn)
+	local startupHeading = CreateSettingsHeading(page, "SETTINGS_STARTUP_TAB", themeButton)
 	page.startupHeading = startupHeading
 
 	local startupHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
@@ -402,6 +405,9 @@ end
 local function ApplySettingsLocale(page)
 	if not page then
 		return
+	end
+	if page.themeHeading then
+		page.themeHeading:SetText(W.T("SETTINGS_THEME"))
 	end
 	if page.themeButton then
 		page.themeButton.label:SetText(W.T(Addon:GetTheme() == "light" and "SETTINGS_THEME_LIGHT" or "SETTINGS_THEME_DARK"))

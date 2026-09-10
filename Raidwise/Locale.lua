@@ -615,6 +615,7 @@ local Translations = {
 		RATING_EVENT_TOXIC_BEHAVIOR = "Toxic Behavior",
 		RATING_EVENT_SCAM = "Scam",
 
+		SETTINGS_THEME = "Theme",
 		SETTINGS_THEME_LIGHT = "Theme: Light",
 		SETTINGS_THEME_DARK = "Theme: Dark",
 		SETTINGS_THEME_HINT = "Switch between light and dark themes. Saved on this account.",
@@ -1278,6 +1279,7 @@ local Translations = {
 		RATING_EVENT_TOXIC_BEHAVIOR = "Токсичное поведение",
 		RATING_EVENT_SCAM = "Мошенничество",
 
+		SETTINGS_THEME = "Тема",
 		SETTINGS_THEME_LIGHT = "Тема: светлая",
 		SETTINGS_THEME_DARK = "Тема: тёмная",
 		SETTINGS_THEME_HINT = "Переключить тему. Сохраняется на этом аккаунте.",
