@@ -696,6 +696,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 end
 
 Addon.Pages.Composition = {
+	capabilities = { reportChat = true },
 	id = "composition",
 	LAYOUT_VERSION = LAYOUT_VERSION,
 	Create = CreateCompositionPage,

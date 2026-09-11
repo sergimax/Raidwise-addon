@@ -1910,6 +1910,7 @@ local function ApplyLocale(page)
 end
 
 Addon.Pages.Raid = {
+	capabilities = { reportChat = true },
 	id = "raid",
 	LAYOUT_VERSION = LAYOUT_VERSION,
 	Create = CreateRaidRosterPage,

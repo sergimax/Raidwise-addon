@@ -163,7 +163,9 @@ Raidwise/
   ProfileDraft.lua    # plain profile draft editing model
   Minimap.lua         # draggable launcher and raid/lockout summary tooltip
   UnitTooltips.lua    # personal/community lines on player unit tooltips
+  UITheme.lua         # theme palettes and bound colors/text
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
+  RosterWidgets.lua   # roster, rating, and gear presentation helpers
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
   GearCheckCatalog.lua # enchant / gem seed catalogs
   GearCheckSets.lua   # T9/T10 set-piece ids (informational)

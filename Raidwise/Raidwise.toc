@@ -21,7 +21,9 @@ PlayerHistory.lua
 PlayerHistoryStore.lua
 RatingPresentation.lua
 ProfileDraft.lua
+UITheme.lua
 UIWidgets.lua
+RosterWidgets.lua
 UnitTooltips.lua
 CharacterProfile.lua
 GearCheckCatalog.lua

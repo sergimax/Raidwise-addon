@@ -164,7 +164,7 @@ test("header chat radios preserve choices, colors, and exclusive selection", asy
       end
       CreateFrame = widget
       Raidwise.Widgets = {CreateFontString=widget,SetFontColor=function() end,T=function(key) return key end}
-      Raidwise.UITheme = {TEXT_BODY={1,1,1}}
+      Raidwise.UITheme = {TEXT_BODY={1,1,1}, ACTION_BTN_H=28}
       Raidwise.db = {reportChannel="auto"}
       Raidwise.GetReportChannel = function(self) return self.db.reportChannel end
       Raidwise.SetReportChannel = function(self,id)
@@ -181,7 +181,7 @@ test("header chat radios preserve choices, colors, and exclusive selection", asy
         error(wanted)
       end
     `);
-    for (const module of ["ExporterWindow", "PageSettings"]) {
+    for (const module of ["PageRaid", "PageComposition", "PageGearCheckTarget", "ExporterWindow", "PageSettings"]) {
       lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
     }
     lua.doStringSync(`

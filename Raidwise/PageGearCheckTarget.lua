@@ -1405,6 +1405,7 @@ function Addon:OpenGearCheckTarget(autoScan)
 end
 
 Addon.Pages.GearCheckTarget = {
+	capabilities = { reportChat = true, reportForm = true },
 	id = "geartarget",
 	LAYOUT_VERSION = LAYOUT_VERSION,
 	Create = CreateGearCheckTargetPage,

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Split theme handling and roster-specific widgets from generic UI controls, extracted named profile panel builders, and moved header report capabilities into page registrations; layouts are unchanged.
 - Separated profile draft editing, history storage and legacy migration, and rating presentation into dedicated modules; existing save/reset behavior and saved data formats are preserved.
 - Separated Gear check collection, finding evaluation, grade aggregation, explanations, and rule self-tests into focused modules; existing grading rules and `/rw gearcheck test` remain available.
 - Roster and Gear check scans share inspect ownership and request deadlines; stalled roster inspects release the queue after four seconds.
@@ -15,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Gear check reports use the shared chat sender, including its throttle for unavailable-channel warnings.
 
 ### Fixed
+- Removing an event from a profile draft now updates the draft itself correctly before saving.
 - Gear scans reject targets whose GUID changes during the request, and raid scans skip queued members whose unit token now identifies someone else.
 - Spec and gem inspect retries receive their additional two-second budget instead of immediately timing out; unresolved scans retain incomplete status.
 - Report previews and sending use the same final message preparation, including prefixes and chat length limits.

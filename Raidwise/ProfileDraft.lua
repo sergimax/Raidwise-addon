@@ -150,10 +150,10 @@ function Addon:AddProfileDraftEvent(draft, eventTypeId)
 end
 
 function Addon:RemoveProfileDraftEvent(draft, eventId)
-	local draft = draft.draftEvents or {}
+	local events = draft.draftEvents or {}
 	local nextEvents = {}
-	for index = 1, #draft do
-		local event = draft[index]
+	for index = 1, #events do
+		local event = events[index]
 		if type(event) == "table" and event.id ~= eventId then
 			nextEvents[#nextEvents + 1] = event
 		end

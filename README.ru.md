@@ -164,7 +164,9 @@ Raidwise/
   ProfileDraft.lua    # plain profile draft editing model
   Minimap.lua         # кнопка миникарты и подсказка с готовностью рейда и КД
   UnitTooltips.lua    # строки личного/общественного рейтинга в подсказках
+  UITheme.lua         # theme palettes and bound colors/text
   UIWidgets.lua       # общие панели, кнопки, иконки, бейджи версии вёрстки
+  RosterWidgets.lua   # roster, rating, and gear presentation helpers
   CharacterProfile.lua # профиль персонажа (мнение, теги, заметки, история)
   GearCheckCatalog.lua # каталоги чар / камней
   GearCheckSets.lua   # id кусков T9/T10 (информационно)

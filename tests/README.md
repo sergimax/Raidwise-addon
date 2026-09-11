@@ -43,6 +43,24 @@ Check in the test files, `package.json`, and `package-lock.json`; ignore
 folder. Offline tests cannot validate WoW's inspect event timing or real tooltip
 behavior: follow collector changes with an in-game rescan.
 
+## UI composition (phase 7)
+
+`UITheme.lua` initializes stable theme/color tables and color/text bindings.
+`UIWidgets.lua` supplies generic controls; `RosterWidgets.lua` supplies roster,
+gear-grade, consumable, and rating renderers. Load them in that order before
+pages. Existing `Raidwise.UITheme` and `Raidwise.Widgets` entry points remain.
+
+Page registrations declare `capabilities.reportChat` and `reportForm`; the shell
+reads these flags rather than checking tab IDs. Profile opinion, facts, events,
+notes, and history panels now have named builders with the same construction
+order, anchors, and dimensions. No layout versions change.
+
+Header tests load the real reporting page registrations. `theme.test.mts` checks
+stable palette references, bound-color updates, dark/light round trips, and
+unchanged shell dimensions. Profile command regressions also cover the corrected
+draft-event removal. Visual parity still needs in-game checks: both themes,
+English/Russian, profile tabs, header visibility, and tooltip interactions.
+
 ## Profile and history separation (phase 6)
 
 - `PlayerHistory.lua`: rating catalogs, normalization, and rating access.
