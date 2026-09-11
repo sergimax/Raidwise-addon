@@ -2,6 +2,9 @@
 
 local Addon = Raidwise
 
+-- Evaluation revision, independent of addon releases and catalog edits.
+Addon.GEAR_CHECK_RULESET_VERSION = "wotlk-3.3.5a-r1"
+
 local ENCHANTABLE = {
 	head = true,
 	shoulder = true,

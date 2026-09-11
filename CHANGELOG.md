@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Gear check rule revisions are independent of addon releases; saved reports retain separate rule and catalog metadata, so UI-only version bumps no longer imply new evaluation rules. Existing saved entries keep their original revision strings.
 - Coalesced roster refresh requests within a frame and shared each fresh roster snapshot with history and the visible roster/composition view, avoiding repeated collection and hidden-view redraws while inspect requests continue immediately.
 - Split theme handling and roster-specific widgets from generic UI controls, extracted named profile panel builders, and moved header report capabilities into page registrations; layouts are unchanged.
 - Separated profile draft editing, history storage and legacy migration, and rating presentation into dedicated modules; existing save/reset behavior and saved data formats are preserved.

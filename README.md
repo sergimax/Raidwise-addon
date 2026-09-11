@@ -158,7 +158,7 @@ Raidwise/
   RosterRefresh.lua   # coalesced refreshes and shared per-pass roster snapshots
   RaidRoles.lua       # raid role and spec/race buff lookups
   RaidComposition.lua # party/raid buff, debuff, and utility coverage
-  PlayerHistory.lua   # saved party/raid encounter list + personal ratings
+  PlayerHistory.lua   # rating catalogs, normalization, and access
   PlayerHistoryStore.lua # history persistence and legacy migration
   RatingPresentation.lua # rating labels, tooltips, and chat marks
   ProfileDraft.lua    # plain profile draft editing model
@@ -173,13 +173,13 @@ Raidwise/
   GearCheckTrinkets.lua # preferred/allowed trinket pools by role
   GearCheckProfiles.lua # class + 30-spec Gear Check profiles
   GearCheckBis.lua    # generated spec BiS item-ID sets (S grade)
-  GearCheckRules.lua  # findings + verdicts + overall + offline self-test
+  GearCheckRules.lua  # findings, meta activation, and rule revision
   GearCheckGrades.lua # slot, category, and overall grades
   GearCheckExplanations.lua # category tooltips and grade explanations
   GearCheckSelfTest.lua # offline and in-game rule fixtures
   GearCheckCollector.lua # item/gem reads and normalized snapshots
   GearCheckSavedReports.lua # manual save / load / prune (~14 days)
-  GearCheck.lua       # collection, normalization (schemaVersion 3), and scan orchestration
+  GearCheck.lua       # scan orchestration and last-report state
   GearCheckReports.lua # gear report formatting and final messages
   GearCheckDump.lua    # text dumps and asynchronous raid export jobs
   PageCooldowns.lua   # Character cooldowns tab

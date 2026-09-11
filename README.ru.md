@@ -159,7 +159,7 @@ Raidwise/
   RosterRefresh.lua   # coalesced refreshes and shared per-pass roster snapshots
   RaidRoles.lua       # роли и рейд-баффы по спеку / расе
   RaidComposition.lua # покрытие баффов, дебаффов и утилиты в группе / рейде
-  PlayerHistory.lua   # список встреч + личные рейтинги
+  PlayerHistory.lua   # каталоги рейтингов, нормализация и чтение
   PlayerHistoryStore.lua # history persistence and legacy migration
   RatingPresentation.lua # rating labels, tooltips, and chat marks
   ProfileDraft.lua    # plain profile draft editing model
@@ -174,13 +174,13 @@ Raidwise/
   GearCheckTrinkets.lua # пулы тринкетов по роли
   GearCheckProfiles.lua # профили классов + 30 спеков
   GearCheckBis.lua    # сгенерированные BiS item ID по спеку (оценка S)
-  GearCheckRules.lua  # находки + вердикты + итог + офлайн self-test
+  GearCheckRules.lua  # находки, активация мета-камней и ревизия правил
   GearCheckGrades.lua # slot, category, and overall grades
   GearCheckExplanations.lua # category tooltips and grade explanations
   GearCheckSelfTest.lua # offline and in-game rule fixtures
   GearCheckCollector.lua # item/gem reads and normalized snapshots
   GearCheckSavedReports.lua # ручное сохранение / загрузка / очистка (~14 дней)
-  GearCheck.lua       # сбор и нормализация Gear Check (schemaVersion 3)
+  GearCheck.lua       # управление сканированием и последним отчётом
   GearCheckReports.lua # gear report formatting and final messages
   GearCheckDump.lua    # text dumps and asynchronous raid export jobs
   PageCooldowns.lua   # вкладка Character cooldowns

@@ -33,11 +33,11 @@ local function EnsureSavedDB()
 end
 
 function Addon:GetGearCheckRulesetVersion()
-	return "wotlk-3.3.5a-" .. tostring(Addon.version or "0")
+	return Addon.GEAR_CHECK_RULESET_VERSION or "unknown"
 end
 
 function Addon:GetGearCheckDataVersion()
-	return Addon.GEAR_CHECK_DATA_VERSION or ("catalog-" .. tostring(Addon.version or "0"))
+	return Addon.GEAR_CHECK_DATA_VERSION or "unknown"
 end
 
 function Addon:GearCheckCharacterKey(report)

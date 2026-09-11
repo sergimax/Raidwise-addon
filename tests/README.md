@@ -43,6 +43,15 @@ Check in the test files, `package.json`, and `package-lock.json`; ignore
 folder. Offline tests cannot validate WoW's inspect event timing or real tooltip
 behavior: follow collector changes with an in-game rescan.
 
+## Revision independence (phase 9)
+
+`saved-revisions.test.mts` verifies that changing addon semver leaves rule/catalog
+metadata unchanged, new rules and catalog revisions can change independently,
+legacy saved entries retain their metadata, and absent revision constants return
+`unknown`. The normalized report schema and source snapshot remain unchanged.
+Module ownership, revision policy, and saved-report compatibility are documented
+in `docs/Gear-Check-Progress.md` under Current module boundaries and compatibility.
+
 ## Roster refresh coalescing (phase 8)
 
 `RosterRefresh.lua` collects one fresh `BuildRosterSnapshot` per scheduled pass.
