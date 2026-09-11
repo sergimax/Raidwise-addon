@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.20.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--09--09-blue)
+![](https://img.shields.io/badge/current_version-1.22.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--12-blue)
 
 
 ## Install
