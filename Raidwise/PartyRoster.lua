@@ -95,15 +95,6 @@ local function SafeCanInspect(unit)
 	return true
 end
 
-local function SafeNotifyInspect(unit)
-	if type(NotifyInspect) ~= "function" then
-		return false
-	end
-	local ok = pcall(NotifyInspect, unit)
-	return ok
-end
-
--- REFACTOR candidate: three fallback strategies (GetItemInfo, item ID cache, tooltip scan).
 local function ItemLevelFromLink(itemLink)
 	if not itemLink then
 		return nil
@@ -584,6 +575,7 @@ function Addon:BuildRaidGroups(refreshGearScore)
 end
 
 function Addon:ClearPartyInspectForGearCheck()
+	self:CompleteInspectRequest("roster")
 	inspectPending = nil
 	for index = #inspectQueue, 1, -1 do
 		inspectQueue[index] = nil
@@ -635,7 +627,7 @@ function Addon:QueuePartyInspects()
 
 	for _, unit in ipairs(InspectUnitIds()) do
 		if not UnitIsUnit(unit, "player") and UnitExists(unit) and UnitIsVisible(unit) and SafeCanInspect(unit) then
-			inspectQueue[#inspectQueue + 1] = unit
+			inspectQueue[#inspectQueue + 1] = { unit = unit, guid = UnitGUID(unit) }
 		end
 	end
 
@@ -650,10 +642,17 @@ function Addon:ProcessNextPartyInspect()
 		return
 	end
 
-	local unit = table.remove(inspectQueue, 1)
-	if UnitExists(unit) and SafeCanInspect(unit) then
+	local entry = table.remove(inspectQueue, 1)
+	local unit = entry.unit
+	if UnitExists(unit) and UnitGUID(unit) == entry.guid and SafeCanInspect(unit) then
 		inspectPending = unit
-		if not SafeNotifyInspect(unit) then
+		if not self:StartInspectRequest("roster", unit, {
+			onReady = function() self:OnInspectTalentReady() end,
+			onStop = function()
+				inspectPending = nil
+				self:ProcessNextPartyInspect()
+			end,
+		}) then
 			inspectPending = nil
 			self:ProcessNextPartyInspect()
 		end
@@ -665,6 +664,7 @@ end
 
 function Addon:OnInspectTalentReady()
 	local unit = inspectPending
+	if not unit then return end
 	if unit and UnitExists(unit) then
 		local specName, specIcon, specTab = PrimarySpecFromInspectUnit(unit)
 		if specName ~= "" or specIcon ~= "" or (specTab and specTab > 0) then
@@ -673,17 +673,10 @@ function Addon:OnInspectTalentReady()
 		AverageItemLevelForUnit(unit)
 	end
 
+	self:CompleteInspectRequest("roster")
 	inspectPending = nil
 
-	if self.RefreshRaidRosterView then
-		self:RefreshRaidRosterView(false)
-	end
-	if self.RefreshCompositionView then
-		self:RefreshCompositionView(false)
-	end
-	if self.RecordCurrentGroupHistory then
-		self:RecordCurrentGroupHistory(false)
-	end
+	self:ScheduleRosterRefresh(false)
 
 	self:ProcessNextPartyInspect()
 end
@@ -692,14 +685,6 @@ function Addon:RefreshPartyData(refreshGearScore)
 	if refreshGearScore == nil then
 		refreshGearScore = true
 	end
-	if self.RefreshRaidRosterView then
-		self:RefreshRaidRosterView(refreshGearScore)
-	end
-	if self.RefreshCompositionView then
-		self:RefreshCompositionView(refreshGearScore)
-	end
-	if self.RecordCurrentGroupHistory then
-		self:RecordCurrentGroupHistory(refreshGearScore)
-	end
+	self:ScheduleRosterRefresh(refreshGearScore)
 	self:QueuePartyInspects()
 end

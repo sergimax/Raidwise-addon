@@ -549,7 +549,7 @@ local function ShowChatReportTooltip(owner, tipKey, messages)
 	GameTooltip:AddLine(W.T("RAID_CHAT_PREVIEW"), 0.6, 0.6, 0.6)
 	if type(messages) == "table" then
 		for index = 1, #messages do
-			GameTooltip:AddLine(messages[index], 1, 1, 1, true)
+			GameTooltip:AddLine(Addon:PrepareReportMessage(messages[index]), 1, 1, 1, true)
 		end
 	end
 	GameTooltip:Show()
@@ -1524,7 +1524,7 @@ local function RunGearCheckRaidScan(page)
 			end
 			SetRaidProgress(page, done, total, true)
 			page.gearCheckResults[#page.gearCheckResults + 1] = entry
-			Addon:RefreshRaidRosterView(false)
+			Addon:ScheduleRosterRefresh(false)
 		end,
 		function(results, status)
 			page.gearCheckScanning = false
@@ -1544,7 +1544,7 @@ local function RunGearCheckRaidScan(page)
 					page.gearCheckStatusLabel:SetText(W.T("GEAR_CHECK_STATUS_FAIL"))
 				end
 			end
-			Addon:RefreshRaidRosterView(false)
+			Addon:ScheduleRosterRefresh(false)
 		end
 	)
 	if not started then
@@ -1608,7 +1608,7 @@ function Addon:RunGearCheckMemberRescan(page, member)
 				)
 			end
 		end
-		Addon:RefreshRaidRosterView(false)
+		Addon:ScheduleRosterRefresh(false)
 	end)
 
 	if not started then
@@ -1705,7 +1705,7 @@ function Addon:RefreshGearCheckRaidView(_autoScan)
 	self:RefreshRaidRosterView(false)
 end
 
-function Addon:RefreshRaidRosterView(refreshGearScore)
+function Addon:RefreshRaidRosterView(refreshGearScore, snapshot)
 	local frame = self.mainFrame
 	local page = frame and frame.pages and frame.pages.raid
 	if not page then
@@ -1719,7 +1719,7 @@ function Addon:RefreshRaidRosterView(refreshGearScore)
 		return
 	end
 
-	local groups = self:BuildRaidGroups(refreshGearScore)
+	local groups = snapshot and snapshot.groups or self:BuildRaidGroups(refreshGearScore)
 	local members = MembersFromRaidGroups(groups)
 	UpdateRaidRosterStatsLabels(page, members)
 	UpdateRaidConsumableSummary(page, members)
@@ -1910,6 +1910,7 @@ local function ApplyLocale(page)
 end
 
 Addon.Pages.Raid = {
+	capabilities = { reportChat = true },
 	id = "raid",
 	LAYOUT_VERSION = LAYOUT_VERSION,
 	Create = CreateRaidRosterPage,

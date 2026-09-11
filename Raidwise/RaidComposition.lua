@@ -820,7 +820,8 @@ local function EnsureMemberRole(member)
 	end
 end
 
-function Addon:CompositionMembers(refreshGearScore)
+function Addon:CompositionMembers(refreshGearScore, snapshot)
+	if snapshot then return snapshot.members end
 	local members = {}
 	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
 	if raidCount > 0 and self.BuildRaidGroups then

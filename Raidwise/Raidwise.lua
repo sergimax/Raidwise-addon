@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.21.0"
+Addon.version = "1.22.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -113,18 +113,7 @@ local REPORT_CHANNEL_IDS = {
 	say = true,
 }
 
-local CHAT_SEND_MAX = 255
 local lastUnavailableWarnAt = 0
-
-local function TruncateChatMessage(message)
-	if type(message) ~= "string" then
-		return ""
-	end
-	if string.len(message) <= CHAT_SEND_MAX then
-		return message
-	end
-	return string.sub(message, 1, CHAT_SEND_MAX - 3) .. "..."
-end
 
 local function IsInRaidGroup()
 	return ((GetNumRaidMembers and GetNumRaidMembers()) or 0) > 0
@@ -221,7 +210,7 @@ function Addon:SendReportChat(message)
 	end
 	local chatType, reason = self:ResolveReportChatType()
 	if chatType then
-		SendChatMessage(TruncateChatMessage(message), chatType)
+		SendChatMessage(self:PrepareReportMessage(message), chatType)
 		return
 	end
 	if reason == "unavailable" then
@@ -323,11 +312,6 @@ function Addon:OnUpdateInstanceInfo()
 	end
 end
 
-function Addon:OnInspectTalentReadyEvent(_unit) -- _unit unused; event always routes to OnInspectTalentReady()
-	if self.OnInspectTalentReady then
-		self:OnInspectTalentReady()
-	end
-end
 
 function Addon:OnGuildInfoUpdated()
 	local frame = self.mainFrame
@@ -335,9 +319,9 @@ function Addon:OnGuildInfoUpdated()
 		return
 	end
 	if frame.selectedTab == "raid" and self.RefreshRaidRosterView then
-		self:RefreshRaidRosterView(false)
+		self:ScheduleRosterRefresh(false)
 	elseif frame.selectedTab == "composition" and self.RefreshCompositionView then
-		self:RefreshCompositionView(false)
+		self:ScheduleRosterRefresh(false)
 	end
 end
 
@@ -348,7 +332,7 @@ function Addon:OnGroupRosterUpdated()
 		return
 	end
 	if self.RecordCurrentGroupHistory then
-		self:RecordCurrentGroupHistory(false)
+		self:ScheduleRosterRefresh(false)
 	end
 end
 
@@ -435,7 +419,6 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("UPDATE_INSTANCE_INFO")
-frame:RegisterEvent("INSPECT_TALENT_READY")
 frame:RegisterEvent("PLAYER_GUILD_UPDATE")
 frame:RegisterEvent("GUILD_ROSTER_UPDATE")
 frame:RegisterEvent("PARTY_MEMBERS_CHANGED")
@@ -454,8 +437,6 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnPlayerEnteringWorld()
 	elseif event == "UPDATE_INSTANCE_INFO" then
 		Addon:OnUpdateInstanceInfo()
-	elseif event == "INSPECT_TALENT_READY" then
-		Addon:OnInspectTalentReadyEvent(arg1)
 	elseif event == "PLAYER_GUILD_UPDATE" or event == "GUILD_ROSTER_UPDATE" then
 		Addon:OnGuildInfoUpdated()
 	elseif event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then

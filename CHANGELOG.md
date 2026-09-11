@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.22.0] - 2026-09-12
+
+### Added
+- Addon API `CancelGearCheckScan()` cancels target or raid scanning, retaining completed raid results and reporting cancellation to callbacks.
+
+### Changed
+- Roster refresh requests within a frame share one fresh snapshot with history and the visible roster/composition view; hidden views avoid unnecessary redraws while inspect requests continue immediately.
+- Roster and Gear check scans share inspect ownership and request deadlines; stalled roster inspects release the queue after four seconds.
+- Gear check rule revisions are independent of addon releases, so UI-only version bumps no longer imply changed evaluation rules. Existing saved reports retain their original revision metadata.
+- Gear check reports use the shared chat sender and its throttle for unavailable-channel warnings.
+
+### Fixed
+- Removing a profile draft event updates the draft correctly before saving.
+- Gear scans reject targets whose GUID changes during the request; raid scans skip queued members whose unit token now identifies someone else.
+- Spec and gem inspect retries receive their additional two-second budget instead of immediately timing out; unresolved scans retain incomplete status.
+- Report previews and sending use the same final message preparation, including prefixes and chat length limits.
+- Truncating network reports preserves complete UTF-8 characters and spell links, with color resets when needed; local reports remain untruncated.
+
 ## [1.21.0] - 2026-09-11
 
 ### Added

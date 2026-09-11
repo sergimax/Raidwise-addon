@@ -441,84 +441,30 @@ local function CreateProfileTabButton(parent, tabId, label, width)
 	return button
 end
 
-local function CopyTagList(tags)
-	local copy = {}
-	if type(tags) ~= "table" then
-		return copy
-	end
-	for index = 1, #tags do
-		copy[index] = tags[index]
-	end
-	return copy
-end
+local CopyEventList = Addon.ProfileDraft.CopyEvents
+local SortEventsNewestFirst = Addon.ProfileDraft.SortEvents
 
-local function CopyEventList(events)
-	local copy = {}
-	if type(events) ~= "table" then
-		return copy
-	end
-	for index = 1, #events do
-		local event = events[index]
-		if type(event) == "table" then
-			local context = {}
-			if type(event.context) == "table" then
-				for key, value in pairs(event.context) do
-					context[key] = value
-				end
-			end
-			copy[#copy + 1] = {
-				id = event.id,
-				type = event.type,
-				creatorId = event.creatorId,
-				eventAt = event.eventAt,
-				context = context,
-			}
-		end
-	end
-	return copy
-end
-
-local function SortEventsNewestFirst(events)
-	local sorted = CopyEventList(events)
-	table.sort(sorted, function(left, right)
-		return (tonumber(left.eventAt) or 0) > (tonumber(right.eventAt) or 0)
-	end)
-	return sorted
+local function GetDraftState(frame)
+	if not frame.profileDraft then frame.profileDraft = Addon:CreateProfileDraft(frame.profileMember) end
+	return frame.profileDraft
 end
 
 local function InitProfileDraft(frame, member)
-	if not frame then
-		return
-	end
-	local personal = { opinion = "neutral", tags = {}, facts = {} }
-	if member and Addon.GetPersonalRating then
-		personal = Addon:GetPersonalRating(member)
-	end
-	frame.draftOpinion = personal.opinion or "neutral"
-	frame.draftTags = CopyTagList(personal.tags)
-	frame.draftFacts = CopyTagList(personal.facts)
-	local events = {}
-	if member and Addon.GetHistoryEvents then
-		events = Addon:GetHistoryEvents(member)
-	elseif member and type(member.events) == "table" then
-		events = member.events
-	end
-	frame.draftEvents = SortEventsNewestFirst(events)
-	frame.draftEventSeq = 0
+	if frame then frame.profileDraft = Addon:CreateProfileDraft(member) end
 end
 
 local function GetProfileDraft(frame)
 	if not frame then
 		return "neutral", {}, {}
 	end
-	return frame.draftOpinion or "neutral", frame.draftTags or {}, frame.draftFacts or {}
+	return GetDraftState(frame).draftOpinion or "neutral", GetDraftState(frame).draftTags or {}, GetDraftState(frame).draftFacts or {}
 end
 
 local function GetProfileDraftEvents(frame)
-	if not frame or type(frame.draftEvents) ~= "table" then
+	if not frame or type(GetDraftState(frame).draftEvents) ~= "table" then
 		return {}
 	end
-	return frame.draftEvents
+	return GetDraftState(frame).draftEvents
 end
 
 -- AceConfigDialog / Details radio pattern: exclusive SetChecked on the whole group.
@@ -639,7 +585,7 @@ local function ApplyOpinionChoice(opinionId)
 	if not frame then
 		return
 	end
-	frame.draftOpinion = opinionId
+	GetDraftState(frame).draftOpinion = opinionId
 	-- Draft only; CommitProfileRating (Save) persists. Header stays on saved values.
 	RefreshOpinionRadios(frame, opinionId)
 	PaintDraftEditorLabels(frame)
@@ -955,16 +901,16 @@ function Addon:SyncOpenProfileHistoryEvent(entry, event)
 	member.meetCount = entry.meetCount
 	member.changes = entry.changes
 	member.events = entry.events
-	if type(frame.draftEvents) == "table" then
+	if type(GetDraftState(frame).draftEvents) == "table" then
 		local already = false
-		for index = 1, #frame.draftEvents do
-			if frame.draftEvents[index].id == event.id then
+		for index = 1, #GetDraftState(frame).draftEvents do
+			if GetDraftState(frame).draftEvents[index].id == event.id then
 				already = true
 				break
 			end
 		end
 		if not already then
-			table.insert(frame.draftEvents, 1, event)
+			table.insert(GetDraftState(frame).draftEvents, 1, event)
 		end
 	end
 	UpdateProfileHistoryPanel(frame, member)
@@ -1207,37 +1153,8 @@ function Addon:ToggleProfileTag(tagId)
 	if not frame then
 		return
 	end
-	local opinion, draftTags, draftFacts = GetProfileDraft(frame)
-	local tag = self.RatingTagById and self:RatingTagById(tagId) or nil
-	local nextTags = {}
-	local seen = false
-	for index = 1, #draftTags do
-		local current = draftTags[index]
-		if current ~= tagId then
-			nextTags[#nextTags + 1] = current
-		else
-			seen = true
-		end
-	end
-	if not seen then
-		if tag and tag.groupId then
-			local selectedCount = 0
-			for index = 1, #draftTags do
-				local currentTag = self:RatingTagById(draftTags[index])
-				if currentTag and currentTag.groupId == tag.groupId then
-					selectedCount = selectedCount + 1
-				end
-			end
-			if selectedCount >= 3 then
-				self:Print(self:T("RATING_GROUP_LIMIT"))
-				return
-			end
-		end
-		nextTags[#nextTags + 1] = tagId
-	end
-	frame.draftTags = nextTags
-	frame.draftOpinion = opinion
-	frame.draftFacts = draftFacts
+	local ok, key, limit = self:ToggleProfileDraftTag(GetDraftState(frame), tagId)
+	if not ok then self:Print(self:T(key, limit)); return end
 	PaintDraftEditorLabels(frame)
 	if frame.tagGroups then
 		local member = frame.profileMember
@@ -1251,28 +1168,8 @@ function Addon:ToggleProfileFact(factId)
 	if not frame or not factId then
 		return
 	end
-	local opinion, draftTags, draftFacts = GetProfileDraft(frame)
-	local nextFacts = {}
-	local seen = false
-	for index = 1, #draftFacts do
-		local current = draftFacts[index]
-		if current ~= factId then
-			nextFacts[#nextFacts + 1] = current
-		else
-			seen = true
-		end
-	end
-	if not seen then
-		local maxFacts = (self.MaxPersonalFacts and self:MaxPersonalFacts()) or 4
-		if #draftFacts >= maxFacts then
-			self:Print(self:T("RATING_FACTS_LIMIT", maxFacts))
-			return
-		end
-		nextFacts[#nextFacts + 1] = factId
-	end
-	frame.draftFacts = nextFacts
-	frame.draftOpinion = opinion
-	frame.draftTags = draftTags
+	local ok, key, limit = self:ToggleProfileDraftFact(GetDraftState(frame), factId)
+	if not ok then self:Print(self:T(key, limit)); return end
 	if frame.factCheckboxes then
 		local member = frame.profileMember
 		local editable = member and member.guid and member.guid ~= ""
@@ -1314,25 +1211,7 @@ function Addon:AddProfileEvent(eventTypeId)
 	if not member or not member.guid or member.guid == "" or not eventTypeId then
 		return
 	end
-	if self.IsValidEventType and not self:IsValidEventType(eventTypeId) then
-		return
-	end
-	if type(frame.draftEvents) ~= "table" then
-		frame.draftEvents = {}
-	end
-	frame.draftEventSeq = (frame.draftEventSeq or 0) + 1
-	local creatorId = ""
-	if type(UnitGUID) == "function" then
-		creatorId = UnitGUID("player") or ""
-	end
-	local event = {
-		id = string.format("draft-%d-%d", time(), frame.draftEventSeq),
-		type = eventTypeId,
-		creatorId = creatorId,
-		eventAt = time(),
-		context = (self.CaptureEventContext and self:CaptureEventContext()) or {},
-	}
-	table.insert(frame.draftEvents, 1, event)
+	self:AddProfileDraftEvent(GetDraftState(frame), eventTypeId)
 	UpdateProfileEventsPanel(frame, member)
 end
 
@@ -1341,19 +1220,448 @@ function Addon:RemoveProfileEvent(eventId)
 	if not frame or not eventId or eventId == "" then
 		return
 	end
-	local draft = GetProfileDraftEvents(frame)
-	local nextEvents = {}
-	for index = 1, #draft do
-		local event = draft[index]
-		if type(event) == "table" and event.id ~= eventId then
-			nextEvents[#nextEvents + 1] = event
-		end
-	end
-	frame.draftEvents = nextEvents
+	self:RemoveProfileDraftEvent(GetDraftState(frame), eventId)
 	UpdateProfileEventsPanel(frame, frame.profileMember)
 end
 
--- REFACTOR candidate: ~600 lines — split into header, tab bar, and per-tab panel builders.
+local function CreateProfileOpinionPanel(frame, tabContent, tabContentWidth)
+	local opinionPanel = CreateFrame("Frame", nil, tabContent)
+	opinionPanel:SetPoint("TOPLEFT", 0, 0)
+	opinionPanel:SetPoint("BOTTOMRIGHT", 0, 0)
+	frame.profilePanels.opinion = opinionPanel
+
+	-- Solid header above the tag list (radios here; scroll never covers them).
+	local opinionHeader = CreateFrame("Frame", nil, opinionPanel)
+	opinionHeader:SetPoint("TOPLEFT", 0, 0)
+	opinionHeader:SetPoint("TOPRIGHT", 0, 0)
+	opinionHeader:SetHeight(PROFILE_OPINION_HEADER_H)
+	opinionHeader:EnableMouse(true)
+	opinionHeader:SetFrameLevel(opinionPanel:GetFrameLevel() + 40)
+	frame.opinionHeader = opinionHeader
+
+	local summaryLine = W.CreateFontString(opinionHeader, nil, "OVERLAY", "GameFontNormalSmall")
+	summaryLine:SetPoint("TOPLEFT", 0, 0)
+	summaryLine:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
+	summaryLine:SetHeight(16)
+	summaryLine:SetJustifyH("LEFT")
+	summaryLine:SetJustifyV("MIDDLE")
+	frame.ratingSummary = summaryLine
+
+	-- Mutually exclusive radios (AceConfigDialog style="radio" / Details RadioOnClick).
+	local opinionRow = CreateFrame("Frame", nil, opinionHeader)
+	opinionRow:SetPoint("TOPLEFT", summaryLine, "BOTTOMLEFT", 0, -6)
+	opinionRow:SetPoint("TOPRIGHT", summaryLine, "BOTTOMRIGHT", 0, -6)
+	opinionRow:SetHeight(PROFILE_OPINION_ROW_H)
+	frame.opinionRow = opinionRow
+
+	frame.opinionButtons = {}
+	local opinionOrder = { "positive", "neutral", "negative" }
+	local opinionWidth = math.floor((tabContentWidth - UI.ACTION_BTN_GAP * 2) / 3)
+	for index = 1, #opinionOrder do
+		local opinionId = opinionOrder[index]
+		local radio = CreateOpinionRadio(opinionRow, opinionId, opinionWidth)
+		if index == 1 then
+			radio.host:SetPoint("LEFT", opinionRow, "LEFT", 0, 0)
+		else
+			radio.host:SetPoint("LEFT", frame.opinionButtons[index - 1].host, "RIGHT", UI.ACTION_BTN_GAP, 0)
+		end
+		frame.opinionButtons[index] = radio
+	end
+
+	local tagsHeading = W.CreateFontString(opinionHeader, nil, "OVERLAY", "GameFontNormal")
+	tagsHeading:SetPoint("TOPLEFT", opinionRow, "BOTTOMLEFT", 0, -6)
+	tagsHeading:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
+	tagsHeading:SetJustifyH("LEFT")
+	tagsHeading:SetText(T("RATING_TAGS_TITLE"))
+	W.SetFontColor(tagsHeading, UI.GOLD)
+	frame.tagsHeading = tagsHeading
+
+	frame.profileTabContentWidth = tabContentWidth
+	frame.tagGroups = {}
+
+	-- Tag list starts strictly below the mouse-blocking header.
+	local tagBody = CreateFrame("Frame", nil, opinionPanel)
+	tagBody:SetPoint("TOPLEFT", opinionHeader, "BOTTOMLEFT", 0, -2)
+	tagBody:SetPoint("BOTTOMRIGHT", opinionPanel, "BOTTOMRIGHT", 0, 0)
+	tagBody:SetFrameLevel(opinionPanel:GetFrameLevel() + 1)
+	frame.tagBody = tagBody
+
+	local tagScrollName = "RaidwiseProfileTagScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
+	local existingScroll = _G[tagScrollName]
+	if existingScroll then
+		existingScroll:Hide()
+		existingScroll:EnableMouse(false)
+		existingScroll:SetParent(nil)
+	end
+	local tagScroll = CreateFrame("ScrollFrame", tagScrollName, tagBody, "UIPanelScrollFrameTemplate")
+	tagScroll:SetPoint("TOPLEFT", 0, 0)
+	tagScroll:SetPoint("BOTTOMRIGHT", -24, 0)
+	frame.tagScroll = tagScroll
+
+	local tagScrollBar = _G[tagScrollName .. "ScrollBar"]
+	if tagScrollBar then
+		tagScrollBar:ClearAllPoints()
+		tagScrollBar:SetPoint("TOPLEFT", tagBody, "TOPRIGHT", -20, -16)
+		tagScrollBar:SetPoint("BOTTOMLEFT", tagBody, "BOTTOMRIGHT", -20, 16)
+	end
+
+	local tagContent = CreateFrame("Frame", nil, tagScroll)
+	tagContent:SetWidth(tabContentWidth - 28)
+	tagScroll:SetScrollChild(tagContent)
+	frame.tagContent = tagContent
+
+	local currentY = 0
+	local groups = GetRatingTagGroups()
+	local columnWidth = math.floor((tabContentWidth - PROFILE_TAG_COL_GAP - 28) / 2)
+	for groupIndex = 1, #groups do
+		local group = groups[groupIndex]
+		local label = W.CreateFontString(tagContent, nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("TOPLEFT", tagContent, "TOPLEFT", 0, -currentY)
+		label:SetPoint("RIGHT", tagContent, "RIGHT", 0, 0)
+		label:SetJustifyH("LEFT")
+		W.SetFontColor(label, UI.TEXT_HOVER)
+		label:SetText(T(group.labelKey))
+
+		local checkboxes = {}
+		local leftColumn = CreateFrame("Frame", nil, tagContent)
+		leftColumn:SetSize(columnWidth, 1)
+		leftColumn:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -4)
+
+		local rightColumn = CreateFrame("Frame", nil, tagContent)
+		rightColumn:SetSize(columnWidth, 1)
+		rightColumn:SetPoint("TOPLEFT", leftColumn, "TOPRIGHT", PROFILE_TAG_COL_GAP, 0)
+
+		for tagIndex = 1, #group.tags do
+			local tag = group.tags[tagIndex]
+			local column = (tagIndex % 2 == 0) and rightColumn or leftColumn
+			local rowIndex = math.floor((tagIndex - 1) / 2)
+			local checkbox = CreateProfileTagCheckbox(column, tag, group, columnWidth)
+			checkbox:SetPoint("TOPLEFT", column, "TOPLEFT", 0, -(rowIndex * PROFILE_TAG_ROW_H))
+			checkboxes[#checkboxes + 1] = checkbox
+		end
+
+		local rows = math.ceil(#group.tags / 2)
+		local columnHeight = rows * PROFILE_TAG_ROW_H
+		leftColumn:SetHeight(columnHeight)
+		rightColumn:SetHeight(columnHeight)
+
+		frame.tagGroups[#frame.tagGroups + 1] = {
+			group = group,
+			label = label,
+			leftColumn = leftColumn,
+			rightColumn = rightColumn,
+			checkboxes = checkboxes,
+		}
+		currentY = currentY + ProfileTagGroupHeight(#group.tags)
+	end
+	tagContent:SetHeight(math.max(currentY, 1))
+
+	-- Facts tab: role / identity checkboxes (draft until Save and Update).
+end
+
+local function CreateProfileFactsPanel(frame, tabContent, tabContentWidth)
+	local factsPanel = CreateFrame("Frame", nil, tabContent)
+	factsPanel:SetPoint("TOPLEFT", 0, 0)
+	factsPanel:SetPoint("BOTTOMRIGHT", 0, 0)
+	factsPanel:Hide()
+	frame.profilePanels.facts = factsPanel
+
+	local factsHeading = W.CreateFontString(factsPanel, nil, "OVERLAY", "GameFontNormal")
+	factsHeading:SetPoint("TOPLEFT", 0, 0)
+	factsHeading:SetPoint("RIGHT", factsPanel, "RIGHT", 0, 0)
+	factsHeading:SetJustifyH("LEFT")
+	factsHeading:SetText(T("RATING_FACTS_TITLE"))
+	W.SetFontColor(factsHeading, UI.GOLD)
+	frame.factsHeading = factsHeading
+
+	local factsHint = W.CreateFontString(factsPanel, nil, "OVERLAY", "GameFontNormalSmall")
+	factsHint:SetPoint("TOPLEFT", factsHeading, "BOTTOMLEFT", 0, -4)
+	factsHint:SetPoint("RIGHT", factsPanel, "RIGHT", 0, 0)
+	factsHint:SetJustifyH("LEFT")
+	local maxFacts = (Addon.MaxPersonalFacts and Addon:MaxPersonalFacts()) or 4
+	factsHint:SetText(T("RATING_FACTS_HINT", maxFacts))
+	W.SetFontColor(factsHint, UI.TEXT_IDLE)
+	frame.factsHint = factsHint
+
+	frame.factCheckboxes = {}
+	local factCatalog = (Addon.FactCatalog and Addon:FactCatalog()) or {}
+	local factColumnWidth = math.floor((tabContentWidth - PROFILE_TAG_COL_GAP) / 2)
+	local factLeft = CreateFrame("Frame", nil, factsPanel)
+	factLeft:SetSize(factColumnWidth, 1)
+	factLeft:SetPoint("TOPLEFT", factsHint, "BOTTOMLEFT", 0, -8)
+	local factRight = CreateFrame("Frame", nil, factsPanel)
+	factRight:SetSize(factColumnWidth, 1)
+	factRight:SetPoint("TOPLEFT", factLeft, "TOPRIGHT", PROFILE_TAG_COL_GAP, 0)
+	for factIndex = 1, #factCatalog do
+		local fact = factCatalog[factIndex]
+		local column = (factIndex % 2 == 0) and factRight or factLeft
+		local rowIndex = math.floor((factIndex - 1) / 2)
+		local checkbox = CreateProfileFactCheckbox(column, fact, factColumnWidth)
+		checkbox:SetPoint("TOPLEFT", column, "TOPLEFT", 0, -(rowIndex * PROFILE_TAG_ROW_H))
+		frame.factCheckboxes[#frame.factCheckboxes + 1] = checkbox
+	end
+	local factRows = math.ceil(math.max(#factCatalog, 1) / 2)
+	factLeft:SetHeight(factRows * PROFILE_TAG_ROW_H)
+	factRight:SetHeight(factRows * PROFILE_TAG_ROW_H)
+
+	-- Events tab: pick type + draft Add/Remove; commit via Save and Update.
+end
+
+local function CreateProfileEventsPanel(frame, tabContent, tabContentWidth)
+	local eventsPanel = CreateFrame("Frame", nil, tabContent)
+	eventsPanel:SetPoint("TOPLEFT", 0, 0)
+	eventsPanel:SetPoint("BOTTOMRIGHT", 0, 0)
+	eventsPanel:Hide()
+	frame.profilePanels.events = eventsPanel
+
+	local eventsAddBtn = W.CreatePlainButton(eventsPanel, 110, UI.ACTION_BTN_H, T("PROFILE_EVENTS_ADD"))
+	eventsAddBtn:SetPoint("TOPRIGHT", 0, 0)
+	eventsAddBtn:SetScript("OnClick", function()
+		if frame.selectedEventType then
+			Addon:AddProfileEvent(frame.selectedEventType)
+		end
+	end)
+	frame.eventsAddBtn = eventsAddBtn
+
+	local eventsHeading = W.CreateFontString(eventsPanel, nil, "OVERLAY", "GameFontNormal")
+	eventsHeading:SetPoint("TOPLEFT", 0, 0)
+	eventsHeading:SetPoint("RIGHT", eventsAddBtn, "LEFT", -8, 0)
+	eventsHeading:SetJustifyH("LEFT")
+	eventsHeading:SetText(T("PROFILE_TAB_EVENTS"))
+	W.SetFontColor(eventsHeading, UI.GOLD)
+	frame.eventsHeading = eventsHeading
+
+	local eventsPickLabel = W.CreateFontString(eventsPanel, nil, "OVERLAY", "GameFontNormalSmall")
+	eventsPickLabel:SetPoint("TOPLEFT", eventsHeading, "BOTTOMLEFT", 0, -4)
+	eventsPickLabel:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
+	eventsPickLabel:SetJustifyH("LEFT")
+	eventsPickLabel:SetText(T("PROFILE_EVENTS_PICK_TYPE"))
+	W.SetFontColor(eventsPickLabel, UI.TEXT_IDLE)
+	frame.eventsPickLabel = eventsPickLabel
+
+	local typePickerHost = CreateFrame("Frame", nil, eventsPanel)
+	typePickerHost:SetPoint("TOPLEFT", eventsPickLabel, "BOTTOMLEFT", 0, -6)
+	typePickerHost:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
+	typePickerHost:SetHeight(PROFILE_EVENT_PICKER_H)
+	frame.eventTypePickerHost = typePickerHost
+
+	local typeScrollName = "RaidwiseProfileEventTypeScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
+	local existingTypeScroll = _G[typeScrollName]
+	if existingTypeScroll then
+		existingTypeScroll:Hide()
+		existingTypeScroll:SetParent(nil)
+	end
+	local typeScroll = CreateFrame("ScrollFrame", typeScrollName, typePickerHost, "UIPanelScrollFrameTemplate")
+	typeScroll:SetPoint("TOPLEFT", 0, 0)
+	typeScroll:SetPoint("BOTTOMRIGHT", -24, 0)
+
+	local typeContent = CreateFrame("Frame", nil, typeScroll)
+	typeContent:SetWidth(tabContentWidth - 28)
+	typeScroll:SetScrollChild(typeContent)
+	frame.eventTypeButtons = {}
+	frame.eventTypeGroupLabels = {}
+	frame.selectedEventType = nil
+	local eventGroups = (Addon.EventTypeGroups and Addon:EventTypeGroups()) or {}
+	local typeBtnWidth = math.floor((tabContentWidth - 28 - PROFILE_TAG_COL_GAP) / 2)
+	local typeY = 0
+	local function SelectEventType(eventTypeId)
+		frame.selectedEventType = eventTypeId
+		for _, other in ipairs(frame.eventTypeButtons) do
+			W.SetMenuButtonState(other, other.eventTypeId == frame.selectedEventType, false)
+		end
+	end
+	for groupIndex = 1, #eventGroups do
+		local group = eventGroups[groupIndex]
+		if groupIndex > 1 then
+			typeY = typeY + PROFILE_TAG_GROUP_GAP
+		end
+		local icon = typeContent:CreateTexture(nil, "ARTWORK")
+		icon:SetSize(PROFILE_EVENT_GROUP_ICON, PROFILE_EVENT_GROUP_ICON)
+		icon:SetPoint("TOPLEFT", typeContent, "TOPLEFT", 0, -typeY)
+		if group.icon then
+			W.SetSpellIconTexture(icon, group.icon)
+		end
+
+		local heading = W.CreateFontString(typeContent, nil, "OVERLAY", "GameFontNormalSmall")
+		heading:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+		heading:SetPoint("RIGHT", typeContent, "RIGHT", 0, 0)
+		heading:SetPoint("TOP", icon, "TOP", 0, 1)
+		heading:SetHeight(PROFILE_TAG_GROUP_HEADING_H)
+		heading:SetJustifyH("LEFT")
+		heading:SetJustifyV("MIDDLE")
+		heading:SetText(T(group.labelKey))
+		W.SetFontColor(heading, UI.GOLD)
+		heading.labelKey = group.labelKey
+		frame.eventTypeGroupLabels[#frame.eventTypeGroupLabels + 1] = heading
+		typeY = typeY + math.max(PROFILE_EVENT_GROUP_ICON, PROFILE_TAG_GROUP_HEADING_H) + 2
+
+		local types = group.events or {}
+		for typeIndex = 1, #types do
+			local eventType = types[typeIndex]
+			local col = (typeIndex % 2 == 0) and 1 or 0
+			local row = math.floor((typeIndex - 1) / 2)
+			local button = CreateFrame("Button", nil, typeContent)
+			button:SetSize(typeBtnWidth, PROFILE_EVENT_TYPE_BTN_H)
+			button:SetPoint(
+				"TOPLEFT",
+				typeContent,
+				"TOPLEFT",
+				col * (typeBtnWidth + PROFILE_TAG_COL_GAP),
+				-(typeY + row * PROFILE_EVENT_TYPE_ROW_H)
+			)
+			W.ApplyPlainPanel(button, UI.BTN_IDLE)
+			button.eventTypeId = eventType.id
+			local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
+			label:SetPoint("LEFT", 6, 0)
+			label:SetPoint("RIGHT", -6, 0)
+			label:SetJustifyH("LEFT")
+			label:SetText(Addon.EventTypeLabel and Addon:EventTypeLabel(eventType.id) or eventType.id)
+			button.label = label
+			button:SetScript("OnEnter", function(self)
+				W.SetMenuButtonState(self, frame.selectedEventType == self.eventTypeId, true)
+			end)
+			button:SetScript("OnLeave", function(self)
+				W.SetMenuButtonState(self, frame.selectedEventType == self.eventTypeId, false)
+			end)
+			button:SetScript("OnClick", function(self)
+				SelectEventType(self.eventTypeId)
+			end)
+			frame.eventTypeButtons[#frame.eventTypeButtons + 1] = button
+		end
+		local rows = math.ceil(math.max(#types, 1) / 2)
+		typeY = typeY + rows * PROFILE_EVENT_TYPE_ROW_H
+	end
+	typeContent:SetHeight(math.max(typeY, 1))
+	if #frame.eventTypeButtons > 0 then
+		SelectEventType(frame.eventTypeButtons[1].eventTypeId)
+	end
+
+	local eventsListHost = CreateFrame("Frame", nil, eventsPanel)
+	eventsListHost:SetPoint("TOPLEFT", typePickerHost, "BOTTOMLEFT", 0, -8)
+	eventsListHost:SetPoint("BOTTOMRIGHT", eventsPanel, "BOTTOMRIGHT", 0, 0)
+	frame.eventsListHost = eventsListHost
+
+	local eventsListScrollName = "RaidwiseProfileEventListScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
+	local existingEventListScroll = _G[eventsListScrollName]
+	if existingEventListScroll then
+		existingEventListScroll:Hide()
+		existingEventListScroll:SetParent(nil)
+	end
+	local eventsListScroll = CreateFrame("ScrollFrame", eventsListScrollName, eventsListHost, "UIPanelScrollFrameTemplate")
+	eventsListScroll:SetPoint("TOPLEFT", 0, 0)
+	eventsListScroll:SetPoint("BOTTOMRIGHT", -24, 0)
+	frame.eventsListScroll = eventsListScroll
+
+	local eventsListContent = CreateFrame("Frame", nil, eventsListScroll)
+	eventsListContent:SetWidth(tabContentWidth - 28)
+	eventsListScroll:SetScrollChild(eventsListContent)
+	frame.eventsListContent = eventsListContent
+	frame.eventRows = {}
+	frame.eventRemoveButtons = {}
+
+end
+
+local function CreateProfileNotesPanel(frame, tabContent, tabContentWidth)
+	local notesPanel = CreateFrame("Frame", nil, tabContent)
+	notesPanel:SetPoint("TOPLEFT", 0, 0)
+	notesPanel:SetPoint("TOPRIGHT", 0, 0)
+	notesPanel:SetHeight(190)
+	notesPanel:Hide()
+	frame.profilePanels.notes = notesPanel
+
+	local notesHeading = W.CreateFontString(notesPanel, nil, "OVERLAY", "GameFontNormal")
+	notesHeading:SetPoint("TOPLEFT", 0, 0)
+	notesHeading:SetPoint("RIGHT", notesPanel, "RIGHT", 0, 0)
+	notesHeading:SetJustifyH("LEFT")
+	notesHeading:SetText(T("PROFILE_NOTES"))
+	W.SetFontColor(notesHeading, UI.GOLD)
+	frame.notesHeading = notesHeading
+
+	local notesHint = W.CreateFontString(notesPanel, nil, "OVERLAY", "GameFontNormalSmall")
+	notesHint:SetPoint("TOPLEFT", notesHeading, "BOTTOMLEFT", 0, -4)
+	notesHint:SetPoint("RIGHT", notesPanel, "RIGHT", 0, 0)
+	notesHint:SetJustifyH("LEFT")
+	notesHint:SetJustifyV("TOP")
+	notesHint:SetText(T("PROFILE_MEMO_HINT"))
+	W.SetFontColor(notesHint, UI.TEXT_IDLE)
+	frame.notesHint = notesHint
+
+	local notesHost, notesBox = CreateProfileNotesBox(notesPanel, tabContentWidth, 96)
+	notesHost:SetPoint("TOPLEFT", notesHint, "BOTTOMLEFT", 0, -8)
+	frame.notesHost = notesHost
+	frame.notesBox = notesBox
+
+	local notesButtonWidth = math.floor((tabContentWidth - UI.ACTION_BTN_GAP) / 2)
+	local notesSaveBtn = W.CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_SAVE"))
+	notesSaveBtn:SetPoint("TOPLEFT", notesHost, "BOTTOMLEFT", 0, -8)
+	notesSaveBtn:SetScript("OnClick", function()
+		if frame.notesBox then
+			frame.notesBox:ClearFocus()
+			Addon:SaveProfileNotes(frame.notesBox:GetText() or "")
+		end
+	end)
+	frame.notesSaveBtn = notesSaveBtn
+
+	local notesResetBtn = W.CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
+	notesResetBtn:SetPoint("LEFT", notesSaveBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
+	notesResetBtn:SetScript("OnClick", function()
+		Addon:ResetProfileNotes()
+	end)
+	frame.notesResetBtn = notesResetBtn
+
+end
+
+local function CreateProfileHistoryPanel(frame, tabContent, tabContentWidth)
+	local historyPanel = CreateFrame("Frame", nil, tabContent)
+	historyPanel:SetPoint("TOPLEFT", 0, 0)
+	historyPanel:SetPoint("BOTTOMRIGHT", 0, 0)
+	historyPanel:Hide()
+	frame.profilePanels.history = historyPanel
+
+	local historyTogetherText = W.CreateFontString(historyPanel, nil, "OVERLAY", "GameFontHighlight")
+	historyTogetherText:SetPoint("TOPRIGHT", 0, 0)
+	historyTogetherText:SetJustifyH("RIGHT")
+	historyTogetherText:SetJustifyV("TOP")
+	frame.historyTogetherText = historyTogetherText
+
+	local historyMetText = W.CreateFontString(historyPanel, nil, "OVERLAY", "GameFontHighlight")
+	historyMetText:SetPoint("TOPLEFT", 0, 0)
+	historyMetText:SetPoint("RIGHT", historyTogetherText, "LEFT", -8, 0)
+	historyMetText:SetJustifyH("LEFT")
+	historyMetText:SetJustifyV("TOP")
+	frame.historyMetText = historyMetText
+
+	local historyWhenText = W.CreateFontString(historyPanel, nil, "OVERLAY", "GameFontHighlight")
+	historyWhenText:SetPoint("TOPLEFT", historyMetText, "BOTTOMLEFT", 0, -6)
+	historyWhenText:SetPoint("RIGHT", historyPanel, "RIGHT", 0, 0)
+	historyWhenText:SetJustifyH("LEFT")
+	historyWhenText:SetJustifyV("TOP")
+	frame.historyWhenText = historyWhenText
+
+	local historyListHost = CreateFrame("Frame", nil, historyPanel)
+	historyListHost:SetPoint("TOPLEFT", historyWhenText, "BOTTOMLEFT", 0, -8)
+	historyListHost:SetPoint("BOTTOMRIGHT", historyPanel, "BOTTOMRIGHT", 0, 0)
+	frame.historyListHost = historyListHost
+
+	local historyScrollName = "RaidwiseProfileHistoryScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
+	local existingHistoryScroll = _G[historyScrollName]
+	if existingHistoryScroll then
+		existingHistoryScroll:Hide()
+		existingHistoryScroll:SetParent(nil)
+	end
+	local historyScroll = CreateFrame("ScrollFrame", historyScrollName, historyListHost, "UIPanelScrollFrameTemplate")
+	historyScroll:SetPoint("TOPLEFT", 0, 0)
+	historyScroll:SetPoint("BOTTOMRIGHT", -24, 0)
+	frame.historyListScroll = historyScroll
+
+	local historyListContent = CreateFrame("Frame", nil, historyScroll)
+	historyListContent:SetWidth(tabContentWidth - 28)
+	historyScroll:SetScrollChild(historyListContent)
+	frame.historyListContent = historyListContent
+	frame.historyRows = {}
+
+end
+
 local function CreateRaidCharacterWindow()
 	local frame = CreateFrame("Frame", "RaidwiseRaidCharacterFrame", UIParent)
 	-- Named frames are reused; drop old children so prior layouts cannot steal clicks.
@@ -1593,428 +1901,11 @@ local function CreateRaidCharacterWindow()
 	tabContent:SetPoint("BOTTOMRIGHT", 0, 0)
 	frame.tabContent = tabContent
 
-	local opinionPanel = CreateFrame("Frame", nil, tabContent)
-	opinionPanel:SetPoint("TOPLEFT", 0, 0)
-	opinionPanel:SetPoint("BOTTOMRIGHT", 0, 0)
-	frame.profilePanels.opinion = opinionPanel
-
-	-- Solid header above the tag list (radios here; scroll never covers them).
-	local opinionHeader = CreateFrame("Frame", nil, opinionPanel)
-	opinionHeader:SetPoint("TOPLEFT", 0, 0)
-	opinionHeader:SetPoint("TOPRIGHT", 0, 0)
-	opinionHeader:SetHeight(PROFILE_OPINION_HEADER_H)
-	opinionHeader:EnableMouse(true)
-	opinionHeader:SetFrameLevel(opinionPanel:GetFrameLevel() + 40)
-	frame.opinionHeader = opinionHeader
-
-	local summaryLine = W.CreateFontString(opinionHeader, nil, "OVERLAY", "GameFontNormalSmall")
-	summaryLine:SetPoint("TOPLEFT", 0, 0)
-	summaryLine:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
-	summaryLine:SetHeight(16)
-	summaryLine:SetJustifyH("LEFT")
-	summaryLine:SetJustifyV("MIDDLE")
-	frame.ratingSummary = summaryLine
-
-	-- Mutually exclusive radios (AceConfigDialog style="radio" / Details RadioOnClick).
-	local opinionRow = CreateFrame("Frame", nil, opinionHeader)
-	opinionRow:SetPoint("TOPLEFT", summaryLine, "BOTTOMLEFT", 0, -6)
-	opinionRow:SetPoint("TOPRIGHT", summaryLine, "BOTTOMRIGHT", 0, -6)
-	opinionRow:SetHeight(PROFILE_OPINION_ROW_H)
-	frame.opinionRow = opinionRow
-
-	frame.opinionButtons = {}
-	local opinionOrder = { "positive", "neutral", "negative" }
-	local opinionWidth = math.floor((tabContentWidth - UI.ACTION_BTN_GAP * 2) / 3)
-	for index = 1, #opinionOrder do
-		local opinionId = opinionOrder[index]
-		local radio = CreateOpinionRadio(opinionRow, opinionId, opinionWidth)
-		if index == 1 then
-			radio.host:SetPoint("LEFT", opinionRow, "LEFT", 0, 0)
-		else
-			radio.host:SetPoint("LEFT", frame.opinionButtons[index - 1].host, "RIGHT", UI.ACTION_BTN_GAP, 0)
-		end
-		frame.opinionButtons[index] = radio
-	end
-
-	local tagsHeading = W.CreateFontString(opinionHeader, nil, "OVERLAY", "GameFontNormal")
-	tagsHeading:SetPoint("TOPLEFT", opinionRow, "BOTTOMLEFT", 0, -6)
-	tagsHeading:SetPoint("RIGHT", opinionHeader, "RIGHT", 0, 0)
-	tagsHeading:SetJustifyH("LEFT")
-	tagsHeading:SetText(T("RATING_TAGS_TITLE"))
-	W.SetFontColor(tagsHeading, UI.GOLD)
-	frame.tagsHeading = tagsHeading
-
-	frame.profileTabContentWidth = tabContentWidth
-	frame.tagGroups = {}
-
-	-- Tag list starts strictly below the mouse-blocking header.
-	local tagBody = CreateFrame("Frame", nil, opinionPanel)
-	tagBody:SetPoint("TOPLEFT", opinionHeader, "BOTTOMLEFT", 0, -2)
-	tagBody:SetPoint("BOTTOMRIGHT", opinionPanel, "BOTTOMRIGHT", 0, 0)
-	tagBody:SetFrameLevel(opinionPanel:GetFrameLevel() + 1)
-	frame.tagBody = tagBody
-
-	local tagScrollName = "RaidwiseProfileTagScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
-	local existingScroll = _G[tagScrollName]
-	if existingScroll then
-		existingScroll:Hide()
-		existingScroll:EnableMouse(false)
-		existingScroll:SetParent(nil)
-	end
-	local tagScroll = CreateFrame("ScrollFrame", tagScrollName, tagBody, "UIPanelScrollFrameTemplate")
-	tagScroll:SetPoint("TOPLEFT", 0, 0)
-	tagScroll:SetPoint("BOTTOMRIGHT", -24, 0)
-	frame.tagScroll = tagScroll
-
-	local tagScrollBar = _G[tagScrollName .. "ScrollBar"]
-	if tagScrollBar then
-		tagScrollBar:ClearAllPoints()
-		tagScrollBar:SetPoint("TOPLEFT", tagBody, "TOPRIGHT", -20, -16)
-		tagScrollBar:SetPoint("BOTTOMLEFT", tagBody, "BOTTOMRIGHT", -20, 16)
-	end
-
-	local tagContent = CreateFrame("Frame", nil, tagScroll)
-	tagContent:SetWidth(tabContentWidth - 28)
-	tagScroll:SetScrollChild(tagContent)
-	frame.tagContent = tagContent
-
-	local currentY = 0
-	local groups = GetRatingTagGroups()
-	local columnWidth = math.floor((tabContentWidth - PROFILE_TAG_COL_GAP - 28) / 2)
-	for groupIndex = 1, #groups do
-		local group = groups[groupIndex]
-		local label = W.CreateFontString(tagContent, nil, "OVERLAY", "GameFontNormalSmall")
-		label:SetPoint("TOPLEFT", tagContent, "TOPLEFT", 0, -currentY)
-		label:SetPoint("RIGHT", tagContent, "RIGHT", 0, 0)
-		label:SetJustifyH("LEFT")
-		W.SetFontColor(label, UI.TEXT_HOVER)
-		label:SetText(T(group.labelKey))
-
-		local checkboxes = {}
-		local leftColumn = CreateFrame("Frame", nil, tagContent)
-		leftColumn:SetSize(columnWidth, 1)
-		leftColumn:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -4)
-
-		local rightColumn = CreateFrame("Frame", nil, tagContent)
-		rightColumn:SetSize(columnWidth, 1)
-		rightColumn:SetPoint("TOPLEFT", leftColumn, "TOPRIGHT", PROFILE_TAG_COL_GAP, 0)
-
-		for tagIndex = 1, #group.tags do
-			local tag = group.tags[tagIndex]
-			local column = (tagIndex % 2 == 0) and rightColumn or leftColumn
-			local rowIndex = math.floor((tagIndex - 1) / 2)
-			local checkbox = CreateProfileTagCheckbox(column, tag, group, columnWidth)
-			checkbox:SetPoint("TOPLEFT", column, "TOPLEFT", 0, -(rowIndex * PROFILE_TAG_ROW_H))
-			checkboxes[#checkboxes + 1] = checkbox
-		end
-
-		local rows = math.ceil(#group.tags / 2)
-		local columnHeight = rows * PROFILE_TAG_ROW_H
-		leftColumn:SetHeight(columnHeight)
-		rightColumn:SetHeight(columnHeight)
-
-		frame.tagGroups[#frame.tagGroups + 1] = {
-			group = group,
-			label = label,
-			leftColumn = leftColumn,
-			rightColumn = rightColumn,
-			checkboxes = checkboxes,
-		}
-		currentY = currentY + ProfileTagGroupHeight(#group.tags)
-	end
-	tagContent:SetHeight(math.max(currentY, 1))
-
-	-- Facts tab: role / identity checkboxes (draft until Save and Update).
-	local factsPanel = CreateFrame("Frame", nil, tabContent)
-	factsPanel:SetPoint("TOPLEFT", 0, 0)
-	factsPanel:SetPoint("BOTTOMRIGHT", 0, 0)
-	factsPanel:Hide()
-	frame.profilePanels.facts = factsPanel
-
-	local factsHeading = W.CreateFontString(factsPanel, nil, "OVERLAY", "GameFontNormal")
-	factsHeading:SetPoint("TOPLEFT", 0, 0)
-	factsHeading:SetPoint("RIGHT", factsPanel, "RIGHT", 0, 0)
-	factsHeading:SetJustifyH("LEFT")
-	factsHeading:SetText(T("RATING_FACTS_TITLE"))
-	W.SetFontColor(factsHeading, UI.GOLD)
-	frame.factsHeading = factsHeading
-
-	local factsHint = W.CreateFontString(factsPanel, nil, "OVERLAY", "GameFontNormalSmall")
-	factsHint:SetPoint("TOPLEFT", factsHeading, "BOTTOMLEFT", 0, -4)
-	factsHint:SetPoint("RIGHT", factsPanel, "RIGHT", 0, 0)
-	factsHint:SetJustifyH("LEFT")
-	local maxFacts = (Addon.MaxPersonalFacts and Addon:MaxPersonalFacts()) or 4
-	factsHint:SetText(T("RATING_FACTS_HINT", maxFacts))
-	W.SetFontColor(factsHint, UI.TEXT_IDLE)
-	frame.factsHint = factsHint
-
-	frame.factCheckboxes = {}
-	local factCatalog = (Addon.FactCatalog and Addon:FactCatalog()) or {}
-	local factColumnWidth = math.floor((tabContentWidth - PROFILE_TAG_COL_GAP) / 2)
-	local factLeft = CreateFrame("Frame", nil, factsPanel)
-	factLeft:SetSize(factColumnWidth, 1)
-	factLeft:SetPoint("TOPLEFT", factsHint, "BOTTOMLEFT", 0, -8)
-	local factRight = CreateFrame("Frame", nil, factsPanel)
-	factRight:SetSize(factColumnWidth, 1)
-	factRight:SetPoint("TOPLEFT", factLeft, "TOPRIGHT", PROFILE_TAG_COL_GAP, 0)
-	for factIndex = 1, #factCatalog do
-		local fact = factCatalog[factIndex]
-		local column = (factIndex % 2 == 0) and factRight or factLeft
-		local rowIndex = math.floor((factIndex - 1) / 2)
-		local checkbox = CreateProfileFactCheckbox(column, fact, factColumnWidth)
-		checkbox:SetPoint("TOPLEFT", column, "TOPLEFT", 0, -(rowIndex * PROFILE_TAG_ROW_H))
-		frame.factCheckboxes[#frame.factCheckboxes + 1] = checkbox
-	end
-	local factRows = math.ceil(math.max(#factCatalog, 1) / 2)
-	factLeft:SetHeight(factRows * PROFILE_TAG_ROW_H)
-	factRight:SetHeight(factRows * PROFILE_TAG_ROW_H)
-
-	-- Events tab: pick type + draft Add/Remove; commit via Save and Update.
-	local eventsPanel = CreateFrame("Frame", nil, tabContent)
-	eventsPanel:SetPoint("TOPLEFT", 0, 0)
-	eventsPanel:SetPoint("BOTTOMRIGHT", 0, 0)
-	eventsPanel:Hide()
-	frame.profilePanels.events = eventsPanel
-
-	local eventsAddBtn = W.CreatePlainButton(eventsPanel, 110, UI.ACTION_BTN_H, T("PROFILE_EVENTS_ADD"))
-	eventsAddBtn:SetPoint("TOPRIGHT", 0, 0)
-	eventsAddBtn:SetScript("OnClick", function()
-		if frame.selectedEventType then
-			Addon:AddProfileEvent(frame.selectedEventType)
-		end
-	end)
-	frame.eventsAddBtn = eventsAddBtn
-
-	local eventsHeading = W.CreateFontString(eventsPanel, nil, "OVERLAY", "GameFontNormal")
-	eventsHeading:SetPoint("TOPLEFT", 0, 0)
-	eventsHeading:SetPoint("RIGHT", eventsAddBtn, "LEFT", -8, 0)
-	eventsHeading:SetJustifyH("LEFT")
-	eventsHeading:SetText(T("PROFILE_TAB_EVENTS"))
-	W.SetFontColor(eventsHeading, UI.GOLD)
-	frame.eventsHeading = eventsHeading
-
-	local eventsPickLabel = W.CreateFontString(eventsPanel, nil, "OVERLAY", "GameFontNormalSmall")
-	eventsPickLabel:SetPoint("TOPLEFT", eventsHeading, "BOTTOMLEFT", 0, -4)
-	eventsPickLabel:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
-	eventsPickLabel:SetJustifyH("LEFT")
-	eventsPickLabel:SetText(T("PROFILE_EVENTS_PICK_TYPE"))
-	W.SetFontColor(eventsPickLabel, UI.TEXT_IDLE)
-	frame.eventsPickLabel = eventsPickLabel
-
-	local typePickerHost = CreateFrame("Frame", nil, eventsPanel)
-	typePickerHost:SetPoint("TOPLEFT", eventsPickLabel, "BOTTOMLEFT", 0, -6)
-	typePickerHost:SetPoint("RIGHT", eventsPanel, "RIGHT", 0, 0)
-	typePickerHost:SetHeight(PROFILE_EVENT_PICKER_H)
-	frame.eventTypePickerHost = typePickerHost
-
-	local typeScrollName = "RaidwiseProfileEventTypeScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
-	local existingTypeScroll = _G[typeScrollName]
-	if existingTypeScroll then
-		existingTypeScroll:Hide()
-		existingTypeScroll:SetParent(nil)
-	end
-	local typeScroll = CreateFrame("ScrollFrame", typeScrollName, typePickerHost, "UIPanelScrollFrameTemplate")
-	typeScroll:SetPoint("TOPLEFT", 0, 0)
-	typeScroll:SetPoint("BOTTOMRIGHT", -24, 0)
-
-	local typeContent = CreateFrame("Frame", nil, typeScroll)
-	typeContent:SetWidth(tabContentWidth - 28)
-	typeScroll:SetScrollChild(typeContent)
-	frame.eventTypeButtons = {}
-	frame.eventTypeGroupLabels = {}
-	frame.selectedEventType = nil
-	local eventGroups = (Addon.EventTypeGroups and Addon:EventTypeGroups()) or {}
-	local typeBtnWidth = math.floor((tabContentWidth - 28 - PROFILE_TAG_COL_GAP) / 2)
-	local typeY = 0
-	local function SelectEventType(eventTypeId)
-		frame.selectedEventType = eventTypeId
-		for _, other in ipairs(frame.eventTypeButtons) do
-			W.SetMenuButtonState(other, other.eventTypeId == frame.selectedEventType, false)
-		end
-	end
-	for groupIndex = 1, #eventGroups do
-		local group = eventGroups[groupIndex]
-		if groupIndex > 1 then
-			typeY = typeY + PROFILE_TAG_GROUP_GAP
-		end
-		local icon = typeContent:CreateTexture(nil, "ARTWORK")
-		icon:SetSize(PROFILE_EVENT_GROUP_ICON, PROFILE_EVENT_GROUP_ICON)
-		icon:SetPoint("TOPLEFT", typeContent, "TOPLEFT", 0, -typeY)
-		if group.icon then
-			W.SetSpellIconTexture(icon, group.icon)
-		end
-
-		local heading = W.CreateFontString(typeContent, nil, "OVERLAY", "GameFontNormalSmall")
-		heading:SetPoint("LEFT", icon, "RIGHT", 4, 0)
-		heading:SetPoint("RIGHT", typeContent, "RIGHT", 0, 0)
-		heading:SetPoint("TOP", icon, "TOP", 0, 1)
-		heading:SetHeight(PROFILE_TAG_GROUP_HEADING_H)
-		heading:SetJustifyH("LEFT")
-		heading:SetJustifyV("MIDDLE")
-		heading:SetText(T(group.labelKey))
-		W.SetFontColor(heading, UI.GOLD)
-		heading.labelKey = group.labelKey
-		frame.eventTypeGroupLabels[#frame.eventTypeGroupLabels + 1] = heading
-		typeY = typeY + math.max(PROFILE_EVENT_GROUP_ICON, PROFILE_TAG_GROUP_HEADING_H) + 2
-
-		local types = group.events or {}
-		for typeIndex = 1, #types do
-			local eventType = types[typeIndex]
-			local col = (typeIndex % 2 == 0) and 1 or 0
-			local row = math.floor((typeIndex - 1) / 2)
-			local button = CreateFrame("Button", nil, typeContent)
-			button:SetSize(typeBtnWidth, PROFILE_EVENT_TYPE_BTN_H)
-			button:SetPoint(
-				"TOPLEFT",
-				typeContent,
-				"TOPLEFT",
-				col * (typeBtnWidth + PROFILE_TAG_COL_GAP),
-				-(typeY + row * PROFILE_EVENT_TYPE_ROW_H)
-			)
-			W.ApplyPlainPanel(button, UI.BTN_IDLE)
-			button.eventTypeId = eventType.id
-			local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
-			label:SetPoint("LEFT", 6, 0)
-			label:SetPoint("RIGHT", -6, 0)
-			label:SetJustifyH("LEFT")
-			label:SetText(Addon.EventTypeLabel and Addon:EventTypeLabel(eventType.id) or eventType.id)
-			button.label = label
-			button:SetScript("OnEnter", function(self)
-				W.SetMenuButtonState(self, frame.selectedEventType == self.eventTypeId, true)
-			end)
-			button:SetScript("OnLeave", function(self)
-				W.SetMenuButtonState(self, frame.selectedEventType == self.eventTypeId, false)
-			end)
-			button:SetScript("OnClick", function(self)
-				SelectEventType(self.eventTypeId)
-			end)
-			frame.eventTypeButtons[#frame.eventTypeButtons + 1] = button
-		end
-		local rows = math.ceil(math.max(#types, 1) / 2)
-		typeY = typeY + rows * PROFILE_EVENT_TYPE_ROW_H
-	end
-	typeContent:SetHeight(math.max(typeY, 1))
-	if #frame.eventTypeButtons > 0 then
-		SelectEventType(frame.eventTypeButtons[1].eventTypeId)
-	end
-
-	local eventsListHost = CreateFrame("Frame", nil, eventsPanel)
-	eventsListHost:SetPoint("TOPLEFT", typePickerHost, "BOTTOMLEFT", 0, -8)
-	eventsListHost:SetPoint("BOTTOMRIGHT", eventsPanel, "BOTTOMRIGHT", 0, 0)
-	frame.eventsListHost = eventsListHost
-
-	local eventsListScrollName = "RaidwiseProfileEventListScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
-	local existingEventListScroll = _G[eventsListScrollName]
-	if existingEventListScroll then
-		existingEventListScroll:Hide()
-		existingEventListScroll:SetParent(nil)
-	end
-	local eventsListScroll = CreateFrame("ScrollFrame", eventsListScrollName, eventsListHost, "UIPanelScrollFrameTemplate")
-	eventsListScroll:SetPoint("TOPLEFT", 0, 0)
-	eventsListScroll:SetPoint("BOTTOMRIGHT", -24, 0)
-	frame.eventsListScroll = eventsListScroll
-
-	local eventsListContent = CreateFrame("Frame", nil, eventsListScroll)
-	eventsListContent:SetWidth(tabContentWidth - 28)
-	eventsListScroll:SetScrollChild(eventsListContent)
-	frame.eventsListContent = eventsListContent
-	frame.eventRows = {}
-	frame.eventRemoveButtons = {}
-
-	local notesPanel = CreateFrame("Frame", nil, tabContent)
-	notesPanel:SetPoint("TOPLEFT", 0, 0)
-	notesPanel:SetPoint("TOPRIGHT", 0, 0)
-	notesPanel:SetHeight(190)
-	notesPanel:Hide()
-	frame.profilePanels.notes = notesPanel
-
-	local notesHeading = W.CreateFontString(notesPanel, nil, "OVERLAY", "GameFontNormal")
-	notesHeading:SetPoint("TOPLEFT", 0, 0)
-	notesHeading:SetPoint("RIGHT", notesPanel, "RIGHT", 0, 0)
-	notesHeading:SetJustifyH("LEFT")
-	notesHeading:SetText(T("PROFILE_NOTES"))
-	W.SetFontColor(notesHeading, UI.GOLD)
-	frame.notesHeading = notesHeading
-
-	local notesHint = W.CreateFontString(notesPanel, nil, "OVERLAY", "GameFontNormalSmall")
-	notesHint:SetPoint("TOPLEFT", notesHeading, "BOTTOMLEFT", 0, -4)
-	notesHint:SetPoint("RIGHT", notesPanel, "RIGHT", 0, 0)
-	notesHint:SetJustifyH("LEFT")
-	notesHint:SetJustifyV("TOP")
-	notesHint:SetText(T("PROFILE_MEMO_HINT"))
-	W.SetFontColor(notesHint, UI.TEXT_IDLE)
-	frame.notesHint = notesHint
-
-	local notesHost, notesBox = CreateProfileNotesBox(notesPanel, tabContentWidth, 96)
-	notesHost:SetPoint("TOPLEFT", notesHint, "BOTTOMLEFT", 0, -8)
-	frame.notesHost = notesHost
-	frame.notesBox = notesBox
-
-	local notesButtonWidth = math.floor((tabContentWidth - UI.ACTION_BTN_GAP) / 2)
-	local notesSaveBtn = W.CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_SAVE"))
-	notesSaveBtn:SetPoint("TOPLEFT", notesHost, "BOTTOMLEFT", 0, -8)
-	notesSaveBtn:SetScript("OnClick", function()
-		if frame.notesBox then
-			frame.notesBox:ClearFocus()
-			Addon:SaveProfileNotes(frame.notesBox:GetText() or "")
-		end
-	end)
-	frame.notesSaveBtn = notesSaveBtn
-
-	local notesResetBtn = W.CreatePlainButton(notesPanel, notesButtonWidth, UI.ACTION_BTN_H, T("BTN_RESET"))
-	notesResetBtn:SetPoint("LEFT", notesSaveBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
-	notesResetBtn:SetScript("OnClick", function()
-		Addon:ResetProfileNotes()
-	end)
-	frame.notesResetBtn = notesResetBtn
-
-	local historyPanel = CreateFrame("Frame", nil, tabContent)
-	historyPanel:SetPoint("TOPLEFT", 0, 0)
-	historyPanel:SetPoint("BOTTOMRIGHT", 0, 0)
-	historyPanel:Hide()
-	frame.profilePanels.history = historyPanel
-
-	local historyTogetherText = W.CreateFontString(historyPanel, nil, "OVERLAY", "GameFontHighlight")
-	historyTogetherText:SetPoint("TOPRIGHT", 0, 0)
-	historyTogetherText:SetJustifyH("RIGHT")
-	historyTogetherText:SetJustifyV("TOP")
-	frame.historyTogetherText = historyTogetherText
-
-	local historyMetText = W.CreateFontString(historyPanel, nil, "OVERLAY", "GameFontHighlight")
-	historyMetText:SetPoint("TOPLEFT", 0, 0)
-	historyMetText:SetPoint("RIGHT", historyTogetherText, "LEFT", -8, 0)
-	historyMetText:SetJustifyH("LEFT")
-	historyMetText:SetJustifyV("TOP")
-	frame.historyMetText = historyMetText
-
-	local historyWhenText = W.CreateFontString(historyPanel, nil, "OVERLAY", "GameFontHighlight")
-	historyWhenText:SetPoint("TOPLEFT", historyMetText, "BOTTOMLEFT", 0, -6)
-	historyWhenText:SetPoint("RIGHT", historyPanel, "RIGHT", 0, 0)
-	historyWhenText:SetJustifyH("LEFT")
-	historyWhenText:SetJustifyV("TOP")
-	frame.historyWhenText = historyWhenText
-
-	local historyListHost = CreateFrame("Frame", nil, historyPanel)
-	historyListHost:SetPoint("TOPLEFT", historyWhenText, "BOTTOMLEFT", 0, -8)
-	historyListHost:SetPoint("BOTTOMRIGHT", historyPanel, "BOTTOMRIGHT", 0, 0)
-	frame.historyListHost = historyListHost
-
-	local historyScrollName = "RaidwiseProfileHistoryScrollV" .. tostring(PROFILE_LAYOUT_VERSION)
-	local existingHistoryScroll = _G[historyScrollName]
-	if existingHistoryScroll then
-		existingHistoryScroll:Hide()
-		existingHistoryScroll:SetParent(nil)
-	end
-	local historyScroll = CreateFrame("ScrollFrame", historyScrollName, historyListHost, "UIPanelScrollFrameTemplate")
-	historyScroll:SetPoint("TOPLEFT", 0, 0)
-	historyScroll:SetPoint("BOTTOMRIGHT", -24, 0)
-	frame.historyListScroll = historyScroll
-
-	local historyListContent = CreateFrame("Frame", nil, historyScroll)
-	historyListContent:SetWidth(tabContentWidth - 28)
-	historyScroll:SetScrollChild(historyListContent)
-	frame.historyListContent = historyListContent
-	frame.historyRows = {}
+	CreateProfileOpinionPanel(frame, tabContent, tabContentWidth)
+	CreateProfileFactsPanel(frame, tabContent, tabContentWidth)
+	CreateProfileEventsPanel(frame, tabContent, tabContentWidth)
+	CreateProfileNotesPanel(frame, tabContent, tabContentWidth)
+	CreateProfileHistoryPanel(frame, tabContent, tabContentWidth)
 
 	frame.selectedProfileTab = "history"
 

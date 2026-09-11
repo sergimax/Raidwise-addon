@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.20.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--09--09-blue)
+![](https://img.shields.io/badge/current_version-1.22.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--12-blue)
 
 
 ## Install
@@ -150,24 +150,38 @@ Raidwise/
   Raidwise.toc        # addon metadata (Interface 30300)
   Raidwise.lua        # entry point, events, slash commands
   Locale.lua          # English / Russian UI strings and language switch
+  ChatReports.lua     # shared final chat message preparation
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
+  InspectCoordinator.lua # shared inspect ownership, identity, and deadlines
   PartyRoster.lua     # party / raid member stats for roster views
+  RosterRefresh.lua   # coalesced refreshes and shared per-pass roster snapshots
   RaidRoles.lua       # raid role and spec/race buff lookups
   RaidComposition.lua # party/raid buff, debuff, and utility coverage
-  PlayerHistory.lua   # saved party/raid encounter list + personal ratings
+  PlayerHistory.lua   # rating catalogs, normalization, and access
+  PlayerHistoryStore.lua # history persistence and legacy migration
+  RatingPresentation.lua # rating labels, tooltips, and chat marks
+  ProfileDraft.lua    # plain profile draft editing model
   Minimap.lua         # draggable launcher and raid/lockout summary tooltip
   UnitTooltips.lua    # personal/community lines on player unit tooltips
+  UITheme.lua         # theme palettes and bound colors/text
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
+  RosterWidgets.lua   # roster, rating, and gear presentation helpers
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
   GearCheckCatalog.lua # enchant / gem seed catalogs
   GearCheckSets.lua   # T9/T10 set-piece ids (informational)
   GearCheckTrinkets.lua # preferred/allowed trinket pools by role
   GearCheckProfiles.lua # class + 30-spec Gear Check profiles
   GearCheckBis.lua    # generated spec BiS item-ID sets (S grade)
-  GearCheckRules.lua  # findings + verdicts + overall + offline self-test
+  GearCheckRules.lua  # findings, meta activation, and rule revision
+  GearCheckGrades.lua # slot, category, and overall grades
+  GearCheckExplanations.lua # category tooltips and grade explanations
+  GearCheckSelfTest.lua # offline and in-game rule fixtures
+  GearCheckCollector.lua # item/gem reads and normalized snapshots
   GearCheckSavedReports.lua # manual save / load / prune (~14 days)
-  GearCheck.lua       # collector + normalize (schemaVersion 3) + evaluate + dump
+  GearCheck.lua       # scan orchestration and last-report state
+  GearCheckReports.lua # gear report formatting and final messages
+  GearCheckDump.lua    # text dumps and asynchronous raid export jobs
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
   PageRaid.lua        # Raid roster tab

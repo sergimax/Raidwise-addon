@@ -4,9 +4,55 @@ import test from "node:test";
 import { Lua } from "wasmoon-lua5.1";
 
 const modules = [
-  "GearCheckCatalog", "GearCheckSets", "GearCheckTrinkets",
-  "GearCheckProfiles", "GearCheckBis", "GearCheckRules", "GearCheck",
+  "InspectCoordinator", "GearCheckCatalog", "GearCheckSets", "GearCheckTrinkets",
+  "GearCheckProfiles", "GearCheckBis", "GearCheckRules", "GearCheckGrades", "GearCheckExplanations", "GearCheckSelfTest", "GearCheckCollector", "GearCheck", "ChatReports", "GearCheckReports", "GearCheckDump",
 ];
+
+test("final report messages preserve UTF-8, links, and preview/send equality", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync("SlashCmdList = {}");
+    lua.doStringSync(await readFile(new URL("../Raidwise/Raidwise.lua", import.meta.url), "utf8"));
+    lua.doStringSync(`
+      local network = true
+      Raidwise.ResolveReportChatType = function() if network then return "PARTY" end return nil, "self" end
+      local sent, localLines = {}, {}
+      SendChatMessage = function(message, channel) assert(channel == "PARTY"); sent[#sent + 1] = message end
+      DEFAULT_CHAT_FRAME = { AddMessage = function(_, message) localLines[#localLines + 1] = message end }
+      local long = string.rep("Я", 140)
+      local prepared = Raidwise:PrepareReportMessage(long)
+      assert(#prepared <= 255 and prepared:sub(-3) == "...")
+      assert(prepared:sub(1, -4) == string.rep("Я", (#prepared - 3) / 2), "Split UTF-8 character")
+      local link = "|cff71d5ff|Hspell:123|h[Заклинание]|h|r"
+      assert(Raidwise:PrepareReportMessage(link) == link)
+      local fits = Raidwise:PrepareReportMessage("[Rw] " .. link .. string.rep("x", 300))
+      assert(fits:find(link, 1, true) and #fits <= 255)
+      local omitted = Raidwise:PrepareReportMessage(string.rep("x", 240) .. link)
+      assert(not omitted:find("|H", 1, true), "Split hyperlink")
+      local report = {character={name=long}, overall={status="B"}, verdicts={b=8}, findings={}}
+      for _, form in ipairs({"short", "full"}) do
+        Raidwise.GetReportForm = function() return form end
+        for _, mode in ipairs({"summary", "items", "enchants", "gems", "ok"}) do
+          sent = {}
+          local preview = Raidwise:BuildGearCheckChatMessages(report, mode)
+          assert(Raidwise:PrintGearCheckReport(mode, report))
+          assert(#sent == #preview)
+          for index, message in ipairs(preview) do
+            assert(sent[index] == message and #message <= 255)
+            assert(message:sub(1, 10) == "[Rw]-gear ")
+          end
+        end
+      end
+      sent = {}
+      Raidwise:SendReportChat(long)
+      assert(sent[1] == prepared)
+      network = false
+      assert(Raidwise:PrepareReportMessage(long) == long, "Local output was unnecessarily truncated")
+      local preview = Raidwise:BuildGearCheckChatMessages(report, "summary")
+      Raidwise:PrintGearCheckReport("summary", report)
+      for index, message in ipairs(preview) do assert(localLines[index] == message) end
+    `);
+  });
+});
 
 async function withAddon(run: (lua: Lua) => Promise<void>): Promise<void> {
   const lua = await Lua.create();
@@ -36,6 +82,34 @@ test("gear-check rule self-tests", async (context) => {
       return total
     `);
     context.diagnostic(`${count} Lua rule checks passed`);
+  });
+});
+
+test("collection orchestration and offline evaluation have explicit boundaries", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      local calls = 0
+      local snapshot = {character={classFile="WARRIOR",specTab=3,specKnown=true},equipment={}}
+      local evaluate = Raidwise.EvaluateGearCheck
+      Raidwise.EvaluateGearCheck = function() error("Collection invoked evaluation") end
+      UnitIsUnit = function(left,right) return left == right end
+      Raidwise.CollectGearCheckObservation = function(_,unit,ready)
+        calls = calls + 1
+        assert(unit == "player" and ready == true)
+        return snapshot
+      end
+      assert(Raidwise:CollectGearCheck("player") == snapshot and calls == 1)
+      assert(Raidwise:GetLastGearCheckReport() == snapshot)
+      Raidwise.EvaluateGearCheck = evaluate
+      local function forbidden() error("Evaluation read live WoW data") end
+      GetItemInfo=forbidden; GetItemStats=forbidden; GetItemGem=forbidden
+      UnitGUID=forbidden; UnitName=forbidden; UnitIsUnit=forbidden; GetTalentTabInfo=forbidden
+      Raidwise:EvaluateGearCheck(snapshot)
+      assert(snapshot.findings and snapshot.verdicts and snapshot.overall)
+      assert(type(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"gear",20)) == "table")
+      local results, passed, total = Raidwise:GearCheckRulesSelfTest()
+      assert(passed == total and #results == total)
+    `);
   });
 });
 
@@ -90,7 +164,7 @@ test("header chat radios preserve choices, colors, and exclusive selection", asy
       end
       CreateFrame = widget
       Raidwise.Widgets = {CreateFontString=widget,SetFontColor=function() end,T=function(key) return key end}
-      Raidwise.UITheme = {TEXT_BODY={1,1,1}}
+      Raidwise.UITheme = {TEXT_BODY={1,1,1}, ACTION_BTN_H=28}
       Raidwise.db = {reportChannel="auto"}
       Raidwise.GetReportChannel = function(self) return self.db.reportChannel end
       Raidwise.SetReportChannel = function(self,id)
@@ -107,7 +181,7 @@ test("header chat radios preserve choices, colors, and exclusive selection", asy
         error(wanted)
       end
     `);
-    for (const module of ["ExporterWindow", "PageSettings"]) {
+    for (const module of ["PageRaid", "PageComposition", "PageGearCheckTarget", "ExporterWindow", "PageSettings"]) {
       lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
     }
     lua.doStringSync(`

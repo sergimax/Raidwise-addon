@@ -55,13 +55,7 @@ local function SetReportButtonTooltip(button, page, info)
 		GameTooltip:AddLine(W.T("RAID_CHAT_PREVIEW"), 0.6, 0.6, 0.6)
 		local report = page.lastReport or (Addon.GetLastGearCheckReport and Addon:GetLastGearCheckReport())
 		if report then
-			local lines = Addon:FormatGearCheckChatReport(report, self.reportMode)
-			local chatType = Addon.ResolveReportChatType and Addon:ResolveReportChatType()
-			for index = 1, #lines do
-				local text = "[Rw]-gear " .. lines[index]
-				if chatType and string.len(text) > 255 then
-					text = string.sub(text, 1, 252) .. "..."
-				end
+			for _, text in ipairs(Addon:BuildGearCheckChatMessages(report, self.reportMode)) do
 				GameTooltip:AddLine(text, 1, 1, 1, true)
 			end
 		else
@@ -1411,6 +1405,7 @@ function Addon:OpenGearCheckTarget(autoScan)
 end
 
 Addon.Pages.GearCheckTarget = {
+	capabilities = { reportChat = true, reportForm = true },
 	id = "geartarget",
 	LAYOUT_VERSION = LAYOUT_VERSION,
 	Create = CreateGearCheckTargetPage,

@@ -7,6 +7,71 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 
 ---
 
+## Current module boundaries and compatibility (refactoring phase 9)
+
+The earlier numbered phases below describe the original feature implementation.
+The refactoring phases are documented in `tests/README.md`; this section describes
+the current boundaries after those extractions.
+
+| Owner | Responsibility and entry points |
+|-------|---------------------------------|
+| `InspectCoordinator.lua` | Exclusive inspect API/event ownership, request identity and deadlines; `StartInspectRequest`, `RetryInspectRequest`, completion/cancellation |
+| `PartyRoster.lua`, `RosterRefresh.lua` | Member collection and work lists; `BuildRosterSnapshot`, `ScheduleRosterRefresh`; snapshots live for one refresh pass |
+| `GearCheckCollector.lua` | Live item/gem reads and normalization; `CollectGearCheckObservation(unit, inspectReady)` returns a snapshot |
+| `GearCheck.lua` | Scan orchestration and last-report state; `CollectGearCheck`, target/raid scan APIs, `CancelGearCheckScan` |
+| `GearCheckRules.lua` | Findings, meta activation, set counts; `EvaluateGearCheck` calls grading afterward |
+| `GearCheckGrades.lua` | Slot/category/overall aggregation; shares internal eligibility policy with explanations |
+| `GearCheckExplanations.lua` | Tooltip lines and B-grade explanations; no live collection |
+| `GearCheckReports.lua`, `ChatReports.lua` | Report wording, final message preparation, and preview/send consistency |
+| `GearCheckDump.lua` | Text exports and cancellable asynchronous raid dump jobs |
+| `GearCheckSavedReports.lua` | Manual snapshot storage, revision metadata, listing/deletion, 14-day retention |
+| `GearCheckSelfTest.lua` | Shipped rule fixtures, retaining `/rw gearcheck test` |
+| `PlayerHistory.lua`, `PlayerHistoryStore.lua` | Rating catalogs/normalization versus history storage, migration, events, and notes |
+| `ProfileDraft.lua`, `RatingPresentation.lua` | Plain draft edits versus display labels, tooltips, and chat marks |
+| `UITheme.lua`, `UIWidgets.lua`, `RosterWidgets.lua` | Theme bindings, generic controls, and domain-specific rendering respectively |
+| `Page*.lua`, `CharacterProfile.lua`, `ExporterWindow.lua` | Render views, invoke services, declare header report capabilities, and assemble panels |
+
+The TOC is the authoritative load order. Load catalogs before rules, rules before
+grades/explanations, theme before generic/domain widgets, and services before page
+creation. Keep internal state local or on the single `Raidwise` namespace.
+`GearCheckPolicy` is internal shared eligibility logic, not a saved-data format.
+
+### Independent revisions
+
+| Revision | Current baseline / source | Change when |
+|----------|---------------------------|-------------|
+| Addon semver | `1.22.0`; TOC and `Addon.version` | A release is explicitly requested |
+| Report schema | `3`; `GEAR_CHECK_SCHEMA_VERSION` in collector | The normalized report contract changes; update `types/GearCheck.ts` and compatibility handling |
+| Evaluation rules | `wotlk-3.3.5a-r1`; `GEAR_CHECK_RULESET_VERSION` in rules | Finding, eligibility, aggregation, or unknown/incomplete-data policy changes; increment `rN` |
+| Catalog data | `catalog-2026-09-10-gems3`; `GEAR_CHECK_DATA_VERSION` | Gem/enchant data, profiles, BiS/trinket pools, or set data change; assign a new catalog revision |
+| UI layout | Per-shell/page/profile constants | Geometry or frame structure changes under AGENTS.md |
+
+Mechanical refactors and UI/string-only edits do not change rule revisions.
+Collector changes that only correct observations do not change grading policy;
+if normalized field meanings change, review the schema too. A change affecting
+both rules and catalog data must update both revisions. `r1` establishes the
+independent baseline; it does not assert equivalence with every legacy release.
+
+### Saved reports
+
+Keep `RaidwiseDB.gearCheckSaved`, entry IDs, existing public methods, and slash
+commands stable. The envelope stores `rulesetVersion` and `dataVersion`; the
+embedded report stores `schemaVersion`. Saving currently stamps the installed
+rules/catalog revisions: this is save-time metadata, not proof that an externally
+provided or older report was freshly collected/evaluated. Do not use it alone to
+decide whether a snapshot is safe to re-grade.
+
+Legacy `wotlk-3.3.5a-<addon version>` strings remain opaque historical values.
+Loading/listing does not rewrite them to `r1`, discard them for a revision mismatch,
+or trigger a new migration. Missing installed revision constants yield `unknown`,
+never a guessed value based on addon semver. Existing retention still applies.
+
+For incompatible future schemas, add an explicit tested migration or a clear
+unsupported/rescan path before consuming those fields; do not silently relabel
+old snapshots. This phase does not implement a new schema migration or change
+the existing lazy grade-refresh behavior. A fresh scan is the reliable way to
+obtain observations evaluated under current data and rules.
+
 ## Locked product decisions
 
 | Topic | Decision |
@@ -504,12 +569,12 @@ Legacy name: `S_DRUID_BALANCE` is also used for all mage/warlock specs (rename t
 
 | File | Role |
 |------|------|
-| `Raidwise/GearCheck.lua` | Collector, normalize (`schemaVersion` 3), evaluate hook, dump |
+| `Raidwise/GearCheck.lua` | Scan orchestration and last-report state; see the current module boundary table above |
 | `Raidwise/GearCheckCatalog.lua` | Enchant / gem seed catalogs |
 | `Raidwise/GearCheckSets.lua` | T9/T10 item-id → set key (informational) |
 | `Raidwise/GearCheckBis.lua` | Generated spec BiS item-ID sets (S grade); `scripts/generate-gear-check-bis.js` |
 | `Raidwise/GearCheckProfiles.lua` | Class + 30-spec rule profiles |
-| `Raidwise/GearCheckRules.lua` | Findings engine + offline self-test |
+| `Raidwise/GearCheckRules.lua` | Findings engine and independent rule revision; self-tests live in `GearCheckSelfTest.lua` |
 | `Raidwise/GearCheckSavedReports.lua` | Manual save / load / prune (~14 days) |
 | `types/GearCheck.ts` | Frozen TypeScript shape (report + findings) |
 | `Raidwise/PageGearCheckTarget.lua` | Target/self UI (scan, save, saved list) |

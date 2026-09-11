@@ -120,7 +120,7 @@ local function AddChatPreview(message)
 	end
 	GameTooltip:AddLine(" ")
 	GameTooltip:AddLine(W.T("RAID_CHAT_PREVIEW"), 0.6, 0.6, 0.6)
-	GameTooltip:AddLine(message, 1, 1, 1, true)
+	GameTooltip:AddLine(Addon:PrepareReportMessage(message), 1, 1, 1, true)
 end
 
 local function LayoutCompositionScrollBars(page)
@@ -387,7 +387,7 @@ local function CreateCompositionPage(parent)
 end
 
 -- REFACTOR candidate: masonry column packing + summary band + effect row pooling (~280 lines).
-function Addon:RefreshCompositionView(refreshGearScore)
+function Addon:RefreshCompositionView(refreshGearScore, snapshot)
 	local frame = self.mainFrame
 	local page = frame and frame.pages and frame.pages.composition
 	if not page then
@@ -410,7 +410,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 		page.hint:SetText(W.T("COMP_HINT"))
 	end
 
-	local analysis = self:AnalyzeRaidComposition(self:CompositionMembers(refreshGearScore))
+	local analysis = self:AnalyzeRaidComposition(self:CompositionMembers(refreshGearScore, snapshot))
 	local content = page.tableContent
 	local viewW = page.scroll:GetWidth() or W.ContentInnerWidth()
 	if viewW < 100 then
@@ -696,6 +696,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 end
 
 Addon.Pages.Composition = {
+	capabilities = { reportChat = true },
 	id = "composition",
 	LAYOUT_VERSION = LAYOUT_VERSION,
 	Create = CreateCompositionPage,

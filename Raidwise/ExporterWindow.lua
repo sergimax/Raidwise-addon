@@ -205,8 +205,10 @@ local function UpdateShellHeader(frame, tabId)
 	Addon:RefreshHeaderReportChannels()
 	Addon:RefreshHeaderReportForm()
 	local pageInfo = PageInfoById(tabId)
-	local usesReportChat = tabId == "raid" or tabId == "composition" or tabId == "geartarget"
-	local usesReportForm = tabId == "geartarget"
+	local registration = pageInfo and Addon.Pages and Addon.Pages[pageInfo.key]
+	local capabilities = registration and registration.capabilities or {}
+	local usesReportChat = capabilities.reportChat == true
+	local usesReportForm = capabilities.reportForm == true
 	if frame.reportChannelHost then
 		if usesReportChat then frame.reportChannelHost:Show() else frame.reportChannelHost:Hide() end
 	end

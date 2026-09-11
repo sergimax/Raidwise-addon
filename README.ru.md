@@ -4,8 +4,8 @@
 
 Аддон для подготовки к рейду в **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): составы группы и рейда, анализ состава, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа в JSON.
 
-![](https://img.shields.io/badge/current_version-1.20.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--09--09-blue)
+![](https://img.shields.io/badge/current_version-1.22.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--12-blue)
 
 
 ## Установка
@@ -151,24 +151,38 @@ Raidwise/
   Raidwise.toc        # метаданные аддона (Interface 30300)
   Raidwise.lua        # точка входа, события, слэш-команды
   Locale.lua          # строки интерфейса EN/RU и переключение языка
+  ChatReports.lua     # shared final chat message preparation
   CharacterExport.lua # JSON-экспорт персонажа (экипировка, сумки, КД)
   CharacterLockouts.lua # снимки КД аккаунта для таблицы кулдаунов
+  InspectCoordinator.lua # shared inspect ownership, identity, and deadlines
   PartyRoster.lua     # статы участников группы / рейда
+  RosterRefresh.lua   # coalesced refreshes and shared per-pass roster snapshots
   RaidRoles.lua       # роли и рейд-баффы по спеку / расе
   RaidComposition.lua # покрытие баффов, дебаффов и утилиты в группе / рейде
-  PlayerHistory.lua   # список встреч + личные рейтинги
+  PlayerHistory.lua   # каталоги рейтингов, нормализация и чтение
+  PlayerHistoryStore.lua # history persistence and legacy migration
+  RatingPresentation.lua # rating labels, tooltips, and chat marks
+  ProfileDraft.lua    # plain profile draft editing model
   Minimap.lua         # кнопка миникарты и подсказка с готовностью рейда и КД
   UnitTooltips.lua    # строки личного/общественного рейтинга в подсказках
+  UITheme.lua         # theme palettes and bound colors/text
   UIWidgets.lua       # общие панели, кнопки, иконки, бейджи версии вёрстки
+  RosterWidgets.lua   # roster, rating, and gear presentation helpers
   CharacterProfile.lua # профиль персонажа (мнение, теги, заметки, история)
   GearCheckCatalog.lua # каталоги чар / камней
   GearCheckSets.lua   # id кусков T9/T10 (информационно)
   GearCheckTrinkets.lua # пулы тринкетов по роли
   GearCheckProfiles.lua # профили классов + 30 спеков
   GearCheckBis.lua    # сгенерированные BiS item ID по спеку (оценка S)
-  GearCheckRules.lua  # находки + вердикты + итог + офлайн self-test
+  GearCheckRules.lua  # находки, активация мета-камней и ревизия правил
+  GearCheckGrades.lua # slot, category, and overall grades
+  GearCheckExplanations.lua # category tooltips and grade explanations
+  GearCheckSelfTest.lua # offline and in-game rule fixtures
+  GearCheckCollector.lua # item/gem reads and normalized snapshots
   GearCheckSavedReports.lua # ручное сохранение / загрузка / очистка (~14 дней)
-  GearCheck.lua       # сбор и нормализация Gear Check (schemaVersion 3)
+  GearCheck.lua       # управление сканированием и последним отчётом
+  GearCheckReports.lua # gear report formatting and final messages
+  GearCheckDump.lua    # text dumps and asynchronous raid export jobs
   PageCooldowns.lua   # вкладка Character cooldowns
   PageExport.lua      # вкладка Export gear and CDs
   PageRaid.lua        # вкладка Raid roster
