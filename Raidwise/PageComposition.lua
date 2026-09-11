@@ -54,9 +54,8 @@ local function SendCompositionChat(message)
 	Addon:Print(message)
 end
 
-local function ReportMissingClassesToChat()
+local function BuildMissingClassesMessage()
 	if not Addon.AnalyzeRaidComposition or not Addon.CompositionMembers then
-		Addon:Print(W.T("COMP_FAIL"))
 		return
 	end
 	local analysis = Addon:AnalyzeRaidComposition(Addon:CompositionMembers(false))
@@ -75,29 +74,53 @@ local function ReportMissingClassesToChat()
 	else
 		message = W.T("COMP_CHAT_MISSING", table.concat(missing, ", "))
 	end
-	SendCompositionChat(message)
+	return message
 end
 
-local function ReportEffectRowToChat(row)
+local function ReportMissingClassesToChat()
+	local message = BuildMissingClassesMessage()
+	if message then
+		SendCompositionChat(message)
+	else
+		Addon:Print(W.T("COMP_FAIL"))
+	end
+end
+
+local function BuildEffectRowMessage(row)
 	local effectName = row.tooltipTitle
 	if not effectName or effectName == "" then
 		return
 	end
-	local detail
-	if row.tooltipSources and #row.tooltipSources > 0 then
-		detail = table.concat(row.tooltipSources, "; ")
-	elseif row.chatSpells and #row.chatSpells > 0 then
-		detail = table.concat(row.chatSpells, ", ")
-	else
-		detail = effectName
+	local sources = row.chatSources or row.tooltipSources or row.chatSpells or { effectName }
+	local template = (row.chatCount or 0) == 0 and "COMP_CHAT_EFFECT_NEED" or "COMP_CHAT_EFFECT_HAVE"
+	-- Link markup counts towards the 255-byte chat limit. Drop whole sources,
+	-- never slice a spell link or emit a burst of continuation messages.
+	for count = #sources, 1, -1 do
+		local detail = table.concat(sources, "; ", 1, count)
+		if count < #sources then
+			detail = detail .. " (+" .. tostring(#sources - count) .. ")"
+		end
+		local message = W.T(template, effectName, detail)
+		if #message <= 255 then return message end
 	end
-	local message
-	if (row.chatCount or 0) == 0 then
-		message = W.T("COMP_CHAT_EFFECT_NEED", effectName, detail)
-	else
-		message = W.T("COMP_CHAT_EFFECT_HAVE", effectName, detail)
+	-- An unusually long source cannot fit: retain the effect with no broken link.
+	return W.T(template, effectName, W.T("COMP_CAN_BRING"))
+end
+
+local function ReportEffectRowToChat(row)
+	local message = BuildEffectRowMessage(row)
+	if message then
+		SendCompositionChat(message)
 	end
-	SendCompositionChat(message)
+end
+
+local function AddChatPreview(message)
+	if not message then
+		return
+	end
+	GameTooltip:AddLine(" ")
+	GameTooltip:AddLine(W.T("RAID_CHAT_PREVIEW"), 0.6, 0.6, 0.6)
+	GameTooltip:AddLine(message, 1, 1, 1, true)
 end
 
 local function LayoutCompositionScrollBars(page)
@@ -187,6 +210,7 @@ local function CreateCompositionRow(parent)
 			end
 		end
 		GameTooltip:AddLine(W.T("COMP_SHIFT_CHAT"), 0.6, 0.6, 0.6)
+		AddChatPreview(BuildEffectRowMessage(self))
 		GameTooltip:Show()
 	end)
 	row:SetScript("OnLeave", function()
@@ -293,6 +317,13 @@ local function CreateCompositionPage(parent)
 	local reportBtn = W.CreatePlainButton(page, 110, UI.CD_TOOLBAR_H, W.T("BTN_COMP_REPORT"))
 	reportBtn:SetPoint("TOPRIGHT", refreshBtn, "TOPLEFT", -4, 0)
 	W.SetPlainButtonTooltip(reportBtn, "BTN_COMP_REPORT_TIP")
+	reportBtn:SetScript("OnEnter", function(self)
+		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		GameTooltip:AddLine(W.T(self.tooltipKey), nil, nil, nil, true)
+		AddChatPreview(BuildMissingClassesMessage())
+		GameTooltip:Show()
+	end)
 	reportBtn:SetScript("OnClick", function()
 		ReportMissingClassesToChat()
 	end)
@@ -559,6 +590,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 				icon = SpellTexture(effect.spellId),
 				providers = effect.providers,
 				sources = effect.sourceLabels,
+				chatSources = effect.chatSources,
 				spells = effect.sourceSpells,
 			}
 		end
@@ -635,6 +667,7 @@ function Addon:RefreshCompositionView(refreshGearScore)
 			row.tooltipTitle = item.name
 			row.chatCount = item.count or 0
 			row.chatSpells = item.spells
+			row.chatSources = item.chatSources
 			if (item.count or 0) > 0 then
 				row.tooltipProviders = W.T("COMP_PROVIDERS", JoinNames(item.providers))
 			else

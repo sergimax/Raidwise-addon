@@ -15,7 +15,7 @@ Update this file when a phase starts or finishes. Prefer small, testable slices.
 | Specs | Full 30 WotLK specs; UI notes that rules are **being maintained** |
 | Unknown spec | Class-only rules **and** a “spec unknown” banner |
 | Self-check | Yes — use player when there is no friendly player target |
-| Chat reports | Settings **Report chat channel** (default Auto = raid in a raid, party in a party; Self = local chat) |
+| Chat reports | Header **Report chat channel** (default Auto = raid in a raid, party in a party; Self = local chat) |
 | Verdicts | **S / A / B / C / D** (S = item ID on published BiS lists; A = highly appropriate, not a unique BiS pick) |
 | Profile ranks | **preferred / acceptable / unwanted / forbidden** (renamed from *discouraged* → *unwanted*) |
 | Overall status | Worst wins (S < A < B < C < D); C/D summaries note that items have those statuses |
@@ -350,7 +350,7 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 
 ### Checklist
 
-- [x] Chat reports honor Settings report channel (`DEFAULT_CHAT_FRAME` when Self or channel unavailable; `[GearCheck]` prefix)
+- [x] Chat reports honor header report channel (`DEFAULT_CHAT_FRAME` when Self or channel unavailable; `[Rw]-gear` prefix)
 - [x] Modes: summary / items / enchants / gems / **ok**
 - [x] UI buttons: Report summary / items / enchants / gems / **Report OK**
 - [x] Slash: `/rw gearcheck summary|items|enchants|gems|ok` (alias `report` → summary)
@@ -360,10 +360,10 @@ Chat print buttons / `/rw gearcheck summary|items|…` (Phase 7). Catalog false-
 
 ### How to test
 
-1. Scan someone, then press **Report summary** — `[GearCheck] Name — STATUS` goes to the Settings report channel (Auto = raid/party).
+1. Scan someone, then press **Report summary** — `[Rw]-gear Name — STATUS` goes to the header report channel (Auto = raid/party).
 2. **Report items / enchants / gems / OK** — category lines only; empty category says so.
 3. `/rw gearcheck summary` (and items/enchants/gems/ok) without prior scan — scans then prints.
-4. Set **Self (your chat)** in Settings and confirm reports stay in the local chat frame.
+4. Set **Slf (Self)** in the header and confirm reports stay in the local chat frame.
 
 ### Out of scope this phase
 
@@ -520,3 +520,44 @@ Legacy name: `S_DRUID_BALANCE` is also used for all mage/warlock specs (rename t
 | `docs/Gear-Check-Surface-From-BiS.md` | Armor / weapon / trinket surface rules distilled from example BiS lists |
 
 Scans are **not** auto-persisted; user must press **Save report** (spec §25).
+
+### Report 1 corrections (2026-09-10)
+
+- Meta summaries show OK only for a confirmed active meta. Unresolved inspect data shows not checkable; confirmed missing metas retain their issue count.
+- Precision glove enchant (3234, +20 hit rating) is recognized as a valid Northrend enchant for physical DPS.
+- Legacy socket enchants 2711 and 2752 resolve to Sovereign Shadow Draenite (23111, +3 strength/+4 stamina) and Inscribed Flame Spessarite (23098, +3 strength/+3 crit). Both produce lower-level gem findings, including when inspect cannot resolve their gem links.
+- Sphere of Red Dragon's Blood (37166) and Darkmoon Card: Death (42990) are allowed starter physical DPS trinkets (B, not preferred A).
+- The original report remains a captured snapshot; rescan the target to obtain updated findings.
+
+Summary chat reports and their tooltip previews list every item grade in order (`S: 0 A: 0 B: 8 C: 3 D: 1`), including zero counts, in both Short and Full forms.
+
+Raid roster personal report buttons and previews prefix every line with `[Rw]-raid NAME Gear: ` or `[Rw]-raid NAME Enchants/Gems: `. The latter includes enchants, gems, and meta findings. Continuation lines repeat the player and category within the chat length limit.
+
+Target gem reports (Short and Full) group findings by warning theme, list each affected slot once per theme, and omit gem IDs. Tooltip previews use the same grouping. Detailed findings and raw dumps retain gem identities.
+
+### Chat template constraints
+
+- Prefer one compact chat message per report action. Group warning themes, deduplicate slots, and omit diagnostic IDs from player-facing summaries.
+- Budget at most 255 UTF-8 bytes for the complete outgoing message, including the Raidwise prefix, player name, category, separators, and any other added text. Cyrillic characters consume multiple bytes. Never split a UTF-8 character when shortening a message.
+- Do not treat immediate multi-message bursts as safe. Flood thresholds depend on realm configuration; there is no universal allowed burst count.
+- Current limitation: split reports are still sent immediately by the existing sender. These template constraints do not implement pacing or guarantee protection from server spam filters.
+- References: historical 3.3.x ChatThrottleLib enforces the 255-byte limit (https://repos.curseforge.com/wow/guilder/file/c25618699222/Libs/ChatThrottleLib/ChatThrottleLib.lua); AzerothCore exposes ChatFlood.MessageCount and ChatFlood.MessageDelay (https://github.com/azerothcore/azerothcore-wotlk/blob/master/src/server/apps/worldserver/worldserver.conf.dist).
+
+Chat prefixes use `[Rw]` (including `[Rw]-gear` and `[Rw]-raid`). The colored Personal opinion chat mark uses `<Rw>` to distinguish it from report prefixes.
+
+### Northrend meta-gem catalog corrections
+
+- Relentless Earthsiege Diamond (41398) requires one red, one yellow, and one blue gem. Its requirement was already correct; the report's unknown activation was caused by unresolved socket enchant 3750. This now resolves to Enchanted Tear (42702), a +6 all-stat prismatic gem that counts toward all three colors. It remains below maximum gem strength.
+- Audited all 21 Earthsiege/Skyflare meta requirements and static stats; corrected Austere, Bracing, Destructive, Eternal, Forlorn, and Invigorating requirements, plus Powerful's three-blue requirement. Added all eight lower-strength Starflare/Earthshatter vendor metas with their own requirements.
+- META_NOT_CHECKABLE wording now covers unavailable gem colors as well as unknown catalog requirements. Missing inspect data is never treated as proof that a meta is active.
+- Reference data: [WoWSims WotLK meta conditions](https://github.com/wowsims/wotlk/blob/master/ui/core/proto_utils/gems.ts), [gem stats](https://github.com/wowsims/wotlk/blob/master/assets/database/db.json), and [Outfitter socket enchant mapping](https://github.com/cdmichaelb/Outfitter/blob/master/Outfitter.lua). Catalog revision: catalog-2026-09-10-meta2. Rescan to replace the captured report snapshot.
+
+### WoWSims gem comparison (2026-09-10)
+
+Compared the existing catalog with the [WoWSims WotLK gem database](https://github.com/wowsims/wotlk/blob/master/assets/database/db.json), using its [stat/color schema](https://github.com/wowsims/wotlk/blob/master/proto/common.proto). This is an incremental Northrend catalog update, not a replacement or runtime dependency.
+
+- Added 72 Perfect uncommon cuts, Enchanted Pearl (42701), and Kharmaa's Grace (44066). Perfect cuts and Enchanted Pearl remain below ICC epic strength; Kharmaa's Grace retains its max-strength resilience stat and existing PvE warning behavior.
+- Corrected Subtle Dragon's Eye (42151) from yellow to red. All existing overlapping gem stats matched the reference.
+- Preserve existing meta requirements, profession flags, grading exceptions, legacy gems, and explicit socket-enchant mappings. Older-expansion gems absent from Raidwise were outside this Northrend update.
+- WoWSims stores spell/melee hit, crit, haste, and melee/ranged attack power separately. These are deduplicated into Raidwise's single corresponding in-game stat, never added together. Enchanted Pearl is an all-stat prismatic gem and counts for each meta color.
+- Catalog revision: catalog-2026-09-10-gems3. New gem recognition still needs a resolved gem item ID unless an explicit socket-enchant mapping exists.

@@ -5,9 +5,9 @@
 local Addon = Raidwise
 
 local CHAT_OPINION_MARKS = {
-	positive = { prefix = "<Rw>", color = "|cff00ff00" },
-	neutral = { prefix = "<Rw>", color = "|cffffff00" },
-	negative = { prefix = "<Rw>", color = "|cffff0000" },
+	positive = { prefix = "Rw", color = "|cff64e6c2" },
+	neutral = { prefix = "Rw", color = "|cffc4b5fd" },
+	negative = { prefix = "Rw", color = "|cffff8f9c" },
 }
 
 local function ChatRealmKey(realm)
@@ -53,7 +53,7 @@ local function PersonalOpinionChatFilter(frame, event, message, sender, ...)
 	if not mark then
 		return
 	end
-	return false, mark.color .. mark.prefix .. "|r " .. message, sender, ...
+	return false, "|cffffffff<" .. mark.color .. mark.prefix .. "|cffffffff>|r " .. message, sender, ...
 end
 
 for _, event in ipairs({

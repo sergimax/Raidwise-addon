@@ -167,3 +167,151 @@ for _, itemId in ipairs({54572, 54588}) do
         end
     end
 end
+
+-- Report 1: legacy socket enchant IDs resolve even when GetItemGem is unavailable.
+reads = {}
+local legacyLink = "item:47184:0:2711:2752:0:0:0:0:80"
+local legacyGems = collect(legacyLink, parse(legacyLink))
+assert(legacyGems[1].itemId == 23111 and legacyGems[2].itemId == 23098)
+local sovereign, inscribed = normalize(legacyGems[1]), normalize(legacyGems[2])
+assert(sovereign.state == "resolved" and sovereign.color == "purple")
+assert(sovereign.stats.strength == 3 and sovereign.stats.stamina == 4)
+assert(inscribed.state == "resolved" and inscribed.color == "orange")
+assert(inscribed.stats.strength == 3 and inscribed.stats.critRating == 3)
+local ret = Raidwise:GetGearCheckProfile("PALADIN", 3, true)
+findings = {}
+evaluateGems(findings, ret, {key="legs",item={sockets={total=2},gems={sovereign,inscribed}}})
+assert(has(findings,"GEM_LOWER_LEVEL") and not has(findings,"GEM_NOT_CHECKABLE"))
+local lowerCount = 0
+for _, finding in ipairs(findings) do
+    if finding.code == "GEM_LOWER_LEVEL" then lowerCount = lowerCount + 1 end
+end
+assert(lowerCount == 2)
+local precision = private("NormalizeEnchant")(3234)
+findings = {}
+private("EvaluateEnchant")(findings, ret, {key="hands",item={enchant=precision}})
+assert(precision.known and #findings == 0)
+for _, entry in ipairs({{37166,{hitRating=55}}, {42990,{critRating=85}}}) do
+    local starterReport = {character={classFile="PALADIN",specTab=3,specKnown=true},equipment={
+        {key="trinket1",policy="CHECKED",item={itemId=entry[1],infoKnown=true,category="armor",
+        armorType="misc",equipLoc="INVTYPE_TRINKET",stats=entry[2],sockets={total=0},gems={},enchant={present=false}}}}}
+    local starterFindings = Raidwise:EvaluateGearCheck(starterReport)
+    assert(not has(starterFindings,"TRINKET_NOT_PREFERRED"))
+    assert(starterReport.equipment[1].verdict == "B")
+end
+assert(Raidwise:GetGearCheckMetaSummary({findings={{code="META_NOT_CHECKABLE"}}}) == "Unknown")
+assert(Raidwise:GetGearCheckMetaSummary({overall={issues={meta=1}}}) == "1")
+assert(Raidwise:GetGearCheckMetaSummary({meta={present=true,active=true}}) == "OK")
+assert(Raidwise:GetGearCheckMetaSummary({meta={present=true}}) == "Unknown")
+assert(Raidwise:GetGearCheckMetaSummary({}) == "None")
+head.item = {sockets={total=1,meta=1,empty=1,emptyConfirmed=true},gems={}}
+findings = {}
+evaluateGems(findings, ret, head)
+assert(has(findings,"META_MISSING") and not has(findings,"META_NOT_CHECKABLE"))
+
+-- Gem chat groups warning themes and deduplicates slots without exposing IDs.
+local gemChatReport = {character={name="Tester"},findings={
+    {code="MISSING_GEM",category="gem",severity="soft",slot="head",message="Missing gem (0/2)"},
+    {code="META_MISSING",category="meta",severity="soft",slot="head"},
+    {code="GEM_LOWER_LEVEL",category="gem",severity="soft",slot="hands",message="Old gem (23098)"},
+    {code="GEM_LOWER_LEVEL",category="gem",severity="soft",slot="hands",message="Old gem (23098)"},
+    {code="GEM_LOWER_LEVEL",category="gem",severity="soft",slot="waist",message="Old gem (23111)"},
+}}
+for _, form in ipairs({"short", "full"}) do
+    Raidwise.GetReportForm = function() return form end
+    local output = table.concat(Raidwise:FormatGearCheckChatReport(gemChatReport,"gems"), "\n")
+    assert(string.find(output,"Missing gems: head",1,true))
+    assert(string.find(output,"Missing meta: head",1,true))
+    assert(string.find(output,"Lower-level gems: hands; waist",1,true))
+    assert(not string.find(output,"23098",1,true) and not string.find(output,"23111",1,true))
+    assert(not string.find(output,"hands; hands",1,true))
+end
+
+-- Audited Northrend meta requirements (red, yellow, blue).
+local metaRequirements = {
+    {41285, 0, 0, 2},
+    {41307, 1, 1, 1},
+    {41333, 3, 0, 0},
+    {41335, 2, 1, 0},
+    {41339, 1, 2, 0},
+    {41375, 1, 1, 1},
+    {41376, 2, 0, 0},
+    {41377, 1, 0, 2},
+    {41378, 0, 2, 1},
+    {41379, 2, 0, 1},
+    {41380, 1, 0, 2},
+    {41381, 0, 2, 1},
+    {41382, 1, 1, 1},
+    {41385, 1, 0, 2},
+    {41389, 2, 1, 0},
+    {41395, 2, 0, 1},
+    {41396, 2, 0, 1},
+    {41397, 0, 0, 3},
+    {41398, 1, 1, 1},
+    {41400, 1, 1, 1},
+    {41401, 1, 1, 1},
+    {44076, 1, 2, 0},
+    {44078, 1, 1, 1},
+    {44081, 2, 0, 1},
+    {44082, 1, 0, 2},
+    {44084, 0, 2, 1},
+    {44087, 0, 0, 3},
+    {44088, 0, 1, 2},
+    {44089, 1, 1, 1}
+}
+for _, expected in ipairs(metaRequirements) do
+    local catalog = Raidwise:GetGearCheckGemInfo(expected[1])
+    assert(catalog and catalog.color == "meta")
+    local gems = {{itemId=expected[1],isMeta=true,color="meta"}}
+    for index,color in ipairs({"red","yellow","blue"}) do
+        assert((catalog.requires[color] or 0) == expected[index+1], tostring(expected[1]) .. color)
+        for count=1,expected[index+1] do gems[#gems+1]={color=color} end
+    end
+    local equipment={{key="head",policy="CHECKED",item={gems=gems,sockets={}}}}
+    local metaReport={}
+    activate({},metaReport,equipment)
+    assert(metaReport.meta.active == true,tostring(expected[1]))
+    table.remove(gems)
+    local missingFindings={}
+    activate(missingFindings,metaReport,equipment)
+    assert(metaReport.meta.active == false and has(missingFindings,"META_INACTIVE"),tostring(expected[1]))
+end
+reads={}
+local tearLink="item:48378:0:3625:3750:0:0:0:0:80"
+local tearGems=collect(tearLink,parse(tearLink))
+assert(tearGems[2].itemId==42702)
+local tear=normalize(tearGems[2])
+assert(tear.color=="prismatic" and tear.stats.strength==6)
+local tearReport={}
+activate({},tearReport,{{key="head",policy="CHECKED",item={sockets={},gems={
+    {itemId=41398,isMeta=true,color="meta"},tear}}}})
+assert(tearReport.meta.active==true)
+
+-- New cuts flow through normalization and grading, not just catalog lookups.
+local perfect=normalize({itemId=41429,socketIndex=1})
+assert(perfect.state=="resolved" and perfect.color=="orange")
+assert(perfect.stats.attackPower==14 and perfect.stats.critRating==7)
+findings={}
+evaluateGems(findings,ret,{key="hands",item={sockets={total=1},gems={perfect}}})
+assert(has(findings,"GEM_LOWER_LEVEL") and not has(findings,"GEM_NOT_CHECKABLE"))
+local pearl=normalize({itemId=42701,socketIndex=2})
+local pearlReport={}
+activate({},pearlReport,{{key="head",policy="CHECKED",item={sockets={},gems={
+    {itemId=41398,isMeta=true,color="meta"},pearl}}}})
+assert(pearlReport.meta.active==true)
+findings={}
+evaluateGems(findings,ret,{key="chest",item={sockets={total=1},gems={pearl}}})
+assert(has(findings,"GEM_LOWER_LEVEL") and not has(findings,"GEM_BAD_STAT"))
+local kharmaa=normalize({itemId=44066,socketIndex=1})
+findings={}
+evaluateGems(findings,ret,{key="chest",item={sockets={total=1},gems={kharmaa}}})
+assert(has(findings,"RESILIENCE_PVE") and not has(findings,"GEM_LOWER_LEVEL"))
+local subtle=normalize({itemId=42151,socketIndex=2})
+local tankMetaReport={}
+activate({},tankMetaReport,{{key="head",policy="CHECKED",item={sockets={},gems={
+    {itemId=41380,isMeta=true,color="meta"},subtle,{color="blue"},{color="blue"}}}}})
+assert(tankMetaReport.meta.active==true)
+assert(Raidwise:GetGearCheckGemInfo(42151).jcUnique)
+-- Existing data and inspect mappings remain intact.
+assert(Raidwise:GetGearCheckGemInfo(23111).stats.strength==3)
+assert(Raidwise:GetGearCheckGemItemId(3750)==42702)

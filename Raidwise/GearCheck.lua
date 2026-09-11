@@ -481,6 +481,9 @@ local function CollectGemsFromItemLink(itemLink, parsed)
 			gemLink = link
 		end
 		local itemId = type(gemLink) == "string" and tonumber(gemLink:match("item:(%d+)")) or 0
+		if (itemId or 0) == 0 and Addon.GetGearCheckGemItemId then
+			itemId = Addon:GetGearCheckGemItemId(enchantId) or 0
+		end
 		if (itemId or 0) > 0 or enchantId > 0 then
 			gems[#gems + 1] = {
 				socketIndex = socketIndex,
@@ -641,6 +644,7 @@ local function NormalizeGem(rawGem)
 	local catalog = Addon.GetGearCheckGemInfo and Addon:GetGearCheckGemInfo(rawGem.itemId)
 	if catalog then
 		gem.known = true
+		gem.name = catalog.name
 		if catalog.color then
 			gem.color = catalog.color
 			gem.isMeta = catalog.color == "meta"
@@ -1133,6 +1137,25 @@ function Addon:EnsureGearCheckGrades(report)
 	return FinalizeGearCheckReport(report, true)
 end
 
+function Addon:GetGearCheckMetaSummary(report)
+	local count = report and report.overall and report.overall.issues and report.overall.issues.meta or 0
+	if count > 0 then
+		return tostring(count)
+	end
+	for _, finding in ipairs(report and report.findings or {}) do
+		if finding.code == "META_NOT_CHECKABLE" then
+			return "Unknown"
+		end
+	end
+	local meta = report and report.meta
+	if meta and meta.present then
+		if meta.active == true then return "OK" end
+		if meta.active == false then return "Inactive" end
+		return "Unknown"
+	end
+	return "None"
+end
+
 function Addon:GetLastGearCheckReport()
 	if lastReport then
 		self:EnsureGearCheckGrades(lastReport)
@@ -1344,7 +1367,7 @@ function Addon:FormatGearCheckDump(report)
 			issues.items or 0,
 			issues.enchants or 0,
 			issues.gems or 0,
-			(issues.meta or 0) == 0 and "OK" or tostring(issues.meta),
+			self:GetGearCheckMetaSummary(report),
 			overall.resilienceItems or 0
 		)
 	end
@@ -2176,7 +2199,8 @@ function Addon:FormatGearCheckMemberIssues(report, category)
 			end
 		end
 	end
-	local prefix = ChatPlayerName(report) .. ": "
+	local categoryLabel = category == "gear" and "Gear" or "Enchants/Gems"
+	local prefix = "[Rw]-raid " .. ChatPlayerName(report) .. " " .. categoryLabel .. ": "
 	local parts = {}
 	for _, code in ipairs(order) do
 		local part = code .. " - "
@@ -2195,7 +2219,50 @@ function Addon:FormatGearCheckMemberIssues(report, category)
 	return PackChatLines(prefix, parts, CHAT_SHORT_LINE_MAX)
 end
 
+local GEM_CHAT_LABELS = {
+	MISSING_GEM = "Missing gems",
+	GEM_LOWER_LEVEL = "Lower-level gems",
+	GEM_BAD_STAT = "Inappropriate gem stats",
+	RESILIENCE_PVE = "PvP gems",
+	META_MISSING = "Missing meta",
+	META_NOT_META = "Wrong gem in meta socket",
+	META_NOT_PREFERRED = "Non-preferred meta",
+	META_INACTIVE = "Inactive meta",
+}
+
+local function GemChatDetailLines(report)
+	local groups, order = {}, {}
+	for _, finding in ipairs(report.findings or {}) do
+		if ChatFindingMatches(finding, "gems") and (finding.severity == "hard" or finding.severity == "soft") then
+			local code = finding.code or "UNKNOWN"
+			if not groups[code] then
+				groups[code] = { slots = {}, seen = {} }
+				order[#order + 1] = code
+			end
+			local group = groups[code]
+			local slot = ChatSlotShort(report, finding.slot, true)
+			if not group.seen[slot] then
+				group.seen[slot] = true
+				group.slots[#group.slots + 1] = slot
+			end
+		end
+	end
+	local lines = {}
+	for _, code in ipairs(order) do
+		local prefix = (GEM_CHAT_LABELS[code] or code) .. ": "
+		-- Leave room for the player/category prefix when packing short reports.
+		local grouped = PackChatLines(prefix, groups[code].slots, 140)
+		for _, line in ipairs(grouped) do
+			lines[#lines + 1] = line
+		end
+	end
+	return lines
+end
+
 local function ChatDetailLines(report, mode, shortForm)
+	if mode == "gems" then
+		return GemChatDetailLines(report)
+	end
 	local lines = {}
 
 	if mode == "ok" then
@@ -2329,21 +2396,7 @@ function Addon:FormatGearCheckChatReport(report, mode)
 		local enchantN = issues.enchants or 0
 		local gemN = issues.gems or 0
 		local metaN = issues.meta or 0
-		if dCount > 0 then
-			parts[#parts + 1] = string.format("%d D", dCount)
-		end
-		if cCount > 0 then
-			parts[#parts + 1] = string.format("%d C", cCount)
-		end
-		if bCount > 0 then
-			parts[#parts + 1] = string.format("%d B", bCount)
-		end
-		if aCount > 0 then
-			parts[#parts + 1] = string.format("%d A", aCount)
-		end
-		if sCount > 0 then
-			parts[#parts + 1] = string.format("%d S", sCount)
-		end
+		parts[#parts + 1] = string.format("S: %d A: %d B: %d C: %d D: %d", sCount, aCount, bCount, cCount, dCount)
 		if shortForm then
 			if enchantN > 0 then
 				parts[#parts + 1] = string.format("%dench", enchantN)
@@ -2462,7 +2515,7 @@ function Addon:PrintGearCheckReport(mode, report)
 	end
 	if chatType then
 		for index = 1, #lines do
-			local text = "[GearCheck] " .. lines[index]
+			local text = "[Rw]-gear " .. lines[index]
 			if string.len(text) > 255 then
 				text = string.sub(text, 1, 252) .. "..."
 			end
@@ -2474,7 +2527,7 @@ function Addon:PrintGearCheckReport(mode, report)
 		self:Print(self:T("REPORT_CHAT_UNAVAILABLE"))
 	end
 	for index = 1, #lines do
-		DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[GearCheck]|r " .. lines[index])
+		DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[Rw]-gear|r " .. lines[index])
 	end
 	return true
 end

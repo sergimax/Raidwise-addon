@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.20.0"
+Addon.version = "1.21.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -87,7 +87,7 @@ end
 
 -- Print a prefixed message to the default chat frame.
 function Addon:Print(msg)
-	DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[Raidwise]|r " .. tostring(msg))
+	DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[Rw]|r " .. tostring(msg))
 end
 
 -- Report chat channel (Settings). Auto = RAID in a raid, PARTY in a party.
@@ -158,6 +158,9 @@ function Addon:SetReportChannel(channelId)
 		return
 	end
 	self.db.reportChannel = channelId
+	if self.RefreshHeaderReportChannels then
+		self:RefreshHeaderReportChannels()
+	end
 end
 
 -- SendChatMessage chatType, or nil for the local default chat frame.
@@ -255,6 +258,9 @@ function Addon:SetReportForm(formId)
 		return
 	end
 	self.db.reportForm = formId
+	if self.RefreshHeaderReportForm then
+		self:RefreshHeaderReportForm()
+	end
 end
 
 -- Run once when this addon finishes loading.

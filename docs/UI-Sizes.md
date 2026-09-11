@@ -144,7 +144,7 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
-Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**176** px): multi-line status, **Scan**, **Character profile**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 11`.
+Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**176** px): multi-line status, **Scan**, **Character profile**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 12`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -153,7 +153,7 @@ Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW �
 | Summary (left) | height **124** | Top block; report row below `max(124, right top)` |
 | Class / spec icons | **18** px | On who line under Overall; tooltips show class / spec names |
 | Right top band | height **~144** | Status + 3 stacked buttons |
-| Report / filter rows | left width only | Five equal buttons each |
+| Report / filter rows | left width only | Five equal buttons each; report labels include 14 px icons and hover previews of the current chat output |
 | Breakdown | left, fills height | Slot groups with verdict color |
 | Saved list | right sidebar below delete | Scroll + vertical bar; all entries (not capped) |
 
@@ -208,7 +208,7 @@ Rows are clickable and open Character profile. Notes are stored on the history r
 
 ## Settings tab
 
-Theme toggle: **160 x 28**, 24 px to the right of the Russian language button; no added vertical space. Light uses warm pale panels and dark text; dark retains the original palette. Choice is saved in `RaidwiseDB.theme`.
+Theme has its own **28** px category bar below Language, with the standard **20** px section gap. Its **160 x 28** toggle sits **10** px below the heading; Startup page follows the toggle. Light uses warm pale panels and dark text; dark retains the original palette. Choice is saved in `RaidwiseDB.theme`.
 
 Addon labels and text inputs have no text shadow in the light theme. Switching back to dark restores each region's original shadow; shared Blizzard font objects and game tooltips are unchanged.
 
@@ -216,9 +216,9 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 
 Below: **Startup page** heading, hint, then an **4-column** radio group (`UIRadioButtonTemplate`, **16** px, row **22**, 8 px gaps); selected page is stored in `RaidwiseDB.startupTab`.
 
-Below: **Report chat channel** heading, hint, then an **4-column** radio group (same sizes) for `RaidwiseDB.reportChannel` (default `auto`).
+Report chat channel selection lives in the shared title bar: **406 x 18** px group, eight **42 x 18** px cells spaced **10** px apart. Each right-aligned **24** px label is followed by its **14** px radio with a **2** px gap; the group ends **24** px before Close. Labels: Slf / Say / Prt / Rd / Rdw / Gld / Gof / Aut. The page title is capped at **230** px, with its version immediately after it. The Settings channel section is removed (Settings layout v13; shell layout v15).
 
-Below: **Gear check report form** heading, hint, then **Short** / **Full** radios (`RaidwiseDB.reportForm`, default `short`).
+The shared header has a **132 x 18** px Short / Full radio group, **16** px before the chat-channel group. Each cell is **62 x 18** px, with **8** px between cells; a **44** px label precedes its **14** px radio by **2** px. Stored in `RaidwiseDB.reportForm`, default `short`; the Settings form section is removed.
 
 Category bars: **28** px high, **16** pt gold text, theme-aware `TITLE_BG` fill, **3** px gold left accent, **10** px text inset; **20** px gap above each subsequent category. Hint/control content uses the same **10** px inset; radio grids use inner width minus **20** px.
 
@@ -258,3 +258,5 @@ Key helpers used across pages (not on `Raidwise` directly):
 2. Bump that view’s `LAYOUT_VERSION` when structure or named frames change.
 3. Update this document and [`UI-Views.md`](UI-Views.md) to match (include the new `vN`).
 4. Reload the UI (`/reload`) and check `/raidwise` (layout rebuild should also fire when versions mismatch).
+
+Header report controls are contextual: chat channels appear only on Raid roster, Raid composition, and Gear check (target); Short / Full appears only on Gear check (target), whose output uses that setting. Both groups are hidden on all other views. Switching views preserves saved selections.

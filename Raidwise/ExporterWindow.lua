@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 11
+local SHELL_LAYOUT_VERSION = 15
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -79,17 +79,149 @@ function Addon:IsAllowedStartupTab(tabId)
 	return IsAllowedStartupTab(tabId)
 end
 
+local HEADER_CHAT_CHOICES = {
+	{ id = "self", label = "Slf", chatType = "SYSTEM", key = "SELF" },
+	{ id = "say", label = "Say", chatType = "SAY", key = "SAY" },
+	{ id = "party", label = "Prt", chatType = "PARTY", key = "PARTY" },
+	{ id = "raid", label = "Rd", chatType = "RAID", key = "RAID" },
+	{ id = "raidwarning", label = "Rdw", chatType = "RAID_WARNING", key = "RAID_WARNING" },
+	{ id = "guild", label = "Gld", chatType = "GUILD", key = "GUILD" },
+	{ id = "officer", label = "Gof", chatType = "OFFICER", key = "OFFICER" },
+	{ id = "auto", label = "Aut", key = "AUTO" },
+}
+
+function Addon:RefreshHeaderReportChannels()
+	local frame = self.mainFrame
+	if not frame or not frame.reportChannelRadios then return end
+	local selected = self:GetReportChannel()
+	for _, radio in ipairs(frame.reportChannelRadios) do
+		radio:SetChecked(radio.channelId == selected)
+		local color = ChatTypeInfo and radio.chatType and ChatTypeInfo[radio.chatType]
+		if color then
+			radio.label:SetTextColor(color.r, color.g, color.b)
+		else
+			W.SetFontColor(radio.label, UI.TEXT_BODY)
+		end
+	end
+end
+
+local function CreateHeaderReportChannels(frame, titleBar, close)
+	local host = CreateFrame("Frame", nil, titleBar)
+	host:SetSize(406, 18)
+	host:SetPoint("RIGHT", close, "LEFT", -24, 0)
+	frame.reportChannelHost = host
+	frame.reportChannelRadios = {}
+	for index, choice in ipairs(HEADER_CHAT_CHOICES) do
+		local button = CreateFrame("Button", nil, host)
+		button:SetSize(42, 18)
+		button:SetPoint("LEFT", (index - 1) * 52, 0)
+		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("LEFT", 0, 0)
+		label:SetWidth(24)
+		label:SetJustifyH("RIGHT")
+		label:SetText(choice.label)
+		local radio = CreateFrame("CheckButton", nil, button, "UIRadioButtonTemplate")
+		radio:SetSize(14, 14)
+		radio:SetPoint("LEFT", label, "RIGHT", 2, 0)
+		radio.channelId = choice.id
+		radio.chatType = choice.chatType
+		radio.label = label
+		local function SelectChannel()
+			Addon:SetReportChannel(radio.channelId)
+		end
+		local function ShowTooltip(owner)
+			GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
+			GameTooltip:AddLine(W.T("SETTINGS_REPORT_CHANNEL"))
+			GameTooltip:AddLine(W.T("SETTINGS_REPORT_CHANNEL_" .. choice.key), 1, 1, 1, true)
+			GameTooltip:Show()
+		end
+		button:SetScript("OnClick", SelectChannel)
+		radio:SetScript("OnClick", SelectChannel)
+		button:SetScript("OnEnter", ShowTooltip)
+		radio:SetScript("OnEnter", ShowTooltip)
+		button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		radio:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		frame.reportChannelRadios[index] = radio
+	end
+	host:SetScript("OnShow", function() Addon:RefreshHeaderReportChannels() end)
+end
+
+function Addon:RefreshHeaderReportForm()
+	local frame = self.mainFrame
+	if not frame or not frame.reportFormRadios then return end
+	local selected = self:GetReportForm()
+	for _, radio in ipairs(frame.reportFormRadios) do
+		local checked = radio.formId == selected
+		radio:SetChecked(checked)
+		W.SetFontColor(radio.label, checked and UI.GOLD or UI.TEXT_IDLE)
+	end
+end
+
+local function CreateHeaderReportForm(frame, titleBar)
+	local host = CreateFrame("Frame", nil, titleBar)
+	host:SetSize(132, 18)
+	host:SetPoint("RIGHT", frame.reportChannelHost, "LEFT", -16, 0)
+	frame.reportFormHost = host
+	frame.reportFormRadios = {}
+	for index, formId in ipairs({ "short", "full" }) do
+		local button = CreateFrame("Button", nil, host)
+		button:SetSize(62, 18)
+		button:SetPoint("LEFT", (index - 1) * 70, 0)
+		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("LEFT", 0, 0)
+		label:SetWidth(44)
+		label:SetJustifyH("RIGHT")
+		label:SetText(formId == "short" and "Short" or "Full")
+		local radio = CreateFrame("CheckButton", nil, button, "UIRadioButtonTemplate")
+		radio:SetSize(14, 14)
+		radio:SetPoint("LEFT", label, "RIGHT", 2, 0)
+		radio.formId = formId
+		radio.label = label
+		local function SelectForm()
+			Addon:SetReportForm(radio.formId)
+		end
+		local function ShowTooltip(owner)
+			GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
+			GameTooltip:AddLine(W.T("SETTINGS_REPORT_FORM"))
+			GameTooltip:AddLine(W.T("SETTINGS_REPORT_FORM_" .. string.upper(radio.formId)), 1, 1, 1, true)
+			GameTooltip:AddLine(W.T("SETTINGS_REPORT_FORM_HINT"), 0.7, 0.7, 0.7, true)
+			GameTooltip:Show()
+		end
+		button:SetScript("OnClick", SelectForm)
+		radio:SetScript("OnClick", SelectForm)
+		button:SetScript("OnEnter", ShowTooltip)
+		radio:SetScript("OnEnter", ShowTooltip)
+		button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		radio:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		frame.reportFormRadios[index] = radio
+	end
+	host:SetScript("OnShow", function() Addon:RefreshHeaderReportForm() end)
+end
+
 local function UpdateShellHeader(frame, tabId)
 	if not frame then
 		return
 	end
+	Addon:RefreshHeaderReportChannels()
+	Addon:RefreshHeaderReportForm()
 	local pageInfo = PageInfoById(tabId)
+	local usesReportChat = tabId == "raid" or tabId == "composition" or tabId == "geartarget"
+	local usesReportForm = tabId == "geartarget"
+	if frame.reportChannelHost then
+		if usesReportChat then frame.reportChannelHost:Show() else frame.reportChannelHost:Hide() end
+	end
+	if frame.reportFormHost then
+		if usesReportForm then frame.reportFormHost:Show() else frame.reportFormHost:Hide() end
+	end
 	if frame.titleText then
 		if pageInfo then
 			frame.titleText:SetText(W.T(pageInfo.labelKey))
 		else
 			frame.titleText:SetText("Raidwise")
 		end
+	end
+	if frame.titleText then
+		frame.titleText:SetWidth(math.min(230, frame.titleText:GetStringWidth() or 230))
 	end
 	if not frame.pageLayoutVersionText then
 		return
@@ -231,6 +363,7 @@ local function CreateTitleBar(frame)
 
 	local title = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormal")
 	title:SetPoint("LEFT", 8, 0)
+	title:SetWidth(230)
 	title:SetJustifyH("LEFT")
 	title:SetText("Raidwise")
 	W.SetFontColor(title, UI.GOLD)
@@ -240,6 +373,9 @@ local function CreateTitleBar(frame)
 	pageLayoutVersionText:SetJustifyH("LEFT")
 	pageLayoutVersionText:SetText("")
 	W.SetFontColor(pageLayoutVersionText, UI.TEXT_DISABLED)
+
+	CreateHeaderReportChannels(frame, titleBar, close)
+	CreateHeaderReportForm(frame, titleBar)
 
 	frame.titleBar = titleBar
 	frame.titleText = title

@@ -58,17 +58,156 @@ test("roster issue reports group codes, separate categories, and retain unknown 
       Raidwise.GetReportForm = function() return "full" end
       local lines = Raidwise:FormatGearCheckMemberIssues(report, "enchant")
       assert(#lines == 1)
-      assert(lines[1] == "Tester: GEM_NOT_CHECKABLE - neck,wrist; MISSING_ENCHANT - head", lines[1])
-      assert(Raidwise:FormatGearCheckMemberIssues(report, "gear")[1] == "Tester: WRONG_WEAPON - MH")
+      assert(lines[1] == "[Rw]-raid Tester Enchants/Gems: GEM_NOT_CHECKABLE - neck,wrist; MISSING_ENCHANT - head", lines[1])
+      assert(Raidwise:FormatGearCheckMemberIssues(report, "gear")[1] == "[Rw]-raid Tester Gear: WRONG_WEAPON - MH")
       assert(#Raidwise:FormatGearCheckMemberIssues(nil, "gear") == 0)
-      assert(Raidwise:FormatGearCheckMemberIssues({}, "gear")[1] == "?: No issues in this category.")
+      assert(Raidwise:FormatGearCheckMemberIssues({}, "gear")[1] == "[Rw]-raid ? Gear: No issues in this category.")
       for index = 1, 40 do
         report.findings[#report.findings + 1] = { code = "ISSUE_" .. index, category = "gem", severity = "soft", slot = "head" }
       end
       lines = Raidwise:FormatGearCheckMemberIssues(report, "enchant")
       assert(#lines > 1)
-      for _, line in ipairs(lines) do assert(#line <= 220, line) end
+      for _, line in ipairs(lines) do
+        assert(#line <= 220, line)
+        assert(string.find(line, "[Rw]-raid Tester Enchants/Gems: ", 1, true) == 1, line)
+      end
       assert(string.find(lines[#lines], "ISSUE_40", 1, true))
+    `);
+  });
+});
+
+test("header chat radios preserve choices, colors, and exclusive selection", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      local function widget()
+        return setmetatable({scripts={}}, {__index=function(_, key)
+          if key == "SetScript" then return function(self,event,fn) self.scripts[event]=fn end end
+          if key == "SetChecked" then return function(self,value) self.checked=value end end
+          if key == "SetTextColor" then return function(self,r,g,b) self.color={r,g,b} end end
+          if key == "SetText" then return function(self,value) self.text=value end end
+          return function() end
+        end})
+      end
+      CreateFrame = widget
+      Raidwise.Widgets = {CreateFontString=widget,SetFontColor=function() end,T=function(key) return key end}
+      Raidwise.UITheme = {TEXT_BODY={1,1,1}}
+      Raidwise.db = {reportChannel="auto"}
+      Raidwise.GetReportChannel = function(self) return self.db.reportChannel end
+      Raidwise.SetReportChannel = function(self,id)
+        self.db.reportChannel=id
+        self:RefreshHeaderReportChannels()
+      end
+      ChatTypeInfo = {SAY={r=1,g=1,b=1},PARTY={r=0.5,g=0.5,b=1}}
+      function findLocal(fn, wanted)
+        for index=1,100 do
+          local name,value=debug.getupvalue(fn,index)
+          if not name then break end
+          if name==wanted then return value end
+        end
+        error(wanted)
+      end
+    `);
+    for (const module of ["ExporterWindow", "PageSettings"]) {
+      lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
+    }
+    lua.doStringSync(`
+      local createTitle=findLocal(Raidwise.CreateMainFrame,"CreateTitleBar")
+      local createRadios=findLocal(createTitle,"CreateHeaderReportChannels")
+      local frame={}
+      Raidwise.mainFrame=frame
+      createRadios(frame,{}, {})
+      Raidwise:RefreshHeaderReportChannels()
+      local radios=frame.reportChannelRadios
+      assert(#radios==8 and radios[8].checked)
+      for _,radio in ipairs(radios) do
+        assert(#radio.label.text<=3)
+        radio.scripts.OnClick(radio)
+        assert(Raidwise.db.reportChannel==radio.channelId)
+        local checked=0
+        for _,other in ipairs(radios) do if other.checked then checked=checked+1 end end
+        assert(checked==1)
+      end
+      assert(radios[3].label.color[1]==0.5 and radios[3].label.color[3]==1)
+      local createForms=findLocal(createTitle,"CreateHeaderReportForm")
+      Raidwise.GetReportForm=function(self) return self.db.reportForm or "short" end
+      Raidwise.SetReportForm=function(self,id)
+        self.db.reportForm=id
+        self:RefreshHeaderReportForm()
+      end
+      createForms(frame,{})
+      Raidwise:RefreshHeaderReportForm()
+      assert(frame.reportFormRadios[1].checked and not frame.reportFormRadios[2].checked)
+      frame.reportFormRadios[2].scripts.OnClick()
+      assert(Raidwise.db.reportForm=="full")
+      assert(frame.reportFormRadios[2].checked and not frame.reportFormRadios[1].checked)
+      assert(Raidwise.Pages.Settings.LAYOUT_VERSION==13)
+      local updateHeader=findLocal(Raidwise.SelectTab,"UpdateShellHeader")
+      for _,host in ipairs({frame.reportChannelHost,frame.reportFormHost}) do
+        host.Show=function(self) self.visible=true end
+        host.Hide=function(self) self.visible=false end
+      end
+      for _,tab in ipairs({"raid","composition","geartarget","cooldowns","export","history","settings","info"}) do
+        updateHeader(frame,tab)
+        assert(frame.reportChannelHost.visible==(tab=="raid" or tab=="composition" or tab=="geartarget"),tab)
+        assert(frame.reportFormHost.visible==(tab=="geartarget"),tab)
+      end
+      assert(Raidwise.db.reportForm=="full" and Raidwise.db.reportChannel=="auto")
+    `);
+  });
+});
+
+test("composition reports preserve spell links and fit one chat message", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      Raidwise.Widgets = {T=function(key, name, detail)
+        if key == "COMP_CHAT_EFFECT_NEED" then return "[Rw] need " .. name .. " - " .. detail end
+        if key == "COMP_CHAT_EFFECT_HAVE" then return "[Rw] have " .. name .. " - " .. detail end
+        return key
+      end}
+      Raidwise.UITheme = {}
+      Raidwise.T = function(self,key,who,spell)
+        if key == "COMP_SRC_SPELL" then return who .. " - " .. spell end
+        return who or key
+      end
+      GetSpellInfo = function() return "Wisdom" end
+      GetSpellLink = function(id) return "|cff71d5ff|Hspell:" .. id .. "|h[Wisdom]|h|r" end
+      function nestedLocal(fn,wanted,seen)
+        seen=seen or {}
+        if type(fn)~="function" or seen[fn] then return end
+        seen[fn]=true
+        for index=1,100 do
+          local name,value=debug.getupvalue(fn,index)
+          if not name then break end
+          if name==wanted then return value end
+          local found=nestedLocal(value,wanted,seen)
+          if found then return found end
+        end
+      end
+    `);
+    for (const module of ["RaidComposition", "PageComposition"]) {
+      lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
+    }
+    lua.doStringSync(`
+      local formatSource=nestedLocal(Raidwise.AnalyzeRaidComposition,"FormatSource")
+      local plain,spell,linked=formatSource({race="Draenei"},20186)
+      assert(spell=="Wisdom" and not string.find(plain,"|H",1,true))
+      assert(string.find(linked,"|Hspell:20186",1,true))
+      GetSpellLink=nil
+      local fallback,_,chatFallback=formatSource({race="Draenei"},20186)
+      assert(fallback==chatFallback)
+      local build=nestedLocal(Raidwise.RefreshCompositionView,"BuildEffectRowMessage")
+      assert(build)
+      local row={tooltipTitle="Judgement of Wisdom",chatCount=0,chatSources={linked}}
+      local message=build(row)
+      assert(#message<=255 and string.find(message,linked,1,true))
+      row.chatSources={linked,linked,linked,linked,linked,linked}
+      message=build(row)
+      assert(#message<=255 and string.find(message,"(+",1,true))
+      local _,opens=string.gsub(message,"|Hspell:","")
+      local _,closes=string.gsub(message,"|h|r","")
+      assert(opens==closes and opens>0)
+      row.chatCount=1
+      assert(string.find(build(row),"[Rw] have",1,true)==1)
     `);
   });
 });

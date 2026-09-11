@@ -4,10 +4,11 @@
 local Addon = Raidwise
 
 -- Bump when enchant/gem catalog seeds change materially (saved report dataVersion).
-Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-08"
+Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-10-gems3"
 
 -- maxLevel: Northrend (or best-in-slot-ish) enchants. stats used for appropriateness only.
 local ENCHANTS = {
+	[3234] = { name = "Precision", maxLevel = true, stats = { hitRating = 20 } },
 	-- Chest
 	[3832] = { name = "Powerful Stats", maxLevel = true, allStats = true, stats = { strength = 10, agility = 10, stamina = 10, intellect = 10, spirit = 10 } },
 	[3297] = { name = "Super Health", maxLevel = true, stats = { } },
@@ -135,29 +136,42 @@ local ENCHANTS = {
 
 -- Northrend epic (and Nightmare Tear) gems. maxLevel = true means ICC-era epic quality.
 local GEMS = {
+	-- Burning Crusade gems: usable stats, below Northrend gem strength.
+	[23111] = { name = "Sovereign Shadow Draenite", maxLevel = false, color = "purple", stats = { strength = 3, stamina = 4 } },
+	[23098] = { name = "Inscribed Flame Spessarite", maxLevel = false, color = "orange", stats = { strength = 3, critRating = 3 } },
 	-- Meta (Earthsiege / Skyflare). requires = gem colors across the full set (not the meta itself).
-	[41380] = { maxLevel = true, color = "meta", stats = {}, requires = { blue = 2 } }, -- Austere
-	[41389] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2, yellow = 1 } }, -- Beaming
-	[41395] = { maxLevel = true, color = "meta", stats = { spellPower = 21 }, requires = { red = 2 } }, -- Bracing
+	[41380] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { red = 1, blue = 2 } }, -- Austere
+	[41389] = { maxLevel = true, color = "meta", stats = { critRating = 21 }, requires = { red = 2, yellow = 1 } }, -- Beaming
+	[41395] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 2, blue = 1 } }, -- Bracing
 	[41285] = { maxLevel = true, color = "meta", stats = { critRating = 21 }, requires = { blue = 2 } }, -- Chaotic
-	[41307] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2 } }, -- Destructive
-	[41377] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { blue = 2, red = 1 } }, -- Effulgent (later Shielded)
+	[41307] = { maxLevel = true, color = "meta", stats = { critRating = 25 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Destructive
+	[41377] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { red = 1, blue = 2 } }, -- Effulgent (later Shielded)
 	[41333] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 3 } }, -- Ember
-	[41335] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 2, yellow = 1 } }, -- Enigmatic
-	[41396] = { maxLevel = true, color = "meta", stats = { defenseRating = 21 }, requires = { blue = 2 } }, -- Eternal
-	[41378] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { yellow = 2, red = 1 } }, -- Forlorn
+	[41335] = { maxLevel = true, color = "meta", stats = { critRating = 21 }, requires = { red = 2, yellow = 1 } }, -- Enigmatic
+	[41396] = { maxLevel = true, color = "meta", stats = { defenseRating = 21 }, requires = { red = 2, blue = 1 } }, -- Eternal
+	[41378] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { yellow = 2, blue = 1 } }, -- Forlorn
 	[41379] = { maxLevel = true, color = "meta", stats = { critRating = 21 }, requires = { red = 2, blue = 1 } }, -- Impassive
 	[41401] = { maxLevel = true, color = "meta", stats = { intellect = 21 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Insightful
-	[41385] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { blue = 2 } }, -- Invigorating
+	[41385] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { red = 1, blue = 2 } }, -- Invigorating
 	[41381] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { yellow = 2, blue = 1 } }, -- Persistent
-	[41397] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { blue = 2 } }, -- Powerful
+	[41397] = { maxLevel = true, color = "meta", stats = { stamina = 32 }, requires = { blue = 3 } }, -- Powerful
 	[41398] = { maxLevel = true, color = "meta", stats = { agility = 21 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Relentless
-	[41376] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 2 } }, -- Revitalizing
-	[41339] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { yellow = 2, red = 1 } }, -- Swift
+	[41376] = { maxLevel = true, color = "meta", stats = { mp5 = 11 }, requires = { red = 2 } }, -- Revitalizing
+	[41339] = { maxLevel = true, color = "meta", stats = { attackPower = 42 }, requires = { red = 1, yellow = 2 } }, -- Swift
 	[41400] = { maxLevel = true, color = "meta", stats = {}, requires = { red = 1, yellow = 1, blue = 1 } }, -- Thundering
 	[41375] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Tireless
-	[41382] = { maxLevel = true, color = "meta", stats = { spellPower = 21 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Trenchant
+	[41382] = { maxLevel = true, color = "meta", stats = { spellPower = 25 }, requires = { red = 1, yellow = 1, blue = 1 } }, -- Trenchant
+	-- Lower-strength Northrend vendor metas.
+	[44076] = { name = "Swift Starflare Diamond", maxLevel = false, color = "meta", stats = { attackPower = 34 }, requires = { red = 1, yellow = 2 } },
+	[44078] = { name = "Tireless Starflare Diamond", maxLevel = false, color = "meta", stats = { spellPower = 20 }, requires = { red = 1, yellow = 1, blue = 1 } },
+	[44081] = { name = "Enigmatic Starflare Diamond", maxLevel = false, color = "meta", stats = { critRating = 17 }, requires = { red = 2, blue = 1 } },
+	[44082] = { name = "Impassive Starflare Diamond", maxLevel = false, color = "meta", stats = { critRating = 17 }, requires = { red = 1, blue = 2 } },
+	[44084] = { name = "Forlorn Starflare Diamond", maxLevel = false, color = "meta", stats = { spellPower = 20 }, requires = { yellow = 2, blue = 1 } },
+	[44087] = { name = "Persistent Earthshatter Diamond", maxLevel = false, color = "meta", stats = { attackPower = 34 }, requires = { blue = 3 } },
+	[44088] = { name = "Powerful Earthshatter Diamond", maxLevel = false, color = "meta", stats = { stamina = 26 }, requires = { yellow = 1, blue = 2 } },
+	[44089] = { name = "Trenchant Earthshatter Diamond", maxLevel = false, color = "meta", stats = { spellPower = 20 }, requires = { red = 1, yellow = 1, blue = 1 } },
 	-- Prismatic
+	[42702] = { name = "Enchanted Tear", maxLevel = false, color = "prismatic", allStats = true, stats = { strength = 6, agility = 6, stamina = 6, intellect = 6, spirit = 6 } },
 	[49110] = { maxLevel = true, color = "prismatic", allStats = true, stats = { strength = 10, agility = 10, stamina = 10, intellect = 10, spirit = 10 } },
 	-- Epic red (Cardinal Ruby) / blue (Majestic Zircon) / yellow (King's Amber)
 	[40111] = { maxLevel = true, color = "red", stats = { strength = 20 } }, -- Bold
@@ -389,6 +403,83 @@ local GEMS = {
 	[40104] = { maxLevel = false, color = "green", stats = { hasteRating = 8, spirit = 8 } }, -- Intricate Forest Emerald
 	[40105] = { maxLevel = false, color = "green", stats = { hasteRating = 8, mp5 = 4 } }, -- Energized Forest Emerald
 	[40106] = { maxLevel = false, color = "green", stats = { hasteRating = 8, spellPenetration = 10 } }, -- Shattered Forest Emerald
+	-- Missing Northrend cuts verified against WoWSims WotLK (2026-09-10).
+	-- Perfect uncommon cuts are below ICC epic strength; rating duplicates in
+	-- WoWSims (spell/melee, melee/ranged AP) represent the same in-game stat.
+	[41429] = { name = "Perfect Wicked Huge Citrine", maxLevel = false, color = "orange", stats = { critRating = 7, attackPower = 14 } },
+	[41432] = { name = "Perfect Bold Bloodstone", maxLevel = false, color = "red", stats = { strength = 14 } },
+	[41433] = { name = "Perfect Bright Bloodstone", maxLevel = false, color = "red", stats = { attackPower = 28 } },
+	[41434] = { name = "Perfect Delicate Bloodstone", maxLevel = false, color = "red", stats = { agility = 14 } },
+	[41435] = { name = "Perfect Flashing Bloodstone", maxLevel = false, color = "red", stats = { parryRating = 14 } },
+	[41436] = { name = "Perfect Fractured Bloodstone", maxLevel = false, color = "red", stats = { armorPenetration = 14 } },
+	[41437] = { name = "Perfect Precise Bloodstone", maxLevel = false, color = "red", stats = { expertiseRating = 14 } },
+	[41438] = { name = "Perfect Runed Bloodstone", maxLevel = false, color = "red", stats = { spellPower = 16 } },
+	[41439] = { name = "Perfect Subtle Bloodstone", maxLevel = false, color = "red", stats = { dodgeRating = 14 } },
+	[41440] = { name = "Perfect Lustrous Chalcedony", maxLevel = false, color = "blue", stats = { mp5 = 7 } },
+	[41441] = { name = "Perfect Solid Chalcedony", maxLevel = false, color = "blue", stats = { stamina = 21 } },
+	[41442] = { name = "Perfect Sparkling Chalcedony", maxLevel = false, color = "blue", stats = { spirit = 14 } },
+	[41443] = { name = "Perfect Stormy Chalcedony", maxLevel = false, color = "blue", stats = { spellPenetration = 18 } },
+	[41444] = { name = "Perfect Brilliant Sun Crystal", maxLevel = false, color = "yellow", stats = { intellect = 14 } },
+	[41445] = { name = "Perfect Mystic Sun Crystal", maxLevel = false, color = "yellow", stats = { resilience = 14 } },
+	[41446] = { name = "Perfect Quick Sun Crystal", maxLevel = false, color = "yellow", stats = { hasteRating = 14 } },
+	[41447] = { name = "Perfect Rigid Sun Crystal", maxLevel = false, color = "yellow", stats = { hitRating = 14 } },
+	[41448] = { name = "Perfect Smooth Sun Crystal", maxLevel = false, color = "yellow", stats = { critRating = 14 } },
+	[41449] = { name = "Perfect Thick Sun Crystal", maxLevel = false, color = "yellow", stats = { defenseRating = 14 } },
+	[41450] = { name = "Perfect Balanced Shadow Crystal", maxLevel = false, color = "purple", stats = { stamina = 11, attackPower = 14 } },
+	[41451] = { name = "Perfect Defender's Shadow Crystal", maxLevel = false, color = "purple", stats = { stamina = 11, parryRating = 7 } },
+	[41452] = { name = "Perfect Glowing Shadow Crystal", maxLevel = false, color = "purple", stats = { stamina = 11, spellPower = 8 } },
+	[41453] = { name = "Perfect Guardian's Shadow Crystal", maxLevel = false, color = "purple", stats = { stamina = 11, expertiseRating = 7 } },
+	[41454] = { name = "Perfect Infused Shadow Crystal", maxLevel = false, color = "purple", stats = { mp5 = 4, attackPower = 14 } },
+	[41455] = { name = "Perfect Mysterious Shadow Crystal", maxLevel = false, color = "purple", stats = { spellPower = 8, spellPenetration = 9 } },
+	[41456] = { name = "Perfect Puissant Shadow Crystal", maxLevel = false, color = "purple", stats = { stamina = 11, armorPenetration = 7 } },
+	[41457] = { name = "Perfect Purified Shadow Crystal", maxLevel = false, color = "purple", stats = { spirit = 7, spellPower = 8 } },
+	[41458] = { name = "Perfect Regal Shadow Crystal", maxLevel = false, color = "purple", stats = { stamina = 11, dodgeRating = 7 } },
+	[41459] = { name = "Perfect Royal Shadow Crystal", maxLevel = false, color = "purple", stats = { spellPower = 8, mp5 = 4 } },
+	[41460] = { name = "Perfect Shifting Shadow Crystal", maxLevel = false, color = "purple", stats = { agility = 7, stamina = 11 } },
+	[41461] = { name = "Perfect Sovereign Shadow Crystal", maxLevel = false, color = "purple", stats = { strength = 7, stamina = 11 } },
+	[41462] = { name = "Perfect Tenuous Shadow Crystal", maxLevel = false, color = "purple", stats = { agility = 7, mp5 = 4 } },
+	[41463] = { name = "Perfect Dazzling Dark Jade", maxLevel = false, color = "green", stats = { intellect = 7, mp5 = 4 } },
+	[41464] = { name = "Perfect Enduring Dark Jade", maxLevel = false, color = "green", stats = { stamina = 11, defenseRating = 7 } },
+	[41465] = { name = "Perfect Energized Dark Jade", maxLevel = false, color = "green", stats = { mp5 = 4, hasteRating = 7 } },
+	[41466] = { name = "Perfect Forceful Dark Jade", maxLevel = false, color = "green", stats = { stamina = 11, hasteRating = 7 } },
+	[41467] = { name = "Perfect Intricate Dark Jade", maxLevel = false, color = "green", stats = { spirit = 7, hasteRating = 7 } },
+	[41468] = { name = "Perfect Jagged Dark Jade", maxLevel = false, color = "green", stats = { stamina = 11, critRating = 7 } },
+	[41469] = { name = "Perfect Lambent Dark Jade", maxLevel = false, color = "green", stats = { mp5 = 4, hitRating = 7 } },
+	[41470] = { name = "Perfect Misty Dark Jade", maxLevel = false, color = "green", stats = { spirit = 7, critRating = 7 } },
+	[41471] = { name = "Perfect Opaque Dark Jade", maxLevel = false, color = "green", stats = { mp5 = 4, resilience = 7 } },
+	[41472] = { name = "Perfect Radiant Dark Jade", maxLevel = false, color = "green", stats = { critRating = 7, spellPenetration = 9 } },
+	[41473] = { name = "Perfect Seer's Dark Jade", maxLevel = false, color = "green", stats = { intellect = 7, spirit = 7 } },
+	[41474] = { name = "Perfect Shattered Dark Jade", maxLevel = false, color = "green", stats = { hasteRating = 7, spellPenetration = 9 } },
+	[41475] = { name = "Perfect Shining Dark Jade", maxLevel = false, color = "green", stats = { spirit = 7, hitRating = 7 } },
+	[41476] = { name = "Perfect Steady Dark Jade", maxLevel = false, color = "green", stats = { stamina = 11, resilience = 7 } },
+	[41477] = { name = "Perfect Sundered Dark Jade", maxLevel = false, color = "green", stats = { mp5 = 4, critRating = 7 } },
+	[41478] = { name = "Perfect Tense Dark Jade", maxLevel = false, color = "green", stats = { hitRating = 7, spellPenetration = 9 } },
+	[41479] = { name = "Perfect Timeless Dark Jade", maxLevel = false, color = "green", stats = { stamina = 11, intellect = 7 } },
+	[41480] = { name = "Perfect Turbid Dark Jade", maxLevel = false, color = "green", stats = { spirit = 7, resilience = 7 } },
+	[41481] = { name = "Perfect Vivid Dark Jade", maxLevel = false, color = "green", stats = { stamina = 11, hitRating = 7 } },
+	[41482] = { name = "Perfect Accurate Huge Citrine", maxLevel = false, color = "orange", stats = { hitRating = 7, expertiseRating = 7 } },
+	[41483] = { name = "Perfect Champion's Huge Citrine", maxLevel = false, color = "orange", stats = { strength = 7, defenseRating = 7 } },
+	[41484] = { name = "Perfect Deadly Huge Citrine", maxLevel = false, color = "orange", stats = { agility = 7, critRating = 7 } },
+	[41485] = { name = "Perfect Deft Huge Citrine", maxLevel = false, color = "orange", stats = { agility = 7, hasteRating = 7 } },
+	[41486] = { name = "Perfect Durable Huge Citrine", maxLevel = false, color = "orange", stats = { spellPower = 8, resilience = 7 } },
+	[41487] = { name = "Perfect Empowered Huge Citrine", maxLevel = false, color = "orange", stats = { attackPower = 14, resilience = 7 } },
+	[41488] = { name = "Perfect Etched Huge Citrine", maxLevel = false, color = "orange", stats = { strength = 7, hitRating = 7 } },
+	[41489] = { name = "Perfect Fierce Huge Citrine", maxLevel = false, color = "orange", stats = { strength = 7, hasteRating = 7 } },
+	[41490] = { name = "Perfect Glimmering Huge Citrine", maxLevel = false, color = "orange", stats = { defenseRating = 7, parryRating = 7 } },
+	[41491] = { name = "Perfect Glinting Huge Citrine", maxLevel = false, color = "orange", stats = { agility = 7, hitRating = 7 } },
+	[41492] = { name = "Perfect Inscribed Huge Citrine", maxLevel = false, color = "orange", stats = { strength = 7, critRating = 7 } },
+	[41493] = { name = "Perfect Lucent Huge Citrine", maxLevel = false, color = "orange", stats = { agility = 7, resilience = 7 } },
+	[41494] = { name = "Perfect Luminous Huge Citrine", maxLevel = false, color = "orange", stats = { intellect = 7, spellPower = 8 } },
+	[41495] = { name = "Perfect Potent Huge Citrine", maxLevel = false, color = "orange", stats = { spellPower = 8, critRating = 7 } },
+	[41496] = { name = "Perfect Pristine Huge Citrine", maxLevel = false, color = "orange", stats = { hitRating = 7, attackPower = 14 } },
+	[41497] = { name = "Perfect Reckless Huge Citrine", maxLevel = false, color = "orange", stats = { spellPower = 8, hasteRating = 7 } },
+	[41498] = { name = "Perfect Resolute Huge Citrine", maxLevel = false, color = "orange", stats = { expertiseRating = 7, defenseRating = 7 } },
+	[41499] = { name = "Perfect Resplendent Huge Citrine", maxLevel = false, color = "orange", stats = { strength = 7, resilience = 7 } },
+	[41500] = { name = "Perfect Stalwart Huge Citrine", maxLevel = false, color = "orange", stats = { defenseRating = 7, dodgeRating = 7 } },
+	[41501] = { name = "Perfect Stark Huge Citrine", maxLevel = false, color = "orange", stats = { hasteRating = 7, attackPower = 14 } },
+	[41502] = { name = "Perfect Veiled Huge Citrine", maxLevel = false, color = "orange", stats = { spellPower = 8, hitRating = 7 } },
+	[42701] = { name = "Enchanted Pearl", maxLevel = false, color = "prismatic", allStats = true, stats = { strength = 4, agility = 4, stamina = 4, intellect = 4, spirit = 4 } },
+	[44066] = { name = "Kharmaa's Grace", maxLevel = true, color = "yellow", stats = { resilience = 20 } },
 	-- Jewelcrafting Dragon's Eye (Unique-Equipped: Jeweler's Gems ×3; JC-only).
 	[42142] = { maxLevel = true, color = "red", jcUnique = true, stats = { strength = 34 } }, -- Bold
 	[36766] = { maxLevel = true, color = "red", jcUnique = true, stats = { attackPower = 68 } }, -- Bright
@@ -406,7 +497,7 @@ local GEMS = {
 	[36767] = { maxLevel = true, color = "blue", jcUnique = true, stats = { stamina = 51 } }, -- Solid
 	[42145] = { maxLevel = true, color = "blue", jcUnique = true, stats = { spirit = 34 } }, -- Sparkling
 	[42155] = { maxLevel = true, color = "blue", jcUnique = true, stats = { spellPenetration = 43 } }, -- Stormy
-	[42151] = { maxLevel = true, color = "yellow", jcUnique = true, stats = { dodgeRating = 34 } }, -- Subtle
+	[42151] = { maxLevel = true, color = "red", jcUnique = true, stats = { dodgeRating = 34 } }, -- Subtle
 	[42157] = { maxLevel = true, color = "yellow", jcUnique = true, stats = { defenseRating = 34 } }, -- Thick
 }
 
@@ -416,6 +507,13 @@ function Addon:GetGearCheckEnchantInfo(enchantId)
 		return nil
 	end
 	return ENCHANTS[enchantId]
+end
+
+-- Explicit socket-enchant mappings only; enchant ids are not gem item ids.
+local GEM_ENCHANT_ITEMS = { [2711] = 23111, [2752] = 23098, [3750] = 42702 }
+
+function Addon:GetGearCheckGemItemId(enchantId)
+	return GEM_ENCHANT_ITEMS[tonumber(enchantId)]
 end
 
 function Addon:GetGearCheckGemInfo(itemId)

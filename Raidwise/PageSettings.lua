@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 10
+local LAYOUT_VERSION = 13
 
 local SECTION_HEADER_H = 28
 local SECTION_GAP = 20
@@ -99,76 +99,6 @@ local function ApplyStartupChoice(page, tabId)
 		Addon:SetStartupTab(tabId)
 	end
 	UpdateStartupRadios(page)
-end
-
-local function UpdateReportChannelRadios(page)
-	if not page or not page.reportChannelRadios then
-		return
-	end
-	local selected = Addon.GetReportChannel and Addon:GetReportChannel() or "auto"
-	for index = 1, #page.reportChannelRadios do
-		local radio = page.reportChannelRadios[index]
-		local checked = radio.channelId == selected
-		radio.isUpdating = true
-		radio:SetChecked(checked)
-		local checkedTexture = radio.GetCheckedTexture and radio:GetCheckedTexture()
-		if checkedTexture then
-			if checked then
-				checkedTexture:Show()
-			else
-				checkedTexture:Hide()
-			end
-		end
-		if radio.label then
-			if radio.labelKey then
-				radio.label:SetText(W.T(radio.labelKey))
-			end
-			W.SetFontColor(radio.label, checked and UI.GOLD or UI.TEXT_IDLE)
-		end
-		radio.isUpdating = false
-	end
-end
-
-local function ApplyReportChannelChoice(page, channelId)
-	if Addon.SetReportChannel then
-		Addon:SetReportChannel(channelId)
-	end
-	UpdateReportChannelRadios(page)
-end
-
-local function UpdateReportFormRadios(page)
-	if not page or not page.reportFormRadios then
-		return
-	end
-	local selected = Addon.GetReportForm and Addon:GetReportForm() or "short"
-	for index = 1, #page.reportFormRadios do
-		local radio = page.reportFormRadios[index]
-		local checked = radio.formId == selected
-		radio.isUpdating = true
-		radio:SetChecked(checked)
-		local checkedTexture = radio.GetCheckedTexture and radio:GetCheckedTexture()
-		if checkedTexture then
-			if checked then
-				checkedTexture:Show()
-			else
-				checkedTexture:Hide()
-			end
-		end
-		if radio.label then
-			if radio.labelKey then
-				radio.label:SetText(W.T(radio.labelKey))
-			end
-			W.SetFontColor(radio.label, checked and UI.GOLD or UI.TEXT_IDLE)
-		end
-		radio.isUpdating = false
-	end
-end
-
-local function ApplyReportFormChoice(page, formId)
-	if Addon.SetReportForm then
-		Addon:SetReportForm(formId)
-	end
-	UpdateReportFormRadios(page)
 end
 
 local function CreateSettingsCheck(page, parent, nameSuffix, labelKey, dbKey, anchor)
@@ -330,149 +260,6 @@ local function CreateStartupTabRadios(page, anchor)
 	return bottomLeft or lastHost or firstHost or anchor
 end
 
-local function CreateReportChannelRadio(page, parent, choice, columnWidth)
-	local host = CreateFrame("Frame", nil, parent)
-	host:SetSize(columnWidth, STARTUP_ROW_H)
-
-	local radio = CreateFrame("CheckButton", nil, host, "UIRadioButtonTemplate")
-	radio:SetSize(STARTUP_RADIO_SIZE, STARTUP_RADIO_SIZE)
-	radio:SetPoint("LEFT", 0, 0)
-	radio.channelId = choice.id
-	radio.labelKey = choice.labelKey
-
-	local label = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
-	label:SetPoint("LEFT", radio, "RIGHT", 4, 0)
-	label:SetPoint("RIGHT", host, "RIGHT", 0, 0)
-	label:SetJustifyH("LEFT")
-	label:SetText(W.T(choice.labelKey))
-	W.SetFontColor(label, UI.TEXT_IDLE)
-	radio.label = label
-	radio.host = host
-
-	local hit = CreateFrame("Button", nil, host)
-	hit:SetPoint("TOPLEFT", label, "TOPLEFT", 0, 2)
-	hit:SetPoint("BOTTOMRIGHT", host, "BOTTOMRIGHT", 0, -2)
-	hit:SetScript("OnClick", function()
-		ApplyReportChannelChoice(page, radio.channelId)
-	end)
-	radio.hit = hit
-
-	radio:SetScript("OnClick", function(self)
-		if self.isUpdating then
-			return
-		end
-		ApplyReportChannelChoice(page, self.channelId)
-	end)
-
-	return radio
-end
-
-local function CreateReportChannelRadios(page, anchor)
-	local choices = Addon.REPORT_CHANNEL_CHOICES or {}
-	page.reportChannelRadios = {}
-	if #choices == 0 then
-		return anchor
-	end
-
-	local innerWidth = W.ContentInnerWidth() - SECTION_INSET * 2
-	local colWidth = math.floor((innerWidth - STARTUP_GAP * (STARTUP_COLS - 1)) / STARTUP_COLS)
-	local firstHost = nil
-	local lastHost = nil
-
-	for index = 1, #choices do
-		local choice = choices[index]
-		local radio = CreateReportChannelRadio(page, page, choice, colWidth)
-		local host = radio.host
-
-		local col = (index - 1) % STARTUP_COLS
-		local row = math.floor((index - 1) / STARTUP_COLS)
-		if row == 0 and col == 0 then
-			host:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
-			firstHost = host
-		elseif col == 0 then
-			host:SetPoint("TOPLEFT", page.reportChannelRadios[index - STARTUP_COLS].host, "BOTTOMLEFT", 0, -STARTUP_GAP)
-		else
-			host:SetPoint("LEFT", page.reportChannelRadios[index - 1].host, "RIGHT", STARTUP_GAP, 0)
-		end
-
-		page.reportChannelRadios[index] = radio
-		lastHost = host
-	end
-
-	UpdateReportChannelRadios(page)
-	local lastRowStart = ((#choices - 1) - ((#choices - 1) % STARTUP_COLS)) + 1
-	local bottomLeft = page.reportChannelRadios[lastRowStart] and page.reportChannelRadios[lastRowStart].host
-	return bottomLeft or lastHost or firstHost or anchor
-end
-
-local function CreateReportFormRadio(page, parent, choice, columnWidth)
-	local host = CreateFrame("Frame", nil, parent)
-	host:SetSize(columnWidth, STARTUP_ROW_H)
-
-	local radio = CreateFrame("CheckButton", nil, host, "UIRadioButtonTemplate")
-	radio:SetSize(STARTUP_RADIO_SIZE, STARTUP_RADIO_SIZE)
-	radio:SetPoint("LEFT", 0, 0)
-	radio.formId = choice.id
-	radio.labelKey = choice.labelKey
-
-	local label = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
-	label:SetPoint("LEFT", radio, "RIGHT", 4, 0)
-	label:SetPoint("RIGHT", host, "RIGHT", 0, 0)
-	label:SetJustifyH("LEFT")
-	label:SetText(W.T(choice.labelKey))
-	W.SetFontColor(label, UI.TEXT_IDLE)
-	radio.label = label
-	radio.host = host
-
-	local hit = CreateFrame("Button", nil, host)
-	hit:SetPoint("TOPLEFT", label, "TOPLEFT", 0, 2)
-	hit:SetPoint("BOTTOMRIGHT", host, "BOTTOMRIGHT", 0, -2)
-	hit:SetScript("OnClick", function()
-		ApplyReportFormChoice(page, radio.formId)
-	end)
-	radio.hit = hit
-
-	radio:SetScript("OnClick", function(self)
-		if self.isUpdating then
-			return
-		end
-		ApplyReportFormChoice(page, self.formId)
-	end)
-
-	return radio
-end
-
-local function CreateReportFormRadios(page, anchor)
-	local choices = Addon.REPORT_FORM_CHOICES or {}
-	page.reportFormRadios = {}
-	if #choices == 0 then
-		return anchor
-	end
-
-	local innerWidth = W.ContentInnerWidth() - SECTION_INSET * 2
-	local cols = math.min(#choices, STARTUP_COLS)
-	local colWidth = math.floor((innerWidth - STARTUP_GAP * (cols - 1)) / cols)
-	local firstHost = nil
-	local lastHost = nil
-
-	for index = 1, #choices do
-		local choice = choices[index]
-		local radio = CreateReportFormRadio(page, page, choice, colWidth)
-		local host = radio.host
-		if index == 1 then
-			host:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
-			firstHost = host
-		else
-			host:SetPoint("LEFT", page.reportFormRadios[index - 1].host, "RIGHT", STARTUP_GAP, 0)
-		end
-		page.reportFormRadios[index] = radio
-		lastHost = host
-	end
-
-	UpdateReportFormRadios(page)
-	return firstHost or lastHost or anchor
-end
-
 local function CreateSettingsPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
@@ -515,8 +302,11 @@ local function CreateSettingsPage(parent)
 	end)
 	page.ruBtn = ruBtn
 
+	local themeHeading = CreateSettingsHeading(page, "SETTINGS_THEME", enBtn)
+	page.themeHeading = themeHeading
+
 	local themeButton = W.CreatePlainButton(page, 160, UI.ACTION_BTN_H, "")
-	themeButton:SetPoint("LEFT", ruBtn, "RIGHT", UI.ACTION_BTN_GAP * 3, 0)
+	themeButton:SetPoint("TOPLEFT", themeHeading, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
 	themeButton:SetScript("OnClick", function()
 		Addon:SetTheme(Addon:GetTheme() == "dark" and "light" or "dark")
 	end)
@@ -524,7 +314,7 @@ local function CreateSettingsPage(parent)
 	themeButton.label:SetText(W.T(Addon:GetTheme() == "light" and "SETTINGS_THEME_LIGHT" or "SETTINGS_THEME_DARK"))
 	W.SetPlainButtonTooltip(themeButton, "SETTINGS_THEME_HINT")
 
-	local startupHeading = CreateSettingsHeading(page, "SETTINGS_STARTUP_TAB", enBtn)
+	local startupHeading = CreateSettingsHeading(page, "SETTINGS_STARTUP_TAB", themeButton)
 	page.startupHeading = startupHeading
 
 	local startupHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
@@ -536,31 +326,7 @@ local function CreateSettingsPage(parent)
 
 	local startupAnchor = CreateStartupTabRadios(page, startupHint)
 
-	local reportHeading = CreateSettingsHeading(page, "SETTINGS_REPORT_CHANNEL", startupAnchor)
-	page.reportHeading = reportHeading
-
-	local reportHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
-	reportHint:SetPoint("TOPLEFT", reportHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
-	reportHint:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
-	reportHint:SetJustifyH("LEFT")
-	reportHint:SetText(W.T("SETTINGS_REPORT_CHANNEL_HINT"))
-	page.reportHint = reportHint
-
-	local reportAnchor = CreateReportChannelRadios(page, reportHint)
-
-	local formHeading = CreateSettingsHeading(page, "SETTINGS_REPORT_FORM", reportAnchor)
-	page.formHeading = formHeading
-
-	local formHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
-	formHint:SetPoint("TOPLEFT", formHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
-	formHint:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
-	formHint:SetJustifyH("LEFT")
-	formHint:SetText(W.T("SETTINGS_REPORT_FORM_HINT"))
-	page.formHint = formHint
-
-	local formAnchor = CreateReportFormRadios(page, formHint)
-
-	local tipHeading = CreateSettingsHeading(page, "SETTINGS_TOOLTIP", formAnchor)
+	local tipHeading = CreateSettingsHeading(page, "SETTINGS_TOOLTIP", startupAnchor)
 	page.tipHeading = tipHeading
 
 	local tipHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
@@ -640,6 +406,9 @@ local function ApplySettingsLocale(page)
 	if not page then
 		return
 	end
+	if page.themeHeading then
+		page.themeHeading:SetText(W.T("SETTINGS_THEME"))
+	end
 	if page.themeButton then
 		page.themeButton.label:SetText(W.T(Addon:GetTheme() == "light" and "SETTINGS_THEME_LIGHT" or "SETTINGS_THEME_DARK"))
 	end
@@ -669,34 +438,6 @@ local function ApplySettingsLocale(page)
 			end
 		end
 	end
-	if page.reportHeading then
-		page.reportHeading:SetText(W.T("SETTINGS_REPORT_CHANNEL"))
-	end
-	if page.reportHint then
-		page.reportHint:SetText(W.T("SETTINGS_REPORT_CHANNEL_HINT"))
-	end
-	if page.reportChannelRadios then
-		for index = 1, #page.reportChannelRadios do
-			local radio = page.reportChannelRadios[index]
-			if radio.label and radio.labelKey then
-				radio.label:SetText(W.T(radio.labelKey))
-			end
-		end
-	end
-	if page.formHeading then
-		page.formHeading:SetText(W.T("SETTINGS_REPORT_FORM"))
-	end
-	if page.formHint then
-		page.formHint:SetText(W.T("SETTINGS_REPORT_FORM_HINT"))
-	end
-	if page.reportFormRadios then
-		for index = 1, #page.reportFormRadios do
-			local radio = page.reportFormRadios[index]
-			if radio.label and radio.labelKey then
-				radio.label:SetText(W.T(radio.labelKey))
-			end
-		end
-	end
 	if page.tipHeading then
 		page.tipHeading:SetText(W.T("SETTINGS_TOOLTIP"))
 	end
@@ -720,8 +461,6 @@ local function ApplySettingsLocale(page)
 	end
 	UpdateLocaleButtons(page)
 	UpdateStartupRadios(page)
-	UpdateReportChannelRadios(page)
-	UpdateReportFormRadios(page)
 	RefreshTooltipPreviews(page)
 end
 
@@ -731,7 +470,5 @@ Addon.Pages.Settings = {
 	Create = CreateSettingsPage,
 	UpdateLocaleButtons = UpdateLocaleButtons,
 	UpdateStartupRadios = UpdateStartupRadios,
-	UpdateReportChannelRadios = UpdateReportChannelRadios,
-	UpdateReportFormRadios = UpdateReportFormRadios,
 	ApplyLocale = ApplySettingsLocale,
 }

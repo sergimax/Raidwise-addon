@@ -75,12 +75,15 @@ local function IsGearVerdictLabel(label)
 end
 
 local function GearStatusLabelForEntry(entry)
+	if not entry then
+		return W.T("RAID_CELL_NOT_SCANNED")
+	end
 	local failLabel = Addon.GetGearCheckRaidEntryStatusLabel and Addon:GetGearCheckRaidEntryStatusLabel(entry)
 	if failLabel then
 		return failLabel
 	end
 	if not entry or not entry.report then
-		return W.T("GEAR_CHECK_RAID_NOT_SCANNED")
+		return W.T("RAID_CELL_NOT_SCANNED")
 	end
 	local overall = entry.report.overall or {}
 	return overall.status or "B"
@@ -1316,7 +1319,7 @@ local function FillGearReportRows(cell, member, entry)
 			cell.gradesText:SetText(W.WrapGearGradation(statusLabel))
 			W.SetFontColor(cell.gradesText, UI.TEXT_IDLE)
 		else
-			W.SetFontColor(cell.gradesText, UI.TEXT_DISABLED)
+			W.SetFontColor(cell.gradesText, UI.GOLD)
 		end
 		if cell.gearBtn then
 			cell.gearBtn:Disable()
@@ -1359,8 +1362,20 @@ local function FillRaidConsumableIcons(cell, member)
 end
 
 local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
+	local offline = member and member.unit and UnitIsConnected and not UnitIsConnected(member.unit)
+	local unscanned = member and not (gearEntry and gearEntry.report)
+	if offline then
+		stripe = UI.BTN_DISABLED
+	elseif unscanned then
+		stripe = UI.BTN_SELECTED
+	end
 	cell.stripe = stripe
 	W.SetBackdropColor(cell, stripe)
+	-- Cells are reused as the roster changes; restore icons when a player reconnects.
+	for _, icon in ipairs({ cell.classIcon, cell.roleIcon, cell.specIcon }) do
+		icon:SetDesaturated(offline and true or false)
+		icon:SetAlpha(offline and 0.5 or 1)
+	end
 
 	if not member then
 		cell.member = nil
@@ -1391,6 +1406,9 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	cell:EnableMouse(true)
 	cell.nameText:SetText(member.name or "")
 	cell.nameText:SetTextColor(W.ClassColor(member.class))
+	if offline then
+		W.SetFontColor(cell.nameText, UI.TEXT_DISABLED)
+	end
 	W.SetSpecOrClassIcon(cell.classIcon, nil, member.class)
 	cell.classIconHost:Show()
 
@@ -1414,7 +1432,10 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 
 	local stats = FormatRaidStatsLine(member.gearScore, member.averageIlvl)
 	cell.statsText:SetText(stats)
-	if member.gearScore then
+	if offline then
+		cell.statsText:SetText(W.T("RAID_CONSUMABLE_OFFLINE"))
+		W.SetFontColor(cell.statsText, UI.TEXT_DISABLED)
+	elseif member.gearScore then
 		W.SetFontColor(cell.statsText, UI.GOLD)
 	else
 		W.SetFontColor(cell.statsText, UI.TEXT_IDLE)

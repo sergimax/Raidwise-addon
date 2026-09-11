@@ -170,3 +170,7 @@ One Replenishment source covers 10 people; 25-man raids usually want two.
 - Blessings and totems are “can provide”, not “currently assigned on this subgroup”.
 - Party (5) and raid (40) both feed the same checklist; solo shows only your own rows as present.
 - Rows marked **hidden** (self-targeted defensives, Sacred Shield, Intervene, Shadowfiend, Gift of the Naaru) are not shown in the tab.
+
+Report tooltips preview the same message used by the Report button and Shift-click effect rows. The preview is omitted when no report message can be built.
+
+Composition effect reports use native spell links when GetSpellLink resolves them, with plain spell names as fallback. Reports and previews share the same text. Each effect report stays within 255 bytes by omitting whole trailing sources and adding (+N); it never splits link markup or sends continuation messages. Native links open spell tooltips on click; hover behavior depends on the chat UI (for example, ElvUI hyperlink hover).
