@@ -5,7 +5,7 @@ import { Lua } from "wasmoon-lua5.1";
 
 const modules = [
   "GearCheckCatalog", "GearCheckSets", "GearCheckTrinkets",
-  "GearCheckProfiles", "GearCheckBis", "GearCheckRules", "GearCheck", "ChatReports", "GearCheckReports",
+  "GearCheckProfiles", "GearCheckBis", "GearCheckRules", "GearCheck", "ChatReports", "GearCheckReports", "GearCheckDump",
 ];
 
 test("final report messages preserve UTF-8, links, and preview/send equality", async () => {

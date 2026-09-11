@@ -168,8 +168,9 @@ Raidwise/
   GearCheckBis.lua    # generated spec BiS item-ID sets (S grade)
   GearCheckRules.lua  # findings + verdicts + overall + offline self-test
   GearCheckSavedReports.lua # manual save / load / prune (~14 days)
-  GearCheck.lua       # collector + normalize (schemaVersion 3) + evaluate + dump
+  GearCheck.lua       # collection, normalization (schemaVersion 3), and scan orchestration
   GearCheckReports.lua # gear report formatting and final messages
+  GearCheckDump.lua    # text dumps and asynchronous raid export jobs
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
   PageRaid.lua        # Raid roster tab

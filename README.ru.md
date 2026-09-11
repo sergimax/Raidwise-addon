@@ -171,6 +171,7 @@ Raidwise/
   GearCheckSavedReports.lua # ручное сохранение / загрузка / очистка (~14 дней)
   GearCheck.lua       # сбор и нормализация Gear Check (schemaVersion 3)
   GearCheckReports.lua # gear report formatting and final messages
+  GearCheckDump.lua    # text dumps and asynchronous raid export jobs
   PageCooldowns.lua   # вкладка Character cooldowns
   PageExport.lua      # вкладка Export gear and CDs
   PageRaid.lua        # вкладка Raid roster

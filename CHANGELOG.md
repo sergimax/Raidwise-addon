@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Isolated Gear check text dump formatting and asynchronous raid export jobs in a dedicated module; export output, progress, and cancellation behavior are preserved.
 - Gear check reports use the shared chat sender, including its throttle for unavailable-channel warnings.
 
 ### Fixed

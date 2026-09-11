@@ -43,6 +43,16 @@ Check in the test files, `package.json`, and `package-lock.json`; ignore
 folder. Offline tests cannot validate WoW's inspect event timing or real tooltip
 behavior: follow collector changes with an in-game rescan.
 
+## Dump extraction (phase 3)
+
+`GearCheckDump.lua` owns target/raid dump formatting, name resolution for dump
+details, and asynchronous raid export jobs. Public methods and output are
+unchanged. `dump.test.mts` covers synchronous/asynchronous output equality,
+one-entry-per-frame progress, overlapping job rejection, completion cleanup,
+cancellation exactly once, restart, empty results, and routing to the raid export
+view or target text view. These checks passed before and after extraction.
+Frame rendering and clipboard interaction still require an in-game check.
+
 ## Report preparation (phase 2)
 
 `ChatReports.lua` owns final network-message preparation (255 UTF-8 bytes,
