@@ -549,7 +549,7 @@ local function ShowChatReportTooltip(owner, tipKey, messages)
 	GameTooltip:AddLine(W.T("RAID_CHAT_PREVIEW"), 0.6, 0.6, 0.6)
 	if type(messages) == "table" then
 		for index = 1, #messages do
-			GameTooltip:AddLine(messages[index], 1, 1, 1, true)
+			GameTooltip:AddLine(Addon:PrepareReportMessage(messages[index]), 1, 1, 1, true)
 		end
 	end
 	GameTooltip:Show()

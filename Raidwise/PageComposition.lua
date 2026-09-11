@@ -120,7 +120,7 @@ local function AddChatPreview(message)
 	end
 	GameTooltip:AddLine(" ")
 	GameTooltip:AddLine(W.T("RAID_CHAT_PREVIEW"), 0.6, 0.6, 0.6)
-	GameTooltip:AddLine(message, 1, 1, 1, true)
+	GameTooltip:AddLine(Addon:PrepareReportMessage(message), 1, 1, 1, true)
 end
 
 local function LayoutCompositionScrollBars(page)

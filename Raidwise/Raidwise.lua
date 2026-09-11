@@ -113,18 +113,7 @@ local REPORT_CHANNEL_IDS = {
 	say = true,
 }
 
-local CHAT_SEND_MAX = 255
 local lastUnavailableWarnAt = 0
-
-local function TruncateChatMessage(message)
-	if type(message) ~= "string" then
-		return ""
-	end
-	if string.len(message) <= CHAT_SEND_MAX then
-		return message
-	end
-	return string.sub(message, 1, CHAT_SEND_MAX - 3) .. "..."
-end
 
 local function IsInRaidGroup()
 	return ((GetNumRaidMembers and GetNumRaidMembers()) or 0) > 0
@@ -221,7 +210,7 @@ function Addon:SendReportChat(message)
 	end
 	local chatType, reason = self:ResolveReportChatType()
 	if chatType then
-		SendChatMessage(TruncateChatMessage(message), chatType)
+		SendChatMessage(self:PrepareReportMessage(message), chatType)
 		return
 	end
 	if reason == "unavailable" then

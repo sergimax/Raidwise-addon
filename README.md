@@ -150,6 +150,7 @@ Raidwise/
   Raidwise.toc        # addon metadata (Interface 30300)
   Raidwise.lua        # entry point, events, slash commands
   Locale.lua          # English / Russian UI strings and language switch
+  ChatReports.lua     # shared final chat message preparation
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
   PartyRoster.lua     # party / raid member stats for roster views
@@ -168,6 +169,7 @@ Raidwise/
   GearCheckRules.lua  # findings + verdicts + overall + offline self-test
   GearCheckSavedReports.lua # manual save / load / prune (~14 days)
   GearCheck.lua       # collector + normalize (schemaVersion 3) + evaluate + dump
+  GearCheckReports.lua # gear report formatting and final messages
   PageCooldowns.lua   # Character cooldowns tab
   PageExport.lua      # Export gear and CDs tab
   PageRaid.lua        # Raid roster tab

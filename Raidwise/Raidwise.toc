@@ -10,6 +10,7 @@
 
 Raidwise.lua
 Locale.lua
+ChatReports.lua
 CharacterExport.lua
 CharacterLockouts.lua
 PartyRoster.lua
@@ -27,6 +28,7 @@ GearCheckBis.lua
 GearCheckRules.lua
 GearCheckSavedReports.lua
 GearCheck.lua
+GearCheckReports.lua
 PageCooldowns.lua
 PageExport.lua
 PageRaid.lua

@@ -43,6 +43,21 @@ Check in the test files, `package.json`, and `package-lock.json`; ignore
 folder. Offline tests cannot validate WoW's inspect event timing or real tooltip
 behavior: follow collector changes with an in-game rescan.
 
+## Report preparation (phase 2)
+
+`ChatReports.lua` owns final network-message preparation (255 UTF-8 bytes,
+complete hyperlinks, and color resets). Self/unavailable-channel output remains
+untruncated. `GearCheckReports.lua` owns gear report formatting; the existing
+formatting APIs remain available, and `BuildGearCheckChatMessages` supplies the
+final messages used by target previews and sending. Roster and composition
+previews use the same finalizer as `SendReportChat`.
+
+The final-message regression loads the real transport and verifies Cyrillic,
+whole spell links, all gear report modes in Short/Full form, and local/network
+preview equality. Existing grouping and composition tests remain in place.
+Messages still send immediately; this phase adds no queue or pacing. Gear reports
+now share the transport's existing unavailable-channel warning throttle.
+
 ## Scan refactoring baseline (phase 1)
 
 `scan.test.mts` loads the real `GearCheck.lua` scheduler into an isolated Lua 5.1

@@ -151,6 +151,7 @@ Raidwise/
   Raidwise.toc        # метаданные аддона (Interface 30300)
   Raidwise.lua        # точка входа, события, слэш-команды
   Locale.lua          # строки интерфейса EN/RU и переключение языка
+  ChatReports.lua     # shared final chat message preparation
   CharacterExport.lua # JSON-экспорт персонажа (экипировка, сумки, КД)
   CharacterLockouts.lua # снимки КД аккаунта для таблицы кулдаунов
   PartyRoster.lua     # статы участников группы / рейда
@@ -169,6 +170,7 @@ Raidwise/
   GearCheckRules.lua  # находки + вердикты + итог + офлайн self-test
   GearCheckSavedReports.lua # ручное сохранение / загрузка / очистка (~14 дней)
   GearCheck.lua       # сбор и нормализация Gear Check (schemaVersion 3)
+  GearCheckReports.lua # gear report formatting and final messages
   PageCooldowns.lua   # вкладка Character cooldowns
   PageExport.lua      # вкладка Export gear and CDs
   PageRaid.lua        # вкладка Raid roster
