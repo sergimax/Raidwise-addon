@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.21.0] - 2026-09-11
+
+### Added
+- Chat-colored report channel radios in the shared header on Raid roster, Raid composition, and Gear check (target); Short / Full radios on Gear check (target).
+- Icons and chat previews on Gear check report buttons, plus report previews in Raid composition.
+- Clickable spell links in Raid composition effect reports; sources are compacted into one message within the 255-byte chat limit.
+- Missing Northrend gems, including 72 Perfect cuts, eight vendor meta gems, Enchanted Tear, Enchanted Pearl, and Kharmaa's Grace.
+
+### Changed
+- Reports use compact `[Rw]`, `[Rw]-gear`, and `[Rw]-raid` prefixes; personal raid reports identify their Gear or Enchants/Gems category.
+- Gear summaries show counts for every S / A / B / C / D grade; gem reports group warnings by theme and affected slots without gem IDs.
+- Offline raid cards are muted, while unscanned players have highlighted cards and a clear Not scanned label.
+- Theme selection has its own Settings category; report channel and form controls have moved to the header.
+- Personal opinion chat marks use white brackets around mint, lavender, or coral `<Rw>` text, preserving the message's channel color.
+
+### Fixed
+- Meta summaries distinguish absent, inactive, and uncheckable gems from confirmed active gems; corrected Northrend meta activation requirements and stats.
+- Corrected legacy gem identification and Subtle Dragon's Eye color while retaining existing gem grading rules.
+- Precision (+20 hit rating) glove enchants are recognized, and Sphere of Red Dragon's Blood and Darkmoon Card: Death are accepted as B-grade starter physical DPS trinkets.
+
 ## [1.20.0] - 2026-09-09
 
 ### Added

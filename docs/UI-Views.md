@@ -170,7 +170,7 @@ Wowhead-style checklist of the current party or raid: who is needed, and which e
 | Block | In-game text / control |
 |-------|------------------------|
 | short description | “Who is needed, and which raid buffs, debuffs, and utility are already covered.” |
-| Report missing | Posts absent classes to raid chat (or party); all present → short “all classes present” line (hover tip) |
+| Report missing | Posts absent classes to the selected header report channel; all present → short “all classes present” line (hover tip) |
 | Refresh | Re-reads the current group (same inspect/GearScore path as Raid roster) (hover tip) |
 | Roles | Left of top band: role icon + count; tooltip = role name + who / Missing |
 | Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |

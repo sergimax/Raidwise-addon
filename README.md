@@ -74,15 +74,17 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 - Detected specialization icons and counts appear beneath each class; hover lists the players
 - Top band: **Roles** and all 10 **Classes** with counts; then sections: Aggro, buffs, external buffs, damage reduction, debuffs, mana regeneration, health regeneration
 - Gold rows are covered; dim rows are missing. Section titles show present/total (red when nothing in the section is present)
-- Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to the report chat channel (Settings)
-- **Report missing** posts absent classes to the report chat channel (Settings); **Refresh** re-reads the group (same inspect path as Raid roster)
+- Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to the report chat channel (header)
+- **Report missing** posts absent classes to the report chat channel (header); **Refresh** re-reads the group (same inspect path as Raid roster)
 - Full tracking list: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
+- Reports preview their output; effect reports include clickable spell links and fit one 255-byte chat message.
 
 **Gear check (target)** tab:
 
 - **Scan** evaluates target or self (Overall S / A / B / C / D, class/spec icons, GS/iLvl, findings by filter: All / Items / Enchants / Gems / B)
 - Spec ranks: **preferred** / **acceptable** / **unwanted** / **forbidden** (map to A / B / C / D). **S** = equipped item ID is on published BiS lists for that spec (not a unique pick)
-- **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to the **report chat channel** (Settings; default Auto = raid/party)
+- **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to the **report chat channel** (header; default Auto = raid/party)
+- Report buttons show icons and previews; summaries list all grade counts, and gem reports group warnings by theme without gem IDs.
 - **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
 - **Character profile** opens the scanned player's profile; target scans also record that player in History
 - Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
@@ -104,17 +106,21 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 - On **Events**, pick a type by category (**Attendance**, **Loot**, **Help**, **Behavior** — each with an icon) and **Add event** / **Remove** (draft until **Save and Update**; context captured when adding). Joining a party or raid also logs **In the same party** when the meet count goes up (first meet, or ≥30 minutes since last seen)
 - On **Memo**, write a private free-form note with **Save** / **Reset** (not shared, not logged in History)
 - Raid and History show your saved opinion and tag summary; click a row or card to open the profile
-- Chat messages from players with saved opinions receive a `[Rw]` marker with white brackets and mint (positive), lavender (neutral), or coral (negative) text; the message keeps its channel color
+- Chat messages from players with saved opinions receive a `<Rw>` marker with white brackets and mint (positive), lavender (neutral), or coral (negative) text; the message keeps its channel color
 - **Community note** is currently a mock preview for a future addon exchange / web app feature
+
+Report controls in the shared header:
+
+- **Report chat channel**: where Raid roster, Composition, and Gear check reports are posted (`RaidwiseDB.reportChannel`; default Auto = raid in a raid, party in a party)
+- **Gear check report form**: Short (default, fewer chat lines) or Full detailed wording (`RaidwiseDB.reportForm`)
+- Channel radios appear only on Raid roster, Raid composition, and Gear check (target); Short / Full appears only on Gear check (target). Channel labels use chat colors.
 
 **Settings** tab:
 
 - Interface language: **English** or **Русский**
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
-- **Theme**: switch between light and dark; saved per account in `RaidwiseDB.theme`
+- **Theme** category: switch between light and dark; saved per account in `RaidwiseDB.theme`
 - **Startup page**: which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns; **Info** cannot be selected)
-- **Report chat channel**: where Raid roster, Composition, and Gear check reports are posted (`RaidwiseDB.reportChannel`; default Auto = raid in a raid, party in a party)
-- **Gear check report form**: Short (default, fewer chat lines) or Full detailed wording (`RaidwiseDB.reportForm`)
 - Unit tooltip toggles: hide personal opinion / personal tags / community rating / community tags (`RaidwiseDB.tooltip`)
 - Preview of compact (live) and stacked tooltip layouts
 
