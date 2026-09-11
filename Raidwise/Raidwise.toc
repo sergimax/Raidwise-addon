@@ -27,7 +27,11 @@ GearCheckTrinkets.lua
 GearCheckProfiles.lua
 GearCheckBis.lua
 GearCheckRules.lua
+GearCheckGrades.lua
+GearCheckExplanations.lua
+GearCheckSelfTest.lua
 GearCheckSavedReports.lua
+GearCheckCollector.lua
 GearCheck.lua
 GearCheckReports.lua
 GearCheckDump.lua

@@ -43,6 +43,29 @@ Check in the test files, `package.json`, and `package-lock.json`; ignore
 folder. Offline tests cannot validate WoW's inspect event timing or real tooltip
 behavior: follow collector changes with an in-game rescan.
 
+## Gear pipeline separation (phase 5)
+
+- `GearCheckCollector.lua`: item/gem reads and normalization; accepts inspect
+  readiness explicitly through `CollectGearCheckObservation(unit, inspectReady)`.
+  It returns a snapshot without evaluating it or replacing the last report.
+- `GearCheck.lua`: request orchestration and last-report state. The existing
+  `CollectGearCheck` entry point supplies readiness and retains the snapshot.
+- `GearCheckRules.lua`: findings, meta activation, and set counts; its existing
+  `EvaluateGearCheck` entry point then invokes grade aggregation.
+- `GearCheckGrades.lua`: per-slot, category, and overall grades.
+- `GearCheckExplanations.lua`: category tooltip lines and B-grade explanations.
+- `GearCheckSelfTest.lua`: the same rule fixtures for offline tests and the
+  unchanged `/rw gearcheck test` command; it remains shipped in the TOC.
+
+`Raidwise.GearCheckPolicy` is internal shared eligibility policy, not saved state.
+Rules populate it before grades, and grades before explanations. This prevents
+display explanations from duplicating the rules that determine eligibility.
+
+The boundary regression asserts collection does not evaluate and exercises all
+rule fixtures with live item/talent/identity APIs disabled. Existing gem tests
+retain unknown/missing socket and meta coverage. No schema, grade semantics,
+scan timing, UI geometry, or SavedVariables keys change in phase 5.
+
 ## Dump extraction (phase 3)
 
 `GearCheckDump.lua` owns target/raid dump formatting, name resolution for dump

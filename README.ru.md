@@ -169,6 +169,10 @@ Raidwise/
   GearCheckProfiles.lua # профили классов + 30 спеков
   GearCheckBis.lua    # сгенерированные BiS item ID по спеку (оценка S)
   GearCheckRules.lua  # находки + вердикты + итог + офлайн self-test
+  GearCheckGrades.lua # slot, category, and overall grades
+  GearCheckExplanations.lua # category tooltips and grade explanations
+  GearCheckSelfTest.lua # offline and in-game rule fixtures
+  GearCheckCollector.lua # item/gem reads and normalized snapshots
   GearCheckSavedReports.lua # ручное сохранение / загрузка / очистка (~14 дней)
   GearCheck.lua       # сбор и нормализация Gear Check (schemaVersion 3)
   GearCheckReports.lua # gear report formatting and final messages

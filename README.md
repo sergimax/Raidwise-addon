@@ -168,6 +168,10 @@ Raidwise/
   GearCheckProfiles.lua # class + 30-spec Gear Check profiles
   GearCheckBis.lua    # generated spec BiS item-ID sets (S grade)
   GearCheckRules.lua  # findings + verdicts + overall + offline self-test
+  GearCheckGrades.lua # slot, category, and overall grades
+  GearCheckExplanations.lua # category tooltips and grade explanations
+  GearCheckSelfTest.lua # offline and in-game rule fixtures
+  GearCheckCollector.lua # item/gem reads and normalized snapshots
   GearCheckSavedReports.lua # manual save / load / prune (~14 days)
   GearCheck.lua       # collection, normalization (schemaVersion 3), and scan orchestration
   GearCheckReports.lua # gear report formatting and final messages

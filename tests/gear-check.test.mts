@@ -5,7 +5,7 @@ import { Lua } from "wasmoon-lua5.1";
 
 const modules = [
   "InspectCoordinator", "GearCheckCatalog", "GearCheckSets", "GearCheckTrinkets",
-  "GearCheckProfiles", "GearCheckBis", "GearCheckRules", "GearCheck", "ChatReports", "GearCheckReports", "GearCheckDump",
+  "GearCheckProfiles", "GearCheckBis", "GearCheckRules", "GearCheckGrades", "GearCheckExplanations", "GearCheckSelfTest", "GearCheckCollector", "GearCheck", "ChatReports", "GearCheckReports", "GearCheckDump",
 ];
 
 test("final report messages preserve UTF-8, links, and preview/send equality", async () => {
@@ -82,6 +82,34 @@ test("gear-check rule self-tests", async (context) => {
       return total
     `);
     context.diagnostic(`${count} Lua rule checks passed`);
+  });
+});
+
+test("collection orchestration and offline evaluation have explicit boundaries", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      local calls = 0
+      local snapshot = {character={classFile="WARRIOR",specTab=3,specKnown=true},equipment={}}
+      local evaluate = Raidwise.EvaluateGearCheck
+      Raidwise.EvaluateGearCheck = function() error("Collection invoked evaluation") end
+      UnitIsUnit = function(left,right) return left == right end
+      Raidwise.CollectGearCheckObservation = function(_,unit,ready)
+        calls = calls + 1
+        assert(unit == "player" and ready == true)
+        return snapshot
+      end
+      assert(Raidwise:CollectGearCheck("player") == snapshot and calls == 1)
+      assert(Raidwise:GetLastGearCheckReport() == snapshot)
+      Raidwise.EvaluateGearCheck = evaluate
+      local function forbidden() error("Evaluation read live WoW data") end
+      GetItemInfo=forbidden; GetItemStats=forbidden; GetItemGem=forbidden
+      UnitGUID=forbidden; UnitName=forbidden; UnitIsUnit=forbidden; GetTalentTabInfo=forbidden
+      Raidwise:EvaluateGearCheck(snapshot)
+      assert(snapshot.findings and snapshot.verdicts and snapshot.overall)
+      assert(type(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"gear",20)) == "table")
+      local results, passed, total = Raidwise:GearCheckRulesSelfTest()
+      assert(passed == total and #results == total)
+    `);
   });
 });
 
