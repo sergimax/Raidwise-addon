@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Gear check reports use the shared chat sender, including its throttle for unavailable-channel warnings.
+
+### Fixed
+- Report previews and sending use the same final message preparation, including prefixes and chat length limits.
+- Truncating network reports preserves complete UTF-8 characters and spell links, with color resets when needed; local reports remain untruncated.
+
 ## [1.21.0] - 2026-09-11
 
 ### Added
