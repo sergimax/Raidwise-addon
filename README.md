@@ -155,6 +155,7 @@ Raidwise/
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
   InspectCoordinator.lua # shared inspect ownership, identity, and deadlines
   PartyRoster.lua     # party / raid member stats for roster views
+  RosterRefresh.lua   # coalesced refreshes and shared per-pass roster snapshots
   RaidRoles.lua       # raid role and spec/race buff lookups
   RaidComposition.lua # party/raid buff, debuff, and utility coverage
   PlayerHistory.lua   # saved party/raid encounter list + personal ratings

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Coalesced roster refresh requests within a frame and shared each fresh roster snapshot with history and the visible roster/composition view, avoiding repeated collection and hidden-view redraws while inspect requests continue immediately.
 - Split theme handling and roster-specific widgets from generic UI controls, extracted named profile panel builders, and moved header report capabilities into page registrations; layouts are unchanged.
 - Separated profile draft editing, history storage and legacy migration, and rating presentation into dedicated modules; existing save/reset behavior and saved data formats are preserved.
 - Separated Gear check collection, finding evaluation, grade aggregation, explanations, and rule self-tests into focused modules; existing grading rules and `/rw gearcheck test` remain available.

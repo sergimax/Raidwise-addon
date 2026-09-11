@@ -319,9 +319,9 @@ function Addon:OnGuildInfoUpdated()
 		return
 	end
 	if frame.selectedTab == "raid" and self.RefreshRaidRosterView then
-		self:RefreshRaidRosterView(false)
+		self:ScheduleRosterRefresh(false)
 	elseif frame.selectedTab == "composition" and self.RefreshCompositionView then
-		self:RefreshCompositionView(false)
+		self:ScheduleRosterRefresh(false)
 	end
 end
 
@@ -332,7 +332,7 @@ function Addon:OnGroupRosterUpdated()
 		return
 	end
 	if self.RecordCurrentGroupHistory then
-		self:RecordCurrentGroupHistory(false)
+		self:ScheduleRosterRefresh(false)
 	end
 end
 

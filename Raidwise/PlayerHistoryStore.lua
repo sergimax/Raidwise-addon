@@ -434,15 +434,16 @@ function Addon:UpsertHistoryMember(member)
 	return entry
 end
 
-function Addon:RecordCurrentGroupHistory(refreshGearScore)
+function Addon:RecordCurrentGroupHistory(refreshGearScore, rosterSnapshot)
 	if not self.db then
 		return
 	end
 
 	local collect = self.CollectPartyMember or self.CollectRaidMember
 	for _, unit in ipairs(GroupHistoryUnits()) do
-		local member
-		if collect then
+		local member = rosterSnapshot and rosterSnapshot.byUnit[unit]
+		if member and member.guid ~= UnitGUID(unit) then member = nil end
+		if not member and collect then
 			local ok, snapshot = pcall(collect, self, unit, refreshGearScore)
 			if ok and type(snapshot) == "table" then
 				member = snapshot

@@ -15,6 +15,7 @@ CharacterExport.lua
 CharacterLockouts.lua
 InspectCoordinator.lua
 PartyRoster.lua
+RosterRefresh.lua
 RaidRoles.lua
 RaidComposition.lua
 PlayerHistory.lua

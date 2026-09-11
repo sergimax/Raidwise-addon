@@ -43,6 +43,28 @@ Check in the test files, `package.json`, and `package-lock.json`; ignore
 folder. Offline tests cannot validate WoW's inspect event timing or real tooltip
 behavior: follow collector changes with an in-game rescan.
 
+## Roster refresh coalescing (phase 8)
+
+`RosterRefresh.lua` collects one fresh `BuildRosterSnapshot` per scheduled pass.
+`ScheduleRosterRefresh` merges same-frame requests, retaining a forced GearScore
+refresh if any caller requests one. History and the visible raid/composition view
+receive that snapshot through optional arguments on their existing APIs. Direct
+calls without a snapshot continue collecting fresh data. Nothing is cached across
+passes; entering a view still requests fresh data.
+
+Roster inspect completion, group/guild updates, and gear-result view refreshes
+schedule rendering for the next frame. Inspect queue advancement is immediate;
+no inspect settling delay is introduced. History still records while the shell
+is hidden. Existing targeted consumable icon updates remain unchanged.
+
+`roster-refresh.test.mts` verifies that eleven merged requests collect two members
+exactly twice total (once per member), render one visible view once, and reuse
+the same members for history. It also verifies changed identities/data on the
+next pass, forced-refresh precedence, hidden-view behavior, and requests raised
+during rendering. Existing scan timing tests remain unchanged. These are offline
+call counts, not measured in-game CPU or raid-scan speed improvements; the manual
+timing protocol below remains pending. No speculative per-card diffing is added.
+
 ## UI composition (phase 7)
 
 `UITheme.lua` initializes stable theme/color tables and color/text bindings.

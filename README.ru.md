@@ -156,6 +156,7 @@ Raidwise/
   CharacterLockouts.lua # снимки КД аккаунта для таблицы кулдаунов
   InspectCoordinator.lua # shared inspect ownership, identity, and deadlines
   PartyRoster.lua     # статы участников группы / рейда
+  RosterRefresh.lua   # coalesced refreshes and shared per-pass roster snapshots
   RaidRoles.lua       # роли и рейд-баффы по спеку / расе
   RaidComposition.lua # покрытие баффов, дебаффов и утилиты в группе / рейде
   PlayerHistory.lua   # список встреч + личные рейтинги
