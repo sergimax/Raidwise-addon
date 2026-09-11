@@ -137,17 +137,9 @@ local pendingCallback = nil
 local pendingInspectReady = false
 local pendingSpecRetry = false
 local pendingGemRetry = false
-local retryElapsed = 0
-local retryBudget = 0
 local lastReport = nil
 local raidQueue = nil
 local lastRaidResults = nil
-
-local retryFrame = CreateFrame("Frame")
-retryFrame:Hide()
-
-local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("INSPECT_TALENT_READY")
 
 local function AddGap(gaps, code, detail)
 	gaps[#gaps + 1] = { code = code, detail = detail }
@@ -1257,7 +1249,8 @@ local function ScanNextRaidMember()
 		local member = members[raidQueue.index]
 		raidQueue.index = raidQueue.index + 1
 		local unit = member and member.unit
-		if unit and UnitExists(unit) then
+		raidQueue.currentMember = member
+		if unit and UnitExists(unit) and (not member.guid or UnitGUID(unit) == member.guid) then
 			local connected = true
 			if type(UnitIsConnected) == "function" and not UnitIsUnit(unit, "player") then
 				connected = UnitIsConnected(unit)
@@ -1277,6 +1270,7 @@ local function ScanNextRaidMember()
 end
 
 local function FinishScan(report, status)
+	Addon:CompleteInspectRequest("gear")
 	if report then
 		report.scanStatus = status
 		if report.collection then
@@ -1291,9 +1285,6 @@ local function FinishScan(report, status)
 	pendingInspectReady = false
 	pendingSpecRetry = false
 	pendingGemRetry = false
-	retryFrame:Hide()
-	retryElapsed = 0
-	retryBudget = 0
 	if callback then
 		callback(report, status)
 	end
@@ -1356,77 +1347,25 @@ local function TryCollectPending(forceComplete)
 	if forceComplete then
 		if filled > 0 and not specKnown and not pendingSpecRetry then
 			pendingSpecRetry = true
-			retryBudget = retryBudget + 2.0
-			retryElapsed = 0
-			if type(NotifyInspect) == "function" then
-				pcall(NotifyInspect, pendingUnit)
-			end
+			pendingInspectReady = false
+			Addon:RetryInspectRequest("gear")
 			return
 		end
 		-- One more inspect pulse when gems still look stripped.
 		if filled > 0 and pendingInspectReady and not gemsReady and not pendingGemRetry then
 			pendingGemRetry = true
-			retryBudget = retryBudget + 2.0
-			retryElapsed = 0
-			if type(ClearInspectPlayer) == "function" then
-				pcall(ClearInspectPlayer)
-			end
-			if type(NotifyInspect) == "function" then
-				pcall(NotifyInspect, pendingUnit)
-			end
 			pendingInspectReady = false
+			Addon:RetryInspectRequest("gear")
 			return
 		end
-		FinalizeGearCheckReport(report, filled > 0 and specKnown)
-		if filled > 0 and not specKnown then
+		FinalizeGearCheckReport(report, filled > 0 and specKnown and pendingInspectReady and gemsReady)
+		if filled > 0 and (not specKnown or not pendingInspectReady or not gemsReady) then
 			FinishScan(report, "timeout")
 			return
 		end
 		FinishScan(report, filled > 0 and "ok" or "empty")
 	end
 end
-
-retryFrame:SetScript("OnUpdate", function(_, elapsed)
-	if not pendingUnit then
-		retryFrame:Hide()
-		return
-	end
-	retryElapsed = retryElapsed + elapsed
-	retryBudget = retryBudget - elapsed
-	if retryElapsed >= 0.25 then
-		retryElapsed = 0
-		TryCollectPending(false)
-		if not pendingUnit then
-			return
-		end
-	end
-	if retryBudget <= 0 then
-		TryCollectPending(true)
-		if pendingUnit then
-			local report = Addon:CollectGearCheck(pendingUnit)
-			if report and report.inspect then
-				report.inspect.complete = false
-				report.inspect.timedOut = true
-			end
-			FinalizeGearCheckReport(report, false)
-			FinishScan(report, "timeout")
-		end
-	end
-end)
-
-eventFrame:SetScript("OnEvent", function(_, event, unit)
-	if event ~= "INSPECT_TALENT_READY" then
-		return
-	end
-	if not pendingUnit then
-		return
-	end
-	if unit and type(UnitIsUnit) == "function" and not UnitIsUnit(unit, pendingUnit) then
-		return
-	end
-	pendingInspectReady = true
-	TryCollectPending(false)
-end)
 
 function Addon:StartGearCheckUnitScan(unit, callback)
 	if pendingUnit then
@@ -1460,25 +1399,30 @@ function Addon:StartGearCheckUnitScan(unit, callback)
 	pendingInspectReady = false
 	pendingSpecRetry = false
 	pendingGemRetry = false
-	retryElapsed = 0
-	retryBudget = 4.0
 	if Addon.ClearCachedSpecForUnit then
 		Addon:ClearCachedSpecForUnit(unit)
 	end
 	if Addon.ClearPartyInspectForGearCheck then
 		Addon:ClearPartyInspectForGearCheck()
 	end
-	if type(ClearInspectPlayer) == "function" then
-		pcall(ClearInspectPlayer)
-	end
-	if type(NotifyInspect) == "function" then
-		local ok = pcall(NotifyInspect, unit)
-		inspect.notified = ok and true or false
-	end
-	-- Do not collect until INSPECT_TALENT_READY — early GetTalentTabInfo is the previous unit.
-	if pendingUnit then
-		retryFrame:Show()
-	end
+	local started = self:StartInspectRequest("gear", unit, {
+		onReady = function() pendingInspectReady = true; TryCollectPending(false) end,
+		onPoll = function() TryCollectPending(false) end,
+		onTimeout = function() TryCollectPending(true) end,
+		onStop = function(status) FinishScan(nil, status) end,
+	})
+	if not started then FinishScan(nil, "cannot_inspect") end
+	return true
+end
+
+-- Cancel the active target or raid scan; completed raid entries are retained.
+function Addon:CancelGearCheckScan()
+	if not pendingUnit and not raidQueue then return false end
+	local queue = raidQueue
+	raidQueue = nil
+	if queue then lastRaidResults = queue.results end
+	self:CancelInspectRequest("gear")
+	if queue and queue.onComplete then queue.onComplete(queue.results, "cancelled") end
 	return true
 end
 

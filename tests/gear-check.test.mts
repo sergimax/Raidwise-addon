@@ -4,7 +4,7 @@ import test from "node:test";
 import { Lua } from "wasmoon-lua5.1";
 
 const modules = [
-  "GearCheckCatalog", "GearCheckSets", "GearCheckTrinkets",
+  "InspectCoordinator", "GearCheckCatalog", "GearCheckSets", "GearCheckTrinkets",
   "GearCheckProfiles", "GearCheckBis", "GearCheckRules", "GearCheck", "ChatReports", "GearCheckReports", "GearCheckDump",
 ];
 

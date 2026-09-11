@@ -312,11 +312,6 @@ function Addon:OnUpdateInstanceInfo()
 	end
 end
 
-function Addon:OnInspectTalentReadyEvent(_unit) -- _unit unused; event always routes to OnInspectTalentReady()
-	if self.OnInspectTalentReady then
-		self:OnInspectTalentReady()
-	end
-end
 
 function Addon:OnGuildInfoUpdated()
 	local frame = self.mainFrame
@@ -424,7 +419,6 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("UPDATE_INSTANCE_INFO")
-frame:RegisterEvent("INSPECT_TALENT_READY")
 frame:RegisterEvent("PLAYER_GUILD_UPDATE")
 frame:RegisterEvent("GUILD_ROSTER_UPDATE")
 frame:RegisterEvent("PARTY_MEMBERS_CHANGED")
@@ -443,8 +437,6 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnPlayerEnteringWorld()
 	elseif event == "UPDATE_INSTANCE_INFO" then
 		Addon:OnUpdateInstanceInfo()
-	elseif event == "INSPECT_TALENT_READY" then
-		Addon:OnInspectTalentReadyEvent(arg1)
 	elseif event == "PLAYER_GUILD_UPDATE" or event == "GUILD_ROSTER_UPDATE" then
 		Addon:OnGuildInfoUpdated()
 	elseif event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then

@@ -153,6 +153,7 @@ Raidwise/
   ChatReports.lua     # shared final chat message preparation
   CharacterExport.lua # character JSON export (gear, bags, lockouts)
   CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
+  InspectCoordinator.lua # shared inspect ownership, identity, and deadlines
   PartyRoster.lua     # party / raid member stats for roster views
   RaidRoles.lua       # raid role and spec/race buff lookups
   RaidComposition.lua # party/raid buff, debuff, and utility coverage

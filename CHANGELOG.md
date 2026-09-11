@@ -8,10 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Roster and Gear check scans share inspect ownership and request deadlines; stalled roster inspects release the queue after four seconds.
 - Isolated Gear check text dump formatting and asynchronous raid export jobs in a dedicated module; export output, progress, and cancellation behavior are preserved.
 - Gear check reports use the shared chat sender, including its throttle for unavailable-channel warnings.
 
 ### Fixed
+- Gear scans reject targets whose GUID changes during the request, and raid scans skip queued members whose unit token now identifies someone else.
+- Spec and gem inspect retries receive their additional two-second budget instead of immediately timing out; unresolved scans retain incomplete status.
 - Report previews and sending use the same final message preparation, including prefixes and chat length limits.
 - Truncating network reports preserves complete UTF-8 characters and spell links, with color resets when needed; local reports remain untruncated.
 

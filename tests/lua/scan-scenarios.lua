@@ -71,11 +71,47 @@ function RunScanScenario(scenario)
         runtime:Ready("raid2")
         assert(#results == 2 and results[1].report.character.guid == "A" and results[2].report.character.guid == "B")
         assert(runtime.elapsed == 0.5 and resumed == 1 and not Raidwise:IsGearCheckScanBusy())
+    elseif scenario == "queued-identity" then
+        function Raidwise:CompositionMembers() return {{unit="raid1",guid="A"},{unit="raid2",guid="B"}} end
+        local results
+        assert(Raidwise:StartGearCheckRaidScan(nil,function(entries) results=entries end))
+        runtime.identities.raid2 = "C"
+        runtime:Ready("raid1")
+        assert(#results == 2 and results[2].status == "skipped" and results[2].member.guid == "B")
+        assert(#runtime.notifications == 1 and not Raidwise:IsGearCheckScanBusy())
+    elseif scenario == "retry-exhaustion" then
+        specKnown = false
+        assert(start()); runtime:Ready()
+        for index=1,24 do runtime:Tick(0.25) end
+        assert(#completed == 1 and completed[1].status == "timeout" and completed[1].at == 6)
+        assert(completed[1].report.inspect.complete == false and not Raidwise:IsGearCheckScanBusy())
+    elseif scenario == "cancel" then
+        assert(start())
+        assert(Raidwise:CancelGearCheckScan())
+        assert(#completed == 1 and completed[1].status == "cancelled")
+        assert(not Raidwise:CancelGearCheckScan())
+        runtime:Ready(); runtime:Tick(10)
+        assert(#completed == 1 and not Raidwise:IsGearCheckScanBusy())
+        assert(start()); runtime:Ready()
+        assert(#completed == 2 and completed[2].status == "ok")
+    elseif scenario == "cancel-raid" then
+        function Raidwise:CompositionMembers() return {{unit="raid1"},{unit="raid2"}} end
+        local calls = 0
+        assert(Raidwise:StartGearCheckRaidScan(nil, function(results, status)
+            calls = calls + 1
+            assert(status == "cancelled" and #results == 1)
+        end))
+        runtime:Ready("raid1")
+        assert(Raidwise:CancelGearCheckScan())
+        runtime:Ready("raid2"); runtime:Tick(10)
+        assert(calls == 1 and #Raidwise:GetLastGearCheckRaidResults() == 1)
+        assert(not Raidwise:IsGearCheckScanBusy() and resumed == 1)
     elseif scenario == "identity" then
         assert(start())
         runtime.identities.target = "B"
         runtime:Ready()
-        assert(#completed == 0 or completed[1].status ~= "ok", "Reassigned target accepted as successful original request")
+        assert(#completed == 1 and completed[1].status == "unit_changed")
+        assert(not Raidwise:IsGearCheckScanBusy())
     elseif scenario == "spec-retry" or scenario == "gem-retry" then
         specKnown = scenario ~= "spec-retry"
         uncertain = scenario == "gem-retry"

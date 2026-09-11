@@ -154,6 +154,7 @@ Raidwise/
   ChatReports.lua     # shared final chat message preparation
   CharacterExport.lua # JSON-экспорт персонажа (экипировка, сумки, КД)
   CharacterLockouts.lua # снимки КД аккаунта для таблицы кулдаунов
+  InspectCoordinator.lua # shared inspect ownership, identity, and deadlines
   PartyRoster.lua     # статы участников группы / рейда
   RaidRoles.lua       # роли и рейд-баффы по спеку / расе
   RaidComposition.lua # покрытие баффов, дебаффов и утилиты в группе / рейде
