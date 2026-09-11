@@ -441,84 +441,30 @@ local function CreateProfileTabButton(parent, tabId, label, width)
 	return button
 end
 
-local function CopyTagList(tags)
-	local copy = {}
-	if type(tags) ~= "table" then
-		return copy
-	end
-	for index = 1, #tags do
-		copy[index] = tags[index]
-	end
-	return copy
-end
+local CopyEventList = Addon.ProfileDraft.CopyEvents
+local SortEventsNewestFirst = Addon.ProfileDraft.SortEvents
 
-local function CopyEventList(events)
-	local copy = {}
-	if type(events) ~= "table" then
-		return copy
-	end
-	for index = 1, #events do
-		local event = events[index]
-		if type(event) == "table" then
-			local context = {}
-			if type(event.context) == "table" then
-				for key, value in pairs(event.context) do
-					context[key] = value
-				end
-			end
-			copy[#copy + 1] = {
-				id = event.id,
-				type = event.type,
-				creatorId = event.creatorId,
-				eventAt = event.eventAt,
-				context = context,
-			}
-		end
-	end
-	return copy
-end
-
-local function SortEventsNewestFirst(events)
-	local sorted = CopyEventList(events)
-	table.sort(sorted, function(left, right)
-		return (tonumber(left.eventAt) or 0) > (tonumber(right.eventAt) or 0)
-	end)
-	return sorted
+local function GetDraftState(frame)
+	if not frame.profileDraft then frame.profileDraft = Addon:CreateProfileDraft(frame.profileMember) end
+	return frame.profileDraft
 end
 
 local function InitProfileDraft(frame, member)
-	if not frame then
-		return
-	end
-	local personal = { opinion = "neutral", tags = {}, facts = {} }
-	if member and Addon.GetPersonalRating then
-		personal = Addon:GetPersonalRating(member)
-	end
-	frame.draftOpinion = personal.opinion or "neutral"
-	frame.draftTags = CopyTagList(personal.tags)
-	frame.draftFacts = CopyTagList(personal.facts)
-	local events = {}
-	if member and Addon.GetHistoryEvents then
-		events = Addon:GetHistoryEvents(member)
-	elseif member and type(member.events) == "table" then
-		events = member.events
-	end
-	frame.draftEvents = SortEventsNewestFirst(events)
-	frame.draftEventSeq = 0
+	if frame then frame.profileDraft = Addon:CreateProfileDraft(member) end
 end
 
 local function GetProfileDraft(frame)
 	if not frame then
 		return "neutral", {}, {}
 	end
-	return frame.draftOpinion or "neutral", frame.draftTags or {}, frame.draftFacts or {}
+	return GetDraftState(frame).draftOpinion or "neutral", GetDraftState(frame).draftTags or {}, GetDraftState(frame).draftFacts or {}
 end
 
 local function GetProfileDraftEvents(frame)
-	if not frame or type(frame.draftEvents) ~= "table" then
+	if not frame or type(GetDraftState(frame).draftEvents) ~= "table" then
 		return {}
 	end
-	return frame.draftEvents
+	return GetDraftState(frame).draftEvents
 end
 
 -- AceConfigDialog / Details radio pattern: exclusive SetChecked on the whole group.
@@ -639,7 +585,7 @@ local function ApplyOpinionChoice(opinionId)
 	if not frame then
 		return
 	end
-	frame.draftOpinion = opinionId
+	GetDraftState(frame).draftOpinion = opinionId
 	-- Draft only; CommitProfileRating (Save) persists. Header stays on saved values.
 	RefreshOpinionRadios(frame, opinionId)
 	PaintDraftEditorLabels(frame)
@@ -955,16 +901,16 @@ function Addon:SyncOpenProfileHistoryEvent(entry, event)
 	member.meetCount = entry.meetCount
 	member.changes = entry.changes
 	member.events = entry.events
-	if type(frame.draftEvents) == "table" then
+	if type(GetDraftState(frame).draftEvents) == "table" then
 		local already = false
-		for index = 1, #frame.draftEvents do
-			if frame.draftEvents[index].id == event.id then
+		for index = 1, #GetDraftState(frame).draftEvents do
+			if GetDraftState(frame).draftEvents[index].id == event.id then
 				already = true
 				break
 			end
 		end
 		if not already then
-			table.insert(frame.draftEvents, 1, event)
+			table.insert(GetDraftState(frame).draftEvents, 1, event)
 		end
 	end
 	UpdateProfileHistoryPanel(frame, member)
@@ -1207,37 +1153,8 @@ function Addon:ToggleProfileTag(tagId)
 	if not frame then
 		return
 	end
-	local opinion, draftTags, draftFacts = GetProfileDraft(frame)
-	local tag = self.RatingTagById and self:RatingTagById(tagId) or nil
-	local nextTags = {}
-	local seen = false
-	for index = 1, #draftTags do
-		local current = draftTags[index]
-		if current ~= tagId then
-			nextTags[#nextTags + 1] = current
-		else
-			seen = true
-		end
-	end
-	if not seen then
-		if tag and tag.groupId then
-			local selectedCount = 0
-			for index = 1, #draftTags do
-				local currentTag = self:RatingTagById(draftTags[index])
-				if currentTag and currentTag.groupId == tag.groupId then
-					selectedCount = selectedCount + 1
-				end
-			end
-			if selectedCount >= 3 then
-				self:Print(self:T("RATING_GROUP_LIMIT"))
-				return
-			end
-		end
-		nextTags[#nextTags + 1] = tagId
-	end
-	frame.draftTags = nextTags
-	frame.draftOpinion = opinion
-	frame.draftFacts = draftFacts
+	local ok, key, limit = self:ToggleProfileDraftTag(GetDraftState(frame), tagId)
+	if not ok then self:Print(self:T(key, limit)); return end
 	PaintDraftEditorLabels(frame)
 	if frame.tagGroups then
 		local member = frame.profileMember
@@ -1251,28 +1168,8 @@ function Addon:ToggleProfileFact(factId)
 	if not frame or not factId then
 		return
 	end
-	local opinion, draftTags, draftFacts = GetProfileDraft(frame)
-	local nextFacts = {}
-	local seen = false
-	for index = 1, #draftFacts do
-		local current = draftFacts[index]
-		if current ~= factId then
-			nextFacts[#nextFacts + 1] = current
-		else
-			seen = true
-		end
-	end
-	if not seen then
-		local maxFacts = (self.MaxPersonalFacts and self:MaxPersonalFacts()) or 4
-		if #draftFacts >= maxFacts then
-			self:Print(self:T("RATING_FACTS_LIMIT", maxFacts))
-			return
-		end
-		nextFacts[#nextFacts + 1] = factId
-	end
-	frame.draftFacts = nextFacts
-	frame.draftOpinion = opinion
-	frame.draftTags = draftTags
+	local ok, key, limit = self:ToggleProfileDraftFact(GetDraftState(frame), factId)
+	if not ok then self:Print(self:T(key, limit)); return end
 	if frame.factCheckboxes then
 		local member = frame.profileMember
 		local editable = member and member.guid and member.guid ~= ""
@@ -1314,25 +1211,7 @@ function Addon:AddProfileEvent(eventTypeId)
 	if not member or not member.guid or member.guid == "" or not eventTypeId then
 		return
 	end
-	if self.IsValidEventType and not self:IsValidEventType(eventTypeId) then
-		return
-	end
-	if type(frame.draftEvents) ~= "table" then
-		frame.draftEvents = {}
-	end
-	frame.draftEventSeq = (frame.draftEventSeq or 0) + 1
-	local creatorId = ""
-	if type(UnitGUID) == "function" then
-		creatorId = UnitGUID("player") or ""
-	end
-	local event = {
-		id = string.format("draft-%d-%d", time(), frame.draftEventSeq),
-		type = eventTypeId,
-		creatorId = creatorId,
-		eventAt = time(),
-		context = (self.CaptureEventContext and self:CaptureEventContext()) or {},
-	}
-	table.insert(frame.draftEvents, 1, event)
+	self:AddProfileDraftEvent(GetDraftState(frame), eventTypeId)
 	UpdateProfileEventsPanel(frame, member)
 end
 
@@ -1341,15 +1220,7 @@ function Addon:RemoveProfileEvent(eventId)
 	if not frame or not eventId or eventId == "" then
 		return
 	end
-	local draft = GetProfileDraftEvents(frame)
-	local nextEvents = {}
-	for index = 1, #draft do
-		local event = draft[index]
-		if type(event) == "table" and event.id ~= eventId then
-			nextEvents[#nextEvents + 1] = event
-		end
-	end
-	frame.draftEvents = nextEvents
+	self:RemoveProfileDraftEvent(GetDraftState(frame), eventId)
 	UpdateProfileEventsPanel(frame, frame.profileMember)
 end
 

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Separated profile draft editing, history storage and legacy migration, and rating presentation into dedicated modules; existing save/reset behavior and saved data formats are preserved.
 - Separated Gear check collection, finding evaluation, grade aggregation, explanations, and rule self-tests into focused modules; existing grading rules and `/rw gearcheck test` remain available.
 - Roster and Gear check scans share inspect ownership and request deadlines; stalled roster inspects release the queue after four seconds.
 - Isolated Gear check text dump formatting and asynchronous raid export jobs in a dedicated module; export output, progress, and cancellation behavior are preserved.

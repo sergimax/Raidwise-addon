@@ -158,6 +158,9 @@ Raidwise/
   RaidRoles.lua       # raid role and spec/race buff lookups
   RaidComposition.lua # party/raid buff, debuff, and utility coverage
   PlayerHistory.lua   # saved party/raid encounter list + personal ratings
+  PlayerHistoryStore.lua # history persistence and legacy migration
+  RatingPresentation.lua # rating labels, tooltips, and chat marks
+  ProfileDraft.lua    # plain profile draft editing model
   Minimap.lua         # draggable launcher and raid/lockout summary tooltip
   UnitTooltips.lua    # personal/community lines on player unit tooltips
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges

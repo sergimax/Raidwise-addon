@@ -159,6 +159,9 @@ Raidwise/
   RaidRoles.lua       # роли и рейд-баффы по спеку / расе
   RaidComposition.lua # покрытие баффов, дебаффов и утилиты в группе / рейде
   PlayerHistory.lua   # список встреч + личные рейтинги
+  PlayerHistoryStore.lua # history persistence and legacy migration
+  RatingPresentation.lua # rating labels, tooltips, and chat marks
+  ProfileDraft.lua    # plain profile draft editing model
   Minimap.lua         # кнопка миникарты и подсказка с готовностью рейда и КД
   UnitTooltips.lua    # строки личного/общественного рейтинга в подсказках
   UIWidgets.lua       # общие панели, кнопки, иконки, бейджи версии вёрстки

@@ -28,7 +28,7 @@ are not required.
 - `lua/wow-stubs.lua`: minimal offline WoW API substitutes.
 - `lua/gear-check-gems.lua`: gem ID, partial-read, cache, and meta regressions
   migrated from the Python harness without removing assertions.
-- `../Raidwise/GearCheckRules.lua`: the existing rule self-tests, also available
+- `../Raidwise/GearCheckSelfTest.lua`: the existing rule self-tests, also available
   in game through `/rw gearcheck test`.
 
 Add a named `test(...)` in the TypeScript runner for a new scenario. Use Node
@@ -42,6 +42,24 @@ Check in the test files, `package.json`, and `package-lock.json`; ignore
 `node_modules/`. These are development tools and are not shipped in the addon
 folder. Offline tests cannot validate WoW's inspect event timing or real tooltip
 behavior: follow collector changes with an in-game rescan.
+
+## Profile and history separation (phase 6)
+
+- `PlayerHistory.lua`: rating catalogs, normalization, and rating access.
+- `PlayerHistoryStore.lua`: history persistence, encounter recording, legacy
+  tag migration, events, and notes. Existing SavedVariables keys are unchanged.
+- `RatingPresentation.lua`: rating labels, tooltip formatting, and chat marks.
+- `ProfileDraft.lua`: plain draft creation/copying and tag, fact, and event edits.
+  UI frames hold this object as `profileDraft`; mutations do not save it.
+- `CharacterProfile.lua`: frames, rendering, and command wrappers that explicitly
+  persist drafts and refresh views. Notes keep their separate save/reset behavior.
+
+`history.test.mts` covers idempotent legacy migration, saved opinion/tags/facts,
+event context copies, notes persistence/reset, draft discard/reopen, tag limits,
+and real profile commit/add-event/notes command wrappers with a minimal frame.
+It does not validate visual layout or interaction with a running WoW client.
+In game, edit and close without saving, reopen, commit changes, switch players,
+and exercise Notes Save/Reset in both languages. No layout version is bumped.
 
 ## Gear pipeline separation (phase 5)
 

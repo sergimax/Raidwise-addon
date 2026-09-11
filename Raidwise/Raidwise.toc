@@ -18,6 +18,9 @@ PartyRoster.lua
 RaidRoles.lua
 RaidComposition.lua
 PlayerHistory.lua
+PlayerHistoryStore.lua
+RatingPresentation.lua
+ProfileDraft.lua
 UIWidgets.lua
 UnitTooltips.lua
 CharacterProfile.lua
