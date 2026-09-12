@@ -69,6 +69,17 @@ async function withAddon(run: (lua: Lua) => Promise<void>): Promise<void> {
   }
 }
 
+test("unavailable equipment cannot claim a clean scan", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      local report = {character={isSelf=false}, inspect={needed=true,complete=false}, equipment={}}
+      Raidwise:EvaluateGearCheck(report)
+      assert(report.overall.reason == "inspect_incomplete")
+      assert(report.overall.summary == "Inspect data is incomplete; grades are provisional.")
+    `);
+  });
+});
+
 test("gear-check rule self-tests", async (context) => {
   await withAddon(async (lua) => {
     const count = lua.doStringSync(`

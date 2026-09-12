@@ -629,6 +629,10 @@ function Addon:AggregateGearCheckOverall(report)
 		overall.summary = string.format("%d item(s) are A.", verdicts.a or 0)
 	end
 
+	if IsInspectIncomplete(report) then
+		overall.reason = "inspect_incomplete"
+		overall.summary = "Inspect data is incomplete; grades are provisional."
+	end
 	report.overall = overall
 	return overall
 end
