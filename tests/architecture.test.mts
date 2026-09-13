@@ -52,6 +52,38 @@ test("negative personal opinions color the whole chat body red and preserve chat
   `);
 });
 
+test("roster Gear targets the same character before navigation and native inspect avoids active scans", async () => {
+  await run(["PageGearCheckTarget"], `
+    Raidwise.UITheme={ACTION_BTN_H=28}
+    Raidwise.Widgets={T=function(key) return key end}
+  `, `
+    local target,combat,busy,opened,inspected=nil,false,false,0,0
+    function InCombatLockdown() return combat end
+    function UnitGUID(unit) return unit=="raid1" and "A" or target end
+    function UnitExists() return target~=nil end
+    function UnitIsPlayer() return true end
+    function CanInspect() return true end
+    function TargetUnit() error("Targeting must use the secure button action") end
+    function InspectUnit(unit) assert(unit=="target"); inspected=inspected+1 end
+    Raidwise.IsGearCheckScanBusy=function() return busy end
+    Raidwise.Print=function() end
+    Raidwise.OpenGearCheckTarget=function(self,scan) assert(target=="A" and scan); opened=opened+1 end
+    Raidwise.ShowGearCheckReport=function(self,report) assert(target==report.character.guid); opened=opened+1 end
+    local member={unit="raid1",guid="A"}
+    assert(not Raidwise:OpenRaidMemberGear(member) and opened==0)
+    target="A" -- secure target action runs before the navigation callback
+    assert(Raidwise:OpenRaidMemberGear(member) and opened==1)
+    assert(Raidwise:OpenRaidMemberGear(member,{report={character={guid="A"}}}) and opened==2)
+    assert(not Raidwise:OpenRaidMemberGear({unit="raid1",guid="B"}))
+    assert(Raidwise:OpenTargetInspection() and inspected==1)
+    busy=true
+    assert(not Raidwise:OpenTargetInspection() and not Raidwise:OpenRaidMemberGear(member))
+    busy=false; combat=true
+    assert(not Raidwise:OpenTargetInspection() and not Raidwise:OpenRaidMemberGear(member))
+    assert(opened==2 and inspected==1)
+  `);
+});
+
 test("diagnostic slash commands report missing modules and popup failures in local chat", async () => {
   await run(["Raidwise"], "SlashCmdList = {}", `
     local messages = {}

@@ -144,6 +144,9 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
+Layout v14 adds **Inspect target**, **220 x 28** px, between Scan and Character
+profile with a **4** px gap. The top block grows another **32** px.
+
 Layout v13 adds a **220 x 20** px scan progress bar above Scan with a **4** px
 gap. The top block grows by **24** px. It shows inspect/spec/gems/evaluation
 stages and elapsed seconds, not a completion percentage; retries can revisit

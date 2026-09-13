@@ -8,10 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Target check can open the game's inspection window. The roster Gear button targets the selected character before opening target check, and works without a previous report.
 - Target scans show a progress bar with the current scan stage and elapsed time; final status remains visible after scanning ends.
 - Scan dumps include inspect request/event counts and raw talent-read results for troubleshooting unknown specializations.
 
 ### Fixed
+- Roster Gear buttons use WoW's secure target action before opening target check, replacing the ordinary Lua targeting call that could leave the target unchanged.
 - Normalize numeric Wrath unit-match results to boolean inspect readiness so accepted inspect responses reach talent collection instead of leaving specialization unknown.
 - Invalid inspect talent-group and tab-count values fall back to group 1 and the three Wrath talent trees; empty talent data still remains unknown.
 - Inspect-ready events carrying the scanned character's GUID now complete the request instead of being ignored; unrelated character events remain rejected.
