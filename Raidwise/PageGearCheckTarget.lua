@@ -6,12 +6,12 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 12
+local LAYOUT_VERSION = 13
 
 local RIGHT_COL_W = 220
 local COL_GAP = 10
 local SUMMARY_H = 124
-local RIGHT_TOP_H = UI.ACTION_BTN_H * 4 + 16 + 44
+local RIGHT_TOP_H = UI.ACTION_BTN_H * 4 + 16 + 68
 local TOP_BLOCK_H = math.max(SUMMARY_H, RIGHT_TOP_H)
 
 local ApplyReportToPage
@@ -730,6 +730,10 @@ local function ApplyBreakdown(page, report)
 end
 
 ApplyReportToPage = function(page, report, status, savedEntry)
+	if page.scanProgress then
+		page.scanProgress:SetValue(status == "ok" and 1 or 0)
+		page.scanProgress:Hide()
+	end
 	if not page then
 		return
 	end
@@ -945,6 +949,36 @@ local function CreateGearCheckTargetPage(parent)
 	statusLabel:SetNonSpaceWrap(false)
 	statusLabel:SetText(W.T("GEAR_CHECK_HINT"))
 	page.statusLabel = statusLabel
+
+	local progress = CreateFrame("StatusBar", nil, rightTop)
+	progress:SetHeight(20)
+	progress:SetPoint("BOTTOMLEFT", scanBtn, "TOPLEFT", 0, 4)
+	progress:SetPoint("BOTTOMRIGHT", scanBtn, "TOPRIGHT", 0, 4)
+	progress:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+	progress:SetStatusBarColor(0.2, 0.65, 0.9)
+	progress:SetMinMaxValues(0, 1)
+	progress:SetValue(0)
+	local background = progress:CreateTexture(nil, "BACKGROUND")
+	background:SetAllPoints(progress)
+	background:SetTexture(0.1, 0.1, 0.1, 0.8)
+	local label = W.CreateFontString(progress, nil, "OVERLAY", "GameFontNormalSmall")
+	label:SetPoint("CENTER")
+	statusLabel:ClearAllPoints()
+	statusLabel:SetPoint("TOPLEFT", rightTop, "TOPLEFT", 0, -4)
+	statusLabel:SetPoint("BOTTOMRIGHT", progress, "TOPRIGHT", 0, -4)
+	page.scanProgress = progress
+	progress:Hide()
+	local stages = { inspect = 0.2, spec = 0.45, gems = 0.7, evaluate = 0.9 }
+	page:SetScript("OnUpdate", function()
+		local phase, elapsed = Addon:GetTargetScanProgress()
+		if not phase then
+			progress:Hide()
+			return
+		end
+		progress:SetValue(stages[phase] or 0.2)
+		label:SetText(W.T("GEAR_CHECK_RAID_PHASE_" .. string.upper(phase)) .. string.format(" — %.1fs", elapsed))
+		progress:Show()
+	end)
 
 	page.topBlockH = TOP_BLOCK_H
 

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Target scans show a progress bar with the current scan stage and elapsed time; final status remains visible after scanning ends.
 - Scan dumps include inspect request/event counts and raw talent-read results for troubleshooting unknown specializations.
 
 ### Fixed

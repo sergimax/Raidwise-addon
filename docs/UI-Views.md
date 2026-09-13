@@ -48,7 +48,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 30` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 9` | `PageComposition.lua` | Shell title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 12` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 13` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 15` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |

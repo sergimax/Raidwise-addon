@@ -2,6 +2,9 @@
 local Addon = Raidwise
 
 local pendingUnit = nil
+local pendingPhase = "inspect"
+local pendingStartedAt = 0
+
 local pendingCallback = nil
 local pendingInspectReady = false
 local pendingSpecRetry = false
@@ -9,6 +12,11 @@ local pendingGemRetry = false
 local lastReport = nil
 local raidQueue = nil
 local lastRaidResults = nil
+
+function Addon:GetTargetScanProgress()
+	if not pendingUnit or (raidQueue and raidQueue.active) then return end
+	return pendingPhase, type(GetTime) == "function" and (GetTime() - pendingStartedAt) or 0
+end
 
 function Addon:ResolveGearCheckUnit()
 	if UnitExists("target") and UnitIsPlayer("target") and not UnitIsUnit("target", "player") then
@@ -165,6 +173,7 @@ local function FinishRaidScan()
 end
 
 local function NotifyRaidScanLive(phase)
+	pendingPhase = phase
 	if not raidQueue or not raidQueue.onProgress then
 		return
 	end
@@ -376,6 +385,8 @@ function Addon:StartGearCheckUnitScan(unit, callback)
 	end
 
 	pendingUnit = unit
+	pendingPhase = "inspect"
+	pendingStartedAt = type(GetTime) == "function" and GetTime() or 0
 	pendingInspectReady = false
 	pendingSpecRetry = false
 	pendingGemRetry = false
