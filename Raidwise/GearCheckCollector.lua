@@ -978,7 +978,7 @@ function Addon:CollectGearCheckObservation(unit, inspectReady)
 		return nil
 	end
 
-	inspectReady = UnitIsUnit(unit, "player") or inspectReady == true
+	inspectReady = not not (UnitIsUnit(unit, "player") or inspectReady == true)
 	local name, realm = UnitName(unit)
 	local identity = CollectClassSpec(unit, inspectReady)
 	local equipment = {}

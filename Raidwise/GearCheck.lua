@@ -141,6 +141,8 @@ function Addon:CollectGearCheck(unit)
 	unit = unit or self:ResolveGearCheckUnit()
 	local inspectReady = unit and (UnitIsUnit(unit, "player")
 		or (pendingUnit and pendingInspectReady and UnitIsUnit(unit, pendingUnit)))
+	-- Wrath APIs may return 1/nil. The collector's readiness contract is boolean.
+	inspectReady = not not inspectReady
 	local report = self:CollectGearCheckObservation(unit, inspectReady)
 	if report and self.GetInspectRequestTrace then
 		report.inspectTrace = self:GetInspectRequestTrace("gear")

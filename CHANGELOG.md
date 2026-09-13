@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Scan dumps include inspect request/event counts and raw talent-read results for troubleshooting unknown specializations.
 
 ### Fixed
+- Normalize numeric Wrath unit-match results to boolean inspect readiness so accepted inspect responses reach talent collection instead of leaving specialization unknown.
 - Invalid inspect talent-group and tab-count values fall back to group 1 and the three Wrath talent trees; empty talent data still remains unknown.
 - Inspect-ready events carrying the scanned character's GUID now complete the request instead of being ignored; unrelated character events remain rejected.
 - Unknown-specialization scans no longer penalize stats, enchants, gems or trinkets using a guessed class role. Objective checks remain active and grades remain provisional.

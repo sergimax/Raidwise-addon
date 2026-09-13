@@ -53,6 +53,10 @@ payload) and `character.talentRead` (readiness, raw group/tab count, selected gr
 and per-tree points). These distinguish event delivery from empty talent reads;
 an incomplete final verdict alone does not prove the ready event was absent.
 
+`CollectGearCheck` normalizes truthy numeric WoW API results to a boolean before
+passing inspect readiness to the collector; its strict `true` check must not
+receive a raw `UnitIsUnit` result of `1`.
+
 `StartGearCheckUnitScan` requests inspect through the coordinator. `CollectGearCheck` supplies readiness to `CollectGearCheckObservation(unit, inspectReady)` and retains the observation. Collection does not evaluate. Finalization calls `EvaluateGearCheck`, which produces findings and invokes grade aggregation. Formatting belongs in reports, dumps and explanations.
 
 Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level inspect and counts). `NormalizeGearCheckReport` is the adapter at collection, evaluation and snapshot creation boundaries; canonical fields are `character`, `equipment`, and `collection`. Equipment/inspect accessors centralize reads of legacy reports. Rule and catalog revisions are independent of addon semver; saved reports retain original metadata. See [Gear-Check-Progress.md](Gear-Check-Progress.md) for compatibility and grading details.

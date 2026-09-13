@@ -7,6 +7,7 @@ local specKnown = true
 local uncertain = false
 local emptySockets = false
 local detectedGems = {}
+local productionCollectGearCheck = Raidwise.CollectGearCheck
 function Raidwise:EvaluateGearCheck(report) report.evaluated = true end
 function Raidwise:QueuePartyInspects() resumed = resumed + 1 end
 function Raidwise:CollectGearCheck(unit)
@@ -27,7 +28,25 @@ local function start(unit)
     end)
 end
 function RunScanScenario(scenario)
-    if scenario == "empty-confirmed" or scenario == "empty-delayed" or scenario == "empty-timeout" then
+    if scenario == "numeric-unit-match" then
+        function UnitIsUnit(left,right)
+            return UnitGUID(left) and UnitGUID(left)==UnitGUID(right) and 1 or nil
+        end
+        local mockCollection=Raidwise.CollectGearCheck
+        Raidwise.CollectGearCheck=productionCollectGearCheck
+        function Raidwise:CollectGearCheckObservation(unit,ready)
+            assert(type(ready)=="boolean", "Readiness must not contain numeric UnitIsUnit results")
+            local report=mockCollection(self,unit)
+            report.character.specKnown=ready
+            report.character.specTab=ready and 2 or 0
+            return report
+        end
+        assert(start())
+        assert(#completed==0)
+        runtime:Ready()
+        assert(#completed==1 and completed[1].status=="ok")
+        assert(completed[1].report.character.specTab==2 and completed[1].report.inspect.complete)
+    elseif scenario == "empty-confirmed" or scenario == "empty-delayed" or scenario == "empty-timeout" then
         emptySockets = true
         assert(start())
         runtime:Ready()
