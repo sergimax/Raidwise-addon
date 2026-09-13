@@ -31,7 +31,7 @@ local UI = {
 	BORDER_W = Theme.BORDER_W,
 }
 
-local PROFILE_LAYOUT_VERSION = 31
+local PROFILE_LAYOUT_VERSION = 32
 local PROFILE_EVENT_ROW_ICON = 14
 
 local function GetRatingTagGroups()
@@ -214,6 +214,7 @@ local PROFILE_TABS = {
 	{ id = "facts", labelKey = "PROFILE_TAB_FACTS" },
 	{ id = "events", labelKey = "PROFILE_TAB_EVENTS" },
 	{ id = "notes", labelKey = "PROFILE_TAB_NOTES" },
+	{ id = "characters", labelKey = "PROFILE_TAB_CHARACTERS" },
 }
 
 local UpdateProfileEventsPanel
@@ -279,6 +280,7 @@ function Addon:SelectProfileTab(tabId)
 	if tabId == "facts" and frame.profileMember then
 		RefreshProfileFactCheckboxes(frame, frame.profileMember, frame.profileMember.guid and frame.profileMember.guid ~= "")
 	end
+	if tabId == "characters" then Addon:RefreshProfileCharacters(frame) end
 end
 
 local function CreateProfileTabButton(parent, tabId, label, width)
@@ -935,6 +937,13 @@ function Addon:RefreshRatingViews()
 	end
 end
 
+function Addon:RefreshLinkedProfileOpinion(frame)
+	if not frame or not frame.profileMember then return end
+	PaintSavedHeaderLabels(frame, frame.profileMember)
+	PaintDraftEditorLabels(frame)
+	if frame.profileDraft then RefreshOpinionRadios(frame, frame.profileDraft.draftOpinion) end
+end
+
 -- REFACTOR candidate: options.opinionOnly / tagsOnly / deferViewRefresh are never passed (unreachable branches).
 function Addon:SaveProfilePersonalRating(opinion, tagIds, factIds, options)
 	local frame = self.raidDetailFrame
@@ -1350,6 +1359,7 @@ local function CreateRaidCharacterWindow()
 		UI = UI,
 	})
 
+	Addon:CreateProfileCharactersPanel(frame, tabContent, tabContentWidth, PROFILE_LAYOUT_VERSION)
 	frame.selectedProfileTab = "history"
 
 	return frame
@@ -1389,6 +1399,7 @@ function Addon:ShowRaidCharacterWindow(member)
 	end
 
 	frame.profileMember = member
+	if frame.charactersSearch then frame.charactersSearch:SetText("") end
 
 	frame.titleText:SetText(T("PROFILE_TITLE", member.name or "?"))
 	W.SetSpecOrClassIcon(frame.classIcon, nil, member.class)

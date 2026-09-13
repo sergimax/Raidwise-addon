@@ -20,6 +20,7 @@ RaidRoles.lua
 RaidComposition.lua
 PlayerHistory.lua
 PlayerHistoryStore.lua
+CharacterLinks.lua
 RatingPresentation.lua
 ProfileDraft.lua
 UITheme.lua
@@ -27,6 +28,7 @@ UIWidgets.lua
 RosterWidgets.lua
 UnitTooltips.lua
 ProfilePanels.lua
+ProfileCharacters.lua
 CharacterProfile.lua
 GearCheckCatalog.lua
 GearCheckSets.lua

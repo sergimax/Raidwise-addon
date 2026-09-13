@@ -2,7 +2,34 @@
 
 Local player reputation for other characters is stored under `RaidwiseDB.history[guid]` and edited in the Character profile. Catalogs and rating access live in [`PlayerHistory.lua`](../Raidwise/PlayerHistory.lua); persistence and migrations live in [`PlayerHistoryStore.lua`](../Raidwise/PlayerHistoryStore.lua). Draft edits belong to [`ProfileDraft.lua`](../Raidwise/ProfileDraft.lua), and labels/tooltips to [`RatingPresentation.lua`](../Raidwise/RatingPresentation.lua).
 
-## Entities
+## Linked characters
+
+The profile's **Characters** tab records local associations between characters of
+one player. Choose a known character from History (search by name/realm), or use
+**Link target**. These associations are manual, not verified account identities.
+
+Each group has exactly one Main and any number of Alts. The first character is
+the initial Main; selecting another member's Main button changes it. Choose a
+replacement Main before unlinking the current one. A character already linked
+to another group must be unlinked there first; linking does not silently merge
+whole groups. Changes save immediately, separately from profile drafts.
+
+Only the positive/neutral/negative opinion is shared. Saving it on any member
+updates that opinion for every linked member. Tags, facts, events, and private
+notes stay character-specific. If opinions differ during linking, choose which
+one to keep or cancel. Unlinking retains the last shared opinion on the detached
+character; subsequent opinion changes no longer propagate to it.
+
+Link/unlink records are appended to each affected character's profile History,
+with the other character's name and realm. Main changes are recorded too. Unit
+and roster tooltips list linked characters, class-colored, with Main/Alt labels.
+
+Storage: `RaidwiseDB.characterGroups[id]` contains `members` and `mainGuid`;
+history entries refer to `playerGroupId`. `nextCharacterGroupId` allocates stable
+group IDs. Existing `history.links` data is not repurposed. Opinion synchronization
+updates existing personal opinion fields; no facts/events/notes are merged.
+
+## Entity reference
 
 `InitializeHistoryStore()` normalizes and migrates saved entries at addon initialization, before the UI is created. Explicit write methods also normalize their entries. `GetPersonalRating`, `GetCommunityRating`, `GetHistoryEvents`, `GetHistoryEntry`, and `BuildHistoryRoster` do not migrate or initialize storage. Integrations replacing the history store should explicitly initialize it before displaying legacy data.
 

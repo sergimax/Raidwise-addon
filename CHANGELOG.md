@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Incomplete and unavailable gear scans are identified consistently in target/raid views, chat and dumps, and excluded from raid/minimap readiness counts. Partial diagnostic grades remain available.
 
 ### Added
+- Character profiles can link one Main and multiple Alts, share their opinion while keeping character-specific details, and record link/unlink history. Unit and roster tooltips list the linked characters.
 - Settings includes a copyable link to the repository changelog in English and Russian.
 
 ### Fixed
+- Fixed a circular anchor in the Settings changelog controls that prevented the main addon window from opening.
 - Remote gear scans with apparently empty sockets on every socketed item require a second inspect response before reporting missing gems. Unconfirmed reads remain incomplete.
 - Incomplete gear reports explicitly describe their grades as provisional instead of claiming no significant issues.
 

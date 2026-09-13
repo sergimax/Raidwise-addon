@@ -167,7 +167,11 @@ end
 function Addon:BuildUnitTooltipRatingLinesForMember(entryOrMember, options, layout)
 	local personal = self:GetPersonalRating(entryOrMember)
 	local community = self:GetCommunityRating(entryOrMember)
-	return self:BuildUnitTooltipRatingLines(personal, community, options, layout)
+	local lines = self:BuildUnitTooltipRatingLines(personal, community, options, layout)
+	if self.BuildLinkedCharacterTooltipLines then
+		for _, line in ipairs(self:BuildLinkedCharacterTooltipLines(entryOrMember)) do lines[#lines + 1] = line end
+	end
+	return lines
 end
 
 function Addon:RatingMetaColor(meta)
@@ -260,6 +264,9 @@ local CHANGE_KIND_ICONS = {
 function Addon:ProfileHistoryChangeIcon(change)
 	if type(change) ~= "table" or not change.kind then
 		return nil
+	end
+	if change.kind == "character_link" or change.kind == "character_unlink" or change.kind == "character_role" then
+		return "Interface\\Icons\\INV_Misc_GroupLooking"
 	end
 	if change.kind == "event_add" or change.kind == "event_remove" then
 		return self:EventTypeGroupIcon(change.detail) or "Interface\\Icons\\INV_Misc_QuestionMark"
@@ -400,4 +407,3 @@ function Addon:MergeRatingIntoMember(member)
 	}
 	return member
 end
-

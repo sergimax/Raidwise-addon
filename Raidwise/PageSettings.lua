@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 14
+local LAYOUT_VERSION = 15
 local CHANGELOG_URL = "https://github.com/sergimax/Raidwise-addon/blob/main/CHANGELOG.md"
 
 local SECTION_HEADER_H = 28
@@ -405,7 +405,7 @@ local function CreateSettingsPage(parent)
 	changelogBox:SetText(CHANGELOG_URL)
 	local changelogButton = W.CreatePlainButton(page, 130, UI.ACTION_BTN_H, W.T("BTN_SELECT_ALL"))
 	changelogButton:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
-	changelogButton:SetPoint("TOP", changelogHost, "TOP", 0, 0)
+	changelogButton:SetPoint("TOP", changelogHint, "BOTTOM", 0, -UI.CHECK_TO_BUTTONS)
 	changelogHost:SetPoint("TOPLEFT", changelogHint, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
 	changelogHost:SetPoint("RIGHT", changelogButton, "LEFT", -UI.ACTION_BTN_GAP, 0)
 	changelogButton:SetScript("OnClick", function()

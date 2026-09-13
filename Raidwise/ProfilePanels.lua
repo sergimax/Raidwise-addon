@@ -511,6 +511,11 @@ local function FormatProfileChangeDetail(change)
 		-- Legacy change-log rows only; notes saves no longer append history entries.
 		return T("PROFILE_CHANGE_NOTES")
 	end
+	if change.kind == "character_link" then return T("CHAR_LINK_HISTORY_ADD", change.detail) end
+	if change.kind == "character_unlink" then return T("CHAR_LINK_HISTORY_REMOVE", change.detail) end
+	if change.kind == "character_role" and type(change.detail) == "table" then
+		return T("CHAR_LINK_HISTORY_ROLE", change.detail.name, T("CHAR_ROLE_" .. string.upper(change.detail.role)))
+	end
 	return change.detail or "?"
 end
 
@@ -591,4 +596,3 @@ function Addon:RefreshProfileHistoryPanel(frame, member, iconSize)
 	end
 	frame.historyListContent:SetHeight(math.max(y, 1))
 end
-

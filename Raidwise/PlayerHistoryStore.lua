@@ -645,6 +645,7 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 		local factSummary = self.FactSummary and self:FactSummary(personal.facts, 5) or ""
 		self:AppendProfileHistoryChange(entry, "facts", factSummary)
 	end
+	if self.SyncLinkedPlayerOpinion then self:SyncLinkedPlayerOpinion(guid, personal.opinion) end
 	return entry
 end
 

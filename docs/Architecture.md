@@ -21,6 +21,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Roles, consumables, composition | `RaidRoles.lua`, `RaidComposition.lua` | `UnitConsumableStatus`, `AnalyzeRaidComposition` |
 | Rating catalogs/access | `PlayerHistory.lua` | `GetPersonalRating`, `GetCommunityRating`, normalization |
 | History, migrations, persistence | `PlayerHistoryStore.lua` | `RecordCurrentGroupHistory`, `SavePersonalRatingForGuid`, `SaveHistoryEventsForGuid`, `SaveProfileNotesForGuid` |
+| Linked player characters | `CharacterLinks.lua`, `ProfileCharacters.lua` | Group persistence, shared opinion synchronization, and the profile Characters tab |
 | Unsaved profile edits | `ProfileDraft.lua` | `CreateProfileDraft`, `ToggleProfileDraftTag`, `AddProfileDraftEvent` |
 | Profile window | `CharacterProfile.lua`, `ProfilePanels.lua` | Window, editing and commands in `CharacterProfile`; tab construction and history rendering in `ProfilePanels` |
 | Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `GetTooltipSettings`, `BuildUnitTooltipRatingLinesForMember`; tooltip hooks in `UnitTooltips` |

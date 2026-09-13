@@ -189,6 +189,14 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Ra
 
 Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** appears on **Edit note** / **Facts** / **Events** and commits those drafts (not memo). Hidden on **History** and **Memo**. Header personal note/tags/facts stay on saved values until that commit. Closing without Save discards drafts.
 
+Profile layout v32 adds a sixth **Characters** tab inside the existing profile
+window. Its tab button shares the existing equal-width tab row. The panel uses
+a **30** px hint, an **84** px linked-character scroll area, **28** px rows with
+**70 x 22** px Main/Unlink buttons, a **24** px search row with a **120 x 24** px
+Link target button, and a candidate scroll area filling the remainder above a
+**58** px status/conflict area. Conflict choices are **155 x 24** px each, with a
+**110 x 24** px Cancel button. Frame width/height remain unchanged.
+
 ## History tab
 
 Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
@@ -208,7 +216,7 @@ Rows are clickable and open Character profile. Notes are stored on the history r
 
 ## Settings tab
 
-Layout v14 adds Changelog below Unit tooltips: the standard **28** px heading with **20** px section gap, a copy hint, and a URL copy box beside a **130 x 28** px Select all button with the standard **8** px gap.
+Layout v15 retains the Changelog dimensions introduced in v14: the standard **28** px heading with **20** px section gap, a copy hint, and a URL copy box beside a **130 x 28** px Select all button with the standard **8** px gap. Both controls anchor vertically to the hint, avoiding a circular anchor dependency during window creation.
 
 Theme has its own **28** px category bar below Language, with the standard **20** px section gap. Its **160 x 28** toggle sits **10** px below the heading; Startup page follows the toggle. Light uses warm pale panels and dark text; dark retains the original palette. Choice is saved in `RaidwiseDB.theme`.
 
