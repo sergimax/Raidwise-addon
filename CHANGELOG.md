@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Messages from characters with a negative personal opinion now have red message text and a red Raidwise marker; item and achievement links retain their original colors and remain clickable.
 - Main character selection is explicitly local and stored separately from shareable Alt membership; existing selections are preserved. The profile explains this in English and Russian.
 - Incomplete and unavailable gear scans are identified consistently in target/raid views, chat and dumps, and excluded from raid/minimap readiness counts. Partial diagnostic grades remain available.
 

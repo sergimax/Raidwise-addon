@@ -39,6 +39,16 @@ group IDs. Main-change history is local and excluded from the membership payload
 Existing `history.links` data is not repurposed. Opinion synchronization
 updates existing personal opinion fields; no facts/events/notes are merged.
 
+## Chat highlighting
+
+Chat messages from characters with a negative personal opinion display a red
+`<Rw>` marker and red message text. Item and achievement links retain their
+original colors and remain clickable; text after them resumes red. This applies to the registered player chat channels
+(including whispers, party, raid, guild and emotes); channel headers and sender
+formatting remain controlled by WoW. Positive/neutral markers retain their existing
+appearance. Linked characters inherit this behavior through their shared personal
+opinion. Display changes are local and do not alter outgoing message content.
+
 ## Entity reference
 
 `InitializeHistoryStore()` normalizes and migrates saved entries at addon initialization, before the UI is created. Explicit write methods also normalize their entries. `GetPersonalRating`, `GetCommunityRating`, `GetHistoryEvents`, `GetHistoryEntry`, and `BuildHistoryRoster` do not migrate or initialize storage. Integrations replacing the history store should explicitly initialize it before displaying legacy data.

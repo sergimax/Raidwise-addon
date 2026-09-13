@@ -15,6 +15,43 @@ async function run(modules: string[], setup: string, scenario: string): Promise<
   } finally { lua.global.close(); }
 }
 
+test("negative personal opinions color the whole chat body red and preserve chat arguments and links", async () => {
+  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "RatingPresentation"], `
+    Raidwise.db={}
+    function time() return 1000 end
+    function GetRealmName() return "Realm" end
+    function UnitGUID() return "SELF" end
+    filters={}
+    function ChatFrame_AddMessageEventFilter(event, callback) filters[event]=callback end
+  `, `
+    Raidwise:EnsureHistoryEntryForGuid("A",{name="Sender",realm="Realm"})
+    Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{})
+    local item="|cffa335ee|Hitem:123:0:0|h[Item]|h|r"
+    local achievement="|cffffff00|Hachievement:456:Player:1:0|h[Achievement]|h|r"
+    local text="Hello |cff00ff00green|r "..item..achievement.." end ||cffffffff literal ||r"
+    for event, filter in pairs(filters) do
+      local hidden, message, sender, language, _, _, _, _, _, _, _, lineId, guid, tail =
+        filter(nil,event,text,"Sender","Common",nil,nil,nil,nil,nil,nil,nil,123,"A","tail")
+      assert(hidden==false and sender=="Sender" and language=="Common")
+      assert(lineId==123 and guid=="A" and tail=="tail")
+      assert(message=="|cffff0000<Rw> Hello green |r"..item.."|cffff0000|r"..achievement.."|cffff0000 end ||cffffffff literal ||r|r")
+    end
+    local filter=filters.CHAT_MSG_SAY
+    assert(filter(nil,"CHAT_MSG_SAY","hello","Sender-OtherRealm")==nil)
+    assert(filter(nil,"CHAT_MSG_SAY","hello","Unknown")==nil)
+    for _, opinion in ipairs({"positive","neutral"}) do
+      Raidwise:SavePersonalRatingForGuid("A",nil,opinion,{},{})
+      local _, message=filter(nil,"CHAT_MSG_SAY",text,"Sender-Realm")
+      assert(message:sub(-#text)==text and not message:find("|cffff0000",1,true))
+    end
+    Raidwise:EnsureHistoryEntryForGuid("B",{name="Alt",realm="Realm"})
+    assert(Raidwise:LinkPlayerCharacters("A","B"))
+    Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{})
+    local _, message=filter(nil,"CHAT_MSG_SAY","alt message","Alt")
+    assert(message=="|cffff0000<Rw> alt message|r")
+  `);
+});
+
 test("diagnostic slash commands report missing modules and popup failures in local chat", async () => {
   await run(["Raidwise"], "SlashCmdList = {}", `
     local messages = {}
