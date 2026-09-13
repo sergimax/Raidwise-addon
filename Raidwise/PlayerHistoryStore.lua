@@ -276,6 +276,7 @@ function Addon:InitializeHistoryStore()
 	for _, entry in pairs(self:HistoryStore()) do
 		if type(entry) == "table" then EnsureHistoryFields(entry) end
 	end
+	if self.InitializeCharacterLinks then self:InitializeCharacterLinks() end
 end
 
 function Addon:AppendProfileHistoryChange(entry, kind, detail)

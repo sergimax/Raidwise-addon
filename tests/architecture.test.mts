@@ -297,7 +297,19 @@ test("character groups share only opinions, log changes and retain one main", as
     assert(not ok and reason=="CHAR_LINK_CONFLICT" and not a.playerGroupId and not b.playerGroupId)
     assert(Raidwise:LinkPlayerCharacters("A","B",nil,"positive"))
     local groupId=a.playerGroupId
-    assert(b.playerGroupId==groupId and Raidwise.db.characterGroups[groupId].mainGuid=="A")
+    assert(b.playerGroupId==groupId and Raidwise.db.localCharacterMains[groupId]=="A")
+    assert(Raidwise.db.characterGroups[groupId].mainGuid==nil)
+    local shared = Raidwise:GetSharedCharacterLinks("A")
+    assert(#shared==2 and shared[1].guid=="A" and shared[2].guid=="B")
+    for _, member in ipairs(shared) do
+      assert(member.role==nil and member.mainGuid==nil and member.entry==nil)
+    end
+    -- Migrate the original saved format once, retaining a local choice thereafter.
+    Raidwise.db.localCharacterMains=nil
+    Raidwise.db.characterGroups[groupId].mainGuid="A"
+    Raidwise:InitializeHistoryStore()
+    assert(Raidwise.db.localCharacterMains[groupId]=="A")
+    assert(Raidwise.db.characterGroups[groupId].mainGuid==nil)
     assert(Raidwise:GetPersonalRating(b).opinion=="positive" and #b.rating.personal.facts==0)
     assert(b.notes=="private" and #b.events==1)
     local count=#a.changes
@@ -309,6 +321,14 @@ test("character groups share only opinions, log changes and retain one main", as
     assert(a.rating.personal.facts[1]=="raid_leader" and b.notes=="private" and #b.events==1)
     assert(not Raidwise:UnlinkPlayerCharacter("B","A"),"Allowed removal of the main")
     assert(Raidwise:SetLinkedCharacterRole("B","B","main"))
+    local sharedAfter=Raidwise:GetSharedCharacterLinks("A")
+    for index, member in ipairs(shared) do
+      assert(sharedAfter[index].guid==member.guid and sharedAfter[index].name==member.name)
+    end
+    -- Foreign/legacy Main metadata cannot replace an existing local preference.
+    Raidwise.db.characterGroups[groupId].mainGuid="A"
+    Raidwise:InitializeCharacterLinks()
+    assert(Raidwise.db.localCharacterMains[groupId]=="B")
     assert(Raidwise:GetLinkedCharacters("C")[1].guid=="B")
     assert(Raidwise:UnlinkPlayerCharacter("B","A"))
     assert(not a.playerGroupId and a.rating.personal.opinion=="negative")

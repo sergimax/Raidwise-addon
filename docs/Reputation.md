@@ -8,7 +8,14 @@ The profile's **Characters** tab records local associations between characters o
 one player. Choose a known character from History (search by name/realm), or use
 **Link target**. These associations are manual, not verified account identities.
 
-Each group has exactly one Main and any number of Alts. The first character is
+Each group has exactly one **local Main** and any number of Alts. Main is a
+personal display preference: other players may choose a different Main without
+conflict. Shared Alt links mean only that characters belong to the same person;
+they carry no Main designation. Character exchange transport is not implemented
+yet. `GetSharedCharacterLinks` provides membership data for that future exchange,
+excluding local roles, opinions, and history.
+
+The first character is
 the initial Main; selecting another member's Main button changes it. Choose a
 replacement Main before unlinking the current one. A character already linked
 to another group must be unlinked there first; linking does not silently merge
@@ -24,9 +31,12 @@ Link/unlink records are appended to each affected character's profile History,
 with the other character's name and realm. Main changes are recorded too. Unit
 and roster tooltips list linked characters, class-colored, with Main/Alt labels.
 
-Storage: `RaidwiseDB.characterGroups[id]` contains `members` and `mainGuid`;
+Storage: `RaidwiseDB.characterGroups[id]` contains `members` only. Main preferences
+live separately in `RaidwiseDB.localCharacterMains[id]`. Initialization migrates
+legacy `mainGuid` values without overriding an existing local preference;
 history entries refer to `playerGroupId`. `nextCharacterGroupId` allocates stable
-group IDs. Existing `history.links` data is not repurposed. Opinion synchronization
+group IDs. Main-change history is local and excluded from the membership payload.
+Existing `history.links` data is not repurposed. Opinion synchronization
 updates existing personal opinion fields; no facts/events/notes are merged.
 
 ## Entity reference

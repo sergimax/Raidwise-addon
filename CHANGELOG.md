@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Main character selection is explicitly local and stored separately from shareable Alt membership; existing selections are preserved. The profile explains this in English and Russian.
 - Incomplete and unavailable gear scans are identified consistently in target/raid views, chat and dumps, and excluded from raid/minimap readiness counts. Partial diagnostic grades remain available.
 
 ### Added

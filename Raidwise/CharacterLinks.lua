@@ -2,6 +2,27 @@
 local Addon = Raidwise
 local ROLES = { main = true, alt = true }
 
+local function LocalMain(group, id)
+	local main = Addon.db.localCharacterMains and Addon.db.localCharacterMains[id]
+	if main and group.members[main] then return main end
+	if group.mainGuid and group.members[group.mainGuid] then return group.mainGuid end
+	main = nil
+	-- Deterministic local default for groups received without a Main preference.
+	for guid in pairs(group.members) do
+		if not main or guid < main then main = guid end
+	end
+	return main
+end
+
+function Addon:InitializeCharacterLinks()
+	self.db.localCharacterMains = self.db.localCharacterMains or {}
+	for id, group in pairs(self.db.characterGroups or {}) do
+		self.db.localCharacterMains[id] = LocalMain(group, id)
+		group.mainGuid = nil
+		for guid in pairs(group.members) do group.members[guid] = "alt" end
+	end
+end
+
 local function GroupForGuid(guid)
 	local entry = Addon:GetHistoryEntry(guid)
 	local groups = Addon.db and Addon.db.characterGroups
@@ -10,6 +31,7 @@ local function GroupForGuid(guid)
 end
 
 local function EnsureGroup(guid)
+	Addon:InitializeCharacterLinks()
 	local group, id = GroupForGuid(guid)
 	if group then return group, id end
 	Addon.db.characterGroups = Addon.db.characterGroups or {}
@@ -19,7 +41,8 @@ local function EnsureGroup(guid)
 		id = "player-" .. tostring(nextId)
 	until not Addon.db.characterGroups[id]
 	Addon.db.nextCharacterGroupId = nextId
-	group = { members = { [guid] = "alt" }, mainGuid = guid }
+	group = { members = { [guid] = "alt" } }
+	Addon.db.localCharacterMains[id] = guid
 	Addon.db.characterGroups[id] = group
 	Addon:GetHistoryEntry(guid).playerGroupId = id
 	return group, id
@@ -32,14 +55,14 @@ function Addon:LinkedCharacterName(entry)
 end
 
 function Addon:GetLinkedCharacters(guid)
-	local group = GroupForGuid(guid)
+	local group, id = GroupForGuid(guid)
 	local result = {}
 	local members = group and group.members or { [guid or ""] = "main" }
 	for memberGuid, role in pairs(members) do
 		local entry = self:GetHistoryEntry(memberGuid)
 		if entry then
 			result[#result + 1] = { guid = memberGuid, entry = entry,
-				role = group and group.mainGuid == memberGuid and "main" or role }
+				role = group and (LocalMain(group, id) == memberGuid and "main" or "alt") or role }
 		end
 	end
 	table.sort(result, function(left, right)
@@ -48,6 +71,18 @@ function Addon:GetLinkedCharacters(guid)
 		if leftName ~= rightName then return leftName < rightName end
 		return left.guid < right.guid
 	end)
+	return result
+end
+
+-- Exchange boundary: membership only, with no local role, opinion or history.
+-- Sort by GUID so choosing a different local Main cannot change this payload.
+function Addon:GetSharedCharacterLinks(guid)
+	local result = {}
+	for _, member in ipairs(self:GetLinkedCharacters(guid)) do
+		result[#result + 1] = { guid = member.guid, name = member.entry.name,
+			realm = member.entry.realm or member.entry.metRealm or "" }
+	end
+	table.sort(result, function(left, right) return left.guid < right.guid end)
 	return result
 end
 
@@ -100,6 +135,7 @@ function Addon:LinkPlayerCharacters(guid, otherGuid, seed, chosenOpinion)
 	if otherGroup then
 		local _, otherId = GroupForGuid(otherGuid)
 		self.db.characterGroups[otherId] = nil
+		self.db.localCharacterMains[otherId] = nil
 	end
 	group.members[otherGuid] = "alt"
 	other.playerGroupId = id
@@ -116,7 +152,7 @@ function Addon:UnlinkPlayerCharacter(guid, otherGuid)
 	if not group or not group.members[otherGuid] then return false, "CHAR_LINK_INVALID" end
 	local other = self:GetHistoryEntry(otherGuid)
 	if not other then return false, "CHAR_LINK_INVALID" end
-	if group.mainGuid == otherGuid then return false, "CHAR_LINK_MAIN_REQUIRED" end
+	if LocalMain(group, id) == otherGuid then return false, "CHAR_LINK_MAIN_REQUIRED" end
 	for _, member in ipairs(self:GetLinkedCharacters(guid)) do
 		if member.guid ~= otherGuid then
 			self:AppendProfileHistoryChange(member.entry, "character_unlink", self:LinkedCharacterName(other))
@@ -131,16 +167,14 @@ end
 
 function Addon:SetLinkedCharacterRole(guid, memberGuid, role)
 	if not ROLES[role] or not self:GetHistoryEntry(guid) then return false, "CHAR_LINK_INVALID" end
-	local group = GroupForGuid(guid)
+	local group, id = GroupForGuid(guid)
 	if guid ~= memberGuid and not (group and group.members[memberGuid]) then return false, "CHAR_LINK_INVALID" end
-	group = group or EnsureGroup(guid)
-	local oldRole = group.mainGuid == memberGuid and "main" or group.members[memberGuid]
+	group, id = EnsureGroup(guid)
+	local oldRole = LocalMain(group, id) == memberGuid and "main" or "alt"
 	if oldRole == role then return true end
-	if role == "alt" and group.mainGuid == memberGuid then return false, "CHAR_LINK_MAIN_REQUIRED" end
+	if role == "alt" and LocalMain(group, id) == memberGuid then return false, "CHAR_LINK_MAIN_REQUIRED" end
 	if role == "main" then
-		group.mainGuid = memberGuid
-	else
-		if group.mainGuid == memberGuid then group.mainGuid = nil end
+		self.db.localCharacterMains[id] = memberGuid
 	end
 	group.members[memberGuid] = role == "main" and "alt" or role
 	local entry = self:GetHistoryEntry(memberGuid)
