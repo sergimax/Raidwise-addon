@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.22.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--09--12-blue)
+![](https://img.shields.io/badge/current_version-1.23.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--14-blue)
 
 
 ## Install
@@ -33,6 +33,9 @@ In-game slash commands:
 | `/rw gearcheck summary` (also `items`, `enchants`, `gems`, `ok`) | Print that report to the report chat channel (scans first if needed) |
 | `/rw gearcheck raid dump` | Open Raid roster and show the last raid gear-check dump for copy |
 | `/rw gearcheck test` | Offline rules self-test |
+| `/rw diagnose`, `/raidwise diagnose`, or `/raidwisediag` | Test window opening and gear rules; show a copyable diagnostic report |
+
+Run diagnostics immediately after `/reload`, outside combat, to test fresh window construction. Copy the report with Ctrl+A / Ctrl+C. After installing new Lua files, restart the client with the entire updated `Raidwise` folder. For CLI checks, `npm run diagnose` writes `diagnostics/latest.txt`; see [tests/README.md](tests/README.md).
 
 Plain panels, a **left menu** grouped as Personal / Raiding / Other, and a content page.
 The menu title bar shows **Raidwise** and the addon version.
@@ -99,14 +102,15 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 
 **Player rating** in Character profile:
 
-- Tabs: **History**, **Edit note**, **Facts**, **Events**, **Memo** — **History** opens by default
+- Tabs: **History**, **Edit note**, **Facts**, **Events**, **Memo**, **Characters** — **History** opens by default
+- **Characters** links one player's characters, with one local Main and multiple Alts. Opinion is shared across linked characters; tags, facts, events and notes remain separate. Link/unlink and Main changes appear in History, and tooltips list linked characters. Main is a local preference excluded from shareable membership data; player-to-player exchange is not implemented yet. See [Reputation.md](docs/Reputation.md).
 - On **Edit note**, set **Positive** / **Neutral** / **Negative** and personal tags (up to 3 per category); **Save and Update** commits opinion, tags, facts, and events
 - On **Facts**, set role / identity facts (up to 4)
 - Profile **History** shows **Met**, **Was in the same party**, and a changelog with icons
 - On **Events**, pick a type by category (**Attendance**, **Loot**, **Help**, **Behavior** — each with an icon) and **Add event** / **Remove** (draft until **Save and Update**; context captured when adding). Joining a party or raid also logs **In the same party** when the meet count goes up (first meet, or ≥30 minutes since last seen)
 - On **Memo**, write a private free-form note with **Save** / **Reset** (not shared, not logged in History)
 - Raid and History show your saved opinion and tag summary; click a row or card to open the profile
-- Chat messages from players with saved opinions receive a `<Rw>` marker with white brackets and mint (positive), lavender (neutral), or coral (negative) text; the message keeps its channel color
+- Negative personal opinions make the chat message text and `<Rw>` marker red; item and achievement links keep their original colors. Positive/neutral markers retain white brackets with mint/lavender text and normal channel-colored messages.
 - **Community note** is currently a mock preview for a future addon exchange / web app feature
 
 Report controls in the shared header:
@@ -116,6 +120,8 @@ Report controls in the shared header:
 - Channel radios appear only on Raid roster, Raid composition, and Gear check (target); Short / Full appears only on Gear check (target). Channel labels use chat colors.
 
 **Settings** tab:
+
+- Copyable repository changelog link with **Select all**
 
 - Interface language: **English** or **Русский**
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
@@ -162,6 +168,10 @@ Raidwise/
   PlayerHistoryStore.lua # history persistence and legacy migration
   RatingPresentation.lua # rating labels, tooltips, and chat marks
   ProfileDraft.lua    # plain profile draft editing model
+  ProfilePanels.lua  # profile tab builders and history rendering
+  CharacterLinks.lua # linked membership and local Main preferences
+  ProfileCharacters.lua # profile Characters tab
+  Diagnostics.lua    # runtime checks and independent copy window
   Minimap.lua         # draggable launcher and raid/lockout summary tooltip
   UnitTooltips.lua    # personal/community lines on player unit tooltips
   UITheme.lua         # theme palettes and bound colors/text
@@ -174,6 +184,7 @@ Raidwise/
   GearCheckProfiles.lua # class + 30-spec Gear Check profiles
   GearCheckBis.lua    # generated spec BiS item-ID sets (S grade)
   GearCheckRules.lua  # findings, meta activation, and rule revision
+  GearCheckReport.lua # report compatibility and scan completeness
   GearCheckGrades.lua # slot, category, and overall grades
   GearCheckExplanations.lua # category tooltips and grade explanations
   GearCheckSelfTest.lua # offline and in-game rule fixtures
@@ -207,6 +218,9 @@ types/
 ```
 
 ## Notes
+
+- Linked membership lives in `RaidwiseDB.characterGroups`; local Main preferences live separately in `RaidwiseDB.localCharacterMains`. Existing Main selections migrate automatically. Public membership projection `GetSharedCharacterLinks` is documented in [Reputation.md](docs/Reputation.md).
+- Incomplete/unavailable scans remain visibly marked and do not count as ready in raid/minimap summaries; unconfirmed empty sockets require another inspect response before being reported as missing gems.
 
 Offline development checks use TypeScript, Node.js 24, and a Lua 5.1 WebAssembly
 runtime: `npm ci --ignore-scripts`, then `npm run check`. See

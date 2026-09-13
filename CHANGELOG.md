@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.23.0] - 2026-09-14
 
 ### Changed
 - Messages from characters with a negative personal opinion now have red message text and a red Raidwise marker; item and achievement links retain their original colors and remain clickable.
