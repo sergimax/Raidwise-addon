@@ -22,7 +22,62 @@ asserts `_VERSION == "Lua 5.1"`, loads the modules in addon dependency order, an
 closes the VM in `finally`. Python, Lupa, and a separate system Lua installation
 are not required.
 
-## Test files
+## Copyable diagnostics
+
+Run `npm run diagnose` from the repository root after changes or when reporting a
+problem. It runs `npm run check` (including the Settings/profile circular-anchor
+regression), prints the results, and writes `diagnostics/latest.txt`. Copy that
+file for analysis. Each run replaces it; failures return exit code 1. The report
+includes Node/platform, Git revision and whether the checkout has modifications.
+Dependencies must already be installed as described above.
+
+In game, run `/reload`, then `/rw diagnose` (or `/raidwise diagnose`). It attempts
+to open the main window and runs the gear rule self-tests, collecting failures
+and stack traces without stopping at the first failed check. The independent
+report window supports Ctrl+A / Ctrl+C and Escape to close. The latest text also
+remains in `Raidwise.lastDiagnosticReport` for the current session. Diagnostic
+text uses English PASS/FAIL/SKIP markers in both interface languages.
+
+If `/rw diagnose` does not respond, try `/raidwisediag`, the dedicated alias.
+The command prints `Diagnostics starting...` before running checks, reports a
+missing diagnostic module, and falls back to local chat if the report window
+fails. Install the entire `Raidwise` folder including new files and its TOC;
+restart the client after installing newly added files. No starting message from
+either command indicates command registration or installed-file problems.
+
+Opening uses the normal startup page and may trigger its usual collection or
+history refresh. It leaves the main window open when successful. In combat, the
+opening check is explicitly skipped; rerun outside combat. A cached shell is
+reported, so run immediately after `/reload` to exercise fresh construction.
+This is an opening smoke test, not a check of every profile/tab interaction or
+live inspect timing. If bootstrap fails before slash commands register, this
+command cannot run; copy the game's Lua error instead. Reports omit saved player
+records, but error text can contain runtime values: review before sharing.
+
+## Test selection
+
+For focused iteration, run `node --test tests/scan.test.mts` (substitute the
+relevant file below). Before finishing code/test changes, run `npm run check`
+after the final edit. Reuse installed dependencies unless missing or the lockfile
+changes; repeat successful checks only after new edits or unresolved concerns.
+
+| Changed behavior | Start with |
+|---|---|
+| Report compatibility/state, read-only getters, page dispatch, shared member collection, profile builders | `architecture.test.mts` |
+| Scan lifecycle, retries, cancellation | `scan.test.mts` |
+| Inspect ownership and roster handoff | `inspect.test.mts` |
+| Collection, grades, gems, meta, report chat/header | `gear-check.test.mts` |
+| Saved revision compatibility | `saved-revisions.test.mts` |
+| Roster snapshot sharing | `roster-refresh.test.mts` |
+| Ratings, migrations, profile drafts/saving | `history.test.mts` |
+| Theme bindings | `theme.test.mts` |
+| Dump jobs, cancellation, output routing | `dump.test.mts` |
+
+Assert behavior rather than incidental version numbers: header radio tests check
+exclusivity and page visibility, not the current Settings layout version. Keep
+exact values for real contracts, such as Lua 5.1, schema compatibility and
+protocol limits. Rebuild tests should compare frame stamps with registered
+layout versions; revision tests should compare metadata across changes.
 
 - `gear-check.test.mts`: TypeScript orchestration, runtime guard, and test cases.
 - `lua/wow-stubs.lua`: minimal offline WoW API substitutes.

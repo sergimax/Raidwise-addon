@@ -327,6 +327,11 @@ function W.ShowMemberRatingTooltip(anchor, member, opts)
 		end
 	end
 	local guildText = W.FormatGuildDisplay(member.guildName, member.guildRank)
+	if Addon.BuildLinkedCharacterTooltipLines then
+		for _, line in ipairs(Addon:BuildLinkedCharacterTooltipLines(member)) do
+			GameTooltip:AddLine(line, 0.8, 0.8, 0.8, true)
+		end
+	end
 	if guildText and guildText ~= "-" then
 		GameTooltip:AddLine(W.T("COL_GUILD") .. ": " .. guildText, 0.8, 0.8, 0.8, true)
 	end
@@ -377,6 +382,9 @@ function W.AppendGearCheckRaidTooltip(gearEntry)
 		{ key = "enchantSocket", labelKey = "GEAR_CHECK_RAID_TIP_ENCHANT" },
 	}
 
+	local scanLabel = Addon:GetGearCheckScanLabel(report)
+	if scanLabel then GameTooltip:AddLine(scanLabel, 1, 0.82, 0, true) end
+
 	for sectionIndex = 1, #sections do
 		local section = sections[sectionIndex]
 		local block = Addon:BuildGearCheckCategoryTooltipLines(report, section.key, TOOLTIP_DETAIL_MAX)
@@ -409,4 +417,3 @@ function W.AppendGearCheckRaidTooltip(gearEntry)
 
 	GameTooltip:AddLine(W.T("GEAR_CHECK_RAID_CLICK_HINT"), 0.6, 0.6, 0.6, true)
 end
-

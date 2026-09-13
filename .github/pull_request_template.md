@@ -4,19 +4,31 @@ fix(export): include missing character data -->
 
 ## Summary
 
+<!--
 Describe the problem and the resulting behavior. Include a before/after example
 when helpful, and link any related issues (for example, Closes #123).
+-->
+
+
 
 ## Validation
 
+<!--
 Describe the checks performed and their results. For code changes, run
 `npm run check` where applicable. For in-game testing, include the Raidwise
 version, WoW client build/language, and the steps or scenarios tested.
 State any checks you could not perform.
+-->
+
+
 
 ## Screenshots
 
+<!--
 For visible UI changes, include before/after screenshots if available.
+-->
+
+
 
 ## Checklist
 
@@ -27,4 +39,6 @@ For visible UI changes, include before/after screenshots if available.
 
 ## Risks or limitations
 
+<!--
 Note any known limitations, compatibility concerns, or follow-up work.
+-->

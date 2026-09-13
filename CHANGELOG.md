@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.23.0] - 2026-09-14
+
+### Changed
+- Messages from characters with a negative personal opinion now have red message text and a red Raidwise marker; item and achievement links retain their original colors and remain clickable.
+- Main character selection is explicitly local and stored separately from shareable Alt membership; existing selections are preserved. The profile explains this in English and Russian.
+- Incomplete and unavailable gear scans are identified consistently in target/raid views, chat and dumps, and excluded from raid/minimap readiness counts. Partial diagnostic grades remain available.
+
+### Added
+- Copyable diagnostic reports via `/rw diagnose` in game and `npm run diagnose` in the repository, including window-opening errors and offline regression results.
+- Character profiles can link one Main and multiple Alts, share their opinion while keeping character-specific details, and record link/unlink history. Unit and roster tooltips list the linked characters.
+- Settings includes a copyable link to the repository changelog in English and Russian.
+
+### Fixed
+- Diagnostic commands now report missing modules and report-window failures in local chat; `/raidwisediag` provides a dedicated alternative to `/rw diagnose`.
+- Fixed a circular anchor in the Settings changelog controls that prevented the main addon window from opening.
+- Remote gear scans with apparently empty sockets on every socketed item require a second inspect response before reporting missing gems. Unconfirmed reads remain incomplete.
+- Incomplete gear reports explicitly describe their grades as provisional instead of claiming no significant issues.
+
 ## [1.22.0] - 2026-09-12
 
 ### Added

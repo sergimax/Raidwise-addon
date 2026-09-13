@@ -15,6 +15,32 @@ local CHAT_OPINION_MARKS = {
 	negative = { prefix = "Rw", color = "|cffff8f9c" },
 }
 
+local function NegativeChatMessage(message)
+	-- Keep item/achievement colors, then resume red after each complete link.
+	local function RemoveColor(pipes, code)
+		if #pipes % 2 == 0 then return pipes .. code end
+		return pipes:sub(1, -2)
+	end
+	local function RedText(text)
+		return text:gsub("(|+)(c%x%x%x%x%x%x%x%x)", RemoveColor):gsub("(|+)(r)", RemoveColor)
+	end
+	local parts = { "|cffff0000<Rw> " }
+	local cursor, search = 1, 1
+	while true do
+		local first, last, pipes, link, kind = message:find("(|+)(c%x%x%x%x%x%x%x%x|H(%a+):.-|h.-|h|r)", search)
+		if not first then break end
+		if #pipes % 2 == 1 and (kind == "item" or kind == "achievement") then
+			parts[#parts + 1] = RedText(message:sub(cursor, first - 1) .. pipes:sub(1, -2))
+			parts[#parts + 1] = "|r|" .. link .. "|cffff0000"
+			cursor = last + 1
+		end
+		search = last + 1
+	end
+	parts[#parts + 1] = RedText(message:sub(cursor))
+	parts[#parts + 1] = "|r"
+	return table.concat(parts)
+end
+
 local function ChatRealmKey(realm)
 	return string.lower((realm or ""):gsub("%s+", ""))
 end
@@ -57,6 +83,9 @@ local function PersonalOpinionChatFilter(frame, event, message, sender, ...)
 	local mark = CHAT_OPINION_MARKS[personal.opinion]
 	if not mark then
 		return
+	end
+	if personal.opinion == "negative" then
+		return false, NegativeChatMessage(message), sender, ...
 	end
 	return false, "|cffffffff<" .. mark.color .. mark.prefix .. "|cffffffff>|r " .. message, sender, ...
 end
@@ -167,7 +196,11 @@ end
 function Addon:BuildUnitTooltipRatingLinesForMember(entryOrMember, options, layout)
 	local personal = self:GetPersonalRating(entryOrMember)
 	local community = self:GetCommunityRating(entryOrMember)
-	return self:BuildUnitTooltipRatingLines(personal, community, options, layout)
+	local lines = self:BuildUnitTooltipRatingLines(personal, community, options, layout)
+	if self.BuildLinkedCharacterTooltipLines then
+		for _, line in ipairs(self:BuildLinkedCharacterTooltipLines(entryOrMember)) do lines[#lines + 1] = line end
+	end
+	return lines
 end
 
 function Addon:RatingMetaColor(meta)
@@ -260,6 +293,9 @@ local CHANGE_KIND_ICONS = {
 function Addon:ProfileHistoryChangeIcon(change)
 	if type(change) ~= "table" or not change.kind then
 		return nil
+	end
+	if change.kind == "character_link" or change.kind == "character_unlink" or change.kind == "character_role" then
+		return "Interface\\Icons\\INV_Misc_GroupLooking"
 	end
 	if change.kind == "event_add" or change.kind == "event_remove" then
 		return self:EventTypeGroupIcon(change.detail) or "Interface\\Icons\\INV_Misc_QuestionMark"
@@ -400,4 +436,3 @@ function Addon:MergeRatingIntoMember(member)
 	}
 	return member
 end
-

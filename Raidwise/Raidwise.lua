@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.22.0"
+Addon.version = "1.23.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -255,6 +255,7 @@ end
 -- Run once when this addon finishes loading.
 function Addon:OnInitialize()
 	EnsureDB()
+	if self.InitializeHistoryStore then self:InitializeHistoryStore() end
 	if self.CreateMinimapButton then
 		self:CreateMinimapButton()
 	end
@@ -340,6 +341,28 @@ end
 SLASH_RAIDWISE1 = "/raidwise"
 SLASH_RAIDWISE2 = "/rw"
 
+local function RunDiagnosticCommand()
+	Addon:Print("Diagnostics starting...")
+	Addon.lastDiagnosticReport = nil
+	if type(Addon.ShowDiagnostics) ~= "function" then
+		Addon:Print("Diagnostics.lua did not load. Copy the entire Raidwise folder, including Raidwise.toc and Diagnostics.lua, then restart the game.")
+		return
+	end
+	local ok, message = xpcall(function() Addon:ShowDiagnostics() end, function(problem)
+		return tostring(problem) .. "\n" .. (type(debugstack) == "function" and debugstack(2, 12, 0) or "")
+	end)
+	if not ok then
+		local report = (Addon.lastDiagnosticReport or "Raidwise diagnostics") .. "\nFAIL diagnostic command: " .. tostring(message)
+		Addon.lastDiagnosticReport = report
+		-- The copy window can fail too; keep the result visible in local chat.
+		for line in report:gmatch("[^\n]+") do Addon:Print(line) end
+	end
+end
+
+-- A dedicated command also works if another addon claims the short /rw alias.
+SLASH_RAIDWISEDIAGNOSTICS1 = "/raidwisediag"
+SlashCmdList["RAIDWISEDIAGNOSTICS"] = RunDiagnosticCommand
+
 -- /raidwise [close|gearcheck …] — open, close, scan, self-test, or chat reports.
 SlashCmdList["RAIDWISE"] = function(msg)
 	msg = (msg or ""):match("^%s*(.-)%s*$") or ""
@@ -347,6 +370,11 @@ SlashCmdList["RAIDWISE"] = function(msg)
 
 	if msg == "" then
 		Addon:ShowMainFrame()
+		return
+	end
+
+	if msg == "diagnose" then
+		RunDiagnosticCommand()
 		return
 	end
 

@@ -1,8 +1,57 @@
 # Reputation model
 
-Local player reputation for other characters is stored under `RaidwiseDB.history[guid]` and edited in the Character profile. Catalogs and persistence live in [`PlayerHistory.lua`](../Raidwise/PlayerHistory.lua).
+Local player reputation for other characters is stored under `RaidwiseDB.history[guid]` and edited in the Character profile. Catalogs and rating access live in [`PlayerHistory.lua`](../Raidwise/PlayerHistory.lua); persistence and migrations live in [`PlayerHistoryStore.lua`](../Raidwise/PlayerHistoryStore.lua). Draft edits belong to [`ProfileDraft.lua`](../Raidwise/ProfileDraft.lua), and labels/tooltips to [`RatingPresentation.lua`](../Raidwise/RatingPresentation.lua).
 
-## Entities
+## Linked characters
+
+The profile's **Characters** tab records local associations between characters of
+one player. Choose a known character from History (search by name/realm), or use
+**Link target**. These associations are manual, not verified account identities.
+
+Each group has exactly one **local Main** and any number of Alts. Main is a
+personal display preference: other players may choose a different Main without
+conflict. Shared Alt links mean only that characters belong to the same person;
+they carry no Main designation. Character exchange transport is not implemented
+yet. `GetSharedCharacterLinks` provides membership data for that future exchange,
+excluding local roles, opinions, and history.
+
+The first character is
+the initial Main; selecting another member's Main button changes it. Choose a
+replacement Main before unlinking the current one. A character already linked
+to another group must be unlinked there first; linking does not silently merge
+whole groups. Changes save immediately, separately from profile drafts.
+
+Only the positive/neutral/negative opinion is shared. Saving it on any member
+updates that opinion for every linked member. Tags, facts, events, and private
+notes stay character-specific. If opinions differ during linking, choose which
+one to keep or cancel. Unlinking retains the last shared opinion on the detached
+character; subsequent opinion changes no longer propagate to it.
+
+Link/unlink records are appended to each affected character's profile History,
+with the other character's name and realm. Main changes are recorded too. Unit
+and roster tooltips list linked characters, class-colored, with Main/Alt labels.
+
+Storage: `RaidwiseDB.characterGroups[id]` contains `members` only. Main preferences
+live separately in `RaidwiseDB.localCharacterMains[id]`. Initialization migrates
+legacy `mainGuid` values without overriding an existing local preference;
+history entries refer to `playerGroupId`. `nextCharacterGroupId` allocates stable
+group IDs. Main-change history is local and excluded from the membership payload.
+Existing `history.links` data is not repurposed. Opinion synchronization
+updates existing personal opinion fields; no facts/events/notes are merged.
+
+## Chat highlighting
+
+Chat messages from characters with a negative personal opinion display a red
+`<Rw>` marker and red message text. Item and achievement links retain their
+original colors and remain clickable; text after them resumes red. This applies to the registered player chat channels
+(including whispers, party, raid, guild and emotes); channel headers and sender
+formatting remain controlled by WoW. Positive/neutral markers retain their existing
+appearance. Linked characters inherit this behavior through their shared personal
+opinion. Display changes are local and do not alter outgoing message content.
+
+## Entity reference
+
+`InitializeHistoryStore()` normalizes and migrates saved entries at addon initialization, before the UI is created. Explicit write methods also normalize their entries. `GetPersonalRating`, `GetCommunityRating`, `GetHistoryEvents`, `GetHistoryEntry`, and `BuildHistoryRoster` do not migrate or initialize storage. Integrations replacing the history store should explicitly initialize it before displaying legacy data.
 
 | Entity | Meaning | Stored as |
 |--------|---------|-----------|

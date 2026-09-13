@@ -271,6 +271,14 @@ local function EnsureHistoryFields(entry)
 	return entry
 end
 
+-- Explicit load boundary; getters never migrate persisted entries.
+function Addon:InitializeHistoryStore()
+	for _, entry in pairs(self:HistoryStore()) do
+		if type(entry) == "table" then EnsureHistoryFields(entry) end
+	end
+	if self.InitializeCharacterLinks then self:InitializeCharacterLinks() end
+end
+
 function Addon:AppendProfileHistoryChange(entry, kind, detail)
 	if type(entry) ~= "table" or not kind or kind == "" then
 		return
@@ -290,7 +298,8 @@ function Addon:GetHistoryEntry(guid)
 	if not guid or guid == "" then
 		return nil
 	end
-	return self:HistoryStore()[guid]
+	local store = self.db and self.db.history
+	return type(store) == "table" and store[guid] or nil
 end
 
 function Addon:EnsureHistoryEntryForGuid(guid, seed)
@@ -472,10 +481,10 @@ end
 
 function Addon:BuildHistoryRoster()
 	local roster = {}
-	local store = self:HistoryStore()
+	local store = self.db and self.db.history or {}
 	for _, entry in pairs(store) do
 		if type(entry) == "table" then
-			roster[#roster + 1] = EnsureHistoryFields(entry)
+			roster[#roster + 1] = entry
 		end
 	end
 
@@ -637,6 +646,7 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 		local factSummary = self.FactSummary and self:FactSummary(personal.facts, 5) or ""
 		self:AppendProfileHistoryChange(entry, "facts", factSummary)
 	end
+	if self.SyncLinkedPlayerOpinion then self:SyncLinkedPlayerOpinion(guid, personal.opinion) end
 	return entry
 end
 
