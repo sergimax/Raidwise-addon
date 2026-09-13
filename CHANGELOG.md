@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [1.23.0] - 2026-09-14
 
 ### Changed
+- Raid composition analyzes groups 1–5 only, excluding reserve groups 6–8 from counts, coverage and reports. Raid roster and raid-wide gear scans still include all groups.
 - Messages from characters with a negative personal opinion now have red message text and a red Raidwise marker; item and achievement links retain their original colors and remain clickable.
 - Main character selection is explicitly local and stored separately from shareable Alt membership; existing selections are preserved. The profile explains this in English and Russian.
 - Incomplete and unavailable gear scans are identified consistently in target/raid views, chat and dumps, and excluded from raid/minimap readiness counts. Partial diagnostic grades remain available.

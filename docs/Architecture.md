@@ -65,6 +65,10 @@ Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level in
 
 ### Refresh and reputation flow
 
+Composition uses groups 1–5 from live collection or the shared snapshot, excluding
+reserve groups 6–8. Its counts, providers and chat reports use that same subset.
+Raid gear scanning explicitly includes reserves; shared snapshots remain complete.
+
 `ScheduleRosterRefresh` merges same-frame requests. Each pass builds one snapshot shared by history and the visible raid/composition page. Hidden views are not redrawn; history still records. Snapshots are not cached across passes. Inspect queue advancement is immediate; consumable icons have their own targeted refresh path.
 
 Profile commands persist drafts through the store and refresh rating views. Notes have separate Save/Reset behavior. `InitializeHistoryStore` migrates entries at addon initialization, before UI construction; explicit write methods also normalize entries. Rating/history getters do not initialize or migrate SavedVariables. Community ratings include mock fallback data; opinion exchange is not implemented.

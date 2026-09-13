@@ -84,6 +84,26 @@ test("roster Gear targets the same character before navigation and native inspec
   `);
 });
 
+test("composition excludes reserve groups in live and snapshot reads without shrinking gear scans", async () => {
+  await run(["RaidComposition"], "", `
+    function GetNumRaidMembers() return 8 end
+    local groups={}
+    for index=1,8 do groups[index]={{guid=tostring(index),class="DRUID"}} end
+    Raidwise.BuildRaidGroups=function() return groups end
+    local live=Raidwise:CompositionMembers(false)
+    local cached=Raidwise:CompositionMembers(false,{groups=groups})
+    assert(#live==5 and #cached==5 and live[5].guid=="5")
+    assert(cached[1]==groups[1][1] and groups[8][1].guid=="8")
+    assert(#Raidwise:CompositionMembers(false,nil,true)==8)
+    -- A move out of reserves takes effect on the next refresh.
+    groups[5],groups[6]=groups[6],groups[5]
+    assert(Raidwise:CompositionMembers(false)[5].guid=="6")
+    function GetNumRaidMembers() return 0 end
+    Raidwise.BuildPartyRoster=function() return groups[1] end
+    assert(#Raidwise:CompositionMembers(false)==1)
+  `);
+});
+
 test("diagnostic slash commands report missing modules and popup failures in local chat", async () => {
   await run(["Raidwise"], "SlashCmdList = {}", `
     local messages = {}

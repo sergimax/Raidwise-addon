@@ -820,13 +820,12 @@ local function EnsureMemberRole(member)
 	end
 end
 
-function Addon:CompositionMembers(refreshGearScore, snapshot)
-	if snapshot then return snapshot.members end
+function Addon:CompositionMembers(refreshGearScore, snapshot, includeReserves)
 	local members = {}
 	local raidCount = (GetNumRaidMembers and GetNumRaidMembers()) or 0
-	if raidCount > 0 and self.BuildRaidGroups then
-		local groups = self:BuildRaidGroups(refreshGearScore)
-		for groupIndex = 1, 8 do
+	if snapshot or (raidCount > 0 and self.BuildRaidGroups) then
+		local groups = snapshot and snapshot.groups or self:BuildRaidGroups(refreshGearScore)
+		for groupIndex = 1, includeReserves and 8 or 5 do
 			local slots = groups[groupIndex]
 			if slots then
 				for slot = 1, #slots do

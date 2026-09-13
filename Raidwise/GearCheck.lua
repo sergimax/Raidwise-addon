@@ -454,7 +454,7 @@ function Addon:StartGearCheckRaidScan(onProgress, onComplete)
 	if pendingUnit or (raidQueue and raidQueue.active) then
 		return false
 	end
-	local members = (self.CompositionMembers and self:CompositionMembers(false)) or {}
+	local members = (self.CompositionMembers and self:CompositionMembers(false, nil, true)) or {}
 	if #members == 0 then
 		lastRaidResults = {}
 		if onComplete then
