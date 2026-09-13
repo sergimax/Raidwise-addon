@@ -15,6 +15,64 @@ async function run(modules: string[], setup: string, scenario: string): Promise<
   } finally { lua.global.close(); }
 }
 
+test("diagnostic slash commands report missing modules and popup failures in local chat", async () => {
+  await run(["Raidwise"], "SlashCmdList = {}", `
+    local messages = {}
+    Raidwise.Print = function(self, text) messages[#messages+1] = text end
+    SlashCmdList.RAIDWISE(" diagnose ")
+    assert(messages[1] == "Diagnostics starting...")
+    assert(messages[2]:find("Diagnostics.lua did not load",1,true))
+    local called = 0
+    Raidwise.ShowDiagnostics = function(self)
+      called = called + 1
+      self.lastDiagnosticReport = "PASS gear rules"
+      error("popup failed")
+    end
+    SlashCmdList.RAIDWISE("DIAGNOSE")
+    assert(called == 1)
+    assert(Raidwise.lastDiagnosticReport:find("PASS gear rules",1,true))
+    assert(Raidwise.lastDiagnosticReport:find("popup failed",1,true))
+    assert(table.concat(messages,"\\n"):find("FAIL diagnostic command",1,true))
+    SlashCmdList.RAIDWISE = function() error("another addon owns /rw") end
+    SlashCmdList.RAIDWISEDIAGNOSTICS()
+    assert(called == 2 and SLASH_RAIDWISEDIAGNOSTICS1 == "/raidwisediag")
+  `);
+});
+
+test("diagnostics capture UI errors, continue rule checks, and report skipped or missing checks", async () => {
+  await run(["Diagnostics"], "", `
+    local calls = 0
+    Raidwise.version = "test"
+    debugstack = function() return "stack: Settings Create" end
+    Raidwise.ShowMainFrame = function() error("Circular anchor") end
+    Raidwise.GearCheckRulesSelfTest = function()
+      calls = calls + 1
+      return {{ok=true,name="rule"}}, 1, 1
+    end
+    local report, ok = Raidwise:RunDiagnostics()
+    assert(not ok and report:find("FAIL main window opening",1,true))
+    assert(report:find("Circular anchor",1,true) and report:find("stack: Settings Create",1,true))
+    assert(report:find("PASS gear rule self-tests",1,true) and calls == 1)
+    Raidwise.ShowMainFrame = function(self)
+      self.mainFrame = {IsShown=function() return true end}
+    end
+    report, ok = Raidwise:RunDiagnostics()
+    assert(ok and report:find("2 passed, 0 failed, 0 skipped",1,true))
+    InCombatLockdown = function() return true end
+    Raidwise.ShowMainFrame = function() error("must not run in combat") end
+    report, ok = Raidwise:RunDiagnostics()
+    assert(not ok and report:find("1 passed, 0 failed, 1 skipped",1,true))
+    InCombatLockdown = nil
+    Raidwise.ShowMainFrame = nil
+    Raidwise.GearCheckRulesSelfTest = nil
+    report, ok = Raidwise:RunDiagnostics()
+    assert(not ok and report:find("2 failed",1,true))
+    Raidwise.GearCheckRulesSelfTest = function() return {{ok=false,name="broken rule"}}, 0, 1 end
+    report, ok = Raidwise:RunDiagnostics()
+    assert(not ok and report:find("FAIL rule: broken rule",1,true))
+  `);
+});
+
 test("canonical reports preserve legacy inputs and separate grades from completeness", async () => {
   await run(["GearCheckReport"], "", `
     local legacy = {name="Tester",slots={{policy="CHECKED",item={sockets={}}}},

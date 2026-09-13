@@ -9,6 +9,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Task | Owner files | Entry points / boundaries |
 |---|---|---|
 | Bootstrap, DB, slash, report transport | `Raidwise.lua` | Lifecycle, slash handlers, `SendReportChat` |
+| Copyable troubleshooting reports | `Diagnostics.lua`, `../scripts/diagnose.cjs` | `/rw diagnose` runtime smoke checks; `npm run diagnose` offline suite and report file; see tests/README.md |
 | Language | `Locale.lua` | `Addon:T`; search exact keys in both languages |
 | Chat preparation and gear reports | `ChatReports.lua`, `GearCheckReports.lua` | `PrepareReportMessage`, `BuildGearCheckChatMessages` |
 | Gear/bags/currency export, lockouts | `CharacterExport.lua`, `CharacterLockouts.lua` | `FormatEquippedGearExport`, `CollectCharacterCurrency`, `BuildCooldownTable` |

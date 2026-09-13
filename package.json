@@ -5,6 +5,7 @@
     "node": ">=24.4.0 <25"
   },
   "scripts": {
+    "diagnose": "node scripts/diagnose.cjs",
     "test": "node --test tests/*.test.mts",
     "test:watch": "node --test --watch tests/*.test.mts",
     "typecheck": "tsc --project tests/tsconfig.json",

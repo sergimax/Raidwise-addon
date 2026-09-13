@@ -55,3 +55,4 @@ PageSettings.lua
 PageInfo.lua
 ExporterWindow.lua
 Minimap.lua
+Diagnostics.lua

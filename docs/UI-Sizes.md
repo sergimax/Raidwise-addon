@@ -197,6 +197,13 @@ Link target button, and a candidate scroll area filling the remainder above a
 **58** px status/conflict area. Conflict choices are **155 x 24** px each, with a
 **110 x 24** px Cancel button. Frame width/height remain unchanged.
 
+## Diagnostics popup
+
+Independent **620 x 420** px centered dialog with a title and close button.
+The report scroll area has **20** px left/bottom, **40** px right and **48** px
+top insets; its multiline edit box is **550** px wide with **340** px initial
+height. Layout v1 does not depend on the main shell or theme widgets.
+
 ## History tab
 
 Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
