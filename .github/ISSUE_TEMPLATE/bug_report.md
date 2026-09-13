@@ -10,7 +10,11 @@ assignees: ''
 
 ## Description
 
+<!--
 Describe the problem and which Raidwise page or feature is affected.
+-->
+
+
 
 ## Steps to reproduce
 
@@ -20,20 +24,30 @@ Describe the problem and which Raidwise page or feature is affected.
 
 ## Expected behavior
 
+<!--
 What did you expect to happen?
+-->
+
+
 
 ## Actual behavior
 
+<!--
 What happened instead? Does it happen every time or only sometimes?
+-->
+
+
 
 ## Environment
 
+<!--
 - Raidwise version (shown in the main window title):
 - WoW client version/build (Raidwise targets 3.3.5a, build 12340):
 - Client language:
 - Server/realm:
 - Other enabled addons, especially GearScore or UI addons:
 - Does it also happen with only Raidwise enabled? (If tested):
+-->
 
 ## Lua errors
 
@@ -47,6 +61,8 @@ Paste Lua errors here, or write "None".
 
 ## Screenshots and additional context
 
+<!--
 Attach screenshots or relevant export snippets if helpful. For gear-check
 problems, include the character class/spec, item IDs or links, and the finding
 you believe is incorrect. Remove any personal information you do not want public.
+-->
