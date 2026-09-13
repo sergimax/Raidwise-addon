@@ -66,6 +66,17 @@ function RunScanScenario(scenario)
         runtime:Ready()
         runtime:Tick(10)
         assert(#completed == 2 and resumed == 2 and not Raidwise:IsGearCheckScanBusy())
+    elseif scenario == "guid-event" then
+        assert(start())
+        runtime:Ready("B")
+        assert(#completed == 0, "Accepted a different character GUID")
+        local trace=Raidwise:GetInspectRequestTrace("gear")
+        assert(trace.requests==1 and trace.events==1 and trace.accepted==0 and trace.lastPayload=="B")
+        trace.events=100
+        assert(Raidwise:GetInspectRequestTrace("gear").events==1,"Trace must be a snapshot")
+        runtime:Ready("A")
+        assert(#completed == 1 and completed[1].status == "ok")
+        assert(completed[1].report.inspect.complete)
     elseif scenario == "event-order" then
         runtime:Ready()
         assert(start())

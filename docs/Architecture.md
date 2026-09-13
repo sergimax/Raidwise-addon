@@ -43,6 +43,16 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 
 ### Gear flow
 
+Inspect readiness accepts absent payloads, matching unit tokens, and matching
+character GUIDs; current unit identity is checked before dispatch. Unknown-spec
+evaluation defers specialization-dependent penalties while retaining objective
+checks such as missing enchants/gems and resilience. It remains provisional.
+
+Dump diagnostics include a copied request trace (requests/events/accepted/last
+payload) and `character.talentRead` (readiness, raw group/tab count, selected group,
+and per-tree points). These distinguish event delivery from empty talent reads;
+an incomplete final verdict alone does not prove the ready event was absent.
+
 `StartGearCheckUnitScan` requests inspect through the coordinator. `CollectGearCheck` supplies readiness to `CollectGearCheckObservation(unit, inspectReady)` and retains the observation. Collection does not evaluate. Finalization calls `EvaluateGearCheck`, which produces findings and invokes grade aggregation. Formatting belongs in reports, dumps and explanations.
 
 Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level inspect and counts). `NormalizeGearCheckReport` is the adapter at collection, evaluation and snapshot creation boundaries; canonical fields are `character`, `equipment`, and `collection`. Equipment/inspect accessors centralize reads of legacy reports. Rule and catalog revisions are independent of addon semver; saved reports retain original metadata. See [Gear-Check-Progress.md](Gear-Check-Progress.md) for compatibility and grading details.

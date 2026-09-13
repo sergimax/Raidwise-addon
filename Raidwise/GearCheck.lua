@@ -134,6 +134,9 @@ function Addon:CollectGearCheck(unit)
 	local inspectReady = unit and (UnitIsUnit(unit, "player")
 		or (pendingUnit and pendingInspectReady and UnitIsUnit(unit, pendingUnit)))
 	local report = self:CollectGearCheckObservation(unit, inspectReady)
+	if report and self.GetInspectRequestTrace then
+		report.inspectTrace = self:GetInspectRequestTrace("gear")
+	end
 	if report then lastReport = report end
 	return report
 end

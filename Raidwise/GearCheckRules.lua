@@ -3,7 +3,15 @@
 local Addon = Raidwise
 
 -- Evaluation revision, independent of addon releases and catalog edits.
-Addon.GEAR_CHECK_RULESET_VERSION = "wotlk-3.3.5a-r3"
+Addon.GEAR_CHECK_RULESET_VERSION = "wotlk-3.3.5a-r4"
+
+local SPEC_DEPENDENT_FINDINGS = {
+	ARMOR_FORBIDDEN=true, ARMOR_UNWANTED=true, ARMOR_NOT_PREFERRED=true,
+	WEAPON_FORBIDDEN=true, WEAPON_UNWANTED=true, WEAPON_SETUP=true,
+	TRINKET_NOT_PREFERRED=true, TRINKET_SITUATIONAL=true,
+	STAT_FORBIDDEN=true, STAT_UNWANTED=true, ENCHANT_BAD_STAT=true,
+	GEM_BAD_STAT=true, META_NOT_PREFERRED=true,
+}
 
 local ENCHANTABLE = {
 	head = true,
@@ -793,6 +801,13 @@ function Addon:EvaluateGearCheck(report)
 	end
 	EvaluateWeaponSetup(findings, profile, equipment)
 	EvaluateMetaActivation(findings, report, equipment)
+	-- A class fallback cannot choose between caster, melee, healer and tank.
+	-- Retain objective checks, but never penalize gear for an unobserved spec.
+	if source ~= "spec" then
+		for index = #findings, 1, -1 do
+			if SPEC_DEPENDENT_FINDINGS[findings[index].code] then table.remove(findings, index) end
+		end
+	end
 	report.sets = CollectSetCounts(equipment)
 
 	report.findings = findings

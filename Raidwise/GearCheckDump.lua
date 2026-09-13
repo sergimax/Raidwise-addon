@@ -147,6 +147,18 @@ function Addon:FormatGearCheckDump(report)
 	)
 	local scanState, scanReason = Addon:GetGearCheckScanState(report)
 	lines[#lines + 1] = "Scan: " .. scanState .. (scanReason and " (" .. scanReason .. ")" or "")
+	lines[#lines + 1] = "Scan build: " .. tostring(Addon.version) .. " / " .. tostring(Addon.GEAR_CHECK_RULESET_VERSION)
+	local trace = report.inspectTrace
+	if trace then
+		lines[#lines + 1] = string.format("Inspect trace: requests=%s events=%s accepted=%s lastPayload=%s",
+			tostring(trace.requests), tostring(trace.events), tostring(trace.accepted), tostring(trace.lastPayload))
+	end
+	local talents = character.talentRead
+	if talents then
+		lines[#lines + 1] = string.format("Talent read: ready=%s group=%s rawGroup=%s rawTabs=%s points=%s",
+			tostring(talents.ready), tostring(talents.group), tostring(talents.rawGroup),
+			tostring(talents.rawTabs), table.concat(talents.points or {}, ","))
+	end
 	if inspect.tooFar then
 		lines[#lines + 1] = "Inspect: too far"
 	elseif inspect.needed and not inspect.canInspect then
@@ -507,4 +519,3 @@ function Addon:ShowGearCheckRaidDump(results)
 	end
 	return true
 end
-

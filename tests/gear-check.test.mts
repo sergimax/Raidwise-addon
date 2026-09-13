@@ -8,6 +8,70 @@ const modules = [
   "GearCheckProfiles", "GearCheckBis", "GearCheckReport", "GearCheckRules", "GearCheckGrades", "GearCheckExplanations", "GearCheckSelfTest", "GearCheckCollector", "GearCheck", "ChatReports", "GearCheckReports", "GearCheckDump",
 ];
 
+test("inspect talent reads handle invalid group/tab counts and record raw results", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      local collect
+      for index=1,100 do
+        local name,value=debug.getupvalue(Raidwise.CollectGearCheckObservation,index)
+        if name=="CollectClassSpec" then collect=value; break end
+      end
+      assert(collect)
+      function UnitClass() return "Druid","DRUID" end
+      function UnitIsUnit() return false end
+      function GetActiveTalentGroup() return 0 end
+      function GetNumTalentTabs() return 0 end
+      local calls=0
+      function GetTalentTabInfo(tab,inspect,pet,group)
+        calls=calls+1; assert(inspect and group==1)
+        return tab==2 and "Feral" or "Other","icon",tab==2 and 71 or 0
+      end
+      local character=collect("target",false)
+      assert(not character.specKnown and calls==0)
+      character=collect("target",true)
+      assert(character.specKnown and character.specTab==2 and character.specName=="Feral")
+      assert(character.talentRead.rawGroup==0 and character.talentRead.rawTabs==0)
+      assert(table.concat(character.talentRead.points,",")=="0,71,0")
+      function GetTalentTabInfo() return "Other","icon",0 end
+      character=collect("target",true)
+      assert(not character.specKnown and character.talentRead.ready)
+    `);
+  });
+});
+
+test("unknown druid spec defers caster penalties but retains missing-enchant checks", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      local report={character={classFile="DRUID",specKnown=false,specTab=0},
+        collection={inspect={needed=true,canInspect=true,complete=false},counts={filledCheckedSlots=1}},
+        equipment={{key="head",policy="CHECKED",item={itemId=51296,infoKnown=true,
+          category="armor",armorType="leather",stats={agility=183,attackPower=196,armorPenetration=106},
+          enchant={present=false,enchantId=0},sockets={total=1,empty=0},
+          gems={{itemId=40117,color="red",stats={armorPenetration=20}}}}}}}
+      Raidwise:EvaluateGearCheck(report)
+      local missing=false
+      for _, finding in ipairs(report.findings) do
+        assert(finding.code~="STAT_UNWANTED" and finding.code~="GEM_BAD_STAT")
+        if finding.code=="MISSING_ENCHANT" then missing=true end
+      end
+      assert(missing and report.overall.provisional)
+      report.character.specKnown=true; report.character.specTab=1
+      Raidwise:EvaluateGearCheck(report)
+      local casterPenalty=false
+      for _, finding in ipairs(report.findings) do
+        if finding.code=="STAT_UNWANTED" then casterPenalty=true end
+      end
+      assert(casterPenalty,"Known Balance spec should still reject feral stats")
+      report.character.specTab=2
+      Raidwise:EvaluateGearCheck(report)
+      assert(report.profile.source=="spec")
+      for _, finding in ipairs(report.findings) do
+        assert(finding.code~="STAT_UNWANTED" and finding.code~="GEM_BAD_STAT")
+      end
+    `);
+  });
+});
+
 test("final report messages preserve UTF-8, links, and preview/send equality", async () => {
   await withAddon(async (lua) => {
     lua.doStringSync("SlashCmdList = {}");
