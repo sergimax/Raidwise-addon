@@ -581,6 +581,8 @@ function Addon:BuildHistoryRoster(database, filters)
 				if field == "class" then value = value .. " " .. Fold(entry.classLabel) end
 				if query ~= "" and not value:find(query, 1, true) then include = false end
 			end
+			if database and filters.recordSource and filters.recordSource ~= ""
+				and (entry.recordSource or "manual") ~= filters.recordSource then include = false end
 			if database and filters.opinion and filters.opinion ~= ""
 				and self:GetPersonalRating(entry).opinion ~= filters.opinion then include = false end
 		end

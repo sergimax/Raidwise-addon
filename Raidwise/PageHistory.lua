@@ -6,8 +6,16 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 3
-local DATABASE_LAYOUT_VERSION = 2
+local LAYOUT_VERSION = 4
+local DATABASE_LAYOUT_VERSION = 4
+
+local RECORD_SOURCES = {
+	manual = {key="SOURCE_MANUAL", icon="Interface\\Icons\\INV_Misc_Note_01"},
+	website = {key="SOURCE_WEBSITE", icon="Interface\\Icons\\INV_Misc_Map_01"},
+	user = {key="SOURCE_USER", icon="Interface\\Icons\\INV_Letter_15"},
+	encounter = {key="SOURCE_ENCOUNTER", icon="Interface\\Icons\\INV_Misc_GroupLooking"},
+}
+local SOURCE_ALL_ICON = "Interface\\Icons\\INV_Misc_Book_11"
 
 local HISTORY_COL_NAME = 90
 local HISTORY_COL_CLASS = 28
@@ -16,13 +24,12 @@ local HISTORY_COL_OPINION = 70
 local HISTORY_COL_TAGS = 120
 local HISTORY_COL_GS = 52
 local HISTORY_COL_ILVL = 44
-local HISTORY_COL_ZONE = 140
 local HISTORY_COL_MET = 130
 local HISTORY_COL_GUILD = 120
 
 local function HistoryTableWidth()
 	return HISTORY_COL_NAME + HISTORY_COL_CLASS + HISTORY_COL_SPEC + HISTORY_COL_OPINION
-		+ HISTORY_COL_TAGS + HISTORY_COL_GS + HISTORY_COL_ILVL + HISTORY_COL_ZONE
+		+ HISTORY_COL_TAGS + HISTORY_COL_GS + HISTORY_COL_ILVL
 		+ HISTORY_COL_MET + HISTORY_COL_GUILD + 150
 end
 
@@ -34,7 +41,6 @@ local HISTORY_COLUMN_WIDTHS = {
 	HISTORY_COL_TAGS,
 	HISTORY_COL_GS,
 	HISTORY_COL_ILVL,
-	HISTORY_COL_ZONE,
 	HISTORY_COL_MET,
 	HISTORY_COL_GUILD,
 	150,
@@ -95,10 +101,9 @@ local function CreateHistoryRow(parent)
 	row.tagText = AddTextColumn(5, "LEFT")
 	row.gsText = AddTextColumn(6, "CENTER")
 	row.ilvlText = AddTextColumn(7, "CENTER")
-	row.zoneText = AddTextColumn(8, "LEFT")
-	row.metText = AddTextColumn(9, "LEFT")
-	row.guildText = AddTextColumn(10, "LEFT")
-	row.sourceText = AddTextColumn(11, "LEFT")
+	row.metText = AddTextColumn(8, "LEFT")
+	row.guildText = AddTextColumn(9, "LEFT")
+	row.sourceText = AddTextColumn(10, "LEFT")
 
 	row.classIconHost:EnableMouse(true)
 	row.classIconHost:SetScript("OnEnter", function(self)
@@ -129,6 +134,10 @@ local function CreateHistoryRow(parent)
 	row:SetScript("OnEnter", function(self)
 		W.SetBackdropColor(self, UI.BTN_HOVER)
 		W.ShowMemberRatingTooltip(self, self.member)
+		if self.member and self.member.metZone and self.member.metZone ~= "" then
+			GameTooltip:AddLine(W.T("COL_ZONE") .. ": " .. self.member.metZone, 0.8, 0.8, 0.8, true)
+			GameTooltip:Show()
+		end
 	end)
 	row:SetScript("OnLeave", function(self)
 		local stripe = self.stripe or UI.CD_ROW_A
@@ -181,6 +190,13 @@ local function RefreshOpinionButton(page)
 	page.opinionButton.label:SetText(W.T(data and data.labelKey or "FILTER_OPINION_ALL"))
 	page.opinionIcon:SetTexture(data and data.icon or "Interface\\Icons\\INV_Misc_GroupLooking")
 	W.SetFontColor(page.opinionButton.label, data and data.color or UI.TEXT_BODY)
+end
+
+local function RefreshSourceButton(page)
+	if not page.sourceButton then return end
+	local data = RECORD_SOURCES[page.filters.recordSource]
+	page.sourceButton.label:SetText(W.T(data and data.key or "FILTER_SOURCE_ALL"))
+	page.sourceIcon:SetTexture(data and data.icon or SOURCE_ALL_ICON)
 end
 
 local function CreateHistoryPage(parent, database)
@@ -243,6 +259,25 @@ local function CreateHistoryPage(parent, database)
 			RefreshOpinionButton(page)
 			Addon:RefreshHistoryView()
 		end)
+		local sources = {"", "manual", "website", "user"}
+		local sourceIndex = 1
+		CreateInputLabel(page, "COL_RECORD_SOURCE", SOURCE_ALL_ICON, 674, -60)
+		local sourceButton = W.CreatePlainButton(page, 180, 24, W.T("FILTER_SOURCE_ALL"))
+		sourceButton:SetPoint("TOPLEFT", 674, -80)
+		page.sourceButton = sourceButton
+		page.sourceIcon = sourceButton:CreateTexture(nil, "ARTWORK")
+		page.sourceIcon:SetSize(16, 16)
+		page.sourceIcon:SetPoint("LEFT", 8, 0)
+		sourceButton.label:ClearAllPoints()
+		sourceButton.label:SetPoint("LEFT", page.sourceIcon, "RIGHT", 6, 0)
+		sourceButton.label:SetPoint("RIGHT", sourceButton, "RIGHT", -6, 0)
+		RefreshSourceButton(page)
+		sourceButton:SetScript("OnClick", function()
+			sourceIndex = sourceIndex % #sources + 1
+			page.filters.recordSource = sources[sourceIndex]
+			RefreshSourceButton(page)
+			Addon:RefreshHistoryView()
+		end)
 		page.addHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
 		page.addHeading:SetPoint("TOPLEFT", 0, -120)
 		page.addHeading:SetText(W.T("DATABASE_ADD"))
@@ -291,11 +326,11 @@ local function CreateHistoryPage(parent, database)
 
 	local headers = {
 		W.T("COL_NAME"), W.T("COL_CLASS"), W.T("COL_SPEC"), W.T("COL_OPINION"),
-		W.T("COL_TAGS"), W.T("COL_GS"), W.T("COL_ILVL"), W.T("COL_ZONE"), W.T("COL_WHEN"), W.T("COL_GUILD"), W.T("COL_RECORD_SOURCE"),
+		W.T("COL_TAGS"), W.T("COL_GS"), W.T("COL_ILVL"), W.T("COL_WHEN"), W.T("COL_GUILD"), W.T("COL_RECORD_SOURCE"),
 	}
 	page.headerKeys = {
 		"COL_NAME", "COL_CLASS", "COL_SPEC", "COL_OPINION",
-		"COL_TAGS", "COL_GS", "COL_ILVL", "COL_ZONE", "COL_WHEN", "COL_GUILD", "COL_RECORD_SOURCE",
+		"COL_TAGS", "COL_GS", "COL_ILVL", "COL_WHEN", "COL_GUILD", "COL_RECORD_SOURCE",
 	}
 	page.headerLabels = {}
 	for index = 1, #headers do
@@ -427,14 +462,6 @@ local function RefreshPage(self, page)
 			W.SetFontColor(row.ilvlText, UI.TEXT_DISABLED)
 		end
 
-		if member.metZone and member.metZone ~= "" then
-			row.zoneText:SetText(member.metZone)
-			W.SetFontColor(row.zoneText, UI.TEXT_IDLE)
-		else
-			row.zoneText:SetText("-")
-			W.SetFontColor(row.zoneText, UI.TEXT_DISABLED)
-		end
-
 		local metWhen = self:FormatHistoryTime(member.lastSeenAt)
 		row.metText:SetText(metWhen)
 		if metWhen ~= "-" then
@@ -444,8 +471,9 @@ local function RefreshPage(self, page)
 		end
 
 		local source = member.recordSource or (self:IsCharacterDatabaseEntry(member) and "manual" or "encounter")
-		local sourceKey = ({manual="SOURCE_MANUAL", website="SOURCE_WEBSITE", user="SOURCE_USER", encounter="SOURCE_ENCOUNTER"})[source]
-		row.sourceText:SetText((sourceKey and W.T(sourceKey) or tostring(source))
+		local sourceData = RECORD_SOURCES[source]
+		row.sourceText:SetText(W.IconMarkup(sourceData and sourceData.icon or SOURCE_ALL_ICON, 14) .. " "
+			.. (sourceData and W.T(sourceData.key) or tostring(source))
 			.. (member.recordSourceDetail and (": " .. member.recordSourceDetail) or ""))
 		W.SetFontColor(row.sourceText, UI.TEXT_IDLE)
 		row.guildText:SetText(W.FormatGuildDisplay(member.guildName, member.guildRank))
@@ -471,6 +499,7 @@ local function ApplyLocale(page)
 		for _, field in ipairs(page.filterLabels or {}) do field.label:SetText(W.T(field.key)) end
 		if page.addButton then page.addButton.label:SetText(W.T("DATABASE_ADD")) end
 		RefreshOpinionButton(page)
+		RefreshSourceButton(page)
 		if page.filterHeading then page.filterHeading:SetText(W.T("HISTORY_FILTERS")) end
 		if page.addHeading then page.addHeading:SetText(W.T("DATABASE_ADD")) end
 		if page.hint then

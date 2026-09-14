@@ -219,11 +219,11 @@ Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADE
 | Element | Size | Notes |
 |---------|------|-------|
 | Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
-| Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 140 + 130 + 120 + 150 = 972** | Name, class, spec, Opinion, Tags, GS, iLvl, Met in, When, Guild, Record source |
+| Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 130 + 120 + 150 = 832** | Name, class, spec, Opinion, Tags, GS, iLvl, When, Guild, Record source |
 | Class / spec icons | **18** px | Centered in 28 px columns |
 | Opinion column | **70**, center | Qiraji crystal icon (green / yellow / red) |
 | Tags column | **120** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
-| Met in | **140** | First meeting instance or zone |
+| Met in | Row tooltip | First meeting instance or zone, shown when known |
 | When | **130** | `YYYY-MM-DD HH:MM` |
 | Guild | **120** | Last stored `GuildName (Rank)` |
 
@@ -235,7 +235,9 @@ Inputs are at y=-80. Database opinion switch is **160 x 24** at x=498 with a
 Database addition heading is at y=-120, name label at y=-144, and input at y=-164.
 Its name host is **230 x 24**, followed by a **180 x 24** Add button with a **12** px gap.
 Table begins at y=-116 (History) or y=-200 (Database).
-Source column is **150** px. When displays last seen. Rows open Character profile;
+Source filter is **180 x 24** at x=674, y=-80, with its label at y=-60;
+its **16 x 16** icon uses the same insets as the opinion switch.
+Source column is **150** px with **14** px inline icons. When displays last seen. Rows open Character profile;
 notes are edited there.
 
 ## Settings tab

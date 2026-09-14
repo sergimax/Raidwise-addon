@@ -45,6 +45,13 @@ test("encounters expire independently of saved cards, filters and name-only iden
       assert(#addon:BuildHistoryRoster(false,{name="test",class="mag",guildName="example"})==1)
       assert(#addon:BuildHistoryRoster(true,{opinion="negative"})==1)
       assert(#addon:BuildHistoryRoster(true,{opinion="positive"})==0)
+      assert(#addon:BuildHistoryRoster(true,{recordSource="manual",opinion="negative",name="test"})==1)
+      assert(#addon:BuildHistoryRoster(true,{recordSource="website",opinion="negative"})==0)
+      assert(addon:BuildHistoryRoster(true,{recordSource="website"})[1].guid=="imported")
+      assert(#addon:BuildHistoryRoster(true,{recordSource="user"})==0)
+      addon.db.history.imported.recordSource="user"
+      assert(#addon:BuildHistoryRoster(true,{recordSource="user"})==1)
+      addon.db.history.imported.recordSource="website"
       local first=manual.metAt
       advance(13*86400)
       addon:RecordTargetScanHistory({character={guid="REAL",name="Tester"},collection={collectedAt=time()}})

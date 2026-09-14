@@ -375,6 +375,12 @@ test("Settings and character linking panels avoid circular frame anchors", async
     Raidwise.RefreshHistoryView=function() refreshes=refreshes+1 end
     database.opinionButton.scripts.OnClick()
     assert(database.filters.opinion=="positive" and refreshes==1)
+    for _, source in ipairs({"manual", "website", "user", ""}) do
+      database.sourceButton.scripts.OnClick()
+      assert(database.filters.recordSource==source and database.filters.opinion=="positive")
+    end
+    assert(refreshes==5)
+
     local page=Raidwise.Pages.Settings.Create(region())
     assert(page.changelogButton and page.layoutVersion==Raidwise.Pages.Settings.LAYOUT_VERSION)
     local profile={profilePanels={}}
