@@ -256,6 +256,7 @@ end
 function Addon:OnInitialize()
 	EnsureDB()
 	if self.InitializeHistoryStore then self:InitializeHistoryStore() end
+	if self.InitializeClassicOpinionMarkers then self:InitializeClassicOpinionMarkers() end
 	if self.CreateMinimapButton then
 		self:CreateMinimapButton()
 	end

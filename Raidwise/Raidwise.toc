@@ -27,6 +27,7 @@ UITheme.lua
 UIWidgets.lua
 RosterWidgets.lua
 UnitTooltips.lua
+ClassicOpinionMarkers.lua
 ProfilePanels.lua
 ProfileCharacters.lua
 CharacterProfile.lua

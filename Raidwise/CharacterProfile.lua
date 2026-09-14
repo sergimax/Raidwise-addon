@@ -927,6 +927,7 @@ local function UpdateProfileEditor(frame, member)
 end
 
 function Addon:RefreshRatingViews()
+	if self.RefreshClassicOpinionMarkers then self:RefreshClassicOpinionMarkers() end
 	local frame = self.mainFrame
 	if frame and frame:IsShown() then
 		if frame.selectedTab == "raid" and self.RefreshRaidRosterView then

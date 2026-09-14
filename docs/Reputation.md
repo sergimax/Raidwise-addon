@@ -114,3 +114,29 @@ Used by roster pages, Character profile, and unit tooltips:
 2. **Community** — if the GUID is in History: mock percent + up to 3 tags until real exchange data lands (`0 % positive:` then tag line)
 
 Visibility is controlled by `RaidwiseDB.tooltip` hide flags (Settings).
+
+
+## Personal opinion in the native interface
+
+The standard Wrath friends list, ignore list, and inbox sender rows display a
+14 px reputation crystal and colored [+] / [=] / [-] prefix for saved positive,
+neutral, or negative personal opinions. Encounter-only records have no marker.
+Names match case-insensitively within the character realm; explicit Name-Realm
+values are supported, and unqualified names use the current realm. If duplicate
+records match, the most recently updated saved personal rating wins.
+
+Markers refresh after native list updates, scrolling, mailbox pagination, and
+profile rating refreshes. Recycled rows and empty inboxes clear old marks.
+Battle.net account rows, ignore section headers, and dynamic scroll spacers are
+excluded. Native row clicks, selection, sender identity and mailbox actions are
+unchanged; only displayed labels receive prefixes. Tooltip visibility settings
+do not control these list markers.
+
+Implementation: `ClassicOpinionMarkers.lua`, using the post-update approach from
+the local reputation mailbox example. Native row identities and hook points were
+checked against the [3.3.5 FriendsFrame source](https://github.com/wowgaming/3.3.5-interface-files/blob/main/FriendsFrame.lua)
+and [dynamic scroll implementation](https://github.com/wowgaming/3.3.5-interface-files/blob/main/UIPanelTemplates.lua).
+Offline coverage is in `tests/classic-opinion.test.mts`. In game, check a saved
+positive/neutral/negative character in each list, scroll or change inbox pages,
+and edit an opinion while a list is open. Install the new Lua file and updated
+TOC together, then restart the client before this check.
