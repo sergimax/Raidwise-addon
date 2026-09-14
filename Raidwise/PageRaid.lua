@@ -204,11 +204,11 @@ local function FillGearCategorySummaryLabel(label, heading, summary)
 	label:SetText(prefix .. FormatGearCategorySummaryLine(summary))
 end
 
-local function UpdateRaidGradeSummaries(page, results)
+local function UpdateRaidGradeSummaries(page, results, groups)
 	if not page then
 		return
 	end
-	results = results or {}
+	results = Addon:FilterActiveRaidGearResults(results, groups)
 	local gear = SummarizeGearCategory(results, "gear")
 	local enchant = SummarizeGearCategory(results, "enchant")
 	page.gearGradeSummary = gear
@@ -1733,7 +1733,7 @@ function Addon:RefreshRaidRosterView(refreshGearScore, snapshot)
 	UpdateRaidConsumableSummary(page, members)
 
 	local results = ResolveGearCheckResults(page)
-	UpdateRaidGradeSummaries(page, results)
+	UpdateRaidGradeSummaries(page, results, groups)
 	local byGuid, byName = IndexGearResults(results)
 
 	local blocks = { page.topBlock, page.bottomBlock }

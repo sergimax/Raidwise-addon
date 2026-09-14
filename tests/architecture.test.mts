@@ -104,6 +104,25 @@ test("composition excludes reserve groups in live and snapshot reads without shr
   `);
 });
 
+test("raid scan selects active groups and summaries exclude manually scanned reserves", async () => {
+  await run(["GearCheck"], "", `
+    local groups={[1]={{guid="A"}},[5]={{guid="B"}},[6]={{guid="C"}},[8]={{guid="D"}}}
+    local results={{member={guid="A"}},{report={character={guid="B"}}},{member={guid="C"}},{member={guid="D"}}}
+    Raidwise.BuildRaidGroups=function() return groups end
+    local filtered=Raidwise:FilterActiveRaidGearResults(results)
+    assert(#filtered==2 and filtered[1]==results[1] and filtered[2]==results[2])
+    assert(#results==4,"Manual reserve reports must remain available")
+    groups[1],groups[6]=groups[6],groups[1]
+    filtered=Raidwise:FilterActiveRaidGearResults(results)
+    assert(#filtered==2 and filtered[2]==results[3],"Use current groups, not scan-time membership")
+    Raidwise.CompositionMembers=function(self,refresh,snapshot,includeReserves)
+      assert(not includeReserves,"Automatic scan included reserves")
+      return {}
+    end
+    assert(Raidwise:StartGearCheckRaidScan(nil,function(found,status) assert(#found==0 and status=="empty") end))
+  `);
+});
+
 test("diagnostic slash commands report missing modules and popup failures in local chat", async () => {
   await run(["Raidwise"], "SlashCmdList = {}", `
     local messages = {}

@@ -450,11 +450,27 @@ function Addon:GetGearCheckRaidEntryStatusLabel(entry)
 	return self:T("GEAR_CHECK_RAID_NOT_SCANNED")
 end
 
+function Addon:FilterActiveRaidGearResults(results, groups)
+	groups = groups or self:BuildRaidGroups(false)
+	local active, filtered = {}, {}
+	for groupIndex = 1, 5 do
+		for _, member in ipairs(groups[groupIndex] or {}) do
+			if member.guid and member.guid ~= "" then active[member.guid] = true end
+		end
+	end
+	for _, entry in ipairs(results or {}) do
+		local character = entry.report and entry.report.character or {}
+		local guid = entry.member and entry.member.guid or character.guid
+		if active[guid] then filtered[#filtered + 1] = entry end
+	end
+	return filtered
+end
+
 function Addon:StartGearCheckRaidScan(onProgress, onComplete)
 	if pendingUnit or (raidQueue and raidQueue.active) then
 		return false
 	end
-	local members = (self.CompositionMembers and self:CompositionMembers(false, nil, true)) or {}
+	local members = (self.CompositionMembers and self:CompositionMembers(false)) or {}
 	if #members == 0 then
 		lastRaidResults = {}
 		if onComplete then

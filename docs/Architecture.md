@@ -67,7 +67,9 @@ Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level in
 
 Composition uses groups 1–5 from live collection or the shared snapshot, excluding
 reserve groups 6–8. Its counts, providers and chat reports use that same subset.
-Raid gear scanning explicitly includes reserves; shared snapshots remain complete.
+Raid gear scanning also uses groups 1–5. Roster grade summaries filter saved and
+manual results against current group membership. Reserves retain manual Rescan
+and individual reports; shared snapshots remain complete.
 
 `ScheduleRosterRefresh` merges same-frame requests. Each pass builds one snapshot shared by history and the visible raid/composition page. Hidden views are not redrawn; history still records. Snapshots are not cached across passes. Inspect queue advancement is immediate; consumable icons have their own targeted refresh path.
 
