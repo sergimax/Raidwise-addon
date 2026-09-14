@@ -5,14 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.24.0] - 2026-09-15
 
 ### Added
+- Character database for saved cards, with name/class/guild/opinion/source filters, source icons, and manual entry by character name.
+- Personal opinion marks in native friends, ignore, mailbox and both guild roster modes, including ElvUI guild row highlights.
+- Native marker diagnostics report module loading, hook state, saved opinion counts and visible guild matches; missing marker code now produces an explicit failure.
 - Target check can open the game's inspection window. The roster Gear button targets the selected character before opening target check, and works without a previous report.
 - Target scans show a progress bar with the current scan stage and elapsed time; final status remains visible after scanning ends.
 - Scan dumps include inspect request/event counts and raw talent-read results for troubleshooting unknown specializations.
 
+### Changed
+- History lists recent party, raid and target-scan encounters with name/class/guild filters; unused encounter-only records expire after two weeks while saved cards remain in the database.
+- History and database move meeting location into row tooltips and use clearer filter headings, input icons and opinion/source controls.
+- The compact main window fits raid groups 1-5, with reserve groups below the scroll viewport and scrollable Settings content.
+- Guild opinions use light green/gray/red backgrounds; chat markers use green/white/red for positive/neutral/negative opinions.
+
 ### Fixed
+- Profile notes and diagnostics scroll frames open correctly on an unmodified Wrath UI.
+- Corrected the +23 spell-power wrist enchant, recognized the +35 spell-power/+12 spirit leg enchant, and allowed Ember Skyflare Diamond for Holy paladins.
+- Muradin's Spyglass is accepted as caster progression gear and Nevermelting Ice Crystal as healer progression gear.
 - Roster Gear buttons use WoW's secure target action before opening target check, replacing the ordinary Lua targeting call that could leave the target unchanged.
 - Normalize numeric Wrath unit-match results to boolean inspect readiness so accepted inspect responses reach talent collection instead of leaving specialization unknown.
 - Invalid inspect talent-group and tab-count values fall back to group 1 and the three Wrath talent trees; empty talent data still remains unknown.
