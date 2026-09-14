@@ -49,8 +49,8 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Raid | `LAYOUT_VERSION = 31` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 9` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 14` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| History | `LAYOUT_VERSION = 2` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Character database | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
+| History | `LAYOUT_VERSION = 3` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Character database | `LAYOUT_VERSION = 2` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 15` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |
 
@@ -314,6 +314,9 @@ and list refresh.
 Character database is a separate personal menu page using the same table. It
 shows manually saved cards and records with import provenance, regardless of age.
 Its filters also include a button cycling all / positive / neutral / negative opinions.
+The switch uses reputation crystal icons and matching green/yellow/red text; All
+uses a group icon and normal text. Both pages have a Filters heading and 14 px
+icons beside input labels. Database addition has its own heading below the filters.
 A recent encounter with a saved card appears in both views; after 14 days it remains
 only in the database. Both tables show record source alongside name, class, spec,
 opinion, tags, GS, iLvl, first meeting zone, last seen, and guild.

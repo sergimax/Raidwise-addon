@@ -6,8 +6,8 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 2
-local DATABASE_LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 3
+local DATABASE_LAYOUT_VERSION = 2
 
 local HISTORY_COL_NAME = 90
 local HISTORY_COL_CLASS = 28
@@ -144,6 +144,45 @@ local function CreateHistoryRow(parent)
 	return row
 end
 
+-- Avoid InputBoxTemplate's named texture regions on anonymous sibling inputs.
+local function CreateHistoryInput(parent, width, x, y)
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetSize(width, 24)
+	host:SetPoint("TOPLEFT", x, y)
+	host:SetBackdrop(W.COPY_BACKDROP)
+	W.SetBackdropColor(host, UI.INPUT_BG)
+	local input = CreateFrame("EditBox", nil, host)
+	input:SetPoint("TOPLEFT", 8, -3)
+	input:SetPoint("BOTTOMRIGHT", -8, 3)
+	input:SetFontObject("GameFontHighlightSmall")
+	W.SetFontColor(input, UI.TEXT_BODY)
+	input:SetAutoFocus(false)
+	input:SetMultiLine(false)
+	input:EnableMouse(true)
+	input:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+	return input, host
+end
+
+local function CreateInputLabel(page, key, iconPath, x, y)
+	local icon = page:CreateTexture(nil, "ARTWORK")
+	icon:SetSize(14, 14)
+	icon:SetPoint("TOPLEFT", x, y)
+	icon:SetTexture(iconPath)
+	local label = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
+	label:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+	label:SetText(W.T(key))
+	page.filterLabels[#page.filterLabels + 1] = {label=label, key=key}
+end
+
+local function RefreshOpinionButton(page)
+	if not page.opinionButton then return end
+	local _, opinions = Addon:RatingOpinions()
+	local data = opinions[page.filters.opinion]
+	page.opinionButton.label:SetText(W.T(data and data.labelKey or "FILTER_OPINION_ALL"))
+	page.opinionIcon:SetTexture(data and data.icon or "Interface\\Icons\\INV_Misc_GroupLooking")
+	W.SetFontColor(page.opinionButton.label, data and data.color or UI.TEXT_BODY)
+end
+
 local function CreateHistoryPage(parent, database)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
@@ -167,18 +206,18 @@ local function CreateHistoryPage(parent, database)
 	end)
 
 	page.filterLabels = {}
-	local fields = { {"name", "COL_NAME"}, {"class", "COL_CLASS"}, {"guildName", "COL_GUILD"} }
+	page.filterHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
+	page.filterHeading:SetPoint("TOPLEFT", 0, -36)
+	page.filterHeading:SetText(W.T("HISTORY_FILTERS"))
+	local fields = {
+		{"name", "COL_NAME", "Interface\\Icons\\INV_Misc_Note_01"},
+		{"class", "COL_CLASS", "Interface\\Icons\\INV_Misc_GroupLooking"},
+		{"guildName", "COL_GUILD", "Interface\\Icons\\INV_Shirt_GuildTabard_01"},
+	}
 	for index, field in ipairs(fields) do
 		local x = (index - 1) * 166
-		local label = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
-		label:SetPoint("TOPLEFT", x, -36)
-		label:SetText(W.T(field[2]))
-		page.filterLabels[#page.filterLabels + 1] = {label=label, key=field[2]}
-		local input = CreateFrame("EditBox", nil, page, "InputBoxTemplate")
-		input:SetSize(150, 24)
-		input:SetPoint("TOPLEFT", x + 6, -54)
-		input:SetAutoFocus(false)
-		input:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+		CreateInputLabel(page, field[2], field[3], x, -60)
+		local input = CreateHistoryInput(page, 150, x, -80)
 		input:SetScript("OnTextChanged", function(self)
 			page.filters[field[1]] = self:GetText()
 			Addon:RefreshHistoryView()
@@ -188,21 +227,29 @@ local function CreateHistoryPage(parent, database)
 		local opinions = {"", "positive", "neutral", "negative"}
 		local opinionIndex = 1
 		local opinion = W.CreatePlainButton(page, 160, 24, W.T("FILTER_OPINION_ALL"))
-		opinion:SetPoint("TOPLEFT", 498, -54)
+		opinion:SetPoint("TOPLEFT", 498, -80)
+		CreateInputLabel(page, "COL_OPINION", "Interface\\Icons\\INV_Misc_Book_11", 498, -60)
+		page.opinionIcon = opinion:CreateTexture(nil, "ARTWORK")
+		page.opinionIcon:SetSize(16, 16)
+		page.opinionIcon:SetPoint("LEFT", 8, 0)
+		opinion.label:ClearAllPoints()
+		opinion.label:SetPoint("LEFT", page.opinionIcon, "RIGHT", 6, 0)
+		opinion.label:SetPoint("RIGHT", opinion, "RIGHT", -6, 0)
 		page.opinionButton = opinion
+		RefreshOpinionButton(page)
 		opinion:SetScript("OnClick", function()
 			opinionIndex = opinionIndex % #opinions + 1
 			page.filters.opinion = opinions[opinionIndex]
-			opinion.label:SetText(W.T(opinionIndex == 1 and "FILTER_OPINION_ALL" or "RATING_OPINION_" .. string.upper(opinions[opinionIndex])))
+			RefreshOpinionButton(page)
 			Addon:RefreshHistoryView()
 		end)
-		local name = CreateFrame("EditBox", nil, page, "InputBoxTemplate")
-		name:SetSize(230, 24)
-		name:SetPoint("TOPLEFT", 6, -92)
-		name:SetAutoFocus(false)
-		name:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+		page.addHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
+		page.addHeading:SetPoint("TOPLEFT", 0, -120)
+		page.addHeading:SetText(W.T("DATABASE_ADD"))
+		CreateInputLabel(page, "COL_NAME", "Interface\\Icons\\INV_Misc_Note_01", 0, -144)
+		local name, nameHost = CreateHistoryInput(page, 230, 0, -164)
 		local add = W.CreatePlainButton(page, 180, 24, W.T("DATABASE_ADD"))
-		add:SetPoint("LEFT", name, "RIGHT", 12, 0)
+		add:SetPoint("LEFT", nameHost, "RIGHT", 12, 0)
 		page.addButton = add
 		local function AddRecord()
 			local entry = Addon:AddCharacterRecord(name:GetText())
@@ -217,7 +264,7 @@ local function CreateHistoryPage(parent, database)
 		name:SetScript("OnEnterPressed", AddRecord)
 	end
 
-	local tableTop = database and -128 or -90
+	local tableTop = database and -200 or -116
 	local tableHost = CreateFrame("Frame", nil, page)
 	tableHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
 	tableHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
@@ -423,10 +470,9 @@ local function ApplyLocale(page)
 	if page then
 		for _, field in ipairs(page.filterLabels or {}) do field.label:SetText(W.T(field.key)) end
 		if page.addButton then page.addButton.label:SetText(W.T("DATABASE_ADD")) end
-		if page.opinionButton then
-			local opinion = page.filters.opinion or ""
-			page.opinionButton.label:SetText(W.T(opinion == "" and "FILTER_OPINION_ALL" or "RATING_OPINION_" .. string.upper(opinion)))
-		end
+		RefreshOpinionButton(page)
+		if page.filterHeading then page.filterHeading:SetText(W.T("HISTORY_FILTERS")) end
+		if page.addHeading then page.addHeading:SetText(W.T("DATABASE_ADD")) end
 		if page.hint then
 			page.hint:SetText(W.T(page.database and "DATABASE_HINT" or "HISTORY_HINT"))
 		end

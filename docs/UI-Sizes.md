@@ -227,10 +227,14 @@ Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADE
 | When | **130** | `YYYY-MM-DD HH:MM` |
 | Guild | **120** | Last stored `GuildName (Rank)` |
 
-Name/class/guild filter inputs are **150 x 24** at **166** px intervals, labels
-at y=-36 and inputs at y=-54. Database opinion filter is **160 x 24** at x=498.
-Database name entry is **230 x 24** at y=-92, followed by a **180 x 24** Add button
-with a **12** px gap. Table begins at y=-90 (History) or y=-128 (Database).
+Name/class/guild filter hosts are **150 x 24** at **166** px intervals, with
+independent backdrops and editable text inset **8** px horizontally / **3** px vertically.
+Filters heading is at y=-36; labels at y=-60 have **14 x 14** icons and a **4** px gap.
+Inputs are at y=-80. Database opinion switch is **160 x 24** at x=498 with a
+**16 x 16** opinion icon, **8** px left inset and **6** px label gap.
+Database addition heading is at y=-120, name label at y=-144, and input at y=-164.
+Its name host is **230 x 24**, followed by a **180 x 24** Add button with a **12** px gap.
+Table begins at y=-116 (History) or y=-200 (Database).
 Source column is **150** px. When displays last seen. Rows open Character profile;
 notes are edited there.
 
