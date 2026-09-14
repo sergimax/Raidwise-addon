@@ -368,3 +368,37 @@ test("composition reports preserve spell links and fit one chat message", async 
     `);
   });
 });
+
+
+test("reported caster and healer trinkets are valid progression choices", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      local cases = {
+        {"MAGE",2,50340,131,"critRating"}, {"MAGE",2,50345,152,"critRating"},
+        {"WARLOCK",1,50340,131,"critRating"}, {"PRIEST",3,50345,152,"critRating"},
+        {"DRUID",1,50340,131,"critRating"}, {"SHAMAN",1,50340,131,"critRating"},
+        {"DRUID",3,37835,106,"spellPower"}, {"DRUID",3,50259,111,"spellPower"},
+        {"PRIEST",1,50259,111,"spellPower"}, {"PRIEST",2,50259,111,"spellPower"},
+        {"SHAMAN",3,50259,111,"spellPower"}, {"PALADIN",1,50259,111,"spellPower"},
+      }
+      for _,case in ipairs(cases) do
+        local slot={key="trinket1",slotName="Trinket0Slot",policy="CHECKED",empty=false,gaps={},item={
+          itemId=case[3],infoKnown=true,category="armor",armorType="misc",equipLoc="INVTYPE_TRINKET",
+          stats={[case[5]]=case[4]},gaps={},gems={},sockets={total=0,meta=0},
+          enchant={enchantId=0,present=false,known=true,gaps={}}}}
+        local report={character={classFile=case[1],specTab=case[2],specKnown=true,gaps={}},equipment={slot}}
+        local findings=Raidwise:EvaluateGearCheck(report)
+        for _,finding in ipairs(findings) do
+          assert(finding.code~="TRINKET_NOT_PREFERRED",case[1]..":"..case[3])
+        end
+        assert(slot.verdict=="B",case[1]..":"..case[3].." should be progression B, got "..tostring(slot.verdict))
+      end
+      local physical=Raidwise:GetGearCheckProfile("WARRIOR",2,true)
+      for _,itemId in ipairs({50340,50345,50259}) do
+        local found=false
+        for _,allowed in ipairs(physical.trinketsAllowed) do if allowed==itemId then found=true end end
+        assert(not found,"Caster/healer acceptance leaked into physical trinket pool")
+      end
+    `);
+  });
+});

@@ -45,7 +45,7 @@ creation. Keep internal state local or on the single `Raidwise` namespace.
 | Addon semver | `1.22.0`; TOC and `Addon.version` | A release is explicitly requested |
 | Report schema | `3`; `GEAR_CHECK_SCHEMA_VERSION` in collector | The normalized report contract changes; update `types/GearCheck.ts` and compatibility handling |
 | Evaluation rules | `GEAR_CHECK_RULESET_VERSION` in rules | Finding, eligibility, aggregation, or unknown/incomplete-data policy changes; increment `rN` |
-| Catalog data | `catalog-2026-09-10-gems3`; `GEAR_CHECK_DATA_VERSION` | Gem/enchant data, profiles, BiS/trinket pools, or set data change; assign a new catalog revision |
+| Catalog data | `catalog-2026-09-14-gear1`; `GEAR_CHECK_DATA_VERSION` | Gem/enchant data, profiles, BiS/trinket pools, or set data change; assign a new catalog revision |
 | UI layout | Per-shell/page/profile constants | Geometry or frame structure changes under AGENTS.md |
 
 Mechanical refactors and UI/string-only edits do not change rule revisions.
@@ -635,4 +635,17 @@ Compared the existing catalog with the [WoWSims WotLK gem database](https://gith
 - Corrected Subtle Dragon's Eye (42151) from yellow to red. All existing overlapping gem stats matched the reference.
 - Preserve existing meta requirements, profession flags, grading exceptions, legacy gems, and explicit socket-enchant mappings. Older-expansion gems absent from Raidwise were outside this Northrend update.
 - WoWSims stores spell/melee hit, crit, haste, and melee/ranged attack power separately. These are deduplicated into Raidwise's single corresponding in-game stat, never added together. Enchanted Pearl is an all-stat prismatic gem and counts for each meta color.
-- Catalog revision: catalog-2026-09-10-gems3. New gem recognition still needs a resolved gem item ID unless an explicit socket-enchant mapping exists.
+- Catalog revision: catalog-2026-09-14-gear1. New gem recognition still needs a resolved gem item ID unless an explicit socket-enchant mapping exists.
+
+
+Holy Paladin catalog correction (2026-09-14): Ember Skyflare Diamond (41333)
+is accepted for Holy; its existing three-red-gem activation requirement remains.
+Enchant 2326 is Greater Spellpower (+23 spell power), not Major Spirit. Enchant
+3718 is Shining Spellthread (+35 spell power, +12 Spirit); both are recognized
+as usable lower-tier enchants with informational ENCHANT_LOWER_LEVEL notes.
+
+Trinket progression corrections from the same report review: Muradin's Spyglass
+(50340/50345) is accepted by caster profiles; Nevermelting Ice Crystal (50259)
+is accepted by healer profiles, including Holy Paladin. These remain progression
+choices (B / OK), not preferred endgame choices. Je'Tze's Bell (37835) was already
+in the healer progression pool and remains B / OK.

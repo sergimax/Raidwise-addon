@@ -4,7 +4,7 @@
 local Addon = Raidwise
 
 -- Bump when enchant/gem catalog seeds change materially (saved report dataVersion).
-Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-10-gems3"
+Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-14-gear1"
 
 -- maxLevel: Northrend (or best-in-slot-ish) enchants. stats used for appropriateness only.
 local ENCHANTS = {
@@ -39,7 +39,7 @@ local ENCHANTS = {
 	[3850] = { name = "Major Stamina", maxLevel = true, stats = { stamina = 40 } },
 	[2332] = { name = "Superior Spellpower", maxLevel = true, stats = { spellPower = 30 } },
 	[3845] = { name = "Greater Assault", maxLevel = true, stats = { attackPower = 50 } },
-	[2326] = { name = "Major Spirit", maxLevel = false, stats = { spirit = 18 } },
+	[2326] = { name = "Greater Spellpower", maxLevel = false, stats = { spellPower = 23 } },
 	-- Gloves
 	[1603] = { name = "Crusher", maxLevel = true, stats = { attackPower = 44 } },
 	[3246] = { name = "Exceptional Spellpower", maxLevel = true, stats = { spellPower = 28 } },
@@ -73,6 +73,7 @@ local ENCHANTS = {
 	[3822] = { name = "Frosthide Leg Armor", maxLevel = true, stats = { stamina = 55, agility = 22 } },
 	[3823] = { name = "Icescale Leg Armor", maxLevel = true, stats = { attackPower = 75, critRating = 22 } },
 	[3853] = { name = "Earthen Leg Armor", maxLevel = true, stats = { stamina = 40, resilience = 28 } },
+	[3718] = { name = "Shining Spellthread", maxLevel = false, stats = { spellPower = 35, spirit = 12 } },
 	[3719] = { name = "Brilliant Spellthread", maxLevel = true, stats = { spellPower = 50, spirit = 20 } },
 	[3720] = { name = "Azure Spellthread", maxLevel = false, stats = { spellPower = 35, spirit = 12 } },
 	[3721] = { name = "Sapphire Spellthread", maxLevel = true, stats = { spellPower = 50, stamina = 30 } },
