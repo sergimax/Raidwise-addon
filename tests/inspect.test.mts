@@ -24,6 +24,14 @@ test("real roster queue releases timeouts, validates identity, and hands off to 
       assert(#runtime.notifications == 2 and runtime.notifications[2].unit == "raid2")
       runtime:Ready("raid2")
       assert(Raidwise:GetCachedSpecForUnit("raid2") == "Spec3")
+      function GetTalentTabInfo(tab) return tab==2 and "Feral" or "Other", "icon", tab==2 and 71 or 0 end
+      Raidwise:QueuePartyInspects()
+      runtime:Ready("B") -- wrong GUID for raid1
+      assert(Raidwise:GetCachedSpecForUnit("raid1")=="")
+      runtime:Ready("A") -- matching GUID, not a unit token
+      local name, _, tab = Raidwise:GetCachedSpecForUnit("raid1")
+      assert(name=="Feral" and tab==2)
+      runtime:Ready("B")
       Raidwise:ClearCachedSpecForUnit("raid1")
       Raidwise:QueuePartyInspects()
       runtime.identities.raid1 = "C"

@@ -41,9 +41,10 @@ updates existing personal opinion fields; no facts/events/notes are merged.
 
 ## Chat highlighting
 
-Chat messages from characters with a negative personal opinion display a red
-`<Rw>` marker and red message text. Item and achievement links retain their
-original colors and remain clickable; text after them resumes red. This applies to the registered player chat channels
+Chat markers use green for positive, white for neutral,
+and red for negative. Negative opinions also color the message body red.
+Item and achievement links retain their original colors and remain clickable;
+text after them resumes red. This applies to the registered player chat channels
 (including whispers, party, raid, guild and emotes); channel headers and sender
 formatting remain controlled by WoW. Positive/neutral markers retain their existing
 appearance. Linked characters inherit this behavior through their shared personal
@@ -114,3 +115,52 @@ Used by roster pages, Character profile, and unit tooltips:
 2. **Community** — if the GUID is in History: mock percent + up to 3 tags until real exchange data lands (`0 % positive:` then tag line)
 
 Visibility is controlled by `RaidwiseDB.tooltip` hide flags (Settings).
+
+
+## Personal opinion in the native interface
+
+The standard Wrath friends list, ignore list, and inbox sender rows display a
+14 px reputation crystal and colored [+] / [=] / [-] prefix for saved positive,
+neutral, or negative personal opinions. Encounter-only records have no marker.
+Names match case-insensitively within the character realm; explicit Name-Realm
+values are supported, and unqualified names use the current realm. If duplicate
+records match, the most recently updated saved personal rating wins.
+
+Both native guild modes (player status and guild status) show a colored
+[+] / [=] / [-] tag at the right edge and tint the whole row light green / light gray / light red at
+15% opacity, including offline characters with saved opinions. Native name colors
+and selection highlights remain intact. Guild sorting and scrolling use
+the roster index assigned by Blizzard to each row.
+
+Guild marks use a mouse-disabled child frame one level above the row, following
+the local reputation example. The independent tag avoids clipping inside ElvUI's
+100 px name field. Roster events and guild scroll updates schedule a single
+next-frame refresh after skin hooks; there is no continuous polling. The overlay
+fills the existing row and anchors its tag 3 px from the right edge.
+
+If marks are missing, keep the guild roster open and run `/rw diagnose`.
+Diagnostics v2 explicitly fails when the marker module is missing or outdated;
+install the complete addon folder (including the TOC) and fully restart the
+client before repeating the check. A report without this section does not
+verify native markers.
+The native marker section reports its implementation revision, initialization,
+hook state, refresh count, saved/current-realm opinion counts, and each guild
+row pool's visible identities, matches, and shown overlays. It includes no
+character names or saved notes. These counts describe runtime state, not a
+guarantee that a skin renders the overlay visibly.
+
+Markers refresh after native list updates, scrolling, mailbox pagination, and
+profile rating refreshes. Recycled rows and empty inboxes clear old marks.
+Battle.net account rows, ignore section headers, and dynamic scroll spacers are
+excluded. Native row clicks, selection, sender identity and mailbox actions are
+unchanged. Tooltip visibility settings
+do not control these list markers.
+
+Implementation: `ClassicOpinionMarkers.lua`, using the post-update approach from
+the local reputation mailbox example. Native row identities and hook points were
+checked against the [3.3.5 FriendsFrame source](https://github.com/wowgaming/3.3.5-interface-files/blob/main/FriendsFrame.lua)
+and [dynamic scroll implementation](https://github.com/wowgaming/3.3.5-interface-files/blob/main/UIPanelTemplates.lua).
+Offline coverage is in `tests/classic-opinion.test.mts`. In game, check a saved
+positive/neutral/negative character in each list, scroll or change inbox pages,
+and edit an opinion while a list is open. Install the new Lua file and updated
+TOC together, then restart the client before this check.

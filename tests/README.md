@@ -70,6 +70,8 @@ changes; repeat successful checks only after new edits or unresolved concerns.
 | Saved revision compatibility | `saved-revisions.test.mts` |
 | Roster snapshot sharing | `roster-refresh.test.mts` |
 | Ratings, migrations, profile drafts/saving | `history.test.mts` |
+| Native friends, ignore, inbox and guild opinion marks | `classic-opinion.test.mts` |
+| Bare-client profile notes and diagnostics scroll template names | `architecture.test.mts` |
 | Theme bindings | `theme.test.mts` |
 | Dump jobs, cancellation, output routing | `dump.test.mts` |
 

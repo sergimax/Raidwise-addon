@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 30
+local LAYOUT_VERSION = 32
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -204,11 +204,11 @@ local function FillGearCategorySummaryLabel(label, heading, summary)
 	label:SetText(prefix .. FormatGearCategorySummaryLine(summary))
 end
 
-local function UpdateRaidGradeSummaries(page, results)
+local function UpdateRaidGradeSummaries(page, results, groups)
 	if not page then
 		return
 	end
-	results = results or {}
+	results = Addon:FilterActiveRaidGearResults(results, groups)
 	local gear = SummarizeGearCategory(results, "gear")
 	local enchant = SummarizeGearCategory(results, "enchant")
 	page.gearGradeSummary = gear
@@ -1144,14 +1144,21 @@ local function CreateRaidPlayerCell(parent)
 
 	local reportSize = RAID_BTN_H
 	local btnWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2 - RAID_BTN_GAP * 3 - reportSize * 2) / 2)
-	local gearBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_GEAR"))
+	local gearBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_GEAR"), "SecureActionButtonTemplate")
 	gearBtn:SetPoint("BOTTOMLEFT", RAID_CELL_PAD, RAID_CELL_PAD)
 	W.SetPlainButtonTooltip(gearBtn, "BTN_RAID_GEAR_TIP")
-	gearBtn:SetScript("OnClick", function()
-		local gearEntry = cell.gearEntry
-		if gearEntry and gearEntry.report and Addon.ShowGearCheckReport then
-			Addon:ShowGearCheckReport(gearEntry.report, gearEntry.status or "ok")
-		end
+	gearBtn:RegisterForClicks("LeftButtonUp")
+	gearBtn:SetScript("PreClick", function(button)
+		if InCombatLockdown() then return end
+		local member = cell.member
+		local unit = member and member.unit
+		local valid = unit and member.guid and UnitGUID(unit) == member.guid
+			and not Addon:IsGearCheckScanBusy()
+		button:SetAttribute("type", valid and "target" or nil)
+		button:SetAttribute("unit", valid and unit or nil)
+	end)
+	gearBtn:SetScript("PostClick", function()
+		Addon:OpenRaidMemberGear(cell.member, cell.gearEntry)
 	end)
 	gearBtn:Hide()
 	cell.gearBtn = gearBtn
@@ -1323,7 +1330,7 @@ local function FillGearReportRows(cell, member, entry)
 			W.SetFontColor(cell.gradesText, UI.GOLD)
 		end
 		if cell.gearBtn then
-			cell.gearBtn:Disable()
+			cell.gearBtn:Enable()
 		end
 		return
 	end
@@ -1726,7 +1733,7 @@ function Addon:RefreshRaidRosterView(refreshGearScore, snapshot)
 	UpdateRaidConsumableSummary(page, members)
 
 	local results = ResolveGearCheckResults(page)
-	UpdateRaidGradeSummaries(page, results)
+	UpdateRaidGradeSummaries(page, results, groups)
 	local byGuid, byName = IndexGearResults(results)
 
 	local blocks = { page.topBlock, page.bottomBlock }

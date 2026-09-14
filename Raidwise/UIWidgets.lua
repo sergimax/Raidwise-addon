@@ -175,8 +175,8 @@ function W.ActionButtonState(button, hovering)
 	return "idle"
 end
 
-function W.CreatePlainButton(parent, width, height, label)
-	local button = CreateFrame("Button", nil, parent)
+function W.CreatePlainButton(parent, width, height, label, template)
+	local button = CreateFrame("Button", nil, parent, template)
 	button:SetSize(width, height)
 	W.ApplyPlainPanel(button, UI.BTN_IDLE)
 

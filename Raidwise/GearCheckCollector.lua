@@ -850,6 +850,7 @@ local function CollectClassSpec(unit, inspectReady)
 	local className, classFile = UnitClass(unit)
 	local specName, specIcon, specTab = "", "", 0
 	local specKnown = false
+	local talentRead = { ready = inspectReady == true, points = {} }
 	local gaps = {}
 
 	if UnitIsUnit(unit, "player") and Addon.CollectPrimarySpec then
@@ -862,13 +863,19 @@ local function CollectClassSpec(unit, inspectReady)
 		if type(GetActiveTalentGroup) == "function" then
 			talentGroup = GetActiveTalentGroup(isInspect) or 1
 		end
+		talentRead.rawGroup = talentGroup
+		if talentGroup ~= 1 and talentGroup ~= 2 then talentGroup = 1 end
 		local tabCount = 3
 		if type(GetNumTalentTabs) == "function" then
 			tabCount = GetNumTalentTabs(isInspect) or 3
 		end
+		talentRead.rawTabs = tabCount
+		if type(tabCount) ~= "number" or tabCount < 1 or tabCount > 3 then tabCount = 3 end
+		talentRead.group = talentGroup
 		local bestPoints = -1
 		for tab = 1, tabCount do
 			local name, icon, pointsSpent = GetTalentTabInfo(tab, isInspect, nil, talentGroup)
+			talentRead.points[#talentRead.points + 1] = tostring(pointsSpent)
 			pointsSpent = tonumber(pointsSpent) or 0
 			if pointsSpent > bestPoints then
 				bestPoints = pointsSpent
@@ -900,6 +907,7 @@ local function CollectClassSpec(unit, inspectReady)
 
 	return {
 		className = className,
+		talentRead = talentRead,
 		classFile = classFile,
 		specName = specName or "",
 		specIcon = specIcon or "",
@@ -970,7 +978,7 @@ function Addon:CollectGearCheckObservation(unit, inspectReady)
 		return nil
 	end
 
-	inspectReady = UnitIsUnit(unit, "player") or inspectReady == true
+	inspectReady = not not (UnitIsUnit(unit, "player") or inspectReady == true)
 	local name, realm = UnitName(unit)
 	local identity = CollectClassSpec(unit, inspectReady)
 	local equipment = {}
@@ -1005,6 +1013,8 @@ function Addon:CollectGearCheckObservation(unit, inspectReady)
 		end
 	end
 
+	local guildName, guildRank
+	if GetGuildInfo then guildName, guildRank = GetGuildInfo(unit) end
 	local report = {
 		schemaVersion = Addon.GEAR_CHECK_SCHEMA_VERSION,
 		character = {
@@ -1013,12 +1023,15 @@ function Addon:CollectGearCheckObservation(unit, inspectReady)
 			name = name,
 			realm = realm,
 			guid = UnitGUID(unit),
+			guildName = guildName,
+			guildRank = guildRank,
 			className = identity.className,
 			classFile = identity.classFile,
 			specName = identity.specName,
 			specIcon = identity.specIcon,
 			specTab = identity.specTab,
 			specKnown = identity.specKnown,
+			talentRead = identity.talentRead,
 			gaps = characterGaps,
 			gearScore = gearScore,
 			averageIlvl = averageIlvl,
@@ -1039,4 +1052,3 @@ function Addon:CollectGearCheckObservation(unit, inspectReady)
 
 	return self:NormalizeGearCheckReport(report)
 end
-

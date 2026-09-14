@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 15
+local SHELL_LAYOUT_VERSION = 17
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -17,6 +17,7 @@ local MENU_GROUPS = {
 local PAGES = {
 	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", group = "personal" },
 	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "personal" },
+	{ id = "database", key = "Database", labelKey = "TAB_DATABASE", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "personal" },
 	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider", group = "raiding" },
 	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings", group = "raiding" },
 	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03", group = "raiding" },

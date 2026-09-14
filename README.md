@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.23.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--09--14-blue)
+![](https://img.shields.io/badge/current_version-1.24.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--15-blue)
 
 
 ## Install
@@ -16,7 +16,7 @@ Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): part
    <WoW>/Interface/AddOns/Raidwise/
    ```
 
-2. Restart the client (or `/reload`).
+2. Fully restart the client after installing new files or an updated TOC. Use `/reload` for edits to already loaded files.
 3. Enable **Raidwise** on the character select AddOns screen if needed.
 4. If you previously used **mrc-exporter**, remove that folder from AddOns so only Raidwise loads.
 
@@ -95,10 +95,14 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 
 **History** tab:
 
-- Table of players encountered in parties, raids, or target scans (saved in `RaidwiseDB.history`, survives logout)
-- Columns: name, class icon, spec icon, personal opinion (Qiraji crystal), tags, GearScore, iLvl, where you met, when, guild
+- Recent party, raid and target-scan encounters, filterable by name, class and guild; unused encounter-only records expire after 14 days.
+- Meeting location appears in the row tooltip.
 - Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
 - **Refresh** records the current group again and redraws the list
+
+**Character database** keeps manually edited and imported cards, with source icons and filters for name, class, guild, personal opinion and record source. Add a character by name without scanning them. Saved cards survive encounter cleanup; see [Reputation.md](docs/Reputation.md).
+
+Native friends, ignore and inbox rows show opinion marks. Both guild roster modes also show light green/gray/red backgrounds, including with ElvUI. Chat markers use green/white/red; negative message bodies remain red. `/rw diagnose` reports missing marker code and guild matching status.
 
 **Player rating** in Character profile:
 
@@ -174,6 +178,7 @@ Raidwise/
   Diagnostics.lua    # runtime checks and independent copy window
   Minimap.lua         # draggable launcher and raid/lockout summary tooltip
   UnitTooltips.lua    # personal/community lines on player unit tooltips
+  ClassicOpinionMarkers.lua # native social, inbox and guild opinion marks
   UITheme.lua         # theme palettes and bound colors/text
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
   RosterWidgets.lua   # roster, rating, and gear presentation helpers
@@ -198,7 +203,7 @@ Raidwise/
   PageRaid.lua        # Raid roster tab
   PageComposition.lua # Raid composition tab
   PageGearCheckTarget.lua # Gear check (target) tab
-  PageHistory.lua     # History tab
+  PageHistory.lua     # History and Character database tabs
   PageSettings.lua    # Settings tab
   PageInfo.lua        # Info tab
   ExporterWindow.lua  # main window shell (menu, title, status, tab wiring)

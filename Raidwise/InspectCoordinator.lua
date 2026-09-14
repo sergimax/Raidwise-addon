@@ -20,6 +20,7 @@ local function Release(request, status)
 end
 
 local function Notify(request)
+	request.trace.requests = request.trace.requests + 1
 	if type(ClearInspectPlayer) == "function" then pcall(ClearInspectPlayer) end
 	if type(NotifyInspect) ~= "function" then return false end
 	return pcall(NotifyInspect, request.unit)
@@ -30,12 +31,20 @@ function Addon:StartInspectRequest(owner, unit, callbacks)
 	local request = {
 		owner = owner, unit = unit, guid = UnitGUID(unit), deadline = clock + 4,
 		pollAt = clock + 0.25, onReady = callbacks.onReady, onPoll = callbacks.onPoll,
+		trace = { requests = 0, events = 0, accepted = 0, lastPayload = "none" },
 		onTimeout = callbacks.onTimeout, onStop = callbacks.onStop,
 	}
 	active = request
 	frame:Show()
 	if not Notify(request) then Release(request, "cannot_inspect") end
 	return true
+end
+
+function Addon:GetInspectRequestTrace(owner)
+	if not active or active.owner ~= owner then return end
+	local copy = {}
+	for key, value in pairs(active.trace) do copy[key] = value end
+	return copy
 end
 
 function Addon:CompleteInspectRequest(owner)
@@ -60,9 +69,14 @@ end
 frame:SetScript("OnEvent", function(_, _, unit)
 	local request = active
 	if not request then return end
+	request.trace.events = request.trace.events + 1
+	request.trace.lastPayload = tostring(unit)
 	local status = IdentityStatus(request)
 	if status then Release(request, status); return end
-	if unit and not UnitIsUnit(unit, request.unit) then return end
+	-- Some clients/servers supply a GUID instead of a unit token. Neither form
+	-- may complete a request for a different character; absent payloads are valid.
+	if unit and unit ~= request.guid and not UnitIsUnit(unit, request.unit) then return end
+	request.trace.accepted = request.trace.accepted + 1
 	if request.onReady then request.onReady() end
 end)
 

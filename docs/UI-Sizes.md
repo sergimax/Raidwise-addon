@@ -8,8 +8,8 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Content frame (`RaidwiseFrame`) | **890 × 940** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Menu panel (`RaidwiseMenu`) | **170 × 940** | Flush against content left edge (no gap) |
+| Content frame (`RaidwiseFrame`) | **890 × 693** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
+| Menu panel (`RaidwiseMenu`) | **170 × 693** | Flush against content left edge (no gap) |
 | Menu title bar | height **20** | Top of menu; drag handle; centered **Raidwise** + dim addon semver (same fonts/colors as content title + page `vN`) |
 | Menu title gap | 8 px | Between name and version (matches content title bar) |
 | Title bar | height **20** | Top of content; drag handle; **active menu name** + page `vN` + close **X** |
@@ -19,6 +19,10 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Title / status fill | **#1c1c2a** ≈ RGB **0.11, 0.11, 0.165** | Same texture |
 | Gear Check gradation | S gold → A green → D red | `GEAR_S` / `GEAR_GOOD` / `GEAR_OK` / `GEAR_REPLACE` / `GEAR_BAD` — grades S…D and spec ranks (preferred…forbidden) |
 | Idle text | **#ffeebb** ≈ RGB **1.00, 0.93, 0.73** | Body / menu idle |
+
+Shell height is **693** = **40** title/padding + **110** raid header + **524**
+active-group block + **19** scroll insets. The raid viewport shows groups 1-5
+without any of groups 6-8 until scrolled; all other pages share this height.
 
 ## Left menu
 
@@ -144,6 +148,14 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
+Layout v14 adds **Inspect target**, **220 x 28** px, between Scan and Character
+profile with a **4** px gap. The top block grows another **32** px.
+
+Layout v13 adds a **220 x 20** px scan progress bar above Scan with a **4** px
+gap. The top block grows by **24** px. It shows inspect/spec/gems/evaluation
+stages and elapsed seconds, not a completion percentage; retries can revisit
+earlier stages. It hides when scanning ends, leaving the final status visible.
+
 Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**176** px): multi-line status, **Scan**, **Character profile**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 12`.
 
 | Element | Size | Notes |
@@ -204,24 +216,40 @@ The report scroll area has **20** px left/bottom, **40** px right and **48** px
 top insets; its multiline edit box is **550** px wide with **340** px initial
 height. Layout v1 does not depend on the main shell or theme widgets.
 
-## History tab
+## History and Character database tabs
 
 Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
 
 | Element | Size | Notes |
 |---------|------|-------|
 | Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
-| Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 140 + 130 + 120 = 822** | Name, class, spec, Opinion, Tags, GS, iLvl, Met in, When, Guild |
+| Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 130 + 120 + 150 = 832** | Name, class, spec, Opinion, Tags, GS, iLvl, When, Guild, Record source |
 | Class / spec icons | **18** px | Centered in 28 px columns |
 | Opinion column | **70**, center | Qiraji crystal icon (green / yellow / red) |
 | Tags column | **120** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
-| Met in | **140** | First meeting instance or zone |
+| Met in | Row tooltip | First meeting instance or zone, shown when known |
 | When | **130** | `YYYY-MM-DD HH:MM` |
 | Guild | **120** | Last stored `GuildName (Rank)` |
 
-Rows are clickable and open Character profile. Notes are stored on the history record but edited only in Character profile.
+Name/class/guild filter hosts are **150 x 24** at **166** px intervals, with
+independent backdrops and editable text inset **8** px horizontally / **3** px vertically.
+Filters heading is at y=-36; labels at y=-60 have **14 x 14** icons and a **4** px gap.
+Inputs are at y=-80. Database opinion switch is **160 x 24** at x=498 with a
+**16 x 16** opinion icon, **8** px left inset and **6** px label gap.
+Database addition heading is at y=-120, name label at y=-144, and input at y=-164.
+Its name host is **230 x 24**, followed by a **180 x 24** Add button with a **12** px gap.
+Table begins at y=-116 (History) or y=-200 (Database).
+Source filter is **180 x 24** at x=674, y=-80, with its label at y=-60;
+its **16 x 16** icon uses the same insets as the opinion switch.
+Source column is **150** px with **14** px inline icons. When displays last seen. Rows open Character profile;
+notes are edited there.
 
 ## Settings tab
+
+Settings uses a vertical scroll viewport with a **16** px scrollbar and **4** px
+gap; inner content width is **850**. Content height follows the bottom of the
+Changelog controls with **10** px padding and updates after locale/preview changes.
+Mouse-wheel and scrollbar navigation keep lower controls accessible at shell height **693**.
 
 Layout v15 retains the Changelog dimensions introduced in v14: the standard **28** px heading with **20** px section gap, a copy hint, and a URL copy box beside a **130 x 28** px Select all button with the standard **8** px gap. Both controls anchor vertically to the hint, avoiding a circular anchor dependency during window creation.
 

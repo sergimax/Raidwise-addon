@@ -21,14 +21,15 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Rosters and shared refresh | `PartyRoster.lua`, `RosterRefresh.lua` | `BuildRaidGroups`, `BuildRosterSnapshot`, `ScheduleRosterRefresh` |
 | Roles, consumables, composition | `RaidRoles.lua`, `RaidComposition.lua` | `UnitConsumableStatus`, `AnalyzeRaidComposition` |
 | Rating catalogs/access | `PlayerHistory.lua` | `GetPersonalRating`, `GetCommunityRating`, normalization |
-| History, migrations, persistence | `PlayerHistoryStore.lua` | `RecordCurrentGroupHistory`, `SavePersonalRatingForGuid`, `SaveHistoryEventsForGuid`, `SaveProfileNotesForGuid` |
+| History, migrations, persistence | `PlayerHistoryStore.lua` | `RecordCurrentGroupHistory`, `SavePersonalRatingForGuid`, `SaveHistoryEventsForGuid`, `SaveProfileNotesForGuid`, `PruneHistory`, `AddCharacterRecord` |
 | Linked player characters | `CharacterLinks.lua`, `ProfileCharacters.lua` | Group persistence, shared opinion synchronization, and the profile Characters tab |
 | Unsaved profile edits | `ProfileDraft.lua` | `CreateProfileDraft`, `ToggleProfileDraftTag`, `AddProfileDraftEvent` |
 | Profile window | `CharacterProfile.lua`, `ProfilePanels.lua` | Window, editing and commands in `CharacterProfile`; tab construction and history rendering in `ProfilePanels` |
 | Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `GetTooltipSettings`, `BuildUnitTooltipRatingLinesForMember`; tooltip hooks in `UnitTooltips` |
+| Native friends, ignore, inbox and guild opinion marks | `ClassicOpinionMarkers.lua` | `InitializeClassicOpinionMarkers`, `RefreshClassicOpinionMarkers`; read-only name/realm lookup, secure post-update hooks |
 | Theme / shared controls | `UITheme.lua`, `UIWidgets.lua`, `RosterWidgets.lua` | Stable theme tables; generic controls; roster/grade/rating controls |
 | Raid and target gear views | `PageRaid.lua`, `PageGearCheckTarget.lua` | `RefreshRaidRosterView`, `RefreshGearCheckTargetView`, `ShowGearCheckReport` |
-| Other pages | `PageCooldowns.lua`, `PageExport.lua`, `PageComposition.lua`, `PageHistory.lua`, `PageSettings.lua`, `PageInfo.lua` | `Addon.Pages.*` registrations |
+| Other pages | `PageCooldowns.lua`, `PageExport.lua`, `PageComposition.lua`, `PageHistory.lua` (History and Character database), `PageSettings.lua`, `PageInfo.lua` | `Addon.Pages.*` registrations |
 | Shell and navigation | `ExporterWindow.lua`, `Minimap.lua` | `CreateMainFrame`, `SelectTab`, `RefreshLocalizedUI`; separate minimap entry point |
 
 ## Load order and contracts
@@ -43,6 +44,20 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 
 ### Gear flow
 
+Inspect readiness accepts absent payloads, matching unit tokens, and matching
+character GUIDs; current unit identity is checked before dispatch. Unknown-spec
+evaluation defers specialization-dependent penalties while retaining objective
+checks such as missing enchants/gems and resilience. It remains provisional.
+
+Dump diagnostics include a copied request trace (requests/events/accepted/last
+payload) and `character.talentRead` (readiness, raw group/tab count, selected group,
+and per-tree points). These distinguish event delivery from empty talent reads;
+an incomplete final verdict alone does not prove the ready event was absent.
+
+`CollectGearCheck` normalizes truthy numeric WoW API results to a boolean before
+passing inspect readiness to the collector; its strict `true` check must not
+receive a raw `UnitIsUnit` result of `1`.
+
 `StartGearCheckUnitScan` requests inspect through the coordinator. `CollectGearCheck` supplies readiness to `CollectGearCheckObservation(unit, inspectReady)` and retains the observation. Collection does not evaluate. Finalization calls `EvaluateGearCheck`, which produces findings and invokes grade aggregation. Formatting belongs in reports, dumps and explanations.
 
 Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level inspect and counts). `NormalizeGearCheckReport` is the adapter at collection, evaluation and snapshot creation boundaries; canonical fields are `character`, `equipment`, and `collection`. Equipment/inspect accessors centralize reads of legacy reports. Rule and catalog revisions are independent of addon semver; saved reports retain original metadata. See [Gear-Check-Progress.md](Gear-Check-Progress.md) for compatibility and grading details.
@@ -50,6 +65,12 @@ Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level in
 `GetGearCheckScanState` derives `complete`, `incomplete`, or `unavailable` independently of S/A/B/C/D grades. Overall results carry optional `scanState`, `scanReason`, and `provisional` metadata. Views and chat show incomplete/unavailable labels; raid/minimap readiness counts exclude those reports. Diagnostic grades remain available for partial observations.
 
 ### Refresh and reputation flow
+
+Composition uses groups 1–5 from live collection or the shared snapshot, excluding
+reserve groups 6–8. Its counts, providers and chat reports use that same subset.
+Raid gear scanning also uses groups 1–5. Roster grade summaries filter saved and
+manual results against current group membership. Reserves retain manual Rescan
+and individual reports; shared snapshots remain complete.
 
 `ScheduleRosterRefresh` merges same-frame requests. Each pass builds one snapshot shared by history and the visible raid/composition page. Hidden views are not redrawn; history still records. Snapshots are not cached across passes. Inspect queue advancement is immediate; consumable icons have their own targeted refresh path.
 
@@ -64,7 +85,7 @@ Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The
 | Key | Owner / purpose |
 |---|---|
 | `characters` | `CharacterLockouts`: account-wide lockouts/currency |
-| `history` | `PlayerHistoryStore`: GUID-keyed meetings, personal ratings, events, private notes, changes |
+| `history` | `PlayerHistoryStore`: GUID-keyed meetings, saved cards and source metadata; name-only cards use realm/name keys until encountered |
 | `gearCheckSaved` | `GearCheckSavedReports`: snapshots and retention (~14 days) |
 | `tooltip` | `RatingPresentation` / Settings: rating tooltip visibility |
 | `locale`, `theme`, `startupTab`, `reportChannel`, `reportForm` | Preferences consumed by locale, theme, shell and reporting |

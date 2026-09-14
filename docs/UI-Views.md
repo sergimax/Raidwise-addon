@@ -41,17 +41,22 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 15` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 17` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 1` | `Diagnostics.lua` | Independent report window; no badge |
-| Character profile | `PROFILE_LAYOUT_VERSION = 32` | `CharacterProfile.lua` | Title bar (left of close) |
-| Cooldowns | `LAYOUT_VERSION = 8` | `PageCooldowns.lua` | Shell title bar (next to page name) |
-| Export | `LAYOUT_VERSION = 1` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 30` | `PageRaid.lua` | Shell title bar (next to page name) |
-| Composition | `LAYOUT_VERSION = 9` | `PageComposition.lua` | Shell title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 12` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| History | `LAYOUT_VERSION = 1` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 15` | `PageSettings.lua` | Shell title bar (next to page name) |
-| Info | `LAYOUT_VERSION = 4` | `PageInfo.lua` | Shell title bar (next to page name) |
+| Character profile | `PROFILE_LAYOUT_VERSION = 33` | `CharacterProfile.lua` | Title bar (left of close) |
+| Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
+| Export | `LAYOUT_VERSION = 2` | `PageExport.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 32` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
+| History | `LAYOUT_VERSION = 5` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Character database | `LAYOUT_VERSION = 5` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 16` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
+
+The shared shell is **693 px** tall on every page. The Raid viewport fits groups
+1-5; groups 6-8 are below the fold and accessible by scrolling. Settings now scrolls
+vertically so all controls remain accessible in the shorter window.
 
 Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
 
@@ -105,6 +110,11 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 Rows come only from current lockouts; each instance is one row with all size/mode variants combined in character cells (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40). Expired lockouts are dropped.
 
 ## Raid roster
+
+Layout v31 recreates Gear buttons with `SecureActionButtonTemplate`. Their
+target action selects the cell's current unit, then PostClick opens target check.
+Button dimensions are unchanged. Unit/GUID validation prevents stale cells from
+opening a different character's report.
 
 Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1 (same inspect/GS pipeline as before; no separate party tab).
 
@@ -296,35 +306,39 @@ Changing opinion, tags, facts, or events (via **Save and Update**) refreshes Rai
 
 See also [Reputation.md](Reputation.md) for entity definitions and future share matrix.
 
-## History
+## History and Character database
 
-Players you have been in a party or raid with (not yourself). Each GUID is stored in `RaidwiseDB.history` and survives logout. First meeting zone, time, and realm are kept; later grouping updates GearScore, iLvl, spec, and last seen.
+History shows party, raid, and Gear Check encounters within the last 14 days,
+sorted by last seen. Name, class (token or localized label), and guild filters
+combine as case-insensitive substring searches. The When column shows last seen;
+the profile retains first meeting details. Unedited encounter records expire
+at 14 days since last seen. Cleanup runs at login, group collection, scan completion,
+and list refresh.
 
-```text
-[ short description ]                              [ Refresh ]
-        8 px gap
-[ Name | (class) | (spec) | Opinion | Tags | GS | iLvl | Met in | When | Guild (rank) ]
-[ Rhee |  SH   |  Enh   |    +    | Friendly, Good Tank | 6158 | 264 | Icecrown Citadel | 2026-08-18 18:54 | MyGuild (Member) ]
-```
+Character database is a separate personal menu page using the same table. It
+shows manually saved cards and records with import provenance, regardless of age.
+Its filters also include a button cycling all / positive / neutral / negative opinions.
+A source filter cycles All / Manually edited / Website import / User import and
+combines with the other filters. Both tables show source icons (note, map, letter,
+or group for encounters) beside the source labels.
+The switch uses reputation crystal icons and matching green/yellow/red text; All
+uses a group icon and normal text. Both pages have a Filters heading and 14 px
+icons beside input labels. Database addition has its own heading below the filters.
+A recent encounter with a saved card appears in both views; after 14 days it remains
+only in the database. Both tables show record source alongside name, class, spec,
+opinion, tags, GS, iLvl, last seen, and guild. The first meeting location (Met in)
+is shown in the row tooltip when known, rather than in a table column.
 
-| Block | In-game text / control |
-|-------|------------------------|
-| short description | “Players from your parties and raids. Saved on this account.” |
-| Refresh | Records the current group again, then redraws the saved list |
-| Name | Class-colored character name |
-| Class | Class icon; hover shows localized class name |
-| Spec | Primary talent tree icon; hover shows spec name |
-| Opinion | Saved personal opinion Qiraji crystal: green / yellow / red |
-| Tags | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
-| GS | Last stored GearScore |
-| iLvl | Last stored average item level |
-| Met in | Raid, dungeon, or zone at first meeting |
-| When | First meeting date and time |
-| Guild | Last stored `GuildName (Rank)` |
-| hover | Tooltip shows full opinion label and tag summary |
-| click | Left-click a row opens **Character profile** |
+Enter Name or Name-Realm in the database and press Add character (or Enter) to
+create a card and open its profile editor. No scan is required. Duplicate names
+on the same realm reuse the existing record. Name-only cards acquire the live GUID
+when encountered, preserving saved notes, opinion, and character links.
 
-Notes are stored on each history record (`notes`) and edited in Character profile; they are not shown in this table.
+Rows open Character profile; notes are edited there. Existing edited records migrate
+to manual source. Imported records retain their original source when edited locally.
+Source tracking supports website/user labels and optional source detail; importing
+and exchange are not implemented in this update. Manual entry is provided in the UI;
+no additional slash command or unit context menu is required.
 
 ## Settings
 

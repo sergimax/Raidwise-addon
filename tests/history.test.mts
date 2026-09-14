@@ -3,6 +3,77 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { Lua } from "wasmoon-lua5.1";
 
+test("encounters expire independently of saved cards, filters and name-only identity", async () => {
+  const lua = await Lua.create();
+  try {
+    lua.doStringSync(`
+      Raidwise={db={}}
+      local now=2000000
+      function time() return now end
+      function advance(seconds) now=now+seconds end
+      function GetRealmName() return "Realm" end
+      function UnitGUID() return "SELF" end
+      function Raidwise:T(key) return key end
+    `);
+    for (const module of ["PlayerHistory", "PlayerHistoryStore"]) {
+      lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
+    }
+    lua.doStringSync(`
+      local addon=Raidwise
+      local old=time()-14*86400
+      addon.db.history={
+        expired={guid="expired",name="Old",lastSeenAt=old,events={{type="same_party"}},
+          changes={{kind="event_add",detail="same_party"}}},
+        saved={guid="saved",name="Saved",lastSeenAt=old,notes="Keep me"},
+        facts={guid="facts",name="Facts",rating={personal={facts={"raid_leader"}}}},
+        imported={guid="imported",name="Imported",recordSource="website",recordSourceDetail="raidwise"},
+      }
+      addon:InitializeHistoryStore()
+      assert(not addon.db.history.expired and addon.db.history.saved and addon.db.history.facts)
+      assert(#addon:BuildHistoryRoster()==0 and #addon:BuildHistoryRoster(true)==3)
+      local manual=addon:AddCharacterRecord("  Tester-Realm  ")
+      assert(manual and manual.metAt==0 and manual.recordSource=="manual")
+      assert(addon:AddCharacterRecord("tester-realm")==manual)
+      assert(not addon:AddCharacterRecord("bad name") and not addon:AddCharacterRecord("|Hplayer:bad"))
+      addon:SavePersonalRatingForGuid(manual.guid,manual,"negative",{}, {})
+      addon:SaveProfileNotesForGuid(manual.guid,manual,"Reported by a friend")
+      local previousKey=manual.guid
+      addon:RecordTargetScanHistory({character={guid="REAL",name="Tester",realm="Realm",
+        classFile="MAGE",className="Mage",guildName="Example Guild"},collection={collectedAt=time()}})
+      assert(addon.db.history.REAL==manual and not addon.db.history[previousKey])
+      assert(manual.notes=="Reported by a friend" and manual.rating.personal.opinion=="negative")
+      assert(#addon:BuildHistoryRoster(false,{name="test",class="mag",guildName="example"})==1)
+      assert(#addon:BuildHistoryRoster(true,{opinion="negative"})==1)
+      assert(#addon:BuildHistoryRoster(true,{opinion="positive"})==0)
+      assert(#addon:BuildHistoryRoster(true,{recordSource="manual",opinion="negative",name="test"})==1)
+      assert(#addon:BuildHistoryRoster(true,{recordSource="website",opinion="negative"})==0)
+      assert(addon:BuildHistoryRoster(true,{recordSource="website"})[1].guid=="imported")
+      assert(#addon:BuildHistoryRoster(true,{recordSource="user"})==0)
+      addon.db.history.imported.recordSource="user"
+      assert(#addon:BuildHistoryRoster(true,{recordSource="user"})==1)
+      addon.db.history.imported.recordSource="website"
+      local first=manual.metAt
+      advance(13*86400)
+      addon:RecordTargetScanHistory({character={guid="REAL",name="Tester"},collection={collectedAt=time()}})
+      assert(manual.metAt==first and manual.lastSeenAt==time())
+      advance(2*86400)
+      assert(#addon:BuildHistoryRoster()==1)
+      advance(12*86400)
+      addon:PruneHistory()
+      assert(#addon:BuildHistoryRoster()==0 and addon.db.history.REAL==manual)
+      addon:SaveProfileNotesForGuid("imported",nil,"Local annotation")
+      assert(addon.db.history.imported.recordSource=="website")
+      addon:RecordTargetScanHistory({character={guid="TEMP",name="Temporary"}})
+      assert(not addon:IsCharacterDatabaseEntry(addon.db.history.TEMP))
+      advance(14*86400)
+      addon:PruneHistory()
+      assert(not addon.db.history.TEMP)
+    `);
+  } finally {
+    lua.global.close();
+  }
+});
+
 test("history migration is idempotent and ratings, events, and notes persist", async () => {
   const lua = await Lua.create();
   try {

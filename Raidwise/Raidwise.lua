@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "1.23.0"
+Addon.version = "1.24.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -256,6 +256,7 @@ end
 function Addon:OnInitialize()
 	EnsureDB()
 	if self.InitializeHistoryStore then self:InitializeHistoryStore() end
+	if self.InitializeClassicOpinionMarkers then self:InitializeClassicOpinionMarkers() end
 	if self.CreateMinimapButton then
 		self:CreateMinimapButton()
 	end

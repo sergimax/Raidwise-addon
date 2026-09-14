@@ -6,12 +6,12 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 12
+local LAYOUT_VERSION = 15
 
 local RIGHT_COL_W = 220
 local COL_GAP = 10
 local SUMMARY_H = 124
-local RIGHT_TOP_H = UI.ACTION_BTN_H * 4 + 16 + 44
+local RIGHT_TOP_H = UI.ACTION_BTN_H * 5 + 20 + 68
 local TOP_BLOCK_H = math.max(SUMMARY_H, RIGHT_TOP_H)
 
 local ApplyReportToPage
@@ -730,6 +730,10 @@ local function ApplyBreakdown(page, report)
 end
 
 ApplyReportToPage = function(page, report, status, savedEntry)
+	if page.scanProgress then
+		page.scanProgress:SetValue(status == "ok" and 1 or 0)
+		page.scanProgress:Hide()
+	end
 	if not page then
 		return
 	end
@@ -928,8 +932,13 @@ local function CreateGearCheckTargetPage(parent)
 	page.profileBtn = profileBtn
 
 	local scanBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
-	scanBtn:SetPoint("BOTTOMLEFT", profileBtn, "TOPLEFT", 0, 4)
-	scanBtn:SetPoint("BOTTOMRIGHT", profileBtn, "TOPRIGHT", 0, 4)
+	local inspectBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_INSPECT"))
+	inspectBtn:SetPoint("BOTTOMLEFT", profileBtn, "TOPLEFT", 0, 4)
+	inspectBtn:SetPoint("BOTTOMRIGHT", profileBtn, "TOPRIGHT", 0, 4)
+	inspectBtn:SetScript("OnClick", function() Addon:OpenTargetInspection() end)
+	page.inspectBtn = inspectBtn
+	scanBtn:SetPoint("BOTTOMLEFT", inspectBtn, "TOPLEFT", 0, 4)
+	scanBtn:SetPoint("BOTTOMRIGHT", inspectBtn, "TOPRIGHT", 0, 4)
 	W.SetPlainButtonTooltip(scanBtn, "GEAR_CHECK_SCAN_TIP")
 	scanBtn:SetScript("OnClick", function()
 		RunScan(page)
@@ -945,6 +954,36 @@ local function CreateGearCheckTargetPage(parent)
 	statusLabel:SetNonSpaceWrap(false)
 	statusLabel:SetText(W.T("GEAR_CHECK_HINT"))
 	page.statusLabel = statusLabel
+
+	local progress = CreateFrame("StatusBar", nil, rightTop)
+	progress:SetHeight(20)
+	progress:SetPoint("BOTTOMLEFT", scanBtn, "TOPLEFT", 0, 4)
+	progress:SetPoint("BOTTOMRIGHT", scanBtn, "TOPRIGHT", 0, 4)
+	progress:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+	progress:SetStatusBarColor(0.2, 0.65, 0.9)
+	progress:SetMinMaxValues(0, 1)
+	progress:SetValue(0)
+	local background = progress:CreateTexture(nil, "BACKGROUND")
+	background:SetAllPoints(progress)
+	background:SetTexture(0.1, 0.1, 0.1, 0.8)
+	local label = W.CreateFontString(progress, nil, "OVERLAY", "GameFontNormalSmall")
+	label:SetPoint("CENTER")
+	statusLabel:ClearAllPoints()
+	statusLabel:SetPoint("TOPLEFT", rightTop, "TOPLEFT", 0, -4)
+	statusLabel:SetPoint("BOTTOMRIGHT", progress, "TOPRIGHT", 0, -4)
+	page.scanProgress = progress
+	progress:Hide()
+	local stages = { inspect = 0.2, spec = 0.45, gems = 0.7, evaluate = 0.9 }
+	page:SetScript("OnUpdate", function()
+		local phase, elapsed = Addon:GetTargetScanProgress()
+		if not phase then
+			progress:Hide()
+			return
+		end
+		progress:SetValue(stages[phase] or 0.2)
+		label:SetText(W.T("GEAR_CHECK_RAID_PHASE_" .. string.upper(phase)) .. string.format(" — %.1fs", elapsed))
+		progress:Show()
+	end)
 
 	page.topBlockH = TOP_BLOCK_H
 
@@ -1280,6 +1319,7 @@ local function ApplyLocale(page)
 	if page.scanBtn and page.scanBtn.label then
 		page.scanBtn.label:SetText(W.T("GEAR_CHECK_SCAN"))
 	end
+	if page.inspectBtn then page.inspectBtn.label:SetText(W.T("GEAR_CHECK_INSPECT")) end
 	if page.saveBtn and page.saveBtn.label then
 		page.saveBtn.label:SetText(W.T("GEAR_CHECK_SAVE"))
 	end
@@ -1402,6 +1442,36 @@ function Addon:OpenGearCheckTarget(autoScan)
 	if autoScan ~= false then
 		self:RefreshGearCheckTargetView(true)
 	end
+end
+
+function Addon:OpenTargetInspection()
+	if self:IsGearCheckScanBusy() then self:Print(W.T("GEAR_CHECK_RAID_STATUS_BUSY")); return false end
+	if InCombatLockdown() then self:Print(W.T("GEAR_CHECK_TARGET_COMBAT")); return false end
+	if not UnitExists("target") or not UnitIsPlayer("target") or not CanInspect("target") then
+		self:Print(W.T("GEAR_CHECK_STATUS_NO_INSPECT")); return false
+	end
+	if self.ClearPartyInspectForGearCheck then self:ClearPartyInspectForGearCheck() end
+	if not InspectUnit then UIParentLoadAddOn("Blizzard_InspectUI") end
+	if not InspectUnit then self:Print(W.T("GEAR_CHECK_STATUS_NO_INSPECT")); return false end
+	InspectUnit("target")
+	return true
+end
+
+function Addon:OpenRaidMemberGear(member, entry)
+	if self:IsGearCheckScanBusy() then self:Print(W.T("GEAR_CHECK_RAID_STATUS_BUSY")); return false end
+	if InCombatLockdown() then self:Print(W.T("GEAR_CHECK_TARGET_COMBAT")); return false end
+	if not member or not member.guid or not member.unit or UnitGUID(member.unit) ~= member.guid then
+		self:Print(W.T("CHAR_LINK_TARGET_MISSING")); return false
+	end
+	-- The roster's secure target action runs before this PostClick callback.
+	if UnitGUID("target") ~= member.guid then self:Print(W.T("CHAR_LINK_TARGET_MISSING")); return false end
+	local report = entry and entry.report
+	if report and report.character and report.character.guid == member.guid then
+		self:ShowGearCheckReport(report, entry.status)
+	else
+		self:OpenGearCheckTarget(true)
+	end
+	return true
 end
 
 Addon.Pages.GearCheckTarget = {

@@ -315,3 +315,40 @@ assert(Raidwise:GetGearCheckGemInfo(42151).jcUnique)
 -- Existing data and inspect mappings remain intact.
 assert(Raidwise:GetGearCheckGemInfo(23111).stats.strength==3)
 assert(Raidwise:GetGearCheckGemItemId(3750)==42702)
+
+
+-- Holy Paladin report: Ember meta, +23 spellpower wrists and lesser spellthread.
+do
+    local holy = Raidwise:GetGearCheckProfile("PALADIN", 1, true)
+    local normalizeEnchant = private("NormalizeEnchant")
+    local evaluateEnchant = private("EvaluateEnchant")
+    for _, expected in ipairs({
+        {2326, "Greater Spellpower", 23, nil, "wrist"},
+        {3718, "Shining Spellthread", 35, 12, "legs"},
+    }) do
+        local info = Raidwise:GetGearCheckEnchantInfo(expected[1])
+        assert(info.name == expected[2] and info.stats.spellPower == expected[3])
+        assert(info.stats.spirit == expected[4] and info.maxLevel == false)
+        local enchant = normalizeEnchant(expected[1])
+        assert(enchant.present and enchant.known and enchant.name == expected[2] and #enchant.gaps == 0)
+        local slot = {key=expected[5],policy="CHECKED",enchantable=true,item={enchant=enchant}}
+        local enchantFindings = {}
+        evaluateEnchant(enchantFindings, holy, slot)
+        assert(has(enchantFindings,"ENCHANT_LOWER_LEVEL"))
+        assert(not has(enchantFindings,"ENCHANT_NOT_CHECKABLE") and not has(enchantFindings,"ENCHANT_BAD_STAT"))
+        for _, finding in ipairs(enchantFindings) do assert(finding.severity == "info") end
+    end
+    local metaHead = {key="head",policy="CHECKED",item={
+        sockets={meta=1,total=1}, gems={{itemId=41333,isMeta=true,color="meta",socketIndex=1}}}}
+    local metaFindings = {}
+    evaluateGems(metaFindings, holy, metaHead)
+    assert(not has(metaFindings,"META_NOT_PREFERRED"))
+    local metaReport = {}
+    activate(metaFindings, metaReport, {metaHead})
+    assert(metaReport.meta.active == false and has(metaFindings,"META_INACTIVE"))
+    local redSlot = {key="chest",policy="CHECKED",item={sockets={total=3},gems={
+        {itemId=40113,color="red"},{itemId=40113,color="red"},{itemId=40113,color="red"}}}}
+    metaFindings = {}
+    activate(metaFindings, metaReport, {metaHead,redSlot})
+    assert(metaReport.meta.active == true and not has(metaFindings,"META_INACTIVE"))
+end

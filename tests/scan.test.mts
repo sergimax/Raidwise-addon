@@ -16,7 +16,7 @@ async function runScenario(scenario: string): Promise<void> {
   }
 }
 
-for (const scenario of ["repeated", "event-order", "missing", "deadline", "raid", "empty-confirmed", "empty-delayed", "empty-timeout"]) {
+for (const scenario of ["repeated", "event-order", "guid-event", "numeric-unit-match", "missing", "deadline", "raid", "empty-confirmed", "empty-delayed", "empty-timeout"]) {
   test(`scan lifecycle: ${scenario}`, () => runScenario(scenario));
 }
 

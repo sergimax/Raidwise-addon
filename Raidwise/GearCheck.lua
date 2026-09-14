@@ -2,6 +2,9 @@
 local Addon = Raidwise
 
 local pendingUnit = nil
+local pendingPhase = "inspect"
+local pendingStartedAt = 0
+
 local pendingCallback = nil
 local pendingInspectReady = false
 local pendingSpecRetry = false
@@ -9,6 +12,11 @@ local pendingGemRetry = false
 local lastReport = nil
 local raidQueue = nil
 local lastRaidResults = nil
+
+function Addon:GetTargetScanProgress()
+	if not pendingUnit or (raidQueue and raidQueue.active) then return end
+	return pendingPhase, type(GetTime) == "function" and (GetTime() - pendingStartedAt) or 0
+end
 
 function Addon:ResolveGearCheckUnit()
 	if UnitExists("target") and UnitIsPlayer("target") and not UnitIsUnit("target", "player") then
@@ -133,7 +141,12 @@ function Addon:CollectGearCheck(unit)
 	unit = unit or self:ResolveGearCheckUnit()
 	local inspectReady = unit and (UnitIsUnit(unit, "player")
 		or (pendingUnit and pendingInspectReady and UnitIsUnit(unit, pendingUnit)))
+	-- Wrath APIs may return 1/nil. The collector's readiness contract is boolean.
+	inspectReady = not not inspectReady
 	local report = self:CollectGearCheckObservation(unit, inspectReady)
+	if report and self.GetInspectRequestTrace then
+		report.inspectTrace = self:GetInspectRequestTrace("gear")
+	end
 	if report then lastReport = report end
 	return report
 end
@@ -162,6 +175,7 @@ local function FinishRaidScan()
 end
 
 local function NotifyRaidScanLive(phase)
+	pendingPhase = phase
 	if not raidQueue or not raidQueue.onProgress then
 		return
 	end
@@ -232,6 +246,7 @@ local function FinishScan(report, status)
 			report.collection.scanStatus = status
 		end
 	end
+	if report and Addon.RecordTargetScanHistory then Addon:RecordTargetScanHistory(report) end
 	lastReport = report
 	local callback = pendingCallback
 	local continueRaid = raidQueue and raidQueue.active
@@ -373,6 +388,8 @@ function Addon:StartGearCheckUnitScan(unit, callback)
 	end
 
 	pendingUnit = unit
+	pendingPhase = "inspect"
+	pendingStartedAt = type(GetTime) == "function" and GetTime() or 0
 	pendingInspectReady = false
 	pendingSpecRetry = false
 	pendingGemRetry = false
@@ -405,7 +422,6 @@ end
 
 function Addon:StartGearCheckScan(callback)
 	return self:StartGearCheckUnitScan(self:ResolveGearCheckUnit(), function(report, status)
-		self:RecordTargetScanHistory(report)
 		if callback then
 			callback(report, status)
 		end
@@ -432,6 +448,22 @@ function Addon:GetGearCheckRaidEntryStatusLabel(entry)
 		return self:T("GEAR_CHECK_RAID_ROW_FAIL")
 	end
 	return self:T("GEAR_CHECK_RAID_NOT_SCANNED")
+end
+
+function Addon:FilterActiveRaidGearResults(results, groups)
+	groups = groups or self:BuildRaidGroups(false)
+	local active, filtered = {}, {}
+	for groupIndex = 1, 5 do
+		for _, member in ipairs(groups[groupIndex] or {}) do
+			if member.guid and member.guid ~= "" then active[member.guid] = true end
+		end
+	end
+	for _, entry in ipairs(results or {}) do
+		local character = entry.report and entry.report.character or {}
+		local guid = entry.member and entry.member.guid or character.guid
+		if active[guid] then filtered[#filtered + 1] = entry end
+	end
+	return filtered
 end
 
 function Addon:StartGearCheckRaidScan(onProgress, onComplete)

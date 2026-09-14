@@ -12,6 +12,7 @@ test("roster bursts share collection with history and render only the visible vi
       lua.doStringSync(await readFile(new URL(path, import.meta.url), "utf8"));
     }
     lua.doStringSync(`
+      function time() return 1000 end
       Raidwise.db={}
       function GetNumRaidMembers() return 2 end
       function GetRaidRosterInfo(index) return "Name",nil,index end

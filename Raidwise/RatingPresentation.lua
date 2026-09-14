@@ -9,34 +9,48 @@ local META_COLORS = {
 	negative = { 0.95, 0.35, 0.35 },
 }
 
-local CHAT_OPINION_MARKS = {
-	positive = { prefix = "Rw", color = "|cff64e6c2" },
-	neutral = { prefix = "Rw", color = "|cffc4b5fd" },
-	negative = { prefix = "Rw", color = "|cffff8f9c" },
+local NATIVE_OPINION_COLORS = {
+	positive = { 0.00, 1.00, 0.00 },
+	neutral = { 1.00, 1.00, 1.00 },
+	negative = { 1.00, 0.00, 0.00 },
 }
 
-local function NegativeChatMessage(message)
-	-- Keep item/achievement colors, then resume red after each complete link.
+local NATIVE_OPINION_BACKGROUNDS = {
+	positive = { 0.65, 1.00, 0.65 },
+	neutral = { 0.80, 0.80, 0.80 },
+	negative = { 1.00, 0.65, 0.65 },
+}
+
+function Addon:NativeOpinionBackgroundColor(opinion)
+	return NATIVE_OPINION_BACKGROUNDS[opinion] or NATIVE_OPINION_BACKGROUNDS.neutral
+end
+
+function Addon:NativeOpinionColor(opinion)
+	return NATIVE_OPINION_COLORS[opinion] or NATIVE_OPINION_COLORS.neutral
+end
+
+local function NegativeChatMessage(message, color)
+	-- Keep item/achievement colors, then resume the opinion color after each complete link.
 	local function RemoveColor(pipes, code)
 		if #pipes % 2 == 0 then return pipes .. code end
 		return pipes:sub(1, -2)
 	end
-	local function RedText(text)
+	local function PlainText(text)
 		return text:gsub("(|+)(c%x%x%x%x%x%x%x%x)", RemoveColor):gsub("(|+)(r)", RemoveColor)
 	end
-	local parts = { "|cffff0000<Rw> " }
+	local parts = { color .. "<Rw> " }
 	local cursor, search = 1, 1
 	while true do
 		local first, last, pipes, link, kind = message:find("(|+)(c%x%x%x%x%x%x%x%x|H(%a+):.-|h.-|h|r)", search)
 		if not first then break end
 		if #pipes % 2 == 1 and (kind == "item" or kind == "achievement") then
-			parts[#parts + 1] = RedText(message:sub(cursor, first - 1) .. pipes:sub(1, -2))
-			parts[#parts + 1] = "|r|" .. link .. "|cffff0000"
+			parts[#parts + 1] = PlainText(message:sub(cursor, first - 1) .. pipes:sub(1, -2))
+			parts[#parts + 1] = "|r|" .. link .. color
 			cursor = last + 1
 		end
 		search = last + 1
 	end
-	parts[#parts + 1] = RedText(message:sub(cursor))
+	parts[#parts + 1] = PlainText(message:sub(cursor))
 	parts[#parts + 1] = "|r"
 	return table.concat(parts)
 end
@@ -80,14 +94,15 @@ local function PersonalOpinionChatFilter(frame, event, message, sender, ...)
 	if not Addon:HasPersonalRatingData(personal) then
 		return
 	end
-	local mark = CHAT_OPINION_MARKS[personal.opinion]
+	local mark = NATIVE_OPINION_COLORS[personal.opinion]
 	if not mark then
 		return
 	end
+	local color = "|cff" .. Addon:RatingColorHex(mark)
 	if personal.opinion == "negative" then
-		return false, NegativeChatMessage(message), sender, ...
+		return false, NegativeChatMessage(message, color), sender, ...
 	end
-	return false, "|cffffffff<" .. mark.color .. mark.prefix .. "|cffffffff>|r " .. message, sender, ...
+	return false, "|cffffffff<" .. color .. "Rw" .. "|cffffffff>|r " .. message, sender, ...
 end
 
 for _, event in ipairs({
