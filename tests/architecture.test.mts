@@ -43,6 +43,7 @@ test("negative personal opinions color the whole chat body red and preserve chat
       Raidwise:SavePersonalRatingForGuid("A",nil,opinion,{},{})
       local _, message=filter(nil,"CHAT_MSG_SAY",text,"Sender-Realm")
       assert(message:sub(-#text)==text and not message:find("|cffff0000",1,true))
+      assert(message:find("|cff"..Raidwise:RatingColorHex(Raidwise:NativeOpinionColor(opinion)).."Rw",1,true))
     end
     Raidwise:EnsureHistoryEntryForGuid("B",{name="Alt",realm="Realm"})
     assert(Raidwise:LinkPlayerCharacters("A","B"))

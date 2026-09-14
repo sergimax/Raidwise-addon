@@ -145,7 +145,7 @@ test("native opinion marks follow social and guild rows, mailbox pages and saved
       GuildFrameButton1.guildIndex=3; GuildFrameButton1Name:SetText("Neutral")
       fire("GuildStatus_Update")
       assert(overlay.label.text=="[=]" and GuildFrameButton1Name.text=="Neutral")
-      assert(overlay.shown and highlight.color[3]>highlight.color[2] and highlight.color[2]>highlight.color[1])
+      assert(overlay.shown and highlight.color[1]==highlight.color[2] and highlight.color[2]==highlight.color[3])
       GuildFrameButton1.shown=false
       fire("GuildStatus_Update")
       assert(GuildFrameButton1Name.text=="Neutral")

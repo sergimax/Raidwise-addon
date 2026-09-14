@@ -41,9 +41,10 @@ updates existing personal opinion fields; no facts/events/notes are merged.
 
 ## Chat highlighting
 
-Chat messages from characters with a negative personal opinion display a red
-`<Rw>` marker and red message text. Item and achievement links retain their
-original colors and remain clickable; text after them resumes red. This applies to the registered player chat channels
+Chat markers use green for positive, white for neutral,
+and red for negative. Negative opinions also color the message body red.
+Item and achievement links retain their original colors and remain clickable;
+text after them resumes red. This applies to the registered player chat channels
 (including whispers, party, raid, guild and emotes); channel headers and sender
 formatting remain controlled by WoW. Positive/neutral markers retain their existing
 appearance. Linked characters inherit this behavior through their shared personal
@@ -126,7 +127,7 @@ values are supported, and unqualified names use the current realm. If duplicate
 records match, the most recently updated saved personal rating wins.
 
 Both native guild modes (player status and guild status) show a colored
-[+] / [=] / [-] tag at the right edge and tint the whole row teal / blue-gray / coral at
+[+] / [=] / [-] tag at the right edge and tint the whole row light green / light gray / light red at
 15% opacity, including offline characters with saved opinions. Native name colors
 and selection highlights remain intact. Guild sorting and scrolling use
 the roster index assigned by Blizzard to each row.

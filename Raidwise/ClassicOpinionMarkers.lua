@@ -2,11 +2,6 @@
 local Addon = Raidwise
 local markedLabels = setmetatable({}, { __mode = "k" })
 local guildHighlights = setmetatable({}, { __mode = "k" })
-local guildOpinionColors = {
-	positive = { 0.25, 0.85, 0.72 },
-	neutral = { 0.60, 0.70, 0.84 },
-	negative = { 1.00, 0.49, 0.38 },
-}
 local installedHooks = {}
 local eventFrame
 local guildRefreshCount = 0
@@ -81,8 +76,9 @@ local function MarkGuildRow(row, sender)
 		guildHighlights[row] = highlight
 	end
 	highlight:SetFrameLevel(row:GetFrameLevel() + 1)
-	local color = guildOpinionColors[opinion] or guildOpinionColors.neutral
-	highlight.texture:SetVertexColor(color[1], color[2], color[3], 0.15)
+	local color = Addon:NativeOpinionColor(opinion)
+	local background = Addon:NativeOpinionBackgroundColor(opinion)
+	highlight.texture:SetVertexColor(background[1], background[2], background[3], 0.15)
 	highlight.label:SetText("[" .. Addon:RatingOpinionSymbol(opinion) .. "]")
 	highlight.label:SetTextColor(color[1], color[2], color[3])
 	highlight:Show()
