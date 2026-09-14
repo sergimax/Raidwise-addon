@@ -43,7 +43,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 17` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 1` | `Diagnostics.lua` | Independent report window; no badge |
-| Character profile | `PROFILE_LAYOUT_VERSION = 32` | `CharacterProfile.lua` | Title bar (left of close) |
+| Character profile | `PROFILE_LAYOUT_VERSION = 33` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 2` | `PageExport.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 32` | `PageRaid.lua` | Shell title bar (next to page name) |

@@ -125,11 +125,34 @@ Names match case-insensitively within the character realm; explicit Name-Realm
 values are supported, and unqualified names use the current realm. If duplicate
 records match, the most recently updated saved personal rating wins.
 
+Both native guild modes (player status and guild status) show a colored
+[+] / [=] / [-] tag at the right edge and tint the whole row teal / blue-gray / coral at
+15% opacity, including offline characters with saved opinions. Native name colors
+and selection highlights remain intact. Guild sorting and scrolling use
+the roster index assigned by Blizzard to each row.
+
+Guild marks use a mouse-disabled child frame one level above the row, following
+the local reputation example. The independent tag avoids clipping inside ElvUI's
+100 px name field. Roster events and guild scroll updates schedule a single
+next-frame refresh after skin hooks; there is no continuous polling. The overlay
+fills the existing row and anchors its tag 3 px from the right edge.
+
+If marks are missing, keep the guild roster open and run `/rw diagnose`.
+Diagnostics v2 explicitly fails when the marker module is missing or outdated;
+install the complete addon folder (including the TOC) and fully restart the
+client before repeating the check. A report without this section does not
+verify native markers.
+The native marker section reports its implementation revision, initialization,
+hook state, refresh count, saved/current-realm opinion counts, and each guild
+row pool's visible identities, matches, and shown overlays. It includes no
+character names or saved notes. These counts describe runtime state, not a
+guarantee that a skin renders the overlay visibly.
+
 Markers refresh after native list updates, scrolling, mailbox pagination, and
 profile rating refreshes. Recycled rows and empty inboxes clear old marks.
 Battle.net account rows, ignore section headers, and dynamic scroll spacers are
 excluded. Native row clicks, selection, sender identity and mailbox actions are
-unchanged; only displayed labels receive prefixes. Tooltip visibility settings
+unchanged. Tooltip visibility settings
 do not control these list markers.
 
 Implementation: `ClassicOpinionMarkers.lua`, using the post-update approach from

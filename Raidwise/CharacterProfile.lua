@@ -31,7 +31,8 @@ local UI = {
 	BORDER_W = Theme.BORDER_W,
 }
 
-local PROFILE_LAYOUT_VERSION = 32
+local PROFILE_LAYOUT_VERSION = 33
+local notesScrollSerial = 0
 local PROFILE_EVENT_ROW_ICON = 14
 
 local function GetRatingTagGroups()
@@ -90,11 +91,13 @@ local function CreateProfileNotesBox(parent, width, height)
 	host:SetBackdrop(W.COPY_BACKDROP)
 	W.SetBackdropColor(host, Theme.INPUT_BG)
 
-	local scroll = CreateFrame("ScrollFrame", nil, host, "UIPanelScrollFrameTemplate")
+	notesScrollSerial = notesScrollSerial + 1
+	local scrollName = "RaidwiseProfileNotesScroll" .. PROFILE_LAYOUT_VERSION .. "_" .. notesScrollSerial
+	local scroll = CreateFrame("ScrollFrame", scrollName, host, "UIPanelScrollFrameTemplate")
 	scroll:SetPoint("TOPLEFT", 6, -6)
 	scroll:SetPoint("BOTTOMRIGHT", -24, 6)
 
-	local scrollBar = scroll.ScrollBar or _G["UIPanelScrollFrameTemplateScrollBar"]
+	local scrollBar = scroll.ScrollBar or _G[scrollName .. "ScrollBar"]
 	if scrollBar and scrollBar.GetParent and scrollBar:GetParent() == scroll then
 		scrollBar:ClearAllPoints()
 		scrollBar:SetPoint("TOPLEFT", host, "TOPRIGHT", -20, -16)

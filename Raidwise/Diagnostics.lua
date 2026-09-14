@@ -1,5 +1,5 @@
 local Addon = Raidwise
-local LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 2
 
 local function ErrorDetail(message)
 	local trace = type(debugstack) == "function" and debugstack(2, 12, 0) or ""
@@ -7,7 +7,7 @@ local function ErrorDetail(message)
 end
 
 function Addon:RunDiagnostics()
-	local lines = { "Raidwise diagnostics v1", "Addon: " .. tostring(self.version), "Lua: " .. tostring(_VERSION) }
+	local lines = { "Raidwise diagnostics v2", "Addon: " .. tostring(self.version), "Lua: " .. tostring(_VERSION) }
 	if type(GetBuildInfo) == "function" then
 		local version, build = GetBuildInfo()
 		lines[#lines + 1] = "Client: " .. tostring(version) .. " / " .. tostring(build)
@@ -21,6 +21,11 @@ function Addon:RunDiagnostics()
 		lines[#lines + 1] = (ok and "PASS " or "FAIL ") .. name
 		if not ok then lines[#lines + 1] = tostring(detail) end
 	end
+	Check("native opinion markers module", function()
+		assert(type(self.GetClassicOpinionDiagnostics) == "function",
+			"ClassicOpinionMarkers.lua is missing or outdated. Install the complete Raidwise folder, including Raidwise.toc, then fully exit and restart the game. Check startup Lua errors if this persists.")
+		lines[#lines + 1] = self:GetClassicOpinionDiagnostics()
+	end)
 	if type(InCombatLockdown) == "function" and InCombatLockdown() then
 		skipped = skipped + 1
 		lines[#lines + 1] = "SKIP main window opening: leave combat and run again"
@@ -67,7 +72,7 @@ function Addon:ShowDiagnostics()
 		local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
 		close:SetPoint("TOPRIGHT", -5, -5)
 		close:SetScript("OnClick", function() frame:Hide() end)
-		local scroll = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
+		local scroll = CreateFrame("ScrollFrame", "RaidwiseDiagnosticsScroll" .. LAYOUT_VERSION, frame, "UIPanelScrollFrameTemplate")
 		scroll:SetPoint("TOPLEFT", 20, -48)
 		scroll:SetPoint("BOTTOMRIGHT", -40, 20)
 		local box = CreateFrame("EditBox", nil, scroll)

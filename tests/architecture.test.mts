@@ -151,6 +151,7 @@ test("diagnostics capture UI errors, continue rule checks, and report skipped or
   await run(["Diagnostics"], "", `
     local calls = 0
     Raidwise.version = "test"
+    Raidwise.GetClassicOpinionDiagnostics = function() return "native marker status" end
     debugstack = function() return "stack: Settings Create" end
     Raidwise.ShowMainFrame = function() error("Circular anchor") end
     Raidwise.GearCheckRulesSelfTest = function()
@@ -165,11 +166,17 @@ test("diagnostics capture UI errors, continue rule checks, and report skipped or
       self.mainFrame = {IsShown=function() return true end}
     end
     report, ok = Raidwise:RunDiagnostics()
-    assert(ok and report:find("2 passed, 0 failed, 0 skipped",1,true))
+    assert(ok and report:find("3 passed, 0 failed, 0 skipped",1,true))
+    assert(report:find("native marker status",1,true))
+    Raidwise.GetClassicOpinionDiagnostics = nil
+    report, ok = Raidwise:RunDiagnostics()
+    assert(not ok and report:find("FAIL native opinion markers module",1,true))
+    assert(report:find("ClassicOpinionMarkers.lua is missing or outdated",1,true))
+    Raidwise.GetClassicOpinionDiagnostics = function() return "native marker status" end
     InCombatLockdown = function() return true end
     Raidwise.ShowMainFrame = function() error("must not run in combat") end
     report, ok = Raidwise:RunDiagnostics()
-    assert(not ok and report:find("1 passed, 0 failed, 1 skipped",1,true))
+    assert(not ok and report:find("2 passed, 0 failed, 1 skipped",1,true))
     InCombatLockdown = nil
     Raidwise.ShowMainFrame = nil
     Raidwise.GearCheckRulesSelfTest = nil
@@ -517,5 +524,56 @@ test("compact shell fits active raid groups with reserves below the viewport", a
     assert(viewport==blockHeight(),"Shell must fit exactly the five active raid groups")
     local _,totalHeight=contentSize()
     assert(totalHeight>viewport*2,"Reserve groups must remain reachable by scrolling")
+  `);
+});
+
+
+test("profile notes and diagnostics scroll templates receive unique names on bare Wrath", async () => {
+  const source = await readFile(new URL("../Raidwise/CharacterProfile.lua", import.meta.url), "utf8");
+  const start = source.indexOf("local function CreateProfileNotesBox(");
+  const end = source.indexOf("local function ProfileFieldValue", start);
+  assert.ok(start >= 0 && end > start);
+  await run(["Diagnostics"], `
+    widgets={}
+    function widget(parent,name)
+      local object={parent=parent,name=name,scripts={}}
+      return setmetatable(object,{__index=function(_,key)
+        if key=="ScrollBar" then return nil end
+        if key=="GetParent" then return function(self) return self.parent end end
+        if key=="CreateFontString" then return function(self) return widget(self) end end
+        if key=="SetScript" then return function(self,event,callback) self.scripts[event]=callback end end
+        if key=="SetPoint" then return function(self,point,relative) self.relative=relative end end
+        return function() end
+      end})
+    end
+    function CreateFrame(kind,name,parent,template)
+      if template=="UIPanelScrollFrameTemplate" then
+        assert(type(name)=="string" and name~="", "ScrollFrame_OnLoad concatenates GetName()")
+        assert(not widgets[name], "Scroll template name reused")
+      end
+      local object=widget(parent,name)
+      if name then widgets[name]=object end
+      if template=="UIPanelScrollFrameTemplate" then
+        _G[name.."ScrollBar"]=widget(object,name.."ScrollBar")
+      end
+      return object
+    end
+    Raidwise.Print=function() end
+  `, `
+    local W=setmetatable({},{__index=function() return function() end end})
+    local Theme={}
+    local PROFILE_LAYOUT_VERSION=1
+    local notesScrollSerial=0
+    ${source.slice(start, end)}
+    local first=CreateProfileNotesBox(widget(),400,96)
+    local second=CreateProfileNotesBox(widget(),400,96)
+    assert(first.scroll.name~=second.scroll.name)
+    assert(_G[first.scroll.name.."ScrollBar"].relative==first)
+    assert(_G[second.scroll.name.."ScrollBar"].relative==second)
+    Raidwise.RunDiagnostics=function() return "test report",true end
+    Raidwise:ShowDiagnostics()
+    local frame=Raidwise.diagnosticsFrame
+    Raidwise:ShowDiagnostics()
+    assert(frame==Raidwise.diagnosticsFrame)
   `);
 });

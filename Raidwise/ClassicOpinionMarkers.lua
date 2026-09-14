@@ -1,8 +1,15 @@
--- Personal opinion marks on the Wrath 3.3.5 friends, ignore and inbox rows.
+-- Personal opinion marks on the Wrath 3.3.5 friends, ignore, inbox and guild rows.
 local Addon = Raidwise
 local markedLabels = setmetatable({}, { __mode = "k" })
+local guildHighlights = setmetatable({}, { __mode = "k" })
+local guildOpinionColors = {
+	positive = { 0.25, 0.85, 0.72 },
+	neutral = { 0.60, 0.70, 0.84 },
+	negative = { 1.00, 0.49, 0.38 },
+}
 local installedHooks = {}
 local eventFrame
+local guildRefreshCount = 0
 
 local function NameKey(value)
 	return (strlower or string.lower)(tostring(value or ""))
@@ -53,6 +60,34 @@ local function MarkLabel(label, sender)
 	if text ~= marked then label:SetText(marked) end
 end
 
+local function MarkGuildRow(row, sender)
+	local opinion = FindOpinion(sender)
+	local highlight = guildHighlights[row]
+	if not opinion then
+		if highlight then highlight:Hide() end
+		return
+	end
+	if not highlight then
+		-- Like the reputation reference, render above skinned row backgrounds.
+		-- A mouse-disabled frame leaves guild selection and clicks with Blizzard.
+		highlight = CreateFrame("Frame", nil, row)
+		highlight:SetAllPoints(row)
+		highlight:EnableMouse(false)
+		highlight.texture = highlight:CreateTexture(nil, "ARTWORK")
+		highlight.texture:SetAllPoints(highlight)
+		highlight.texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+		highlight.label = highlight:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		highlight.label:SetPoint("RIGHT", highlight, "RIGHT", -3, 0)
+		guildHighlights[row] = highlight
+	end
+	highlight:SetFrameLevel(row:GetFrameLevel() + 1)
+	local color = guildOpinionColors[opinion] or guildOpinionColors.neutral
+	highlight.texture:SetVertexColor(color[1], color[2], color[3], 0.15)
+	highlight.label:SetText("[" .. Addon:RatingOpinionSymbol(opinion) .. "]")
+	highlight.label:SetTextColor(color[1], color[2], color[3])
+	highlight:Show()
+end
+
 local function RefreshFriends()
 	local scroll = FriendsFrameFriendsScrollFrame
 	if not scroll or not GetFriendInfo then return end
@@ -99,10 +134,81 @@ local function RefreshInbox()
 	end
 end
 
+local function RefreshGuild()
+	if not GetGuildRosterInfo then return end
+	guildRefreshCount = guildRefreshCount + 1
+	-- Player-status and guild-status modes have separate pools of native rows.
+	for _, prefix in ipairs({ "GuildFrameButton", "GuildFrameGuildStatusButton" }) do
+		for index = 1, (GUILDMEMBERS_TO_DISPLAY or 13) do
+			local row = _G[prefix .. index]
+			if row then
+				local sender
+				if row:IsShown() and row.guildIndex then
+					sender = GetGuildRosterInfo(row.guildIndex)
+				end
+				-- Keep native name text untouched: ElvUI constrains its width.
+				MarkLabel(_G[prefix .. index .. "Name"], nil)
+				MarkGuildRow(row, sender)
+			end
+		end
+	end
+end
+
+function Addon:GetClassicOpinionDiagnostics()
+	local records, opinions, localOpinions = 0, 0, 0
+	local realm = RealmKey(GetRealmName())
+	for _, entry in pairs(self.db and self.db.history or {}) do
+		if type(entry) == "table" then
+			records = records + 1
+			if self:HasPersonalRatingData(self:GetPersonalRating(entry)) then
+				opinions = opinions + 1
+				local savedRealm = RealmKey(entry.realm)
+				if savedRealm == "" or savedRealm == realm then localOpinions = localOpinions + 1 end
+			end
+		end
+	end
+	local lines = {
+		"Native markers revision: 3; initialized=" .. tostring(eventFrame ~= nil)
+			.. "; ElvUI=" .. tostring(ElvUI ~= nil),
+		"Guild hook=" .. tostring(installedHooks.GuildStatus_Update == true)
+			.. "; refreshes=" .. guildRefreshCount,
+		string.format("History records=%d; saved opinions=%d; current realm opinions=%d", records, opinions, localOpinions),
+	}
+	for _, prefix in ipairs({ "GuildFrameButton", "GuildFrameGuildStatusButton" }) do
+		local rows, visible, identities, matches, shown = 0, 0, 0, 0, 0
+		for index = 1, (GUILDMEMBERS_TO_DISPLAY or 13) do
+			local row = _G[prefix .. index]
+			if row then
+				rows = rows + 1
+				if row:IsShown() then
+					visible = visible + 1
+					local sender = GetGuildRosterInfo and row.guildIndex and GetGuildRosterInfo(row.guildIndex)
+					if sender then identities = identities + 1 end
+					if FindOpinion(sender) then matches = matches + 1 end
+					local overlay = guildHighlights[row]
+					if overlay and overlay:IsShown() then shown = shown + 1 end
+				end
+			end
+		end
+		lines[#lines + 1] = string.format("%s: rows=%d visible=%d identities=%d matches=%d overlays=%d", prefix, rows, visible, identities, matches, shown)
+	end
+	return table.concat(lines, "\n")
+end
+
 function Addon:RefreshClassicOpinionMarkers()
 	RefreshFriends()
 	RefreshIgnores()
 	RefreshInbox()
+	RefreshGuild()
+end
+
+-- One-shot refresh runs after Blizzard and skin hooks, including mode switches.
+local function QueueGuildRefresh()
+	if not eventFrame then return end
+	eventFrame:SetScript("OnUpdate", function(self)
+		self:SetScript("OnUpdate", nil)
+		RefreshGuild()
+	end)
 end
 
 local function InstallHooks()
@@ -111,6 +217,13 @@ local function InstallHooks()
 		FriendsList_Update = RefreshFriends,
 		IgnoreList_Update = RefreshIgnores,
 		InboxFrame_Update = RefreshInbox,
+		GuildStatus_Update = function()
+			RefreshGuild()
+			QueueGuildRefresh()
+		end,
+		FauxScrollFrame_Update = function(scroll)
+			if scroll == GuildListScrollFrame then QueueGuildRefresh() end
+		end,
 		DynamicScrollFrame_Update = function(scroll)
 			if scroll == FriendsFrameFriendsScrollFrame then RefreshFriends() end
 		end,
@@ -130,9 +243,11 @@ function Addon:InitializeClassicOpinionMarkers()
 		eventFrame:RegisterEvent("ADDON_LOADED")
 		eventFrame:RegisterEvent("PLAYER_LOGIN")
 		eventFrame:RegisterEvent("MAIL_CLOSED")
+		eventFrame:RegisterEvent("GUILD_ROSTER_UPDATE")
 		eventFrame:SetScript("OnEvent", function()
 			InstallHooks()
 			Addon:RefreshClassicOpinionMarkers()
+			QueueGuildRefresh()
 		end)
 	end
 	self:RefreshClassicOpinionMarkers()
