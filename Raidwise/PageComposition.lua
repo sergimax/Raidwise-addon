@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 9
+local LAYOUT_VERSION = 10
 
 local COMP_COLS = 3
 local COMP_COL_GAP = 12

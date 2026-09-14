@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 16
+local SHELL_LAYOUT_VERSION = 17
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {

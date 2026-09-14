@@ -6,8 +6,8 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 4
-local DATABASE_LAYOUT_VERSION = 4
+local LAYOUT_VERSION = 5
+local DATABASE_LAYOUT_VERSION = 5
 
 local RECORD_SOURCES = {
 	manual = {key="SOURCE_MANUAL", icon="Interface\\Icons\\INV_Misc_Note_01"},

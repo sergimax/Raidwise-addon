@@ -8,8 +8,8 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Content frame (`RaidwiseFrame`) | **890 × 940** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Menu panel (`RaidwiseMenu`) | **170 × 940** | Flush against content left edge (no gap) |
+| Content frame (`RaidwiseFrame`) | **890 × 693** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
+| Menu panel (`RaidwiseMenu`) | **170 × 693** | Flush against content left edge (no gap) |
 | Menu title bar | height **20** | Top of menu; drag handle; centered **Raidwise** + dim addon semver (same fonts/colors as content title + page `vN`) |
 | Menu title gap | 8 px | Between name and version (matches content title bar) |
 | Title bar | height **20** | Top of content; drag handle; **active menu name** + page `vN` + close **X** |
@@ -19,6 +19,10 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 | Title / status fill | **#1c1c2a** ≈ RGB **0.11, 0.11, 0.165** | Same texture |
 | Gear Check gradation | S gold → A green → D red | `GEAR_S` / `GEAR_GOOD` / `GEAR_OK` / `GEAR_REPLACE` / `GEAR_BAD` — grades S…D and spec ranks (preferred…forbidden) |
 | Idle text | **#ffeebb** ≈ RGB **1.00, 0.93, 0.73** | Body / menu idle |
+
+Shell height is **693** = **40** title/padding + **110** raid header + **524**
+active-group block + **19** scroll insets. The raid viewport shows groups 1-5
+without any of groups 6-8 until scrolled; all other pages share this height.
 
 ## Left menu
 
@@ -241,6 +245,11 @@ Source column is **150** px with **14** px inline icons. When displays last seen
 notes are edited there.
 
 ## Settings tab
+
+Settings uses a vertical scroll viewport with a **16** px scrollbar and **4** px
+gap; inner content width is **850**. Content height follows the bottom of the
+Changelog controls with **10** px padding and updates after locale/preview changes.
+Mouse-wheel and scrollbar navigation keep lower controls accessible at shell height **693**.
 
 Layout v15 retains the Changelog dimensions introduced in v14: the standard **28** px heading with **20** px section gap, a copy hint, and a URL copy box beside a **130 x 28** px Select all button with the standard **8** px gap. Both controls anchor vertically to the hint, avoiding a circular anchor dependency during window creation.
 

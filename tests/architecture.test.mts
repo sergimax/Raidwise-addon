@@ -383,6 +383,25 @@ test("Settings and character linking panels avoid circular frame anchors", async
 
     local page=Raidwise.Pages.Settings.Create(region())
     assert(page.changelogButton and page.layoutVersion==Raidwise.Pages.Settings.LAYOUT_VERSION)
+    local scrollValue, scrollMaximum, contentHeight = 500, 0, 0
+    page.scroll.GetWidth=function() return 800 end
+    page.scroll.GetHeight=function() return 400 end
+    page.scroll.GetVerticalScroll=function() return scrollValue end
+    page.scroll.SetVerticalScroll=function(_,value) scrollValue=value end
+    page.content.GetWidth=function() return 800 end
+    page.content.GetTop=function() return 500 end
+    page.content.SetHeight=function(_,value) contentHeight=value end
+    page.changelogButton.GetBottom=function() return -250 end
+    page.scrollBar.SetMinMaxValues=function(_,minimum,maximum) scrollMaximum=maximum end
+    page.QueueLayout(page)
+    page.scripts.OnUpdate(page)
+    assert(contentHeight==760 and scrollMaximum==360 and scrollValue==360)
+    assert(page.scrollBar.shown and not page.scripts.OnUpdate)
+    page.changelogButton.GetBottom=function() return 200 end
+    page.QueueLayout(page)
+    page.scripts.OnUpdate(page)
+    assert(scrollMaximum==0 and scrollValue==0 and not page.scrollBar.shown)
+
     local profile={profilePanels={}}
     Raidwise:CreateProfileCharactersPanel(profile,region(),440,32)
     assert(profile.profilePanels.characters and #profile.characterConflictButtons==2)
@@ -468,5 +487,35 @@ test("character groups share only opinions, log changes and retain one main", as
     local saved=Raidwise.db; Raidwise.db=nil; Raidwise.db=saved
     assert(Raidwise:GetLinkedCharacters("C")[1].guid=="B")
     assert(not Raidwise:SetLinkedCharacterRole("B","C","twink"))
+  `);
+});
+
+
+test("compact shell fits active raid groups with reserves below the viewport", async () => {
+  await run(["UITheme", "UIWidgets", "PageRaid"], `Raidwise.Widgets={}`, `
+    local visited={}
+    local function findUpvalue(callback,wanted)
+      if visited[callback] then return end
+      visited[callback]=true
+      for index=1,100 do
+        local name,value=debug.getupvalue(callback,index)
+        if not name then break end
+        if name==wanted then return value end
+        if type(value)=="function" then
+          local found=findUpvalue(value,wanted)
+          if found then return found end
+        end
+      end
+    end
+    local blockHeight=findUpvalue(Raidwise.Pages.Raid.Create,"RaidBlockHeight")
+    visited={}
+    local contentSize=findUpvalue(Raidwise.Pages.Raid.Create,"RaidContentSize")
+    assert(blockHeight and contentSize)
+    local UI,W=Raidwise.UITheme,Raidwise.Widgets
+    local viewport=UI.CONTENT_HEIGHT-UI.TITLE_H-UI.PAD*2-W.RaidRosterTableTopOffset()
+      -1-(UI.CD_HSCROLL_H+2)
+    assert(viewport==blockHeight(),"Shell must fit exactly the five active raid groups")
+    local _,totalHeight=contentSize()
+    assert(totalHeight>viewport*2,"Reserve groups must remain reachable by scrolling")
   `);
 });

@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 8
+local LAYOUT_VERSION = 9
 
 local CD_INSTANCE_COL_W = 170
 local CD_CHAR_COL_W = 90

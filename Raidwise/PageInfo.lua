@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 4
+local LAYOUT_VERSION = 5
 
 local GITHUB_URL = "https://github.com/sergimax/Raidwise-addon"
 

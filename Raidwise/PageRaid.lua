@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 31
+local LAYOUT_VERSION = 32
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100

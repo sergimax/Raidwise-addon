@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 15
+local LAYOUT_VERSION = 16
 local CHANGELOG_URL = "https://github.com/sergimax/Raidwise-addon/blob/main/CHANGELOG.md"
 
 local SECTION_HEADER_H = 28
@@ -28,6 +28,7 @@ local CHECK_KEYS = {
 }
 
 local function CreateSettingsHeading(page, labelKey, anchor)
+	page = page.content or page
 	local heading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
 	if anchor then
 		heading:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -SECTION_GAP)
@@ -174,6 +175,7 @@ local function RefreshTooltipPreviews(page)
 			+ page.previewCompact:GetStringHeight() + page.stackedLabel:GetStringHeight()
 			+ page.previewStacked:GetStringHeight() + 24
 		page.tooltipBody:SetHeight(math.max(4 * (UI.CHECK_SIZE + 6), previewHeight) + SECTION_INSET * 2)
+		if page.QueueLayout then page.QueueLayout(page) end
 	end
 end
 
@@ -229,14 +231,14 @@ local function CreateStartupTabRadios(page, anchor)
 		return anchor
 	end
 
-	local innerWidth = W.ContentInnerWidth() - SECTION_INSET * 2
+	local innerWidth = W.ContentInnerWidth() - UI.CD_SCROLLBAR_W - 4 - SECTION_INSET * 2
 	local colWidth = math.floor((innerWidth - STARTUP_GAP * (STARTUP_COLS - 1)) / STARTUP_COLS)
 	local firstHost = nil
 	local lastHost = nil
 
 	for index = 1, #choices do
 		local pageInfo = choices[index]
-		local radio = CreateStartupRadio(page, page, pageInfo, colWidth)
+		local radio = CreateStartupRadio(page, page.content or page, pageInfo, colWidth)
 		local host = radio.host
 
 		local col = (index - 1) % STARTUP_COLS
@@ -261,21 +263,67 @@ local function CreateStartupTabRadios(page, anchor)
 	return bottomLeft or lastHost or firstHost or anchor
 end
 
+local function QueueSettingsLayout(page)
+	page:SetScript("OnUpdate", function(self)
+		local width = self.scroll:GetWidth() or 0
+		if width <= 0 or not self.changelogButton then return end
+		if self.content:GetWidth() ~= width then
+			self.content:SetWidth(width)
+			return -- Let text wrapping and dependent anchors settle.
+		end
+		local top, bottom = self.content:GetTop(), self.changelogButton:GetBottom()
+		if not top or not bottom then return end
+		local height = math.max(1, top - bottom + SECTION_INSET)
+		self.content:SetHeight(height)
+		local maximum = math.max(0, height - (self.scroll:GetHeight() or 0))
+		self.scrollBar:SetMinMaxValues(0, maximum)
+		local value = math.min(self.scroll:GetVerticalScroll() or 0, maximum)
+		self.scrollBar:SetValue(value)
+		self.scroll:SetVerticalScroll(value)
+		if maximum > 0 then self.scrollBar:Show() else self.scrollBar:Hide() end
+		self:SetScript("OnUpdate", nil)
+	end)
+end
+
 local function CreateSettingsPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
+	local scroll = CreateFrame("ScrollFrame", "RaidwiseSettingsScrollV" .. tostring(LAYOUT_VERSION), page)
+	scroll:SetPoint("TOPLEFT", 0, 0)
+	scroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 4), 0)
+	scroll:EnableMouseWheel(true)
+	page.scroll = scroll
+	local content = CreateFrame("Frame", nil, scroll)
+	content:SetSize(W.ContentInnerWidth() - UI.CD_SCROLLBAR_W - 4, 1)
+	scroll:SetScrollChild(content)
+	page.content = content
+	local scrollBar = W.CreateCooldownScrollBar(page, "VERTICAL")
+	scrollBar:SetPoint("TOPRIGHT", 0, 0)
+	scrollBar:SetPoint("BOTTOMRIGHT", 0, 0)
+	page.scrollBar = scrollBar
+	scrollBar:SetScript("OnValueChanged", function(self)
+		scroll:SetVerticalScroll(self:GetValue() or 0)
+	end)
+	scroll:SetScript("OnMouseWheel", function(self, delta)
+		local maximum = math.max(0, (content:GetHeight() or 0) - (self:GetHeight() or 0))
+		scrollBar:SetValue(math.max(0, math.min(maximum, (self:GetVerticalScroll() or 0) - delta * UI.CD_ROW_H)))
+	end)
+	scroll:SetScript("OnSizeChanged", function() QueueSettingsLayout(page) end)
+	page:SetScript("OnShow", QueueSettingsLayout)
+	page.QueueLayout = QueueSettingsLayout
+
 
 	local heading = CreateSettingsHeading(page, "SETTINGS_LANGUAGE")
 	page.heading = heading
 
-	local hint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
+	local hint = W.CreateFontString(content, nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
-	hint:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
+	hint:SetPoint("RIGHT", content, "RIGHT", -SECTION_INSET, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetText(W.T("SETTINGS_LANGUAGE_HINT"))
 	page.hint = hint
 
-	local enBtn = W.CreatePlainButton(page, 120, UI.ACTION_BTN_H, W.T("LOCALE_EN"))
+	local enBtn = W.CreatePlainButton(content, 120, UI.ACTION_BTN_H, W.T("LOCALE_EN"))
 	enBtn:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
 	enBtn.tabId = "enUS"
 	enBtn:SetScript("OnEnter", function(self)
@@ -289,7 +337,7 @@ local function CreateSettingsPage(parent)
 	end)
 	page.enBtn = enBtn
 
-	local ruBtn = W.CreatePlainButton(page, 120, UI.ACTION_BTN_H, W.T("LOCALE_RU"))
+	local ruBtn = W.CreatePlainButton(content, 120, UI.ACTION_BTN_H, W.T("LOCALE_RU"))
 	ruBtn:SetPoint("LEFT", enBtn, "RIGHT", UI.ACTION_BTN_GAP, 0)
 	ruBtn.tabId = "ruRU"
 	ruBtn:SetScript("OnEnter", function(self)
@@ -306,7 +354,7 @@ local function CreateSettingsPage(parent)
 	local themeHeading = CreateSettingsHeading(page, "SETTINGS_THEME", enBtn)
 	page.themeHeading = themeHeading
 
-	local themeButton = W.CreatePlainButton(page, 160, UI.ACTION_BTN_H, "")
+	local themeButton = W.CreatePlainButton(content, 160, UI.ACTION_BTN_H, "")
 	themeButton:SetPoint("TOPLEFT", themeHeading, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
 	themeButton:SetScript("OnClick", function()
 		Addon:SetTheme(Addon:GetTheme() == "dark" and "light" or "dark")
@@ -318,9 +366,9 @@ local function CreateSettingsPage(parent)
 	local startupHeading = CreateSettingsHeading(page, "SETTINGS_STARTUP_TAB", themeButton)
 	page.startupHeading = startupHeading
 
-	local startupHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
+	local startupHint = W.CreateFontString(content, nil, "OVERLAY", "GameFontHighlight")
 	startupHint:SetPoint("TOPLEFT", startupHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
-	startupHint:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
+	startupHint:SetPoint("RIGHT", content, "RIGHT", -SECTION_INSET, 0)
 	startupHint:SetJustifyH("LEFT")
 	startupHint:SetText(W.T("SETTINGS_STARTUP_TAB_HINT"))
 	page.startupHint = startupHint
@@ -330,16 +378,16 @@ local function CreateSettingsPage(parent)
 	local tipHeading = CreateSettingsHeading(page, "SETTINGS_TOOLTIP", startupAnchor)
 	page.tipHeading = tipHeading
 
-	local tipHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
+	local tipHint = W.CreateFontString(content, nil, "OVERLAY", "GameFontHighlight")
 	tipHint:SetPoint("TOPLEFT", tipHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
-	tipHint:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
+	tipHint:SetPoint("RIGHT", content, "RIGHT", -SECTION_INSET, 0)
 	tipHint:SetJustifyH("LEFT")
 	tipHint:SetText(W.T("SETTINGS_TOOLTIP_HINT"))
 	page.tipHint = tipHint
 
-	local tooltipBody = CreateFrame("Frame", nil, page)
+	local tooltipBody = CreateFrame("Frame", nil, content)
 	tooltipBody:SetPoint("TOPLEFT", tipHint, "BOTTOMLEFT", -SECTION_INSET, -8)
-	tooltipBody:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	tooltipBody:SetPoint("RIGHT", content, "RIGHT", 0, 0)
 	tooltipBody:SetHeight(200)
 	W.ApplyPlainPanel(tooltipBody, UI.PANEL_BG)
 	page.tooltipBody = tooltipBody
@@ -397,14 +445,14 @@ local function CreateSettingsPage(parent)
 	page.previewStacked = previewStacked
 
 	page.changelogHeading = CreateSettingsHeading(page, "SETTINGS_CHANGELOG", tooltipBody)
-	local changelogHint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
+	local changelogHint = W.CreateFontString(content, nil, "OVERLAY", "GameFontHighlight")
 	changelogHint:SetPoint("TOPLEFT", page.changelogHeading, "BOTTOMLEFT", 0, -UI.INFO_HEADING_GAP)
 	changelogHint:SetText(W.T("INFO_REPO_HINT"))
 	page.changelogHint = changelogHint
-	local changelogBox, changelogHost = W.CreateLineCopyBox(page, "RaidwiseChangelogBoxV" .. tostring(LAYOUT_VERSION))
+	local changelogBox, changelogHost = W.CreateLineCopyBox(content, "RaidwiseChangelogBoxV" .. tostring(LAYOUT_VERSION))
 	changelogBox:SetText(CHANGELOG_URL)
-	local changelogButton = W.CreatePlainButton(page, 130, UI.ACTION_BTN_H, W.T("BTN_SELECT_ALL"))
-	changelogButton:SetPoint("RIGHT", page, "RIGHT", -SECTION_INSET, 0)
+	local changelogButton = W.CreatePlainButton(content, 130, UI.ACTION_BTN_H, W.T("BTN_SELECT_ALL"))
+	changelogButton:SetPoint("RIGHT", content, "RIGHT", -SECTION_INSET, 0)
 	changelogButton:SetPoint("TOP", changelogHint, "BOTTOM", 0, -UI.CHECK_TO_BUTTONS)
 	changelogHost:SetPoint("TOPLEFT", changelogHint, "BOTTOMLEFT", 0, -UI.CHECK_TO_BUTTONS)
 	changelogHost:SetPoint("RIGHT", changelogButton, "LEFT", -UI.ACTION_BTN_GAP, 0)
