@@ -931,7 +931,7 @@ function Addon:RefreshRatingViews()
 	if frame and frame:IsShown() then
 		if frame.selectedTab == "raid" and self.RefreshRaidRosterView then
 			self:RefreshRaidRosterView(false)
-		elseif frame.selectedTab == "history" and self.RefreshHistoryView then
+		elseif (frame.selectedTab == "history" or frame.selectedTab == "database") and self.RefreshHistoryView then
 			self:RefreshHistoryView()
 		end
 	end

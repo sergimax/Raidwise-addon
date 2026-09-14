@@ -6,7 +6,8 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 2
+local DATABASE_LAYOUT_VERSION = 1
 
 local HISTORY_COL_NAME = 90
 local HISTORY_COL_CLASS = 28
@@ -22,7 +23,7 @@ local HISTORY_COL_GUILD = 120
 local function HistoryTableWidth()
 	return HISTORY_COL_NAME + HISTORY_COL_CLASS + HISTORY_COL_SPEC + HISTORY_COL_OPINION
 		+ HISTORY_COL_TAGS + HISTORY_COL_GS + HISTORY_COL_ILVL + HISTORY_COL_ZONE
-		+ HISTORY_COL_MET + HISTORY_COL_GUILD
+		+ HISTORY_COL_MET + HISTORY_COL_GUILD + 150
 end
 
 local HISTORY_COLUMN_WIDTHS = {
@@ -36,6 +37,7 @@ local HISTORY_COLUMN_WIDTHS = {
 	HISTORY_COL_ZONE,
 	HISTORY_COL_MET,
 	HISTORY_COL_GUILD,
+	150,
 }
 
 local function HistoryColumnOffset(index)
@@ -96,6 +98,7 @@ local function CreateHistoryRow(parent)
 	row.zoneText = AddTextColumn(8, "LEFT")
 	row.metText = AddTextColumn(9, "LEFT")
 	row.guildText = AddTextColumn(10, "LEFT")
+	row.sourceText = AddTextColumn(11, "LEFT")
 
 	row.classIconHost:EnableMouse(true)
 	row.classIconHost:SetScript("OnEnter", function(self)
@@ -141,16 +144,18 @@ local function CreateHistoryRow(parent)
 	return row
 end
 
-local function CreateHistoryPage(parent)
+local function CreateHistoryPage(parent, database)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
+	page.database = database
+	page.filters = {}
 
 	local hint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
 	hint:SetPoint("RIGHT", page, "RIGHT", -100, 0)
 	hint:SetJustifyH("LEFT")
 	hint:SetJustifyV("TOP")
-	hint:SetText(W.T("HISTORY_HINT"))
+	hint:SetText(W.T(page.database and "DATABASE_HINT" or "HISTORY_HINT"))
 
 	local refreshBtn = W.CreatePlainButton(page, 96, UI.CD_TOOLBAR_H, W.T("BTN_REFRESH"))
 	refreshBtn:SetPoint("TOPRIGHT", 0, 0)
@@ -161,14 +166,65 @@ local function CreateHistoryPage(parent)
 		Addon:RefreshHistoryView()
 	end)
 
-	local tableTop = -W.CooldownTableTopOffset()
+	page.filterLabels = {}
+	local fields = { {"name", "COL_NAME"}, {"class", "COL_CLASS"}, {"guildName", "COL_GUILD"} }
+	for index, field in ipairs(fields) do
+		local x = (index - 1) * 166
+		local label = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("TOPLEFT", x, -36)
+		label:SetText(W.T(field[2]))
+		page.filterLabels[#page.filterLabels + 1] = {label=label, key=field[2]}
+		local input = CreateFrame("EditBox", nil, page, "InputBoxTemplate")
+		input:SetSize(150, 24)
+		input:SetPoint("TOPLEFT", x + 6, -54)
+		input:SetAutoFocus(false)
+		input:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+		input:SetScript("OnTextChanged", function(self)
+			page.filters[field[1]] = self:GetText()
+			Addon:RefreshHistoryView()
+		end)
+	end
+	if database then
+		local opinions = {"", "positive", "neutral", "negative"}
+		local opinionIndex = 1
+		local opinion = W.CreatePlainButton(page, 160, 24, W.T("FILTER_OPINION_ALL"))
+		opinion:SetPoint("TOPLEFT", 498, -54)
+		page.opinionButton = opinion
+		opinion:SetScript("OnClick", function()
+			opinionIndex = opinionIndex % #opinions + 1
+			page.filters.opinion = opinions[opinionIndex]
+			opinion.label:SetText(W.T(opinionIndex == 1 and "FILTER_OPINION_ALL" or "RATING_OPINION_" .. string.upper(opinions[opinionIndex])))
+			Addon:RefreshHistoryView()
+		end)
+		local name = CreateFrame("EditBox", nil, page, "InputBoxTemplate")
+		name:SetSize(230, 24)
+		name:SetPoint("TOPLEFT", 6, -92)
+		name:SetAutoFocus(false)
+		name:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+		local add = W.CreatePlainButton(page, 180, 24, W.T("DATABASE_ADD"))
+		add:SetPoint("LEFT", name, "RIGHT", 12, 0)
+		page.addButton = add
+		local function AddRecord()
+			local entry = Addon:AddCharacterRecord(name:GetText())
+			if not entry then page.hint:SetText(W.T("DATABASE_INVALID_NAME")); return end
+			name:SetText("")
+			name:ClearFocus()
+			page.hint:SetText(W.T("DATABASE_HINT"))
+			Addon:RefreshHistoryView()
+			Addon:ShowRaidCharacterWindow(entry)
+		end
+		add:SetScript("OnClick", AddRecord)
+		name:SetScript("OnEnterPressed", AddRecord)
+	end
+
+	local tableTop = database and -128 or -90
 	local tableHost = CreateFrame("Frame", nil, page)
 	tableHost:SetPoint("TOPLEFT", page, "TOPLEFT", 0, tableTop)
 	tableHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 	W.ApplyPlainPanel(tableHost, UI.PANEL_BG)
 	page.tableHost = tableHost
 
-	local scroll = CreateFrame("ScrollFrame", "RaidwiseHistoryScrollV" .. tostring(LAYOUT_VERSION), tableHost)
+	local scroll = CreateFrame("ScrollFrame", "Raidwise" .. (database and "Database" or "History") .. "ScrollV" .. tostring(database and DATABASE_LAYOUT_VERSION or LAYOUT_VERSION), tableHost)
 	scroll:SetPoint("TOPLEFT", 1, -1)
 	scroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 2), UI.CD_HSCROLL_H + 2)
 	scroll:EnableMouseWheel(true)
@@ -188,11 +244,11 @@ local function CreateHistoryPage(parent)
 
 	local headers = {
 		W.T("COL_NAME"), W.T("COL_CLASS"), W.T("COL_SPEC"), W.T("COL_OPINION"),
-		W.T("COL_TAGS"), W.T("COL_GS"), W.T("COL_ILVL"), W.T("COL_ZONE"), W.T("COL_WHEN"), W.T("COL_GUILD"),
+		W.T("COL_TAGS"), W.T("COL_GS"), W.T("COL_ILVL"), W.T("COL_ZONE"), W.T("COL_WHEN"), W.T("COL_GUILD"), W.T("COL_RECORD_SOURCE"),
 	}
 	page.headerKeys = {
 		"COL_NAME", "COL_CLASS", "COL_SPEC", "COL_OPINION",
-		"COL_TAGS", "COL_GS", "COL_ILVL", "COL_ZONE", "COL_WHEN", "COL_GUILD",
+		"COL_TAGS", "COL_GS", "COL_ILVL", "COL_ZONE", "COL_WHEN", "COL_GUILD", "COL_RECORD_SOURCE",
 	}
 	page.headerLabels = {}
 	for index = 1, #headers do
@@ -238,14 +294,12 @@ local function CreateHistoryPage(parent)
 
 	page.hint = hint
 	page.refreshBtn = refreshBtn
-	page.layoutVersion = LAYOUT_VERSION
+	page.layoutVersion = database and DATABASE_LAYOUT_VERSION or LAYOUT_VERSION
 	return page
 end
 
 -- REFACTOR candidate: standard row-pool refresh pattern shared with History.
-function Addon:RefreshHistoryView()
-	local frame = self.mainFrame
-	local page = frame and frame.pages and frame.pages.history
+local function RefreshPage(self, page)
 	if not page then
 		return
 	end
@@ -259,7 +313,7 @@ function Addon:RefreshHistoryView()
 
 	page.tableHost:Show()
 
-	local roster = self:BuildHistoryRoster()
+	local roster = self:BuildHistoryRoster(page.database, page.filters)
 	local content = page.tableContent
 	local headerBg = page.headerBg
 	local tableW = HistoryTableWidth()
@@ -334,7 +388,7 @@ function Addon:RefreshHistoryView()
 			W.SetFontColor(row.zoneText, UI.TEXT_DISABLED)
 		end
 
-		local metWhen = self:FormatHistoryTime(member.metAt)
+		local metWhen = self:FormatHistoryTime(member.lastSeenAt)
 		row.metText:SetText(metWhen)
 		if metWhen ~= "-" then
 			W.SetFontColor(row.metText, UI.TEXT_IDLE)
@@ -342,6 +396,11 @@ function Addon:RefreshHistoryView()
 			W.SetFontColor(row.metText, UI.TEXT_DISABLED)
 		end
 
+		local source = member.recordSource or (self:IsCharacterDatabaseEntry(member) and "manual" or "encounter")
+		local sourceKey = ({manual="SOURCE_MANUAL", website="SOURCE_WEBSITE", user="SOURCE_USER", encounter="SOURCE_ENCOUNTER"})[source]
+		row.sourceText:SetText((sourceKey and W.T(sourceKey) or tostring(source))
+			.. (member.recordSourceDetail and (": " .. member.recordSourceDetail) or ""))
+		W.SetFontColor(row.sourceText, UI.TEXT_IDLE)
 		row.guildText:SetText(W.FormatGuildDisplay(member.guildName, member.guildRank))
 		W.SetFontColor(row.guildText, UI.TEXT_IDLE)
 		row:Show()
@@ -350,10 +409,26 @@ function Addon:RefreshHistoryView()
 	W.LayoutTableScrollBars(page)
 end
 
+function Addon:RefreshHistoryView()
+	local pages = self.mainFrame and self.mainFrame.pages
+	if not pages then return end
+	self:PruneHistory()
+	for _, id in ipairs({"history", "database"}) do
+		local page = pages[id]
+		if page and page:IsShown() then RefreshPage(self, page) end
+	end
+end
+
 local function ApplyLocale(page)
 	if page then
+		for _, field in ipairs(page.filterLabels or {}) do field.label:SetText(W.T(field.key)) end
+		if page.addButton then page.addButton.label:SetText(W.T("DATABASE_ADD")) end
+		if page.opinionButton then
+			local opinion = page.filters.opinion or ""
+			page.opinionButton.label:SetText(W.T(opinion == "" and "FILTER_OPINION_ALL" or "RATING_OPINION_" .. string.upper(opinion)))
+		end
 		if page.hint then
-			page.hint:SetText(W.T("HISTORY_HINT"))
+			page.hint:SetText(W.T(page.database and "DATABASE_HINT" or "HISTORY_HINT"))
 		end
 		if page.refreshBtn then
 			page.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
@@ -376,4 +451,12 @@ Addon.Pages.History = {
 	end,
 	ApplyLocale = ApplyLocale,
 	Create = CreateHistoryPage,
+}
+
+Addon.Pages.Database = {
+	id = "database",
+	LAYOUT_VERSION = DATABASE_LAYOUT_VERSION,
+	Create = function(parent) return CreateHistoryPage(parent, true) end,
+	Refresh = function() Addon:RefreshHistoryView() end,
+	ApplyLocale = ApplyLocale,
 }

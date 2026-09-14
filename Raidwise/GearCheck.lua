@@ -246,6 +246,7 @@ local function FinishScan(report, status)
 			report.collection.scanStatus = status
 		end
 	end
+	if report and Addon.RecordTargetScanHistory then Addon:RecordTargetScanHistory(report) end
 	lastReport = report
 	local callback = pendingCallback
 	local continueRaid = raidQueue and raidQueue.active
@@ -421,7 +422,6 @@ end
 
 function Addon:StartGearCheckScan(callback)
 	return self:StartGearCheckUnitScan(self:ResolveGearCheckUnit(), function(report, status)
-		self:RecordTargetScanHistory(report)
 		if callback then
 			callback(report, status)
 		end

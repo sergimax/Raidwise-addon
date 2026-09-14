@@ -212,14 +212,14 @@ The report scroll area has **20** px left/bottom, **40** px right and **48** px
 top insets; its multiline edit box is **550** px wide with **340** px initial
 height. Layout v1 does not depend on the main shell or theme widgets.
 
-## History tab
+## History and Character database tabs
 
 Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
 
 | Element | Size | Notes |
 |---------|------|-------|
 | Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
-| Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 140 + 130 + 120 = 822** | Name, class, spec, Opinion, Tags, GS, iLvl, Met in, When, Guild |
+| Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 140 + 130 + 120 + 150 = 972** | Name, class, spec, Opinion, Tags, GS, iLvl, Met in, When, Guild, Record source |
 | Class / spec icons | **18** px | Centered in 28 px columns |
 | Opinion column | **70**, center | Qiraji crystal icon (green / yellow / red) |
 | Tags column | **120** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
@@ -227,7 +227,12 @@ Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADE
 | When | **130** | `YYYY-MM-DD HH:MM` |
 | Guild | **120** | Last stored `GuildName (Rank)` |
 
-Rows are clickable and open Character profile. Notes are stored on the history record but edited only in Character profile.
+Name/class/guild filter inputs are **150 x 24** at **166** px intervals, labels
+at y=-36 and inputs at y=-54. Database opinion filter is **160 x 24** at x=498.
+Database name entry is **230 x 24** at y=-92, followed by a **180 x 24** Add button
+with a **12** px gap. Table begins at y=-90 (History) or y=-128 (Database).
+Source column is **150** px. When displays last seen. Rows open Character profile;
+notes are edited there.
 
 ## Settings tab
 

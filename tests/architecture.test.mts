@@ -316,7 +316,7 @@ test("every shipped module compiles as Lua 5.1", async () => {
 });
 
 test("Settings and character linking panels avoid circular frame anchors", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "PageSettings", "ProfileCharacters"], `
+  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "PageSettings", "ProfileCharacters", "PageHistory"], `
     local serial=0
     local function depends(region,wanted,seen)
       if region==wanted then return true end
@@ -345,7 +345,7 @@ test("Settings and character linking panels avoid circular frame anchors", async
       function result:GetStringHeight() return 14 end
       function result:CreateTexture() return region(self) end
       return setmetatable(result,{__index=function(_,key)
-        if key:match("^Set") or key=="Enable" or key=="Disable" or key=="EnableMouse" then return function() end end
+        if key:match("^Set") or key=="Enable" or key=="Disable" or key=="EnableMouse" or key=="EnableMouseWheel" then return function() end end
       end})
     end
     CreateFrame=function(_,name,parent) return region(parent,name) end
@@ -353,6 +353,8 @@ test("Settings and character linking panels avoid circular frame anchors", async
     Raidwise.Widgets=setmetatable({T=function(key) return key end,
       CreateFontString=function(parent) return region(parent) end,
       CreatePlainButton=function(parent) local button=region(parent);button.label=region(button);return button end,
+      CreateCooldownScrollBar=function(parent) return region(parent) end,
+      CooldownTableTopOffset=function() return 36 end,
       CreateLineCopyBox=function(parent) local host=region(parent);return region(host),host end,
       ContentInnerWidth=function() return 940 end,
     },{__index=function() return function() end end})
@@ -365,6 +367,14 @@ test("Settings and character linking panels avoid circular frame anchors", async
     function GetRealmName() return "Realm" end
     function UnitGUID() return "SELF" end
   `, `
+    local history=Raidwise.Pages.History.Create(region())
+    local database=Raidwise.Pages.Database.Create(region())
+    assert(history.layoutVersion==Raidwise.Pages.History.LAYOUT_VERSION and not history.database)
+    assert(database.layoutVersion==Raidwise.Pages.Database.LAYOUT_VERSION and database.addButton)
+    local refreshes=0
+    Raidwise.RefreshHistoryView=function() refreshes=refreshes+1 end
+    database.opinionButton.scripts.OnClick()
+    assert(database.filters.opinion=="positive" and refreshes==1)
     local page=Raidwise.Pages.Settings.Create(region())
     assert(page.changelogButton and page.layoutVersion==Raidwise.Pages.Settings.LAYOUT_VERSION)
     local profile={profilePanels={}}

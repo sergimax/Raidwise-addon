@@ -271,12 +271,75 @@ local function EnsureHistoryFields(entry)
 	return entry
 end
 
+-- Encounter retention never expires deliberately saved character cards.
+local HISTORY_RETENTION_SEC = 14 * 24 * 60 * 60
+
+function Addon:IsCharacterDatabaseEntry(entry)
+	if type(entry) ~= "table" then return false end
+	if entry.recordSource or entry.playerGroupId or (entry.notes and entry.notes ~= "") then return true end
+	local personal = self:GetPersonalRating(entry)
+	if self:HasPersonalRatingData(personal) or #(personal.facts or {}) > 0 then return true end
+	for _, event in ipairs(entry.events or {}) do
+		if event.type ~= "same_party" then return true end
+	end
+	for _, change in ipairs(entry.changes or {}) do
+		if change.kind ~= "event_add" or change.detail ~= "same_party" then return true end
+	end
+	return false
+end
+
+function Addon:MarkCharacterRecord(entry, source, sourceDetail)
+	entry.recordSource = entry.recordSource or source or "manual"
+	entry.recordSourceDetail = entry.recordSourceDetail or sourceDetail
+	entry.recordUpdatedAt = time()
+end
+
+function Addon:PruneHistory()
+	local cutoff = time() - HISTORY_RETENTION_SEC
+	for guid, entry in pairs(self:HistoryStore()) do
+		if type(entry) == "table" and not self:IsCharacterDatabaseEntry(entry)
+			and (tonumber(entry.lastSeenAt) or tonumber(entry.metAt) or 0) <= cutoff then
+			self.db.history[guid] = nil
+		end
+	end
+end
+
+local function Fold(value)
+	return (strlower or string.lower)(tostring(value or ""))
+end
+
+local function NamedRecordKey(name, realm)
+	return "name:" .. Fold(realm) .. ":" .. Fold(name)
+end
+
+function Addon:AddCharacterRecord(name)
+	name = type(name) == "string" and name:match("^%s*(.-)%s*$") or ""
+	if name == "" or name:find("[%s|:%c]") then return nil end
+	local characterName, realm = name:match("^([^%-]+)%-(.+)$")
+	characterName, realm = characterName or name, realm or MeetingRealm()
+	for _, entry in pairs(self:HistoryStore()) do
+		if Fold(entry.name) == Fold(characterName) and Fold(CharacterRealm(entry)) == Fold(realm) then
+			self:MarkCharacterRecord(entry)
+			return entry
+		end
+	end
+	local entry = self:EnsureHistoryEntryForGuid(NamedRecordKey(characterName, realm), {name=characterName, realm=realm})
+	self:MarkCharacterRecord(entry)
+	return entry
+end
+
 -- Explicit load boundary; getters never migrate persisted entries.
 function Addon:InitializeHistoryStore()
 	for _, entry in pairs(self:HistoryStore()) do
-		if type(entry) == "table" then EnsureHistoryFields(entry) end
+		if type(entry) == "table" then
+			EnsureHistoryFields(entry)
+			if self:IsCharacterDatabaseEntry(entry) and not entry.recordSource then
+				self:MarkCharacterRecord(entry, "manual")
+			end
+		end
 	end
 	if self.InitializeCharacterLinks then self:InitializeCharacterLinks() end
+	self:PruneHistory()
 end
 
 function Addon:AppendProfileHistoryChange(entry, kind, detail)
@@ -308,6 +371,21 @@ function Addon:EnsureHistoryEntryForGuid(guid, seed)
 	end
 	local store = self:HistoryStore()
 	local entry = store[guid]
+	if not entry and seed and seed.name and not guid:match("^name:") then
+		local key = NamedRecordKey(seed.name, CharacterRealm(seed))
+		entry = store[key]
+		if entry then
+			store[key], store[guid], entry.guid = nil, entry, guid
+			for _, group in pairs(self.db.characterGroups or {}) do
+				if group.members and group.members[key] then
+					group.members[guid], group.members[key] = group.members[key], nil
+				end
+			end
+			for id, main in pairs(self.db.localCharacterMains or {}) do
+				if main == key then self.db.localCharacterMains[id] = guid end
+			end
+		end
+	end
 	if not entry then
 		entry = {
 			guid = guid,
@@ -347,9 +425,6 @@ function Addon:RecordTargetScanHistory(report)
 	if not character or character.isSelf or not character.guid or character.guid == "" then
 		return
 	end
-	if self:GetHistoryEntry(character.guid) then
-		return
-	end
 	local entry = self:EnsureHistoryEntryForGuid(character.guid, {
 		name = character.name,
 		realm = character.realm,
@@ -359,16 +434,27 @@ function Addon:RecordTargetScanHistory(report)
 		specIcon = character.specKnown and character.specIcon or nil,
 		gearScore = character.gearScore,
 		averageIlvl = character.averageIlvl,
+		guildName = character.guildName,
 	})
 	local scannedAt = tonumber(report.collection and report.collection.collectedAt) or time()
-	entry.metZone = self:T("HISTORY_TARGET_SCAN")
-	entry.metAt = scannedAt
-	entry.metRealm = MeetingRealm()
+	if (tonumber(entry.metAt) or 0) <= 0 then
+		entry.metZone = self:T("HISTORY_TARGET_SCAN")
+		entry.metAt = scannedAt
+		entry.metRealm = MeetingRealm()
+	end
+	for key, value in pairs({name=character.name, class=character.classFile, classLabel=character.className,
+		guildName=character.guildName, guildRank=character.guildRank,
+		spec=character.specKnown and character.specName or nil,
+		specIcon=character.specKnown and character.specIcon or nil,
+		gearScore=character.gearScore, averageIlvl=character.averageIlvl}) do
+		CopyIfValue(entry, {[key]=value}, key)
+	end
 	entry.lastSeenAt = scannedAt
 	entry.lastSeenZone = entry.metZone
-	entry.meetCount = 1
+	entry.meetCount = math.max(tonumber(entry.meetCount) or 0, 1)
+	self:PruneHistory()
 	local frame = self.mainFrame
-	if frame and frame:IsShown() and frame.selectedTab == "history" and self.RefreshHistoryView then
+	if frame and frame:IsShown() and (frame.selectedTab == "history" or frame.selectedTab == "database") and self.RefreshHistoryView then
 		self:RefreshHistoryView()
 	end
 end
@@ -448,6 +534,7 @@ function Addon:RecordCurrentGroupHistory(refreshGearScore, rosterSnapshot)
 		return
 	end
 
+	self:PruneHistory()
 	local collect = self.CollectPartyMember or self.CollectRaidMember
 	for _, unit in ipairs(GroupHistoryUnits()) do
 		local member = rosterSnapshot and rosterSnapshot.byUnit[unit]
@@ -474,18 +561,30 @@ function Addon:RecordCurrentGroupHistory(refreshGearScore, rosterSnapshot)
 	end
 
 	local frame = self.mainFrame
-	if frame and frame:IsShown() and frame.selectedTab == "history" and self.RefreshHistoryView then
+	if frame and frame:IsShown() and (frame.selectedTab == "history" or frame.selectedTab == "database") and self.RefreshHistoryView then
 		self:RefreshHistoryView()
 	end
 end
 
-function Addon:BuildHistoryRoster()
+function Addon:BuildHistoryRoster(database, filters)
 	local roster = {}
 	local store = self.db and self.db.history or {}
 	for _, entry in pairs(store) do
-		if type(entry) == "table" then
-			roster[#roster + 1] = entry
+		local seen = type(entry) == "table" and (tonumber(entry.lastSeenAt) or tonumber(entry.metAt) or 0) or 0
+		local include = database and self:IsCharacterDatabaseEntry(entry)
+			or not database and seen > 0 and seen > time() - HISTORY_RETENTION_SEC
+		filters = filters or {}
+		if include then
+			for _, field in ipairs({"name", "class", "guildName"}) do
+				local query = Fold(filters[field])
+				local value = Fold(entry[field])
+				if field == "class" then value = value .. " " .. Fold(entry.classLabel) end
+				if query ~= "" and not value:find(query, 1, true) then include = false end
+			end
+			if database and filters.opinion and filters.opinion ~= ""
+				and self:GetPersonalRating(entry).opinion ~= filters.opinion then include = false end
 		end
+		if include then roster[#roster + 1] = entry end
 	end
 
 	table.sort(roster, function(left, right)
@@ -602,6 +701,7 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 	for index = 1, #(personal.facts or {}) do
 		previousFacts[index] = personal.facts[index]
 	end
+	self:MarkCharacterRecord(entry)
 	if seed then
 		CopyIfValue(entry, seed, "name")
 		CopyIfValue(entry, seed, "class")
@@ -660,6 +760,7 @@ function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 		return nil
 	end
 	EnsureHistoryFields(entry)
+	self:MarkCharacterRecord(entry)
 	if seed then
 		CopyIfValue(entry, seed, "name")
 		CopyIfValue(entry, seed, "class")
@@ -775,6 +876,7 @@ function Addon:SaveProfileNotesForGuid(guid, seed, notes)
 	if not entry then
 		return nil
 	end
+	self:MarkCharacterRecord(entry)
 	if seed then
 		CopyIfValue(entry, seed, "name")
 		CopyIfValue(entry, seed, "class")

@@ -1013,6 +1013,8 @@ function Addon:CollectGearCheckObservation(unit, inspectReady)
 		end
 	end
 
+	local guildName, guildRank
+	if GetGuildInfo then guildName, guildRank = GetGuildInfo(unit) end
 	local report = {
 		schemaVersion = Addon.GEAR_CHECK_SCHEMA_VERSION,
 		character = {
@@ -1021,6 +1023,8 @@ function Addon:CollectGearCheckObservation(unit, inspectReady)
 			name = name,
 			realm = realm,
 			guid = UnitGUID(unit),
+			guildName = guildName,
+			guildRank = guildRank,
 			className = identity.className,
 			classFile = identity.classFile,
 			specName = identity.specName,
