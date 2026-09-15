@@ -38,8 +38,7 @@ test("negative personal opinions color the whole chat body red and preserve chat
     end
     local filter=filters.CHAT_MSG_SAY
     for _, sender in ipairs({"Sender-OtherRealm", "Unknown"}) do
-      local _, message=filter(nil,"CHAT_MSG_SAY","hello",sender)
-      assert(message=="|cffffffff<|cffffffffRw|cffffffff>|r hello")
+      assert(filter(nil,"CHAT_MSG_SAY","hello",sender)==nil)
     end
     local entry=Raidwise:GetHistoryEntry("A")
     for _, percent in ipairs({0, 73}) do
@@ -49,8 +48,20 @@ test("negative personal opinions color the whole chat body red and preserve chat
     end
     entry.rating.community=nil
     Raidwise:EnsureHistoryEntryForGuid("C",{name="Unrated",realm="Realm"})
+    assert(filter(nil,"CHAT_MSG_SAY","hello","Unrated")==nil)
+    Raidwise:RecordTargetScanHistory({character={guid="C",name="Unrated",realm="Realm"}})
     local _, unrated=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
     assert(unrated=="|cffffffff<|cffffffffRw|cffffffff51>|r hello")
+    local getCommunity=Raidwise.GetCommunityRating
+    Raidwise.GetCommunityRating=function() return nil end
+    local _, missing=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
+    assert(missing=="|cffffffff<|cffffffffRw|cffffffff>|r hello")
+    Raidwise.GetCommunityRating=getCommunity
+    for _, source in ipairs({"user", "website"}) do
+      Raidwise:MarkCharacterRecord(Raidwise:GetHistoryEntry("C"),source)
+      local _, imported=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
+      assert(imported==unrated)
+    end
     for _, opinion in ipairs({"positive","neutral"}) do
       Raidwise:SavePersonalRatingForGuid("A",nil,opinion,{},{})
       local _, message=filter(nil,"CHAT_MSG_SAY",text,"Sender-Realm")

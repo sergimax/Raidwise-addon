@@ -42,7 +42,10 @@ updates existing personal opinion fields; no facts/events/notes are merged.
 ## Chat highlighting
 
 Chat markers show `<Rw51>` with the current community percentage (without `%`).
-History entries use the mock fallback of 51%; senders without a rating show `<Rw>`.
+Marks appear only for saved profiles or players scanned through target/raid Gear
+Check within the last 14 days. Ordinary party encounters and unknown senders have
+no mark. Eligible players use the mock fallback of 51%; if the community getter
+has no rating, their mark is `<Rw>`.
 The `Rw` text uses green for positive personal opinions, white for neutral or
 missing opinions, and red for negative. Brackets and the number are white.
 Negative opinions also color the message body red.
@@ -67,6 +70,24 @@ opinion. Display changes are local and do not alter outgoing message content.
 Caps: max **3** tags per category; max **4** facts. Events are an unbounded list (change log capped at 50 rows). Opinion, tags, facts, and events are edited as drafts in Character profile until **Save and Update**; memo saves separately and is never logged.
 
 ## Record metadata
+
+Profiles have three states, exposed by `GetCharacterProfileState` and shown in
+the existing History/Character database source column:
+
+| State | Meaning | Retention |
+|-------|---------|-----------|
+| `local` | Profile saved or customized locally, including notes and character links | Kept in Character database |
+| `imported` | Profile supplied by another user or website (`recordSource=user/website`) | Kept in Character database |
+| `unset` | No saved profile; may have encounter or scan history | Removed from History after 14 days without an encounter/scan |
+
+Scanning does not create a saved profile. `lastScannedAt` records explicit target
+and raid Gear Check scans separately from ordinary encounters. Old scan-only
+records without this field need a new scan to qualify for chat marking.
+Opening a profile does not save it. Local saves set `profileEditedLocally`; this
+takes precedence in the displayed state and source filters while preserving
+`recordSource` and `recordSourceDetail` as original import provenance. Existing
+imported rows retain their source; old unlabelled customized rows migrate as local.
+The import transport/UI itself is still not implemented.
 
 On personal rating save and on each new event:
 

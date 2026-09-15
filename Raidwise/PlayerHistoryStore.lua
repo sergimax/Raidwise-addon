@@ -291,7 +291,29 @@ end
 function Addon:MarkCharacterRecord(entry, source, sourceDetail)
 	entry.recordSource = entry.recordSource or source or "manual"
 	entry.recordSourceDetail = entry.recordSourceDetail or sourceDetail
+	if not source or source == "manual" then entry.profileEditedLocally = true end
 	entry.recordUpdatedAt = time()
+end
+
+-- Profile ownership is separate from encounter/scan history and import provenance.
+function Addon:GetCharacterProfileState(entry)
+	if not self:IsCharacterDatabaseEntry(entry) then return "unset" end
+	if entry.profileEditedLocally or entry.recordSource == "manual" then return "local" end
+	if entry.recordSource == "user" or entry.recordSource == "website" then return "imported" end
+	return "local"
+end
+
+function Addon:GetCharacterRecordSource(entry)
+	local state = self:GetCharacterProfileState(entry)
+	if state == "local" then return "manual" end
+	if state == "imported" then return entry.recordSource end
+	return "encounter"
+end
+
+function Addon:ShouldMarkCharacterInChat(entry)
+	if self:GetCharacterProfileState(entry) ~= "unset" then return true end
+	local scannedAt = type(entry) == "table" and tonumber(entry.lastScannedAt) or 0
+	return scannedAt and scannedAt > 0 and scannedAt > time() - HISTORY_RETENTION_SEC or false
 end
 
 function Addon:PruneHistory()
@@ -347,6 +369,9 @@ function Addon:AppendProfileHistoryChange(entry, kind, detail)
 		return
 	end
 	EnsureHistoryFields(entry)
+	if kind == "character_link" or kind == "character_unlink" or kind == "character_role" then
+		self:MarkCharacterRecord(entry)
+	end
 	entry.changes[#entry.changes + 1] = {
 		at = time(),
 		kind = kind,
@@ -437,6 +462,7 @@ function Addon:RecordTargetScanHistory(report)
 		guildName = character.guildName,
 	})
 	local scannedAt = tonumber(report.collection and report.collection.collectedAt) or time()
+	entry.lastScannedAt = scannedAt
 	if (tonumber(entry.metAt) or 0) <= 0 then
 		entry.metZone = self:T("HISTORY_TARGET_SCAN")
 		entry.metAt = scannedAt
@@ -582,7 +608,7 @@ function Addon:BuildHistoryRoster(database, filters)
 				if query ~= "" and not value:find(query, 1, true) then include = false end
 			end
 			if database and filters.recordSource and filters.recordSource ~= ""
-				and (entry.recordSource or "manual") ~= filters.recordSource then include = false end
+				and self:GetCharacterRecordSource(entry) ~= filters.recordSource then include = false end
 			if database and filters.opinion and filters.opinion ~= ""
 				and self:GetPersonalRating(entry).opinion ~= filters.opinion then include = false end
 		end

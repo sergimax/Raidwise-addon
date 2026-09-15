@@ -470,7 +470,7 @@ local function RefreshPage(self, page)
 			W.SetFontColor(row.metText, UI.TEXT_DISABLED)
 		end
 
-		local source = member.recordSource or (self:IsCharacterDatabaseEntry(member) and "manual" or "encounter")
+		local source = self:GetCharacterRecordSource(member)
 		local sourceData = RECORD_SOURCES[source]
 		row.sourceText:SetText(W.IconMarkup(sourceData and sourceData.icon or SOURCE_ALL_ICON, 14) .. " "
 			.. (sourceData and W.T(sourceData.key) or tostring(source))

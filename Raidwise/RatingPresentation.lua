@@ -87,6 +87,7 @@ local function PersonalOpinionChatFilter(frame, event, message, sender, ...)
 	end
 	-- Sender GUID is chat argument 12 in Wrath; older servers may omit it.
 	local entry = FindChatHistoryEntry(sender, select(10, ...))
+	if not Addon:ShouldMarkCharacterInChat(entry) then return end
 	local personal = Addon:GetPersonalRating(entry)
 	local mark = NATIVE_OPINION_COLORS[personal.opinion] or NATIVE_OPINION_COLORS.neutral
 	local color = "|cff" .. Addon:RatingColorHex(mark)
