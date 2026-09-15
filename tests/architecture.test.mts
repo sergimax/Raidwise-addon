@@ -385,7 +385,7 @@ test("every shipped module compiles as Lua 5.1", async () => {
 });
 
 test("Settings and character linking panels avoid circular frame anchors", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "SyncJSON", "SyncData", "PageSettings", "ProfileCharacters", "PageHistory", "PageSync"], `
+  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "SyncJSON", "SyncData", "SyncTransport", "PageSettings", "ProfileCharacters", "PageHistory", "PageSync"], `
     local serial=0
     local function depends(region,wanted,seen)
       if region==wanted then return true end
@@ -414,7 +414,7 @@ test("Settings and character linking panels avoid circular frame anchors", async
       function result:GetStringHeight() return 14 end
       function result:CreateTexture() return region(self) end
       return setmetatable(result,{__index=function(_,key)
-        if key:match("^Set") or key=="Enable" or key=="Disable" or key=="EnableMouse" or key=="EnableMouseWheel" then return function() end end
+        if key:match("^Set") or key=="RegisterEvent" or key=="Enable" or key=="Disable" or key=="EnableMouse" or key=="EnableMouseWheel" then return function() end end
       end})
     end
     CreateFrame=function(_,name,parent) return region(parent,name) end
@@ -447,6 +447,18 @@ test("Settings and character linking panels avoid circular frame anchors", async
     local sync=Raidwise.Pages.Sync.Create(region())
     Raidwise:RefreshSyncView()
     assert(sync.layoutVersion==Raidwise.Pages.Sync.LAYOUT_VERSION and sync.search and sync.ignoreName)
+    Raidwise:SetSyncSenderIgnored("Zulu",true)
+    Raidwise:SetSyncSenderIgnored("Alpha-Realm",true)
+    Raidwise:SetSyncSenderIgnored("Bravo",true)
+    assert(sync.ignoredRows[1].name=="alpha" and sync.ignoredRows[2].name=="bravo")
+    sync.ignoredNext.scripts.OnClick()
+    assert(sync.ignoredRows[1].name=="zulu" and not sync.ignoredRows[2].name)
+    sync.ignoreName:SetText("ALP"); sync.ignoreName.scripts.OnTextChanged()
+    assert(sync.ignoredRows[1].name=="alpha" and sync.ignoredOffset==0)
+    sync.ignoredRows[1].remove.scripts.OnClick()
+    assert(not Raidwise:IsSyncSenderIgnored("Alpha-OtherRealm") and not sync.ignoredRows[1].name)
+    sync.ignoreName:SetText(""); sync.ignoreName.scripts.OnTextChanged()
+    assert(sync.ignoredRows[1].name=="bravo" and sync.ignoredRows[2].name=="zulu")
     local pasted
     Raidwise.StageSyncImport=function(_,value) pasted=value; return {} end
     sync.json:SetText("pasted JSON")

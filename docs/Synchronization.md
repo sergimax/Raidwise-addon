@@ -18,8 +18,12 @@ accepted whisper transfers; automatic guild replication is not implemented.
 - Incoming requests can be **received**, **cancelled**, or **ignored**. Receive
   downloads data only. Review the short list and totals, then **Apply changes**
   or **Cancel**. No import happens automatically.
-- Ignore is persistent per name/realm; enter that player in the ignore input and
-  choose **Unignore** to reverse it. Incoming requests can also be disabled globally.
+- Ignore is persistent by character name across realms. The name input filters
+  the ignored-character list; Previous/Next exposes additional entries. Use a
+  row's **Unignore** button or type the name and choose **Unignore**. Legacy
+  name/realm entries remain effective and are consolidated when edited. Incoming
+  requests can also be disabled globally. Transport sender identities still use
+  name and realm; only the ignore rule is name-based.
 - Stop buttons cancel pending sending/receiving. Timeouts, cancellations and errors
   appear in the view. A sender without Raidwise does not answer the offer.
 

@@ -21,6 +21,36 @@ local function settings()
 	return Addon.db.sync
 end
 
+-- Ignore by character name across realms. Transport identities stay realm-qualified.
+local function ignoredName(sender)
+	if not validSender(sender) then return nil end
+	local name = sender:match('^%s*(.-)%s*$'):match('^([^%-]+)')
+	if not name or name == "" or name:find('[%s:]') then return nil end
+	return (strlower or string.lower)(name)
+end
+
+function Addon:GetIgnoredSyncCharacters(query)
+	local matches, seen = {}, {}
+	query = (strlower or string.lower)(query or "")
+	for sender, ignored in pairs(self.db and self.db.sync and self.db.sync.ignored or {}) do
+		local name = ignored and ignoredName(sender)
+		if name and not seen[name] and name:find(query, 1, true) then
+			matches[#matches + 1] = name; seen[name] = true
+		end
+	end
+	table.sort(matches)
+	return matches
+end
+
+function Addon:IsSyncSenderIgnored(sender)
+	local name = ignoredName(sender)
+	if not name then return false end
+	for saved, ignored in pairs(self.db and self.db.sync and self.db.sync.ignored or {}) do
+		if ignored and ignoredName(saved) == name then return true end
+	end
+	return false
+end
+
 local function checksum(text)
 	local first, second = 1, 0
 	for index = 1, #text do first = (first + text:byte(index)) % 65521; second = (second + first) % 65521 end
@@ -40,13 +70,18 @@ local function send(message, channel, target)
 end
 
 function Addon:SetSyncSenderIgnored(sender, ignored)
-	if not self.db or not validSender(sender) then return false end
-	settings().ignored[key(sender)] = ignored and true or nil
+	local name = ignoredName(sender)
+	if not self.db or not name then return false end
+	local saved = settings().ignored
+	-- Consolidate old Name-Realm entries without losing existing ignores.
+	for previous in pairs(saved) do if ignoredName(previous) == name then saved[previous] = nil end end
+	saved[name] = ignored and true or nil
+	if not ignored then refresh(); return true end
 	for index = #self.syncOffers, 1, -1 do
-		if key(self.syncOffers[index].sender) == key(sender) then table.remove(self.syncOffers, index) end
+		if ignoredName(self.syncOffers[index].sender) == name then table.remove(self.syncOffers, index) end
 	end
-	if incoming and key(incoming.sender) == key(sender) then incoming = nil end
-	if self.syncReview and key(self.syncReview.sender) == key(sender) then self:CancelSyncImport() end
+	if incoming and ignoredName(incoming.sender) == name then incoming = nil end
+	if self.syncReview and self.syncReview.source == "user" and ignoredName(self.syncReview.sender) == name then self:CancelSyncImport() end
 	refresh(); return true
 end
 
@@ -117,7 +152,7 @@ function Addon:OnSyncAddonMessage(prefix, message, channel, sender)
 	if prefix ~= PREFIX or not self.db or not validSender(sender) or type(message) ~= "string" or #message > 240 then return end
 	if channel ~= "WHISPER" and channel ~= "RAID" and channel ~= "GUILD" then return end
 	local senderKey = key(sender)
-	if senderKey == key(UnitName("player")) or settings().ignored[senderKey] then return end
+	if senderKey == key(UnitName("player")) or self:IsSyncSenderIgnored(sender) then return end
 	local kind, id = message:match('^([OADX])|([%d%-]+)|?')
 	if not id or #id > 32 then return end
 	if kind == "O" then

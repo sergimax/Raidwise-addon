@@ -88,7 +88,12 @@ end
 addon.db={history={}}
 local offer="O|123-1|1|100|1|123"
 addon:SetSyncSenderIgnored("Friend",true)
+assert(addon:IsSyncSenderIgnored("FRIEND-OtherRealm"))
+assert(addon:GetIgnoredSyncCharacters("rie")[1]=="friend")
+assert(#addon:GetIgnoredSyncCharacters("Realm")==0)
 addon:OnSyncAddonMessage("RaidwiseSync1",offer,"WHISPER","Friend-Realm")
+assert(#addon.syncOffers==0)
+addon:OnSyncAddonMessage("RaidwiseSync1",offer,"WHISPER","Friend-OtherRealm")
 assert(#addon.syncOffers==0)
 addon:SetSyncSenderIgnored("Friend",false)
 addon:SetSyncRequestsDisabled(true)
@@ -107,3 +112,11 @@ assert(addon:AcceptSyncOffer())
 now=now+1801; addon:UpdateSyncTransport(1)
 addon:OnSyncAddonMessage("RaidwiseSync1","D|123-1|1|bad","WHISPER","Friend")
 assert(not addon.syncReview and not next(addon.db.history))
+
+addon.db.sync={ignored={["friend-realm"]=true,["FRIEND-OtherRealm"]=true,zulu=true}}
+assert(#addon:GetIgnoredSyncCharacters()==2 and addon:GetIgnoredSyncCharacters()[1]=="friend")
+assert(addon:IsSyncSenderIgnored("Friend-NewRealm"))
+addon:SetSyncSenderIgnored("Friend",false)
+assert(not addon:IsSyncSenderIgnored("Friend-Realm") and #addon:GetIgnoredSyncCharacters()==1)
+assert(not addon:SetSyncSenderIgnored("  ",true))
+assert(not addon:SetSyncSenderIgnored("bad name",true))

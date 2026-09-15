@@ -1,7 +1,7 @@
 -- Explicit profile sharing and reviewed imports; no background database merging.
 local Addon = Raidwise
 local W = Addon.Widgets
-local LAYOUT_VERSION = 2
+local LAYOUT_VERSION = 3
 Addon.Pages = Addon.Pages or {}
 
 local function text(parent, x, y, width, value)
@@ -95,39 +95,56 @@ local function create(parent)
 	page.ignore = button(page, right + 264, -118, half - 264, "SYNC_IGNORE", function() Addon:RejectSyncOffer(true) end)
 	label("SYNC_IGNORE_NAME", right, -155, half)
 	page.ignoreName = input(page, right, -175, half - 176)
+	page.ignoreName:SetScript("OnTextChanged", function() page.ignoredOffset = 0; Addon:RefreshSyncView() end)
 	button(page, right + half - 168, -175, 80, "SYNC_IGNORE", function() Addon:SetSyncSenderIgnored(page.ignoreName:GetText(), true) end)
 	button(page, right + half - 82, -175, 82, "SYNC_UNIGNORE", function() Addon:SetSyncSenderIgnored(page.ignoreName:GetText(), false) end)
-	page.disable = button(page, right, -207, half, "SYNC_DISABLE", function()
+	page.ignoredHeading = text(page, right, -207, half)
+	page.ignoredRows = {}
+	for index = 1, 2 do
+		local row = {label=text(page, right, -228 - (index - 1) * 25, half - 94)}
+		row.remove = button(page, right + half - 88, -223 - (index - 1) * 25, 88, "SYNC_UNIGNORE", function()
+			if row.name then Addon:SetSyncSenderIgnored(row.name, false) end
+		end)
+		page.ignoredRows[index] = row
+	end
+	page.ignoredPrevious = button(page, right, -278, 72, "SYNC_PREVIOUS", function()
+		page.ignoredOffset = math.max(0, (page.ignoredOffset or 0) - 2); Addon:RefreshSyncView()
+	end)
+	page.ignoredNext = button(page, right + half - 72, -278, 72, "SYNC_NEXT", function()
+		page.ignoredOffset = (page.ignoredOffset or 0) + 2; Addon:RefreshSyncView()
+	end)
+	page.ignoredCount = text(page, right + 80, -283, half - 160)
+	page.disable = button(page, 0, -261, half, "SYNC_DISABLE", function()
 		Addon:SetSyncRequestsDisabled(not (Addon.db.sync and Addon.db.sync.disabled))
 	end)
-	button(page, right, -238, math.floor((half - 6)/2), "SYNC_STOP_SEND", function() Addon:CancelSyncSending() end)
-	button(page, right + math.floor((half - 6)/2) + 6, -238, math.floor((half - 6)/2), "SYNC_STOP_RECEIVE", function() Addon:CancelSyncReceiving() end)
-	page.status = text(page, 0, -269, width); page.status:SetHeight(30)
-	label("SYNC_JSON", 0, -304, half)
-	button(page, 0, -326, 126, "SYNC_EXPORT_ONE", function()
+	button(page, 0, -292, math.floor((half - 6)/2), "SYNC_STOP_SEND", function() Addon:CancelSyncSending() end)
+	button(page, math.floor((half - 6)/2) + 6, -292, math.floor((half - 6)/2), "SYNC_STOP_RECEIVE", function() Addon:CancelSyncReceiving() end)
+	page.status = text(page, 0, -323, width); page.status:SetHeight(30)
+	label("SYNC_JSON", 0, -354, half)
+	button(page, 0, -376, 126, "SYNC_EXPORT_ONE", function()
 		if not Addon.syncSelectedGuid then result(nil, "SYNC_SELECT"); return end
 		local value, err = Addon:BuildSyncExport(Addon.syncSelectedGuid)
 		if value then page.json:SetText(value); page.json:SetFocus(); page.json:HighlightText() else result(nil, err) end
 	end)
-	button(page, 132, -326, 126, "SYNC_EXPORT_ALL", function()
+	button(page, 132, -376, 126, "SYNC_EXPORT_ALL", function()
 		local value, err = Addon:BuildSyncExport()
 		if value then page.json:SetText(value); page.json:SetFocus(); page.json:HighlightText() else result(nil, err) end
 	end)
-	button(page, 264, -326, half - 264, "SYNC_PREVIEW", function() result(Addon:StageSyncImport(page.json:GetText(), "JSON", "website")) end)
+	button(page, 264, -376, half - 264, "SYNC_PREVIEW", function() result(Addon:StageSyncImport(page.json:GetText(), "JSON", "website")) end)
 	local json, host = W.CreateCopyBox(page, "RaidwiseSyncJSONScrollV" .. LAYOUT_VERSION, "RaidwiseSyncJSONBoxV" .. LAYOUT_VERSION)
-	host:SetPoint("TOPLEFT", 0, -358); host:SetPoint("BOTTOMRIGHT", page, "BOTTOMLEFT", half, 0)
+	host:SetPoint("TOPLEFT", 0, -408); host:SetPoint("BOTTOMRIGHT", page, "BOTTOMLEFT", half, 0)
 	json:SetMaxLetters(Addon.SYNC_MAX_BYTES + 1); page.json = json
-	label("SYNC_REVIEW", right, -304, half)
-	page.apply = button(page, right, -326, 126, "SYNC_APPLY", function()
+	label("SYNC_REVIEW", right, -354, half)
+	page.apply = button(page, right, -376, 126, "SYNC_APPLY", function()
 		local changed, err = Addon:ApplySyncImport()
 		if changed then Addon.syncStatus = W.T("SYNC_APPLIED", changed); Addon:RefreshSyncView() else result(nil, err) end
 	end)
-	page.cancel = button(page, right + 132, -326, 126, "SYNC_DECLINE", function() Addon:CancelSyncImport() end)
-	page.ignoreReview = button(page, right + 264, -326, half - 264, "SYNC_IGNORE", function()
+	page.cancel = button(page, right + 132, -376, 126, "SYNC_DECLINE", function() Addon:CancelSyncImport() end)
+	page.ignoreReview = button(page, right + 264, -376, half - 264, "SYNC_IGNORE", function()
 		if Addon.syncReview then Addon:SetSyncSenderIgnored(Addon.syncReview.sender, true) end
 	end)
 	local review, reviewHost = W.CreateCopyBox(page, "RaidwiseSyncReviewScrollV" .. LAYOUT_VERSION, "RaidwiseSyncReviewBoxV" .. LAYOUT_VERSION)
-	reviewHost:SetPoint("TOPLEFT", right, -358); reviewHost:SetPoint("BOTTOMRIGHT", 0, 0)
+	reviewHost:SetPoint("TOPLEFT", right, -408); reviewHost:SetPoint("BOTTOMRIGHT", 0, 0)
 	page.review = review
 	Addon.syncPage = page
 	return page
@@ -160,6 +177,19 @@ function Addon:RefreshSyncView()
 	page.review:SetText(self:GetSyncReviewText())
 	page.status:SetText(self.syncStatus or W.T("SYNC_PRIVACY"))
 	page.disable.label:SetText(W.T(self.db.sync and self.db.sync.disabled and "SYNC_ENABLE" or "SYNC_DISABLE"))
+	local ignored = self:GetIgnoredSyncCharacters(page.ignoreName:GetText())
+	local allIgnored = self:GetIgnoredSyncCharacters()
+	page.ignoredHeading:SetText(W.T("SYNC_IGNORED_LIST", #allIgnored))
+	local offset = math.min(page.ignoredOffset or 0, math.max(0, math.floor((#ignored - 1) / 2) * 2))
+	page.ignoredOffset = offset
+	for index, row in ipairs(page.ignoredRows) do
+		row.name = ignored[offset + index]
+		row.label:SetText(row.name or (index == 1 and W.T("SYNC_IGNORED_EMPTY") or ""))
+		if row.name then row.remove:Show() else row.remove:Hide() end
+	end
+	page.ignoredCount:SetText(W.T("SYNC_IGNORED_PAGE", #ignored > 0 and offset + 1 or 0, math.min(offset + 2, #ignored), #ignored))
+	if offset > 0 then page.ignoredPrevious:Enable() else page.ignoredPrevious:Disable() end
+	if offset + 2 < #ignored then page.ignoredNext:Enable() else page.ignoredNext:Disable() end
 end
 
 Addon.Pages.Sync = {id="sync", LAYOUT_VERSION=LAYOUT_VERSION, Create=create,
