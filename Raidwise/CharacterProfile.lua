@@ -1011,7 +1011,6 @@ end
 
 function Addon:ResetProfileNotes()
 	local frame = self.raidDetailFrame
-	if not self:CanEditCharacterProfile(frame and frame.profileMember) then return end
 	local member = frame and frame.profileMember
 	if not member or not member.guid or member.guid == "" then
 		return
@@ -1502,7 +1501,7 @@ function Addon:ShowRaidCharacterWindow(member)
 		frame.isUpdatingNotes = false
 	end
 	if frame.ratingUpdateBtn then
-		frame.ratingUpdateBtn.label:SetText(T("BTN_SAVE_AND_UPDATE"))
+		frame.ratingUpdateBtn.label:SetText(T(Addon:CanEditCharacterProfile(member) and "BTN_SAVE_AND_UPDATE" or "PROFILE_READ_ONLY"))
 	end
 
 	UpdateProfileEditor(frame, member)
@@ -1554,7 +1553,7 @@ function Addon:ShowRaidCharacterWindow(member)
 		end
 	end
 	if frame.notesBox and frame.notesHost then
-		if editable then
+		if member.guid and member.guid ~= "" then
 			frame.notesBox:EnableMouse(true)
 			frame.notesBox:EnableKeyboard(true)
 			W.SetFontColor(frame.notesBox, Theme.TEXT_BODY)
@@ -1569,7 +1568,7 @@ function Addon:ShowRaidCharacterWindow(member)
 	end
 	if frame.notesSaveBtn then
 		frame.notesSaveBtn.label:SetText(T("BTN_SAVE"))
-		if editable then
+		if member.guid and member.guid ~= "" then
 			frame.notesSaveBtn:Enable()
 		else
 			frame.notesSaveBtn:Disable()
@@ -1577,7 +1576,7 @@ function Addon:ShowRaidCharacterWindow(member)
 	end
 	if frame.notesResetBtn then
 		frame.notesResetBtn.label:SetText(T("BTN_RESET"))
-		if editable then
+		if member.guid and member.guid ~= "" then
 			frame.notesResetBtn:Enable()
 		else
 			frame.notesResetBtn:Disable()

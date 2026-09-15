@@ -71,11 +71,13 @@ Caps: max **3** tags per category; max **4** facts. Events are an unbounded list
 
 ## Record metadata
 
-The currently logged-in character's own profile is read-only. Opinion, tags,
-facts, events, notes, and character-link controls cannot save local changes.
+The currently logged-in character's own opinion, tags, facts, and events cannot
+be edited, to prevent self-rating. The disabled save control explains this on
+the Edit note, Facts, and Events tabs. Private memo edits and character linking,
+unlinking, and local Main selection are allowed for the current character.
 The store enforces the same rule by GUID and matching local name/realm, including
-name-only cards. Linked-character actions and opinion synchronization cannot
-change the current player's profile indirectly. Other characters remain editable.
+name-only cards. Linked opinion synchronization skips the current character's
+opinion while updating other linked characters. Other characters remain editable.
 
 Profiles have three states, exposed by `GetCharacterProfileState` and shown in
 the existing History/Character database source column:

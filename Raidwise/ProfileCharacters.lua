@@ -44,7 +44,7 @@ end
 
 CurrentGuid = function(frame)
 	local member = frame.profileMember
-	if not Addon:CanEditCharacterProfile(member) then return nil end
+	if not member or not member.guid or member.guid == "" then return nil end
 	Addon:EnsureHistoryEntryForGuid(member.guid, member)
 	return member.guid
 end
@@ -125,9 +125,6 @@ local function FillRows(frame, content, rows, characters, candidate)
 				FinishAction(frame, Addon:UnlinkPlayerCharacter(guid, entry.guid))
 			end)
 		end
-		for _, button in pairs(row.buttons) do
-			if not Addon:CanEditCharacterProfile(frame.profileMember) or not Addon:CanEditCharacterProfile(entry) then button:Disable() end
-		end
 		row:Show()
 	end
 	content:SetHeight(math.max(1, #characters * ROW_HEIGHT))
@@ -136,7 +133,7 @@ end
 function Addon:RefreshProfileCharacters(frame)
 	if not frame or not frame.charactersContent then return end
 	local guid = frame.profileMember and frame.profileMember.guid
-	frame.charactersHint:SetText(W.T(self:CanEditCharacterProfile(frame.profileMember) and "CHAR_LINK_HINT" or "PROFILE_READ_ONLY"))
+	frame.charactersHint:SetText(W.T("CHAR_LINK_HINT"))
 	frame.charactersSearchLabel:SetText(W.T("CHAR_LINK_SEARCH"))
 	frame.charactersTarget.label:SetText(W.T("CHAR_LINK_TARGET"))
 	frame.characterConflictCancel.label:SetText(W.T("CHAR_LINK_CANCEL"))
@@ -151,7 +148,7 @@ function Addon:RefreshProfileCharacters(frame)
 	FillRows(frame, frame.charactersContent, frame.characterRows, linked, false)
 	FillRows(frame, frame.characterCandidatesContent, frame.characterCandidateRows,
 		guid and guid ~= "" and self:GetCharacterLinkCandidates(guid, frame.charactersSearch:GetText()) or {}, true)
-	if self:CanEditCharacterProfile(frame.profileMember) then frame.charactersTarget:Enable() else frame.charactersTarget:Disable() end
+	if guid and guid ~= "" then frame.charactersTarget:Enable() else frame.charactersTarget:Disable() end
 end
 
 function Addon:CreateProfileCharactersPanel(frame, parent, width, layoutVersion)

@@ -917,7 +917,6 @@ function Addon:RemoveHistoryEventForGuid(guid, eventId)
 end
 
 function Addon:SaveProfileNotesForGuid(guid, seed, notes)
-	if not self:CanEditCharacterProfile(guid, seed) then return nil end
 	if not guid or guid == "" then
 		return nil
 	end

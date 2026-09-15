@@ -106,16 +106,7 @@ function Addon:GetCharacterLinkCandidates(guid, search)
 	return candidates
 end
 
-local function CanEditGroup(guid)
-	if not Addon:CanEditCharacterProfile(guid) then return false end
-	for _, member in ipairs(Addon:GetLinkedCharacters(guid)) do
-		if not Addon:CanEditCharacterProfile(member.entry) then return false end
-	end
-	return true
-end
-
 function Addon:LinkPlayerCharacters(guid, otherGuid, seed, chosenOpinion)
-	if not CanEditGroup(guid) or not CanEditGroup(otherGuid) then return false, "PROFILE_READ_ONLY" end
 	if not self.db or not self:GetHistoryEntry(guid) or not otherGuid or otherGuid == "" then
 		return false, "CHAR_LINK_INVALID"
 	end
@@ -157,7 +148,6 @@ function Addon:LinkPlayerCharacters(guid, otherGuid, seed, chosenOpinion)
 end
 
 function Addon:UnlinkPlayerCharacter(guid, otherGuid)
-	if not CanEditGroup(guid) or not CanEditGroup(otherGuid) then return false, "PROFILE_READ_ONLY" end
 	local group, id = GroupForGuid(guid)
 	if not group or not group.members[otherGuid] then return false, "CHAR_LINK_INVALID" end
 	local other = self:GetHistoryEntry(otherGuid)
@@ -176,7 +166,6 @@ function Addon:UnlinkPlayerCharacter(guid, otherGuid)
 end
 
 function Addon:SetLinkedCharacterRole(guid, memberGuid, role)
-	if not CanEditGroup(guid) or not CanEditGroup(memberGuid) then return false, "PROFILE_READ_ONLY" end
 	if not ROLES[role] or not self:GetHistoryEntry(guid) then return false, "CHAR_LINK_INVALID" end
 	local group, id = GroupForGuid(guid)
 	if guid ~= memberGuid and not (group and group.members[memberGuid]) then return false, "CHAR_LINK_INVALID" end
@@ -200,7 +189,6 @@ end
 -- Only the opinion is shared. Tags, facts, events and private notes stay local
 -- to each character. Unlinking preserves the last shared opinion as its snapshot.
 function Addon:SyncLinkedPlayerOpinion(guid, opinion)
-	if not CanEditGroup(guid) then return end
 	local source = self:GetHistoryEntry(guid)
 	if not source then return end
 	local now = time()
@@ -208,7 +196,7 @@ function Addon:SyncLinkedPlayerOpinion(guid, opinion)
 	opinion = self:NormalizePersonalOpinion(opinion)
 	for _, member in ipairs(self:GetLinkedCharacters(guid)) do
 		local personal = self:EnsurePersonalRating(member.entry)
-		if personal.opinion ~= opinion then
+		if self:CanEditCharacterProfile(member.entry) and personal.opinion ~= opinion then
 			personal.opinion = opinion
 			personal.updatedAt = now
 			if personal.createdAt <= 0 then personal.createdAt = now end

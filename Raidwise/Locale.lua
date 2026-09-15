@@ -43,14 +43,14 @@ local Translations = {
 		BTN_RESET = "Reset",
 		BTN_SAVE = "Save",
 		BTN_SAVE_AND_UPDATE = "Save and Update",
-		BTN_RAID_PROFILE = "Profile",
+		BTN_RAID_PROFILE = "Character",
 		BTN_RAID_GEAR = "Gear",
 		BTN_RAID_RESCAN = "Rescan",
 		BTN_RAID_REPORT_FLASK = "Report flask",
 		BTN_RAID_REPORT_FOOD = "Report food",
 		BTN_REFRESH_TIP = "Refresh this view with the latest data.",
 		BTN_COMP_REPORT_TIP = "Post missing required classes to the report chat channel (title bar).",
-		BTN_RAID_PROFILE_TIP = "Open Character profile for this player.",
+		BTN_RAID_PROFILE_TIP = "Open Character for this player.",
 		BTN_RAID_GEAR_TIP = "Open this player's gear check report on Gear check (target). Requires a completed Scan.",
 		BTN_RAID_RESCAN_TIP = "Re-run gear check for this player only and update their roster grades.",
 		BTN_RAID_REPORT_FLASK_TIP = "Post players missing a flask (or battle + guardian elixirs) to the report chat channel (title bar).",
@@ -116,7 +116,7 @@ local Translations = {
 			.. "- Include item names adds display names next to item ids\n"
 			.. "- GearScore is included when the GearScore addon is loaded",
 		INFO_SECTION_PARTY = "Lists the current 5-player party with spec, raid-buff icons, GearScore, average item level, guild, personal opinion, and tags.\n"
-			.. "Click a row to open Character profile.",
+			.. "Click a row to open Character.",
 		INFO_SECTION_RAID = "Current party or raid as player cards, with integrated gear check.\n"
 			.. "When you are not in a raid, party members fill group 1.\n"
 			.. "\n"
@@ -127,7 +127,7 @@ local Translations = {
 			.. "- Hover a card for opinion, tags, community rating, guild (rank), raid buffs, and gear-check details\n"
 			.. "- Scan inspects everyone one at a time and fills armor/weap and ench/sock grades\n"
 			.. "- Export all builds text dumps; Back to roster closes them; click the dump + Ctrl+C copies\n"
-			.. "- Profile opens Character profile; Gear opens the full report on Gear check (target)",
+			.. "- Character opens Character; Gear opens the full report on Gear check (target)",
 		INFO_SECTION_COMPOSITION = "Who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered.\n"
 			.. "Solo shows only your own coverage.\n"
 			.. "\n"
@@ -150,7 +150,7 @@ local Translations = {
 			.. "The list is saved on this account and stays after logout.\n"
 			.. "\n"
 			.. "- Name, class, spec, opinion, tags, GearScore, iLvl, where you met, when, and guild\n"
-			.. "- Click a row to open Character profile\n"
+			.. "- Click a row to open Character\n"
 			.. "- In the profile you can save opinion, tags, facts, events, and a private memo\n"
 			.. "- Community opinion is a mock preview for future exchange and web features",
 		INFO_SECTION_SETTINGS = "Account-wide interface options.\n"
@@ -232,7 +232,7 @@ local Translations = {
 		HISTORY_FILTERS = "Filters",
 		COL_RECORD_SOURCE = "Record source",
 		SOURCE_MANUAL = "Local profile",
-		PROFILE_READ_ONLY = "Your own profile is read-only.",
+		PROFILE_READ_ONLY = "To prevent self-rating, you can only edit your memo and character links.",
 		SOURCE_WEBSITE = "Website import",
 		SOURCE_USER = "User import",
 		SOURCE_ENCOUNTER = "Profile not set",
@@ -284,7 +284,7 @@ local Translations = {
 		RAID_CELL_NOT_SCANNED = "Not scanned",
 		RAID_CELL_GRADE_ENCH = "Ench %s",
 		GEAR_CHECK_LIMITATION = "Gear Check is a surface-level evaluation. S means the item ID appears on published BiS lists for this spec (not a unique BiS pick). It does not optimize builds, encounters, or stat weights.",
-		GEAR_CHECK_PROFILE = "Character profile",
+		GEAR_CHECK_PROFILE = "Character",
 		GEAR_CHECK_PROFILE_TIP = "Open the profile of the displayed scan character, creating a history entry if needed.",
 		GEAR_CHECK_SCAN = "Scan",
 		GEAR_CHECK_INSPECT = "Inspect target",
@@ -516,7 +516,7 @@ local Translations = {
 		STATS_GS = "%sgs",
 		STATS_ILVL = "%silvl",
 
-		PROFILE_TITLE = "%s - Character profile",
+		PROFILE_TITLE = "%s - Character",
 		PROFILE_GS = "GearScore: %s",
 		PROFILE_ILVL = "iLvl: %s",
 		PROFILE_RACE = "Race: %s",
@@ -580,7 +580,7 @@ local Translations = {
 		RATING_PROFILE_OPINION = "Personal note: %s",
 		RATING_PROFILE_SUMMARY = "Summary: %s | Tags: %s",
 		RATING_DISPLAY_WITH_TAGS = "%s (%s)",
-		RATING_TAGS_NONE = "none",
+		RATING_TAGS_NONE = "no tags set",
 		RATING_TAGS_MORE = " +%s",
 		RATING_GROUP_LIMIT = "Maximum 3 tags may be active in one category.",
 		RATING_OPINION_POSITIVE = "Positive",
@@ -748,7 +748,7 @@ local Translations = {
 		BTN_RESET = "Сброс",
 		BTN_SAVE = "Сохранить",
 		BTN_SAVE_AND_UPDATE = "Сохранить и обновить",
-		BTN_RAID_PROFILE = "Профиль",
+		BTN_RAID_PROFILE = "Персонаж",
 		BTN_RAID_GEAR = "Экип",
 		BTN_RAID_RESCAN = "Рескан",
 		BTN_RAID_REPORT_FLASK = "Сообщить настой",
@@ -832,7 +832,7 @@ local Translations = {
 			.. "- Наведение: мнение, теги, сообщество, гильдия (ранг), рейд-баффы, детали проверки экипа\n"
 			.. "- «Сканировать» осматривает по одному и заполняет оценки брони/оружия и чар/сокетов\n"
 			.. "- «Экспорт всех» собирает текстовые отчёты; «К составу» закрывает их; клик по тексту + Ctrl+C копирует\n"
-			.. "- «Профиль» открывает профиль персонажа; «Экип» — полный отчёт на вкладке проверки экипа (цель)",
+			.. "- «Персонаж» открывает окно персонажа; «Экип» — полный отчёт на вкладке проверки экипа (цель)",
 		INFO_SECTION_COMPOSITION = "Кто нужен, и какие уникальные баффы, внешние КД, снижение урона, дебаффы и восполнение уже закрыты.\n"
 			.. "Вне группы показывается только ваше покрытие.\n"
 			.. "\n"
@@ -937,7 +937,7 @@ local Translations = {
 		HISTORY_FILTERS = "Фильтры",
 		COL_RECORD_SOURCE = "Источник записи",
 		SOURCE_MANUAL = "Локальный профиль",
-		PROFILE_READ_ONLY = "Свой профиль нельзя редактировать.",
+		PROFILE_READ_ONLY = "Чтобы исключить самооценку, доступны только заметка и связи персонажей.",
 		SOURCE_WEBSITE = "Импорт с сайта",
 		SOURCE_USER = "Импорт от игрока",
 		SOURCE_ENCOUNTER = "Профиль не задан",
@@ -989,7 +989,7 @@ local Translations = {
 		RAID_CELL_NOT_SCANNED = "Не просканирован",
 		RAID_CELL_GRADE_ENCH = "Чары %s",
 		GEAR_CHECK_LIMITATION = "Gear Check — поверхностная оценка. S = ID предмета есть в опубликованных BiS-списках спека, не уникальный выбор. Без оптимизации билдов, энкаунтеров и весов статов.",
-		GEAR_CHECK_PROFILE = "Профиль персонажа",
+		GEAR_CHECK_PROFILE = "Персонаж",
 		GEAR_CHECK_PROFILE_TIP = "Открыть профиль персонажа из отчёта. Если записи нет, она будет создана в истории.",
 		GEAR_CHECK_SCAN = "Сканировать",
 		GEAR_CHECK_INSPECT = "Осмотреть цель",
@@ -1221,7 +1221,7 @@ local Translations = {
 		STATS_GS = "%sgs",
 		STATS_ILVL = "%silvl",
 
-		PROFILE_TITLE = "%s - Профиль персонажа",
+		PROFILE_TITLE = "%s - Персонаж",
 		PROFILE_GS = "GearScore: %s",
 		PROFILE_ILVL = "iLvl: %s",
 		PROFILE_RACE = "Раса: %s",
@@ -1285,7 +1285,7 @@ local Translations = {
 		RATING_PROFILE_OPINION = "Личная заметка: %s",
 		RATING_PROFILE_SUMMARY = "Сводка: %s | Теги: %s",
 		RATING_DISPLAY_WITH_TAGS = "%s (%s)",
-		RATING_TAGS_NONE = "нет",
+		RATING_TAGS_NONE = "теги не заданы",
 		RATING_TAGS_MORE = " +%s",
 		RATING_GROUP_LIMIT = "В одной категории можно держать максимум 3 активных тега.",
 		RATING_OPINION_POSITIVE = "Положительное",

@@ -90,22 +90,27 @@ test("own profiles reject local edits and indirect linked opinion changes", asyn
     local alias=Raidwise:EnsureHistoryEntryForGuid("name:realm:me",{name="Me",realm="Realm"})
     for _, entry in ipairs({own,alias}) do
       assert(not Raidwise:SavePersonalRatingForGuid(entry.guid,nil,"positive",{},{}))
-      assert(not Raidwise:SaveProfileNotesForGuid(entry.guid,nil,"test"))
       assert(not Raidwise:SaveHistoryEventsForGuid(entry.guid,nil,{}))
       assert(not Raidwise:AddHistoryEventForGuid(entry.guid,nil,"same_party"))
       assert(not Raidwise:RemoveHistoryEventForGuid(entry.guid,"1"))
       assert(entry.notes=="" and #entry.events==0 and not entry.recordSource)
+      assert(Raidwise:SaveProfileNotesForGuid(entry.guid,nil,"test"))
+      assert(entry.notes=="test")
+      assert(Raidwise:SaveProfileNotesForGuid(entry.guid,nil,""))
+      assert(entry.notes=="")
     end
     local other=Raidwise:EnsureHistoryEntryForGuid("OTHER",{name="Other",realm="Realm"})
     assert(Raidwise:CanEditCharacterProfile(other))
     assert(Raidwise:SaveProfileNotesForGuid("OTHER",nil,"allowed"))
-    assert(not Raidwise:LinkPlayerCharacters("OTHER","SELF"))
-    assert(not Raidwise:SetLinkedCharacterRole("SELF","SELF","main"))
-    Raidwise.db.characterGroups={g={members={SELF="alt",OTHER="alt"}}}
-    own.playerGroupId="g"; other.playerGroupId="g"
+    assert(Raidwise:LinkPlayerCharacters("OTHER","SELF"))
+    assert(Raidwise:SetLinkedCharacterRole("SELF","SELF","main"))
     Raidwise:SyncLinkedPlayerOpinion("OTHER","negative")
     assert(Raidwise:GetPersonalRating(own).opinion=="neutral")
-    assert(not Raidwise:UnlinkPlayerCharacter("OTHER","SELF"))
+    assert(Raidwise:GetPersonalRating(other).opinion=="negative")
+    assert(Raidwise:UnlinkPlayerCharacter("SELF","OTHER"))
+    assert(Raidwise:LinkPlayerCharacters("SELF","OTHER",nil,"positive"))
+    assert(Raidwise:GetPersonalRating(own).opinion=="neutral")
+    assert(Raidwise:GetPersonalRating(other).opinion=="positive")
   `);
 });
 
