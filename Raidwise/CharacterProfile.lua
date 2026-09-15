@@ -230,7 +230,7 @@ UpdateProfileCommitButton = function(frame, tabId)
 	end
 	tabId = tabId or frame.selectedProfileTab or "history"
 	local showCommit = tabId == "opinion" or tabId == "facts" or tabId == "events"
-	local editable = frame.profileMember and frame.profileMember.guid and frame.profileMember.guid ~= ""
+	local editable = Addon:CanEditCharacterProfile(frame.profileMember)
 	if frame.ratingUpdateBtn then
 		if showCommit then
 			frame.ratingUpdateBtn:Show()
@@ -456,6 +456,7 @@ local function ApplyOpinionChoice(opinionId)
 	if not frame then
 		return
 	end
+	if not Addon:CanEditCharacterProfile(frame.profileMember) then return end
 	GetDraftState(frame).draftOpinion = opinionId
 	-- Draft only; CommitProfileRating (Save) persists. Header stays on saved values.
 	RefreshOpinionRadios(frame, opinionId)
@@ -746,6 +747,7 @@ UpdateProfileEventsPanel = function(frame, member)
 			local button = W.CreatePlainButton(row, 70, 18, T("PROFILE_EVENT_REMOVE"))
 			button:SetPoint("RIGHT", row, "RIGHT", 0, 0)
 			button.eventId = event.id
+			if not Addon:CanEditCharacterProfile(member) then button:Disable() end
 			button:SetScript("OnClick", function(self)
 				Addon:RemoveProfileEvent(self.eventId)
 			end)
@@ -912,11 +914,11 @@ local function UpdateProfileEditor(frame, member)
 	end
 	UpdateProfileOpinionControls(frame, member)
 	if frame.tagGroups then
-		local editable = member.guid and member.guid ~= ""
+		local editable = Addon:CanEditCharacterProfile(member)
 		RefreshProfileTagCheckboxes(frame, member, editable)
 	end
 	if frame.factCheckboxes then
-		local editable = member.guid and member.guid ~= ""
+		local editable = Addon:CanEditCharacterProfile(member)
 		RefreshProfileFactCheckboxes(frame, member, editable)
 	end
 	UpdateProfileEventsPanel(frame, member)
@@ -974,7 +976,7 @@ function Addon:SaveProfilePersonalRating(opinion, tagIds, factIds, options)
 		UpdateProfileOpinionControls(frame, frame.profileMember)
 	elseif options and options.tagsOnly then
 		if frame.tagGroups then
-			local editable = frame.profileMember.guid and frame.profileMember.guid ~= ""
+			local editable = Addon:CanEditCharacterProfile(frame.profileMember)
 			RefreshProfileTagCheckboxes(frame, frame.profileMember, editable)
 		end
 		UpdateProfileOpinionControls(frame, frame.profileMember)
@@ -1009,6 +1011,7 @@ end
 
 function Addon:ResetProfileNotes()
 	local frame = self.raidDetailFrame
+	if not self:CanEditCharacterProfile(frame and frame.profileMember) then return end
 	local member = frame and frame.profileMember
 	if not member or not member.guid or member.guid == "" then
 		return
@@ -1029,6 +1032,7 @@ end
 
 function Addon:ToggleProfileTag(tagId)
 	local frame = self.raidDetailFrame
+	if not self:CanEditCharacterProfile(frame and frame.profileMember) then return end
 	if not frame then
 		return
 	end
@@ -1037,13 +1041,14 @@ function Addon:ToggleProfileTag(tagId)
 	PaintDraftEditorLabels(frame)
 	if frame.tagGroups then
 		local member = frame.profileMember
-		local editable = member and member.guid and member.guid ~= ""
+		local editable = Addon:CanEditCharacterProfile(member)
 		RefreshProfileTagCheckboxes(frame, member, editable)
 	end
 end
 
 function Addon:ToggleProfileFact(factId)
 	local frame = self.raidDetailFrame
+	if not self:CanEditCharacterProfile(frame and frame.profileMember) then return end
 	if not frame or not factId then
 		return
 	end
@@ -1051,13 +1056,14 @@ function Addon:ToggleProfileFact(factId)
 	if not ok then self:Print(self:T(key, limit)); return end
 	if frame.factCheckboxes then
 		local member = frame.profileMember
-		local editable = member and member.guid and member.guid ~= ""
+		local editable = Addon:CanEditCharacterProfile(member)
 		RefreshProfileFactCheckboxes(frame, member, editable)
 	end
 end
 
 function Addon:CommitProfileRating()
 	local frame = self.raidDetailFrame
+	if not self:CanEditCharacterProfile(frame and frame.profileMember) then return end
 	local member = frame and frame.profileMember
 	if not member or not member.guid or member.guid == "" then
 		return
@@ -1086,6 +1092,7 @@ end
 
 function Addon:AddProfileEvent(eventTypeId)
 	local frame = self.raidDetailFrame
+	if not self:CanEditCharacterProfile(frame and frame.profileMember) then return end
 	local member = frame and frame.profileMember
 	if not member or not member.guid or member.guid == "" or not eventTypeId then
 		return
@@ -1096,6 +1103,7 @@ end
 
 function Addon:RemoveProfileEvent(eventId)
 	local frame = self.raidDetailFrame
+	if not self:CanEditCharacterProfile(frame and frame.profileMember) then return end
 	if not frame or not eventId or eventId == "" then
 		return
 	end
@@ -1498,7 +1506,7 @@ function Addon:ShowRaidCharacterWindow(member)
 	end
 
 	UpdateProfileEditor(frame, member)
-	local editable = member.guid and member.guid ~= ""
+	local editable = Addon:CanEditCharacterProfile(member)
 	local draftOpinion = GetProfileDraft(frame)
 	if frame.opinionButtons then
 		for _, button in ipairs(frame.opinionButtons) do

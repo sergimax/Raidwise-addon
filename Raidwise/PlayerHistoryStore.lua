@@ -339,6 +339,7 @@ function Addon:AddCharacterRecord(name)
 	if name == "" or name:find("[%s|:%c]") then return nil end
 	local characterName, realm = name:match("^([^%-]+)%-(.+)$")
 	characterName, realm = characterName or name, realm or MeetingRealm()
+	if not self:CanEditCharacterProfile({guid=NamedRecordKey(characterName, realm), name=characterName, realm=realm}) then return nil end
 	for _, entry in pairs(self:HistoryStore()) do
 		if Fold(entry.name) == Fold(characterName) and Fold(CharacterRealm(entry)) == Fold(realm) then
 			self:MarkCharacterRecord(entry)
@@ -348,6 +349,21 @@ function Addon:AddCharacterRecord(name)
 	local entry = self:EnsureHistoryEntryForGuid(NamedRecordKey(characterName, realm), {name=characterName, realm=realm})
 	self:MarkCharacterRecord(entry)
 	return entry
+end
+
+function Addon:CanEditCharacterProfile(entryOrGuid, seed)
+	local entry = type(entryOrGuid) == "table" and entryOrGuid or seed or self:GetHistoryEntry(entryOrGuid)
+	local guid = type(entryOrGuid) == "string" and entryOrGuid or entry and entry.guid
+	if not guid or guid == "" then return false end
+	local playerGuid = type(UnitGUID) == "function" and UnitGUID("player")
+	if playerGuid and guid == playerGuid then return false end
+	if entry and entry.isSelf then return false end
+	local playerName = type(UnitName) == "function" and UnitName("player")
+	if entry and playerName and Fold(entry.name) == Fold(playerName) then
+		local realm = Fold(CharacterRealm(entry)):gsub("%s+", "")
+		if realm == "" or realm == Fold(MeetingRealm()):gsub("%s+", "") then return false end
+	end
+	return true
 end
 
 -- Explicit load boundary; getters never migrate persisted entries.
@@ -712,6 +728,7 @@ end
 
 -- REFACTOR candidate: normalize + diff logging for opinion/tags/facts in one function.
 function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
+	if not self:CanEditCharacterProfile(guid, seed) then return nil end
 	if not guid or guid == "" then
 		return nil
 	end
@@ -780,6 +797,7 @@ end
 
 -- REFACTOR candidate: diff draft vs stored events, assign IDs, append change log.
 function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
+	if not self:CanEditCharacterProfile(guid, seed) then return nil end
 	if not guid or guid == "" then
 		return nil
 	end
@@ -845,6 +863,7 @@ function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 end
 
 function Addon:AddHistoryEventForGuid(guid, seed, eventTypeId)
+	if not self:CanEditCharacterProfile(guid, seed) then return nil end
 	if not guid or guid == "" or not self:IsValidEventType(eventTypeId) then
 		return nil
 	end
@@ -870,6 +889,7 @@ end
 
 -- DELETE candidate: no callers; removal is draft-only via RemoveProfileEvent.
 function Addon:RemoveHistoryEventForGuid(guid, eventId)
+	if not self:CanEditCharacterProfile(guid, nil) then return nil end
 	if not guid or guid == "" or not eventId or eventId == "" then
 		return nil
 	end
@@ -897,6 +917,7 @@ function Addon:RemoveHistoryEventForGuid(guid, eventId)
 end
 
 function Addon:SaveProfileNotesForGuid(guid, seed, notes)
+	if not self:CanEditCharacterProfile(guid, seed) then return nil end
 	if not guid or guid == "" then
 		return nil
 	end

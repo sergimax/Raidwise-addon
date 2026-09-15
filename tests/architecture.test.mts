@@ -76,6 +76,39 @@ test("negative personal opinions color the whole chat body red and preserve chat
   `);
 });
 
+test("own profiles reject local edits and indirect linked opinion changes", async () => {
+  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks"], `
+    Raidwise.db={}
+    function time() return 1000 end
+    function UnitGUID() return "SELF" end
+    function UnitName() return "Me" end
+    function GetRealmName() return "Realm" end
+  `, `
+    assert(not Raidwise:CanEditCharacterProfile({guid="SELF"}))
+    assert(not Raidwise:AddCharacterRecord("me-Realm"))
+    local own=Raidwise:EnsureHistoryEntryForGuid("SELF",{name="Me",realm="Realm"})
+    local alias=Raidwise:EnsureHistoryEntryForGuid("name:realm:me",{name="Me",realm="Realm"})
+    for _, entry in ipairs({own,alias}) do
+      assert(not Raidwise:SavePersonalRatingForGuid(entry.guid,nil,"positive",{},{}))
+      assert(not Raidwise:SaveProfileNotesForGuid(entry.guid,nil,"test"))
+      assert(not Raidwise:SaveHistoryEventsForGuid(entry.guid,nil,{}))
+      assert(not Raidwise:AddHistoryEventForGuid(entry.guid,nil,"same_party"))
+      assert(not Raidwise:RemoveHistoryEventForGuid(entry.guid,"1"))
+      assert(entry.notes=="" and #entry.events==0 and not entry.recordSource)
+    end
+    local other=Raidwise:EnsureHistoryEntryForGuid("OTHER",{name="Other",realm="Realm"})
+    assert(Raidwise:CanEditCharacterProfile(other))
+    assert(Raidwise:SaveProfileNotesForGuid("OTHER",nil,"allowed"))
+    assert(not Raidwise:LinkPlayerCharacters("OTHER","SELF"))
+    assert(not Raidwise:SetLinkedCharacterRole("SELF","SELF","main"))
+    Raidwise.db.characterGroups={g={members={SELF="alt",OTHER="alt"}}}
+    own.playerGroupId="g"; other.playerGroupId="g"
+    Raidwise:SyncLinkedPlayerOpinion("OTHER","negative")
+    assert(Raidwise:GetPersonalRating(own).opinion=="neutral")
+    assert(not Raidwise:UnlinkPlayerCharacter("OTHER","SELF"))
+  `);
+});
+
 test("roster Gear targets the same character before navigation and native inspect avoids active scans", async () => {
   await run(["PageGearCheckTarget"], `
     Raidwise.UITheme={ACTION_BTN_H=28}
