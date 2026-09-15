@@ -29,7 +29,7 @@ function Addon:NativeOpinionColor(opinion)
 	return NATIVE_OPINION_COLORS[opinion] or NATIVE_OPINION_COLORS.neutral
 end
 
-local function NegativeChatMessage(message, color)
+local function NegativeChatMessage(message, color, marker)
 	-- Keep item/achievement colors, then resume the opinion color after each complete link.
 	local function RemoveColor(pipes, code)
 		if #pipes % 2 == 0 then return pipes .. code end
@@ -38,7 +38,7 @@ local function NegativeChatMessage(message, color)
 	local function PlainText(text)
 		return text:gsub("(|+)(c%x%x%x%x%x%x%x%x)", RemoveColor):gsub("(|+)(r)", RemoveColor)
 	end
-	local parts = { color .. "<Rw> " }
+	local parts = { marker .. " " .. color }
 	local cursor, search = 1, 1
 	while true do
 		local first, last, pipes, link, kind = message:find("(|+)(c%x%x%x%x%x%x%x%x|H(%a+):.-|h.-|h|r)", search)
@@ -87,22 +87,17 @@ local function PersonalOpinionChatFilter(frame, event, message, sender, ...)
 	end
 	-- Sender GUID is chat argument 12 in Wrath; older servers may omit it.
 	local entry = FindChatHistoryEntry(sender, select(10, ...))
-	if not entry then
-		return
-	end
 	local personal = Addon:GetPersonalRating(entry)
-	if not Addon:HasPersonalRatingData(personal) then
-		return
-	end
-	local mark = NATIVE_OPINION_COLORS[personal.opinion]
-	if not mark then
-		return
-	end
+	local mark = NATIVE_OPINION_COLORS[personal.opinion] or NATIVE_OPINION_COLORS.neutral
 	local color = "|cff" .. Addon:RatingColorHex(mark)
+	local community = entry and Addon:GetCommunityRating(entry)
+	local percent = community and tonumber(community.positivePercent)
+	local rating = percent and tostring(percent) or ""
+	local marker = "|cffffffff<" .. color .. "Rw|cffffffff" .. rating .. ">|r"
 	if personal.opinion == "negative" then
-		return false, NegativeChatMessage(message, color), sender, ...
+		return false, NegativeChatMessage(message, color, marker), sender, ...
 	end
-	return false, "|cffffffff<" .. color .. "Rw" .. "|cffffffff>|r " .. message, sender, ...
+	return false, marker .. " " .. message, sender, ...
 end
 
 for _, event in ipairs({
@@ -157,7 +152,7 @@ function Addon:GetTooltipPreviewSample()
 			updatedAt = 1,
 		},
 		community = {
-			positivePercent = 0,
+			positivePercent = 51,
 			tags = { "fair_loot", "good_raid_leader", "good_player" },
 			isMock = true,
 		},

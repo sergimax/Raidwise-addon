@@ -41,13 +41,15 @@ updates existing personal opinion fields; no facts/events/notes are merged.
 
 ## Chat highlighting
 
-Chat markers use green for positive, white for neutral,
-and red for negative. Negative opinions also color the message body red.
+Chat markers show `<Rw51>` with the current community percentage (without `%`).
+History entries use the mock fallback of 51%; senders without a rating show `<Rw>`.
+The `Rw` text uses green for positive personal opinions, white for neutral or
+missing opinions, and red for negative. Brackets and the number are white.
+Negative opinions also color the message body red.
 Item and achievement links retain their original colors and remain clickable;
 text after them resumes red. This applies to the registered player chat channels
 (including whispers, party, raid, guild and emotes); channel headers and sender
-formatting remain controlled by WoW. Positive/neutral markers retain their existing
-appearance. Linked characters inherit this behavior through their shared personal
+formatting remain controlled by WoW. Linked characters inherit this behavior through their shared personal
 opinion. Display changes are local and do not alter outgoing message content.
 
 ## Entity reference
@@ -112,7 +114,7 @@ Used by roster pages, Character profile, and unit tooltips:
 `UnitTooltips.lua` hooks `GameTooltip` `OnTooltipSetUnit` (same pattern as GearScore). For player units:
 
 1. **Personal** — if a saved personal note exists: opinion label (colored) and up to 3 tags (`Positive: Fair Loot, …`)
-2. **Community** — if the GUID is in History: mock percent + up to 3 tags until real exchange data lands (`0 % positive:` then tag line)
+2. **Community** — if the GUID is in History: mock percent + up to 3 tags until real exchange data lands (`51 % positive:` then tag line)
 
 Visibility is controlled by `RaidwiseDB.tooltip` hide flags (Settings).
 

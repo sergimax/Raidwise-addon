@@ -34,11 +34,23 @@ test("negative personal opinions color the whole chat body red and preserve chat
         filter(nil,event,text,"Sender","Common",nil,nil,nil,nil,nil,nil,nil,123,"A","tail")
       assert(hidden==false and sender=="Sender" and language=="Common")
       assert(lineId==123 and guid=="A" and tail=="tail")
-      assert(message=="|cffff0000<Rw> Hello green |r"..item.."|cffff0000|r"..achievement.."|cffff0000 end ||cffffffff literal ||r|r")
+      assert(message=="|cffffffff<|cffff0000Rw|cffffffff51>|r |cffff0000Hello green |r"..item.."|cffff0000|r"..achievement.."|cffff0000 end ||cffffffff literal ||r|r")
     end
     local filter=filters.CHAT_MSG_SAY
-    assert(filter(nil,"CHAT_MSG_SAY","hello","Sender-OtherRealm")==nil)
-    assert(filter(nil,"CHAT_MSG_SAY","hello","Unknown")==nil)
+    for _, sender in ipairs({"Sender-OtherRealm", "Unknown"}) do
+      local _, message=filter(nil,"CHAT_MSG_SAY","hello",sender)
+      assert(message=="|cffffffff<|cffffffffRw|cffffffff>|r hello")
+    end
+    local entry=Raidwise:GetHistoryEntry("A")
+    for _, percent in ipairs({0, 73}) do
+      entry.rating.community={positivePercent=percent}
+      local _, message=filter(nil,"CHAT_MSG_SAY","hello","Sender")
+      assert(message:find("Rw|cffffffff"..percent..">",1,true))
+    end
+    entry.rating.community=nil
+    Raidwise:EnsureHistoryEntryForGuid("C",{name="Unrated",realm="Realm"})
+    local _, unrated=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
+    assert(unrated=="|cffffffff<|cffffffffRw|cffffffff51>|r hello")
     for _, opinion in ipairs({"positive","neutral"}) do
       Raidwise:SavePersonalRatingForGuid("A",nil,opinion,{},{})
       local _, message=filter(nil,"CHAT_MSG_SAY",text,"Sender-Realm")
@@ -49,7 +61,7 @@ test("negative personal opinions color the whole chat body red and preserve chat
     assert(Raidwise:LinkPlayerCharacters("A","B"))
     Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{})
     local _, message=filter(nil,"CHAT_MSG_SAY","alt message","Alt")
-    assert(message=="|cffff0000<Rw> alt message|r")
+    assert(message=="|cffffffff<|cffff0000Rw|cffffffff51>|r |cffff0000alt message|r")
   `);
 });
 
