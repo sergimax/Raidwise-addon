@@ -7,7 +7,7 @@ local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
 local LAYOUT_VERSION = 5
-local DATABASE_LAYOUT_VERSION = 6
+local DATABASE_LAYOUT_VERSION = 7
 
 local RECORD_SOURCES = {
 	manual = {key="SOURCE_MANUAL", icon="Interface\\Icons\\INV_Misc_Note_01"},
@@ -27,10 +27,10 @@ local HISTORY_COL_ILVL = 44
 local HISTORY_COL_MET = 130
 local HISTORY_COL_GUILD = 120
 
-local function HistoryTableWidth()
+local function HistoryTableWidth(database)
 	return HISTORY_COL_NAME + HISTORY_COL_CLASS + HISTORY_COL_SPEC + HISTORY_COL_OPINION
 		+ HISTORY_COL_TAGS + HISTORY_COL_GS + HISTORY_COL_ILVL
-		+ HISTORY_COL_MET + HISTORY_COL_GUILD + 150
+		+ HISTORY_COL_MET + HISTORY_COL_GUILD + 150 + (database and 80 or 0)
 end
 
 local HISTORY_COLUMN_WIDTHS = {
@@ -44,7 +44,30 @@ local HISTORY_COLUMN_WIDTHS = {
 	HISTORY_COL_MET,
 	HISTORY_COL_GUILD,
 	150,
+	80,
 }
+
+function Addon:ConfirmDeleteCharacterDatabase(guid)
+	local guids = {}
+	if guid then
+		if not self:IsCharacterDatabaseEntry(self:GetHistoryEntry(guid)) then return end
+		guids[1] = guid
+	else
+		for _, entry in ipairs(self:BuildHistoryRoster(true)) do guids[#guids + 1] = entry.guid end
+	end
+	if #guids == 0 then return end
+	local name = guid and self:LinkedCharacterName(self:GetHistoryEntry(guid)) or nil
+	StaticPopupDialogs.RAIDWISE_DELETE_DATABASE = {
+		text = self:T(guid and "DATABASE_DELETE_CONFIRM" or "DATABASE_DELETE_ALL_CONFIRM", name or #guids),
+		button1 = self:T("DATABASE_DELETE"), button2 = self:T("CHAR_LINK_CANCEL"),
+		OnAccept = function(dialog)
+			if dialog.data then Addon:DeleteCharacterDatabaseRecords(dialog.data) end
+		end,
+		timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
+	}
+	local dialog = StaticPopup_Show("RAIDWISE_DELETE_DATABASE")
+	if dialog then dialog.data = guids end
+end
 
 local function HistoryColumnOffset(index)
 	local offset = 0
@@ -55,7 +78,7 @@ local function HistoryColumnOffset(index)
 end
 
 -- REFACTOR candidate: same column pattern as History CreateHistoryRow (no buff column).
-local function CreateHistoryRow(parent)
+local function CreateHistoryRow(parent, database)
 	local row = CreateFrame("Button", nil, parent)
 	row:SetHeight(UI.CD_ROW_H)
 	W.ApplyPlainPanel(row, UI.CD_ROW_A)
@@ -104,6 +127,13 @@ local function CreateHistoryRow(parent)
 	row.metText = AddTextColumn(8, "LEFT")
 	row.guildText = AddTextColumn(9, "LEFT")
 	row.sourceText = AddTextColumn(10, "LEFT")
+	if database then
+		row.deleteButton = W.CreatePlainButton(row, 72, UI.CD_ROW_H - 8, W.T("DATABASE_DELETE"))
+		row.deleteButton:SetPoint("TOPLEFT", HistoryColumnOffset(11) + 4, -4)
+		row.deleteButton:SetScript("OnClick", function()
+			if row.member then Addon:ConfirmDeleteCharacterDatabase(row.member.guid) end
+		end)
+	end
 
 	row.classIconHost:EnableMouse(true)
 	row.classIconHost:SetScript("OnEnter", function(self)
@@ -279,6 +309,9 @@ local function CreateHistoryPage(parent, database)
 		local add = W.CreatePlainButton(page, 180, 24, W.T("DATABASE_ADD"))
 		add:SetPoint("LEFT", nameHost, "RIGHT", 12, 0)
 		page.addButton = add
+		page.deleteAllButton = W.CreatePlainButton(page, 180, 24, W.T("DATABASE_DELETE_ALL"))
+		page.deleteAllButton:SetPoint("LEFT", add, "RIGHT", 12, 0)
+		page.deleteAllButton:SetScript("OnClick", function() Addon:ConfirmDeleteCharacterDatabase() end)
 		local function AddRecord()
 			local entry = Addon:AddCharacterRecord(name:GetText())
 			if not entry then page.hint:SetText(W.T("DATABASE_INVALID_NAME")); return end
@@ -326,6 +359,10 @@ local function CreateHistoryPage(parent, database)
 		"COL_TAGS", "COL_GS", "COL_ILVL", "COL_WHEN", "COL_GUILD", "COL_RECORD_SOURCE",
 	}
 	page.headerLabels = {}
+	if database then
+		headers[#headers + 1] = W.T("DATABASE_ACTIONS")
+		page.headerKeys[#page.headerKeys + 1] = "DATABASE_ACTIONS"
+	end
 	for index = 1, #headers do
 		local label = W.CreateFontString(headerBg, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("TOPLEFT", headerBg, "TOPLEFT", HistoryColumnOffset(index) + 4, -10)
@@ -391,7 +428,7 @@ local function RefreshPage(self, page)
 	local roster = self:BuildHistoryRoster(page.database, page.filters)
 	local content = page.tableContent
 	local headerBg = page.headerBg
-	local tableW = HistoryTableWidth()
+	local tableW = HistoryTableWidth(page.database)
 	local tableH = UI.CD_HEADER_H + math.max(#roster, 1) * UI.CD_ROW_H
 
 	content:SetSize(tableW, tableH)
@@ -402,7 +439,7 @@ local function RefreshPage(self, page)
 		local member = roster[rowIndex]
 		local row = page.rowFrames[rowIndex]
 		if not row then
-			row = CreateHistoryRow(content)
+			row = CreateHistoryRow(content, page.database)
 			page.rowFrames[rowIndex] = row
 		end
 
@@ -413,6 +450,7 @@ local function RefreshPage(self, page)
 		row.stripe = stripe
 		W.SetBackdropColor(row, stripe)
 		row.member = member
+		if row.deleteButton then row.deleteButton.label:SetText(W.T("DATABASE_DELETE")) end
 
 		row.nameText:SetText(member.name or "")
 		row.nameText:SetTextColor(W.ClassColor(member.class))
@@ -489,6 +527,7 @@ end
 
 local function ApplyLocale(page)
 	if page then
+		if page.deleteAllButton then page.deleteAllButton.label:SetText(W.T("DATABASE_DELETE_ALL")) end
 		if page.shareButton then page.shareButton.label:SetText(W.T("SYNC_SHARE_ALL")) end
 		for _, field in ipairs(page.filterLabels or {}) do field.label:SetText(W.T(field.key)) end
 		if page.addButton then page.addButton.label:SetText(W.T("DATABASE_ADD")) end

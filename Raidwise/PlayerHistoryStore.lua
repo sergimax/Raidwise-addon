@@ -326,6 +326,53 @@ function Addon:PruneHistory()
 	end
 end
 
+-- Delete saved profiles only. A supplied list is the snapshot confirmed by the UI.
+function Addon:DeleteCharacterDatabaseRecords(guids)
+	local store = self.db and self.db.history
+	if type(store) ~= "table" then return 0 end
+	if not guids then
+		guids = {}
+		for guid, entry in pairs(store) do
+			if self:IsCharacterDatabaseEntry(entry) then guids[#guids + 1] = guid end
+		end
+	end
+	local removed, count = {}, 0
+	for _, guid in ipairs(guids) do
+		if not removed[guid] and self:IsCharacterDatabaseEntry(store[guid]) then
+			removed[guid] = true; count = count + 1; store[guid] = nil
+		end
+	end
+	if count == 0 then return 0 end
+	for id, group in pairs(self.db.characterGroups or {}) do
+		local remaining, first = 0, nil
+		for guid in pairs(group.members or {}) do
+			if removed[guid] then group.members[guid] = nil
+			else remaining = remaining + 1; if not first or guid < first then first = guid end end
+		end
+		if remaining < 2 then
+			if first and store[first] then store[first].playerGroupId = nil end
+			self.db.characterGroups[id] = nil
+			if self.db.localCharacterMains then self.db.localCharacterMains[id] = nil end
+		elseif self.db.localCharacterMains and removed[self.db.localCharacterMains[id]] then
+			self.db.localCharacterMains[id] = first
+		end
+	end
+	local frame = self.raidDetailFrame
+	if frame and frame.profileMember and removed[frame.profileMember.guid] then
+		frame.profileDraft, frame.profileMember = nil, nil
+		frame:Hide()
+	end
+	if removed[self.syncSelectedGuid] then self.syncSelectedGuid = nil end
+	if self.syncShareMenu then self.syncShareMenu:Hide() end
+	-- Discard already-copied outgoing data and stale import previews.
+	if self.CancelSyncSending then self:CancelSyncSending() end
+	if self.CancelSyncImport then self:CancelSyncImport() end
+	if self.RefreshRatingViews then self:RefreshRatingViews() end
+	if self.RefreshHistoryView then self:RefreshHistoryView() end
+	if self.RefreshSyncView then self:RefreshSyncView() end
+	return count
+end
+
 local function Fold(value)
 	return (strlower or string.lower)(tostring(value or ""))
 end
