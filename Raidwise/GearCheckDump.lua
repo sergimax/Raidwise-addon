@@ -1,5 +1,6 @@
 -- Gear Check text dumps and asynchronous raid export jobs.
 local Addon = Raidwise
+local REPORT_VERSION = 1
 
 local function ResolveEnchantDumpName(enchant)
 	if type(enchant) ~= "table" then
@@ -96,6 +97,7 @@ function Addon:FormatGearCheckDump(report)
 	local lines = {}
 	lines[#lines + 1] = "Raidwise Gear Check — Phase 5 snapshot (overall + meta + sets)"
 	lines[#lines + 1] = "schemaVersion=" .. tostring(report.schemaVersion or "?")
+	lines[#lines + 1] = "reportVersion=" .. tostring(REPORT_VERSION)
 	lines[#lines + 1] = "Overall is worst-wins of item verdicts (S < A < B < C < D); Resilience 1→C, 2+→D. S = item ID on published BiS lists. Set counts are informational."
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = string.format(
@@ -414,7 +416,7 @@ raidDumpFrame:SetScript("OnUpdate", function()
 			job.scanned,
 			job.failed
 		)
-		FinishRaidDumpJob(header .. "\n" .. string.rep("-", 72) .. "\n\n" .. table.concat(job.parts, RAID_DUMP_SEPARATOR))
+		FinishRaidDumpJob(header .. "\nreportVersion=" .. tostring(REPORT_VERSION) .. "\n" .. string.rep("-", 72) .. "\n\n" .. table.concat(job.parts, RAID_DUMP_SEPARATOR))
 		return
 	end
 
@@ -457,7 +459,7 @@ function Addon:FormatGearCheckRaidDump(results)
 		scanned,
 		failed
 	)
-	return header .. "\n" .. string.rep("-", 72) .. "\n\n" .. table.concat(parts, RAID_DUMP_SEPARATOR)
+	return header .. "\nreportVersion=" .. tostring(REPORT_VERSION) .. "\n" .. string.rep("-", 72) .. "\n\n" .. table.concat(parts, RAID_DUMP_SEPARATOR)
 end
 
 function Addon:IsGearCheckRaidDumpBusy()

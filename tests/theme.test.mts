@@ -36,6 +36,27 @@ test("extracted theme preserves palette references and bound colors across switc
       assert(UI.CONTENT_WIDTH==width and UI.CONTENT_HEIGHT==height)
       assert(type(W.CreatePlainButton)=="function" and type(W.ShowMemberRatingTooltip)=="function")
       assert(type(W.GearVerdictColor("A"))=="table")
+      function CreateFrame(kind,name,parent,template)
+        assert(template~="InputBoxTemplate", "Anonymous template input is unsafe on Wrath")
+        local control={parent=parent,scripts={}}
+        function control:SetBackdropColor(...) self.background={...} end
+        function control:SetTextColor(...) self.foreground={...} end
+        function control:SetFontObject(font) self.font=font end
+        function control:SetScript(event,callback) self.scripts[event]=callback end
+        function control:ClearFocus() self.cleared=true end
+        return setmetatable(control,{__index=function(_,key)
+          if key:match("^Set") or key=="EnableMouse" then return function() end end
+        end})
+      end
+      local first,host=W.CreateTextInput({},150)
+      local second,secondHost=W.CreateTextInput({},200)
+      assert(first~=second and host~=secondHost and first.font and second.font)
+      assert(first.foreground and host.background)
+      Raidwise:SetTheme("light")
+      assert(first.foreground[1]==UI.TEXT_BODY[1] and host.background[1]==UI.INPUT_BG[1])
+      Raidwise:SetTheme("dark")
+      assert(second.foreground[1]==UI.TEXT_BODY[1] and secondHost.background[1]==UI.INPUT_BG[1])
+      first.scripts.OnEscapePressed(first); assert(first.cleared and not second.cleared)
     `);
   } finally { lua.global.close(); }
 });

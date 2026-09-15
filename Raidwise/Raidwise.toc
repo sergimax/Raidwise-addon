@@ -21,6 +21,9 @@ RaidComposition.lua
 PlayerHistory.lua
 PlayerHistoryStore.lua
 CharacterLinks.lua
+SyncJSON.lua
+SyncData.lua
+SyncTransport.lua
 RatingPresentation.lua
 ProfileDraft.lua
 UITheme.lua
@@ -52,6 +55,7 @@ PageRaid.lua
 PageComposition.lua
 PageGearCheckTarget.lua
 PageHistory.lua
+PageSync.lua
 PageSettings.lua
 PageInfo.lua
 ExporterWindow.lua

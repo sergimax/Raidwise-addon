@@ -1,6 +1,7 @@
 -- Account-wide character lockout snapshots for the cooldowns table.
 
 local Addon = Raidwise
+local REPORT_VERSION = 1
 
 -- Unique SavedVariables key for the logged-in character.
 local function CurrentCharacterKey()
@@ -547,6 +548,7 @@ function Addon:FormatCooldownsExport()
 	local now = time()
 	local lines = {
 		"{",
+		'  "reportVersion": ' .. tostring(REPORT_VERSION) .. ",",
 		'  "exportedAt": ' .. tostring(now) .. ",",
 		'  "characters": [',
 	}

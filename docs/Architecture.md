@@ -23,6 +23,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Rating catalogs/access | `PlayerHistory.lua` | `GetPersonalRating`, `GetCommunityRating`, normalization |
 | History, migrations, persistence | `PlayerHistoryStore.lua` | `RecordCurrentGroupHistory`, `SavePersonalRatingForGuid`, `SaveHistoryEventsForGuid`, `SaveProfileNotesForGuid`, `PruneHistory`, `AddCharacterRecord` |
 | Linked player characters | `CharacterLinks.lua`, `ProfileCharacters.lua` | Group persistence, shared opinion synchronization, and the profile Characters tab |
+| Profile exchange | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSync.lua` | Bounded JSON codec; `BuildSyncExport`, `StageSyncImport`, `ApplySyncImport`; consent-based addon transport; Sync view and Share menus. Contract: [Synchronization.md](Synchronization.md). |
 | Unsaved profile edits | `ProfileDraft.lua` | `CreateProfileDraft`, `ToggleProfileDraftTag`, `AddProfileDraftEvent` |
 | Profile window | `CharacterProfile.lua`, `ProfilePanels.lua` | Window, editing and commands in `CharacterProfile`; tab construction and history rendering in `ProfilePanels` |
 | Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `GetTooltipSettings`, `BuildUnitTooltipRatingLinesForMember`; tooltip hooks in `UnitTooltips` |
@@ -39,6 +40,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 - Bootstrap creates the namespace; later modules attach methods before normal event-driven use.
 - `InspectCoordinator` precedes roster consumers and owns inspect API calls/events. Roster and gear retain their queues and result handling.
 - History catalogs, store, presentation, drafts and profile panels precede the profile window.
+- Sync JSON/data/transport load after the history store and character links; the Sync page loads with other pages before the shell. Character and database Share menus delegate to it.
 - `UITheme` precedes `UIWidgets`, then `RosterWidgets`, then views. Theme/color tables retain identity across theme changes.
 - Gear catalogs and report compatibility helpers precede rules, grades, explanations and self-tests. Saved reports and collector precede `GearCheck`; reports and dumps follow it. Pages load before the shell.
 
@@ -74,11 +76,19 @@ and individual reports; shared snapshots remain complete.
 
 `ScheduleRosterRefresh` merges same-frame requests. Each pass builds one snapshot shared by history and the visible raid/composition page. Hidden views are not redrawn; history still records. Snapshots are not cached across passes. Inspect queue advancement is immediate; consumable icons have their own targeted refresh path.
 
-Profile commands persist drafts through the store and refresh rating views. Notes have separate Save/Reset behavior. `InitializeHistoryStore` migrates entries at addon initialization, before UI construction; explicit write methods also normalize entries. Rating/history getters do not initialize or migrate SavedVariables. Community ratings include mock fallback data; opinion exchange is not implemented.
+Profile commands persist drafts through the store and refresh rating views. Notes have separate Save/Reset behavior. `InitializeHistoryStore` migrates entries at addon initialization, before UI construction; explicit write methods also normalize entries. Rating/history getters do not initialize or migrate SavedVariables. Community ratings include mock fallback data. Explicit profile exchange uses the Sync modules and a reviewed import; mock community data is never exported.
 
 Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The shell dispatches these methods; page modules own control labels and entry-specific collection. `entering=true` requests the original tab-entry work (lockout requests, roster refresh or history recording); locale refresh omits it. Public refresh wrappers remain compatible. Profile extraction preserves anchors, dimensions and named-frame versions.
 
 ### SavedVariables and versions
+
+Copyable character and cooldown JSON exports carry numeric `reportVersion: 1`.
+Target Gear Check text dumps and both synchronous/asynchronous raid dump headers
+carry `reportVersion=1`, including raid exports with only failed/skipped scans.
+These are format-specific revisions, independent of addon semver and the scan
+data's existing `schemaVersion`. Older exports without `reportVersion` are legacy
+unversioned formats. Diagnostics retain their existing `Raidwise diagnostics v2`
+header. Chat summaries are human-readable messages, not versioned data exports.
 
 `RaidwiseDB` is bound as `Addon.db`; `MrcExporterDB` is legacy migration input.
 

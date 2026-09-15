@@ -424,6 +424,25 @@ function W.CreateCopyBox(parent, scrollName, boxName)
 	return exportBox, host
 end
 
+-- Anonymous text inputs need explicit font/backdrop; InputBoxTemplate shares named
+-- texture regions on the 3.3.5 client. Keep search fields independent and themed.
+function W.CreateTextInput(parent, width)
+	local host = CreateFrame("Frame", nil, parent)
+	host:SetSize(width, 24)
+	host:SetBackdrop(W.COPY_BACKDROP)
+	W.SetBackdropColor(host, UI.INPUT_BG)
+	local box = CreateFrame("EditBox", nil, host)
+	box:SetPoint("TOPLEFT", 8, -3)
+	box:SetPoint("BOTTOMRIGHT", -8, 3)
+	box:SetFontObject("GameFontHighlightSmall")
+	W.SetFontColor(box, UI.TEXT_BODY)
+	box:SetAutoFocus(false)
+	box:SetMultiLine(false)
+	box:EnableMouse(true)
+	box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+	return box, host
+end
+
 function W.CreateLineCopyBox(parent, boxName)
 	local host = CreateFrame("Frame", nil, parent)
 	host:SetHeight(UI.URL_BOX_H)

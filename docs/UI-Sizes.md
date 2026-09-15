@@ -44,6 +44,21 @@ Groups (top to bottom): **Personal** — Character cooldowns (watch), Export gea
 
 ## Content padding
 
+Synchronization uses two equal columns separated by 24 px. Search and sender
+inputs are 24 px tall, with 8 px horizontal / 3 px vertical text insets. The
+shared `Widgets.CreateTextInput` supplies anonymous frames with explicit fonts
+and theme-bound backgrounds, also used by History filters and Character linking.
+It avoids the broken anonymous `InputBoxTemplate` texture regions on 3.3.5.
+
+Sync action rows are 24 px tall; the JSON and incoming-review copy areas begin
+408 px below the content top and fill the remaining height. The ignore section
+shows two 25 px rows with per-character Unignore buttons and Previous/Next paging.
+Its name input also filters that list. Transfer controls occupy the left column
+above the status line. The Character title
+bar has a 90 x 18 px Share button, 6 px left of its layout badge. The database
+toolbar Share database button is 150 px wide, 8 px left of Refresh. Both open a
+170 x 122 px menu with target/guild/raid actions and a Synchronization shortcut.
+
 | Element | Size | Notes |
 |---------|------|-------|
 | Page padding | 10 px | Inside content, below title bar |
