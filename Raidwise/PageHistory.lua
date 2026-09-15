@@ -7,7 +7,7 @@ local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
 local LAYOUT_VERSION = 5
-local DATABASE_LAYOUT_VERSION = 5
+local DATABASE_LAYOUT_VERSION = 6
 
 local RECORD_SOURCES = {
 	manual = {key="SOURCE_MANUAL", icon="Interface\\Icons\\INV_Misc_Note_01"},
@@ -240,6 +240,11 @@ local function CreateHistoryPage(parent, database)
 		end)
 	end
 	if database then
+		local share = W.CreatePlainButton(page, 150, UI.CD_TOOLBAR_H, W.T("SYNC_SHARE_ALL"))
+		share:SetPoint("RIGHT", refreshBtn, "LEFT", -8, 0)
+		share:SetScript("OnClick", function() Addon:ShowSyncShareMenu(share) end)
+		page.shareButton = share
+		hint:ClearAllPoints(); hint:SetPoint("TOPLEFT", 0, 0); hint:SetPoint("RIGHT", share, "LEFT", -8, 0)
 		local opinions = {"", "positive", "neutral", "negative"}
 		local opinionIndex = 1
 		local opinion = W.CreatePlainButton(page, 160, 24, W.T("FILTER_OPINION_ALL"))
@@ -496,6 +501,7 @@ end
 
 local function ApplyLocale(page)
 	if page then
+		if page.shareButton then page.shareButton.label:SetText(W.T("SYNC_SHARE_ALL")) end
 		for _, field in ipairs(page.filterLabels or {}) do field.label:SetText(W.T(field.key)) end
 		if page.addButton then page.addButton.label:SetText(W.T("DATABASE_ADD")) end
 		RefreshOpinionButton(page)
