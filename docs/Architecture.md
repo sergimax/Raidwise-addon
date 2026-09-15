@@ -80,6 +80,14 @@ Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The
 
 ### SavedVariables and versions
 
+Copyable character and cooldown JSON exports carry numeric `reportVersion: 1`.
+Target Gear Check text dumps and both synchronous/asynchronous raid dump headers
+carry `reportVersion=1`, including raid exports with only failed/skipped scans.
+These are format-specific revisions, independent of addon semver and the scan
+data's existing `schemaVersion`. Older exports without `reportVersion` are legacy
+unversioned formats. Diagnostics retain their existing `Raidwise diagnostics v2`
+header. Chat summaries are human-readable messages, not versioned data exports.
+
 `RaidwiseDB` is bound as `Addon.db`; `MrcExporterDB` is legacy migration input.
 
 | Key | Owner / purpose |

@@ -1,6 +1,7 @@
 -- Collect character identity and equipped gear; format as a JSON-like object.
 
 local Addon = Raidwise
+local REPORT_VERSION = 1
 
 -- Same order as WowSimsExporter (AmmoSlot omitted).
 local SLOT_NAMES = {
@@ -502,6 +503,7 @@ function Addon:FormatEquippedGearExport()
 
 	local lines = {
 		"{",
+		'  "reportVersion": ' .. tostring(REPORT_VERSION) .. ",",
 		'  "name": "' .. JsonEscape(info.name) .. '",',
 		'  "class": "' .. JsonEscape(info.class) .. '",',
 		'  "spec": "' .. JsonEscape(info.spec) .. '",',
