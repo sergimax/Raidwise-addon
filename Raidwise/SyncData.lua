@@ -124,7 +124,7 @@ local function resolve(row)
 		end
 		return entry
 	end
-	for _, saved in pairs(Addon:HistoryStore()) do
+	for _, saved in pairs(Addon.db and Addon.db.history or {}) do
 		if string.lower(saved.name or "") == string.lower(row.name)
 			and string.lower((saved.realm or saved.metRealm or ""):gsub('%s+', '')) == string.lower(row.realm:gsub('%s+', '')) then
 			return saved

@@ -71,7 +71,7 @@ for _, channel in ipairs({"WHISPER","RAID","GUILD"}) do
   for index=1,30 do addon:UpdateSyncTransport(0.15) end
   assert(#sent>1 and sent[2].channel=="WHISPER" and sent[2].target=="Friend")
   local packets=sent
-  addon:CancelSyncSending(); addon.db={history={}}; sent={}
+  sent={}; addon:CancelSyncSending(); addon.db={history={}}; sent={}
   now=now+31
   addon:OnSyncAddonMessage("RaidwiseSync1",offer,channel,"Friend")
   assert(#addon.syncOffers==1 and not addon.syncReview)

@@ -11,9 +11,9 @@ one player. Choose a known character from History (search by name/realm), or use
 Each group has exactly one **local Main** and any number of Alts. Main is a
 personal display preference: other players may choose a different Main without
 conflict. Shared Alt links mean only that characters belong to the same person;
-they carry no Main designation. Character exchange transport is not implemented
-yet. `GetSharedCharacterLinks` provides membership data for that future exchange,
-excluding local roles, opinions, and history.
+they carry no Main designation. `GetSharedCharacterLinks` provides membership
+data without local roles, opinions, or history. The [Synchronization view](Synchronization.md)
+exchanges selected profiles or the saved database with explicit review and consent.
 
 The first character is
 the initial Main; selecting another member's Main button changes it. Choose a
@@ -95,7 +95,7 @@ Opening a profile does not save it. Local saves set `profileEditedLocally`; this
 takes precedence in the displayed state and source filters while preserving
 `recordSource` and `recordSourceDetail` as original import provenance. Existing
 imported rows retain their source; old unlabelled customized rows migrate as local.
-The import transport/UI itself is still not implemented.
+The import transport/UI and versioned JSON contract are described in [Synchronization.md](Synchronization.md).
 
 On personal rating save and on each new event:
 
@@ -111,15 +111,19 @@ One-shot per history entry (`personal.reputationV2`):
 - Discipline/loot tags that became events (`late`, `afk`, `rage_quit`, `ninja_looter`, …) → `events` (empty context)
 - Dropped tags (`raid_organizer`, `experienced`) removed
 
-## Future share matrix (not implemented in UI yet)
+## Explicit profile exchange
 
 | Entity | Web app | Other players |
 |--------|---------|---------------|
-| Opinion | yes | no |
+| Opinion | yes | yes |
 | Tags | yes | yes |
 | Facts | yes | yes |
 | Events | yes | yes |
 | Memo | never | never |
+
+Exchange is manual and reviewed; it does not calculate community consensus or
+automatically synchronize guild members. See [Synchronization.md](Synchronization.md)
+for field limits, local-profile protection and link import rules.
 
 Roster views show personal opinion on the card; Raid roster uses one compact line (`P:` Qiraji crystal icon + `C: 75%`) with community percent from `GetCommunityRating` (`C: —` when missing). Crystals: green = positive, yellow = neutral, red = negative. Tags and full community detail stay on hover / Character profile; facts appear in the profile header; events are listed on the Events / History tabs. Character profile opens on the **History** tab by default; opinion/tags are edited on **Edit note**.
 

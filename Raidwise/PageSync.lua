@@ -1,7 +1,7 @@
 -- Explicit profile sharing and reviewed imports; no background database merging.
 local Addon = Raidwise
 local W = Addon.Widgets
-local LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 2
 Addon.Pages = Addon.Pages or {}
 
 local function text(parent, x, y, width, value)
@@ -11,10 +11,9 @@ local function text(parent, x, y, width, value)
 end
 
 local function input(parent, x, y, width)
-	local box = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
-	box:SetPoint("TOPLEFT", x + 5, y); box:SetSize(width - 5, 24)
-	box:SetAutoFocus(false); box:SetMaxLetters(150)
-	box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+	local box, host = W.CreateTextInput(parent, width)
+	host:SetPoint("TOPLEFT", x, y)
+	box:SetMaxLetters(150)
 	return box
 end
 
@@ -115,7 +114,7 @@ local function create(parent)
 		if value then page.json:SetText(value); page.json:SetFocus(); page.json:HighlightText() else result(nil, err) end
 	end)
 	button(page, 264, -326, half - 264, "SYNC_PREVIEW", function() result(Addon:StageSyncImport(page.json:GetText(), "JSON", "website")) end)
-	local json, host = W.CreateCopyBox(page, "RaidwiseSyncJSONScrollV1", "RaidwiseSyncJSONBoxV1")
+	local json, host = W.CreateCopyBox(page, "RaidwiseSyncJSONScrollV" .. LAYOUT_VERSION, "RaidwiseSyncJSONBoxV" .. LAYOUT_VERSION)
 	host:SetPoint("TOPLEFT", 0, -358); host:SetPoint("BOTTOMRIGHT", page, "BOTTOMLEFT", half, 0)
 	json:SetMaxLetters(Addon.SYNC_MAX_BYTES + 1); page.json = json
 	label("SYNC_REVIEW", right, -304, half)
@@ -127,7 +126,7 @@ local function create(parent)
 	page.ignoreReview = button(page, right + 264, -326, half - 264, "SYNC_IGNORE", function()
 		if Addon.syncReview then Addon:SetSyncSenderIgnored(Addon.syncReview.sender, true) end
 	end)
-	local review, reviewHost = W.CreateCopyBox(page, "RaidwiseSyncReviewScrollV1", "RaidwiseSyncReviewBoxV1")
+	local review, reviewHost = W.CreateCopyBox(page, "RaidwiseSyncReviewScrollV" .. LAYOUT_VERSION, "RaidwiseSyncReviewBoxV" .. LAYOUT_VERSION)
 	reviewHost:SetPoint("TOPLEFT", right, -358); reviewHost:SetPoint("BOTTOMRIGHT", 0, 0)
 	page.review = review
 	Addon.syncPage = page

@@ -155,20 +155,8 @@ end
 
 -- Avoid InputBoxTemplate's named texture regions on anonymous sibling inputs.
 local function CreateHistoryInput(parent, width, x, y)
-	local host = CreateFrame("Frame", nil, parent)
-	host:SetSize(width, 24)
+	local input, host = W.CreateTextInput(parent, width)
 	host:SetPoint("TOPLEFT", x, y)
-	host:SetBackdrop(W.COPY_BACKDROP)
-	W.SetBackdropColor(host, UI.INPUT_BG)
-	local input = CreateFrame("EditBox", nil, host)
-	input:SetPoint("TOPLEFT", 8, -3)
-	input:SetPoint("BOTTOMRIGHT", -8, 3)
-	input:SetFontObject("GameFontHighlightSmall")
-	W.SetFontColor(input, UI.TEXT_BODY)
-	input:SetAutoFocus(false)
-	input:SetMultiLine(false)
-	input:EnableMouse(true)
-	input:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
 	return input, host
 end
 

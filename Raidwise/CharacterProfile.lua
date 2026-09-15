@@ -31,7 +31,7 @@ local UI = {
 	BORDER_W = Theme.BORDER_W,
 }
 
-local PROFILE_LAYOUT_VERSION = 34
+local PROFILE_LAYOUT_VERSION = 35
 local notesScrollSerial = 0
 local PROFILE_EVENT_ROW_ICON = 14
 

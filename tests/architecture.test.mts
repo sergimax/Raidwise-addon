@@ -385,7 +385,7 @@ test("every shipped module compiles as Lua 5.1", async () => {
 });
 
 test("Settings and character linking panels avoid circular frame anchors", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "PageSettings", "ProfileCharacters", "PageHistory"], `
+  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "SyncJSON", "SyncData", "PageSettings", "ProfileCharacters", "PageHistory", "PageSync"], `
     local serial=0
     local function depends(region,wanted,seen)
       if region==wanted then return true end
@@ -425,6 +425,8 @@ test("Settings and character linking panels avoid circular frame anchors", async
       CreateCooldownScrollBar=function(parent) return region(parent) end,
       CooldownTableTopOffset=function() return 36 end,
       CreateLineCopyBox=function(parent) local host=region(parent);return region(host),host end,
+      CreateCopyBox=function(parent) local host=region(parent);return region(host),host end,
+      CreateTextInput=function(parent) local host=region(parent);return region(host),host end,
       ContentInnerWidth=function() return 940 end,
     },{__index=function() return function() end end})
     Raidwise.GetLocaleId=function() return "enUS" end
@@ -440,6 +442,18 @@ test("Settings and character linking panels avoid circular frame anchors", async
     local database=Raidwise.Pages.Database.Create(region())
     assert(history.layoutVersion==Raidwise.Pages.History.LAYOUT_VERSION and not history.database)
     assert(database.layoutVersion==Raidwise.Pages.Database.LAYOUT_VERSION and database.addButton)
+    Raidwise.syncOffers={}
+    Raidwise.GetSyncReviewText=function() return "preview" end
+    local sync=Raidwise.Pages.Sync.Create(region())
+    Raidwise:RefreshSyncView()
+    assert(sync.layoutVersion==Raidwise.Pages.Sync.LAYOUT_VERSION and sync.search and sync.ignoreName)
+    local pasted
+    Raidwise.StageSyncImport=function(_,value) pasted=value; return {} end
+    sync.json:SetText("pasted JSON")
+    for _, control in ipairs(sync.syncButtons) do
+      if control.syncKey=="SYNC_PREVIEW" then control.scripts.OnClick() end
+    end
+    assert(pasted=="pasted JSON")
     local refreshes=0
     Raidwise.RefreshHistoryView=function() refreshes=refreshes+1 end
     database.opinionButton.scripts.OnClick()
