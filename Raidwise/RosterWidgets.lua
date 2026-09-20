@@ -378,7 +378,7 @@ function W.AppendGearCheckRaidTooltip(gearEntry)
 	end
 
 	local sections = {
-		{ key = "gems", labelKey = "GEAR_CHECK_RAID_TIP_GEMS" },
+		{ key = "gem", labelKey = "GEAR_CHECK_RAID_TIP_GEMS" },
 		{ key = "armor", labelKey = "GEAR_CHECK_RAID_TIP_ARMOR" },
 		{ key = "weapon", labelKey = "GEAR_CHECK_RAID_TIP_WEAPON" },
 		{ key = "enchant", labelKey = "GEAR_CHECK_RAID_TIP_ENCHANT_ONLY" },

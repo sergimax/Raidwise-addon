@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 34
+local LAYOUT_VERSION = 35
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -181,7 +181,7 @@ local function FillGradeCells(cell, grades)
     cell.gradesText:Hide()
     for index, category in ipairs(GRADE_CELL_CATEGORIES) do
         local gradeCell = cell.gradeCells[index]
-        gradeCell:SetText(W.IconMarkup(category.icon, RAID_LINE_H - 2) .. " " .. W.WrapGearGradation(grades[index]))
+        gradeCell:SetText(W.IconMarkup(category.icon, RAID_LINE_H) .. " " .. W.WrapGearGradation(grades[index]))
         W.SetFontColor(gradeCell, UI.TEXT_IDLE)
         gradeCell:Show()
     end

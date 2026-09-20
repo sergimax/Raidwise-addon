@@ -46,7 +46,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character | `PROFILE_LAYOUT_VERSION = 35` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 2` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 34` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 35` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 5` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -112,7 +112,7 @@ Rows come only from current lockouts; each instance is one row with all size/mod
 
 ## Raid roster
 
-Layout v34 recreates Gear buttons with `SecureActionButtonTemplate`. Their
+Layout v35 recreates Gear buttons with `SecureActionButtonTemplate`. Their
 target action selects the cell's current unit, then PostClick opens target check.
 Button dimensions are unchanged. Unit/GUID validation prevents stale cells from
 opening a different character's report.
@@ -152,7 +152,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | line 1 | Class icon + class-colored name; **flask** and **food** status icons on the right (14 px). Full color = active buff (flask, or battle + guardian elixirs); red tint = missing; dim = out of range or offline. Hover shows the buff name or status. |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
 | line 3 | Compact ratings `P:` + Qiraji crystal icon (green / yellow / red) and `K: {n%}` (or `K: —`); tags stay on hover |
-| line 4 | Four equal-width cells with gem, armor, weapon, and enchant icons followed by their color-coded grades; fail / not scanned status replaces the cells. |
+| line 4 | Four equal-width cells with 14 px gem, armor, weapon, and enchant icons followed by their color-coded grades; fail / not scanned status replaces the cells. |
 | line 5 | **Gear** + **Rescan** + sword and gem report icons; icons post this player's gear/weapon or gem/enchant findings grouped as `CODE - slot,slot; CODE - slot`, including unavailable checks, with chat previews on hover |
 | hover | Opinion + tags + Karma percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff icons and names last |
 | click | Left-click card → **Character profile**; **Gear check** / **Rescan** / report buttons do their own actions |
