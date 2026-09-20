@@ -123,7 +123,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/gems/armor/weapons/enchants), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 33`.
+Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/gems/armor/weapons/enchants), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 34`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -134,14 +134,14 @@ Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/g
 | Row 2 status | six equal cells, **8** px gaps, **20** tall | Gold name + compact counts, **16×16** Battle Shout report icon on the right |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
-| Player cell | **168 × 100** | Five rows: class+name+flask/food, role+spec+GS/iLvl, compact `P:`/`K:` ratings, compact gem+armor+weapon+enchant grades, **Gear** + **Rescan** + sword/gem report icons. Raid-buff icons moved to hover tip |
+| Player cell | **168 × 100** | Five rows: class+name+flask/food, role+spec+GS/iLvl, compact `P:`/`K:` ratings, four equal **40** px icon-and-grade cells (gem, armor, weapon, enchant), **Gear** + **Rescan** + sword/gem report icons. Raid-buff icons moved to hover tip |
 | Cell buttons | **16** tall | One row: two **61** px text buttons and two **16 x 16** report icons, **2** px gaps. Gear and reports disabled until scanned; Rescan disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
-| Cell content | **20** px class/role/spec; **14** px flask/food | Class on line 1 with flask + food status icons on the right (present = full color, missing = red tint, out of range/offline = dim); role then spec on line 2; one compact rating line (`P:` Qiraji crystal + `K: 75%`) + grades; line height **14**. Raid buffs listed on card hover |
+| Cell content | **20** px class/role/spec; **14** px flask/food | Class on line 1 with flask + food status icons on the right (present = full color, missing = red tint, out of range/offline = dim); role then spec on line 2; one compact rating line (`P:` Qiraji crystal + `K: 75%`), then four centered icon-and-grade cells; line height **14**. Raid buffs listed on card hover |
 | Cell hover tooltip | — | Opinion, tags, Karma percent/tags, **Guild: Name (Rank)**, raid buffs, gear-check grades |
 
 Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.

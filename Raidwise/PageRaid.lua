@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 33
+local LAYOUT_VERSION = 34
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -156,14 +156,35 @@ local function SummarizeGearCategory(results, field)
 	return summary
 end
 
-local function FormatCompactGradesLine(gemGrade, armorGrade, weaponGrade, enchantGrade)
-	return W.T("RAID_CELL_GRADE_GEMS", W.WrapGearGradation(gemGrade))
-		.. " "
-		.. W.T("RAID_CELL_GRADE_ARMOR", W.WrapGearGradation(armorGrade))
-		.. " "
-		.. W.T("RAID_CELL_GRADE_WEAPON", W.WrapGearGradation(weaponGrade))
-		.. " "
-		.. W.T("RAID_CELL_GRADE_ENCHANT", W.WrapGearGradation(enchantGrade))
+local GRADE_CELL_CATEGORIES = {
+    { icon = "Interface\\Icons\\INV_Misc_Gem_Diamond_01" },
+    { icon = "Interface\\Icons\\INV_Chest_Plate04" },
+    { icon = "Interface\\Icons\\INV_Sword_04" },
+    { icon = "Interface\\Icons\\INV_Enchant_EssenceMagicLarge" },
+}
+
+local function HideGradeCells(cell)
+    if not cell.gradeCells then
+        return
+    end
+
+    for _, gradeCell in ipairs(cell.gradeCells) do
+        gradeCell:Hide()
+    end
+end
+
+local function FillGradeCells(cell, grades)
+    if not cell.gradeCells then
+        return
+    end
+
+    cell.gradesText:Hide()
+    for index, category in ipairs(GRADE_CELL_CATEGORIES) do
+        local gradeCell = cell.gradeCells[index]
+        gradeCell:SetText(W.IconMarkup(category.icon, RAID_LINE_H - 2) .. " " .. W.WrapGearGradation(grades[index]))
+        W.SetFontColor(gradeCell, UI.TEXT_IDLE)
+        gradeCell:Show()
+    end
 end
 
 -- Compact rating row: personal Qiraji crystal icon + Karma percent (e.g. "P: [icon]  K: 75%").
@@ -1177,6 +1198,23 @@ local function CreateRaidPlayerCell(parent)
 	cell.gradesText:SetHeight(RAID_LINE_H)
 	cell.gradesText:SetJustifyH("LEFT")
 
+	cell.gradeCells = {}
+	local gradeCellWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2) / #GRADE_CELL_CATEGORIES)
+	for index = 1, #GRADE_CELL_CATEGORIES do
+		local gradeCell = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
+		gradeCell:SetPoint("TOPLEFT", cell.gradesText, "TOPLEFT", (index - 1) * gradeCellWidth, 0)
+		if index == #GRADE_CELL_CATEGORIES then
+			gradeCell:SetWidth(RAID_CELL_W - RAID_CELL_PAD * 2 - (index - 1) * gradeCellWidth)
+		else
+			gradeCell:SetWidth(gradeCellWidth)
+		end
+		gradeCell:SetHeight(RAID_LINE_H)
+		gradeCell:SetJustifyH("CENTER")
+		gradeCell:SetJustifyV("MIDDLE")
+		gradeCell:Hide()
+		cell.gradeCells[index] = gradeCell
+	end
+
 	local reportSize = RAID_BTN_H
 	local btnWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2 - RAID_BTN_GAP * 3 - reportSize * 2) / 2)
 	local gearBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_GEAR"), "SecureActionButtonTemplate")
@@ -1344,6 +1382,8 @@ end
 local function FillGearReportRows(cell, member, entry)
 	if not member then
 		cell.gearEntry = nil
+		HideGradeCells(cell)
+		cell.gradesText:Show()
 		cell.gradesText:SetText("")
 		if cell.gearBtn then
 			cell.gearBtn:Disable()
@@ -1357,6 +1397,8 @@ local function FillGearReportRows(cell, member, entry)
 
 	if not report then
 		local statusLabel = GearStatusLabelForEntry(entry)
+		HideGradeCells(cell)
+		cell.gradesText:Show()
 		cell.gradesText:SetText(statusLabel)
 		if IsGearVerdictLabel(statusLabel) then
 			cell.gradesText:SetText(W.WrapGearGradation(statusLabel))
@@ -1375,8 +1417,15 @@ local function FillGearReportRows(cell, member, entry)
 	local armorGrade = overall.armorGrade or overall.gearGrade or overall.status or "B"
 	local weaponGrade = overall.weaponGrade or overall.gearGrade or overall.status or "B"
 	local enchantGrade = overall.enchantGrade or overall.enchantSocketGrade or "B"
-	cell.gradesText:SetText(Addon:GetGearCheckScanLabel(report) or FormatCompactGradesLine(gemGrade, armorGrade, weaponGrade, enchantGrade))
-	W.SetFontColor(cell.gradesText, UI.TEXT_IDLE)
+	local scanLabel = Addon:GetGearCheckScanLabel(report)
+	if scanLabel then
+		HideGradeCells(cell)
+		cell.gradesText:Show()
+		cell.gradesText:SetText(scanLabel)
+		W.SetFontColor(cell.gradesText, UI.TEXT_IDLE)
+	else
+		FillGradeCells(cell, { gemGrade, armorGrade, weaponGrade, enchantGrade })
+	end
 
 	if cell.gearBtn then
 		cell.gearBtn:Enable()
