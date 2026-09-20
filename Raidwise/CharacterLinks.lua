@@ -196,7 +196,7 @@ function Addon:SyncLinkedPlayerOpinion(guid, opinion)
 	opinion = self:NormalizePersonalOpinion(opinion)
 	for _, member in ipairs(self:GetLinkedCharacters(guid)) do
 		local personal = self:EnsurePersonalRating(member.entry)
-		if personal.opinion ~= opinion then
+		if self:CanEditCharacterProfile(member.entry) and personal.opinion ~= opinion then
 			personal.opinion = opinion
 			personal.updatedAt = now
 			if personal.createdAt <= 0 then personal.createdAt = now end

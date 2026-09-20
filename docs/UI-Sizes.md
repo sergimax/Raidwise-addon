@@ -44,6 +44,23 @@ Groups (top to bottom): **Personal** — Character cooldowns (watch), Export gea
 
 ## Content padding
 
+Synchronization uses two equal columns separated by 24 px. Search and sender
+inputs are 24 px tall, with 8 px horizontal / 3 px vertical text insets. The
+shared `Widgets.CreateTextInput` supplies anonymous frames with explicit fonts
+and theme-bound backgrounds, also used by History filters and Character linking.
+It avoids the broken anonymous `InputBoxTemplate` texture regions on 3.3.5.
+
+Sync action rows are 24 px tall; the JSON and incoming-review copy areas begin
+408 px below the content top and fill the remaining height. The ignore section
+shows two 25 px rows with per-character Unignore buttons and Previous/Next paging.
+Its name input also filters that list. Transfer controls occupy the left column
+above the status line. The Character title
+bar has a 90 x 18 px Share button, 6 px left of its layout badge. The database
+toolbar Share database button is 150 px wide, 8 px left of Refresh. Both open a
+170 x 122 px menu with target/guild/raid actions, a Synchronization shortcut,
+and an X close button. Selecting the Share button again or changing views also
+closes the menu.
+
 | Element | Size | Notes |
 |---------|------|-------|
 | Page padding | 10 px | Inside content, below title bar |
@@ -124,8 +141,8 @@ Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/a
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
-| Cell content | **20** px class/role/spec; **14** px flask/food | Class on line 1 with flask + food status icons on the right (present = full color, missing = red tint, out of range/offline = dim); role then spec on line 2; one compact rating line (`P:` Qiraji crystal + `C: 75%`) + grades; line height **14**. Raid buffs listed on card hover |
-| Cell hover tooltip | — | Opinion, tags, community percent/tags, **Guild: Name (Rank)**, raid buffs, gear-check grades |
+| Cell content | **20** px class/role/spec; **14** px flask/food | Class on line 1 with flask + food status icons on the right (present = full color, missing = red tint, out of range/offline = dim); role then spec on line 2; one compact rating line (`P:` Qiraji crystal + `K: 75%`) + grades; line height **14**. Raid buffs listed on card hover |
+| Cell hover tooltip | — | Opinion, tags, Karma percent/tags, **Guild: Name (Rank)**, raid buffs, gear-check grades |
 
 Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
 
@@ -183,7 +200,7 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Ra
 | Body padding | **10** | Same as main shell `PAD` |
 | Content width | **440** | `460 - 10×2` |
 | Header icons | **24** | Race + class in left cell; spec in right cell (`PROFILE_ICON`); column gap **12** |
-| Summary | height **122** | Opinion, tags, facts, guild, GUID, realm (+ community column) |
+| Summary | height **122** | Opinion, tags, facts, guild, GUID, realm (+ Karma column) |
 | Profile tabs | height **26** | **History**, **Edit note**, **Facts**, **Events**, **Memo**; gap **4**; **History** opens by default |
 | Tab host | fills body below tabs | Panels swap in place |
 | Opinion radios | **3** equal columns × **22** | Exclusive Positive / Neutral / Negative |
@@ -197,7 +214,7 @@ Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Ra
 | History Met / party count | first row of History tab | **Met** left-aligned; **Was in the same party** right-aligned (`meetCount`) |
 | History When | below Met | First-meeting timestamp |
 | History change log | fills remaining History tab | Scroll; **20** px rows with **14** px icon (event category, or note/tag/facts/memo kind) |
-| Community mock block | right summary column | Gold heading + wrapped body text |
+| Karma mock block | right summary column | Gold heading + wrapped body text |
 
 Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** appears on **Edit note** / **Facts** / **Events** and commits those drafts (not memo). Hidden on **History** and **Memo**. Header personal note/tags/facts stay on saved values until that commit. Closing without Save discards drafts.
 

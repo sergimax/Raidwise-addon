@@ -34,11 +34,34 @@ test("negative personal opinions color the whole chat body red and preserve chat
         filter(nil,event,text,"Sender","Common",nil,nil,nil,nil,nil,nil,nil,123,"A","tail")
       assert(hidden==false and sender=="Sender" and language=="Common")
       assert(lineId==123 and guid=="A" and tail=="tail")
-      assert(message=="|cffff0000<Rw> Hello green |r"..item.."|cffff0000|r"..achievement.."|cffff0000 end ||cffffffff literal ||r|r")
+      assert(message=="|cffffffff<|cffff0000Rw|cffffffff51>|r |cffff0000Hello green |r"..item.."|cffff0000|r"..achievement.."|cffff0000 end ||cffffffff literal ||r|r")
     end
     local filter=filters.CHAT_MSG_SAY
-    assert(filter(nil,"CHAT_MSG_SAY","hello","Sender-OtherRealm")==nil)
-    assert(filter(nil,"CHAT_MSG_SAY","hello","Unknown")==nil)
+    for _, sender in ipairs({"Sender-OtherRealm", "Unknown"}) do
+      assert(filter(nil,"CHAT_MSG_SAY","hello",sender)==nil)
+    end
+    local entry=Raidwise:GetHistoryEntry("A")
+    for _, percent in ipairs({0, 73}) do
+      entry.rating.community={positivePercent=percent}
+      local _, message=filter(nil,"CHAT_MSG_SAY","hello","Sender")
+      assert(message:find("Rw|cffffffff"..percent..">",1,true))
+    end
+    entry.rating.community=nil
+    Raidwise:EnsureHistoryEntryForGuid("C",{name="Unrated",realm="Realm"})
+    assert(filter(nil,"CHAT_MSG_SAY","hello","Unrated")==nil)
+    Raidwise:RecordTargetScanHistory({character={guid="C",name="Unrated",realm="Realm"}})
+    local _, unrated=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
+    assert(unrated=="|cffffffff<|cffffffffRw|cffffffff51>|r hello")
+    local getCommunity=Raidwise.GetCommunityRating
+    Raidwise.GetCommunityRating=function() return nil end
+    local _, missing=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
+    assert(missing=="|cffffffff<|cffffffffRw|cffffffff>|r hello")
+    Raidwise.GetCommunityRating=getCommunity
+    for _, source in ipairs({"user", "website"}) do
+      Raidwise:MarkCharacterRecord(Raidwise:GetHistoryEntry("C"),source)
+      local _, imported=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
+      assert(imported==unrated)
+    end
     for _, opinion in ipairs({"positive","neutral"}) do
       Raidwise:SavePersonalRatingForGuid("A",nil,opinion,{},{})
       local _, message=filter(nil,"CHAT_MSG_SAY",text,"Sender-Realm")
@@ -49,7 +72,45 @@ test("negative personal opinions color the whole chat body red and preserve chat
     assert(Raidwise:LinkPlayerCharacters("A","B"))
     Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{})
     local _, message=filter(nil,"CHAT_MSG_SAY","alt message","Alt")
-    assert(message=="|cffff0000<Rw> alt message|r")
+    assert(message=="|cffffffff<|cffff0000Rw|cffffffff51>|r |cffff0000alt message|r")
+  `);
+});
+
+test("own profiles reject local edits and indirect linked opinion changes", async () => {
+  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks"], `
+    Raidwise.db={}
+    function time() return 1000 end
+    function UnitGUID() return "SELF" end
+    function UnitName() return "Me" end
+    function GetRealmName() return "Realm" end
+  `, `
+    assert(not Raidwise:CanEditCharacterProfile({guid="SELF"}))
+    assert(not Raidwise:AddCharacterRecord("me-Realm"))
+    local own=Raidwise:EnsureHistoryEntryForGuid("SELF",{name="Me",realm="Realm"})
+    local alias=Raidwise:EnsureHistoryEntryForGuid("name:realm:me",{name="Me",realm="Realm"})
+    for _, entry in ipairs({own,alias}) do
+      assert(not Raidwise:SavePersonalRatingForGuid(entry.guid,nil,"positive",{},{}))
+      assert(not Raidwise:SaveHistoryEventsForGuid(entry.guid,nil,{}))
+      assert(not Raidwise:AddHistoryEventForGuid(entry.guid,nil,"same_party"))
+      assert(not Raidwise:RemoveHistoryEventForGuid(entry.guid,"1"))
+      assert(entry.notes=="" and #entry.events==0 and not entry.recordSource)
+      assert(Raidwise:SaveProfileNotesForGuid(entry.guid,nil,"test"))
+      assert(entry.notes=="test")
+      assert(Raidwise:SaveProfileNotesForGuid(entry.guid,nil,""))
+      assert(entry.notes=="")
+    end
+    local other=Raidwise:EnsureHistoryEntryForGuid("OTHER",{name="Other",realm="Realm"})
+    assert(Raidwise:CanEditCharacterProfile(other))
+    assert(Raidwise:SaveProfileNotesForGuid("OTHER",nil,"allowed"))
+    assert(Raidwise:LinkPlayerCharacters("OTHER","SELF"))
+    assert(Raidwise:SetLinkedCharacterRole("SELF","SELF","main"))
+    Raidwise:SyncLinkedPlayerOpinion("OTHER","negative")
+    assert(Raidwise:GetPersonalRating(own).opinion=="neutral")
+    assert(Raidwise:GetPersonalRating(other).opinion=="negative")
+    assert(Raidwise:UnlinkPlayerCharacter("SELF","OTHER"))
+    assert(Raidwise:LinkPlayerCharacters("SELF","OTHER",nil,"positive"))
+    assert(Raidwise:GetPersonalRating(own).opinion=="neutral")
+    assert(Raidwise:GetPersonalRating(other).opinion=="positive")
   `);
 });
 
@@ -324,7 +385,7 @@ test("every shipped module compiles as Lua 5.1", async () => {
 });
 
 test("Settings and character linking panels avoid circular frame anchors", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "PageSettings", "ProfileCharacters", "PageHistory"], `
+  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "SyncJSON", "SyncData", "SyncTransport", "PageSettings", "ProfileCharacters", "PageHistory", "PageSync"], `
     local serial=0
     local function depends(region,wanted,seen)
       if region==wanted then return true end
@@ -349,11 +410,12 @@ test("Settings and character linking panels avoid circular frame anchors", async
       function result:GetText() return self.text or "" end
       function result:Show() self.shown=true end
       function result:Hide() self.shown=false end
+      function result:IsShown() return self.shown end
       function result:GetName() return self.name end
       function result:GetStringHeight() return 14 end
       function result:CreateTexture() return region(self) end
       return setmetatable(result,{__index=function(_,key)
-        if key:match("^Set") or key=="Enable" or key=="Disable" or key=="EnableMouse" or key=="EnableMouseWheel" then return function() end end
+        if key:match("^Set") or key=="RegisterEvent" or key=="Enable" or key=="Disable" or key=="EnableMouse" or key=="EnableMouseWheel" then return function() end end
       end})
     end
     CreateFrame=function(_,name,parent) return region(parent,name) end
@@ -364,6 +426,8 @@ test("Settings and character linking panels avoid circular frame anchors", async
       CreateCooldownScrollBar=function(parent) return region(parent) end,
       CooldownTableTopOffset=function() return 36 end,
       CreateLineCopyBox=function(parent) local host=region(parent);return region(host),host end,
+      CreateCopyBox=function(parent) local host=region(parent);return region(host),host end,
+      CreateTextInput=function(parent) local host=region(parent);return region(host),host end,
       ContentInnerWidth=function() return 940 end,
     },{__index=function() return function() end end})
     Raidwise.GetLocaleId=function() return "enUS" end
@@ -374,11 +438,47 @@ test("Settings and character linking panels avoid circular frame anchors", async
     function time() return 100 end
     function GetRealmName() return "Realm" end
     function UnitGUID() return "SELF" end
+    UIParent=region()
   `, `
     local history=Raidwise.Pages.History.Create(region())
     local database=Raidwise.Pages.Database.Create(region())
     assert(history.layoutVersion==Raidwise.Pages.History.LAYOUT_VERSION and not history.database)
     assert(database.layoutVersion==Raidwise.Pages.Database.LAYOUT_VERSION and database.addButton)
+    Raidwise.syncOffers={}
+    Raidwise.GetSyncReviewText=function() return "preview" end
+    local sync=Raidwise.Pages.Sync.Create(region())
+    local shareAnchor=region(); shareAnchor:Show()
+    Raidwise:ShowSyncShareMenu(shareAnchor)
+    assert(Raidwise.syncShareMenu:IsShown())
+    Raidwise:ShowSyncShareMenu(shareAnchor)
+    assert(not Raidwise.syncShareMenu:IsShown())
+    Raidwise:ShowSyncShareMenu(shareAnchor)
+    Raidwise.syncShareMenu.closeButton.scripts.OnClick()
+    assert(not Raidwise.syncShareMenu:IsShown())
+    Raidwise:ShowSyncShareMenu(shareAnchor)
+    Raidwise:HideSyncShareMenu()
+    assert(not Raidwise.syncShareMenu:IsShown())
+    Raidwise:RefreshSyncView()
+    assert(sync.layoutVersion==Raidwise.Pages.Sync.LAYOUT_VERSION and sync.search and sync.ignoreName)
+    Raidwise:SetSyncSenderIgnored("Zulu",true)
+    Raidwise:SetSyncSenderIgnored("Alpha-Realm",true)
+    Raidwise:SetSyncSenderIgnored("Bravo",true)
+    assert(sync.ignoredRows[1].name=="alpha" and sync.ignoredRows[2].name=="bravo")
+    sync.ignoredNext.scripts.OnClick()
+    assert(sync.ignoredRows[1].name=="zulu" and not sync.ignoredRows[2].name)
+    sync.ignoreName:SetText("ALP"); sync.ignoreName.scripts.OnTextChanged()
+    assert(sync.ignoredRows[1].name=="alpha" and sync.ignoredOffset==0)
+    sync.ignoredRows[1].remove.scripts.OnClick()
+    assert(not Raidwise:IsSyncSenderIgnored("Alpha-OtherRealm") and not sync.ignoredRows[1].name)
+    sync.ignoreName:SetText(""); sync.ignoreName.scripts.OnTextChanged()
+    assert(sync.ignoredRows[1].name=="bravo" and sync.ignoredRows[2].name=="zulu")
+    local pasted
+    Raidwise.StageSyncImport=function(_,value) pasted=value; return {} end
+    sync.json:SetText("pasted JSON")
+    for _, control in ipairs(sync.syncButtons) do
+      if control.syncKey=="SYNC_PREVIEW" then control.scripts.OnClick() end
+    end
+    assert(pasted=="pasted JSON")
     local refreshes=0
     Raidwise.RefreshHistoryView=function() refreshes=refreshes+1 end
     database.opinionButton.scripts.OnClick()

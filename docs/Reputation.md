@@ -11,9 +11,9 @@ one player. Choose a known character from History (search by name/realm), or use
 Each group has exactly one **local Main** and any number of Alts. Main is a
 personal display preference: other players may choose a different Main without
 conflict. Shared Alt links mean only that characters belong to the same person;
-they carry no Main designation. Character exchange transport is not implemented
-yet. `GetSharedCharacterLinks` provides membership data for that future exchange,
-excluding local roles, opinions, and history.
+they carry no Main designation. `GetSharedCharacterLinks` provides membership
+data without local roles, opinions, or history. The [Synchronization view](Synchronization.md)
+exchanges selected profiles or the saved database with explicit review and consent.
 
 The first character is
 the initial Main; selecting another member's Main button changes it. Choose a
@@ -41,13 +41,18 @@ updates existing personal opinion fields; no facts/events/notes are merged.
 
 ## Chat highlighting
 
-Chat markers use green for positive, white for neutral,
-and red for negative. Negative opinions also color the message body red.
+Chat markers show `<Rw51>` with the current Karma percentage (without `%`).
+Marks appear only for saved profiles or players scanned through target/raid Gear
+Check within the last 14 days. Ordinary party encounters and unknown senders have
+no mark. Eligible players use the mock fallback of 51%; if the Karma getter
+has no rating, their mark is `<Rw>`.
+The `Rw` text uses green for positive personal opinions, white for neutral or
+missing opinions, and red for negative. Brackets and the number are white.
+Negative opinions also color the message body red.
 Item and achievement links retain their original colors and remain clickable;
 text after them resumes red. This applies to the registered player chat channels
 (including whispers, party, raid, guild and emotes); channel headers and sender
-formatting remain controlled by WoW. Positive/neutral markers retain their existing
-appearance. Linked characters inherit this behavior through their shared personal
+formatting remain controlled by WoW. Linked characters inherit this behavior through their shared personal
 opinion. Display changes are local and do not alter outgoing message content.
 
 ## Entity reference
@@ -66,6 +71,32 @@ Caps: max **3** tags per category; max **4** facts. Events are an unbounded list
 
 ## Record metadata
 
+The currently logged-in character's own opinion, tags, facts, and events cannot
+be edited, to prevent self-rating. The disabled save control explains this on
+the Edit note, Facts, and Events tabs. Private memo edits and character linking,
+unlinking, and local Main selection are allowed for the current character.
+The store enforces the same rule by GUID and matching local name/realm, including
+name-only cards. Linked opinion synchronization skips the current character's
+opinion while updating other linked characters. Other characters remain editable.
+
+Profiles have three states, exposed by `GetCharacterProfileState` and shown in
+the existing History/Character database source column:
+
+| State | Meaning | Retention |
+|-------|---------|-----------|
+| `local` | Profile saved or customized locally, including notes and character links | Kept in Character database |
+| `imported` | Profile supplied by another user or website (`recordSource=user/website`) | Kept in Character database |
+| `unset` | No saved profile; may have encounter or scan history | Removed from History after 14 days without an encounter/scan |
+
+Scanning does not create a saved profile. `lastScannedAt` records explicit target
+and raid Gear Check scans separately from ordinary encounters. Old scan-only
+records without this field need a new scan to qualify for chat marking.
+Opening a profile does not save it. Local saves set `profileEditedLocally`; this
+takes precedence in the displayed state and source filters while preserving
+`recordSource` and `recordSourceDetail` as original import provenance. Existing
+imported rows retain their source; old unlabelled customized rows migrate as local.
+The import transport/UI and versioned JSON contract are described in [Synchronization.md](Synchronization.md).
+
 On personal rating save and on each new event:
 
 - `creatorId` — local `UnitGUID("player")`
@@ -80,17 +111,21 @@ One-shot per history entry (`personal.reputationV2`):
 - Discipline/loot tags that became events (`late`, `afk`, `rage_quit`, `ninja_looter`, …) → `events` (empty context)
 - Dropped tags (`raid_organizer`, `experienced`) removed
 
-## Future share matrix (not implemented in UI yet)
+## Explicit profile exchange
 
 | Entity | Web app | Other players |
 |--------|---------|---------------|
-| Opinion | yes | no |
+| Opinion | yes | yes |
 | Tags | yes | yes |
 | Facts | yes | yes |
 | Events | yes | yes |
 | Memo | never | never |
 
-Roster views show personal opinion on the card; Raid roster uses one compact line (`P:` Qiraji crystal icon + `C: 75%`) with community percent from `GetCommunityRating` (`C: —` when missing). Crystals: green = positive, yellow = neutral, red = negative. Tags and full community detail stay on hover / Character profile; facts appear in the profile header; events are listed on the Events / History tabs. Character profile opens on the **History** tab by default; opinion/tags are edited on **Edit note**.
+Exchange is manual and reviewed; it does not calculate Karma consensus or
+automatically synchronize guild members. See [Synchronization.md](Synchronization.md)
+for field limits, local-profile protection and link import rules.
+
+Roster views show personal opinion on the card; Raid roster uses one compact line (`P:` Qiraji crystal icon + `K: 75%`) with Karma percent from `GetCommunityRating` (`K: —` when missing). Crystals: green = positive, yellow = neutral, red = negative. Tags and full Karma detail stay on hover / Character profile; facts appear in the profile header; events are listed on the Events / History tabs. Character profile opens on the **History** tab by default; opinion/tags are edited on **Edit note**.
 
 ## Display helpers (`PlayerHistory.lua`)
 
@@ -112,7 +147,7 @@ Used by roster pages, Character profile, and unit tooltips:
 `UnitTooltips.lua` hooks `GameTooltip` `OnTooltipSetUnit` (same pattern as GearScore). For player units:
 
 1. **Personal** — if a saved personal note exists: opinion label (colored) and up to 3 tags (`Positive: Fair Loot, …`)
-2. **Community** — if the GUID is in History: mock percent + up to 3 tags until real exchange data lands (`0 % positive:` then tag line)
+2. **Karma** — if the GUID is in History: mock percent + up to 3 tags until real exchange data lands (`51 % positive:` then tag line)
 
 Visibility is controlled by `RaidwiseDB.tooltip` hide flags (Settings).
 

@@ -42,7 +42,7 @@ creation. Keep internal state local or on the single `Raidwise` namespace.
 
 | Revision | Current baseline / source | Change when |
 |----------|---------------------------|-------------|
-| Addon semver | `1.22.0`; TOC and `Addon.version` | A release is explicitly requested |
+| Addon semver | `1.25.0`; TOC and `Addon.version` | A release is explicitly requested |
 | Report schema | `3`; `GEAR_CHECK_SCHEMA_VERSION` in collector | The normalized report contract changes; update `types/GearCheck.ts` and compatibility handling |
 | Evaluation rules | `GEAR_CHECK_RULESET_VERSION` in rules | Finding, eligibility, aggregation, or unknown/incomplete-data policy changes; increment `rN` |
 | Catalog data | `catalog-2026-09-14-gear1`; `GEAR_CHECK_DATA_VERSION` | Gem/enchant data, profiles, BiS/trinket pools, or set data change; assign a new catalog revision |

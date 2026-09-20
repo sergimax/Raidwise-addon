@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 17
+local SHELL_LAYOUT_VERSION = 18
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -15,6 +15,7 @@ local MENU_GROUPS = {
 
 -- WotLK Interface\Icons paths (one per left-menu category).
 local PAGES = {
+	{ id = "sync", key = "Sync", labelKey = "TAB_SYNC", icon = "Interface\\Icons\\Spell_Arcane_PortalIronForge", group = "personal" },
 	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", group = "personal" },
 	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "personal" },
 	{ id = "database", key = "Database", labelKey = "TAB_DATABASE", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "personal" },
@@ -305,6 +306,7 @@ function Addon:SelectTab(tabId)
 	if not frame then
 		return
 	end
+	if self.HideSyncShareMenu then self:HideSyncShareMenu() end
 
 	frame.selectedTab = tabId
 	for id, page in pairs(frame.pages) do
@@ -487,6 +489,9 @@ function Addon:CreateMainFrame()
 	frame:Hide()
 	W.ApplyPlainPanel(frame)
 	frame.layoutVersion = SHELL_LAYOUT_VERSION
+	frame:SetScript("OnHide", function()
+		if Addon.HideSyncShareMenu then Addon:HideSyncShareMenu() end
+	end)
 	EnsureSpecialFrame("RaidwiseFrame", frame)
 
 	CreateTitleBar(frame)
@@ -621,6 +626,7 @@ function Addon:ShowMainFrame()
 end
 
 function Addon:HideMainFrame()
+	if self.HideSyncShareMenu then self:HideSyncShareMenu() end
 	if self.mainFrame then
 		self.mainFrame:Hide()
 	end

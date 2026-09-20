@@ -291,7 +291,29 @@ end
 function Addon:MarkCharacterRecord(entry, source, sourceDetail)
 	entry.recordSource = entry.recordSource or source or "manual"
 	entry.recordSourceDetail = entry.recordSourceDetail or sourceDetail
+	if not source or source == "manual" then entry.profileEditedLocally = true end
 	entry.recordUpdatedAt = time()
+end
+
+-- Profile ownership is separate from encounter/scan history and import provenance.
+function Addon:GetCharacterProfileState(entry)
+	if not self:IsCharacterDatabaseEntry(entry) then return "unset" end
+	if entry.profileEditedLocally or entry.recordSource == "manual" then return "local" end
+	if entry.recordSource == "user" or entry.recordSource == "website" then return "imported" end
+	return "local"
+end
+
+function Addon:GetCharacterRecordSource(entry)
+	local state = self:GetCharacterProfileState(entry)
+	if state == "local" then return "manual" end
+	if state == "imported" then return entry.recordSource end
+	return "encounter"
+end
+
+function Addon:ShouldMarkCharacterInChat(entry)
+	if self:GetCharacterProfileState(entry) ~= "unset" then return true end
+	local scannedAt = type(entry) == "table" and tonumber(entry.lastScannedAt) or 0
+	return scannedAt and scannedAt > 0 and scannedAt > time() - HISTORY_RETENTION_SEC or false
 end
 
 function Addon:PruneHistory()
@@ -302,6 +324,53 @@ function Addon:PruneHistory()
 			self.db.history[guid] = nil
 		end
 	end
+end
+
+-- Delete saved profiles only. A supplied list is the snapshot confirmed by the UI.
+function Addon:DeleteCharacterDatabaseRecords(guids)
+	local store = self.db and self.db.history
+	if type(store) ~= "table" then return 0 end
+	if not guids then
+		guids = {}
+		for guid, entry in pairs(store) do
+			if self:IsCharacterDatabaseEntry(entry) then guids[#guids + 1] = guid end
+		end
+	end
+	local removed, count = {}, 0
+	for _, guid in ipairs(guids) do
+		if not removed[guid] and self:IsCharacterDatabaseEntry(store[guid]) then
+			removed[guid] = true; count = count + 1; store[guid] = nil
+		end
+	end
+	if count == 0 then return 0 end
+	for id, group in pairs(self.db.characterGroups or {}) do
+		local remaining, first = 0, nil
+		for guid in pairs(group.members or {}) do
+			if removed[guid] then group.members[guid] = nil
+			else remaining = remaining + 1; if not first or guid < first then first = guid end end
+		end
+		if remaining < 2 then
+			if first and store[first] then store[first].playerGroupId = nil end
+			self.db.characterGroups[id] = nil
+			if self.db.localCharacterMains then self.db.localCharacterMains[id] = nil end
+		elseif self.db.localCharacterMains and removed[self.db.localCharacterMains[id]] then
+			self.db.localCharacterMains[id] = first
+		end
+	end
+	local frame = self.raidDetailFrame
+	if frame and frame.profileMember and removed[frame.profileMember.guid] then
+		frame.profileDraft, frame.profileMember = nil, nil
+		frame:Hide()
+	end
+	if removed[self.syncSelectedGuid] then self.syncSelectedGuid = nil end
+	if self.syncShareMenu then self.syncShareMenu:Hide() end
+	-- Discard already-copied outgoing data and stale import previews.
+	if self.CancelSyncSending then self:CancelSyncSending() end
+	if self.CancelSyncImport then self:CancelSyncImport() end
+	if self.RefreshRatingViews then self:RefreshRatingViews() end
+	if self.RefreshHistoryView then self:RefreshHistoryView() end
+	if self.RefreshSyncView then self:RefreshSyncView() end
+	return count
 end
 
 local function Fold(value)
@@ -317,6 +386,7 @@ function Addon:AddCharacterRecord(name)
 	if name == "" or name:find("[%s|:%c]") then return nil end
 	local characterName, realm = name:match("^([^%-]+)%-(.+)$")
 	characterName, realm = characterName or name, realm or MeetingRealm()
+	if not self:CanEditCharacterProfile({guid=NamedRecordKey(characterName, realm), name=characterName, realm=realm}) then return nil end
 	for _, entry in pairs(self:HistoryStore()) do
 		if Fold(entry.name) == Fold(characterName) and Fold(CharacterRealm(entry)) == Fold(realm) then
 			self:MarkCharacterRecord(entry)
@@ -326,6 +396,21 @@ function Addon:AddCharacterRecord(name)
 	local entry = self:EnsureHistoryEntryForGuid(NamedRecordKey(characterName, realm), {name=characterName, realm=realm})
 	self:MarkCharacterRecord(entry)
 	return entry
+end
+
+function Addon:CanEditCharacterProfile(entryOrGuid, seed)
+	local entry = type(entryOrGuid) == "table" and entryOrGuid or seed or self:GetHistoryEntry(entryOrGuid)
+	local guid = type(entryOrGuid) == "string" and entryOrGuid or entry and entry.guid
+	if not guid or guid == "" then return false end
+	local playerGuid = type(UnitGUID) == "function" and UnitGUID("player")
+	if playerGuid and guid == playerGuid then return false end
+	if entry and entry.isSelf then return false end
+	local playerName = type(UnitName) == "function" and UnitName("player")
+	if entry and playerName and Fold(entry.name) == Fold(playerName) then
+		local realm = Fold(CharacterRealm(entry)):gsub("%s+", "")
+		if realm == "" or realm == Fold(MeetingRealm()):gsub("%s+", "") then return false end
+	end
+	return true
 end
 
 -- Explicit load boundary; getters never migrate persisted entries.
@@ -347,6 +432,9 @@ function Addon:AppendProfileHistoryChange(entry, kind, detail)
 		return
 	end
 	EnsureHistoryFields(entry)
+	if kind == "character_link" or kind == "character_unlink" or kind == "character_role" then
+		self:MarkCharacterRecord(entry)
+	end
 	entry.changes[#entry.changes + 1] = {
 		at = time(),
 		kind = kind,
@@ -437,6 +525,7 @@ function Addon:RecordTargetScanHistory(report)
 		guildName = character.guildName,
 	})
 	local scannedAt = tonumber(report.collection and report.collection.collectedAt) or time()
+	entry.lastScannedAt = scannedAt
 	if (tonumber(entry.metAt) or 0) <= 0 then
 		entry.metZone = self:T("HISTORY_TARGET_SCAN")
 		entry.metAt = scannedAt
@@ -582,7 +671,7 @@ function Addon:BuildHistoryRoster(database, filters)
 				if query ~= "" and not value:find(query, 1, true) then include = false end
 			end
 			if database and filters.recordSource and filters.recordSource ~= ""
-				and (entry.recordSource or "manual") ~= filters.recordSource then include = false end
+				and self:GetCharacterRecordSource(entry) ~= filters.recordSource then include = false end
 			if database and filters.opinion and filters.opinion ~= ""
 				and self:GetPersonalRating(entry).opinion ~= filters.opinion then include = false end
 		end
@@ -686,6 +775,7 @@ end
 
 -- REFACTOR candidate: normalize + diff logging for opinion/tags/facts in one function.
 function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
+	if not self:CanEditCharacterProfile(guid, seed) then return nil end
 	if not guid or guid == "" then
 		return nil
 	end
@@ -754,6 +844,7 @@ end
 
 -- REFACTOR candidate: diff draft vs stored events, assign IDs, append change log.
 function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
+	if not self:CanEditCharacterProfile(guid, seed) then return nil end
 	if not guid or guid == "" then
 		return nil
 	end
@@ -819,6 +910,7 @@ function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 end
 
 function Addon:AddHistoryEventForGuid(guid, seed, eventTypeId)
+	if not self:CanEditCharacterProfile(guid, seed) then return nil end
 	if not guid or guid == "" or not self:IsValidEventType(eventTypeId) then
 		return nil
 	end
@@ -844,6 +936,7 @@ end
 
 -- DELETE candidate: no callers; removal is draft-only via RemoveProfileEvent.
 function Addon:RemoveHistoryEventForGuid(guid, eventId)
+	if not self:CanEditCharacterProfile(guid, nil) then return nil end
 	if not guid or guid == "" or not eventId or eventId == "" then
 		return nil
 	end

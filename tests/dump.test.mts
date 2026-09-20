@@ -3,6 +3,32 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { Lua } from "wasmoon-lua5.1";
 
+test("character and cooldown JSON exports carry independent report versions", async () => {
+  const lua = await Lua.create();
+  try {
+    lua.doStringSync('Raidwise={db={},version="test-addon"}; function time() return 1000 end');
+    for (const module of ["CharacterExport", "CharacterLockouts"]) {
+      lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
+    }
+    lua.doStringSync(`
+      function Raidwise:CollectCharacterInfo() return {name="Tester",class="MAGE",spec="Arcane"} end
+      function Raidwise:CollectCurrentGearScore() return nil end
+      function Raidwise:CollectEquippedGear() return {ids={},names={}} end
+      function Raidwise:CollectBagItems() return {ids={},names={}} end
+      function Raidwise:CollectInstanceLockouts() return {} end
+      function Raidwise:SaveCurrentCharacterLockouts() end
+      function Raidwise:PruneExpiredCharacterLockouts() end
+    `);
+    for (const method of ["FormatEquippedGearExport", "FormatCooldownsExport"]) {
+      for (const includeNames of [true, false]) {
+        lua.doStringSync(`Raidwise.db.includeGearNames=${includeNames}`);
+        const report = JSON.parse(lua.doStringSync(`return Raidwise:${method}()`) as string);
+        assert.equal(report.reportVersion, 1);
+      }
+    }
+  } finally { lua.global.close(); }
+});
+
 test("dump output, frame progress, cancellation, restart, and export routing", async () => {
   const lua = await Lua.create();
   try {
@@ -21,6 +47,8 @@ test("dump output, frame progress, cancellation, restart, and export routing", a
         }}}, findings={{code="TEST",severity="info",category="item",slot="head",message="Test finding"}}
       }
       local target = Raidwise:FormatGearCheckDump(report)
+      assert(target:find("reportVersion=1",1,true))
+      assert(target:find("schemaVersion=3",1,true))
       assert(target:find("stats: agility=5, strength=10",1,true))
       assert(target:find("name=Test enchant",1,true) and target:find("name=Test gem",1,true))
       assert(target:find("ITEM_GAP(test)",1,true) and target:find("TEST @head",1,true))
@@ -28,6 +56,9 @@ test("dump output, frame progress, cancellation, restart, and export routing", a
       assert(Raidwise:FormatGearCheckDump(nil) == "No Gear Check data.")
       local results = {{report=report,member={name="Tester"}}, {member={name="Offline"},status="skipped"}}
       local expected = Raidwise:FormatGearCheckRaidDump(results)
+      assert(expected:match("^[^\\n]+\\nreportVersion=1\\n"))
+      local failedOnly=Raidwise:FormatGearCheckRaidDump({{member={name="Offline"},status="skipped"}})
+      assert(failedOnly:find("reportVersion=1",1,true))
       assert(expected:find("2 players, 1 reports, 1 failed/skipped",1,true))
       assert(expected:find(target,1,true) and expected:find("Player: Offline",1,true))
       local progress, callbacks, output = 0, 0, nil

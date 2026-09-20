@@ -30,6 +30,10 @@ test("encounters expire independently of saved cards, filters and name-only iden
       }
       addon:InitializeHistoryStore()
       assert(not addon.db.history.expired and addon.db.history.saved and addon.db.history.facts)
+      assert(addon:GetCharacterProfileState(nil)=="unset")
+      assert(addon:GetCharacterProfileState(addon.db.history.saved)=="local")
+      assert(addon:GetCharacterProfileState(addon.db.history.imported)=="imported")
+      assert(addon:ShouldMarkCharacterInChat(addon.db.history.imported))
       assert(#addon:BuildHistoryRoster()==0 and #addon:BuildHistoryRoster(true)==3)
       local manual=addon:AddCharacterRecord("  Tester-Realm  ")
       assert(manual and manual.metAt==0 and manual.recordSource=="manual")
@@ -63,11 +67,25 @@ test("encounters expire independently of saved cards, filters and name-only iden
       assert(#addon:BuildHistoryRoster()==0 and addon.db.history.REAL==manual)
       addon:SaveProfileNotesForGuid("imported",nil,"Local annotation")
       assert(addon.db.history.imported.recordSource=="website")
+      assert(addon:GetCharacterProfileState(addon.db.history.imported)=="local")
+      assert(addon:GetCharacterRecordSource(addon.db.history.imported)=="manual")
+      assert(#addon:BuildHistoryRoster(true,{recordSource="website"})==0)
       addon:RecordTargetScanHistory({character={guid="TEMP",name="Temporary"}})
       assert(not addon:IsCharacterDatabaseEntry(addon.db.history.TEMP))
+      assert(addon:GetCharacterProfileState(addon.db.history.TEMP)=="unset")
+      assert(addon:ShouldMarkCharacterInChat(addon.db.history.TEMP))
       advance(14*86400)
+      assert(not addon:ShouldMarkCharacterInChat(addon.db.history.TEMP))
       addon:PruneHistory()
       assert(not addon.db.history.TEMP)
+      addon.db.characterGroups={linked={members={REAL=true,imported=true}}}
+      addon.db.localCharacterMains={linked="REAL"}
+      addon.syncSelectedGuid="REAL"
+      assert(addon:DeleteCharacterDatabaseRecords({"REAL"})==1)
+      assert(not addon.db.history.REAL and not addon.db.characterGroups.linked)
+      assert(not addon.syncSelectedGuid)
+      assert(addon:DeleteCharacterDatabaseRecords()==3)
+      assert(next(addon.db.history)==nil)
     `);
   } finally {
     lua.global.close();
