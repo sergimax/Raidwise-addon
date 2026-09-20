@@ -38,6 +38,8 @@ export type CooldownCharacterExport = {
  * Includes every character saved on the account in `RaidwiseDB.characters`.
  */
 export type CooldownsExport = {
+  /** Export format revision. The addon currently emits version 1. */
+  reportVersion: 1;
   /** Unix timestamp when the export was generated (`time()` in-game). */
   exportedAt: number;
   characters: CooldownCharacterExport[];

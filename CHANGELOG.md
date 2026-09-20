@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.25.0] - 2026-09-20
+
+### Added
+- Synchronization view for explicit Player-to-Player and Player-to-External sharing of one character or the saved Character database, with versioned JSON export/import and reviewed apply.
+- Incoming synchronization safeguards: consent, cancel, ignore by character name across realms, ignored-list paging, and a disable switch.
+- Character database management with per-character delete and delete-all confirmation controls.
+
+### Changed
+- Character profile editing protects the current character's own opinion, tags, facts, and events while retaining memo and character-link editing.
+- Community opinion and rating are presented as Karma in profile, roster, tooltip, chat, and settings labels.
+- Character, cooldown, and Gear Check exports expose format version metadata; profile imports reject unsupported versions.
+
+### Fixed
+- Classic-style text inputs and synchronization share-menu controls now work with the Wrath 3.3.5a UI.
+
 ## [1.24.0] - 2026-09-15
 
 ### Added

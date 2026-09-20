@@ -60,6 +60,8 @@ export type InstanceLockout = {
  * `gearScore` is omitted when the GearScore addon is not available.
  */
 export type CharacterExport = {
+  /** Export format revision. The addon currently emits version 1. */
+  reportVersion: 1;
   name: string;
   /** English class token, e.g. `"MAGE"`. */
   class: string;

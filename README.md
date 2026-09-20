@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-1.24.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--09--15-blue)
+![](https://img.shields.io/badge/current_version-1.25.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--09--20-blue)
 
 
 ## Install
@@ -63,10 +63,10 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 
 - Two blocks: raid groups **1–5**, then **6–8**; when not in a raid, your party fills group 1
 - Lines above the grid: compact header (S·A·B·C·D chips, GS and role counts, flask/food/armor/ench with report icons, Scan/Export/Refresh/Back icons); then scan status and progress
-- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, compact `P:`/`C:` ratings, compact armor/ench grades, **Gear** / **Rescan**, and sword/gem report icons
+- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, compact `P:`/`K:` ratings, compact armor/ench grades, **Gear** / **Rescan**, and sword/gem report icons
 - Sword/gem icons post that player's gear/weapon or gem/enchant findings to the configured report channel, always in short form (`CODE - slot,slot; CODE - slot`); hover previews the message
 - A successful full scan shows its completion date and time with the success message; individual rescans do not change that timestamp
-- Hover a card for opinion, tags, community data, **guild (rank)**, raid buffs, and gear-check details
+- Hover a card for opinion, tags, Karma data, **guild (rank)**, raid buffs, and gear-check details
 - **Scan** / **Export all** for raid-wide gear check; **Export all** opens copy text; **Back to roster** closes it; click the dump + Ctrl+C to copy
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 - Card click opens **Character profile**
@@ -100,7 +100,15 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 - Click a row to open **Character profile** (includes GUID, meeting zone, time, and realm)
 - **Refresh** records the current group again and redraws the list
 
-**Character database** keeps manually edited and imported cards, with source icons and filters for name, class, guild, personal opinion and record source. Add a character by name without scanning them. Saved cards survive encounter cleanup; see [Reputation.md](docs/Reputation.md).
+**Character database** keeps manually edited and imported cards, with source icons and filters for name, class, guild, personal opinion and record source. Add a character by name without scanning them. Delete one row or clear the database with confirmation. Saved cards survive encounter cleanup; see [Reputation.md](docs/Reputation.md).
+
+**Synchronization** supports explicit Player-to-Player and Player-to-External exchange:
+
+- Search by character name in the Sync view, then share one character or the full saved database to a target, guild, or raid.
+- Use **Share** from an open Character profile, or the database share action, to open the same recipient menu.
+- Export selected data or the database as copyable JSON. Paste JSON from a player or web app, review the short list of incoming changes, then **Apply** or **Cancel**.
+- Incoming requests require consent and can be declined, ignored by character name across realms, or disabled. The ignored-character list is searchable, paginated, and supports **Unignore**.
+- Sync JSON carries `reportVersion: 1`; private memos remain local and are never included in exchange data.
 
 Native friends, ignore and inbox rows show opinion marks. Both guild roster modes also show light green/gray/red backgrounds, including with ElvUI. Chat markers use green/white/red; negative message bodies remain red. `/rw diagnose` reports missing marker code and guild matching status.
 
@@ -115,7 +123,7 @@ Native friends, ignore and inbox rows show opinion marks. Both guild roster mode
 - On **Memo**, write a private free-form note with **Save** / **Reset** (not shared, not logged in History)
 - Raid and History show your saved opinion and tag summary; click a row or card to open the profile
 - Negative personal opinions make the chat message text and `<Rw>` marker red; item and achievement links keep their original colors. Positive/neutral markers retain white brackets with mint/lavender text and normal channel-colored messages.
-- **Community note** is currently a mock preview for a future addon exchange / web app feature
+- **Karma** is currently a mock preview for future addon exchange / web app data
 
 Report controls in the shared header:
 
@@ -131,7 +139,7 @@ Report controls in the shared header:
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
 - **Theme** category: switch between light and dark; saved per account in `RaidwiseDB.theme`
 - **Startup page**: which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns; **Info** cannot be selected)
-- Unit tooltip toggles: hide personal opinion / personal tags / community rating / community tags (`RaidwiseDB.tooltip`)
+- Unit tooltip toggles: hide personal opinion / personal tags / Karma / Karma tags (`RaidwiseDB.tooltip`)
 - Preview of compact (live) and stacked tooltip layouts
 
 The minimap button position is saved in `RaidwiseDB.minimapAngle`.
@@ -183,6 +191,8 @@ Raidwise/
   UIWidgets.lua       # shared panels, buttons, icons, layout version badges
   RosterWidgets.lua   # roster, rating, and gear presentation helpers
   CharacterProfile.lua # Character profile window (opinion, tags, notes, history)
+  SyncData.lua         # versioned profile export/import and review staging
+  SyncTransport.lua    # addon sync offers, consent, ignore list, and routing
   GearCheckCatalog.lua # enchant / gem seed catalogs
   GearCheckSets.lua   # T9/T10 set-piece ids (informational)
   GearCheckTrinkets.lua # preferred/allowed trinket pools by role
@@ -204,6 +214,7 @@ Raidwise/
   PageComposition.lua # Raid composition tab
   PageGearCheckTarget.lua # Gear check (target) tab
   PageHistory.lua     # History and Character database tabs
+  PageSync.lua        # Synchronization tab
   PageSettings.lua    # Settings tab
   PageInfo.lua        # Info tab
   ExporterWindow.lua  # main window shell (menu, title, status, tab wiring)
@@ -234,5 +245,6 @@ runtime: `npm ci --ignore-scripts`, then `npm run check`. See
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
 - Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts and currency snapshots for the cooldowns table live in `RaidwiseDB.characters` (`.lockouts`, `.currency`). Party and raid encounters live in `RaidwiseDB.history` (keyed by GUID), including personal ratings (`.rating.personal` with opinion/tags/facts), events (`.events`), notes (`.notes`), change log (`.changes`), and party/raid meet count (`.meetCount`). Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`). Startup left-menu page is `RaidwiseDB.startupTab`. Unit tooltip visibility flags live in `RaidwiseDB.tooltip`.
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
+- Character, cooldown, Gear Check, and Sync JSON/text exports include a format version. Sync imports reject unknown `reportVersion` values; private profile memos are never exported.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.
 - Regenerating S-grade BiS IDs: `node scripts/generate-gear-check-bis.js` (reads sibling `Raidwise` web-app presets; see `docs/Gear-Check-Surface-From-BiS.md`).
