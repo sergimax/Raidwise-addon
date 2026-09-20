@@ -76,7 +76,7 @@ and individual reports; shared snapshots remain complete.
 
 `ScheduleRosterRefresh` merges same-frame requests. Each pass builds one snapshot shared by history and the visible raid/composition page. Hidden views are not redrawn; history still records. Snapshots are not cached across passes. Inspect queue advancement is immediate; consumable icons have their own targeted refresh path.
 
-Profile commands persist drafts through the store and refresh rating views. Notes have separate Save/Reset behavior. `InitializeHistoryStore` migrates entries at addon initialization, before UI construction; explicit write methods also normalize entries. Rating/history getters do not initialize or migrate SavedVariables. Community ratings include mock fallback data. Explicit profile exchange uses the Sync modules and a reviewed import; mock community data is never exported.
+Profile commands persist drafts through the store and refresh rating views. Notes have separate Save/Reset behavior. `InitializeHistoryStore` migrates entries at addon initialization, before UI construction; explicit write methods also normalize entries. Rating/history getters do not initialize or migrate SavedVariables. Karma includes mock fallback data. Explicit profile exchange uses the Sync modules and a reviewed import; mock Karma data is never exported.
 
 Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The shell dispatches these methods; page modules own control labels and entry-specific collection. `entering=true` requests the original tab-entry work (lockout requests, roster refresh or history recording); locale refresh omits it. Public refresh wrappers remain compatible. Profile extraction preserves anchors, dimensions and named-frame versions.
 

@@ -153,7 +153,7 @@ local function FormatCompactGradesLine(gearGrade, enchantGrade)
 		.. W.T("RAID_CELL_GRADE_ENCH", W.WrapGearGradation(enchantGrade))
 end
 
--- Compact rating row: personal Qiraji crystal icon + community percent (e.g. "P: [icon]  C: 75%").
+-- Compact rating row: personal Qiraji crystal icon + Karma percent (e.g. "P: [icon]  K: 75%").
 local function FormatRatingCellLine(member)
 	local iconMarkup = W.IconMarkup(W.RatingOpinionIcon(member), RAID_LINE_H)
 	if iconMarkup == "" then

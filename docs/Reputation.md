@@ -41,10 +41,10 @@ updates existing personal opinion fields; no facts/events/notes are merged.
 
 ## Chat highlighting
 
-Chat markers show `<Rw51>` with the current community percentage (without `%`).
+Chat markers show `<Rw51>` with the current Karma percentage (without `%`).
 Marks appear only for saved profiles or players scanned through target/raid Gear
 Check within the last 14 days. Ordinary party encounters and unknown senders have
-no mark. Eligible players use the mock fallback of 51%; if the community getter
+no mark. Eligible players use the mock fallback of 51%; if the Karma getter
 has no rating, their mark is `<Rw>`.
 The `Rw` text uses green for positive personal opinions, white for neutral or
 missing opinions, and red for negative. Brackets and the number are white.
@@ -121,11 +121,11 @@ One-shot per history entry (`personal.reputationV2`):
 | Events | yes | yes |
 | Memo | never | never |
 
-Exchange is manual and reviewed; it does not calculate community consensus or
+Exchange is manual and reviewed; it does not calculate Karma consensus or
 automatically synchronize guild members. See [Synchronization.md](Synchronization.md)
 for field limits, local-profile protection and link import rules.
 
-Roster views show personal opinion on the card; Raid roster uses one compact line (`P:` Qiraji crystal icon + `C: 75%`) with community percent from `GetCommunityRating` (`C: —` when missing). Crystals: green = positive, yellow = neutral, red = negative. Tags and full community detail stay on hover / Character profile; facts appear in the profile header; events are listed on the Events / History tabs. Character profile opens on the **History** tab by default; opinion/tags are edited on **Edit note**.
+Roster views show personal opinion on the card; Raid roster uses one compact line (`P:` Qiraji crystal icon + `K: 75%`) with Karma percent from `GetCommunityRating` (`K: —` when missing). Crystals: green = positive, yellow = neutral, red = negative. Tags and full Karma detail stay on hover / Character profile; facts appear in the profile header; events are listed on the Events / History tabs. Character profile opens on the **History** tab by default; opinion/tags are edited on **Edit note**.
 
 ## Display helpers (`PlayerHistory.lua`)
 
@@ -147,7 +147,7 @@ Used by roster pages, Character profile, and unit tooltips:
 `UnitTooltips.lua` hooks `GameTooltip` `OnTooltipSetUnit` (same pattern as GearScore). For player units:
 
 1. **Personal** — if a saved personal note exists: opinion label (colored) and up to 3 tags (`Positive: Fair Loot, …`)
-2. **Community** — if the GUID is in History: mock percent + up to 3 tags until real exchange data lands (`51 % positive:` then tag line)
+2. **Karma** — if the GUID is in History: mock percent + up to 3 tags until real exchange data lands (`51 % positive:` then tag line)
 
 Visibility is controlled by `RaidwiseDB.tooltip` hide flags (Settings).
 

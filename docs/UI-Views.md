@@ -128,7 +128,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ roster table — or export copy box when text view is on                 ]
 [ (class) Rhee          (flask)(food) ]
 [ (role)(spec) 6158gs 264ilvl ]
-[ P: (crystal)  C: 75% ]
+[ P: (crystal)  K: 75% ]
 [ Armor A  Ench C ]
 [ Gear ][ Rescan ][sword][gem]
         12 px gap
@@ -151,10 +151,10 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
 | line 1 | Class icon + class-colored name; **flask** and **food** status icons on the right (14 px). Full color = active buff (flask, or battle + guardian elixirs); red tint = missing; dim = out of range or offline. Hover shows the buff name or status. |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
-| line 3 | Compact ratings `P:` + Qiraji crystal icon (green / yellow / red) and `C: {n%}` (or `C: —`); tags stay on hover |
+| line 3 | Compact ratings `P:` + Qiraji crystal icon (green / yellow / red) and `K: {n%}` (or `K: —`); tags stay on hover |
 | line 4 | Compact grades `Armor {S|A|B|C|D}  Ench {…}` on one line, or fail / not scanned (`—`) |
 | line 5 | **Gear** + **Rescan** + sword and gem report icons; icons post this player's gear/weapon or gem/enchant findings grouped as `CODE - slot,slot; CODE - slot`, including unavailable checks, with chat previews on hover |
-| hover | Opinion + tags + community percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff icons and names last |
+| hover | Opinion + tags + Karma percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff icons and names last |
 | click | Left-click card → **Character profile**; **Gear check** / **Rescan** / report buttons do their own actions |
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
@@ -254,7 +254,7 @@ Standalone window (**460 × 560**) opened from Raid roster or History (left-clic
 [ Rhee - Character profile                              v31   X ]
 | (race)(class) Shaman    | (spec) Enhancement                  |
 | GearScore: 6158         | iLvl: 264                           |
-| Personal note: Positive | Community note                      |
+| Personal note: Positive | Karma                               |
 | Friendly, Good Tank     | mock preview text                   |
 | Facts: Raid Leader      | (percentages, sample reports)       |
 | Guild: MyGuild (Member) |                                     |
@@ -292,7 +292,7 @@ Standalone window (**460 × 560**) opened from Raid roster or History (left-clic
 | GearScore / iLvl | Side-by-side row: `GearScore: {score}` and `iLvl: {average}`; `-` when unknown |
 | Race icon | Character-creation race portrait on the class row (same size as class/spec icons); tooltip shows race name and faction |
 | Summary (left column) | Read-only: personal note, tag summary, facts, guild, GUID, realm — reflects **saved** values only until **Save and Update** |
-| Community note (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
+| Karma (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
 | Tabs | **History**, **Edit note**, **Facts**, **Events**, **Memo** — **History** opens by default |
 | Edit note (editor tab) | Summary line (draft preview); three exclusive radio options; tag checkboxes by category (draft until **Save and Update**) |
 | Facts (editor tab) | Role / identity checkboxes (draft until **Save and Update**); max **4** |
@@ -367,8 +367,8 @@ Category titles use full-width shaded bars with a gold left accent and larger te
 +------------------------------------------------------------------+
 | [ ] Hide personal opinion   | Live tooltip preview                |
 | [ ] Hide personal tags      | Compact: sample lines               |
-| [ ] Hide community rating   | Stacked: sample lines               |
-| [ ] Hide community tags     |                                    |
+| [ ] Hide Karma              | Stacked: sample lines               |
+| [ ] Hide Karma tags         |                                    |
 +------------------------------------------------------------------+
 ```
 
@@ -383,7 +383,7 @@ Category titles use full-width shaded bars with a gold left accent and larger te
 | Unit tooltips | Checkboxes stored in `RaidwiseDB.tooltip` (`hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags`); default all shown |
 | Live tooltip preview | Inside the Unit tooltips panel, beside its checkboxes; compact and stacked sample lines update when options change |
 
-Switching language updates the left menu, page labels, and visible tables without `/reload`. Player unit tooltips (mouseover/target) append personal opinion + top 3 tags and, for players in History, community mock percent + top 3 tags (`UnitTooltips.lua`).
+Switching language updates the left menu, page labels, and visible tables without `/reload`. Player unit tooltips (mouseover/target) append personal opinion + top 3 tags and, for players in History, Karma mock percent + top 3 tags (`UnitTooltips.lua`).
 
 ## Info
 

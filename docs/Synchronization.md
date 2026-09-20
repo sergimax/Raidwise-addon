@@ -60,12 +60,12 @@ Event entries contain `type`, numeric `eventAt`, and string `creatorId`. Links
 are GUIDs, without Main/Alt designations. `updatedAt` is a nonnegative timestamp;
 it is informational, not trusted for automatic overwrite decisions.
 
-An optional `community` object contains numeric `positivePercent` in 0–100 and
-an array of catalog `tags`. Only stored, non-mock community snapshots are exported.
+An optional `community` object contains the Karma value as numeric `positivePercent` in 0–100 and
+an array of catalog `tags`. Only stored, non-mock Karma snapshots are exported.
 Incoming claims are not independently authenticated or aggregated into consensus.
 
 Never exported: private memos, automatic same-party events, event context, scan
-data, encounter/change history, local Main preferences, mock community scores,
+data, encounter/change history, local Main preferences, mock Karma scores,
 settings or ignore lists. Fields outside the whitelist are ignored on import.
 Personal opinions are deliberately included in this explicit profile exchange.
 
@@ -73,7 +73,7 @@ Personal opinions are deliberately included in this explicit profile exchange.
 
 - Incoming data stays in memory until Apply; cancelling leaves SavedVariables intact.
 - The review lists up to 12 characters, action, opinion, tag/fact/event/link counts
-  and community value, plus totals for the entire payload.
+  and Karma value, plus totals for the entire payload.
 - GUID and name/realm are matched. Conflicting GUID identities and duplicate
   identities within a payload are rejected or skipped, rather than overwriting.
 - Locally customized profiles are protected as a whole. This is rechecked when

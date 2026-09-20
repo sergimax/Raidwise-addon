@@ -61,14 +61,14 @@ local Translations = {
 		SYNC_REVIEW_FROM = "Source: %s",
 		SYNC_REVIEW_TOTAL = "%d new, %d updates, %d protected, %d conflicts (%d total). First 12 shown. Links apply only between imported, ungrouped characters.",
 		SYNC_CHANGE_ADD = "Add",
-		SYNC_CHANGE_DETAIL = "%s; %d tags; %d facts; %d events; %d links; community %s",
+		SYNC_CHANGE_DETAIL = "%s; %d tags; %d facts; %d events; %d links; Karma %s",
 		SYNC_CHANGE_UPDATE = "Replace imported profile",
 		SYNC_CHANGE_PROTECTED = "Keep local profile",
 		SYNC_CHANGE_CONFLICT = "Skip identity conflict",
 		SYNC_APPLIED = "Imported %d profiles. Local profiles and identity conflicts were kept unchanged.",
 		MINIMAP_RAID = "Raid info (%d members)",
 		MINIMAP_AVERAGES = "Average ilvl / GS (known gear)",
-		MINIMAP_RATING = "Average community rating",
+		MINIMAP_RATING = "Average Karma",
 		MINIMAP_FLASKS = "Missing flasks",
 		MINIMAP_FOOD = "Missing food",
 		MINIMAP_BUFF_UNKNOWN = "Consumables unknown for %d members",
@@ -186,7 +186,7 @@ local Translations = {
 			.. "- Compact header: S·A·B·C·D chips (hover for meanings), average GS and role counts, flask/food/armor/ench with report icons, and Scan/Export/Refresh/Back icons\n"
 			.. "- Flask and food icons on each card: full color = active, red = missing, dim = out of range or offline\n"
 			.. "- Report icons beside flask, food, armor/weap, and ench/sock post missing or problem players to the report chat channel (title bar)\n"
-			.. "- Hover a card for opinion, tags, community rating, guild (rank), raid buffs, and gear-check details\n"
+			.. "- Hover a card for opinion, tags, Karma, guild (rank), raid buffs, and gear-check details\n"
 			.. "- Scan inspects everyone one at a time and fills armor/weap and ench/sock grades\n"
 			.. "- Export all builds text dumps; Back to roster closes them; click the dump + Ctrl+C copies\n"
 			.. "- Character opens Character; Gear opens the full report on Gear check (target)",
@@ -214,14 +214,14 @@ local Translations = {
 			.. "- Name, class, spec, opinion, tags, GearScore, iLvl, where you met, when, and guild\n"
 			.. "- Click a row to open Character\n"
 			.. "- In the profile you can save opinion, tags, facts, events, and a private memo\n"
-			.. "- Community opinion is a mock preview for future exchange and web features",
+			.. "- Karma is a mock preview for future exchange and web features",
 		INFO_SECTION_SETTINGS = "Account-wide interface options.\n"
 			.. "\n"
 			.. "- Language: English or Russian\n"
 			.. "- Startup page opened by /raidwise (Info cannot be the startup page)\n"
 			.. "- Report chat channel for Raid roster, Composition, and Gear check reports\n"
 			.. "- Short or full Gear check report wording\n"
-			.. "- Unit tooltip toggles for personal and community rating lines",
+			.. "- Unit tooltip toggles for personal and Karma lines",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
 		INFO_REPO_SELECTED = "Selected — press Ctrl+C to copy.",
@@ -345,8 +345,8 @@ local Translations = {
 		GEAR_CHECK_RAID_TIP_OK_CLEAN = "Usable — nothing flagged in this category.",
 		GEAR_CHECK_RAID_TIP_MORE = "… and %d more (Gear check for full report)",
 		RAID_CELL_PERSONAL = "P: %s",
-		RAID_CELL_COMMUNITY = "C: %d%%",
-		RAID_CELL_COMMUNITY_EMPTY = "C: —",
+		RAID_CELL_COMMUNITY = "K: %d%%",
+		RAID_CELL_COMMUNITY_EMPTY = "K: —",
 		RAID_CELL_GRADE_GEAR = "Armor %s",
 		RAID_CELL_NOT_SCANNED = "Not scanned",
 		RAID_CELL_GRADE_ENCH = "Ench %s",
@@ -665,7 +665,7 @@ local Translations = {
 		RATING_META_POSITIVE = "Positive",
 		RATING_META_NEGATIVE = "Negative",
 		RATING_META_LINE = "Type: %s",
-		RATING_COMMUNITY_TITLE = "Community note",
+		RATING_COMMUNITY_TITLE = "Karma",
 		RATING_COMMUNITY_MOCK = "Positive: 0%\nNinja Loot       32 reports\nLoot Dispute     21 reports\nToxic              14 reports\nBad Raid Leader     8 reports\nRaid Leader        11\nWell Organized      7",
 		RATING_FACT_RAID_LEADER = "Raid Leader",
 		RATING_FACT_PUG_RAID_LEADER = "PUG Raid Leader",
@@ -746,16 +746,16 @@ local Translations = {
 		SETTINGS_REPORT_FORM_SHORT = "Short",
 		SETTINGS_REPORT_FORM_FULL = "Full",
 		SETTINGS_TOOLTIP = "Unit tooltips",
-		SETTINGS_TOOLTIP_HINT = "Add personal and community rating lines to player tooltips (mouseover / target). Community data is a mock preview until exchange is available.",
+		SETTINGS_TOOLTIP_HINT = "Add personal and Karma lines to player tooltips (mouseover / target). Karma data is a mock preview until exchange is available.",
 		SETTINGS_TIP_HIDE_PERSONAL = "Hide personal opinion",
 		SETTINGS_TIP_HIDE_PERSONAL_TAGS = "Hide personal tags",
-		SETTINGS_TIP_HIDE_COMMUNITY = "Hide community rating",
-		SETTINGS_TIP_HIDE_COMMUNITY_TAGS = "Hide community tags",
+		SETTINGS_TIP_HIDE_COMMUNITY = "Hide Karma",
+		SETTINGS_TIP_HIDE_COMMUNITY_TAGS = "Hide Karma tags",
 		SETTINGS_TIP_PREVIEW = "Live tooltip preview",
 		SETTINGS_TIP_LAYOUT_COMPACT = "Compact (live tooltip)",
 		SETTINGS_TIP_LAYOUT_STACKED = "Stacked (variant)",
 		SETTINGS_TIP_PREVIEW_EMPTY = "(nothing shown with current options)",
-		TOOLTIP_COMMUNITY_POSITIVE = "%d %% positive:",
+		TOOLTIP_COMMUNITY_POSITIVE = "Karma: %d %% positive:",
 		LOCALE_EN = "English",
 		LOCALE_RU = "Русский",
 
@@ -833,14 +833,14 @@ local Translations = {
 		SYNC_REVIEW_FROM = "Источник: %s",
 		SYNC_REVIEW_TOTAL = "%d новых, %d обновлений, %d защищённых, %d конфликтов (всего %d). Первые 12. Связи — только между импортированными персонажами без группы.",
 		SYNC_CHANGE_ADD = "Добавить",
-		SYNC_CHANGE_DETAIL = "%s; тегов %d; фактов %d; событий %d; связей %d; сообщество %s",
+		SYNC_CHANGE_DETAIL = "%s; тегов %d; фактов %d; событий %d; связей %d; Karma %s",
 		SYNC_CHANGE_UPDATE = "Заменить импортированный профиль",
 		SYNC_CHANGE_PROTECTED = "Сохранить локальный профиль",
 		SYNC_CHANGE_CONFLICT = "Пропустить конфликт личности",
 		SYNC_APPLIED = "Импортировано профилей: %d. Локальные профили и конфликты оставлены без изменений.",
 		MINIMAP_RAID = "Информация о рейде (%d игроков)",
 		MINIMAP_AVERAGES = "Средний ilvl / GS (известная экипировка)",
-		MINIMAP_RATING = "Средний рейтинг сообщества",
+		MINIMAP_RATING = "Средняя Karma",
 		MINIMAP_FLASKS = "Нет настоев",
 		MINIMAP_FOOD = "Нет еды",
 		MINIMAP_BUFF_UNKNOWN = "Расходники неизвестны у %d игроков",
@@ -958,7 +958,7 @@ local Translations = {
 			.. "- Компактная шапка: чипы S·A·B·C·D (наведение — расшифровка), средний GS и роли, настой/еда/броня/чары с иконками отчёта, иконки Сканировать/Экспорт/Обновить/К составу\n"
 			.. "- Иконки настоя и еды на карточке: цветная = есть, красная = нет, тусклая = вне зоны или офлайн\n"
 			.. "- Иконка отчёта рядом с настоем, едой, бронёй/оружием и чарами/сокетами пишет в канал отчётов (Настройки), у кого нет баффа или есть проблемы с экипом\n"
-			.. "- Наведение: мнение, теги, сообщество, гильдия (ранг), рейд-баффы, детали проверки экипа\n"
+			.. "- Наведение: мнение, теги, Karma, гильдия (ранг), рейд-баффы, детали проверки экипа\n"
 			.. "- «Сканировать» осматривает по одному и заполняет оценки брони/оружия и чар/сокетов\n"
 			.. "- «Экспорт всех» собирает текстовые отчёты; «К составу» закрывает их; клик по тексту + Ctrl+C копирует\n"
 			.. "- «Персонаж» открывает окно персонажа; «Экип» — полный отчёт на вкладке проверки экипа (цель)",
@@ -986,14 +986,14 @@ local Translations = {
 			.. "- Имя, класс, спек, мнение, теги, GearScore, iLvl, где встретили, когда и гильдия\n"
 			.. "- Клик по строке открывает профиль персонажа\n"
 			.. "- В профиле можно сохранить мнение, теги, факты, события и личное мемо\n"
-			.. "- Мнение сообщества пока показано как мок для будущего обмена и веб-приложения",
+			.. "- Karma пока показана как мок для будущего обмена и веб-приложения",
 		INFO_SECTION_SETTINGS = "Настройки интерфейса на аккаунте.\n"
 			.. "\n"
 			.. "- Язык: English или Русский\n"
 			.. "- Стартовая страница по /raidwise (Справку выбрать нельзя)\n"
 			.. "- Канал чата для отчётов состава рейда, анализа состава и проверки экипа\n"
 			.. "- Короткая или полная форма отчёта проверки экипа\n"
-			.. "- Переключатели строк личного и общественного рейтинга в подсказках игроков",
+			.. "- Переключатели строк личного рейтинга и Karma в подсказках игроков",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
 		INFO_REPO_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",
@@ -1117,8 +1117,8 @@ local Translations = {
 		GEAR_CHECK_RAID_TIP_OK_CLEAN = "Подходит — в этой категории замечаний нет.",
 		GEAR_CHECK_RAID_TIP_MORE = "… и ещё %d (полный отчёт — «Экип»)",
 		RAID_CELL_PERSONAL = "P: %s",
-		RAID_CELL_COMMUNITY = "C: %d%%",
-		RAID_CELL_COMMUNITY_EMPTY = "C: —",
+		RAID_CELL_COMMUNITY = "K: %d%%",
+		RAID_CELL_COMMUNITY_EMPTY = "K: —",
 		RAID_CELL_GRADE_GEAR = "Броня %s",
 		RAID_CELL_NOT_SCANNED = "Не просканирован",
 		RAID_CELL_GRADE_ENCH = "Чары %s",
@@ -1437,7 +1437,7 @@ local Translations = {
 		RATING_META_POSITIVE = "Положительное",
 		RATING_META_NEGATIVE = "Отрицательное",
 		RATING_META_LINE = "Тип: %s",
-		RATING_COMMUNITY_TITLE = "Заметка сообщества",
+		RATING_COMMUNITY_TITLE = "Karma",
 		RATING_COMMUNITY_MOCK = "Положительное: 0%\nНиндзя-лут        32 жалобы\nСпор о луте       21 жалоба\nТоксичный         14 жалоб\nПлохой РЛ          8 жалоб\nРейд-лидер        11\nХорошая организация 7",
 		RATING_FACT_RAID_LEADER = "Рейд-лидер",
 		RATING_FACT_PUG_RAID_LEADER = "Лидер пуг-рейда",
@@ -1518,16 +1518,16 @@ local Translations = {
 		SETTINGS_REPORT_FORM_SHORT = "Короткая",
 		SETTINGS_REPORT_FORM_FULL = "Полная",
 		SETTINGS_TOOLTIP = "Подсказки игроков",
-		SETTINGS_TOOLTIP_HINT = "Добавлять личный и общественный рейтинг в подсказки при наведении / цели. Общественные данные пока макет до обмена.",
+		SETTINGS_TOOLTIP_HINT = "Добавлять личный рейтинг и Karma в подсказки при наведении / цели. Данные Karma пока макет до обмена.",
 		SETTINGS_TIP_HIDE_PERSONAL = "Скрыть личное мнение",
 		SETTINGS_TIP_HIDE_PERSONAL_TAGS = "Скрыть личные теги",
-		SETTINGS_TIP_HIDE_COMMUNITY = "Скрыть общественный рейтинг",
-		SETTINGS_TIP_HIDE_COMMUNITY_TAGS = "Скрыть общественные теги",
+		SETTINGS_TIP_HIDE_COMMUNITY = "Скрыть Karma",
+		SETTINGS_TIP_HIDE_COMMUNITY_TAGS = "Скрыть теги Karma",
 		SETTINGS_TIP_PREVIEW = "Предпросмотр подсказки",
 		SETTINGS_TIP_LAYOUT_COMPACT = "Компактный (живая подсказка)",
 		SETTINGS_TIP_LAYOUT_STACKED = "Столбиком (вариант)",
 		SETTINGS_TIP_PREVIEW_EMPTY = "(при текущих настройках ничего не показывается)",
-		TOOLTIP_COMMUNITY_POSITIVE = "%d %% положительных:",
+		TOOLTIP_COMMUNITY_POSITIVE = "Karma: %d %% положительных:",
 		LOCALE_EN = "English",
 		LOCALE_RU = "Русский",
 
