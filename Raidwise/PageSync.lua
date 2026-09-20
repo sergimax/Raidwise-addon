@@ -37,8 +37,13 @@ function Addon:OpenSyncView(guid)
 end
 
 function Addon:ShowSyncShareMenu(anchor, guid)
+	if not anchor then return end
 	if self.syncShareMenu then
 		local menu = self.syncShareMenu
+		if menu:IsShown() and menu.anchor == anchor and menu.guid == guid then
+			menu:Hide()
+			return
+		end
 		menu.anchor, menu.guid, menu.age = anchor, guid, 0
 		menu:ClearAllPoints(); menu:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -2)
 		for _, control in ipairs(menu.syncButtons) do control.label:SetText(W.T(control.syncKey)) end
@@ -48,6 +53,16 @@ function Addon:ShowSyncShareMenu(anchor, guid)
 	menu.anchor, menu.guid = anchor, guid
 	menu:SetSize(170, 122); menu:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -2)
 	menu:SetFrameStrata("TOOLTIP"); W.ApplyPlainPanel(menu); W.ApplyOuterBorder(menu)
+	menu:Hide()
+	local close = CreateFrame("Button", nil, menu)
+	close:SetSize(16, 16); close:SetPoint("TOPRIGHT", -2, -2)
+	local closeText = W.CreateFontString(close, nil, "OVERLAY", "GameFontNormalSmall")
+	closeText:SetPoint("CENTER", 0, 0); closeText:SetText("X")
+	W.SetFontColor(closeText, Addon.UITheme.GOLD)
+	close:SetScript("OnEnter", function() W.SetFontColor(closeText, Addon.UITheme.TEXT_ALERT) end)
+	close:SetScript("OnLeave", function() W.SetFontColor(closeText, Addon.UITheme.GOLD) end)
+	close:SetScript("OnClick", function() menu:Hide() end)
+	menu.closeButton = close
 	for index, channel in ipairs({"WHISPER", "GUILD", "RAID"}) do
 		button(menu, 4, -4 - (index - 1) * 28, 162, "SYNC_TO_" .. channel, function()
 			menu:Hide()
@@ -58,6 +73,11 @@ function Addon:ShowSyncShareMenu(anchor, guid)
 	button(menu, 4, -88, 162, "TAB_SYNC", function() menu:Hide(); Addon:OpenSyncView(menu.guid) end)
 	menu:SetScript("OnUpdate", function(self, delta) self.age=(self.age or 0)+delta; if self.age > 15 or not self.anchor:IsShown() then self:Hide() end end)
 	self.syncShareMenu = menu
+	menu:Show()
+end
+
+function Addon:HideSyncShareMenu()
+	if self.syncShareMenu then self.syncShareMenu:Hide() end
 end
 
 local function create(parent)

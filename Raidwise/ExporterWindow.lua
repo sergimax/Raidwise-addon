@@ -306,6 +306,7 @@ function Addon:SelectTab(tabId)
 	if not frame then
 		return
 	end
+	if self.HideSyncShareMenu then self:HideSyncShareMenu() end
 
 	frame.selectedTab = tabId
 	for id, page in pairs(frame.pages) do
@@ -488,6 +489,9 @@ function Addon:CreateMainFrame()
 	frame:Hide()
 	W.ApplyPlainPanel(frame)
 	frame.layoutVersion = SHELL_LAYOUT_VERSION
+	frame:SetScript("OnHide", function()
+		if Addon.HideSyncShareMenu then Addon:HideSyncShareMenu() end
+	end)
 	EnsureSpecialFrame("RaidwiseFrame", frame)
 
 	CreateTitleBar(frame)
@@ -622,6 +626,7 @@ function Addon:ShowMainFrame()
 end
 
 function Addon:HideMainFrame()
+	if self.HideSyncShareMenu then self:HideSyncShareMenu() end
 	if self.mainFrame then
 		self.mainFrame:Hide()
 	end

@@ -57,7 +57,9 @@ Its name input also filters that list. Transfer controls occupy the left column
 above the status line. The Character title
 bar has a 90 x 18 px Share button, 6 px left of its layout badge. The database
 toolbar Share database button is 150 px wide, 8 px left of Refresh. Both open a
-170 x 122 px menu with target/guild/raid actions and a Synchronization shortcut.
+170 x 122 px menu with target/guild/raid actions, a Synchronization shortcut,
+and an X close button. Selecting the Share button again or changing views also
+closes the menu.
 
 | Element | Size | Notes |
 |---------|------|-------|

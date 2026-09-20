@@ -78,6 +78,14 @@ test("encounters expire independently of saved cards, filters and name-only iden
       assert(not addon:ShouldMarkCharacterInChat(addon.db.history.TEMP))
       addon:PruneHistory()
       assert(not addon.db.history.TEMP)
+      addon.db.characterGroups={linked={members={REAL=true,imported=true}}}
+      addon.db.localCharacterMains={linked="REAL"}
+      addon.syncSelectedGuid="REAL"
+      assert(addon:DeleteCharacterDatabaseRecords({"REAL"})==1)
+      assert(not addon.db.history.REAL and not addon.db.characterGroups.linked)
+      assert(not addon.syncSelectedGuid)
+      assert(addon:DeleteCharacterDatabaseRecords()==3)
+      assert(next(addon.db.history)==nil)
     `);
   } finally {
     lua.global.close();

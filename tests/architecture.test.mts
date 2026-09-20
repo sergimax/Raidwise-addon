@@ -410,6 +410,7 @@ test("Settings and character linking panels avoid circular frame anchors", async
       function result:GetText() return self.text or "" end
       function result:Show() self.shown=true end
       function result:Hide() self.shown=false end
+      function result:IsShown() return self.shown end
       function result:GetName() return self.name end
       function result:GetStringHeight() return 14 end
       function result:CreateTexture() return region(self) end
@@ -437,6 +438,7 @@ test("Settings and character linking panels avoid circular frame anchors", async
     function time() return 100 end
     function GetRealmName() return "Realm" end
     function UnitGUID() return "SELF" end
+    UIParent=region()
   `, `
     local history=Raidwise.Pages.History.Create(region())
     local database=Raidwise.Pages.Database.Create(region())
@@ -445,6 +447,17 @@ test("Settings and character linking panels avoid circular frame anchors", async
     Raidwise.syncOffers={}
     Raidwise.GetSyncReviewText=function() return "preview" end
     local sync=Raidwise.Pages.Sync.Create(region())
+    local shareAnchor=region(); shareAnchor:Show()
+    Raidwise:ShowSyncShareMenu(shareAnchor)
+    assert(Raidwise.syncShareMenu:IsShown())
+    Raidwise:ShowSyncShareMenu(shareAnchor)
+    assert(not Raidwise.syncShareMenu:IsShown())
+    Raidwise:ShowSyncShareMenu(shareAnchor)
+    Raidwise.syncShareMenu.closeButton.scripts.OnClick()
+    assert(not Raidwise.syncShareMenu:IsShown())
+    Raidwise:ShowSyncShareMenu(shareAnchor)
+    Raidwise:HideSyncShareMenu()
+    assert(not Raidwise.syncShareMenu:IsShown())
     Raidwise:RefreshSyncView()
     assert(sync.layoutVersion==Raidwise.Pages.Sync.LAYOUT_VERSION and sync.search and sync.ignoreName)
     Raidwise:SetSyncSenderIgnored("Zulu",true)
