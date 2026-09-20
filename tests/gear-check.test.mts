@@ -226,6 +226,10 @@ test("roster issue reports group codes, separate categories, and retain unknown 
       assert(#lines == 1)
       assert(lines[1] == "[Rw]-raid Tester Enchants/Gems: GEM_NOT_CHECKABLE - neck,wrist; MISSING_ENCHANT - head", lines[1])
       assert(Raidwise:FormatGearCheckMemberIssues(report, "gear")[1] == "[Rw]-raid Tester Gear: WRONG_WEAPON - MH")
+      assert(Raidwise:FormatGearCheckMemberIssues(report, "weapon")[1] == "[Rw]-raid Tester Weapons: WRONG_WEAPON - MH")
+      assert(Raidwise:FormatGearCheckMemberIssues(report, "armor")[1] == "[Rw]-raid Tester Armor: No issues in this category.")
+      assert(Raidwise:FormatGearCheckMemberIssues(report, "gems")[1] == "[Rw]-raid Tester Gems: GEM_NOT_CHECKABLE - neck,wrist")
+      assert(Raidwise:FormatGearCheckMemberIssues(report, "enchants")[1] == "[Rw]-raid Tester Enchants: MISSING_ENCHANT - head")
       assert(#Raidwise:FormatGearCheckMemberIssues(nil, "gear") == 0)
       assert(Raidwise:FormatGearCheckMemberIssues({}, "gear")[1] == "[Rw]-raid ? Gear: No issues in this category.")
       for index = 1, 40 do

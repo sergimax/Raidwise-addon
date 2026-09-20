@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 35
+local LAYOUT_VERSION = 36
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -14,8 +14,10 @@ local RAID_CELL_GAP = 2
 local RAID_CELL_PAD = 4
 local RAID_LINE_H = 14
 local RAID_ICON = 20
-local RAID_BTN_H = 16
+local RAID_BTN_H = 20
 local RAID_BTN_GAP = 2
+local RAID_EVALUATION_W = 44
+local RAID_ACTION_W = 48
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
 local RAID_REPORT_ICON = "Interface\\Icons\\Ability_Warrior_BattleShout"
@@ -44,20 +46,6 @@ local SCAN_PHASE_KEYS = {
 	done = "GEAR_CHECK_RAID_PHASE_DONE",
 	export = "GEAR_CHECK_RAID_PHASE_EXPORT",
 }
-
-local function FormatRaidStatsLine(gearScore, averageIlvl)
-	local parts = {}
-	if gearScore then
-		parts[#parts + 1] = W.T("STATS_GS", tostring(gearScore))
-	end
-	if averageIlvl then
-		parts[#parts + 1] = W.T("STATS_ILVL", tostring(averageIlvl))
-	end
-	if #parts == 0 then
-		return ""
-	end
-	return table.concat(parts, " ")
-end
 
 local function FormatRaidAverageGs(gearScore)
 	local gsText = gearScore ~= nil and tostring(gearScore) or "-"
@@ -157,10 +145,10 @@ local function SummarizeGearCategory(results, field)
 end
 
 local GRADE_CELL_CATEGORIES = {
-    { icon = "Interface\\Icons\\INV_Misc_Gem_Diamond_01" },
-    { icon = "Interface\\Icons\\INV_Chest_Plate04" },
-    { icon = "Interface\\Icons\\INV_Sword_04" },
-    { icon = "Interface\\Icons\\INV_Enchant_EssenceMagicLarge" },
+    { key = "weapon", reportCategory = "weapon", tooltipKey = "BTN_RAID_MEMBER_WEAPON_REPORT_TIP", icon = "Interface\\Icons\\INV_Sword_04", row = 3, column = 1 },
+    { key = "armor", reportCategory = "armor", tooltipKey = "BTN_RAID_MEMBER_ARMOR_REPORT_TIP", icon = "Interface\\Icons\\INV_Chest_Plate04", row = 3, column = 2 },
+    { key = "gem", reportCategory = "gems", tooltipKey = "BTN_RAID_MEMBER_GEMS_REPORT_TIP", icon = "Interface\\Icons\\INV_Misc_Gem_Diamond_01", row = 4, column = 1 },
+    { key = "enchant", reportCategory = "enchants", tooltipKey = "BTN_RAID_MEMBER_ENCHANTS_REPORT_TIP", icon = "Interface\\Icons\\INV_Enchant_EssenceMagicLarge", row = 4, column = 2 },
 }
 
 local function HideGradeCells(cell)
@@ -181,13 +169,13 @@ local function FillGradeCells(cell, grades)
     cell.gradesText:Hide()
     for index, category in ipairs(GRADE_CELL_CATEGORIES) do
         local gradeCell = cell.gradeCells[index]
-        gradeCell:SetText(W.IconMarkup(category.icon, RAID_LINE_H) .. " " .. W.WrapGearGradation(grades[index]))
-        W.SetFontColor(gradeCell, UI.TEXT_IDLE)
+        gradeCell.label:SetText(W.IconMarkup(category.icon, RAID_LINE_H) .. " " .. W.WrapGearGradation(grades[index]))
+        W.SetFontColor(gradeCell.label, UI.TEXT_IDLE)
         gradeCell:Show()
     end
 end
 
--- Compact rating row: personal Qiraji crystal icon + Karma percent (e.g. "P: [icon]  K: 75%").
+-- Compact rating row: personal Qiraji crystal icon + Karma percent.
 local function FormatRatingCellLine(member)
 	local iconMarkup = W.IconMarkup(W.RatingOpinionIcon(member), RAID_LINE_H)
 	if iconMarkup == "" then
@@ -196,22 +184,22 @@ local function FormatRatingCellLine(member)
 			iconMarkup = Addon:RatingWrapColor(iconMarkup, W.RatingOpinionColor(member))
 		end
 	end
-	local personalPart = W.T("RAID_CELL_PERSONAL", iconMarkup)
+	local personalPart = iconMarkup
 
 	local community = Addon.GetCommunityRating and Addon:GetCommunityRating(member)
 	local percent = community and tonumber(community.positivePercent)
 	local communityPart
 	local communityColor = UI.TEXT_DISABLED
 	if percent then
-		communityPart = W.T("RAID_CELL_COMMUNITY", percent)
+		communityPart = tostring(percent) .. "%"
 		communityColor = UI.TEXT_IDLE
 	else
-		communityPart = W.T("RAID_CELL_COMMUNITY_EMPTY")
+		communityPart = "—"
 	end
 	if Addon.RatingWrapColor then
 		communityPart = Addon:RatingWrapColor(communityPart, communityColor)
 	end
-	return personalPart .. "  " .. communityPart
+	return personalPart .. " " .. communityPart
 end
 
 local function FormatGearCategorySummaryLine(summary)
@@ -1143,21 +1131,15 @@ local function CreateRaidPlayerCell(parent)
 	cell.classIcon = cell.classIconHost:CreateTexture(nil, "ARTWORK")
 	cell.classIcon:SetAllPoints(cell.classIconHost)
 
-	cell.foodHost = W.CreateConsumableStatusHost(cell)
-	cell.foodHost:SetPoint("TOPRIGHT", -RAID_CELL_PAD, -RAID_CELL_PAD)
-	cell.flaskHost = W.CreateConsumableStatusHost(cell)
-	cell.flaskHost:SetPoint("RIGHT", cell.foodHost, "LEFT", -UI.PARTY_BUFF_GAP, 0)
-
-	cell.nameText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.nameText:SetPoint("LEFT", cell.classIconHost, "RIGHT", 4, 0)
-	cell.nameText:SetPoint("RIGHT", cell.flaskHost, "LEFT", -4, 0)
-	cell.nameText:SetHeight(RAID_LINE_H)
-	cell.nameText:SetJustifyH("LEFT")
-	cell.nameText:SetJustifyV("MIDDLE")
+	cell.specIconHost = CreateFrame("Frame", nil, cell)
+	cell.specIconHost:SetSize(RAID_ICON, RAID_ICON)
+	cell.specIconHost:SetPoint("LEFT", cell.classIconHost, "RIGHT", 2, 0)
+	cell.specIcon = cell.specIconHost:CreateTexture(nil, "ARTWORK")
+	cell.specIcon:SetAllPoints(cell.specIconHost)
 
 	cell.roleIconHost = CreateFrame("Frame", nil, cell)
 	cell.roleIconHost:SetSize(RAID_ICON, RAID_ICON)
-	cell.roleIconHost:SetPoint("TOPLEFT", cell.classIconHost, "BOTTOMLEFT", 0, -3)
+	cell.roleIconHost:SetPoint("LEFT", cell.specIconHost, "RIGHT", 2, 0)
 	cell.roleIcon = cell.roleIconHost:CreateTexture(nil, "ARTWORK")
 	cell.roleIcon:SetAllPoints(cell.roleIconHost)
 	cell.roleIconHost:EnableMouse(true)
@@ -1173,52 +1155,60 @@ local function CreateRaidPlayerCell(parent)
 		GameTooltip:Hide()
 	end)
 
-	cell.specIconHost = CreateFrame("Frame", nil, cell)
-	cell.specIconHost:SetSize(RAID_ICON, RAID_ICON)
-	cell.specIconHost:SetPoint("LEFT", cell.roleIconHost, "RIGHT", 3, 0)
-	cell.specIcon = cell.specIconHost:CreateTexture(nil, "ARTWORK")
-	cell.specIcon:SetAllPoints(cell.specIconHost)
+	cell.nameText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
+	cell.nameText:SetPoint("LEFT", cell.roleIconHost, "RIGHT", 4, 0)
+	cell.nameText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
+	cell.nameText:SetHeight(RAID_LINE_H)
+	cell.nameText:SetJustifyH("LEFT")
+	cell.nameText:SetJustifyV("MIDDLE")
 
-	cell.statsText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.statsText:SetPoint("LEFT", cell.specIconHost, "RIGHT", 4, 0)
-	cell.statsText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.statsText:SetHeight(RAID_LINE_H)
-	cell.statsText:SetJustifyH("LEFT")
-	cell.statsText:SetJustifyV("MIDDLE")
+	cell.gearScoreText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
+	cell.gearScoreText:SetPoint("TOPLEFT", cell, "TOPLEFT", RAID_CELL_PAD, -28)
+	cell.gearScoreText:SetSize(48, RAID_BTN_H)
+	cell.gearScoreText:SetJustifyH("CENTER")
+	cell.gearScoreText:SetJustifyV("MIDDLE")
+
+	cell.itemLevelText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
+	cell.itemLevelText:SetPoint("LEFT", cell.gearScoreText, "RIGHT", RAID_BTN_GAP, 0)
+	cell.itemLevelText:SetSize(48, RAID_BTN_H)
+	cell.itemLevelText:SetJustifyH("CENTER")
+	cell.itemLevelText:SetJustifyV("MIDDLE")
 
 	cell.opinionText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.opinionText:SetPoint("TOPLEFT", cell.roleIconHost, "BOTTOMLEFT", 0, -2)
-	cell.opinionText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.opinionText:SetHeight(RAID_LINE_H)
-	cell.opinionText:SetJustifyH("LEFT")
+	cell.opinionText:SetPoint("TOPRIGHT", cell, "TOPRIGHT", -RAID_CELL_PAD, -28)
+	cell.opinionText:SetSize(52, RAID_BTN_H)
+	cell.opinionText:SetJustifyH("CENTER")
+	cell.opinionText:SetJustifyV("MIDDLE")
 
 	cell.gradesText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gradesText:SetPoint("TOPLEFT", cell.opinionText, "BOTTOMLEFT", 0, -1)
-	cell.gradesText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.gradesText:SetHeight(RAID_LINE_H)
-	cell.gradesText:SetJustifyH("LEFT")
+	cell.gradesText:SetPoint("TOPLEFT", cell, "TOPLEFT", RAID_CELL_PAD, -52)
+	cell.gradesText:SetSize(RAID_EVALUATION_W * 2 + RAID_BTN_GAP, RAID_BTN_H)
+	cell.gradesText:SetJustifyH("CENTER")
+	cell.gradesText:SetJustifyV("MIDDLE")
 
 	cell.gradeCells = {}
-	local gradeCellWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2) / #GRADE_CELL_CATEGORIES)
-	for index = 1, #GRADE_CELL_CATEGORIES do
-		local gradeCell = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-		gradeCell:SetPoint("TOPLEFT", cell.gradesText, "TOPLEFT", (index - 1) * gradeCellWidth, 0)
-		if index == #GRADE_CELL_CATEGORIES then
-			gradeCell:SetWidth(RAID_CELL_W - RAID_CELL_PAD * 2 - (index - 1) * gradeCellWidth)
-		else
-			gradeCell:SetWidth(gradeCellWidth)
+	for index, category in ipairs(GRADE_CELL_CATEGORIES) do
+		local gradeCell = W.CreatePlainButton(cell, RAID_EVALUATION_W, RAID_BTN_H, "")
+		gradeCell:SetPoint("TOPLEFT", cell, "TOPLEFT", RAID_CELL_PAD + (category.column - 1) * (RAID_EVALUATION_W + RAID_BTN_GAP), -28 - (category.row - 2) * 24)
+		local reportCategory = category.reportCategory
+		local function BuildMessages()
+			return Addon:FormatGearCheckMemberIssues(cell.gearEntry and cell.gearEntry.report, reportCategory)
 		end
-		gradeCell:SetHeight(RAID_LINE_H)
-		gradeCell:SetJustifyH("CENTER")
-		gradeCell:SetJustifyV("MIDDLE")
+		SetChatReportButtonTooltip(gradeCell, category.tooltipKey, BuildMessages)
+		gradeCell:SetScript("OnClick", function()
+			SendRaidChatMessages(BuildMessages())
+		end)
 		gradeCell:Hide()
 		cell.gradeCells[index] = gradeCell
 	end
 
-	local reportSize = RAID_BTN_H
-	local btnWidth = math.floor((RAID_CELL_W - RAID_CELL_PAD * 2 - RAID_BTN_GAP * 3 - reportSize * 2) / 2)
-	local gearBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_GEAR"), "SecureActionButtonTemplate")
-	gearBtn:SetPoint("BOTTOMLEFT", RAID_CELL_PAD, RAID_CELL_PAD)
+	cell.flaskHost = W.CreateConsumableStatusHost(cell)
+	cell.flaskHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 96, -52)
+	cell.foodHost = W.CreateConsumableStatusHost(cell)
+	cell.foodHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 96, -76)
+
+	local gearBtn = W.CreatePlainButton(cell, RAID_ACTION_W, RAID_BTN_H, W.T("BTN_RAID_GEAR"), "SecureActionButtonTemplate")
+	gearBtn:SetPoint("TOPRIGHT", cell, "TOPRIGHT", -RAID_CELL_PAD, -52)
 	W.SetPlainButtonTooltip(gearBtn, "BTN_RAID_GEAR_TIP")
 	gearBtn:RegisterForClicks("LeftButtonUp")
 	gearBtn:SetScript("PreClick", function(button)
@@ -1236,8 +1226,8 @@ local function CreateRaidPlayerCell(parent)
 	gearBtn:Hide()
 	cell.gearBtn = gearBtn
 
-	local rescanBtn = W.CreatePlainButton(cell, btnWidth, RAID_BTN_H, W.T("BTN_RAID_RESCAN"))
-	rescanBtn:SetPoint("LEFT", gearBtn, "RIGHT", RAID_BTN_GAP, 0)
+	local rescanBtn = W.CreatePlainButton(cell, RAID_ACTION_W, RAID_BTN_H, W.T("BTN_RAID_RESCAN"))
+	rescanBtn:SetPoint("TOPRIGHT", cell, "TOPRIGHT", -RAID_CELL_PAD, -76)
 	W.SetPlainButtonTooltip(rescanBtn, "BTN_RAID_RESCAN_TIP")
 	rescanBtn:SetScript("OnClick", function()
 		local frame = Addon.mainFrame
@@ -1248,28 +1238,6 @@ local function CreateRaidPlayerCell(parent)
 	end)
 	rescanBtn:Hide()
 	cell.rescanBtn = rescanBtn
-
-	cell.issueReportButtons = {}
-	local previous = rescanBtn
-	for _, category in ipairs({ "gear", "enchant" }) do
-		local reportCategory = category
-		local button = W.CreatePlainButton(cell, reportSize, reportSize, "")
-		button:SetPoint("LEFT", previous, "RIGHT", RAID_BTN_GAP, 0)
-		local icon = button:CreateTexture(nil, "ARTWORK")
-		icon:SetPoint("CENTER", 0, 0)
-		icon:SetSize(reportSize - 2, reportSize - 2)
-		W.SetSpellIconTexture(icon, category == "gear" and "Interface\\Icons\\INV_Sword_04" or "Interface\\Icons\\INV_Misc_Gem_Diamond_01")
-		local function BuildMessages()
-			return Addon:FormatGearCheckMemberIssues(cell.gearEntry and cell.gearEntry.report, reportCategory)
-		end
-		SetChatReportButtonTooltip(button, category == "gear" and "BTN_RAID_MEMBER_GEAR_REPORT_TIP" or "BTN_RAID_MEMBER_ENCHANT_REPORT_TIP", BuildMessages)
-		button:SetScript("OnClick", function()
-			SendRaidChatMessages(BuildMessages())
-		end)
-		button:Hide()
-		cell.issueReportButtons[#cell.issueReportButtons + 1] = button
-		previous = button
-	end
 
 	cell:SetScript("OnEnter", function(self)
 		if not self.member then
@@ -1424,7 +1392,7 @@ local function FillGearReportRows(cell, member, entry)
 		cell.gradesText:SetText(scanLabel)
 		W.SetFontColor(cell.gradesText, UI.TEXT_IDLE)
 	else
-		FillGradeCells(cell, { gemGrade, armorGrade, weaponGrade, enchantGrade })
+		FillGradeCells(cell, { weaponGrade, armorGrade, gemGrade, enchantGrade })
 	end
 
 	if cell.gearBtn then
@@ -1475,16 +1443,14 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		cell.member = nil
 		cell.roleLabel = nil
 		cell.nameText:SetText("")
-		cell.statsText:SetText("")
+		cell.gearScoreText:SetText("")
+		cell.itemLevelText:SetText("")
 		cell.opinionText:SetText("")
 		cell.classIconHost:Hide()
 		cell.roleIconHost:Hide()
 		cell.specIconHost:Hide()
 		FillRaidConsumableIcons(cell, nil)
 		FillGearReportRows(cell, nil, nil)
-		for _, button in ipairs(cell.issueReportButtons or {}) do
-			button:Hide()
-		end
 		if cell.gearBtn then
 			cell.gearBtn:Hide()
 		end
@@ -1507,32 +1473,39 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	cell.classIconHost:Show()
 
 	local role = member.role or "unknown"
-	cell.roleLabel = (Addon.RaidRoleLabel and Addon:RaidRoleLabel(role)) or ""
-	if Addon.RaidRoleIcon then
+	cell.roleLabel = role ~= "unknown" and (Addon.RaidRoleLabel and Addon:RaidRoleLabel(role)) or ""
+	if cell.roleLabel ~= "" and Addon.RaidRoleIcon then
 		W.SetSpellIconTexture(cell.roleIcon, Addon:RaidRoleIcon(role))
+		cell.roleIconHost:Show()
+		cell.nameText:ClearAllPoints()
+		cell.nameText:SetPoint("LEFT", cell.roleIconHost, "RIGHT", 4, 0)
+		cell.nameText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
 	else
-		W.SetSpellIconTexture(cell.roleIcon, "Interface\\Icons\\INV_Misc_QuestionMark")
+		cell.roleIconHost:Hide()
+		cell.nameText:ClearAllPoints()
+		cell.nameText:SetPoint("LEFT", cell.specIconHost, "RIGHT", 4, 0)
+		cell.nameText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
 	end
-	cell.roleIconHost:Show()
 
 	if member.specIcon and member.specIcon ~= "" then
 		W.SetSpecOrClassIcon(cell.specIcon, member.specIcon, member.class)
-		cell.specIcon:Show()
 	else
-		cell.specIcon:SetTexture(nil)
-		cell.specIcon:Hide()
+		W.SetSpellIconTexture(cell.specIcon, "Interface\\Icons\\INV_Misc_QuestionMark")
 	end
 	cell.specIconHost:Show()
 
-	local stats = FormatRaidStatsLine(member.gearScore, member.averageIlvl)
-	cell.statsText:SetText(stats)
+	local hasScannedStats = gearEntry and gearEntry.report
+	cell.gearScoreText:SetText(W.T("STATS_GS", tostring(hasScannedStats and member.gearScore or "-")))
+	cell.itemLevelText:SetText(W.T("STATS_ILVL", tostring(hasScannedStats and member.averageIlvl or "-")))
 	if offline then
-		cell.statsText:SetText(W.T("RAID_CONSUMABLE_OFFLINE"))
-		W.SetFontColor(cell.statsText, UI.TEXT_DISABLED)
-	elseif member.gearScore then
-		W.SetFontColor(cell.statsText, UI.GOLD)
+		W.SetFontColor(cell.gearScoreText, UI.TEXT_DISABLED)
+		W.SetFontColor(cell.itemLevelText, UI.TEXT_DISABLED)
+	elseif hasScannedStats and member.gearScore then
+		W.SetFontColor(cell.gearScoreText, UI.GOLD)
+		W.SetFontColor(cell.itemLevelText, UI.GOLD)
 	else
-		W.SetFontColor(cell.statsText, UI.TEXT_IDLE)
+		W.SetFontColor(cell.gearScoreText, UI.TEXT_IDLE)
+		W.SetFontColor(cell.itemLevelText, UI.TEXT_IDLE)
 	end
 
 	FillRaidConsumableIcons(cell, member)
@@ -1542,8 +1515,7 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	W.SetFontColor(cell.opinionText, UI.TEXT_BODY)
 
 	FillGearReportRows(cell, member, gearEntry)
-	for _, button in ipairs(cell.issueReportButtons or {}) do
-		button:Show()
+	for _, button in ipairs(cell.gradeCells or {}) do
 		if gearEntry and gearEntry.report then
 			button:Enable()
 		else
