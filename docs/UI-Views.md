@@ -46,7 +46,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character | `PROFILE_LAYOUT_VERSION = 35` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | Export | `LAYOUT_VERSION = 2` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 32` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 33` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 5` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -112,7 +112,7 @@ Rows come only from current lockouts; each instance is one row with all size/mod
 
 ## Raid roster
 
-Layout v31 recreates Gear buttons with `SecureActionButtonTemplate`. Their
+Layout v33 recreates Gear buttons with `SecureActionButtonTemplate`. Their
 target action selects the cell's current unit, then PostClick opens target check.
 Button dimensions are unchanged. Unit/GUID validation prevents stale cells from
 opening a different character's report.
@@ -121,7 +121,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 
 ```text
 [ S·A·B·C·D  Average GS 6158  Tanks 2 · Healers 6 · Melee 12 · Range 5   [scan][export][refresh][back] ]
-[ Flask 22/25 [shout] | Food 20/25 [shout] | Armor S·A·B·C·D [shout] | Ench … [shout] ]
+[ Flask 22/25 [shout] | Food 20/25 [shout] | Gems … [shout] | Armor … [shout] | Weapons … [shout] | Enchants … [shout] ]
 [ scan / export status (reserved height)                                 ]
 [ progress bar track (always reserved)                                   ]
         8 px gap
@@ -129,7 +129,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ (class) Rhee          (flask)(food) ]
 [ (role)(spec) 6158gs 264ilvl ]
 [ P: (crystal)  K: 75% ]
-[ Armor A  Ench C ]
+[ Gem A  Arm A  Wpn B  Enc C ]
 [ Gear ][ Rescan ][sword][gem]
         12 px gap
 [ 6              ][ 7              ][ 8              ]
@@ -138,21 +138,21 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 
 | Block | In-game text / control |
 |-------|------------------------|
-| mini table | Two rows: chips + GS/roles + icon toolbar (**28**), then four status cells (**20**); **4** px between rows |
+| mini table | Two rows: chips + GS/roles + icon toolbar (**28**), then six status cells (**20**); **4** px between rows |
 | row 1 grade chips | Colored `S · A · B · C · D`; hover shows `GEAR_CHECK_RAID_HINT` |
 | row 1 GS / roles | `Average GS` plus role counts on one line; hover shows per-role count and average GS |
 | row 1 toolbar | Icon buttons **Scan**, **Export all**, **Refresh**, **Back to roster** in a horizontal strip (**28×28**, **4** px gap). Hover shows the action name and tip. **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
-| row 2 status | Four equal cells: **Flask**, **Food**, **Armor&Weap**, **Ench&Gems** — gold name + compact counts, **16×16** Battle Shout icon on the right |
+| row 2 status | Six equal cells: **Flask**, **Food**, **Gems**, **Armor**, **Weapons** (main/off/2H/relic), **Enchants** — gold name + compact counts, **16×16** Battle Shout icon on the right |
 | flask / food | `Flask n/total` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Missing names and `(n missing)` live in the hover tip. Out of range / offline are not listed as missing |
-| armor / ench | S / A / B / C / D counts (+ Failed). Dim until first scan (`Press Scan to check.`) |
-| report icon | Same Battle Shout icon on every status cell; hover (cell or icon) shows the flask / food / armor / ench tip, current counts, plus a preview of the chat line(s) that will be posted |
+| gems / armor / weapons / enchants | Separate S / A / B / C / D counts (+ Failed). Weapons include main-hand, off-hand, two-hand and relic slots. Dim until first scan (`Press Scan to check.`) |
+| report icon | Same Battle Shout icon on every status cell; hover (cell or icon) shows the category tip, current counts, plus a preview of the chat line(s) that will be posted |
 | scan status | Below the mini table; reserved **28** px; scan/export/rescan text. After a successful full scan, shows the completion message, player count, and last full-scan date/time (local clock, including seconds). Restored when returning from export or refreshing locale; individual rescans do not change the full-scan timestamp. Before the first full scan, idle text is empty. |
 | progress bar | Below status (**4** px gap); height **14**; track always reserved |
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
 | line 1 | Class icon + class-colored name; **flask** and **food** status icons on the right (14 px). Full color = active buff (flask, or battle + guardian elixirs); red tint = missing; dim = out of range or offline. Hover shows the buff name or status. |
 | line 2 | Role icon (same as RaidBuffStatus) + spec icon + `6158gs 264ilvl` |
 | line 3 | Compact ratings `P:` + Qiraji crystal icon (green / yellow / red) and `K: {n%}` (or `K: —`); tags stay on hover |
-| line 4 | Compact grades `Armor {S|A|B|C|D}  Ench {…}` on one line, or fail / not scanned (`—`) |
+| line 4 | Compact grades `Gem {…} Arm {…} Wpn {…} Enc {…}` on one line, or fail / not scanned (`—`) |
 | line 5 | **Gear** + **Rescan** + sword and gem report icons; icons post this player's gear/weapon or gem/enchant findings grouped as `CODE - slot,slot; CODE - slot`, including unavailable checks, with chat previews on hover |
 | hover | Opinion + tags + Karma percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff icons and names last |
 | click | Left-click card → **Character profile**; **Gear check** / **Rescan** / report buttons do their own actions |

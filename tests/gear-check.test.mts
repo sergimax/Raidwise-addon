@@ -190,7 +190,15 @@ test("collection orchestration and offline evaluation have explicit boundaries",
       UnitGUID=forbidden; UnitName=forbidden; UnitIsUnit=forbidden; GetTalentTabInfo=forbidden
       Raidwise:EvaluateGearCheck(snapshot)
       assert(snapshot.findings and snapshot.verdicts and snapshot.overall)
+      assert(snapshot.overall.gemGrade == "B")
+      assert(snapshot.overall.armorGrade == "B")
+      assert(snapshot.overall.weaponGrade == "B")
+      assert(snapshot.overall.enchantGrade == "B")
       assert(type(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"gear",20)) == "table")
+      assert(type(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"gems",20)) == "table")
+      assert(type(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"armor",20)) == "table")
+      assert(type(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"weapon",20)) == "table")
+      assert(type(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"enchant",20)) == "table")
       local results, passed, total = Raidwise:GearCheckRulesSelfTest()
       assert(passed == total and #results == total)
     `);

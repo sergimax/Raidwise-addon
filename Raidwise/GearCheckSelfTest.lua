@@ -101,6 +101,10 @@ function Addon:GearCheckRulesSelfTest()
 	Check("missing chest enchant → chest REPLACE", missing.equipment[1].verdict == "C")
 	Check("missing chest enchant → gearGrade A", missing.overall and missing.overall.gearGrade == "A")
 	Check("missing chest enchant → enchantSocketGrade C", missing.overall and missing.overall.enchantSocketGrade == "C")
+	Check("missing chest enchant → armorGrade A", missing.overall and missing.overall.armorGrade == "A")
+	Check("missing chest enchant → weaponGrade B", missing.overall and missing.overall.weaponGrade == "B")
+	Check("missing chest enchant → gemGrade B", missing.overall and missing.overall.gemGrade == "B")
+	Check("missing chest enchant → enchantGrade C", missing.overall and missing.overall.enchantGrade == "C")
 
 	-- Spell Power on Fury → STAT_FORBIDDEN
 	local spFury = {

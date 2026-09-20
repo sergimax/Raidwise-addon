@@ -62,8 +62,8 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 **Raid roster** tab:
 
 - Two blocks: raid groups **1–5**, then **6–8**; when not in a raid, your party fills group 1
-- Lines above the grid: compact header (S·A·B·C·D chips, GS and role counts, flask/food/armor/ench with report icons, Scan/Export/Refresh/Back icons); then scan status and progress
-- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, compact `P:`/`K:` ratings, compact armor/ench grades, **Gear** / **Rescan**, and sword/gem report icons
+- Lines above the grid: compact header (S·A·B·C·D chips, GS and role counts, flask/food/gems/armor/weapons/enchants with report icons, Scan/Export/Refresh/Back icons); then scan status and progress
+- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, compact `P:`/`K:` ratings, separate gem/armor/weapon/enchant grades, **Gear** / **Rescan**, and sword/gem report icons
 - Sword/gem icons post that player's gear/weapon or gem/enchant findings to the configured report channel, always in short form (`CODE - slot,slot; CODE - slot`); hover previews the message
 - A successful full scan shows its completion date and time with the success message; individual rescans do not change that timestamp
 - Hover a card for opinion, tags, Karma data, **guild (rank)**, raid buffs, and gear-check details

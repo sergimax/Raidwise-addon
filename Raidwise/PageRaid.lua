@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 32
+local LAYOUT_VERSION = 33
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -95,7 +95,16 @@ local function GradeFromEntry(entry, field)
 	end
 	if Addon:GetGearCheckScanState(entry.report) ~= "complete" then return nil end
 	local overall = entry.report.overall or {}
-	if field == "enchant" then
+	if field == "gems" then
+		return overall.gemGrade or overall.enchantSocketGrade or "B"
+	elseif field == "armor" then
+		return overall.armorGrade or overall.gearGrade or overall.status or "B"
+	elseif field == "weapon" then
+		return overall.weaponGrade or overall.gearGrade or overall.status or "B"
+	elseif field == "enchant" then
+		return overall.enchantGrade or overall.enchantSocketGrade or "B"
+	end
+	if field == "enchantSocket" then
 		return overall.enchantSocketGrade or "B"
 	end
 	return overall.gearGrade or overall.status or "B"
@@ -147,10 +156,14 @@ local function SummarizeGearCategory(results, field)
 	return summary
 end
 
-local function FormatCompactGradesLine(gearGrade, enchantGrade)
-	return W.T("RAID_CELL_GRADE_GEAR", W.WrapGearGradation(gearGrade))
-		.. "  "
-		.. W.T("RAID_CELL_GRADE_ENCH", W.WrapGearGradation(enchantGrade))
+local function FormatCompactGradesLine(gemGrade, armorGrade, weaponGrade, enchantGrade)
+	return W.T("RAID_CELL_GRADE_GEMS", W.WrapGearGradation(gemGrade))
+		.. " "
+		.. W.T("RAID_CELL_GRADE_ARMOR", W.WrapGearGradation(armorGrade))
+		.. " "
+		.. W.T("RAID_CELL_GRADE_WEAPON", W.WrapGearGradation(weaponGrade))
+		.. " "
+		.. W.T("RAID_CELL_GRADE_ENCHANT", W.WrapGearGradation(enchantGrade))
 end
 
 -- Compact rating row: personal Qiraji crystal icon + Karma percent (e.g. "P: [icon]  K: 75%").
@@ -209,11 +222,17 @@ local function UpdateRaidGradeSummaries(page, results, groups)
 		return
 	end
 	results = Addon:FilterActiveRaidGearResults(results, groups)
-	local gear = SummarizeGearCategory(results, "gear")
+	local gems = SummarizeGearCategory(results, "gems")
+	local armor = SummarizeGearCategory(results, "armor")
+	local weapon = SummarizeGearCategory(results, "weapon")
 	local enchant = SummarizeGearCategory(results, "enchant")
-	page.gearGradeSummary = gear
+	page.gemGradeSummary = gems
+	page.armorGradeSummary = armor
+	page.weaponGradeSummary = weapon
 	page.enchantGradeSummary = enchant
-	FillGearCategorySummaryLabel(page.gearGradeSummaryLabel, W.T("RAID_SUMMARY_GEAR"), gear)
+	FillGearCategorySummaryLabel(page.gemGradeSummaryLabel, W.T("RAID_SUMMARY_GEMS"), gems)
+	FillGearCategorySummaryLabel(page.armorGradeSummaryLabel, W.T("RAID_SUMMARY_ARMOR"), armor)
+	FillGearCategorySummaryLabel(page.weaponGradeSummaryLabel, W.T("RAID_SUMMARY_WEAPON"), weapon)
 	FillGearCategorySummaryLabel(page.enchantGradeSummaryLabel, W.T("RAID_SUMMARY_ENCHANT"), enchant)
 end
 
@@ -479,31 +498,29 @@ end
 local function BuildGearCategoryMessages(kind)
 	local frame = Addon.mainFrame
 	local page = frame and frame.pages and frame.pages.raid
-	local summary
-	if kind == "enchant" then
-		summary = page and page.enchantGradeSummary
-	else
-		summary = page and page.gearGradeSummary
-	end
+	local summary = page and page[kind == "gems" and "gemGradeSummary"
+		or kind == "armor" and "armorGradeSummary"
+		or kind == "weapon" and "weaponGradeSummary"
+		or "enchantGradeSummary"]
 	local scanned = (summary and summary.scanned) or 0
 	local failed = (summary and summary.failed) or 0
 	if scanned + failed <= 0 then
-		if kind == "enchant" then
-			return { W.T("RAID_CHAT_ENCHANT_NONE") }
-		end
-		return { W.T("RAID_CHAT_GEAR_NONE") }
+		return { W.T(kind == "gems" and "RAID_CHAT_GEMS_NONE"
+			or kind == "armor" and "RAID_CHAT_ARMOR_NONE"
+			or kind == "weapon" and "RAID_CHAT_WEAPON_NONE"
+			or "RAID_CHAT_ENCHANT_NONE") }
 	end
 	local names = (summary and summary.issueNames) or {}
 	if #names == 0 then
-		if kind == "enchant" then
-			return { W.T("RAID_CHAT_ENCHANT_ALL") }
-		end
-		return { W.T("RAID_CHAT_GEAR_ALL") }
+		return { W.T(kind == "gems" and "RAID_CHAT_GEMS_ALL"
+			or kind == "armor" and "RAID_CHAT_ARMOR_ALL"
+			or kind == "weapon" and "RAID_CHAT_WEAPON_ALL"
+			or "RAID_CHAT_ENCHANT_ALL") }
 	end
-	if kind == "enchant" then
-		return BuildNameListMessages(W.T("RAID_CHAT_ENCHANT_ISSUES"), names)
-	end
-	return BuildNameListMessages(W.T("RAID_CHAT_GEAR_ISSUES"), names)
+	return BuildNameListMessages(W.T(kind == "gems" and "RAID_CHAT_GEMS_ISSUES"
+		or kind == "armor" and "RAID_CHAT_ARMOR_ISSUES"
+		or kind == "weapon" and "RAID_CHAT_WEAPON_ISSUES"
+		or "RAID_CHAT_ENCHANT_ISSUES"), names)
 end
 
 local function ReportMissingConsumablesToChat(kind)
@@ -603,7 +620,7 @@ local function CreateRaidRosterHeader(page)
 
 	local miniH = W.RaidRosterMiniTableHeight()
 	local colGap = UI.RAID_HEADER_COL_GAP or 8
-	local summaryCount = UI.RAID_SUMMARY_COL_COUNT or 4
+	local summaryCount = UI.RAID_SUMMARY_COL_COUNT or 6
 	local row1H = UI.CD_TOOLBAR_H
 	local row2H = UI.RAID_SUMMARY_BAND_H or 20
 	local rowGap = UI.RAID_HEADER_ROW_GAP or 4
@@ -717,14 +734,32 @@ local function CreateRaidRosterHeader(page)
 	page.foodSummaryLabel = foodCol.body
 	page.reportFoodBtn = foodCol.reportBtn
 
-	local gearGradeCol = CreateSummaryCell("BTN_RAID_REPORT_GEAR_TIP", function()
-		return BuildGearCategoryMessages("gear")
+	local gemGradeCol = CreateSummaryCell("BTN_RAID_REPORT_GEMS_TIP", function()
+		return BuildGearCategoryMessages("gems")
 	end, function()
-		ReportGearCategoryToChat("gear")
+		ReportGearCategoryToChat("gems")
 	end)
-	page.gearGradeCol = gearGradeCol
-	page.gearGradeSummaryLabel = gearGradeCol.body
-	page.reportGearBtn = gearGradeCol.reportBtn
+	page.gemGradeCol = gemGradeCol
+	page.gemGradeSummaryLabel = gemGradeCol.body
+	page.reportGemsBtn = gemGradeCol.reportBtn
+
+	local armorGradeCol = CreateSummaryCell("BTN_RAID_REPORT_ARMOR_TIP", function()
+		return BuildGearCategoryMessages("armor")
+	end, function()
+		ReportGearCategoryToChat("armor")
+	end)
+	page.armorGradeCol = armorGradeCol
+	page.armorGradeSummaryLabel = armorGradeCol.body
+	page.reportArmorBtn = armorGradeCol.reportBtn
+
+	local weaponGradeCol = CreateSummaryCell("BTN_RAID_REPORT_WEAPON_TIP", function()
+		return BuildGearCategoryMessages("weapon")
+	end, function()
+		ReportGearCategoryToChat("weapon")
+	end)
+	page.weaponGradeCol = weaponGradeCol
+	page.weaponGradeSummaryLabel = weaponGradeCol.body
+	page.reportWeaponBtn = weaponGradeCol.reportBtn
 
 	local enchantGradeCol = CreateSummaryCell("BTN_RAID_REPORT_ENCHANT_TIP", function()
 		return BuildGearCategoryMessages("enchant")
@@ -735,7 +770,7 @@ local function CreateRaidRosterHeader(page)
 	page.enchantGradeSummaryLabel = enchantGradeCol.body
 	page.reportEnchantBtn = enchantGradeCol.reportBtn
 
-	local summaryRows = { flaskCol, foodCol, gearGradeCol, enchantGradeCol }
+	local summaryRows = { flaskCol, foodCol, gemGradeCol, armorGradeCol, weaponGradeCol, enchantGradeCol }
 
 	local toolbar = CreateHeaderColumn()
 	page.raidToolbar = toolbar
@@ -1336,9 +1371,11 @@ local function FillGearReportRows(cell, member, entry)
 	end
 
 	local overall = report.overall or {}
-	local gearGrade = overall.gearGrade or overall.status or "B"
-	local enchantSocketGrade = overall.enchantSocketGrade or "B"
-	cell.gradesText:SetText(Addon:GetGearCheckScanLabel(report) or FormatCompactGradesLine(gearGrade, enchantSocketGrade))
+	local gemGrade = overall.gemGrade or overall.enchantSocketGrade or "B"
+	local armorGrade = overall.armorGrade or overall.gearGrade or overall.status or "B"
+	local weaponGrade = overall.weaponGrade or overall.gearGrade or overall.status or "B"
+	local enchantGrade = overall.enchantGrade or overall.enchantSocketGrade or "B"
+	cell.gradesText:SetText(Addon:GetGearCheckScanLabel(report) or FormatCompactGradesLine(gemGrade, armorGrade, weaponGrade, enchantGrade))
 	W.SetFontColor(cell.gradesText, UI.TEXT_IDLE)
 
 	if cell.gearBtn then
@@ -1886,8 +1923,14 @@ local function ApplyLocale(page)
 	if page.reportFoodBtn then
 		page.reportFoodBtn.tooltipKey = "BTN_RAID_REPORT_FOOD_TIP"
 	end
-	if page.reportGearBtn then
-		page.reportGearBtn.tooltipKey = "BTN_RAID_REPORT_GEAR_TIP"
+	if page.reportGemsBtn then
+		page.reportGemsBtn.tooltipKey = "BTN_RAID_REPORT_GEMS_TIP"
+	end
+	if page.reportArmorBtn then
+		page.reportArmorBtn.tooltipKey = "BTN_RAID_REPORT_ARMOR_TIP"
+	end
+	if page.reportWeaponBtn then
+		page.reportWeaponBtn.tooltipKey = "BTN_RAID_REPORT_WEAPON_TIP"
 	end
 	if page.reportEnchantBtn then
 		page.reportEnchantBtn.tooltipKey = "BTN_RAID_REPORT_ENCHANT_TIP"

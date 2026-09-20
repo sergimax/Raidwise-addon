@@ -85,7 +85,7 @@ Addon.UITheme = {
 	RAID_HEADER_COL_COUNT = 4,
 	RAID_HEADER_COL_GAP = 8,
 	RAID_HEADER_ROW_GAP = 4,
-	RAID_SUMMARY_COL_COUNT = 4,
+	RAID_SUMMARY_COL_COUNT = 6,
 	RAID_SUMMARY_COL_GAP = 8,
 	RAID_SUMMARY_HEADING_H = 14,
 	RAID_SUMMARY_BODY_H = 32,
@@ -337,4 +337,3 @@ function W.SetFontColor(fontString, color)
 	end
 	SetThemeColor(fontString, "SetTextColor", color)
 end
-

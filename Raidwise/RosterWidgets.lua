@@ -378,8 +378,10 @@ function W.AppendGearCheckRaidTooltip(gearEntry)
 	end
 
 	local sections = {
-		{ key = "gear", labelKey = "GEAR_CHECK_RAID_TIP_GEAR" },
-		{ key = "enchantSocket", labelKey = "GEAR_CHECK_RAID_TIP_ENCHANT" },
+		{ key = "gems", labelKey = "GEAR_CHECK_RAID_TIP_GEMS" },
+		{ key = "armor", labelKey = "GEAR_CHECK_RAID_TIP_ARMOR" },
+		{ key = "weapon", labelKey = "GEAR_CHECK_RAID_TIP_WEAPON" },
+		{ key = "enchant", labelKey = "GEAR_CHECK_RAID_TIP_ENCHANT_ONLY" },
 	}
 
 	local scanLabel = Addon:GetGearCheckScanLabel(report)

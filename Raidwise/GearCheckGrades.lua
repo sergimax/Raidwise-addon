@@ -19,6 +19,27 @@ local ENCHANT_SOCKET_CATEGORIES = {
 	meta = true,
 }
 
+local ARMOR_ISSUE_CATEGORIES = {
+	armor = true,
+	stat = true,
+	item = true,
+}
+
+local WEAPON_ISSUE_CATEGORIES = {
+	weapon = true,
+	stat = true,
+	item = true,
+}
+
+local GEM_ISSUE_CATEGORIES = {
+	gem = true,
+	meta = true,
+}
+
+local ENCHANT_ISSUE_CATEGORIES = {
+	enchant = true,
+}
+
 local GEAR_GOOD_BLOCKING_INFO = {
 	ITEM_NOT_CHECKABLE = true,
 }
@@ -124,6 +145,41 @@ local function GemsQualifyForGood(item)
 		end
 	end
 	return true
+end
+
+local function IsWeaponEquipmentSlot(slot)
+	local item = slot and slot.item
+	if not item then
+		return slot and (slot.key == "mainHand" or slot.key == "offHand" or slot.key == "ranged")
+	end
+	return item.category == "weapon"
+		or item.category == "relic"
+		or item.isRelic == true
+		or (item.category == "armor" and (item.armorType == "shield" or item.armorType == "offhand"))
+end
+
+local function IsArmorEquipmentSlot(slot)
+	return slot and slot.item and not IsWeaponEquipmentSlot(slot)
+end
+
+local function IsGemEquipmentSlot(slot)
+	local item = slot and slot.item
+	if not item then
+		return false
+	end
+	local sockets = item.sockets or {}
+	local gems = item.gems or {}
+	return (tonumber(sockets.total) or 0) > 0 or #gems > 0
+end
+
+local function IsEnchantEquipmentSlot(slot)
+	local item = slot and slot.item
+	if not item then
+		return false
+	end
+	return SlotRequiresEnchantForGood(slot)
+		or ENCHANT_OPTIONAL[slot.key]
+		or (item.enchant and item.enchant.present == true)
 end
 
 -- BiS lists often use lower armor on wrist/hands/waist/feet (plate DPS leather/mail;
@@ -277,6 +333,56 @@ local function CollectNotGoodEnchantSocketReasons(profile, slot, findings)
 	return reasons
 end
 
+local function CollectNotGoodEnchantReasons(profile, slot, findings)
+	local reasons = {}
+	local item = slot and slot.item
+	if not item then
+		return reasons
+	end
+	if SlotHasCategoryBlockingInfo(findings, slot.key, { ENCHANT_NOT_CHECKABLE = true }) then
+		return CollectBlockingInfoReasons(findings, slot.key, { ENCHANT_NOT_CHECKABLE = true })
+	end
+	if SlotRequiresEnchantForGood(slot) then
+		if not item.enchant or not item.enchant.present then
+			reasons[#reasons + 1] = "Missing a max-level enchant (required for A)."
+		elseif not EnchantIsMaxLevel(item.enchant) then
+			reasons[#reasons + 1] = "Enchant is not a recognized max-level enchant."
+		end
+	elseif ENCHANT_OPTIONAL[slot.key] and item.enchant and item.enchant.present and not EnchantIsMaxLevel(item.enchant) then
+		reasons[#reasons + 1] = "Optional enchant is present but not max-level."
+	end
+	return reasons
+end
+
+local function CollectNotGoodGemReasons(profile, slot, findings)
+	local reasons = {}
+	local item = slot and slot.item
+	if not item then
+		return reasons
+	end
+	if SlotHasCategoryBlockingInfo(findings, slot.key, { GEM_NOT_CHECKABLE = true, META_NOT_CHECKABLE = true }) then
+		return CollectBlockingInfoReasons(findings, slot.key, { GEM_NOT_CHECKABLE = true, META_NOT_CHECKABLE = true })
+	end
+	if not GemsQualifyForGood(item) then
+		local sockets = item.sockets or {}
+		local gems = item.gems or {}
+		if sockets.gemDataUncertain then
+			reasons[#reasons + 1] = "Gem socket data was not fully available from inspect."
+		else
+			local empty = tonumber(sockets.empty)
+			if empty == nil then
+				empty = math.max(0, (tonumber(sockets.total) or 0) - #gems)
+			end
+			if empty > 0 and sockets.emptyConfirmed then
+				reasons[#reasons + 1] = "Empty sockets block A."
+			else
+				reasons[#reasons + 1] = "One or more gems are not recognized as max-level."
+			end
+		end
+	end
+	return reasons
+end
+
 local function CollectNotGoodReasons(profile, slot, findings)
 	local reasons = {}
 	local gearReasons = CollectNotGoodGearReasons(profile, slot, findings)
@@ -338,8 +444,8 @@ local function FindingMatchesCategory(finding, categoryMap)
 	return categoryMap[finding.category]
 end
 
-local function SlotVerdictForCategories(profile, slot, findings, categoryMap, qualifiesForGoodFn, allowS, report)
-	if slot.policy ~= "CHECKED" or slot.empty or not slot.item then
+local function SlotVerdictForCategories(profile, slot, findings, categoryMap, qualifiesForGoodFn, allowS, report, slotFilter)
+	if slot.policy ~= "CHECKED" or (slotFilter and not slotFilter(slot)) then
 		return nil
 	end
 	local hard = false
@@ -360,6 +466,9 @@ local function SlotVerdictForCategories(profile, slot, findings, categoryMap, qu
 	if soft then
 		return "C"
 	end
+	if slot.empty or not slot.item then
+		return nil
+	end
 	if qualifiesForGoodFn(profile, slot, findings) then
 		if allowS and SlotItemIsSpecBis(report, slot) then
 			return "S"
@@ -369,7 +478,7 @@ local function SlotVerdictForCategories(profile, slot, findings, categoryMap, qu
 	return "B"
 end
 
-local function AggregateCategoryGrade(report, categoryMap, qualifiesForGoodFn, applyResilience, allowS)
+local function AggregateCategoryGrade(report, categoryMap, qualifiesForGoodFn, applyResilience, allowS, slotFilter)
 	local verdicts = {}
 	if not report then
 		return "B"
@@ -406,7 +515,8 @@ local function AggregateCategoryGrade(report, categoryMap, qualifiesForGoodFn, a
 			categoryMap,
 			qualifiesForGoodFn,
 			allowS,
-			report
+			report,
+			slotFilter
 		)
 		if verdict then
 			verdicts[#verdicts + 1] = verdict
@@ -526,6 +636,10 @@ function Addon:AggregateGearCheckOverall(report)
 		resilienceItems = 0,
 		gearGrade = "B",
 		enchantSocketGrade = "B",
+		armorGrade = "B",
+		weaponGrade = "B",
+		gemGrade = "B",
+		enchantGrade = "B",
 	}
 	if not report then
 		return overall
@@ -600,9 +714,45 @@ function Addon:AggregateGearCheckOverall(report)
 		false,
 		false
 	)
+	overall.armorGrade = AggregateCategoryGrade(
+		report,
+		ARMOR_ISSUE_CATEGORIES,
+		GearSlotQualifiesForGood,
+		true,
+		true,
+		IsArmorEquipmentSlot
+	)
+	overall.weaponGrade = AggregateCategoryGrade(
+		report,
+		WEAPON_ISSUE_CATEGORIES,
+		GearSlotQualifiesForGood,
+		false,
+		true,
+		IsWeaponEquipmentSlot
+	)
+	overall.gemGrade = AggregateCategoryGrade(
+		report,
+		GEM_ISSUE_CATEGORIES,
+		function(_, slot, findings) return #CollectNotGoodGemReasons(nil, slot, findings) == 0 end,
+		false,
+		false,
+		IsGemEquipmentSlot
+	)
+	overall.enchantGrade = AggregateCategoryGrade(
+		report,
+		ENCHANT_ISSUE_CATEGORIES,
+		function(profile, slot, findings) return #CollectNotGoodEnchantReasons(profile, slot, findings) == 0 end,
+		false,
+		false,
+		IsEnchantEquipmentSlot
+	)
 	if IsInspectIncomplete(report) then
 		overall.gearGrade = CapIncompleteGrade(overall.gearGrade)
 		overall.enchantSocketGrade = CapIncompleteGrade(overall.enchantSocketGrade)
+		overall.armorGrade = CapIncompleteGrade(overall.armorGrade)
+		overall.weaponGrade = CapIncompleteGrade(overall.weaponGrade)
+		overall.gemGrade = CapIncompleteGrade(overall.gemGrade)
+		overall.enchantGrade = CapIncompleteGrade(overall.enchantGrade)
 		if status == "S" or status == "A" then
 			status = "B"
 			reason = "inspect_incomplete"
@@ -641,8 +791,18 @@ end
 
 Policy.ITEM_ISSUE_CATEGORIES = ITEM_ISSUE_CATEGORIES
 Policy.ENCHANT_SOCKET_CATEGORIES = ENCHANT_SOCKET_CATEGORIES
+Policy.ARMOR_ISSUE_CATEGORIES = ARMOR_ISSUE_CATEGORIES
+Policy.WEAPON_ISSUE_CATEGORIES = WEAPON_ISSUE_CATEGORIES
+Policy.GEM_ISSUE_CATEGORIES = GEM_ISSUE_CATEGORIES
+Policy.ENCHANT_ISSUE_CATEGORIES = ENCHANT_ISSUE_CATEGORIES
+Policy.IsArmorEquipmentSlot = IsArmorEquipmentSlot
+Policy.IsWeaponEquipmentSlot = IsWeaponEquipmentSlot
+Policy.IsGemEquipmentSlot = IsGemEquipmentSlot
+Policy.IsEnchantEquipmentSlot = IsEnchantEquipmentSlot
 Policy.CollectNotGoodGearReasons = CollectNotGoodGearReasons
 Policy.CollectNotGoodEnchantSocketReasons = CollectNotGoodEnchantSocketReasons
+Policy.CollectNotGoodEnchantReasons = CollectNotGoodEnchantReasons
+Policy.CollectNotGoodGemReasons = CollectNotGoodGemReasons
 Policy.GearSlotQualifiesForGood = GearSlotQualifiesForGood
 Policy.EnchantSocketSlotQualifiesForGood = EnchantSocketSlotQualifiesForGood
 Policy.FindingMatchesCategory = FindingMatchesCategory

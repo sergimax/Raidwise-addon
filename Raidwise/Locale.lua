@@ -123,6 +123,9 @@ local Translations = {
 		BTN_RAID_MEMBER_ENCHANT_REPORT_TIP = "Report this player's gem/enchant issues to the report chat channel (title bar).",
 		BTN_RAID_REPORT_GEAR_TIP = "Post players with armor/weapon issues (C or D) to the report chat channel (title bar).",
 		BTN_RAID_REPORT_ENCHANT_TIP = "Post players with enchant/socket issues (C or D) to the report chat channel (title bar).",
+		BTN_RAID_REPORT_GEMS_TIP = "Post players with gem issues (C or D) to the report chat channel (title bar).",
+		BTN_RAID_REPORT_ARMOR_TIP = "Post players with armor issues (C or D) to the report chat channel (title bar).",
+		BTN_RAID_REPORT_WEAPON_TIP = "Post players with weapon issues (C or D) to the report chat channel (title bar).",
 		CD_REFRESH_TIP = "Request fresh raid info, then redraw lockouts and currency.",
 		PARTY_REFRESH_TIP = "Re-read GearScore, item levels, and guild info; re-queue inspect for specs.",
 		RAID_REFRESH_TIP = "Re-read GearScore and iLvl; re-queue inspect for spec icons.",
@@ -182,12 +185,12 @@ local Translations = {
 		INFO_SECTION_RAID = "Current party or raid as player cards, with integrated gear check.\n"
 			.. "When you are not in a raid, party members fill group 1.\n"
 			.. "\n"
-			.. "- Groups 1–5, then 6–8: class, role, spec, flask/food, GearScore, iLvl, compact P:/C: ratings, and grades\n"
-			.. "- Compact header: S·A·B·C·D chips (hover for meanings), average GS and role counts, flask/food/armor/ench with report icons, and Scan/Export/Refresh/Back icons\n"
+			.. "- Groups 1–5, then 6–8: class, role, spec, flask/food, GearScore, iLvl, compact P:/K: ratings, and gem/armor/weapon/enchant grades\n"
+			.. "- Compact header: S·A·B·C·D chips (hover for meanings), average GS and role counts, flask/food/gems/armor/weapons/enchants with report icons, and Scan/Export/Refresh/Back icons\n"
 			.. "- Flask and food icons on each card: full color = active, red = missing, dim = out of range or offline\n"
-			.. "- Report icons beside flask, food, armor/weap, and ench/sock post missing or problem players to the report chat channel (title bar)\n"
+			.. "- Report icons beside flask, food, gems, armor, weapons, and enchants post missing or problem players to the report chat channel (title bar)\n"
 			.. "- Hover a card for opinion, tags, Karma, guild (rank), raid buffs, and gear-check details\n"
-			.. "- Scan inspects everyone one at a time and fills armor/weap and ench/sock grades\n"
+			.. "- Scan inspects everyone one at a time and fills separate gem, armor, weapon, and enchant grades\n"
 			.. "- Export all builds text dumps; Back to roster closes them; click the dump + Ctrl+C copies\n"
 			.. "- Character opens Character; Gear opens the full report on Gear check (target)",
 		INFO_SECTION_COMPOSITION = "Who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered.\n"
@@ -206,7 +209,7 @@ local Translations = {
 			.. "- Report buttons and slash commands print to the report chat channel (title bar)\n"
 			.. "- Show as a text toggles the raw dump; Save report keeps a snapshot for about 14 days",
 		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time).\n"
-			.. "The group grid shows armor/weap and ench/sock grades per player (S / A / B / C / D).\n"
+			.. "The group grid shows separate gem, armor, weapon, and enchant grades per player (S / A / B / C / D).\n"
 			.. "Gear on a scanned card opens the full report on Gear check (target).",
 		INFO_SECTION_HISTORY = "Players you have been in a party or raid with.\n"
 			.. "The list is saved on this account and stays after logout.\n"
@@ -275,8 +278,10 @@ local Translations = {
 		RAID_CHAT_FOOD_ALL = "[Rw] all food buffs present.",
 		RAID_CHAT_PREVIEW = "Will post:",
 		RAID_SUMMARY_CONSUMABLES = "Flasks&Food:",
-		RAID_SUMMARY_GEAR = "Armor&Weap:",
-		RAID_SUMMARY_ENCHANT = "Ench&Gems:",
+		RAID_SUMMARY_GEMS = "Gems:",
+		RAID_SUMMARY_ARMOR = "Armor:",
+		RAID_SUMMARY_WEAPON = "Weapons:",
+		RAID_SUMMARY_ENCHANT = "Enchants:",
 		RAID_GRADE_SUMMARY_EMPTY = "Press Scan to check.",
 		RAID_CHAT_GEAR_ISSUES = "[Rw] armor/weap issues: %s",
 		RAID_CHAT_GEAR_ALL = "[Rw] no armor/weap issues.",
@@ -284,6 +289,15 @@ local Translations = {
 		RAID_CHAT_ENCHANT_ISSUES = "[Rw] ench/sock issues: %s",
 		RAID_CHAT_ENCHANT_ALL = "[Rw] no ench/sock issues.",
 		RAID_CHAT_ENCHANT_NONE = "[Rw] no ench/sock scan yet.",
+		RAID_CHAT_GEMS_ISSUES = "[Rw] gem issues: %s",
+		RAID_CHAT_GEMS_ALL = "[Rw] no gem issues.",
+		RAID_CHAT_GEMS_NONE = "[Rw] no gem scan yet.",
+		RAID_CHAT_ARMOR_ISSUES = "[Rw] armor issues: %s",
+		RAID_CHAT_ARMOR_ALL = "[Rw] no armor issues.",
+		RAID_CHAT_ARMOR_NONE = "[Rw] no armor scan yet.",
+		RAID_CHAT_WEAPON_ISSUES = "[Rw] weapon issues: %s",
+		RAID_CHAT_WEAPON_ALL = "[Rw] no weapon issues.",
+		RAID_CHAT_WEAPON_NONE = "[Rw] no weapon scan yet.",
 		HISTORY_HINT = "Party, raid and Gear Check encounters from the last 14 days.",
 		TAB_DATABASE = "Character database",
 		DATABASE_HINT = "Saved character cards. Enter Name or Name-Realm to add a record.",
@@ -307,7 +321,7 @@ local Translations = {
 		HISTORY_FAIL = "History module failed to load. Reload UI (/reload).",
 		COMP_HINT = "Raid groups 1–5 only; groups 6–8 are reserves. Buffs, debuffs and utility coverage. Shift-click a row to post it to chat.",
 		GEAR_CHECK_TARGET_DESC = "Gear check of the current target (or yourself). Overall (worst slot wins): S = item ID appears on published BiS lists for this spec (Kingdom / Titans / community), not a unique BiS pick; A = preferred for the spec + max ench/gems; B = usable / acceptable; C = unwanted or soft issues; D = forbidden or wrong for the spec. Surface-level PvE only — not a BiS optimizer.",
-		GEAR_CHECK_RAID_DESC = "Scan everyone in your party or raid. Each card shows two grades: armor & weapons, and enchants & sockets (S / A / B / C / D). Use Gear check on a card for the full report.",
+		GEAR_CHECK_RAID_DESC = "Scan everyone in your party or raid. Each card shows separate gem, armor, weapon (main/off/2H/relic), and enchant grades (S / A / B / C / D). Use Gear check on a card for the full report.",
 		GEAR_CHECK_RAID_HINT = "S = on published BiS lists (not a unique pick); A = preferred + max ench/gems; B = usable; C = unwanted/soft; D = forbidden/hard. Spec ranks: preferred / acceptable / unwanted / forbidden. Inspects one at a time — stay in range.",
 		GEAR_CHECK_RAID_STATUS_SCANNING = "Scanning %d/%d: %s…",
 		GEAR_CHECK_RAID_STATUS_SCANNING_PHASE = "Scanning %d/%d: %s — %s…",
@@ -340,6 +354,14 @@ local Translations = {
 		GEAR_CHECK_RAID_TIP_HEADER = "Gear check",
 		GEAR_CHECK_RAID_TIP_GEAR = "Armor & weapons: %s",
 		GEAR_CHECK_RAID_TIP_ENCHANT = "Enchants & sockets: %s",
+		GEAR_CHECK_RAID_TIP_GEMS = "Gems: %s",
+		GEAR_CHECK_RAID_TIP_ARMOR = "Armor: %s",
+		GEAR_CHECK_RAID_TIP_WEAPON = "Weapons (main/off/2H/relic): %s",
+		GEAR_CHECK_RAID_TIP_ENCHANT_ONLY = "Enchants: %s",
+		GEAR_CHECK_RAID_TIP_ARMOR_CLEAN = "No armor issues flagged.",
+		GEAR_CHECK_RAID_TIP_WEAPON_CLEAN = "No weapon issues flagged.",
+		GEAR_CHECK_RAID_TIP_GEM_CLEAN = "Gems and meta look good.",
+		GEAR_CHECK_RAID_TIP_ENCHANT_ONLY_CLEAN = "No enchant issues flagged.",
 		GEAR_CHECK_RAID_TIP_GEAR_CLEAN = "No armor or weapon issues flagged.",
 		GEAR_CHECK_RAID_TIP_ENCHANT_CLEAN = "Enchants, gems, and meta look good.",
 		GEAR_CHECK_RAID_TIP_OK_CLEAN = "Usable — nothing flagged in this category.",
@@ -347,6 +369,10 @@ local Translations = {
 		RAID_CELL_PERSONAL = "P: %s",
 		RAID_CELL_COMMUNITY = "K: %d%%",
 		RAID_CELL_COMMUNITY_EMPTY = "K: —",
+		RAID_CELL_GRADE_GEMS = "Gem %s",
+		RAID_CELL_GRADE_ARMOR = "Arm %s",
+		RAID_CELL_GRADE_WEAPON = "Wpn %s",
+		RAID_CELL_GRADE_ENCHANT = "Enc %s",
 		RAID_CELL_GRADE_GEAR = "Armor %s",
 		RAID_CELL_NOT_SCANNED = "Not scanned",
 		RAID_CELL_GRADE_ENCH = "Ench %s",
@@ -895,6 +921,9 @@ local Translations = {
 		BTN_RAID_MEMBER_ENCHANT_REPORT_TIP = "Сообщить о проблемах камней/чар этого игрока в канал отчётов (Настройки).",
 		BTN_RAID_REPORT_GEAR_TIP = "Написать в канал отчётов (Настройки), у кого проблемы с бронёй или оружием (C или D).",
 		BTN_RAID_REPORT_ENCHANT_TIP = "Написать в канал отчётов (Настройки), у кого проблемы с чарами или сокетами (C или D).",
+		BTN_RAID_REPORT_GEMS_TIP = "Написать в канал отчётов (Настройки), у кого проблемы с камнями (C или D).",
+		BTN_RAID_REPORT_ARMOR_TIP = "Написать в канал отчётов (Настройки), у кого проблемы с бронёй (C или D).",
+		BTN_RAID_REPORT_WEAPON_TIP = "Написать в канал отчётов (Настройки), у кого проблемы с оружием (C или D).",
 		CD_REFRESH_TIP = "Запросить свежие данные о блокировках и перерисовать таблицу.",
 		PARTY_REFRESH_TIP = "Заново считать GearScore, iLvl и гильдию; поставить осмотр для спеков.",
 		RAID_REFRESH_TIP = "Заново считать GearScore и iLvl; поставить осмотр для иконок спека.",
@@ -954,12 +983,12 @@ local Translations = {
 		INFO_SECTION_RAID = "Текущая группа или рейд карточками игроков, с встроенной проверкой экипа.\n"
 			.. "Вне рейда группа занимает слот 1.\n"
 			.. "\n"
-			.. "- Группы 1–5, затем 6–8: класс, роль, спек, настой/еда, GearScore, iLvl, компактные P:/C: рейтинги и оценки\n"
-			.. "- Компактная шапка: чипы S·A·B·C·D (наведение — расшифровка), средний GS и роли, настой/еда/броня/чары с иконками отчёта, иконки Сканировать/Экспорт/Обновить/К составу\n"
+			.. "- Группы 1–5, затем 6–8: класс, роль, спек, настой/еда, GearScore, iLvl, компактные P:/K: рейтинги и оценки камней/брони/оружия/чар\n"
+			.. "- Компактная шапка: чипы S·A·B·C·D (наведение — расшифровка), средний GS и роли, настой/еда/камни/броня/оружие/чары с иконками отчёта, иконки Сканировать/Экспорт/Обновить/К составу\n"
 			.. "- Иконки настоя и еды на карточке: цветная = есть, красная = нет, тусклая = вне зоны или офлайн\n"
-			.. "- Иконка отчёта рядом с настоем, едой, бронёй/оружием и чарами/сокетами пишет в канал отчётов (Настройки), у кого нет баффа или есть проблемы с экипом\n"
+			.. "- Иконка отчёта рядом с настоем, едой, камнями, бронёй, оружием и чарами пишет в канал отчётов (Настройки), у кого нет баффа или есть проблемы с экипом\n"
 			.. "- Наведение: мнение, теги, Karma, гильдия (ранг), рейд-баффы, детали проверки экипа\n"
-			.. "- «Сканировать» осматривает по одному и заполняет оценки брони/оружия и чар/сокетов\n"
+			.. "- «Сканировать» осматривает по одному и заполняет отдельные оценки камней, брони, оружия и чар\n"
 			.. "- «Экспорт всех» собирает текстовые отчёты; «К составу» закрывает их; клик по тексту + Ctrl+C копирует\n"
 			.. "- «Персонаж» открывает окно персонажа; «Экип» — полный отчёт на вкладке проверки экипа (цель)",
 		INFO_SECTION_COMPOSITION = "Кто нужен, и какие уникальные баффы, внешние КД, снижение урона, дебаффы и восполнение уже закрыты.\n"
@@ -978,7 +1007,7 @@ local Translations = {
 			.. "- Кнопки отчёта и команды печатают в канал отчётов (Настройки)\n"
 			.. "- «Показать текстом» включает сырой dump; «Сохранить отчёт» хранит снимок около 14 дней",
 		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному).\n"
-			.. "Сетка групп показывает оценки брони/оружия и чар/сокетов по игроку (S / A / B / C / D).\n"
+			.. "Сетка групп показывает отдельные оценки камней, брони, оружия и чар по игроку (S / A / B / C / D).\n"
 			.. "«Экип» на просканированной карточке открывает полный отчёт на вкладке «Проверка экипа (цель)».",
 		INFO_SECTION_HISTORY = "Игроки, с которыми вы были в группе или рейде.\n"
 			.. "Список сохраняется на аккаунте и остаётся после выхода.\n"
@@ -1047,8 +1076,10 @@ local Translations = {
 		RAID_CHAT_FOOD_ALL = "[Rw] еда у всех есть.",
 		RAID_CHAT_PREVIEW = "Будет отправлено:",
 		RAID_SUMMARY_CONSUMABLES = "Настои&Еда:",
-		RAID_SUMMARY_GEAR = "Броня&Оруж:",
-		RAID_SUMMARY_ENCHANT = "Чары&Камни:",
+		RAID_SUMMARY_GEMS = "Камни:",
+		RAID_SUMMARY_ARMOR = "Броня:",
+		RAID_SUMMARY_WEAPON = "Оружие:",
+		RAID_SUMMARY_ENCHANT = "Чары:",
 		RAID_GRADE_SUMMARY_EMPTY = "Нажмите «Сканировать».",
 		RAID_CHAT_GEAR_ISSUES = "[Rw] проблемы брони/оружия: %s",
 		RAID_CHAT_GEAR_ALL = "[Rw] с бронёй и оружием всё в порядке.",
@@ -1056,6 +1087,15 @@ local Translations = {
 		RAID_CHAT_ENCHANT_ISSUES = "[Rw] проблемы чар/сокетов: %s",
 		RAID_CHAT_ENCHANT_ALL = "[Rw] с чарами и сокетами всё в порядке.",
 		RAID_CHAT_ENCHANT_NONE = "[Rw] ещё нет скана чар/сокетов.",
+		RAID_CHAT_GEMS_ISSUES = "[Rw] проблемы камней: %s",
+		RAID_CHAT_GEMS_ALL = "[Rw] с камнями всё в порядке.",
+		RAID_CHAT_GEMS_NONE = "[Rw] ещё нет скана камней.",
+		RAID_CHAT_ARMOR_ISSUES = "[Rw] проблемы брони: %s",
+		RAID_CHAT_ARMOR_ALL = "[Rw] с бронёй всё в порядке.",
+		RAID_CHAT_ARMOR_NONE = "[Rw] ещё нет скана брони.",
+		RAID_CHAT_WEAPON_ISSUES = "[Rw] проблемы оружия: %s",
+		RAID_CHAT_WEAPON_ALL = "[Rw] с оружием всё в порядке.",
+		RAID_CHAT_WEAPON_NONE = "[Rw] ещё нет скана оружия.",
 		HISTORY_HINT = "Встречи в группах, рейдах и проверки экипировки за последние 14 дней.",
 		TAB_DATABASE = "База персонажей",
 		DATABASE_HINT = "Сохранённые карточки. Введите Имя или Имя-Сервер для добавления.",
@@ -1079,7 +1119,7 @@ local Translations = {
 		HISTORY_FAIL = "Модуль истории не загрузился. Перезагрузите интерфейс (/reload).",
 		COMP_HINT = "Только группы 1–5; группы 6–8 — запас. Покрытие баффов, дебаффов и утилит. Shift+клик по строке — в чат.",
 		GEAR_CHECK_TARGET_DESC = "Проверка экипировки цели (или себя). Итог (худший слот): S = ID предмета есть в опубликованных BiS-списках спека (Kingdom / Titans / community), не уникальный выбор BiS; A = preferred для спека + max чары/камни; B = подходит / acceptable; C = unwanted или мягкие проблемы; D = forbidden или не для спека. Поверхностная PvE-оценка — не оптимизатор BiS.",
-		GEAR_CHECK_RAID_DESC = "Сканирование группы или рейда. На карточке два итога: броня и оружие, зачарования и камни (S / A / B / C / D). «Экип» открывает полный отчёт.",
+		GEAR_CHECK_RAID_DESC = "Сканирование группы или рейда. На карточке отдельные оценки камней, брони, оружия (основное/второе/2H/реликвии) и чар (S / A / B / C / D). «Экип» открывает полный отчёт.",
 		GEAR_CHECK_RAID_HINT = "S = в опубликованных BiS-списках (не уникальный выбор); A = preferred + max чары/камни; B = подходит; C = unwanted/мягкие; D = forbidden/жёсткие. Ранги спека: preferred / acceptable / unwanted / forbidden. Осмотр по одному — держитесь в радиусе.",
 		GEAR_CHECK_RAID_STATUS_SCANNING = "Сканирование %d/%d: %s…",
 		GEAR_CHECK_RAID_STATUS_SCANNING_PHASE = "Сканирование %d/%d: %s — %s…",
@@ -1112,6 +1152,14 @@ local Translations = {
 		GEAR_CHECK_RAID_TIP_HEADER = "Проверка экипа",
 		GEAR_CHECK_RAID_TIP_GEAR = "Броня и оружие: %s",
 		GEAR_CHECK_RAID_TIP_ENCHANT = "Зачарования и сокеты: %s",
+		GEAR_CHECK_RAID_TIP_GEMS = "Камни: %s",
+		GEAR_CHECK_RAID_TIP_ARMOR = "Броня: %s",
+		GEAR_CHECK_RAID_TIP_WEAPON = "Оружие (основное/второе/2H/реликвии): %s",
+		GEAR_CHECK_RAID_TIP_ENCHANT_ONLY = "Чары: %s",
+		GEAR_CHECK_RAID_TIP_ARMOR_CLEAN = "Проблем по броне не отмечено.",
+		GEAR_CHECK_RAID_TIP_WEAPON_CLEAN = "Проблем по оружию не отмечено.",
+		GEAR_CHECK_RAID_TIP_GEM_CLEAN = "Камни и мета в порядке.",
+		GEAR_CHECK_RAID_TIP_ENCHANT_ONLY_CLEAN = "Проблем по чарам не отмечено.",
 		GEAR_CHECK_RAID_TIP_GEAR_CLEAN = "Проблем по броне и оружию не отмечено.",
 		GEAR_CHECK_RAID_TIP_ENCHANT_CLEAN = "Чары, камни и мета в порядке.",
 		GEAR_CHECK_RAID_TIP_OK_CLEAN = "Подходит — в этой категории замечаний нет.",
@@ -1119,6 +1167,10 @@ local Translations = {
 		RAID_CELL_PERSONAL = "P: %s",
 		RAID_CELL_COMMUNITY = "K: %d%%",
 		RAID_CELL_COMMUNITY_EMPTY = "K: —",
+		RAID_CELL_GRADE_GEMS = "Кам %s",
+		RAID_CELL_GRADE_ARMOR = "Брн %s",
+		RAID_CELL_GRADE_WEAPON = "Оруж %s",
+		RAID_CELL_GRADE_ENCHANT = "Чар %s",
 		RAID_CELL_GRADE_GEAR = "Броня %s",
 		RAID_CELL_NOT_SCANNED = "Не просканирован",
 		RAID_CELL_GRADE_ENCH = "Чары %s",
