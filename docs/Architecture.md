@@ -82,9 +82,13 @@ Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The
 
 ### SavedVariables and versions
 
-Copyable character and cooldown JSON exports carry numeric `reportVersion: 1`.
-Target Gear Check text dumps and both synchronous/asynchronous raid dump headers
-carry `reportVersion=1`, including raid exports with only failed/skipped scans.
+Copyable character/gear and cooldown JSON exports carry numeric `reportVersion: 1`.
+Versioned Player profile JSON uses the same `reportVersion: 1` contract; the
+Sync importer rejects unknown report versions before staging. Private memos
+remain excluded from that exchange. Target Gear
+Check text dumps and both synchronous/asynchronous raid dump headers carry
+`reportVersion=1`, including raid exports with only failed/skipped scans.
+Gear dumps also include the embedded report's `schemaVersion`.
 These are format-specific revisions, independent of addon semver and the scan
 data's existing `schemaVersion`. Older exports without `reportVersion` are legacy
 unversioned formats. Diagnostics retain their existing `Raidwise diagnostics v2`
