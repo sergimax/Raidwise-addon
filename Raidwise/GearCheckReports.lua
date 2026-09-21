@@ -107,6 +107,28 @@ local function ChatFindingMatches(finding, mode)
 	return false
 end
 
+local function IsWeaponSlot(slot)
+	return slot == "mainHand" or slot == "offHand" or slot == "ranged"
+end
+
+local function ChatFindingMatchesEvaluation(finding, category)
+	if category == "weapon" then
+		return IsWeaponSlot(finding.slot)
+			and (finding.category == "weapon" or finding.category == "stat" or finding.category == "item")
+	end
+	if category == "armor" then
+		return not IsWeaponSlot(finding.slot)
+			and (finding.category == "armor" or finding.category == "stat" or finding.category == "item")
+	end
+	if category == "gems" then
+		return ChatFindingMatches(finding, "gems")
+	end
+	if category == "enchants" then
+		return ChatFindingMatches(finding, "enchants")
+	end
+	return false
+end
+
 local function PackChatLines(prefix, parts, maxLen)
 	local lines = {}
 	if #parts == 0 then
@@ -143,6 +165,7 @@ function Addon:FormatGearCheckMemberIssues(report, category)
 	for _, finding in ipairs(report.findings or {}) do
 		local matches = category == "gear" and ChatFindingMatches(finding, "items")
 			or category == "enchant" and (ChatFindingMatches(finding, "enchants") or ChatFindingMatches(finding, "gems"))
+			or ChatFindingMatchesEvaluation(finding, category)
 		local code = finding.code or "UNKNOWN"
 		if matches and (finding.severity == "hard" or finding.severity == "soft" or string.find(code, "NOT_CHECKABLE", 1, true)) then
 			if not groups[code] then
@@ -157,7 +180,13 @@ function Addon:FormatGearCheckMemberIssues(report, category)
 			end
 		end
 	end
-	local categoryLabel = category == "gear" and "Gear" or "Enchants/Gems"
+	local categoryLabel = category == "gear" and "Gear"
+		or category == "enchant" and "Enchants/Gems"
+		or category == "weapon" and "Weapons"
+		or category == "armor" and "Armor"
+		or category == "gems" and "Gems"
+		or category == "enchants" and "Enchants"
+		or "Gear"
 	local prefix = "[Rw]-raid " .. ChatPlayerName(report) .. " " .. categoryLabel .. ": "
 	local parts = {}
 	for _, code in ipairs(order) do

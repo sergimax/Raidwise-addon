@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.26.0] - 2026-09-22
+
+### Added
+- Raid roster player cards show separate weapon, armor, gem, and enchant grades, with category summaries and report actions.
+- Raid roster cards use scan-status backgrounds: green through red for the lowest completed category grade, blue when a player is too far away, and gray when a member has not been scanned.
+
+### Fixed
+- Light-theme raid-roster character names retain their exact class colors and gain a dark outline shadow for readability over status backgrounds.
+
 ## [1.25.0] - 2026-09-20
 
 ### Added

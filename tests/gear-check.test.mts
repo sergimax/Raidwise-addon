@@ -190,7 +190,15 @@ test("collection orchestration and offline evaluation have explicit boundaries",
       UnitGUID=forbidden; UnitName=forbidden; UnitIsUnit=forbidden; GetTalentTabInfo=forbidden
       Raidwise:EvaluateGearCheck(snapshot)
       assert(snapshot.findings and snapshot.verdicts and snapshot.overall)
+      assert(snapshot.overall.gemGrade == "B")
+      assert(snapshot.overall.armorGrade == "B")
+      assert(snapshot.overall.weaponGrade == "B")
+      assert(snapshot.overall.enchantGrade == "B")
       assert(type(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"gear",20)) == "table")
+      assert(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"gem",20).grade == snapshot.overall.gemGrade)
+      assert(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"armor",20).grade == snapshot.overall.armorGrade)
+      assert(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"weapon",20).grade == snapshot.overall.weaponGrade)
+      assert(Raidwise:BuildGearCheckCategoryTooltipLines(snapshot,"enchant",20).grade == snapshot.overall.enchantGrade)
       local results, passed, total = Raidwise:GearCheckRulesSelfTest()
       assert(passed == total and #results == total)
     `);
@@ -218,6 +226,10 @@ test("roster issue reports group codes, separate categories, and retain unknown 
       assert(#lines == 1)
       assert(lines[1] == "[Rw]-raid Tester Enchants/Gems: GEM_NOT_CHECKABLE - neck,wrist; MISSING_ENCHANT - head", lines[1])
       assert(Raidwise:FormatGearCheckMemberIssues(report, "gear")[1] == "[Rw]-raid Tester Gear: WRONG_WEAPON - MH")
+      assert(Raidwise:FormatGearCheckMemberIssues(report, "weapon")[1] == "[Rw]-raid Tester Weapons: WRONG_WEAPON - MH")
+      assert(Raidwise:FormatGearCheckMemberIssues(report, "armor")[1] == "[Rw]-raid Tester Armor: No issues in this category.")
+      assert(Raidwise:FormatGearCheckMemberIssues(report, "gems")[1] == "[Rw]-raid Tester Gems: GEM_NOT_CHECKABLE - neck,wrist")
+      assert(Raidwise:FormatGearCheckMemberIssues(report, "enchants")[1] == "[Rw]-raid Tester Enchants: MISSING_ENCHANT - head")
       assert(#Raidwise:FormatGearCheckMemberIssues(nil, "gear") == 0)
       assert(Raidwise:FormatGearCheckMemberIssues({}, "gear")[1] == "[Rw]-raid ? Gear: No issues in this category.")
       for index = 1, 40 do

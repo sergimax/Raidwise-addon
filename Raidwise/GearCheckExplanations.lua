@@ -2,8 +2,14 @@ local Addon = Raidwise
 local Policy = Addon.GearCheckPolicy
 local ITEM_ISSUE_CATEGORIES = Policy.ITEM_ISSUE_CATEGORIES
 local ENCHANT_SOCKET_CATEGORIES = Policy.ENCHANT_SOCKET_CATEGORIES
+local ARMOR_ISSUE_CATEGORIES = Policy.ARMOR_ISSUE_CATEGORIES
+local WEAPON_ISSUE_CATEGORIES = Policy.WEAPON_ISSUE_CATEGORIES
+local GEM_ISSUE_CATEGORIES = Policy.GEM_ISSUE_CATEGORIES
+local ENCHANT_ISSUE_CATEGORIES = Policy.ENCHANT_ISSUE_CATEGORIES
 local CollectNotGoodGearReasons = Policy.CollectNotGoodGearReasons
 local CollectNotGoodEnchantSocketReasons = Policy.CollectNotGoodEnchantSocketReasons
+local CollectNotGoodEnchantReasons = Policy.CollectNotGoodEnchantReasons
+local CollectNotGoodGemReasons = Policy.CollectNotGoodGemReasons
 local GearSlotQualifiesForGood = Policy.GearSlotQualifiesForGood
 local EnchantSocketSlotQualifiesForGood = Policy.EnchantSocketSlotQualifiesForGood
 local FindingMatchesCategory = Policy.FindingMatchesCategory
@@ -21,6 +27,42 @@ local TOOLTIP_CATEGORY_CONFIG = {
 		qualifiesForGood = EnchantSocketSlotQualifiesForGood,
 		collectNotGood = CollectNotGoodEnchantSocketReasons,
 		cleanKey = "GEAR_CHECK_RAID_TIP_ENCHANT_CLEAN",
+	},
+	armor = {
+		categories = ARMOR_ISSUE_CATEGORIES,
+		qualifiesForGood = GearSlotQualifiesForGood,
+		collectNotGood = CollectNotGoodGearReasons,
+		slotFilter = Policy.IsArmorEquipmentSlot,
+		gradeField = "armorGrade",
+		fallbackField = "gearGrade",
+		cleanKey = "GEAR_CHECK_RAID_TIP_ARMOR_CLEAN",
+	},
+	weapon = {
+		categories = WEAPON_ISSUE_CATEGORIES,
+		qualifiesForGood = GearSlotQualifiesForGood,
+		collectNotGood = CollectNotGoodGearReasons,
+		slotFilter = Policy.IsWeaponEquipmentSlot,
+		gradeField = "weaponGrade",
+		fallbackField = "gearGrade",
+		cleanKey = "GEAR_CHECK_RAID_TIP_WEAPON_CLEAN",
+	},
+	gem = {
+		categories = GEM_ISSUE_CATEGORIES,
+		qualifiesForGood = function(_, slot, findings) return #CollectNotGoodGemReasons(nil, slot, findings) == 0 end,
+		collectNotGood = CollectNotGoodGemReasons,
+		slotFilter = Policy.IsGemEquipmentSlot,
+		gradeField = "gemGrade",
+		fallbackField = "enchantSocketGrade",
+		cleanKey = "GEAR_CHECK_RAID_TIP_GEM_CLEAN",
+	},
+	enchant = {
+		categories = ENCHANT_ISSUE_CATEGORIES,
+		qualifiesForGood = function(profile, slot, findings) return #CollectNotGoodEnchantReasons(profile, slot, findings) == 0 end,
+		collectNotGood = CollectNotGoodEnchantReasons,
+		slotFilter = Policy.IsEnchantEquipmentSlot,
+		gradeField = "enchantGrade",
+		fallbackField = "enchantSocketGrade",
+		cleanKey = "GEAR_CHECK_RAID_TIP_ENCHANT_ONLY_CLEAN",
 	},
 }
 
@@ -67,7 +109,10 @@ function Addon:BuildGearCheckCategoryTooltipLines(report, categoryKey, maxLines)
 	end
 
 	local overall = report.overall or {}
-	if categoryKey == "gear" then
+	local gradeField = config.gradeField
+	if gradeField then
+		result.grade = overall[gradeField] or (config.fallbackField and overall[config.fallbackField]) or "B"
+	elseif categoryKey == "gear" then
 		result.grade = overall.gearGrade or overall.status or "B"
 	else
 		result.grade = overall.enchantSocketGrade or "B"
@@ -75,6 +120,10 @@ function Addon:BuildGearCheckCategoryTooltipLines(report, categoryKey, maxLines)
 
 	local findings = report.findings or {}
 	local categoryMap = config.categories
+	local equipmentByKey = {}
+	for _, equipmentSlot in ipairs(Addon:GetGearCheckEquipment(report)) do
+		equipmentByKey[equipmentSlot.key] = equipmentSlot
+	end
 	local bySlot = {}
 	local order = {}
 
@@ -98,7 +147,9 @@ function Addon:BuildGearCheckCategoryTooltipLines(report, categoryKey, maxLines)
 
 	for index = 1, #findings do
 		local finding = findings[index]
-		if FindingMatchesCategory(finding, categoryMap) and (finding.severity == "hard" or finding.severity == "soft") then
+		local findingSlot = finding.slot and equipmentByKey[finding.slot]
+		local slotMatches = not config.slotFilter or not findingSlot or config.slotFilter(findingSlot)
+		if slotMatches and FindingMatchesCategory(finding, categoryMap) and (finding.severity == "hard" or finding.severity == "soft") then
 			AppendBucket(finding.slot, finding.severity, finding.message or finding.code or "?")
 		end
 	end
@@ -116,7 +167,11 @@ function Addon:BuildGearCheckCategoryTooltipLines(report, categoryKey, maxLines)
 		local equipment = Addon:GetGearCheckEquipment(report)
 		for index = 1, #equipment do
 			local slot = equipment[index]
-			if slot.policy == "CHECKED" and slot.item and not SlotHasCategoryIssue(findings, slot.key, categoryMap) then
+			if slot.policy == "CHECKED"
+				and (not config.slotFilter or config.slotFilter(slot))
+				and slot.item
+				and not SlotHasCategoryIssue(findings, slot.key, categoryMap)
+			then
 				if not config.qualifiesForGood(profile, slot, findings) then
 					local reasons = config.collectNotGood(profile, slot, findings)
 					for reasonIndex = 1, #reasons do
@@ -185,4 +240,3 @@ function Addon:ExplainGearCheckNotGood(report, slot)
 	end
 	return CollectNotGoodReasons(profile, slot, report.findings or {})
 end
-

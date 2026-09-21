@@ -66,6 +66,11 @@ Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level in
 
 `GetGearCheckScanState` derives `complete`, `incomplete`, or `unavailable` independently of S/A/B/C/D grades. Overall results carry optional `scanState`, `scanReason`, and `provisional` metadata. Views and chat show incomplete/unavailable labels; raid/minimap readiness counts exclude those reports. Diagnostic grades remain available for partial observations.
 
+Raid roster presentation derives independent category grades from the same report:
+gems, armor, weapons (main-hand, off-hand, two-hand and relic slots), and
+enchants. The legacy combined `gearGrade` and `enchantSocketGrade` fields remain
+available for older consumers and saved reports.
+
 ### Refresh and reputation flow
 
 Composition uses groups 1–5 from live collection or the shared snapshot, excluding
