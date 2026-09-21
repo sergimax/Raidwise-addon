@@ -23,7 +23,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Rating catalogs/access | `PlayerHistory.lua` | `GetPersonalRating`, `GetCommunityRating`, normalization |
 | History, migrations, persistence | `PlayerHistoryStore.lua` | `RecordCurrentGroupHistory`, `SavePersonalRatingForGuid`, `SaveHistoryEventsForGuid`, `SaveProfileNotesForGuid`, `PruneHistory`, `AddCharacterRecord` |
 | Linked player characters | `CharacterLinks.lua`, `ProfileCharacters.lua` | Group persistence, shared opinion synchronization, and the profile Characters tab |
-| Profile exchange | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSync.lua` | Bounded JSON codec; `BuildSyncExport`, `StageSyncImport`, `ApplySyncImport`; consent-based addon transport; Sync view and Share menus. Contract: [Synchronization.md](Synchronization.md). |
+| Profile exchange | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageExport.lua`, `PageSync.lua` | Bounded JSON codec; `BuildSyncExport`, `StageSyncImport`, `ApplySyncImport`; export and import views with consent-based addon transport and Share menus. Contract: [Synchronization.md](Synchronization.md). |
 | Unsaved profile edits | `ProfileDraft.lua` | `CreateProfileDraft`, `ToggleProfileDraftTag`, `AddProfileDraftEvent` |
 | Profile window | `CharacterProfile.lua`, `ProfilePanels.lua` | Window, editing and commands in `CharacterProfile`; tab construction and history rendering in `ProfilePanels` |
 | Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `GetTooltipSettings`, `BuildUnitTooltipRatingLinesForMember`; tooltip hooks in `UnitTooltips` |

@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 18
+local SHELL_LAYOUT_VERSION = 19
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -15,9 +15,9 @@ local MENU_GROUPS = {
 
 -- WotLK Interface\Icons paths (one per left-menu category).
 local PAGES = {
-	{ id = "sync", key = "Sync", labelKey = "TAB_SYNC", icon = "Interface\\Icons\\Spell_Arcane_PortalIronForge", group = "personal" },
 	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", group = "personal" },
 	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "personal" },
+	{ id = "sync", key = "Sync", labelKey = "TAB_SYNC", icon = "Interface\\Icons\\Spell_Arcane_PortalIronForge", group = "personal" },
 	{ id = "database", key = "Database", labelKey = "TAB_DATABASE", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "personal" },
 	{ id = "raid", key = "Raid", labelKey = "TAB_RAID", icon = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider", group = "raiding" },
 	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings", group = "raiding" },

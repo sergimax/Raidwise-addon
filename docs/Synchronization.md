@@ -1,20 +1,19 @@
 # Profile exchange
 
-The **Synchronization** view supports explicit Player–Player and Player–External
+The **Export** and **Import** views support explicit Player–Player and Player–External
 exchange. Guild/raid sharing is a broadcast request followed by individually
 accepted whisper transfers; automatic guild replication is not implemented.
 
-## Using it
+## Export and import views
 
-- Search by character name, select a result, and choose **To target**, **To guild**
-  or **To raid**. The first three matching results are shown; refine the name if
-  needed. Saved profiles and recent History records are searchable.
-- **All to target/guild/raid** shares the Character database, excluding temporary
-  uncustomized encounters. Single-character sharing can include a temporary record.
+- In **Export**, search by character name, select a result, then choose
+  **Export selected** or **Export database** to create copyable JSON. The first
+  three matching results are shown; refine the name if needed. Saved profiles and
+  recent History records are searchable.
 - **Character → Share** offers the same recipients for the open character.
   **Character database → Share database** shares the full saved database.
-- **Export selected/database** generates copyable JSON. Paste compatible JSON and
-  select **Review JSON** to prepare an external import.
+- In **Import**, paste compatible JSON and select **Review JSON** to prepare an
+  external import.
 - Incoming requests can be **received**, **cancelled**, or **ignored**. Receive
   downloads data only. Review the short list and totals, then **Apply changes**
   or **Cancel**. No import happens automatically.

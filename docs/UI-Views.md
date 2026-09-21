@@ -21,7 +21,8 @@ Menu tabs (top to bottom; each row has an **18×18** category icon + label). Pag
 ```text
   Personal
 [ watch ] Character cooldowns
-[ note  ] Export gear and CDs
+[ note  ] Export gear, CDs, and profiles
+[ portal ] Import profiles
   ────────
   Raiding
 [ glory ] Raid roster
@@ -41,17 +42,17 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 18` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 19` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 1` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `PROFILE_LAYOUT_VERSION = 35` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
-| Export | `LAYOUT_VERSION = 2` | `PageExport.lua` | Shell title bar (next to page name) |
+| Export | `LAYOUT_VERSION = 3` | `PageExport.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 36` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 5` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Character database | `LAYOUT_VERSION = 7` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Synchronization | `LAYOUT_VERSION = 3` | `PageSync.lua` | Shell title bar (next to page name) |
+| Import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 16` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
 
@@ -79,6 +80,12 @@ Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions 
 | select all data button | **Select all** — highlights JSON for Ctrl+C (disabled until export) |
 | short hint | Starts as “After export, press Ctrl+C to copy.” |
 | input for copy | Multiline EditBox on black fill; click selects all; Ctrl+C copies. Padding unchanged. |
+
+The same copy box also exports one selected saved profile or the full saved profile database as synchronization JSON. Search saved profiles and History records by name, choose a result, then use **Export selected** or **Export database**. Direct addon sharing remains in each character or database **Share** menu.
+
+## Import profiles
+
+The former Synchronization view is now import-only. It receives addon transfer offers, stages pasted JSON for review, applies or cancels reviewed changes, and manages incoming-request and ignored-sender controls. The pasted JSON and review areas use equal columns below those controls.
 
 ## Character cooldowns
 

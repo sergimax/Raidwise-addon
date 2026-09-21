@@ -385,7 +385,7 @@ test("every shipped module compiles as Lua 5.1", async () => {
 });
 
 test("Settings and character linking panels avoid circular frame anchors", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "SyncJSON", "SyncData", "SyncTransport", "PageSettings", "ProfileCharacters", "PageHistory", "PageSync"], `
+  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "SyncJSON", "SyncData", "SyncTransport", "PageSettings", "ProfileCharacters", "PageHistory", "PageExport", "PageSync"], `
     local serial=0
     local function depends(region,wanted,seen)
       if region==wanted then return true end
@@ -446,6 +446,9 @@ test("Settings and character linking panels avoid circular frame anchors", async
     assert(database.layoutVersion==Raidwise.Pages.Database.LAYOUT_VERSION and database.addButton)
     Raidwise.syncOffers={}
     Raidwise.GetSyncReviewText=function() return "preview" end
+    Raidwise.mainFrame={pages={}}
+    local export=Raidwise.Pages.Export.Create(region())
+    Raidwise.mainFrame.pages.export=export
     local sync=Raidwise.Pages.Sync.Create(region())
     local shareAnchor=region(); shareAnchor:Show()
     Raidwise:ShowSyncShareMenu(shareAnchor)
@@ -459,7 +462,13 @@ test("Settings and character linking panels avoid circular frame anchors", async
     Raidwise:HideSyncShareMenu()
     assert(not Raidwise.syncShareMenu:IsShown())
     Raidwise:RefreshSyncView()
-    assert(sync.layoutVersion==Raidwise.Pages.Sync.LAYOUT_VERSION and sync.search and sync.ignoreName)
+    assert(sync.layoutVersion==Raidwise.Pages.Sync.LAYOUT_VERSION and sync.json and sync.ignoreName)
+    assert(export.layoutVersion==Raidwise.Pages.Export.LAYOUT_VERSION and export.syncSearch and export.syncOne)
+	Raidwise:RefreshExportView()
+	local selectedTab
+	Raidwise.SelectTab=function(_,tab) selectedTab=tab end
+	Raidwise:OpenSyncView("missing-guid")
+	assert(selectedTab=="export")
     Raidwise:SetSyncSenderIgnored("Zulu",true)
     Raidwise:SetSyncSenderIgnored("Alpha-Realm",true)
     Raidwise:SetSyncSenderIgnored("Bravo",true)

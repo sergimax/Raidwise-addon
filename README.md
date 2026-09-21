@@ -56,6 +56,7 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 
 - Short description, then **Include item names**
 - **Export character data** fills the JSON box (name, class, spec, gearScore, gear, bags, lockouts)
+- Search saved profiles and History records, then use **Export selected** or **Export database** to copy synchronization JSON in the same box.
 - **Select all** highlights the JSON for Ctrl+C
 - `gearScore` comes from the **GearScore** addon when it is installed (optional dependency)
 
@@ -102,11 +103,10 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 
 **Character database** keeps manually edited and imported cards, with source icons and filters for name, class, guild, personal opinion and record source. Add a character by name without scanning them. Delete one row or clear the database with confirmation. Saved cards survive encounter cleanup; see [Reputation.md](docs/Reputation.md).
 
-**Synchronization** supports explicit Player-to-Player and Player-to-External exchange:
+**Import** supports explicit Player-to-Player and Player-to-External exchange:
 
-- Search by character name in the Sync view, then share one character or the full saved database to a target, guild, or raid.
-- Use **Share** from an open Character profile, or the database share action, to open the same recipient menu.
-- Export selected data or the database as copyable JSON. Paste JSON from a player or web app, review the short list of incoming changes, then **Apply** or **Cancel**.
+- Profile JSON exports are in **Export**. Use **Share** from an open Character profile or the database share action to send one profile or the saved database to a target, guild, or raid.
+- Paste JSON from a player or web app, review the short list of incoming changes, then **Apply** or **Cancel**.
 - Incoming requests require consent and can be declined, ignored by character name across realms, or disabled. The ignored-character list is searchable, paginated, and supports **Unignore**.
 - Sync JSON carries `reportVersion: 1`; private memos remain local and are never included in exchange data.
 
@@ -214,7 +214,7 @@ Raidwise/
   PageComposition.lua # Raid composition tab
   PageGearCheckTarget.lua # Gear check (target) tab
   PageHistory.lua     # History and Character database tabs
-  PageSync.lua        # Synchronization tab
+  PageSync.lua        # Import tab
   PageSettings.lua    # Settings tab
   PageInfo.lua        # Info tab
   ExporterWindow.lua  # main window shell (menu, title, status, tab wiring)
