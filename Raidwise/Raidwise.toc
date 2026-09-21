@@ -55,6 +55,7 @@ PageRaid.lua
 PageComposition.lua
 PageGearCheckTarget.lua
 PageHistory.lua
+PageSyncExport.lua
 PageSync.lua
 PageSettings.lua
 PageInfo.lua

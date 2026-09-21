@@ -30,10 +30,8 @@ local function result(ok, err)
 	Addon:RefreshSyncView()
 end
 
-function Addon:OpenSyncView(guid)
-	self.syncSelectedGuid = guid
-	self:SelectTab("export")
-	if self.RefreshExportView then self:RefreshExportView() end
+function Addon:OpenSyncView()
+	self:SelectTab("syncExport")
 end
 
 function Addon:ShowSyncShareMenu(anchor, guid)
@@ -70,7 +68,7 @@ function Addon:ShowSyncShareMenu(anchor, guid)
 			if Addon.Print then Addon:Print(W.T(ok and "SYNC_OFFER_SENT" or err)) end
 		end)
 	end
-	button(menu, 4, -88, 162, "TAB_EXPORT", function() menu:Hide(); Addon:OpenSyncView(menu.guid) end)
+	button(menu, 4, -88, 162, "TAB_SYNC_EXPORT", function() menu:Hide(); Addon:OpenSyncView() end)
 	menu:SetScript("OnUpdate", function(self, delta) self.age=(self.age or 0)+delta; if self.age > 15 or not self.anchor:IsShown() then self:Hide() end end)
 	self.syncShareMenu = menu
 	menu:Show()
@@ -171,3 +169,34 @@ end
 
 Addon.Pages.Sync = {id="sync", LAYOUT_VERSION=LAYOUT_VERSION, Create=create,
 	Refresh=function() Addon:RefreshSyncView() end, ApplyLocale=function() Addon:RefreshSyncView() end}
+
+-- Keep the characters-data export usable after a partial addon update that lacks
+-- the new PageSyncExport.lua file. The dedicated module replaces this fallback.
+if not Addon.Pages.SyncExport then
+	local function CreateSyncExport(parent)
+		local page = CreateFrame("Frame", nil, parent)
+		page:SetAllPoints(parent); page.layoutVersion = 1
+		local width = W.ContentInnerWidth()
+		local description = text(page, 0, 0, width, W.T("SYNC_EXPORT_DESCRIPTION"))
+		local buttonWidth = (width - 8) / 2
+		local exportButton = button(page, 0, -28, buttonWidth, "SYNC_EXPORT_ALL", function()
+			local value, err = Addon:BuildSyncExport()
+			if not value then page.status:SetText(W.T(err or "SYNC_INVALID")); return end
+			page.copyBox:SetText(value); page.copyBox:SetFocus(); page.copyBox:HighlightText()
+			page.selectButton:Enable(); page.status:SetText(W.T("EXPORT_READY"))
+		end)
+		page.selectButton = button(page, buttonWidth + 8, -28, buttonWidth, "BTN_SELECT_ALL", function()
+			if (page.copyBox:GetText() or "") ~= "" then page.copyBox:SetFocus(); page.copyBox:HighlightText() end
+		end)
+		page.selectButton:Disable()
+		page.status = text(page, 0, -60, width, W.T("EXPORT_HINT"))
+		local copyBox, host = W.CreateCopyBox(page, "RaidwiseSyncExportFallbackScroll", "RaidwiseSyncExportFallbackBox")
+		host:SetPoint("TOPLEFT", page.status, "BOTTOMLEFT", 0, -6); host:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+		copyBox:SetMaxLetters((Addon.SYNC_MAX_BYTES or 262144) + 1); page.copyBox = copyBox
+		return page
+	end
+	Addon.Pages.SyncExport = { id="syncExport", LAYOUT_VERSION=1, Create=CreateSyncExport,
+		Refresh=function(page)
+			if page then page.status:SetText((page.copyBox:GetText() or "") ~= "" and W.T("EXPORT_READY") or W.T("EXPORT_HINT")) end
+		end }
+end

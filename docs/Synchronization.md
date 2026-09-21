@@ -6,10 +6,8 @@ accepted whisper transfers; automatic guild replication is not implemented.
 
 ## Export and import views
 
-- In **Export**, search by character name, select a result, then choose
-  **Export selected** or **Export database** to create copyable JSON. The first
-  three matching results are shown; refine the name if needed. Saved profiles and
-  recent History records are searchable.
+- **Characters data export** creates copyable JSON for the complete saved character
+  database. It does not select individual characters.
 - **Character → Share** offers the same recipients for the open character.
   **Character database → Share database** shares the full saved database.
 - In **Import**, paste compatible JSON and select **Review JSON** to prepare an

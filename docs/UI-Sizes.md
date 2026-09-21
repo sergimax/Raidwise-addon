@@ -44,13 +44,12 @@ Groups (top to bottom): **Personal** — Character cooldowns (watch), Export (no
 
 ## Content padding
 
-Export adds profile search rows and **Export selected** / **Export database**
-controls above its shared copy area. Import uses two equal copy-area columns
-separated by 24 px. Search and name inputs are 24 px tall, with 8 px horizontal
-/ 3 px vertical text insets. The shared `Widgets.CreateTextInput` supplies
-anonymous frames with explicit fonts and theme-bound backgrounds, also used by
-History filters and Character linking. It avoids the broken anonymous
-`InputBoxTemplate` texture regions on 3.3.5.
+Characters data export has one full-width **Export database** action above its
+copy area. Import uses two equal copy-area columns separated by 24 px. Name
+inputs are 24 px tall, with 8 px horizontal / 3 px vertical text insets. The
+shared `Widgets.CreateTextInput` supplies anonymous frames with explicit fonts
+and theme-bound backgrounds, also used by History filters and Character linking.
+It avoids the broken anonymous `InputBoxTemplate` texture regions on 3.3.5.
 
 Import action rows are 24 px tall; the JSON and incoming-review copy areas begin
 454 px below the content top and fill the remaining height. The ignore section
