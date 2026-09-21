@@ -1161,6 +1161,7 @@ local function CreateRaidPlayerCell(parent)
 	cell.nameText:SetHeight(RAID_LINE_H)
 	cell.nameText:SetJustifyH("LEFT")
 	cell.nameText:SetJustifyV("MIDDLE")
+	W.SetLightThemeTextOutline(cell.nameText)
 
 	cell.gearScoreText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
 	cell.gearScoreText:SetPoint("TOPLEFT", cell, "TOPLEFT", RAID_CELL_PAD, -28)

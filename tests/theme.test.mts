@@ -48,10 +48,25 @@ test("extracted theme preserves palette references and bound colors across switc
       assert(nameLabel.color[1]~=0.77 or nameLabel.color[2]~=0.12)
       W.SetClassFontColor(nameLabel,"DEATHKNIGHT")
       assert(nameLabel.color[1]==0.77 and nameLabel.color[2]==0.12 and nameLabel.color[3]==0.23)
+      local outlinedName={
+        shadowOffset={0,0},shadowColor={0,0,0,0},SetFontObject=function() end,
+        GetShadowOffset=function(self) return unpack(self.shadowOffset) end,
+        SetShadowOffset=function(self,...) self.shadowOffset={...} end,
+        GetShadowColor=function(self) return unpack(self.shadowColor) end,
+        SetShadowColor=function(self,...) self.shadowColor={...} end,
+      }
+      W.SetLightThemeTextOutline(outlinedName)
+      Raidwise:SetTheme("light")
+      assert(outlinedName.shadowOffset[1]==1 and outlinedName.shadowOffset[2]==-1)
+      assert(outlinedName.shadowColor[4]==1)
+      Raidwise:SetTheme("dark")
+      assert(outlinedName.shadowColor[4]==0)
+      Raidwise:SetTheme("light")
+      assert(outlinedName.shadowColor[4]==1)
       assert(W.RaidScanBackground(nil)==UI.RAID_SCAN_NONE)
       assert(W.RaidScanBackground({})==UI.RAID_SCAN_NONE)
       assert(W.RaidScanBackground({status="too_far"})==UI.RAID_SCAN_INCOMPLETE)
-      assert(W.RaidScanBackground({status="timeout"})==UI.RAID_SCAN_INCOMPLETE)
+      assert(W.RaidScanBackground({status="timeout"})==UI.RAID_SCAN_NONE)
       local entry={report={overall={weaponGrade="S",armorGrade="A",gemGrade="S",enchantGrade="A"}}}
       assert(W.RaidScanBackground(entry)==UI.RAID_SCAN_A)
       for _,field in ipairs({"weaponGrade","armorGrade","gemGrade","enchantGrade"}) do

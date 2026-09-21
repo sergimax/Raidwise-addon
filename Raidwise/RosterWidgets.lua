@@ -8,7 +8,7 @@ function W.RaidScanBackground(entry)
 	if not entry then return UI.RAID_SCAN_NONE end
 	local report = entry.report
 	if not report then
-		return entry.status and UI.RAID_SCAN_INCOMPLETE or UI.RAID_SCAN_NONE
+		return entry.status == "too_far" and UI.RAID_SCAN_INCOMPLETE or UI.RAID_SCAN_NONE
 	end
 	if Addon:GetGearCheckScanState(report) ~= "complete" then
 		return UI.RAID_SCAN_INCOMPLETE

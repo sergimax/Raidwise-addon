@@ -245,8 +245,9 @@ local function ApplyFontShadow(fontString)
 		end)
 	end
 	if Addon:GetTheme() == "light" then
-		fontString:SetShadowOffset(0, 0)
-		fontString:SetShadowColor(0, 0, 0, 0)
+		local lightShadow = shadow.light
+		fontString:SetShadowOffset(lightShadow and lightShadow.x or 0, lightShadow and lightShadow.y or 0)
+		fontString:SetShadowColor(unpack(lightShadow and lightShadow.color or { 0, 0, 0, 0 }))
 	else
 		fontString:SetShadowOffset(shadow.x, shadow.y)
 		fontString:SetShadowColor(unpack(shadow.color))
@@ -288,6 +289,14 @@ end
 
 function W.SetClassFontColor(fontString, classToken)
 	SetThemeColor(fontString, "SetTextColor", { W.ClassColor(classToken) }, true)
+end
+
+function W.SetLightThemeTextOutline(fontString)
+	ApplyFontShadow(fontString)
+	local shadow = fontShadows[fontString]
+	if not shadow then return end
+	shadow.light = { x = 1, y = -1, color = { 0, 0, 0, 1 } }
+	ApplyFontShadow(fontString)
 end
 
 function W.SetTextureColor(texture, color)
