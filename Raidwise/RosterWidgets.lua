@@ -3,6 +3,31 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
+-- Never present provisional grades as a completed scan.
+function W.RaidScanBackground(entry)
+	if not entry then return UI.RAID_SCAN_NONE end
+	local report = entry.report
+	if not report then
+		return entry.status and UI.RAID_SCAN_INCOMPLETE or UI.RAID_SCAN_NONE
+	end
+	if Addon:GetGearCheckScanState(report) ~= "complete" then
+		return UI.RAID_SCAN_INCOMPLETE
+	end
+	local overall = report.overall or {}
+	local grades = {
+		overall.weaponGrade or overall.gearGrade or overall.status or "B",
+		overall.armorGrade or overall.gearGrade or overall.status or "B",
+		overall.gemGrade or overall.enchantSocketGrade or "B",
+		overall.enchantGrade or overall.enchantSocketGrade or "B",
+	}
+	local ranks = { S = 1, A = 1, B = 2, C = 3, D = 4 }
+	local worst = 1
+	for _, grade in ipairs(grades) do
+		worst = math.max(worst, ranks[grade] or 2)
+	end
+	return ({ UI.RAID_SCAN_A, UI.RAID_SCAN_B, UI.RAID_SCAN_C, UI.RAID_SCAN_D })[worst]
+end
+
 function W.GearGradationColor(step)
 	if not step or step == "" then
 		return UI.GEAR_OK

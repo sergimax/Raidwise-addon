@@ -66,6 +66,12 @@ Addon.UITheme = {
 
 	-- Raid roster tab
 	RAID_BUFF_ICON = 18,
+	RAID_SCAN_A = { 0.10, 0.24, 0.16, 1 },
+	RAID_SCAN_B = { 0.27, 0.23, 0.10, 1 },
+	RAID_SCAN_C = { 0.31, 0.17, 0.09, 1 },
+	RAID_SCAN_D = { 0.29, 0.11, 0.13, 1 },
+	RAID_SCAN_INCOMPLETE = { 0.12, 0.20, 0.30, 1 },
+	RAID_SCAN_NONE = { 0.16, 0.16, 0.18, 1 },
 	RAID_BUFF_MAX = 8,
 	RAID_BUFF_GAP = 2,
 	PARTY_BUFF_ICON = 14,
@@ -126,6 +132,12 @@ local UI = Addon.UITheme
 
 -- Keep color tables stable: page modules retain references to them.
 local lightPalette = {
+	RAID_SCAN_A = { 0.78, 0.90, 0.80, 1 },
+	RAID_SCAN_B = { 0.94, 0.88, 0.65, 1 },
+	RAID_SCAN_C = { 0.96, 0.79, 0.63, 1 },
+	RAID_SCAN_D = { 0.94, 0.73, 0.74, 1 },
+	RAID_SCAN_INCOMPLETE = { 0.76, 0.85, 0.95, 1 },
+	RAID_SCAN_NONE = { 0.85, 0.85, 0.87, 1 },
 	PANEL_BG = { 0.94, 0.93, 0.90, 1 },
 	TITLE_BG = { 0.84, 0.82, 0.77, 1 },
 	INPUT_BG = { 1, 0.99, 0.97, 1 },
@@ -242,7 +254,7 @@ local function ApplyFontShadow(fontString)
 end
 
 local applyingColor = false
-local function SetThemeColor(region, method, color)
+local function SetThemeColor(region, method, color, preserveColor)
 	local bindings = themeBindings[region]
 	if not bindings then
 		bindings = {}
@@ -263,7 +275,8 @@ local function SetThemeColor(region, method, color)
 		bindings[method] = {}
 	end
 	bindings[method].color = color
-	local rendered = method == "SetTextColor" and W.ReadableTextColor(color) or color
+	bindings[method].preserveColor = preserveColor
+	local rendered = method == "SetTextColor" and not preserveColor and W.ReadableTextColor(color) or color
 	applyingColor = true
 	region[method](region, rendered[1], rendered[2], rendered[3], rendered[4] or 1)
 	applyingColor = false
@@ -271,6 +284,10 @@ end
 
 function W.SetBackdropColor(frame, color)
 	SetThemeColor(frame, "SetBackdropColor", color)
+end
+
+function W.SetClassFontColor(fontString, classToken)
+	SetThemeColor(fontString, "SetTextColor", { W.ClassColor(classToken) }, true)
 end
 
 function W.SetTextureColor(texture, color)
@@ -297,7 +314,7 @@ function Addon:ApplyTheme()
 	for region, bindings in pairs(themeBindings) do
 		for method, binding in pairs(bindings) do
 			if binding.color then
-				SetThemeColor(region, method, binding.color)
+				SetThemeColor(region, method, binding.color, binding.preserveColor)
 			end
 		end
 	end

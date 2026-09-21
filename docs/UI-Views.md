@@ -157,7 +157,9 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 
 API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
 
-Offline characters use a muted card background, muted names, and dimmed grayscale class/role/spec icons; GS and iLvl are dimmed. Characters without a gear-check report use a highlighted background, `-` for GS and iLvl, and an amber **Not scanned** label (or the specific scan failure) in the score area. Offline styling takes priority when both apply. Existing reports remain accessible. Normal styling returns on roster refresh after reconnecting or receiving a report.
+Player-card backgrounds show scan status in both themes: green for a completed scan with all four category grades at least A (including S), gold for a minimum B, orange for a minimum C, and red for a minimum D. Blue means an incomplete or failed scan, including too far away; gray means not scanned or a new member. Provisional grades never select a completed color. Status backgrounds remain visible on hover; empty slots keep their alternating backgrounds. See [the color preview](raid-scan-colors.html).
+
+Online character names use the exact `RAID_CLASS_COLORS` color in both themes, without contrast recoloring. Offline characters retain their scan background, with muted names and dimmed grayscale class/role/spec icons; GS and iLvl are dimmed. Characters without a gear-check report show `-` for GS and iLvl and an amber **Not scanned** label (or the specific scan failure) in the score area. Existing reports remain accessible. Styling updates on roster refresh after reconnecting or receiving a report.
 
 ## Raid composition
 

@@ -1243,7 +1243,7 @@ local function CreateRaidPlayerCell(parent)
 		if not self.member then
 			return
 		end
-		W.SetBackdropColor(self, UI.BTN_HOVER)
+		W.SetBackdropColor(self, self.stripe or UI.CD_ROW_A)
 		W.ShowMemberRatingTooltip(self, self.member, {
 			gearCheck = true,
 			gearEntry = self.gearEntry,
@@ -1425,12 +1425,7 @@ end
 
 local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	local offline = member and member.unit and UnitIsConnected and not UnitIsConnected(member.unit)
-	local unscanned = member and not (gearEntry and gearEntry.report)
-	if offline then
-		stripe = UI.BTN_DISABLED
-	elseif unscanned then
-		stripe = UI.BTN_SELECTED
-	end
+	if member then stripe = W.RaidScanBackground(gearEntry) end
 	cell.stripe = stripe
 	W.SetBackdropColor(cell, stripe)
 	-- Cells are reused as the roster changes; restore icons when a player reconnects.
@@ -1465,7 +1460,7 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	cell.member = member
 	cell:EnableMouse(true)
 	cell.nameText:SetText(member.name or "")
-	cell.nameText:SetTextColor(W.ClassColor(member.class))
+	W.SetClassFontColor(cell.nameText, member.class)
 	if offline then
 		W.SetFontColor(cell.nameText, UI.TEXT_DISABLED)
 	end
