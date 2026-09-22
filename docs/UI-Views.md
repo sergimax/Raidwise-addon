@@ -22,9 +22,11 @@ Menu tabs (top to bottom; each row has an **18×18** category icon + label). Pag
   Personal
 [ watch ] Character cooldowns
   ────────
-  Data exchange
+  Export to web
 [ note  ] My gear and CDs exports
 [ note  ] Characters data export
+  ────────
+  Data exchange
 [ portal ] Characters data import
   ────────
   Raiding
@@ -45,7 +47,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 20` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 21` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 1` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `PROFILE_LAYOUT_VERSION = 35` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
@@ -426,7 +428,7 @@ Switching language updates the left menu, page labels, and visible tables withou
 
 ## Adding a view
 
-1. Add a tab in `PAGES` in `ExporterWindow.lua` (shell) with a `group` (`personal` / `raiding` / `other`) and a `Page*.lua` module under `Addon.Pages`.
+1. Add a tab in `PAGES` in `ExporterWindow.lua` (shell) with a menu `group` and a `Page*.lua` module under `Addon.Pages`.
 2. Give the view a `LAYOUT_VERSION` constant, stamp it on the frame, and show it in the shell title bar next to the menu name (pages) or with `AttachLayoutVersionLabel` (profile popup).
 3. Paste a new `## Title` scheme here (same `[ block ]` style) including the layout `vN`.
 4. Implement the page and record sizes in `UI-Sizes.md`.
