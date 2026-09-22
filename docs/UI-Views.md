@@ -21,19 +21,20 @@ Menu tabs (top to bottom; each row has an **18×18** category icon + label). Pag
 ```text
   Personal
 [ watch ] Character cooldowns
-  ────────
-  Export to web
-[ note  ] My gear and CDs exports
-[ note  ] Characters data export
-  ────────
-  Data exchange
-[ portal ] Characters data import
+[ book  ] Character database
   ────────
   Raiding
 [ glory ] Raid roster
 [ BoK   ] Raid composition
 [ scope ] Gear check (target)
 [ book  ] History
+  ────────
+  Data exchange
+[ portal ] Characters data import
+  ────────
+  Export to web
+[ note  ] My gear and CDs exports
+[ note  ] Characters data export
   ────────
   Other
 [ gear  ] Settings
@@ -47,7 +48,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 21` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 22` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 1` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `PROFILE_LAYOUT_VERSION = 35` | `CharacterProfile.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |

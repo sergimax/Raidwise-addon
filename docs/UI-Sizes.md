@@ -40,7 +40,7 @@ without any of groups 6-8 until scrolled; all other pages share this height.
 | Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
 | Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
 
-Groups (top to bottom): **Personal** — Character cooldowns (watch), Character database (book); **Export to web** — My gear and CDs exports (note), Characters data export (note); **Data exchange** — Characters data import (portal); **Raiding** — Raid roster (Glory of the Raider), Raid composition (Greater Blessing of Kings), Gear check (target) (spyglass), History (book); **Other** — Settings (gear), Info (question mark).
+Groups (top to bottom): **Personal** — Character cooldowns (watch), Character database (book); **Raiding** — Raid roster (Glory of the Raider), Raid composition (Greater Blessing of Kings), Gear check (target) (spyglass), History (book); **Data exchange** — Characters data import (portal); **Export to web** — My gear and CDs exports (note), Characters data export (note); **Other** — Settings (gear), Info (question mark).
 
 ## Content padding
 

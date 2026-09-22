@@ -298,6 +298,15 @@ test("rating getters do not migrate or initialize SavedVariables", async () => {
 
 test("shell dispatches page lifecycle without knowing page controls", async () => {
   await run(["ExporterWindow"], "Raidwise.Widgets={}; Raidwise.UITheme={}; Raidwise.Pages={}", `
+    local expectedGroups={"personal","raiding","exchange","exportWeb","other"}
+    for index, groupInfo in ipairs(Raidwise.MenuGroups) do
+      assert(groupInfo.id==expectedGroups[index])
+    end
+    assert(#Raidwise.MenuGroups==#expectedGroups)
+    local expectedPageGroups={"personal","personal","raiding","raiding","raiding","raiding","exchange","exportWeb","exportWeb","other","other"}
+    for index, pageInfo in ipairs(Raidwise.MenuPages) do
+      assert(pageInfo.group==expectedPageGroups[index])
+    end
     local exportGroup
     for _, pageInfo in ipairs(Raidwise.MenuPages) do
       if pageInfo.id=="export" or pageInfo.id=="syncExport" then
