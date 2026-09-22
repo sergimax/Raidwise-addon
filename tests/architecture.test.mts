@@ -298,6 +298,23 @@ test("rating getters do not migrate or initialize SavedVariables", async () => {
 
 test("shell dispatches page lifecycle without knowing page controls", async () => {
   await run(["ExporterWindow"], "Raidwise.Widgets={}; Raidwise.UITheme={}; Raidwise.Pages={}", `
+    local expectedGroups={"personal","raiding","exchange","exportWeb","other"}
+    for index, groupInfo in ipairs(Raidwise.MenuGroups) do
+      assert(groupInfo.id==expectedGroups[index])
+    end
+    assert(#Raidwise.MenuGroups==#expectedGroups)
+    local expectedPageGroups={"personal","personal","raiding","raiding","raiding","raiding","exchange","exportWeb","exportWeb","other","other"}
+    for index, pageInfo in ipairs(Raidwise.MenuPages) do
+      assert(pageInfo.group==expectedPageGroups[index])
+    end
+    local exportGroup
+    for _, pageInfo in ipairs(Raidwise.MenuPages) do
+      if pageInfo.id=="export" or pageInfo.id=="syncExport" then
+        exportGroup=exportGroup or pageInfo.group
+        assert(pageInfo.group=="exportWeb")
+      end
+    end
+    assert(exportGroup=="exportWeb")
     local calls={}
     local function page() return {Show=function() end,Hide=function() end} end
     local frame={pages={settings=page(),history=page()},menuButtons={}}
@@ -385,7 +402,7 @@ test("every shipped module compiles as Lua 5.1", async () => {
 });
 
 test("Settings and character linking panels avoid circular frame anchors", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "SyncJSON", "SyncData", "SyncTransport", "PageSettings", "ProfileCharacters", "PageHistory", "PageSync"], `
+  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "SyncJSON", "SyncData", "SyncTransport", "PageSettings", "ProfileCharacters", "PageHistory", "PageExport", "PageSyncExport", "PageSync"], `
     local serial=0
     local function depends(region,wanted,seen)
       if region==wanted then return true end
@@ -446,6 +463,11 @@ test("Settings and character linking panels avoid circular frame anchors", async
     assert(database.layoutVersion==Raidwise.Pages.Database.LAYOUT_VERSION and database.addButton)
     Raidwise.syncOffers={}
     Raidwise.GetSyncReviewText=function() return "preview" end
+    Raidwise.mainFrame={pages={}}
+    local export=Raidwise.Pages.Export.Create(region())
+    Raidwise.mainFrame.pages.export=export
+	local syncExport=Raidwise.Pages.SyncExport.Create(region())
+	Raidwise.mainFrame.pages.syncExport=syncExport
     local sync=Raidwise.Pages.Sync.Create(region())
     local shareAnchor=region(); shareAnchor:Show()
     Raidwise:ShowSyncShareMenu(shareAnchor)
@@ -459,7 +481,13 @@ test("Settings and character linking panels avoid circular frame anchors", async
     Raidwise:HideSyncShareMenu()
     assert(not Raidwise.syncShareMenu:IsShown())
     Raidwise:RefreshSyncView()
-    assert(sync.layoutVersion==Raidwise.Pages.Sync.LAYOUT_VERSION and sync.search and sync.ignoreName)
+    assert(sync.layoutVersion==Raidwise.Pages.Sync.LAYOUT_VERSION and sync.json and sync.ignoreName)
+	assert(export.layoutVersion==Raidwise.Pages.Export.LAYOUT_VERSION and export.exportBox)
+	assert(syncExport.layoutVersion==Raidwise.Pages.SyncExport.LAYOUT_VERSION and syncExport.copyBox)
+	local selectedTab
+	Raidwise.SelectTab=function(_,tab) selectedTab=tab end
+	Raidwise:OpenSyncView()
+	assert(selectedTab=="syncExport")
     Raidwise:SetSyncSenderIgnored("Zulu",true)
     Raidwise:SetSyncSenderIgnored("Alpha-Realm",true)
     Raidwise:SetSyncSenderIgnored("Bravo",true)

@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 2
+local LAYOUT_VERSION = 4
 
 local function CreateExportPage(parent)
 	local page = CreateFrame("Frame", nil, parent)

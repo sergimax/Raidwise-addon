@@ -40,24 +40,24 @@ without any of groups 6-8 until scrolled; all other pages share this height.
 | Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
 | Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
 
-Groups (top to bottom): **Personal** — Character cooldowns (watch), Export gear and CDs (note); **Raiding** — Raid roster (Glory of the Raider), Raid composition (Greater Blessing of Kings), Gear check (target) (spyglass), History (book); **Other** — Settings (gear), Info (question mark).
+Groups (top to bottom): **Personal** — Character cooldowns (watch), Character database (book); **Raiding** — Raid roster (Glory of the Raider), Raid composition (Greater Blessing of Kings), Gear check (target) (spyglass), History (book); **Data exchange** — Characters data import (portal); **Export to web** — My gear and CDs exports (note), Characters data export (note); **Other** — Settings (gear), Info (question mark).
 
 ## Content padding
 
-Synchronization uses two equal columns separated by 24 px. Search and sender
+Characters data export has one full-width **Export database** action above its
+copy area. Import uses two equal copy-area columns separated by 24 px. Name
 inputs are 24 px tall, with 8 px horizontal / 3 px vertical text insets. The
 shared `Widgets.CreateTextInput` supplies anonymous frames with explicit fonts
 and theme-bound backgrounds, also used by History filters and Character linking.
 It avoids the broken anonymous `InputBoxTemplate` texture regions on 3.3.5.
 
-Sync action rows are 24 px tall; the JSON and incoming-review copy areas begin
-408 px below the content top and fill the remaining height. The ignore section
+Import action rows are 24 px tall; the JSON and incoming-review copy areas begin
+454 px below the content top and fill the remaining height. The ignore section
 shows two 25 px rows with per-character Unignore buttons and Previous/Next paging.
-Its name input also filters that list. Transfer controls occupy the left column
-above the status line. The Character title
+Its name input also filters that list. The Character title
 bar has a 90 x 18 px Share button, 6 px left of its layout badge. The database
 toolbar Share database button is 150 px wide, 8 px left of Refresh. Both open a
-170 x 122 px menu with target/guild/raid actions, a Synchronization shortcut,
+170 x 122 px menu with target/guild/raid actions, an Export shortcut,
 and an X close button. Selecting the Share button again or changing views also
 closes the menu.
 
