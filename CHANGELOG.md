@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.27.0] - 2026-09-23
+
+### Added
+- A dedicated Characters data export view creates copyable JSON for the saved Character database, while the Import view remains focused on receiving and reviewing data.
+
+### Changed
+- The left menu now orders Personal, Raiding, Data exchange, Export to web, and Other sections, with gear/cooldown and character-data exports together under Export to web.
+
 ## [1.26.0] - 2026-09-22
 
 ### Added
