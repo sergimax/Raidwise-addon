@@ -114,7 +114,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Gap: toolbar → table | 8 px | Table starts below Refresh button |
 | Refresh | **96 × 28** | Top-right of the page |
 | Instance column | **170** | Name + type stacked |
-| Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`), **Remove** **82 × 16** on non-current characters |
+| Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`), **Remove** **82 × 16** on non-current characters; current character column has a gold-tinted background |
 | Header row | **68** | Page-local in `PageCooldowns.lua` (taller: spec icon, name, last check, Remove) |
 | Data row | **34** | Alternate fills **0.094 / 0.078** (Classic `CD_ROW_A` / `CD_ROW_B`) |
 | Currency rows | **1** fixed | **Currency** / **Валюта** title + label column; ~**175** px tall; aligned icon+count chips |
