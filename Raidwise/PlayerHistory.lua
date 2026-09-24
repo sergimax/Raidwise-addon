@@ -301,6 +301,13 @@ function Addon:GetPersonalRating(entryOrMember)
 			return {opinion=self:NormalizePersonalOpinion(personal.opinion), tags=self:NormalizePersonalTags(personal.tags), facts=self:NormalizePersonalFacts(personal.facts), createdAt=tonumber(personal.createdAt) or 0, updatedAt=tonumber(personal.updatedAt) or 0, creatorId=type(personal.creatorId) == "string" and personal.creatorId or ""}
 		end
 	end
+	if type(guid) == "string" and guid ~= "" and self.GetExchangeProfile then
+		local profile = self:GetExchangeProfile(guid)
+		if type(profile) == "table" then
+			return {opinion=self:NormalizePersonalOpinion(profile.opinion), tags=self:NormalizePersonalTags(profile.tags), facts=self:NormalizePersonalFacts(profile.facts),
+				createdAt=0, updatedAt=tonumber(profile.updatedAt) or 0, creatorId=""}
+		end
+	end
 	return self:RatingDefaultPersonal()
 end
 
@@ -403,11 +410,16 @@ function Addon:GetHistoryEvents(entryOrMember)
 		return {}
 	end
 	local guid = entryOrMember.guid
+	local profileFound = false
 	if type(guid) == "string" and guid ~= "" and self.GetLocalProfile then
 		local profile = self:GetLocalProfile(guid)
-		if type(profile) == "table" and type(profile.events) == "table" then entryOrMember = profile end
+		if type(profile) == "table" and type(profile.events) == "table" then entryOrMember, profileFound = profile, true end
 	end
-	if entryOrMember == nil or entryOrMember.guid ~= nil and not self:GetLocalProfile(guid) then return {} end
+	if type(guid) == "string" and guid ~= "" and self.GetExchangeProfile and not self:GetLocalProfile(guid) then
+		local profile = self:GetExchangeProfile(guid)
+		if type(profile) == "table" then entryOrMember, profileFound = profile, true end
+	end
+	if entryOrMember == nil or entryOrMember.guid ~= nil and not profileFound then return {} end
 	if type(entryOrMember.events) ~= "table" then
 		return {}
 	end

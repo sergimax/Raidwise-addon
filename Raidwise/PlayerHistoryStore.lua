@@ -53,6 +53,27 @@ function Addon:GetExchangeProfileSources(guid)
 	return sources
 end
 
+-- Received cards are immutable and remain partitioned by sender.  Callers that
+-- need a single display card get a deterministic source; callers comparing
+-- senders can request the exact source id.
+function Addon:GetExchangeProfile(guid, sourceId)
+	local store = self:GetReputationStore()
+	if not store or type(guid) ~= "string" or guid == "" then return nil end
+	if sourceId then
+		local source = store.exchangeProfilesBySource[sourceId]
+		return source and source.profilesByGuid and source.profilesByGuid[guid] or nil, sourceId
+	end
+	local sources = self:GetExchangeProfileSources(guid)
+	local selected = sources[1]
+	local source = selected and store.exchangeProfilesBySource[selected]
+	return source and source.profilesByGuid and source.profilesByGuid[guid] or nil, selected
+end
+
+function Addon:GetReceivedProfileLinks(guid, sourceId)
+	local profile = self:GetExchangeProfile(guid, sourceId)
+	return profile and profile.links or {}
+end
+
 function Addon:GetGlobalKarmaDataset()
 	local store = self:GetReputationStore()
 	return store and store.globalKarma or nil
@@ -894,6 +915,7 @@ function Addon:HistoryProfileForMember(member)
 	end
 	profile.notes = self:GetProfileNotes(profile)
 	profile.changes = self:GetProfileChanges(profile)
+	profile.receivedLinks = self:GetReceivedProfileLinks(profile.guid)
 
 	return profile
 end
