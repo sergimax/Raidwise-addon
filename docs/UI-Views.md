@@ -60,7 +60,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | History | `LAYOUT_VERSION = 6` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Character database | `LAYOUT_VERSION = 9` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
-| Reputation | `LAYOUT_VERSION = 2` | `PageReputation.lua` | Shell title bar (next to page name) |
+| Reputation | `LAYOUT_VERSION = 3` | `PageReputation.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 16` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
 
@@ -359,6 +359,10 @@ to manual source. Imported records retain their original source when edited loca
 Source tracking supports website/user labels and optional source detail; importing
 and exchange are not implemented in this update. Manual entry is provided in the UI;
 no additional slash command or unit context menu is required.
+
+## Reputation`n`nLocal and received opinions occupy separate scrollable columns at the top of the
+page. The Global Karma heading, status, import box, and actions remain below
+those lists, so large opinion collections cannot overlap the import controls.
 
 ## Settings
 

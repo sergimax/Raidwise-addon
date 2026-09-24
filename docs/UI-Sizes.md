@@ -262,6 +262,12 @@ The filtered entry count sits below Refresh. Previous / page / Next controls sit
 on the Filters heading row at the top right. Tables render **25** rows per page;
 changing a filter returns to page one.
 
+## Reputation tab
+
+Local and received opinion lists share the top **216** px of the page in two
+scrollable columns with an **8** px gap. Global Karma starts below them at y=-252;
+its status, JSON box, and actions retain a fixed lower area.
+
 ## Settings tab
 
 Settings uses a vertical scroll viewport with a **16** px scrollbar and **4** px
