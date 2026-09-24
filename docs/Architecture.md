@@ -21,7 +21,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Rosters and shared refresh | `PartyRoster.lua`, `RosterRefresh.lua` | `BuildRaidGroups`, `BuildRosterSnapshot`, `ScheduleRosterRefresh` |
 | Roles, consumables, composition | `RaidRoles.lua`, `RaidComposition.lua` | `UnitConsumableStatus`, `AnalyzeRaidComposition` |
 | Rating catalogs/access | `PlayerHistory.lua` | `GetPersonalRating`, `GetCommunityRating`, normalization |
-| History, migrations, persistence | `PlayerHistoryStore.lua` | `RecordCurrentGroupHistory`, `SavePersonalRatingForGuid`, `SaveHistoryEventsForGuid`, `SaveProfileNotesForGuid`, `PruneHistory`, `AddCharacterRecord` |
+| History, migrations, persistence | `PlayerHistoryStore.lua` | `RecordCurrentGroupHistory`, `SavePersonalRatingForGuid`, `SaveHistoryEventsForGuid`, `SaveProfileNotesForGuid`, `PruneHistory`, `AddCharacterRecord`; Phase-1 reputation roots: `EnsureReputationStore`, read-only `GetReputationStore` |
 | Linked player characters | `CharacterLinks.lua`, `ProfileCharacters.lua` | Group persistence, shared opinion synchronization, and the profile Characters tab |
 | Profile exchange | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua` | Bounded JSON codec; `BuildSyncExport`, `StageSyncImport`, `ApplySyncImport`; characters-data export and import views with consent-based addon transport and Share menus. Contract: [Synchronization.md](Synchronization.md). |
 | Unsaved profile edits | `ProfileDraft.lua` | `CreateProfileDraft`, `ToggleProfileDraftTag`, `AddProfileDraftEvent` |
@@ -105,6 +105,7 @@ header. Chat summaries are human-readable messages, not versioned data exports.
 |---|---|
 | `characters` | `CharacterLockouts`: account-wide lockouts/currency |
 | `history` | `PlayerHistoryStore`: GUID-keyed meetings, saved cards and source metadata; name-only cards use realm/name keys until encountered |
+| `reputation` | `PlayerHistoryStore`: versioned foundation for separate local profiles, sender-scoped exchange profiles, and one Global Karma dataset; legacy `history` remains authoritative until Phase 2 |
 | `gearCheckSaved` | `GearCheckSavedReports`: snapshots and retention (~14 days) |
 | `tooltip` | `RatingPresentation` / Settings: rating tooltip visibility |
 | `locale`, `theme`, `startupTab`, `reportChannel`, `reportForm` | Preferences consumed by locale, theme, shell and reporting |

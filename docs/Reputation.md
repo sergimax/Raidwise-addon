@@ -2,6 +2,21 @@
 
 Local player reputation for other characters is stored under `RaidwiseDB.history[guid]` and edited in the Character profile. Catalogs and rating access live in [`PlayerHistory.lua`](../Raidwise/PlayerHistory.lua); persistence and migrations live in [`PlayerHistoryStore.lua`](../Raidwise/PlayerHistoryStore.lua). Draft edits belong to [`ProfileDraft.lua`](../Raidwise/ProfileDraft.lua), and labels/tooltips to [`RatingPresentation.lua`](../Raidwise/RatingPresentation.lua).
 
+## Data-base separation (foundation)
+
+RaidwiseDB.reputation is the dedicated root for the future three rating bases.
+Its version-1 shape contains localProfilesByGuid, exchangeProfilesBySource,
+and an optional globalKarma dataset. InitializeHistoryStore() creates and
+normalizes that root without moving or changing existing RaidwiseDB.history`nentries. Until the profile migration is implemented, history remains the
+authoritative source for all current profile UI and exchange behavior.
+
+The eventual ownership rules are fixed now: only local profiles may be edited
+and included in a personal export; exchanged profiles are retained per sender;
+and Global Karma is a read-only versioned dataset. GetReputationStore,
+GetLocalProfile, GetExchangeProfileSources, and GetGlobalKarmaDataset are
+read-only helpers and never initialize SavedVariables or silently project legacy
+history rows into a new base.
+
 ## Linked characters
 
 The profile's **Characters** tab records local associations between characters of

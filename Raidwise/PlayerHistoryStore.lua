@@ -1,6 +1,63 @@
 -- History storage, legacy migration, encounters, and persistence.
 local Addon = Raidwise
 
+-- Foundation for the separate opinion/Karma stores. The existing history store
+-- remains authoritative until the phase-two migration moves profile payloads.
+-- Keeping the new root beside history makes that migration explicit and avoids
+-- treating recordSource as a database boundary.
+Addon.REPUTATION_STORE_VERSION = 1
+
+local function EmptyReputationStore()
+	return {
+		storeVersion = Addon.REPUTATION_STORE_VERSION,
+		localProfilesByGuid = {},
+		exchangeProfilesBySource = {},
+		globalKarma = nil,
+	}
+end
+
+function Addon:EnsureReputationStore()
+	if not self.db then return nil end
+	if type(self.db.reputation) ~= "table" then
+		self.db.reputation = EmptyReputationStore()
+	end
+	local store = self.db.reputation
+	if type(store.localProfilesByGuid) ~= "table" then store.localProfilesByGuid = {} end
+	if type(store.exchangeProfilesBySource) ~= "table" then store.exchangeProfilesBySource = {} end
+	if store.globalKarma ~= nil and type(store.globalKarma) ~= "table" then store.globalKarma = nil end
+	store.storeVersion = Addon.REPUTATION_STORE_VERSION
+	return store
+end
+
+-- Read-only accessors. They deliberately do not initialize SavedVariables or
+-- project legacy history rows into the new stores.
+function Addon:GetReputationStore()
+	return self.db and type(self.db.reputation) == "table" and self.db.reputation or nil
+end
+
+function Addon:GetLocalProfile(guid)
+	local store = self:GetReputationStore()
+	return store and type(guid) == "string" and store.localProfilesByGuid[guid] or nil
+end
+
+function Addon:GetExchangeProfileSources(guid)
+	local store = self:GetReputationStore()
+	if not store or type(guid) ~= "string" or guid == "" then return {} end
+	local sources = {}
+	for sourceId, source in pairs(store.exchangeProfilesBySource) do
+		if type(source) == "table" and type(source.profilesByGuid) == "table" and source.profilesByGuid[guid] then
+			sources[#sources + 1] = sourceId
+		end
+	end
+	table.sort(sources)
+	return sources
+end
+
+function Addon:GetGlobalKarmaDataset()
+	local store = self:GetReputationStore()
+	return store and store.globalKarma or nil
+end
+
 local LEGACY_TAG_TO_FACT = {
 	raid_leader = "raid_leader",
 	pug_leader = "pug_raid_leader",
@@ -415,6 +472,10 @@ end
 
 -- Explicit load boundary; getters never migrate persisted entries.
 function Addon:InitializeHistoryStore()
+	-- Phase one only establishes the separate persisted roots. It must never
+	-- move, reclassify, or delete existing history entries; phase two owns that
+	-- reviewed migration.
+	self:EnsureReputationStore()
 	for _, entry in pairs(self:HistoryStore()) do
 		if type(entry) == "table" then
 			EnsureHistoryFields(entry)

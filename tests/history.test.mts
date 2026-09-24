@@ -172,3 +172,33 @@ test("history migration is idempotent and ratings, events, and notes persist", a
     `);
   } finally { lua.global.close(); }
 });
+
+test("reputation store foundation is separate, idempotent, and does not migrate history", async () => {
+  const lua = await Lua.create();
+  try {
+    lua.doStringSync(`
+      Raidwise={db={history={legacy={guid="legacy",name="Legacy",rating={personal={opinion="positive"}}}}}}
+      function time() return 1000 end
+      function UnitGUID() return "SELF" end
+      function GetRealmName() return "Realm" end
+    `);
+    for (const module of ["PlayerHistory", "PlayerHistoryStore"]) {
+      lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
+    }
+    lua.doStringSync(`
+      local addon=Raidwise
+      assert(addon:GetReputationStore()==nil)
+      addon:InitializeHistoryStore()
+      local store=addon:GetReputationStore()
+      assert(store and store.storeVersion==1)
+      assert(type(store.localProfilesByGuid)=="table" and next(store.localProfilesByGuid)==nil)
+      assert(type(store.exchangeProfilesBySource)=="table" and next(store.exchangeProfilesBySource)==nil)
+      assert(addon:GetGlobalKarmaDataset()==nil)
+      assert(addon:GetLocalProfile("legacy")==nil and #addon:GetExchangeProfileSources("legacy")==0)
+      assert(addon.db.history.legacy.rating.personal.opinion=="positive")
+      local original=store
+      addon:InitializeHistoryStore()
+      assert(addon:GetReputationStore()==original and addon.db.history.legacy)
+    `);
+  } finally { lua.global.close(); }
+});
