@@ -16,10 +16,14 @@ local function arrayCopy(values)
 end
 
 function Addon:BuildSyncExport(guid)
-	local entries = guid and {self:GetHistoryEntry(guid)} or self:BuildHistoryRoster(true)
+	local entries = {}
+	local localStore = self:GetReputationStore()
+	for profileGuid, profile in pairs(localStore and localStore.localProfilesByGuid or {}) do
+		if not guid or guid == profileGuid then entries[#entries + 1] = profile end
+	end
 	local characters = self:SyncJSONArray()
 	for _, entry in ipairs(entries) do
-		if guid or self:IsCharacterDatabaseEntry(entry) then
+		if entry.guid then
 			local personal = self:GetPersonalRating(entry)
 			local events = self:SyncJSONArray()
 			for _, event in ipairs(entry.events or {}) do
@@ -37,10 +41,6 @@ function Addon:BuildSyncExport(guid)
 				tags=arrayCopy(personal.tags), facts=arrayCopy(personal.facts), events=events, links=links,
 				updatedAt=tonumber(personal.updatedAt) or 0,
 			}
-			local community = entry.rating and entry.rating.community
-			if type(community) == "table" and not community.isMock and tonumber(community.positivePercent) then
-				characters[#characters].community = {positivePercent=tonumber(community.positivePercent), tags=arrayCopy(community.tags)}
-			end
 		end
 	end
 	if #characters == 0 then return nil, "SYNC_EMPTY" end
@@ -169,7 +169,7 @@ end
 function Addon:ApplySyncImport()
 	local review = self.syncReview
 	if not review then return nil, "SYNC_NO_REVIEW" end
-	local imported, changed = {}, 0
+	local changed = 0
 	local reputation = self:EnsureReputationStore()
 	local sourceId = review.source .. ":" .. string.lower(review.sender or "JSON")
 	local source = reputation.exchangeProfilesBySource[sourceId]
@@ -184,43 +184,7 @@ function Addon:ApplySyncImport()
 		source.profilesByGuid[row.guid] = {guid=row.guid, name=row.name, realm=row.realm, class=row.class,
 			opinion=row.opinion, tags=row.tags, facts=row.facts, events=row.events, links=row.links,
 			updatedAt=row.updatedAt, receivedAt=time()}
-		local action, entry = actionFor(row) -- Recheck local edits made after preview.
-		if action == "add" or action == "update" then
-			entry = entry or self:EnsureHistoryEntryForGuid(row.guid, row)
-			entry.name, entry.realm, entry.class = row.name, row.realm, row.class
-			entry.rating = entry.rating or {}
-			entry.rating.personal = {opinion=row.opinion, tags=row.tags, facts=row.facts,
-				createdAt=row.updatedAt, updatedAt=row.updatedAt, creatorId=review.sender, reputationV2=true}
-			entry.rating.community = row.community
-			-- Preserve automatic encounter events and all private notes.
-			local events = {}
-			for _, event in ipairs(entry.events or {}) do if event.type == "same_party" then events[#events + 1] = event end end
-			for index, event in ipairs(row.events) do event.id = "sync-" .. time() .. "-" .. index; events[#events + 1] = event end
-			entry.events = events
-			entry.recordSource, entry.recordSourceDetail = review.source, review.sender
-			entry.recordUpdatedAt = time()
-			imported[row.guid] = entry
-			changed = changed + 1
-		end
-	end
-	-- Link only imported, previously ungrouped records. Existing local groups win.
-	local groups = self.db.characterGroups or {}; self.db.characterGroups = groups
-	self.db.localCharacterMains = self.db.localCharacterMains or {}
-	for _, row in ipairs(review.rows) do
-		local entry = imported[row.guid]
-		if entry and not entry.playerGroupId then
-			local members = {[entry.guid]="alt"}; local count = 1
-			for _, linkedGuid in ipairs(row.links) do
-				local linked = imported[linkedGuid]
-				if linked and not linked.playerGroupId and not members[linked.guid] then members[linked.guid]="alt"; count=count+1 end
-			end
-			if count > 1 then
-				self.db.nextCharacterGroupId = (tonumber(self.db.nextCharacterGroupId) or 0) + 1
-				local id = "sync-" .. time() .. "-" .. self.db.nextCharacterGroupId
-				groups[id] = {members=members}; self.db.localCharacterMains[id] = entry.guid
-				for guid in pairs(members) do self:GetHistoryEntry(guid).playerGroupId = id end
-			end
-		end
+		changed = changed + 1
 	end
 	self.syncReview = nil
 	if self.RefreshRatingViews then self:RefreshRatingViews() end

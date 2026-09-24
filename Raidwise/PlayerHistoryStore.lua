@@ -361,6 +361,7 @@ local HISTORY_RETENTION_SEC = 14 * 24 * 60 * 60
 
 function Addon:IsCharacterDatabaseEntry(entry)
 	if type(entry) ~= "table" then return false end
+	if self:GetLocalProfile(entry.guid) or #self:GetExchangeProfileSources(entry.guid) > 0 then return true end
 	if entry.recordSource or entry.playerGroupId or (entry.notes and entry.notes ~= "") then return true end
 	local personal = self:GetPersonalRating(entry)
 	if self:HasPersonalRatingData(personal) or #(personal.facts or {}) > 0 then return true end
@@ -382,6 +383,9 @@ end
 
 -- Profile ownership is separate from encounter/scan history and import provenance.
 function Addon:GetCharacterProfileState(entry)
+	if type(entry) ~= "table" then return "unset" end
+	if self:GetLocalProfile(entry.guid) then return "local" end
+	if #self:GetExchangeProfileSources(entry.guid) > 0 then return "imported" end
 	if not self:IsCharacterDatabaseEntry(entry) then return "unset" end
 	if entry.profileEditedLocally or entry.recordSource == "manual" then return "local" end
 	if entry.recordSource == "user" or entry.recordSource == "website" then return "imported" end
