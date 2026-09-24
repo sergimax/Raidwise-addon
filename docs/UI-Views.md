@@ -57,8 +57,8 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Raid | `LAYOUT_VERSION = 36` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| History | `LAYOUT_VERSION = 5` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Character database | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Shell title bar (next to page name) |
+| History | `LAYOUT_VERSION = 6` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Character database | `LAYOUT_VERSION = 9` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
 | Reputation | `LAYOUT_VERSION = 2` | `PageReputation.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 16` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -331,7 +331,8 @@ sorted by last seen. Name, class (token or localized label), and guild filters
 combine as case-insensitive substring searches. The When column shows last seen;
 the profile retains first meeting details. Unedited encounter records expire
 at 14 days since last seen. Cleanup runs at login, group collection, scan completion,
-and list refresh.
+and list refresh. Both views display their filtered entry count and paginate at
+25 rows, so opening a large saved database creates only the visible row frames.
 
 Character database is a separate personal menu page using the same table. It
 shows manually saved cards and records with import provenance, regardless of age.

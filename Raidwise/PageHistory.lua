@@ -6,8 +6,9 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 5
-local DATABASE_LAYOUT_VERSION = 8
+local LAYOUT_VERSION = 6
+local DATABASE_LAYOUT_VERSION = 9
+local ROWS_PER_PAGE = 25
 
 local RECORD_SOURCES = {
 	manual = {key="SOURCE_MANUAL", icon="Interface\\Icons\\INV_Misc_Note_01"},
@@ -222,6 +223,7 @@ local function CreateHistoryPage(parent, database)
 	page:SetAllPoints(parent)
 	page.database = database
 	page.filters = {}
+	page.currentPage = 1
 
 	local hint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	hint:SetPoint("TOPLEFT", 0, 0)
@@ -254,6 +256,7 @@ local function CreateHistoryPage(parent, database)
 		local input = CreateHistoryInput(page, 150, x, -80)
 		input:SetScript("OnTextChanged", function(self)
 			page.filters[field[1]] = self:GetText()
+			page.currentPage = 1
 			Addon:RefreshHistoryView()
 		end)
 	end
@@ -279,6 +282,7 @@ local function CreateHistoryPage(parent, database)
 		opinion:SetScript("OnClick", function()
 			opinionIndex = opinionIndex % #opinions + 1
 			page.filters.opinion = opinions[opinionIndex]
+			page.currentPage = 1
 			RefreshOpinionButton(page)
 			Addon:RefreshHistoryView()
 		end)
@@ -305,6 +309,29 @@ local function CreateHistoryPage(parent, database)
 		add:SetScript("OnClick", AddRecord)
 		name:SetScript("OnEnterPressed", AddRecord)
 	end
+
+	local entryCount = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
+	entryCount:SetPoint("TOPLEFT", 0, -20)
+	entryCount:SetJustifyH("LEFT")
+	page.entryCount = entryCount
+
+	local nextPage = W.CreatePlainButton(page, 56, 24, W.T("HISTORY_NEXT"))
+	nextPage:SetPoint("TOPRIGHT", 0, -36)
+	nextPage:SetScript("OnClick", function()
+		page.currentPage = page.currentPage + 1
+		Addon:RefreshHistoryView()
+	end)
+	page.nextPageButton = nextPage
+	local pageLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
+	pageLabel:SetPoint("RIGHT", nextPage, "LEFT", -6, 0)
+	page.pageLabel = pageLabel
+	local previousPage = W.CreatePlainButton(page, 56, 24, W.T("HISTORY_PREVIOUS"))
+	previousPage:SetPoint("RIGHT", pageLabel, "LEFT", -6, 0)
+	previousPage:SetScript("OnClick", function()
+		page.currentPage = math.max(1, page.currentPage - 1)
+		Addon:RefreshHistoryView()
+	end)
+	page.previousPageButton = previousPage
 
 	local tableTop = database and -200 or -116
 	local tableHost = CreateFrame("Frame", nil, page)
@@ -410,14 +437,29 @@ local function RefreshPage(self, page)
 	local content = page.tableContent
 	local headerBg = page.headerBg
 	local tableW = HistoryTableWidth(page.database)
-	local tableH = UI.CD_HEADER_H + math.max(#roster, 1) * UI.CD_ROW_H
+	local pageCount = math.max(1, math.ceil(#roster / ROWS_PER_PAGE))
+	page.currentPage = math.min(math.max(page.currentPage or 1, 1), pageCount)
+	local firstRow = (page.currentPage - 1) * ROWS_PER_PAGE + 1
+	local lastRow = math.min(#roster, firstRow + ROWS_PER_PAGE - 1)
+	local visibleRows = math.max(0, lastRow - firstRow + 1)
+	local tableH = UI.CD_HEADER_H + math.max(visibleRows, 1) * UI.CD_ROW_H
 
 	content:SetSize(tableW, tableH)
 	headerBg:SetWidth(tableW)
+	page.entryTotal = #roster
+	page.pageCount = pageCount
+	if page.entryCount then page.entryCount:SetText(W.T("HISTORY_ENTRY_COUNT", page.entryTotal)) end
+	if page.pageLabel then page.pageLabel:SetText(W.T("HISTORY_PAGE", page.currentPage, page.pageCount)) end
+	if page.previousPageButton then
+		if page.currentPage > 1 then page.previousPageButton:Enable() else page.previousPageButton:Disable() end
+	end
+	if page.nextPageButton then
+		if page.currentPage < pageCount then page.nextPageButton:Enable() else page.nextPageButton:Disable() end
+	end
 
-	W.HidePoolFrom(page.rowFrames, #roster + 1)
-	for rowIndex = 1, #roster do
-		local member = roster[rowIndex]
+	W.HidePoolFrom(page.rowFrames, visibleRows + 1)
+	for rowIndex = 1, visibleRows do
+		local member = roster[firstRow + rowIndex - 1]
 		local row = page.rowFrames[rowIndex]
 		if not row then
 			row = CreateHistoryRow(content, page.database)
@@ -521,6 +563,10 @@ local function ApplyLocale(page)
 		if page.refreshBtn then
 			page.refreshBtn.label:SetText(W.T("BTN_REFRESH"))
 		end
+		if page.previousPageButton then page.previousPageButton.label:SetText(W.T("HISTORY_PREVIOUS")) end
+		if page.nextPageButton then page.nextPageButton.label:SetText(W.T("HISTORY_NEXT")) end
+		if page.entryCount then page.entryCount:SetText(W.T("HISTORY_ENTRY_COUNT", page.entryTotal or 0)) end
+		if page.pageLabel then page.pageLabel:SetText(W.T("HISTORY_PAGE", page.currentPage or 1, page.pageCount or 1)) end
 		for index, key in ipairs(page.headerKeys or {}) do
 			if page.headerLabels[index] then page.headerLabels[index]:SetText(W.T(key)) end
 		end

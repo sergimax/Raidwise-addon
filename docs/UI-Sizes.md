@@ -258,6 +258,9 @@ Its name host is **230 x 24**, followed by a **180 x 24** Add button with a **12
 Table begins at y=-116 (History) or y=-200 (Database).
 Source column is **150** px with **14** px inline icons. When displays last seen. Rows open Character profile;
 notes are edited there.
+The filtered entry count sits below Refresh. Previous / page / Next controls sit
+on the Filters heading row at the top right. Tables render **25** rows per page;
+changing a filter returns to page one.
 
 ## Settings tab
 
