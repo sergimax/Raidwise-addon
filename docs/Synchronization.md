@@ -124,6 +124,11 @@ equal and its publication timestamp is newer. Invalid, duplicate, older, or
 equal data is rejected; no merge occurs. A later UI phase will expose this
 review and its source metadata.
 
+Pasted JSON is routed strictly by `format`: `RaidwiseProfiles` stages an
+Exchange-profile import, while `RaidwiseKarma` stages the Global Karma dataset.
+The addon-message transport accepts only `RaidwiseProfiles`; it cannot carry or
+relay Global Karma. One review of either kind may be open at a time.
+
 ## Verification
 
 `npm run check` covers JSON round trips/limits, privacy projection, version

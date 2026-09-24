@@ -37,7 +37,7 @@ function Addon:ValidateGlobalKarmaText(text)
 end
 
 function Addon:StageGlobalKarmaImport(text, source)
-	if self.globalKarmaReview then return nil, "KARMA_BUSY" end
+	if self.globalKarmaReview or self.syncReview then return nil, "KARMA_BUSY" end
 	local dataset, err = self:ValidateGlobalKarmaText(text)
 	if not dataset then return nil, err end
 	if not NewerThan(dataset, self:GetGlobalKarmaDataset()) then return nil, "KARMA_NOT_NEWER" end

@@ -140,7 +140,7 @@ local function actionFor(row)
 end
 
 function Addon:StageSyncImport(text, sender, source)
-	if self.syncReview then return nil, "SYNC_BUSY" end
+	if self.syncReview or self.globalKarmaReview then return nil, "SYNC_BUSY" end
 	local rows, err = self:ValidateSyncText(text)
 	if not rows then return nil, err end
 	local review = {rows=rows, sender=sender or "JSON", source=source == "user" and "user" or "website", createdAt=time()}
@@ -231,4 +231,31 @@ end
 function Addon:CancelSyncImport()
 	self.syncReview = nil
 	if self.RefreshSyncView then self:RefreshSyncView() end
+end
+
+-- Pasted JSON is routed by its explicit format marker. Addon-message transport
+-- continues to call StageSyncImport directly and therefore accepts profiles only.
+function Addon:StagePastedImport(text)
+	local payload = self:DecodeSyncJSON(text)
+	if type(payload) ~= "table" then return nil, "SYNC_INVALID" end
+	if payload.format == "RaidwiseProfiles" then return self:StageSyncImport(text, "JSON", "website") end
+	if payload.format == "RaidwiseKarma" and self.StageGlobalKarmaImport then return self:StageGlobalKarmaImport(text, "JSON") end
+	return nil, "SYNC_INVALID"
+end
+
+function Addon:ApplyPastedImport()
+	if self.globalKarmaReview then return self:ApplyGlobalKarmaImport() end
+	return self:ApplySyncImport()
+end
+
+function Addon:CancelPastedImport()
+	if self.globalKarmaReview then return self:CancelGlobalKarmaImport() end
+	return self:CancelSyncImport()
+end
+
+function Addon:GetPastedImportReviewText()
+	if self.syncReview then return self:GetSyncReviewText() end
+	local review = self.globalKarmaReview
+	if review then return "Global Karma: " .. review.datasetId .. " r" .. review.revision .. " (" .. review.publishedAt .. ")" end
+	return self:GetSyncReviewText()
 end
