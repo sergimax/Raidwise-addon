@@ -45,7 +45,7 @@ test("encounters expire independently of saved cards, filters and name-only iden
       addon:RecordTargetScanHistory({character={guid="REAL",name="Tester",realm="Realm",
         classFile="MAGE",className="Mage",guildName="Example Guild"},collection={collectedAt=time()}})
       assert(addon.db.history.REAL==manual and not addon.db.history[previousKey])
-      assert(manual.notes=="Reported by a friend" and manual.rating.personal.opinion=="negative")
+      assert(addon:GetProfileNotes(manual)=="Reported by a friend" and addon:GetPersonalRating(manual).opinion=="negative")
       assert(#addon:BuildHistoryRoster(false,{name="test",class="mag",guildName="example"})==1)
       assert(#addon:BuildHistoryRoster(true,{opinion="negative"})==1)
       assert(#addon:BuildHistoryRoster(true,{opinion="positive"})==0)
@@ -123,17 +123,17 @@ test("history migration is idempotent and ratings, events, and notes persist", a
       assert(#entry.events==1 and entry.lastSeenAt==100 and entry.meetCount==1)
       local tag=Raidwise:RatingTagGroups()[1].tags[1].id
       Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{tag},{"raid_leader"})
-      assert(entry.rating.personal.opinion=="negative" and entry.rating.personal.tags[1]==tag)
+      assert(Raidwise:GetPersonalRating(entry).opinion=="negative" and Raidwise:GetPersonalRating(entry).tags[1]==tag)
       local event={id="draft-1",type="same_party",eventAt=1000,context={zoneName="Test zone"}}
       Raidwise:SaveHistoryEventsForGuid("A",nil,{event})
       event.context.zoneName="Changed draft"
-      assert(#entry.events==1 and entry.events[1].context.zoneName=="Test zone")
+      assert(#Raidwise:GetHistoryEvents(entry)==1 and Raidwise:GetHistoryEvents(entry)[1].context.zoneName=="Test zone")
       Raidwise:SaveProfileNotesForGuid("A",nil,"Private note")
-      assert(entry.notes=="Private note")
+      assert(Raidwise:GetProfileNotes(entry)=="Private note")
       Raidwise:SaveProfileNotesForGuid("A",nil,"")
-      assert(entry.notes=="")
+      assert(Raidwise:GetProfileNotes(entry)=="")
       Raidwise:SaveHistoryEventsForGuid("A",nil,{})
-      assert(#entry.events==0)
+      assert(#Raidwise:GetHistoryEvents(entry)==0)
       local persisted=Raidwise.db
       Raidwise.db=nil; Raidwise.db=persisted
       assert(Raidwise:GetHistoryEntry("A").rating.personal.opinion=="negative")

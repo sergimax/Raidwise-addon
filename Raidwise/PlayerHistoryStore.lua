@@ -841,9 +841,7 @@ function Addon:HistoryProfileForMember(member)
 		if not profile.gender and saved.gender then
 			profile.gender = saved.gender
 		end
-		if type(saved.notes) == "string" then
-			profile.notes = saved.notes
-		end
+		profile.notes = self:GetProfileNotes(saved)
 		if type(saved.tags) == "table" and #saved.tags > 0 then
 			profile.tags = saved.tags
 		end
@@ -852,9 +850,6 @@ function Addon:HistoryProfileForMember(member)
 		end
 		if type(saved.changes) == "table" then
 			profile.changes = saved.changes
-		end
-		if type(saved.events) == "table" then
-			profile.events = saved.events
 		end
 		if saved.rating then
 			profile.rating = {
@@ -870,6 +865,7 @@ function Addon:HistoryProfileForMember(member)
 	if self.GetHistoryEvents then
 		profile.events = self:GetHistoryEvents(profile)
 	end
+	profile.notes = self:GetProfileNotes(profile)
 
 	return profile
 end
@@ -960,6 +956,8 @@ function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 	end
 	EnsureHistoryFields(entry)
 	self:MarkCharacterRecord(entry)
+	local localProfile = self:EnsureLocalProfile(guid, entry or seed)
+	if not localProfile then return nil end
 	if seed then
 		CopyIfValue(entry, seed, "name")
 		CopyIfValue(entry, seed, "class")
@@ -967,8 +965,8 @@ function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 	end
 
 	local previousById = {}
-	for index = 1, #entry.events do
-		local event = entry.events[index]
+	for index = 1, #localProfile.events do
+		local event = localProfile.events[index]
 		if type(event) == "table" and event.id and event.id ~= "" then
 			previousById[event.id] = event
 		end
@@ -1011,7 +1009,7 @@ function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 		end
 	end
 
-	entry.events = nextEvents
+	localProfile.events, localProfile.updatedAt = nextEvents, time()
 	return entry
 end
 
@@ -1095,8 +1093,7 @@ function Addon:SaveProfileNotesForGuid(guid, seed, notes)
 			entry.realm = CharacterRealm(seed)
 		end
 	end
-	entry.notes = type(notes) == "string" and notes or ""
 	local profile = self:EnsureLocalProfile(guid, entry or seed)
-	if profile then profile.notes, profile.updatedAt = entry.notes, time() end
+	if profile then profile.notes, profile.updatedAt = type(notes) == "string" and notes or "", time() end
 	return entry
 end

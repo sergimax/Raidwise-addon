@@ -52,6 +52,10 @@ addon.db={history={}}
 addon:EnsureHistoryEntryForGuid("A",{name="Alice",realm="Realm"})
 addon:SavePersonalRatingForGuid("A",nil,"positive",{},{})
 for _, channel in ipairs({"WHISPER","RAID","GUILD"}) do
+  if not addon:GetLocalProfile("A") then
+    addon:EnsureHistoryEntryForGuid("A",{name="Alice",realm="Realm"})
+    addon:SavePersonalRatingForGuid("A",nil,"positive",{}, {})
+  end
   addon:CancelSyncSending(); sent={}
   assert(addon:ShareSyncData("A",channel))
   local offer=sent[1].message
