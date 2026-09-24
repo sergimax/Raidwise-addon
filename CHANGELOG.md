@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- Foundation for separate persisted Local profiles, sender-scoped Exchange profiles, and a read-only Global Karma dataset, while preserving existing character data during the transition.
+- Versioned Global Karma JSON validation and consent-based staging/apply. Newer datasets atomically replace older data by revision and publication time; malformed, duplicate, equal, and older datasets are rejected.
+
+### Changed
+- Local profile edits and linked-character opinion updates now write through the Local profile base while legacy profile views remain compatible during the migration.
+- Incoming synchronization payloads are retained independently by sender in the Exchange base, preserving their provenance for the forthcoming received-data views.
+
 ## [1.27.0] - 2026-09-23
 
 ### Added
