@@ -40,28 +40,23 @@ test("negative personal opinions color the whole chat body red and preserve chat
     for _, sender in ipairs({"Sender-OtherRealm", "Unknown"}) do
       assert(filter(nil,"CHAT_MSG_SAY","hello",sender)==nil)
     end
-    local entry=Raidwise:GetHistoryEntry("A")
+    local getCommunity=Raidwise.GetCommunityRating
     for _, percent in ipairs({0, 73}) do
-      entry.rating.community={positivePercent=percent}
+      Raidwise.GetCommunityRating=function() return {positivePercent=percent,tags={},isMock=false} end
       local _, message=filter(nil,"CHAT_MSG_SAY","hello","Sender")
       assert(message:find("Rw|cffffffff"..percent..">",1,true))
     end
-    entry.rating.community=nil
+    Raidwise.GetCommunityRating=getCommunity
     Raidwise:EnsureHistoryEntryForGuid("C",{name="Unrated",realm="Realm"})
     assert(filter(nil,"CHAT_MSG_SAY","hello","Unrated")==nil)
     Raidwise:RecordTargetScanHistory({character={guid="C",name="Unrated",realm="Realm"}})
     local _, unrated=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
     assert(unrated=="|cffffffff<|cffffffffRw|cffffffff51>|r hello")
-    local getCommunity=Raidwise.GetCommunityRating
+    getCommunity=Raidwise.GetCommunityRating
     Raidwise.GetCommunityRating=function() return nil end
     local _, missing=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
     assert(missing=="|cffffffff<|cffffffffRw|cffffffff>|r hello")
     Raidwise.GetCommunityRating=getCommunity
-    for _, source in ipairs({"user", "website"}) do
-      Raidwise:MarkCharacterRecord(Raidwise:GetHistoryEntry("C"),source)
-      local _, imported=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
-      assert(imported==unrated)
-    end
     for _, opinion in ipairs({"positive","neutral"}) do
       Raidwise:SavePersonalRatingForGuid("A",nil,opinion,{},{})
       local _, message=filter(nil,"CHAT_MSG_SAY",text,"Sender-Realm")
@@ -93,11 +88,8 @@ test("own profiles reject local edits and indirect linked opinion changes", asyn
       assert(not Raidwise:SaveHistoryEventsForGuid(entry.guid,nil,{}))
       assert(not Raidwise:AddHistoryEventForGuid(entry.guid,nil,"same_party"))
       assert(not Raidwise:RemoveHistoryEventForGuid(entry.guid,"1"))
-      assert(entry.notes=="" and #entry.events==0 and not entry.recordSource)
-      assert(Raidwise:SaveProfileNotesForGuid(entry.guid,nil,"test"))
-      assert(entry.notes=="test")
-      assert(Raidwise:SaveProfileNotesForGuid(entry.guid,nil,""))
-      assert(entry.notes=="")
+      assert(entry.notes==nil and entry.events==nil and entry.recordSource==nil)
+      assert(not Raidwise:SaveProfileNotesForGuid(entry.guid,nil,"test"))
     end
     local other=Raidwise:EnsureHistoryEntryForGuid("OTHER",{name="Other",realm="Realm"})
     assert(Raidwise:CanEditCharacterProfile(other))
@@ -287,12 +279,12 @@ test("rating getters do not migrate or initialize SavedVariables", async () => {
     assert(entry.events==nil and entry.notes==nil and not entry.rating.personal.reputationV2)
     assert(entry.rating.personal.tags[1]=="late")
     Raidwise:InitializeHistoryStore()
-    assert(entry.rating.personal.reputationV2 and entry.events[1].type=="late_arrival")
+    assert(entry.rating==nil and entry.events==nil and Raidwise:GetHistoryEvents(entry)[1].type=="late_arrival")
     Raidwise:InitializeHistoryStore()
-    assert(#entry.events==1)
+    assert(#Raidwise:GetHistoryEvents(entry)==1)
     local personal=Raidwise:GetPersonalRating(entry)
     personal.tags[1]="changed"
-    assert(entry.rating.personal.tags[1]==nil)
+    assert(Raidwise:GetLocalProfile("A").personal.tags[1]~="changed")
   `);
 });
 
@@ -511,11 +503,8 @@ test("Settings and character linking panels avoid circular frame anchors", async
     Raidwise.RefreshHistoryView=function() refreshes=refreshes+1 end
     database.opinionButton.scripts.OnClick()
     assert(database.filters.opinion=="positive" and refreshes==1)
-    for _, source in ipairs({"manual", "website", "user", ""}) do
-      database.sourceButton.scripts.OnClick()
-      assert(database.filters.recordSource==source and database.filters.opinion=="positive")
-    end
-    assert(refreshes==5)
+    assert(database.sourceButton==nil and database.filters.recordSource==nil)
+    assert(refreshes==1)
 
     local page=Raidwise.Pages.Settings.Create(region())
     assert(page.changelogButton and page.layoutVersion==Raidwise.Pages.Settings.LAYOUT_VERSION)
@@ -551,7 +540,7 @@ test("Settings and character linking panels avoid circular frame anchors", async
     profile.characterCandidateRows[1].buttons.CHAR_LINK_ADD.scripts.OnClick()
     assert(profile.pendingCharacterLink and not a.playerGroupId)
     profile.characterConflictButtons[2].scripts.OnClick()
-    assert(a.playerGroupId==b.playerGroupId and a.rating.personal.opinion=="negative")
+    assert(a.playerGroupId==b.playerGroupId and Raidwise:GetPersonalRating(a).opinion=="negative")
     assert(profile.profileDraft.draftOpinion=="negative" and profile.profileDraft.draftTags[1]=="unsaved")
     profile.characterRows[2].buttons.CHAR_LINK_REMOVE.scripts.OnClick()
     assert(not b.playerGroupId and #Raidwise:GetLinkedCharacters("A")==1)
@@ -589,15 +578,15 @@ test("character groups share only opinions, log changes and retain one main", as
     Raidwise:InitializeHistoryStore()
     assert(Raidwise.db.localCharacterMains[groupId]=="A")
     assert(Raidwise.db.characterGroups[groupId].mainGuid==nil)
-    assert(Raidwise:GetPersonalRating(b).opinion=="positive" and #b.rating.personal.facts==0)
-    assert(b.notes=="private" and #b.events==1)
-    local count=#a.changes
-    assert(not Raidwise:LinkPlayerCharacters("A","B") and #a.changes==count)
+    assert(Raidwise:GetPersonalRating(b).opinion=="positive" and #Raidwise:GetPersonalRating(b).facts==0)
+    assert(Raidwise:GetProfileNotes(b)=="private" and #Raidwise:GetHistoryEvents(b)==1)
+    local count=#Raidwise:GetProfileChanges(a)
+    assert(not Raidwise:LinkPlayerCharacters("A","B") and #Raidwise:GetProfileChanges(a)==count)
     assert(Raidwise:LinkPlayerCharacters("B","C",nil,"positive"))
     assert(#Raidwise:GetLinkedCharacters("C")==3)
     Raidwise:SavePersonalRatingForGuid("B",nil,"negative",{}, {})
-    assert(a.rating.personal.opinion=="negative" and c.rating.personal.opinion=="negative")
-    assert(a.rating.personal.facts[1]=="raid_leader" and b.notes=="private" and #b.events==1)
+    assert(Raidwise:GetPersonalRating(a).opinion=="negative" and Raidwise:GetPersonalRating(c).opinion=="negative")
+    assert(Raidwise:GetPersonalRating(a).facts[1]=="raid_leader" and Raidwise:GetProfileNotes(b)=="private" and #Raidwise:GetHistoryEvents(b)==1)
     assert(not Raidwise:UnlinkPlayerCharacter("B","A"),"Allowed removal of the main")
     assert(Raidwise:SetLinkedCharacterRole("B","B","main"))
     local sharedAfter=Raidwise:GetSharedCharacterLinks("A")
@@ -610,10 +599,10 @@ test("character groups share only opinions, log changes and retain one main", as
     assert(Raidwise.db.localCharacterMains[groupId]=="B")
     assert(Raidwise:GetLinkedCharacters("C")[1].guid=="B")
     assert(Raidwise:UnlinkPlayerCharacter("B","A"))
-    assert(not a.playerGroupId and a.rating.personal.opinion=="negative")
-    assert(a.changes[#a.changes].kind=="character_unlink")
+    assert(not a.playerGroupId and Raidwise:GetPersonalRating(a).opinion=="negative")
+    assert(Raidwise:GetProfileChanges(a)[#Raidwise:GetProfileChanges(a)].kind=="character_unlink")
     Raidwise:SavePersonalRatingForGuid("B",nil,"positive",{}, {})
-    assert(a.rating.personal.opinion=="negative" and c.rating.personal.opinion=="positive")
+    assert(Raidwise:GetPersonalRating(a).opinion=="negative" and Raidwise:GetPersonalRating(c).opinion=="positive")
     local d=Raidwise:EnsureHistoryEntryForGuid("D",{name="Another"})
     assert(Raidwise:LinkPlayerCharacters("A","D",nil,"negative"))
     assert(a.playerGroupId~=groupId and Raidwise.db.characterGroups[groupId].members.B)

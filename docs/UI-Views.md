@@ -58,7 +58,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 5` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Character database | `LAYOUT_VERSION = 7` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Character database | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
 | Reputation | `LAYOUT_VERSION = 2` | `PageReputation.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 16` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -341,7 +341,8 @@ combines with the other filters. Both tables show source icons (note, map, lette
 or group for encounters) beside the source labels.
 The switch uses reputation crystal icons and matching green/yellow/red text; All
 uses a group icon and normal text. Both pages have a Filters heading and 14 px
-icons beside input labels. Database addition has its own heading below the filters.
+icons beside input labels. The database has no legacy source filter; its addition
+control has its own heading below the filters.
 A recent encounter with a saved card appears in both views; after 14 days it remains
 only in the database. Both tables show record source alongside name, class, spec,
 opinion, tags, GS, iLvl, last seen, and guild. The first meeting location (Met in)

@@ -5,7 +5,7 @@ local Addon = Raidwise
 -- remains authoritative until the phase-two migration moves profile payloads.
 -- Keeping the new root beside history makes that migration explicit and avoids
 -- treating recordSource as a database boundary.
-Addon.REPUTATION_STORE_VERSION = 1
+Addon.REPUTATION_STORE_VERSION = 2
 
 local function EmptyReputationStore()
 	return {
@@ -82,8 +82,13 @@ end
 function Addon:GetProfileNotes(entryOrMember)
 	local guid = type(entryOrMember) == "table" and entryOrMember.guid or entryOrMember
 	local profile = self:GetLocalProfile(guid)
-	if profile then return profile.notes or "" end
-	return type(entryOrMember) == "table" and entryOrMember.notes or ""
+	return profile and profile.notes or ""
+end
+
+function Addon:GetProfileChanges(entryOrMember)
+	local guid = type(entryOrMember) == "table" and entryOrMember.guid or entryOrMember
+	local profile = self:GetLocalProfile(guid)
+	return profile and profile.changes or {}
 end
 
 local LEGACY_TAG_TO_FACT = {
@@ -327,21 +332,6 @@ local GROUP_MEETING_GAP_SEC = 30 * 60
 local SAME_PARTY_EVENT_TYPE = "same_party"
 
 local function EnsureHistoryFields(entry)
-	if type(entry.notes) ~= "string" then
-		entry.notes = ""
-	end
-	if type(entry.tags) ~= "table" then
-		entry.tags = {}
-	end
-	if type(entry.links) ~= "table" then
-		entry.links = {}
-	end
-	if type(entry.changes) ~= "table" then
-		entry.changes = {}
-	end
-	if type(entry.events) ~= "table" then
-		entry.events = {}
-	end
 	local metAt = tonumber(entry.metAt) or 0
 	local lastSeenAt = tonumber(entry.lastSeenAt) or 0
 	if metAt > 0 and lastSeenAt <= 0 then
@@ -349,9 +339,6 @@ local function EnsureHistoryFields(entry)
 	end
 	if type(entry.meetCount) ~= "number" or entry.meetCount < 1 then
 		entry.meetCount = metAt > 0 and 1 or 0
-	end
-	if Addon.EnsurePersonalRating then
-		Addon:EnsurePersonalRating(entry)
 	end
 	return entry
 end
@@ -362,23 +349,7 @@ local HISTORY_RETENTION_SEC = 14 * 24 * 60 * 60
 function Addon:IsCharacterDatabaseEntry(entry)
 	if type(entry) ~= "table" then return false end
 	if self:GetLocalProfile(entry.guid) or #self:GetExchangeProfileSources(entry.guid) > 0 then return true end
-	if entry.recordSource or entry.playerGroupId or (entry.notes and entry.notes ~= "") then return true end
-	local personal = self:GetPersonalRating(entry)
-	if self:HasPersonalRatingData(personal) or #(personal.facts or {}) > 0 then return true end
-	for _, event in ipairs(entry.events or {}) do
-		if event.type ~= "same_party" then return true end
-	end
-	for _, change in ipairs(entry.changes or {}) do
-		if change.kind ~= "event_add" or change.detail ~= "same_party" then return true end
-	end
-	return false
-end
-
-function Addon:MarkCharacterRecord(entry, source, sourceDetail)
-	entry.recordSource = entry.recordSource or source or "manual"
-	entry.recordSourceDetail = entry.recordSourceDetail or sourceDetail
-	if not source or source == "manual" then entry.profileEditedLocally = true end
-	entry.recordUpdatedAt = time()
+	return entry.playerGroupId ~= nil
 end
 
 -- Profile ownership is separate from encounter/scan history and import provenance.
@@ -386,16 +357,13 @@ function Addon:GetCharacterProfileState(entry)
 	if type(entry) ~= "table" then return "unset" end
 	if self:GetLocalProfile(entry.guid) then return "local" end
 	if #self:GetExchangeProfileSources(entry.guid) > 0 then return "imported" end
-	if not self:IsCharacterDatabaseEntry(entry) then return "unset" end
-	if entry.profileEditedLocally or entry.recordSource == "manual" then return "local" end
-	if entry.recordSource == "user" or entry.recordSource == "website" then return "imported" end
-	return "local"
+	return "unset"
 end
 
 function Addon:GetCharacterRecordSource(entry)
 	local state = self:GetCharacterProfileState(entry)
 	if state == "local" then return "manual" end
-	if state == "imported" then return entry.recordSource end
+	if state == "imported" then return "exchange" end
 	return "encounter"
 end
 
@@ -429,6 +397,13 @@ function Addon:DeleteCharacterDatabaseRecords(guids)
 	for _, guid in ipairs(guids) do
 		if not removed[guid] and self:IsCharacterDatabaseEntry(store[guid]) then
 			removed[guid] = true; count = count + 1; store[guid] = nil
+			local reputation = self:GetReputationStore()
+			if reputation then
+				reputation.localProfilesByGuid[guid] = nil
+				for _, source in pairs(reputation.exchangeProfilesBySource) do
+					if type(source) == "table" and type(source.profilesByGuid) == "table" then source.profilesByGuid[guid] = nil end
+				end
+			end
 		end
 	end
 	if count == 0 then return 0 end
@@ -478,12 +453,12 @@ function Addon:AddCharacterRecord(name)
 	if not self:CanEditCharacterProfile({guid=NamedRecordKey(characterName, realm), name=characterName, realm=realm}) then return nil end
 	for _, entry in pairs(self:HistoryStore()) do
 		if Fold(entry.name) == Fold(characterName) and Fold(CharacterRealm(entry)) == Fold(realm) then
-			self:MarkCharacterRecord(entry)
+			self:EnsureLocalProfile(entry.guid, entry)
 			return entry
 		end
 	end
 	local entry = self:EnsureHistoryEntryForGuid(NamedRecordKey(characterName, realm), {name=characterName, realm=realm})
-	self:MarkCharacterRecord(entry)
+	self:EnsureLocalProfile(entry.guid, entry)
 	return entry
 end
 
@@ -494,6 +469,7 @@ function Addon:CanEditCharacterProfile(entryOrGuid, seed)
 	local playerGuid = type(UnitGUID) == "function" and UnitGUID("player")
 	if playerGuid and guid == playerGuid then return false end
 	if entry and entry.isSelf then return false end
+	if self:GetExchangeProfileSources(guid)[1] and not self:GetLocalProfile(guid) then return false end
 	local playerName = type(UnitName) == "function" and UnitName("player")
 	if entry and playerName and Fold(entry.name) == Fold(playerName) then
 		local realm = Fold(CharacterRealm(entry)):gsub("%s+", "")
@@ -502,28 +478,87 @@ function Addon:CanEditCharacterProfile(entryOrGuid, seed)
 	return true
 end
 
--- Explicit load boundary; getters never migrate persisted entries.
-function Addon:InitializeHistoryStore()
-	-- Phase one only establishes the separate persisted roots. It must never
-	-- move, reclassify, or delete existing history entries; phase two owns that
-	-- reviewed migration.
-	self:EnsureReputationStore()
-	for _, entry in pairs(self:HistoryStore()) do
-		if type(entry) == "table" then
-			EnsureHistoryFields(entry)
-			if self:IsCharacterDatabaseEntry(entry) and not entry.recordSource then
-				self:MarkCharacterRecord(entry, "manual")
-			end
-			if entry.guid and self:GetCharacterProfileState(entry) == "local" then
-				local profile = self:EnsureLocalProfile(entry.guid, entry)
-				if not profile.legacyMigrated then
-					profile.personal = entry.rating and entry.rating.personal or self:RatingDefaultPersonal()
-					profile.events, profile.notes, profile.changes = entry.events or {}, entry.notes or "", entry.changes or {}
-					profile.legacyMigrated = true
-				end
-			end
+local LEGACY_PROFILE_FIELDS = {
+	"rating", "notes", "tags", "links", "changes", "events",
+	"recordSource", "recordSourceDetail", "profileEditedLocally", "recordUpdatedAt",
+}
+
+local function CopyList(values)
+	local result = {}
+	for index, value in ipairs(values or {}) do result[index] = value end
+	return result
+end
+
+local function CopyEvents(events, includeSameParty)
+	local result = {}
+	for _, event in ipairs(events or {}) do
+		if type(event) == "table" and (includeSameParty or event.type ~= SAME_PARTY_EVENT_TYPE) then
+			local copy, context = {}, {}
+			for key, value in pairs(event.context or {}) do context[key] = value end
+			for key, value in pairs(event) do if key ~= "context" then copy[key] = value end end
+			copy.context = context
+			result[#result + 1] = copy
 		end
 	end
+	return result
+end
+
+local function ClearLegacyProfileFields(entry)
+	for _, field in ipairs(LEGACY_PROFILE_FIELDS) do entry[field] = nil end
+end
+
+-- Phase 6 migration: profile payloads leave history permanently.  The version
+-- is written only after every legacy row has been copied and scrubbed, making
+-- repeated initialization safe after an interrupted SavedVariables write.
+function Addon:MigrateLegacyProfiles()
+	local reputation = self:EnsureReputationStore()
+	if not reputation then return end
+	for _, entry in pairs(self:HistoryStore()) do
+		if type(entry) == "table" and entry.guid and entry.guid ~= "" then
+			local legacyPersonal = type(entry.rating) == "table" and entry.rating.personal or nil
+			local alreadyLocal = self:GetLocalProfile(entry.guid) ~= nil
+			local hasManualEvent, hasProfileChange = false, false
+			for _, event in ipairs(entry.events or {}) do if event.type ~= SAME_PARTY_EVENT_TYPE or alreadyLocal then hasManualEvent = true end end
+			for _, change in ipairs(entry.changes or {}) do
+				if change.kind ~= "event_add" or change.detail ~= SAME_PARTY_EVENT_TYPE then hasProfileChange = true end
+			end
+			local hasLegacyProfile = legacyPersonal or type(entry.notes) == "string" and entry.notes ~= ""
+				or hasManualEvent or hasProfileChange or #(entry.links or {}) > 0
+				or entry.recordSource == "manual" or entry.recordSource == "user" or entry.recordSource == "website"
+			if hasLegacyProfile then
+				if legacyPersonal then self:MigrateLegacyPersonalTags(entry, legacyPersonal) end
+				local imported = entry.recordSource == "user" or entry.recordSource == "website"
+				if imported then
+					local sourceType = entry.recordSource
+					local sender = entry.recordSourceDetail or "Legacy"
+					local sourceId = sourceType .. ":" .. string.lower(sender)
+					local source = reputation.exchangeProfilesBySource[sourceId] or {sourceId=sourceId, sourceType=sourceType, sender=sender, profilesByGuid={}}
+					reputation.exchangeProfilesBySource[sourceId] = source
+					local personal = legacyPersonal or self:RatingDefaultPersonal()
+					source.profilesByGuid[entry.guid] = {guid=entry.guid, name=entry.name, realm=entry.realm or entry.metRealm or "", class=entry.class or "",
+						opinion=self:NormalizePersonalOpinion(personal.opinion), tags=CopyList(self:NormalizePersonalTags(personal.tags)), facts=CopyList(self:NormalizePersonalFacts(personal.facts)),
+						events=CopyEvents(entry.events, false), links=CopyList(entry.links), updatedAt=tonumber(personal.updatedAt) or 0, receivedAt=time()}
+				else
+					local profile = self:EnsureLocalProfile(entry.guid, entry)
+					if legacyPersonal then
+						profile.personal = self:EnsurePersonalRating({rating={personal=legacyPersonal}, events=entry.events or {}})
+					end
+					profile.events = CopyEvents(entry.events, alreadyLocal)
+					profile.notes = type(entry.notes) == "string" and entry.notes or ""
+					profile.changes = CopyList(entry.changes)
+					profile.updatedAt = time()
+				end
+			end
+			ClearLegacyProfileFields(entry)
+			EnsureHistoryFields(entry)
+		end
+	end
+	reputation.storeVersion = Addon.REPUTATION_STORE_VERSION
+end
+
+-- Explicit load boundary; getters never migrate persisted entries.
+function Addon:InitializeHistoryStore()
+	self:MigrateLegacyProfiles()
 	if self.InitializeCharacterLinks then self:InitializeCharacterLinks() end
 	self:PruneHistory()
 end
@@ -532,17 +567,15 @@ function Addon:AppendProfileHistoryChange(entry, kind, detail)
 	if type(entry) ~= "table" or not kind or kind == "" then
 		return
 	end
-	EnsureHistoryFields(entry)
-	if kind == "character_link" or kind == "character_unlink" or kind == "character_role" then
-		self:MarkCharacterRecord(entry)
-	end
-	entry.changes[#entry.changes + 1] = {
+	local profile = self:EnsureLocalProfile(entry.guid, entry)
+	if not profile then return end
+	profile.changes[#profile.changes + 1] = {
 		at = time(),
 		kind = kind,
 		detail = detail or "",
 	}
-	while #entry.changes > MAX_PROFILE_HISTORY_CHANGES do
-		table.remove(entry.changes, 1)
+	while #profile.changes > MAX_PROFILE_HISTORY_CHANGES do
+		table.remove(profile.changes, 1)
 	end
 end
 
@@ -565,6 +598,17 @@ function Addon:EnsureHistoryEntryForGuid(guid, seed)
 		entry = store[key]
 		if entry then
 			store[key], store[guid], entry.guid = nil, entry, guid
+			local reputation = self:GetReputationStore()
+			if reputation then
+				local profile = reputation.localProfilesByGuid[key]
+				if profile then profile.guid = guid; reputation.localProfilesByGuid[key], reputation.localProfilesByGuid[guid] = nil, profile end
+				for _, source in pairs(reputation.exchangeProfilesBySource) do
+					if type(source) == "table" and type(source.profilesByGuid) == "table" and source.profilesByGuid[key] then
+						local received = source.profilesByGuid[key]
+						received.guid = guid; source.profilesByGuid[key], source.profilesByGuid[guid] = nil, received
+					end
+				end
+			end
 			for _, group in pairs(self.db.characterGroups or {}) do
 				if group.members and group.members[key] then
 					group.members[guid], group.members[key] = group.members[key], nil
@@ -591,11 +635,6 @@ function Addon:EnsureHistoryEntryForGuid(guid, seed)
 			averageIlvl = seed and seed.averageIlvl or nil,
 			guildName = seed and seed.guildName or nil,
 			guildRank = seed and seed.guildRank or nil,
-			notes = "",
-			tags = {},
-			links = {},
-			changes = {},
-			events = {},
 			metZone = "",
 			metAt = 0,
 			metRealm = "",
@@ -625,6 +664,11 @@ function Addon:RecordTargetScanHistory(report)
 		averageIlvl = character.averageIlvl,
 		guildName = character.guildName,
 	})
+	for _, key in ipairs({"name", "realm", "class", "classLabel", "spec", "specIcon", "gearScore", "averageIlvl", "guildName"}) do
+		if character[key] ~= nil and character[key] ~= "" then entry[key] = character[key] end
+	end
+	if character.classFile and character.classFile ~= "" then entry.class = character.classFile end
+	if character.className and character.className ~= "" then entry.classLabel = character.className end
 	local scannedAt = tonumber(report.collection and report.collection.collectedAt) or time()
 	entry.lastScannedAt = scannedAt
 	if (tonumber(entry.metAt) or 0) <= 0 then
@@ -714,7 +758,7 @@ function Addon:UpsertHistoryMember(member)
 		entry.lastSeenZone = zone
 	end
 	if countedMeeting then
-		self:AddHistoryEventForGuid(guid, member, SAME_PARTY_EVENT_TYPE)
+		-- Meeting counters are encounter data; never create an editable profile event.
 	end
 	return entry
 end
@@ -771,8 +815,6 @@ function Addon:BuildHistoryRoster(database, filters)
 				if field == "class" then value = value .. " " .. Fold(entry.classLabel) end
 				if query ~= "" and not value:find(query, 1, true) then include = false end
 			end
-			if database and filters.recordSource and filters.recordSource ~= ""
-				and self:GetCharacterRecordSource(entry) ~= filters.recordSource then include = false end
 			if database and filters.opinion and filters.opinion ~= ""
 				and self:GetPersonalRating(entry).opinion ~= filters.opinion then include = false end
 		end
@@ -841,21 +883,6 @@ function Addon:HistoryProfileForMember(member)
 		if not profile.gender and saved.gender then
 			profile.gender = saved.gender
 		end
-		profile.notes = self:GetProfileNotes(saved)
-		if type(saved.tags) == "table" and #saved.tags > 0 then
-			profile.tags = saved.tags
-		end
-		if type(saved.links) == "table" then
-			profile.links = saved.links
-		end
-		if type(saved.changes) == "table" then
-			profile.changes = saved.changes
-		end
-		if saved.rating then
-			profile.rating = {
-				personal = self.GetPersonalRating and self:GetPersonalRating(saved) or saved.rating.personal,
-			}
-		end
 	end
 
 	if self.GetPersonalRating then
@@ -866,6 +893,7 @@ function Addon:HistoryProfileForMember(member)
 		profile.events = self:GetHistoryEvents(profile)
 	end
 	profile.notes = self:GetProfileNotes(profile)
+	profile.changes = self:GetProfileChanges(profile)
 
 	return profile
 end
@@ -880,10 +908,9 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 	if not entry then
 		return nil
 	end
-	local personal = self:EnsurePersonalRating(entry)
 	local localProfile = self:EnsureLocalProfile(guid, entry or seed)
 	if not localProfile then return nil end
-	if localProfile.legacyMigrated then personal = localProfile.personal end
+	local personal = localProfile.personal
 	local previousOpinion = personal.opinion
 	local previousTags = {}
 	for index = 1, #personal.tags do
@@ -893,7 +920,6 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 	for index = 1, #(personal.facts or {}) do
 		previousFacts[index] = personal.facts[index]
 	end
-	self:MarkCharacterRecord(entry)
 	if seed then
 		CopyIfValue(entry, seed, "name")
 		CopyIfValue(entry, seed, "class")
@@ -939,7 +965,6 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 		self:AppendProfileHistoryChange(entry, "facts", factSummary)
 	end
 	if self.SyncLinkedPlayerOpinion then self:SyncLinkedPlayerOpinion(guid, personal.opinion) end
-	entry.rating = entry.rating or {}; entry.rating.personal = personal
 	localProfile.personal, localProfile.updatedAt = personal, now
 	return entry
 end
@@ -954,8 +979,6 @@ function Addon:SaveHistoryEventsForGuid(guid, seed, draftEvents)
 	if not entry then
 		return nil
 	end
-	EnsureHistoryFields(entry)
-	self:MarkCharacterRecord(entry)
 	local localProfile = self:EnsureLocalProfile(guid, entry or seed)
 	if not localProfile then return nil end
 	if seed then
@@ -1022,15 +1045,16 @@ function Addon:AddHistoryEventForGuid(guid, seed, eventTypeId)
 	if not entry then
 		return nil
 	end
-	EnsureHistoryFields(entry)
+	local localProfile = self:EnsureLocalProfile(guid, entry or seed)
+	if not localProfile then return nil end
 	local event = {
-		id = string.format("%d-%d", time(), #entry.events + 1),
+		id = string.format("%d-%d", time(), #localProfile.events + 1),
 		type = eventTypeId,
 		creatorId = LocalPlayerCreatorId(),
 		eventAt = time(),
 		context = self:CaptureEventContext(),
 	}
-	entry.events[#entry.events + 1] = event
+	localProfile.events[#localProfile.events + 1] = event
 	self:AppendProfileHistoryChange(entry, "event_add", eventTypeId)
 	if self.SyncOpenProfileHistoryEvent then
 		self:SyncOpenProfileHistoryEvent(entry, event)
@@ -1048,11 +1072,12 @@ function Addon:RemoveHistoryEventForGuid(guid, eventId)
 	if not entry then
 		return nil
 	end
-	EnsureHistoryFields(entry)
+	local localProfile = self:GetLocalProfile(guid)
+	if not localProfile then return entry end
 	local removedType = nil
 	local nextEvents = {}
-	for index = 1, #entry.events do
-		local event = entry.events[index]
+	for index = 1, #localProfile.events do
+		local event = localProfile.events[index]
 		if type(event) == "table" and event.id == eventId then
 			removedType = event.type
 		else
@@ -1062,12 +1087,13 @@ function Addon:RemoveHistoryEventForGuid(guid, eventId)
 	if not removedType then
 		return entry
 	end
-	entry.events = nextEvents
+	localProfile.events = nextEvents
 	self:AppendProfileHistoryChange(entry, "event_remove", removedType)
 	return entry
 end
 
 function Addon:SaveProfileNotesForGuid(guid, seed, notes)
+	if not self:CanEditCharacterProfile(guid, seed) then return nil end
 	if not guid or guid == "" then
 		return nil
 	end
@@ -1075,7 +1101,6 @@ function Addon:SaveProfileNotesForGuid(guid, seed, notes)
 	if not entry then
 		return nil
 	end
-	self:MarkCharacterRecord(entry)
 	if seed then
 		CopyIfValue(entry, seed, "name")
 		CopyIfValue(entry, seed, "class")

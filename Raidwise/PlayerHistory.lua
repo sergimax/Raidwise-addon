@@ -292,8 +292,7 @@ function Addon:GetPersonalRating(entryOrMember)
 	if type(entryOrMember) ~= "table" then
 		return self:RatingDefaultPersonal()
 	end
-	-- Always prefer the live history row by GUID so profile labels are not stuck
-	-- on a stale member.rating snapshot from when the window opened.
+	-- Local Profiles are the sole source of editable opinion data.
 	local guid = entryOrMember.guid
 	if type(guid) == "string" and guid ~= "" and self.GetLocalProfile then
 		local profile = self:GetLocalProfile(guid)
@@ -301,23 +300,6 @@ function Addon:GetPersonalRating(entryOrMember)
 			local personal = profile.personal
 			return {opinion=self:NormalizePersonalOpinion(personal.opinion), tags=self:NormalizePersonalTags(personal.tags), facts=self:NormalizePersonalFacts(personal.facts), createdAt=tonumber(personal.createdAt) or 0, updatedAt=tonumber(personal.updatedAt) or 0, creatorId=type(personal.creatorId) == "string" and personal.creatorId or ""}
 		end
-	end
-	if type(guid) == "string" and guid ~= "" and self.GetHistoryEntry then
-		local saved = self:GetHistoryEntry(guid)
-		if type(saved) == "table" then
-			entryOrMember = saved
-		end
-	end
-	if type(entryOrMember.rating) == "table" and type(entryOrMember.rating.personal) == "table" then
-		local personal = entryOrMember.rating.personal
-		return {
-			opinion = self:NormalizePersonalOpinion(personal.opinion),
-			tags = self:NormalizePersonalTags(personal.tags),
-			facts = self:NormalizePersonalFacts(personal.facts),
-			createdAt = tonumber(personal.createdAt) or 0,
-			updatedAt = tonumber(personal.updatedAt) or 0,
-			creatorId = type(personal.creatorId) == "string" and personal.creatorId or "",
-		}
 	end
 	return self:RatingDefaultPersonal()
 end
@@ -425,12 +407,7 @@ function Addon:GetHistoryEvents(entryOrMember)
 		local profile = self:GetLocalProfile(guid)
 		if type(profile) == "table" and type(profile.events) == "table" then entryOrMember = profile end
 	end
-	if type(guid) == "string" and guid ~= "" and self.GetHistoryEntry then
-		local saved = self:GetHistoryEntry(guid)
-		if type(saved) == "table" then
-			entryOrMember = saved
-		end
-	end
+	if entryOrMember == nil or entryOrMember.guid ~= nil and not self:GetLocalProfile(guid) then return {} end
 	if type(entryOrMember.events) ~= "table" then
 		return {}
 	end

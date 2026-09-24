@@ -7,7 +7,7 @@ local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
 local LAYOUT_VERSION = 5
-local DATABASE_LAYOUT_VERSION = 7
+local DATABASE_LAYOUT_VERSION = 8
 
 local RECORD_SOURCES = {
 	manual = {key="SOURCE_MANUAL", icon="Interface\\Icons\\INV_Misc_Note_01"},
@@ -282,25 +282,6 @@ local function CreateHistoryPage(parent, database)
 			RefreshOpinionButton(page)
 			Addon:RefreshHistoryView()
 		end)
-		local sources = {"", "manual", "website", "user"}
-		local sourceIndex = 1
-		CreateInputLabel(page, "COL_RECORD_SOURCE", SOURCE_ALL_ICON, 674, -60)
-		local sourceButton = W.CreatePlainButton(page, 180, 24, W.T("FILTER_SOURCE_ALL"))
-		sourceButton:SetPoint("TOPLEFT", 674, -80)
-		page.sourceButton = sourceButton
-		page.sourceIcon = sourceButton:CreateTexture(nil, "ARTWORK")
-		page.sourceIcon:SetSize(16, 16)
-		page.sourceIcon:SetPoint("LEFT", 8, 0)
-		sourceButton.label:ClearAllPoints()
-		sourceButton.label:SetPoint("LEFT", page.sourceIcon, "RIGHT", 6, 0)
-		sourceButton.label:SetPoint("RIGHT", sourceButton, "RIGHT", -6, 0)
-		RefreshSourceButton(page)
-		sourceButton:SetScript("OnClick", function()
-			sourceIndex = sourceIndex % #sources + 1
-			page.filters.recordSource = sources[sourceIndex]
-			RefreshSourceButton(page)
-			Addon:RefreshHistoryView()
-		end)
 		page.addHeading = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormal")
 		page.addHeading:SetPoint("TOPLEFT", 0, -120)
 		page.addHeading:SetText(W.T("DATABASE_ADD"))
@@ -504,8 +485,7 @@ local function RefreshPage(self, page)
 		local source = self:GetCharacterRecordSource(member)
 		local sourceData = RECORD_SOURCES[source]
 		row.sourceText:SetText(W.IconMarkup(sourceData and sourceData.icon or SOURCE_ALL_ICON, 14) .. " "
-			.. (sourceData and W.T(sourceData.key) or tostring(source))
-			.. (member.recordSourceDetail and (": " .. member.recordSourceDetail) or ""))
+			.. (sourceData and W.T(sourceData.key) or tostring(source)))
 		W.SetFontColor(row.sourceText, UI.TEXT_IDLE)
 		row.guildText:SetText(W.FormatGuildDisplay(member.guildName, member.guildRank))
 		W.SetFontColor(row.guildText, UI.TEXT_IDLE)

@@ -153,17 +153,19 @@ English/Russian, profile tabs, header visibility, and tooltip interactions.
 ## Profile and history separation (phase 6)
 
 - `PlayerHistory.lua`: rating catalogs, normalization, and rating access.
-- `PlayerHistoryStore.lua`: history persistence, encounter recording, legacy
-  tag migration, events, and notes. Existing SavedVariables keys are unchanged.
+- `PlayerHistoryStore.lua`: encounter/scan history, Local Profile persistence,
+  sender-scoped Exchange migration, and legacy-field cleanup.
 - `RatingPresentation.lua`: rating labels, tooltip formatting, and chat marks.
 - `ProfileDraft.lua`: plain draft creation/copying and tag, fact, and event edits.
   UI frames hold this object as `profileDraft`; mutations do not save it.
 - `CharacterProfile.lua`: frames, rendering, and command wrappers that explicitly
   persist drafts and refresh views. Notes keep their separate save/reset behavior.
 
-`history.test.mts` covers idempotent legacy migration, saved opinion/tags/facts,
-event context copies, notes persistence/reset, draft discard/reopen, tag limits,
+`history.test.mts` covers idempotent legacy migration and cleanup, Local Profile
+opinion/tags/facts/events/notes persistence, draft discard/reopen, tag limits,
 and real profile commit/add-event/notes command wrappers with a minimal frame.
+`sync.test.mts` covers Local-only export, sender isolation, and read-only
+received profiles.
 It does not validate visual layout or interaction with a running WoW client.
 In game, edit and close without saving, reopen, commit changes, switch players,
 and exercise Notes Save/Reset in both languages. No layout version is bumped.

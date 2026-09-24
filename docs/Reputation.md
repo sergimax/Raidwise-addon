@@ -1,14 +1,14 @@
 # Reputation model
 
-Local player reputation for other characters is stored under `RaidwiseDB.history[guid]` and edited in the Character profile. Catalogs and rating access live in [`PlayerHistory.lua`](../Raidwise/PlayerHistory.lua); persistence and migrations live in [`PlayerHistoryStore.lua`](../Raidwise/PlayerHistoryStore.lua). Draft edits belong to [`ProfileDraft.lua`](../Raidwise/ProfileDraft.lua), and labels/tooltips to [`RatingPresentation.lua`](../Raidwise/RatingPresentation.lua).
+Local player reputation for other characters is stored under `RaidwiseDB.reputation.localProfilesByGuid[guid]` and edited in the Character profile. `RaidwiseDB.history` contains encounter/scan identity only. Catalogs and rating access live in [`PlayerHistory.lua`](../Raidwise/PlayerHistory.lua); persistence and migrations live in [`PlayerHistoryStore.lua`](../Raidwise/PlayerHistoryStore.lua). Draft edits belong to [`ProfileDraft.lua`](../Raidwise/ProfileDraft.lua), and labels/tooltips to [`RatingPresentation.lua`](../Raidwise/RatingPresentation.lua).
 
 ## Data-base separation (foundation)
 
-RaidwiseDB.reputation is the dedicated root for the future three rating bases.
-Its version-1 shape contains localProfilesByGuid, exchangeProfilesBySource,
-and an optional globalKarma dataset. InitializeHistoryStore() creates and
-normalizes that root without moving or changing existing RaidwiseDB.history`nentries. Until the profile migration is implemented, history remains the
-authoritative source for all current profile UI and exchange behavior.
+`RaidwiseDB.reputation` is the dedicated root for the three rating bases. Its
+version-2 shape contains `localProfilesByGuid`, `exchangeProfilesBySource`, and
+an optional `globalKarma` dataset. `InitializeHistoryStore()` performs the
+one-shot Phase 6 migration before UI construction, then removes copied legacy
+profile fields from every history row.
 
 The eventual ownership rules are fixed now: only local profiles may be edited
 and included in a personal export; exchanged profiles are retained per sender;
@@ -17,11 +17,12 @@ GetLocalProfile, GetExchangeProfileSources, and GetGlobalKarmaDataset are
 read-only helpers and never initialize SavedVariables or silently project legacy
 history rows into a new base.
 
-Phase 2 seeds Local profiles from legacy local cards at initialization and stores
-each incoming exchange payload under its sender-scoped key. Existing history
-fields are deliberately retained as a temporary compatibility projection for
-the current profile and database views; they will stop receiving exchange data
-when those views move to the new bases.
+Local Profiles exclusively own editable opinions, tags, facts, manual events,
+notes, and profile changes. Exchange Profiles exclusively own received opinions,
+events, and links under a sender-scoped key. Received profiles are read-only and
+are never included in an outgoing export. Character Database and Character
+Profile read profile data through the Local/Exchange APIs, not legacy history
+fields or `recordSource`.
 
 ## Linked characters
 
@@ -106,16 +107,15 @@ the existing History/Character database source column:
 | State | Meaning | Retention |
 |-------|---------|-----------|
 | `local` | Profile saved or customized locally, including notes and character links | Kept in Character database |
-| `imported` | Profile supplied by another user or website (`recordSource=user/website`) | Kept in Character database |
+| `imported` | Profile supplied by one or more Exchange senders | Kept in Character database |
 | `unset` | No saved profile; may have encounter or scan history | Removed from History after 14 days without an encounter/scan |
 
 Scanning does not create a saved profile. `lastScannedAt` records explicit target
 and raid Gear Check scans separately from ordinary encounters. Old scan-only
 records without this field need a new scan to qualify for chat marking.
-Opening a profile does not save it. Local saves set `profileEditedLocally`; this
-takes precedence in the displayed state and source filters while preserving
-`recordSource` and `recordSourceDetail` as original import provenance. Existing
-imported rows retain their source; old unlabelled customized rows migrate as local.
+Opening a profile does not save it. Legacy `recordSource`, imported personal
+ratings, notes, and manual events are copied once during migration, then removed
+from history; they no longer drive UI, filters, exports, or chat markers.
 The import transport/UI and versioned JSON contract are described in [Synchronization.md](Synchronization.md).
 
 On personal rating save and on each new event:

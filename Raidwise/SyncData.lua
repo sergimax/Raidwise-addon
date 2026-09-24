@@ -179,8 +179,10 @@ function Addon:ApplySyncImport()
 	end
 	source.sender, source.receivedAt = review.sender, time()
 	for _, row in ipairs(review.rows) do
-		-- Preserve every sender's payload independently. The legacy history write
-		-- below is retained only for the current profile UI until Phase 5.
+		-- History retains encounter identity only; received profile data stays
+		-- sender-scoped below.  The identity lets Character Database render it.
+		self:EnsureHistoryEntryForGuid(row.guid, row)
+		-- Preserve every sender's payload independently.
 		source.profilesByGuid[row.guid] = {guid=row.guid, name=row.name, realm=row.realm, class=row.class,
 			opinion=row.opinion, tags=row.tags, facts=row.facts, events=row.events, links=row.links,
 			updatedAt=row.updatedAt, receivedAt=time()}

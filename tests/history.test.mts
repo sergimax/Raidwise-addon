@@ -36,7 +36,7 @@ test("encounters expire independently of saved cards, filters and name-only iden
       assert(addon:ShouldMarkCharacterInChat(addon.db.history.imported))
       assert(#addon:BuildHistoryRoster()==0 and #addon:BuildHistoryRoster(true)==3)
       local manual=addon:AddCharacterRecord("  Tester-Realm  ")
-      assert(manual and manual.metAt==0 and manual.recordSource=="manual")
+      assert(manual and manual.metAt==0 and addon:GetCharacterProfileState(manual)=="local")
       assert(addon:AddCharacterRecord("tester-realm")==manual)
       assert(not addon:AddCharacterRecord("bad name") and not addon:AddCharacterRecord("|Hplayer:bad"))
       addon:SavePersonalRatingForGuid(manual.guid,manual,"negative",{}, {})
@@ -49,13 +49,8 @@ test("encounters expire independently of saved cards, filters and name-only iden
       assert(#addon:BuildHistoryRoster(false,{name="test",class="mag",guildName="example"})==1)
       assert(#addon:BuildHistoryRoster(true,{opinion="negative"})==1)
       assert(#addon:BuildHistoryRoster(true,{opinion="positive"})==0)
-      assert(#addon:BuildHistoryRoster(true,{recordSource="manual",opinion="negative",name="test"})==1)
-      assert(#addon:BuildHistoryRoster(true,{recordSource="website",opinion="negative"})==0)
-      assert(addon:BuildHistoryRoster(true,{recordSource="website"})[1].guid=="imported")
-      assert(#addon:BuildHistoryRoster(true,{recordSource="user"})==0)
-      addon.db.history.imported.recordSource="user"
-      assert(#addon:BuildHistoryRoster(true,{recordSource="user"})==1)
-      addon.db.history.imported.recordSource="website"
+      -- recordSource is scrubbed by migration and cannot filter the database.
+      assert(#addon:BuildHistoryRoster(true,{recordSource="website",opinion="negative"})==1)
       local first=manual.metAt
       advance(13*86400)
       addon:RecordTargetScanHistory({character={guid="REAL",name="Tester"},collection={collectedAt=time()}})
@@ -65,11 +60,9 @@ test("encounters expire independently of saved cards, filters and name-only iden
       advance(12*86400)
       addon:PruneHistory()
       assert(#addon:BuildHistoryRoster()==0 and addon.db.history.REAL==manual)
-      addon:SaveProfileNotesForGuid("imported",nil,"Local annotation")
-      assert(addon.db.history.imported.recordSource=="website")
-      assert(addon:GetCharacterProfileState(addon.db.history.imported)=="local")
-      assert(addon:GetCharacterRecordSource(addon.db.history.imported)=="manual")
-      assert(#addon:BuildHistoryRoster(true,{recordSource="website"})==0)
+      assert(not addon:SaveProfileNotesForGuid("imported",nil,"Local annotation"))
+      assert(addon:GetCharacterProfileState(addon.db.history.imported)=="imported")
+		assert(#addon:BuildHistoryRoster(true,{recordSource="website"})==4)
       addon:RecordTargetScanHistory({character={guid="TEMP",name="Temporary"}})
       assert(not addon:IsCharacterDatabaseEntry(addon.db.history.TEMP))
       assert(addon:GetCharacterProfileState(addon.db.history.TEMP)=="unset")
@@ -115,12 +108,12 @@ test("history migration is idempotent and ratings, events, and notes persist", a
       local legacy = {guid="A",name="Tester",metAt=100,
         rating={personal={opinion="positive",tags={"raid_leader","late","experienced"},updatedAt=500}}}
       Raidwise.db.history={A=legacy}
+      Raidwise:InitializeHistoryStore()
       local entry=Raidwise:EnsureHistoryEntryForGuid("A")
       local personal=Raidwise:GetPersonalRating(entry)
-      assert(entry.rating.personal.reputationV2 and personal.facts[1]=="raid_leader")
-      assert(#entry.events==1 and entry.events[1].type=="late_arrival")
-      Raidwise:EnsurePersonalRating(entry); Raidwise:EnsureHistoryEntryForGuid("A")
-      assert(#entry.events==1 and entry.lastSeenAt==100 and entry.meetCount==1)
+      assert(personal.facts[1]=="raid_leader")
+      assert(#Raidwise:GetHistoryEvents(entry)==1 and Raidwise:GetHistoryEvents(entry)[1].type=="late_arrival")
+      assert(entry.rating==nil and entry.events==nil and entry.lastSeenAt==100 and entry.meetCount==1)
       local tag=Raidwise:RatingTagGroups()[1].tags[1].id
       Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{tag},{"raid_leader"})
       assert(Raidwise:GetPersonalRating(entry).opinion=="negative" and Raidwise:GetPersonalRating(entry).tags[1]==tag)
@@ -136,13 +129,13 @@ test("history migration is idempotent and ratings, events, and notes persist", a
       assert(#Raidwise:GetHistoryEvents(entry)==0)
       local persisted=Raidwise.db
       Raidwise.db=nil; Raidwise.db=persisted
-      assert(Raidwise:GetHistoryEntry("A").rating.personal.opinion=="negative")
+      assert(Raidwise:GetPersonalRating(Raidwise:GetHistoryEntry("A")).opinion=="negative")
       assert(Raidwise:SavePersonalRatingForGuid("",nil,"positive",{})==nil)
       -- Draft changes and cancellation must not mutate persisted ratings/events.
       local draft = Raidwise:CreateProfileDraft(entry)
       draft.draftOpinion="positive"
       Raidwise:AddProfileDraftEvent(draft,"same_party")
-      assert(entry.rating.personal.opinion=="negative" and #entry.events==0)
+      assert(Raidwise:GetPersonalRating(entry).opinion=="negative" and #Raidwise:GetHistoryEvents(entry)==0)
       draft=Raidwise:CreateProfileDraft(entry) -- discard/reopen
       assert(draft.draftOpinion=="negative" and #draft.draftEvents==0)
       local tags=Raidwise:RatingTagGroups()[1].tags
@@ -159,21 +152,21 @@ test("history migration is idempotent and ratings, events, and notes persist", a
       Raidwise.raidDetailFrame={profileMember=entry,profileDraft=draft}
       Raidwise:SetProfileOpinion("positive")
       Raidwise:AddProfileEvent("same_party")
-      assert(entry.rating.personal.opinion=="negative" and #entry.events==0)
+      assert(Raidwise:GetPersonalRating(entry).opinion=="negative" and #Raidwise:GetHistoryEvents(entry)==0)
       Raidwise:CommitProfileRating()
-      assert(entry.rating.personal.opinion=="positive" and #entry.events==1)
+      assert(Raidwise:GetPersonalRating(entry).opinion=="positive" and #Raidwise:GetHistoryEvents(entry)==1)
       local reopened=Raidwise:CreateProfileDraft(entry)
       reopened.draftEvents[1].context.zoneName="Draft only"
-      assert(entry.events[1].context.zoneName~="Draft only")
+      assert(Raidwise:GetHistoryEvents(entry)[1].context.zoneName~="Draft only")
       Raidwise:SaveProfileNotes("Saved through UI")
-      assert(entry.notes=="Saved through UI")
+      assert(Raidwise:GetProfileNotes(entry)=="Saved through UI")
       Raidwise:ResetProfileNotes()
-      assert(entry.notes=="")
+      assert(Raidwise:GetProfileNotes(entry)=="")
     `);
   } finally { lua.global.close(); }
 });
 
-test("reputation store foundation is separate, idempotent, and does not migrate history", async () => {
+test("phase 6 migration is idempotent and removes legacy history profile fields", async () => {
   const lua = await Lua.create();
   try {
     lua.doStringSync(`
@@ -190,12 +183,12 @@ test("reputation store foundation is separate, idempotent, and does not migrate 
       assert(addon:GetReputationStore()==nil)
       addon:InitializeHistoryStore()
       local store=addon:GetReputationStore()
-      assert(store and store.storeVersion==1)
+      assert(store and store.storeVersion==2)
       assert(type(store.localProfilesByGuid)=="table" and store.localProfilesByGuid.legacy)
       assert(type(store.exchangeProfilesBySource)=="table" and next(store.exchangeProfilesBySource)==nil)
       assert(addon:GetGlobalKarmaDataset()==nil)
       assert(addon:GetLocalProfile("legacy").personal.opinion=="positive" and #addon:GetExchangeProfileSources("legacy")==0)
-      assert(addon.db.history.legacy.rating.personal.opinion=="positive")
+      assert(addon.db.history.legacy.rating==nil and addon.db.history.legacy.notes==nil and addon.db.history.legacy.events==nil)
       local original=store
       addon:InitializeHistoryStore()
       assert(addon:GetReputationStore()==original and addon.db.history.legacy)

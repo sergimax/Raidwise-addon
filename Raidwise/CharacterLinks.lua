@@ -195,15 +195,16 @@ function Addon:SyncLinkedPlayerOpinion(guid, opinion)
 	local creatorId = type(UnitGUID) == "function" and UnitGUID("player") or ""
 	opinion = self:NormalizePersonalOpinion(opinion)
 	for _, member in ipairs(self:GetLinkedCharacters(guid)) do
-		local personal = self:EnsurePersonalRating(member.entry)
+		local profile = self:EnsureLocalProfile(member.entry.guid, member.entry)
+		local personal = profile and profile.personal
+		if not personal then return end
 		if self:CanEditCharacterProfile(member.entry) and personal.opinion ~= opinion then
 			personal.opinion = opinion
 			personal.updatedAt = now
 			if personal.createdAt <= 0 then personal.createdAt = now end
 			personal.creatorId = creatorId or ""
 			self:AppendProfileHistoryChange(member.entry, "opinion", opinion)
-			local localProfile = self.EnsureLocalProfile and self:EnsureLocalProfile(member.entry.guid, member.entry)
-			if localProfile then localProfile.personal, localProfile.updatedAt = personal, now end
+			profile.personal, profile.updatedAt = personal, now
 		end
 	end
 end
