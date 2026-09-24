@@ -22,6 +22,7 @@ PlayerHistory.lua
 PlayerHistoryStore.lua
 CharacterLinks.lua
 SyncJSON.lua
+KarmaData.lua
 SyncData.lua
 SyncTransport.lua
 RatingPresentation.lua

@@ -385,6 +385,10 @@ function Addon:GetCommunityRating(entryOrMember)
 	if type(entry) ~= "table" then
 		return nil
 	end
+	if self.GetGlobalKarmaRecord then
+		local record = self:GetGlobalKarmaRecord(entry)
+		if record then return {positivePercent=record.rating, tags={}, isMock=false, isGlobal=true} end
+	end
 	if type(entry.rating) == "table" then
 		local normalized = self:NormalizeCommunityRating(entry.rating.community)
 		if normalized then

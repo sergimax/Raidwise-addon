@@ -110,6 +110,20 @@ five pending requests are supported. Offers/transfers expire after 30 minutes;
 sender offer cooldown is 30 seconds. Large group transfers may need another offer
 after other recipients finish. Missing packets time out; retry is manual.
 
+## Global Karma dataset
+
+Global Karma is a separate, read-only dataset; it is not part of profile
+exchange and is never included in a personal export. Version 1 uses the
+`RaidwiseKarma` format with `datasetId`, numeric `revision`, `publishedAt`, and
+a `characters` array. Each character record contains `character`,
+`characterId`, `race`, `level` (1–80), `class`, and a 0–100 `rating`.
+
+Pasted data is staged first. Applying it replaces the whole active dataset only
+when its revision is greater than the installed revision, or when revisions are
+equal and its publication timestamp is newer. Invalid, duplicate, older, or
+equal data is rejected; no merge occurs. A later UI phase will expose this
+review and its source metadata.
+
 ## Verification
 
 `npm run check` covers JSON round trips/limits, privacy projection, version
