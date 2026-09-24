@@ -10,10 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 - Foundation for separate persisted Local profiles, sender-scoped Exchange profiles, and a read-only Global Karma dataset, while preserving existing character data during the transition.
 - Versioned Global Karma JSON validation and consent-based staging/apply. Newer datasets atomically replace older data by revision and publication time; malformed, duplicate, equal, and older datasets are rejected.
+- History and Character database show a filtered entry count and support 25-row pagination.
 
 ### Changed
 - Local profile edits and linked-character opinion updates now write through the Local profile base while legacy profile views remain compatible during the migration.
 - Incoming synchronization payloads are retained independently by sender in the Exchange base, preserving their provenance for the forthcoming received-data views.
+- Character cooldowns highlight the current character's full column in both interface themes.
+- Reputation separates Local and received opinions into scrollable columns above the Global Karma import area.
+
+### Fixed
+- Large Reputation collections no longer overlap the Global Karma status, JSON input, or actions.
 
 ## [1.27.0] - 2026-09-23
 

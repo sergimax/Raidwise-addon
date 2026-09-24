@@ -119,7 +119,7 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 | short description | “Lockouts and currency for every character saved on this account.” |
 | Refresh | Requests fresh raid info, then redraws the table (hover tip) |
 | first column | Instance name, then kind in parentheses (`(Raid)` / `(Dungeon)`); **Currency** row at bottom |
-| character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first; **Remove** on other columns deletes that character from `RaidwiseDB.characters` (login again restores) |
+| character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first with a theme-aware gold background across its header and cells; **Remove** on other columns deletes that character from `RaidwiseDB.characters` (login again restores) |
 | saved cell | Compact size/mode tags (`10`, `10h`, `25`, `25h`, …); tooltip lists each variant with time until reset |
 | currency cell | Title line + label column with account totals (`Gold  12kg`); character columns skip one line, then icon+count chips aligned to labels |
 | empty cell | `-` (not saved) |
@@ -360,7 +360,9 @@ Source tracking supports website/user labels and optional source detail; importi
 and exchange are not implemented in this update. Manual entry is provided in the UI;
 no additional slash command or unit context menu is required.
 
-## Reputation`n`nLocal and received opinions occupy separate scrollable columns at the top of the
+## Reputation
+
+Local and received opinions occupy separate scrollable columns at the top of the
 page. The Global Karma heading, status, import box, and actions remain below
 those lists, so large opinion collections cannot overlap the import controls.
 
