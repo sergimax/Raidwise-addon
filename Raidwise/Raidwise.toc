@@ -58,6 +58,7 @@ PageGearCheckTarget.lua
 PageHistory.lua
 PageSyncExport.lua
 PageSync.lua
+PageReputation.lua
 PageSettings.lua
 PageInfo.lua
 ExporterWindow.lua

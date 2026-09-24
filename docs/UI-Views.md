@@ -60,6 +60,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | History | `LAYOUT_VERSION = 5` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Character database | `LAYOUT_VERSION = 7` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
+| Reputation | `LAYOUT_VERSION = 1` | `PageReputation.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 16` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
 
