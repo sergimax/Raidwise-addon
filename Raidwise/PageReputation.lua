@@ -2,7 +2,7 @@
 local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
-local LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 2
 Addon.Pages = Addon.Pages or {}
 
 local function line(parent, text, y)
@@ -16,6 +16,14 @@ local function create(parent)
 	page.localTitle = line(page, "", 0); page.localRows = {}
 	page.exchangeTitle = line(page, "", -150); page.exchangeRows = {}
 	page.karmaTitle = line(page, "", -300); page.karmaInfo = line(page, "", -326)
+	page.karmaPaste, page.karmaPasteHost = W.CreateCopyBox(page, "RaidwiseKarmaPasteScrollV2", "RaidwiseKarmaPasteBoxV2")
+	page.karmaPasteHost:SetPoint("TOPLEFT", 0, -350); page.karmaPasteHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 42)
+	page.karmaReview = W.CreatePlainButton(page, 120, 24, W.T("REPUTATION_KARMA_REVIEW")); page.karmaReview:SetPoint("BOTTOMLEFT", 0, 8)
+	page.karmaApply = W.CreatePlainButton(page, 120, 24, W.T("SYNC_APPLY")); page.karmaApply:SetPoint("LEFT", page.karmaReview, "RIGHT", 6, 0)
+	page.karmaCancel = W.CreatePlainButton(page, 120, 24, W.T("SYNC_DECLINE")); page.karmaCancel:SetPoint("LEFT", page.karmaApply, "RIGHT", 6, 0)
+	page.karmaReview:SetScript("OnClick", function() Addon:StageGlobalKarmaImport(page.karmaPaste:GetText(), "JSON"); Addon:RefreshReputationView() end)
+	page.karmaApply:SetScript("OnClick", function() Addon:ApplyGlobalKarmaImport(); Addon:RefreshReputationView() end)
+	page.karmaCancel:SetScript("OnClick", function() Addon:CancelGlobalKarmaImport(); Addon:RefreshReputationView() end)
 	Addon.reputationPage = page
 	return page
 end
@@ -43,6 +51,7 @@ function Addon:RefreshReputationView()
 	page.karmaTitle:SetText(W.T("REPUTATION_GLOBAL"))
 	local karma = store.globalKarma
 	page.karmaInfo:SetText(karma and W.T("REPUTATION_KARMA_INFO", karma.datasetId, karma.revision, karma.publishedAt) or W.T("REPUTATION_KARMA_EMPTY"))
+	if self.globalKarmaReview then page.karmaApply:Enable(); page.karmaCancel:Enable() else page.karmaApply:Disable(); page.karmaCancel:Disable() end
 end
 
 Addon.Pages.Reputation = {id="reputation", LAYOUT_VERSION=LAYOUT_VERSION, Create=create, Refresh=function() Addon:RefreshReputationView() end, ApplyLocale=function() Addon:RefreshReputationView() end}
