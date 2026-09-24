@@ -58,6 +58,34 @@ function Addon:GetGlobalKarmaDataset()
 	return store and store.globalKarma or nil
 end
 
+function Addon:EnsureLocalProfile(guid, seed)
+	if type(guid) ~= "string" or guid == "" then return nil end
+	local store = self:EnsureReputationStore()
+	if not store then return nil end
+	local profile = store.localProfilesByGuid[guid]
+	if type(profile) ~= "table" then
+		profile = {guid=guid, personal=self:RatingDefaultPersonal(), events={}, notes="", changes={}}
+		store.localProfilesByGuid[guid] = profile
+	end
+	if type(profile.personal) ~= "table" then profile.personal = self:RatingDefaultPersonal() end
+	if type(profile.events) ~= "table" then profile.events = {} end
+	if type(profile.notes) ~= "string" then profile.notes = "" end
+	if type(profile.changes) ~= "table" then profile.changes = {} end
+	if type(seed) == "table" then
+		for _, key in ipairs({"name", "realm", "class", "classLabel", "spec", "specIcon", "race", "faction", "gender", "guildName", "guildRank"}) do
+			if seed[key] ~= nil and seed[key] ~= "" then profile[key] = seed[key] end
+		end
+	end
+	return profile
+end
+
+function Addon:GetProfileNotes(entryOrMember)
+	local guid = type(entryOrMember) == "table" and entryOrMember.guid or entryOrMember
+	local profile = self:GetLocalProfile(guid)
+	if profile then return profile.notes or "" end
+	return type(entryOrMember) == "table" and entryOrMember.notes or ""
+end
+
 local LEGACY_TAG_TO_FACT = {
 	raid_leader = "raid_leader",
 	pug_leader = "pug_raid_leader",
@@ -482,6 +510,14 @@ function Addon:InitializeHistoryStore()
 			if self:IsCharacterDatabaseEntry(entry) and not entry.recordSource then
 				self:MarkCharacterRecord(entry, "manual")
 			end
+			if entry.guid and self:GetCharacterProfileState(entry) == "local" then
+				local profile = self:EnsureLocalProfile(entry.guid, entry)
+				if not profile.legacyMigrated then
+					profile.personal = entry.rating and entry.rating.personal or self:RatingDefaultPersonal()
+					profile.events, profile.notes, profile.changes = entry.events or {}, entry.notes or "", entry.changes or {}
+					profile.legacyMigrated = true
+				end
+			end
 		end
 	end
 	if self.InitializeCharacterLinks then self:InitializeCharacterLinks() end
@@ -845,6 +881,9 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 		return nil
 	end
 	local personal = self:EnsurePersonalRating(entry)
+	local localProfile = self:EnsureLocalProfile(guid, entry or seed)
+	if not localProfile then return nil end
+	if localProfile.legacyMigrated then personal = localProfile.personal end
 	local previousOpinion = personal.opinion
 	local previousTags = {}
 	for index = 1, #personal.tags do
@@ -900,6 +939,8 @@ function Addon:SavePersonalRatingForGuid(guid, seed, opinion, tagIds, factIds)
 		self:AppendProfileHistoryChange(entry, "facts", factSummary)
 	end
 	if self.SyncLinkedPlayerOpinion then self:SyncLinkedPlayerOpinion(guid, personal.opinion) end
+	entry.rating = entry.rating or {}; entry.rating.personal = personal
+	localProfile.personal, localProfile.updatedAt = personal, now
 	return entry
 end
 
@@ -1051,5 +1092,7 @@ function Addon:SaveProfileNotesForGuid(guid, seed, notes)
 		end
 	end
 	entry.notes = type(notes) == "string" and notes or ""
+	local profile = self:EnsureLocalProfile(guid, entry or seed)
+	if profile then profile.notes, profile.updatedAt = entry.notes, time() end
 	return entry
 end

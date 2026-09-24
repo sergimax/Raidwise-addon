@@ -295,6 +295,13 @@ function Addon:GetPersonalRating(entryOrMember)
 	-- Always prefer the live history row by GUID so profile labels are not stuck
 	-- on a stale member.rating snapshot from when the window opened.
 	local guid = entryOrMember.guid
+	if type(guid) == "string" and guid ~= "" and self.GetLocalProfile then
+		local profile = self:GetLocalProfile(guid)
+		if type(profile) == "table" and type(profile.personal) == "table" then
+			local personal = profile.personal
+			return {opinion=self:NormalizePersonalOpinion(personal.opinion), tags=self:NormalizePersonalTags(personal.tags), facts=self:NormalizePersonalFacts(personal.facts), createdAt=tonumber(personal.createdAt) or 0, updatedAt=tonumber(personal.updatedAt) or 0, creatorId=type(personal.creatorId) == "string" and personal.creatorId or ""}
+		end
+	end
 	if type(guid) == "string" and guid ~= "" and self.GetHistoryEntry then
 		local saved = self:GetHistoryEntry(guid)
 		if type(saved) == "table" then
@@ -410,6 +417,10 @@ function Addon:GetHistoryEvents(entryOrMember)
 		return {}
 	end
 	local guid = entryOrMember.guid
+	if type(guid) == "string" and guid ~= "" and self.GetLocalProfile then
+		local profile = self:GetLocalProfile(guid)
+		if type(profile) == "table" and type(profile.events) == "table" then entryOrMember = profile end
+	end
 	if type(guid) == "string" and guid ~= "" and self.GetHistoryEntry then
 		local saved = self:GetHistoryEntry(guid)
 		if type(saved) == "table" then

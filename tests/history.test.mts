@@ -191,10 +191,10 @@ test("reputation store foundation is separate, idempotent, and does not migrate 
       addon:InitializeHistoryStore()
       local store=addon:GetReputationStore()
       assert(store and store.storeVersion==1)
-      assert(type(store.localProfilesByGuid)=="table" and next(store.localProfilesByGuid)==nil)
+      assert(type(store.localProfilesByGuid)=="table" and store.localProfilesByGuid.legacy)
       assert(type(store.exchangeProfilesBySource)=="table" and next(store.exchangeProfilesBySource)==nil)
       assert(addon:GetGlobalKarmaDataset()==nil)
-      assert(addon:GetLocalProfile("legacy")==nil and #addon:GetExchangeProfileSources("legacy")==0)
+      assert(addon:GetLocalProfile("legacy").personal.opinion=="positive" and #addon:GetExchangeProfileSources("legacy")==0)
       assert(addon.db.history.legacy.rating.personal.opinion=="positive")
       local original=store
       addon:InitializeHistoryStore()

@@ -17,6 +17,12 @@ GetLocalProfile, GetExchangeProfileSources, and GetGlobalKarmaDataset are
 read-only helpers and never initialize SavedVariables or silently project legacy
 history rows into a new base.
 
+Phase 2 seeds Local profiles from legacy local cards at initialization and stores
+each incoming exchange payload under its sender-scoped key. Existing history
+fields are deliberately retained as a temporary compatibility projection for
+the current profile and database views; they will stop receiving exchange data
+when those views move to the new bases.
+
 ## Linked characters
 
 The profile's **Characters** tab records local associations between characters of

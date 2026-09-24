@@ -202,6 +202,8 @@ function Addon:SyncLinkedPlayerOpinion(guid, opinion)
 			if personal.createdAt <= 0 then personal.createdAt = now end
 			personal.creatorId = creatorId or ""
 			self:AppendProfileHistoryChange(member.entry, "opinion", opinion)
+			local localProfile = self.EnsureLocalProfile and self:EnsureLocalProfile(member.entry.guid, member.entry)
+			if localProfile then localProfile.personal, localProfile.updatedAt = personal, now end
 		end
 	end
 end

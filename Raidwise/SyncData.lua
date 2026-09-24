@@ -170,7 +170,20 @@ function Addon:ApplySyncImport()
 	local review = self.syncReview
 	if not review then return nil, "SYNC_NO_REVIEW" end
 	local imported, changed = {}, 0
+	local reputation = self:EnsureReputationStore()
+	local sourceId = review.source .. ":" .. string.lower(review.sender or "JSON")
+	local source = reputation.exchangeProfilesBySource[sourceId]
+	if type(source) ~= "table" then
+		source = {sourceId=sourceId, sourceType=review.source, sender=review.sender, profilesByGuid={}}
+		reputation.exchangeProfilesBySource[sourceId] = source
+	end
+	source.sender, source.receivedAt = review.sender, time()
 	for _, row in ipairs(review.rows) do
+		-- Preserve every sender's payload independently. The legacy history write
+		-- below is retained only for the current profile UI until Phase 5.
+		source.profilesByGuid[row.guid] = {guid=row.guid, name=row.name, realm=row.realm, class=row.class,
+			opinion=row.opinion, tags=row.tags, facts=row.facts, events=row.events, links=row.links,
+			updatedAt=row.updatedAt, receivedAt=time()}
 		local action, entry = actionFor(row) -- Recheck local edits made after preview.
 		if action == "add" or action == "update" then
 			entry = entry or self:EnsureHistoryEntryForGuid(row.guid, row)
