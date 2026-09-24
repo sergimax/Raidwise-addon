@@ -303,7 +303,7 @@ test("shell dispatches page lifecycle without knowing page controls", async () =
       assert(groupInfo.id==expectedGroups[index])
     end
     assert(#Raidwise.MenuGroups==#expectedGroups)
-    local expectedPageGroups={"personal","personal","raiding","raiding","raiding","raiding","exchange","exportWeb","exportWeb","other","other"}
+    local expectedPageGroups={"personal","personal","raiding","raiding","raiding","raiding","exchange","exchange","exportWeb","exportWeb","other","other"}
     for index, pageInfo in ipairs(Raidwise.MenuPages) do
       assert(pageInfo.group==expectedPageGroups[index])
     end
