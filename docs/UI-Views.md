@@ -57,9 +57,10 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Raid | `LAYOUT_VERSION = 36` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| History | `LAYOUT_VERSION = 5` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Character database | `LAYOUT_VERSION = 7` | `PageHistory.lua` | Shell title bar (next to page name) |
+| History | `LAYOUT_VERSION = 6` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Character database | `LAYOUT_VERSION = 9` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
+| Reputation | `LAYOUT_VERSION = 3` | `PageReputation.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 16` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
 
@@ -118,7 +119,7 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 | short description | “Lockouts and currency for every character saved on this account.” |
 | Refresh | Requests fresh raid info, then redraws the table (hover tip) |
 | first column | Instance name, then kind in parentheses (`(Raid)` / `(Dungeon)`); **Currency** row at bottom |
-| character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first; **Remove** on other columns deletes that character from `RaidwiseDB.characters` (login again restores) |
+| character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first with a theme-aware gold background across its header and cells; **Remove** on other columns deletes that character from `RaidwiseDB.characters` (login again restores) |
 | saved cell | Compact size/mode tags (`10`, `10h`, `25`, `25h`, …); tooltip lists each variant with time until reset |
 | currency cell | Title line + label column with account totals (`Gold  12kg`); character columns skip one line, then icon+count chips aligned to labels |
 | empty cell | `-` (not saved) |
@@ -330,7 +331,8 @@ sorted by last seen. Name, class (token or localized label), and guild filters
 combine as case-insensitive substring searches. The When column shows last seen;
 the profile retains first meeting details. Unedited encounter records expire
 at 14 days since last seen. Cleanup runs at login, group collection, scan completion,
-and list refresh.
+and list refresh. Both views display their filtered entry count and paginate at
+25 rows, so opening a large saved database creates only the visible row frames.
 
 Character database is a separate personal menu page using the same table. It
 shows manually saved cards and records with import provenance, regardless of age.
@@ -340,7 +342,8 @@ combines with the other filters. Both tables show source icons (note, map, lette
 or group for encounters) beside the source labels.
 The switch uses reputation crystal icons and matching green/yellow/red text; All
 uses a group icon and normal text. Both pages have a Filters heading and 14 px
-icons beside input labels. Database addition has its own heading below the filters.
+icons beside input labels. The database has no legacy source filter; its addition
+control has its own heading below the filters.
 A recent encounter with a saved card appears in both views; after 14 days it remains
 only in the database. Both tables show record source alongside name, class, spec,
 opinion, tags, GS, iLvl, last seen, and guild. The first meeting location (Met in)
@@ -356,6 +359,12 @@ to manual source. Imported records retain their original source when edited loca
 Source tracking supports website/user labels and optional source detail; importing
 and exchange are not implemented in this update. Manual entry is provided in the UI;
 no additional slash command or unit context menu is required.
+
+## Reputation
+
+Local and received opinions occupy separate scrollable columns at the top of the
+page. The Global Karma heading, status, import box, and actions remain below
+those lists, so large opinion collections cannot overlap the import controls.
 
 ## Settings
 

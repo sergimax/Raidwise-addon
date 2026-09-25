@@ -114,7 +114,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Gap: toolbar → table | 8 px | Table starts below Refresh button |
 | Refresh | **96 × 28** | Top-right of the page |
 | Instance column | **170** | Name + type stacked |
-| Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`), **Remove** **82 × 16** on non-current characters |
+| Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`), **Remove** **82 × 16** on non-current characters; current character column has a gold-tinted background |
 | Header row | **68** | Page-local in `PageCooldowns.lua` (taller: spec icon, name, last check, Remove) |
 | Data row | **34** | Alternate fills **0.094 / 0.078** (Classic `CD_ROW_A` / `CD_ROW_B`) |
 | Currency rows | **1** fixed | **Currency** / **Валюта** title + label column; ~**175** px tall; aligned icon+count chips |
@@ -256,10 +256,17 @@ Inputs are at y=-80. Database opinion switch is **160 x 24** at x=498 with a
 Database addition heading is at y=-120, name label at y=-144, and input at y=-164.
 Its name host is **230 x 24**, followed by a **180 x 24** Add button with a **12** px gap.
 Table begins at y=-116 (History) or y=-200 (Database).
-Source filter is **180 x 24** at x=674, y=-80, with its label at y=-60;
-its **16 x 16** icon uses the same insets as the opinion switch.
 Source column is **150** px with **14** px inline icons. When displays last seen. Rows open Character profile;
 notes are edited there.
+The filtered entry count sits below Refresh. Previous / page / Next controls sit
+on the Filters heading row at the top right. Tables render **25** rows per page;
+changing a filter returns to page one.
+
+## Reputation tab
+
+Local and received opinion lists share the top **216** px of the page in two
+scrollable columns with an **8** px gap. Global Karma starts below them at y=-252;
+its status, JSON box, and actions retain a fixed lower area.
 
 ## Settings tab
 
