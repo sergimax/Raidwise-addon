@@ -24,6 +24,59 @@ are never included in an outgoing export. Character Database and Character
 Profile read profile data through the Local/Exchange APIs, not legacy history
 fields or `recordSource`.
 
+## Rating principles and concepts
+
+Raidwise treats a rating as a **structured personal record**, not as an
+automatically calculated player score. The model deliberately keeps assessment,
+observations, identity information, and third-party data separate so that a
+visible mark has a clear owner and meaning.
+
+| Concept | What it represents | What it is not |
+|---|---|---|
+| **Personal opinion** | The local user's current overall assessment: positive, neutral, or negative | A numeric score or a consensus verdict |
+| **Tags** | Concise, subjective reasons that add context to the opinion | Evidence from which the addon derives an opinion |
+| **Facts** | Stable role or identity information, such as Raid Leader or Guild Officer | Praise, criticism, or a rating signal |
+| **Events** | Dated occurrences with captured raid/zone context | A score accumulator or an automatic opinion change |
+| **Memo** | Private free-form local notes | Shareable profile data |
+| **Exchange profile** | A received sender's assessment, retained under that sender's identity | A replacement for a locally saved assessment |
+| **Global Karma** | An optional external, versioned 0–100 positive percentage | A value calculated from local tags, facts, or events |
+
+### Ownership, precedence, and privacy
+
+Every editable assessment is owned by the local player and keyed by character
+GUID. A local profile takes precedence for display. When no local profile exists,
+a received Exchange profile can provide a read-only fallback; received profiles
+remain sender-scoped rather than being merged into one inferred consensus.
+
+Karma is independent of both profile bases. When a matching Global Karma record
+is available, it supplies the displayed percentage. Otherwise, a history-backed
+character may receive the clearly marked mock preview used by the interface.
+This preview is presentation data only and must never be exported as a real
+Karma value.
+
+The system is intentionally privacy-preserving: memos never leave the local
+database, received profiles are never re-exported, and Exchange requires review
+and consent. A player cannot edit their own opinion, tags, facts, or events;
+the store enforces this rule as well as the profile UI.
+
+### How an assessment changes
+
+The Character profile edits opinion, tags, facts, and events as a draft.
+**Save and Update** validates the catalog IDs, removes duplicate selections,
+normalizes the order, records the change, and updates timestamps and local
+creator identity. Saving an opinion also propagates only that opinion to linked
+characters; tags, facts, events, and memo remain per-character.
+
+Tags are limited to three selections in each category and facts to four total.
+Events are individually dated and can include the current zone, instance, and
+difficulty context. Neither a new event nor a tag selection modifies the
+opinion automatically: the user makes that judgement explicitly.
+
+The default opinion is neutral. It is not, by itself, proof of a saved rating:
+the UI treats an opinion as saved when it has timestamps, a non-neutral opinion,
+or selected tags. This avoids presenting an empty default record as a meaningful
+assessment.
+
 ## Linked characters
 
 The profile's **Characters** tab records local associations between characters of
