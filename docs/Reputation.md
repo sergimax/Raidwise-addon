@@ -103,8 +103,9 @@ one to keep or cancel. Unlinking retains the last shared opinion on the detached
 character; subsequent opinion changes no longer propagate to it.
 
 Link/unlink records are appended to each affected character's profile History,
-with the other character's name and realm. Main changes are recorded too. Unit
-and roster tooltips list linked characters, class-colored, with Main/Alt labels.
+with the other character's name and realm. Main changes are recorded too.
+Tooltips show the selected Main once per alt realm, followed by a comma-separated,
+class-colored list of its associated alts.
 
 Storage: `RaidwiseDB.characterGroups[id]` contains `members` only. Main preferences
 live separately in `RaidwiseDB.localCharacterMains[id]`. Initialization migrates

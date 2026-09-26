@@ -557,7 +557,7 @@ test("character groups share only opinions, log changes and retain one main", as
   `, `
     local a=Raidwise:EnsureHistoryEntryForGuid("A",{name="Main",realm="Realm"})
     local b=Raidwise:EnsureHistoryEntryForGuid("B",{name="Alt",realm="Realm"})
-    local c=Raidwise:EnsureHistoryEntryForGuid("C",{name="Alt",realm="Other"})
+    local c=Raidwise:EnsureHistoryEntryForGuid("C",{name="OtherAlt",realm="Other",class="PRIEST"})
     Raidwise:SavePersonalRatingForGuid("A",nil,"positive",{}, {"raid_leader"})
     Raidwise:SavePersonalRatingForGuid("B",nil,"negative",{}, {})
     b.notes="private"; b.events={{id="own",type="same_party",eventAt=1,context={}}}
@@ -608,7 +608,18 @@ test("character groups share only opinions, log changes and retain one main", as
     assert(a.playerGroupId~=groupId and Raidwise.db.characterGroups[groupId].members.B)
     ok,reason=Raidwise:LinkPlayerCharacters("A","C",nil,"positive")
     assert(not ok and reason=="CHAR_LINK_OTHER_GROUP")
-    assert(#Raidwise:BuildLinkedCharacterTooltipLines(b)==3)
+    local e=Raidwise:EnsureHistoryEntryForGuid("E",{name="SecondAlt",realm="Other",class="MAGE"})
+    assert(Raidwise:LinkPlayerCharacters("B","E",nil,"positive"))
+    RAID_CLASS_COLORS={PRIEST={r=1,g=0.5,b=0},MAGE={r=0.25,g=0.78,b=0.92}}
+    function Raidwise:T(key,...)
+      if key=="CHAR_LINK_TOOLTIP" then return string.format("%s (%s) with alts in %s (local links):",...) end
+      if key=="CHAR_ROLE_MAIN" then return "main" end
+      return key
+    end
+    local tooltipLines=Raidwise:BuildLinkedCharacterTooltipLines(b)
+    assert(#tooltipLines==2)
+    assert(tooltipLines[1]=="Alt (main) with alts in Other (local links):")
+    assert(tooltipLines[2]=="|cffff8000OtherAlt|r, |cff40c7ebSecondAlt|r")
     local saved=Raidwise.db; Raidwise.db=nil; Raidwise.db=saved
     assert(Raidwise:GetLinkedCharacters("C")[1].guid=="B")
     assert(not Raidwise:SetLinkedCharacterRole("B","C","twink"))

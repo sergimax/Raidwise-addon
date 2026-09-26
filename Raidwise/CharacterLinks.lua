@@ -212,12 +212,30 @@ end
 function Addon:BuildLinkedCharacterTooltipLines(member)
 	local characters = self:GetLinkedCharacters(member and member.guid)
 	if #characters < 2 then return {} end
-	local lines = { self:T("CHAR_LINK_TOOLTIP") }
+	local main = characters[1]
+	local altsByRealm = {}
 	for _, character in ipairs(characters) do
-		local label = self:LinkedCharacterName(character.entry)
-		local color = RAID_CLASS_COLORS and RAID_CLASS_COLORS[character.entry.class]
-		if color then label = self:RatingWrapColor(label, { color.r, color.g, color.b }) end
-		lines[#lines + 1] = self:T("CHAR_LINK_TOOLTIP_ROW", label, self:T("CHAR_ROLE_" .. string.upper(character.role)))
+		if character.role == "alt" then
+			local realm = character.entry.realm or character.entry.metRealm or ""
+			altsByRealm[realm] = altsByRealm[realm] or {}
+			altsByRealm[realm][#altsByRealm[realm] + 1] = character
+		end
+	end
+	local realms = {}
+	for realm in pairs(altsByRealm) do realms[#realms + 1] = realm end
+	table.sort(realms)
+	local lines = {}
+	for _, realm in ipairs(realms) do
+		local alts = altsByRealm[realm]
+		local labels = {}
+		for _, alt in ipairs(alts) do
+			local label = alt.entry.name or "?"
+			local color = RAID_CLASS_COLORS and RAID_CLASS_COLORS[alt.entry.class]
+			if color then label = self:RatingWrapColor(label, { color.r, color.g, color.b }) end
+			labels[#labels + 1] = label
+		end
+		lines[#lines + 1] = self:T("CHAR_LINK_TOOLTIP", main.entry.name or "?", self:T("CHAR_ROLE_MAIN"), realm ~= "" and realm or "?")
+		lines[#lines + 1] = table.concat(labels, ", ")
 	end
 	return lines
 end
