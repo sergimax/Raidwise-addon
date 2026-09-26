@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Incoming synchronization payloads are retained independently by sender in the Exchange base, preserving their provenance for the forthcoming received-data views.
 - Character cooldowns highlight the current character's full column in both interface themes.
 - Reputation separates Local and received opinions into scrollable columns above the Global Karma import area.
+- Reputation documentation now explains the ownership, privacy, precedence, and independent meanings of Local profiles, received Exchange profiles, and Global Karma.
 
 ### Fixed
 - Large Reputation collections no longer overlap the Global Karma status, JSON input, or actions.
