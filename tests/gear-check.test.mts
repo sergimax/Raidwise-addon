@@ -387,7 +387,7 @@ test("reported caster and healer trinkets are valid progression choices", async 
     lua.doStringSync(`
       local cases = {
         {"MAGE",2,50340,131,"critRating"}, {"MAGE",2,50345,152,"critRating"},
-        {"WARLOCK",1,50340,131,"critRating"}, {"PRIEST",3,50345,152,"critRating"},
+        {"WARLOCK",1,50340,131,"critRating"}, {"WARLOCK",3,47188,168,"spellPower"}, {"WARLOCK",3,45466,125,"spellPower"}, {"PRIEST",3,50345,152,"critRating"},
         {"DRUID",1,50340,131,"critRating"}, {"SHAMAN",1,50340,131,"critRating"},
         {"DRUID",3,37835,106,"spellPower"}, {"DRUID",3,50259,111,"spellPower"},
         {"PRIEST",1,50259,111,"spellPower"}, {"PRIEST",2,50259,111,"spellPower"},
@@ -412,6 +412,21 @@ test("reported caster and healer trinkets are valid progression choices", async 
         for _,allowed in ipairs(physical.trinketsAllowed) do if allowed==itemId then found=true end end
         assert(not found,"Caster/healer acceptance leaked into physical trinket pool")
       end
+    `);
+  });
+});
+
+test("Call of the Victor is a valid physical DPS starter trinket", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      local slot={key="trinket1",slotName="Trinket0Slot",policy="CHECKED",empty=false,gaps={},item={
+        itemId=47725,infoKnown=true,category="armor",armorType="misc",equipLoc="INVTYPE_TRINKET",
+        stats={expertiseRating=83},gaps={},gems={},sockets={total=0,meta=0},
+        enchant={enchantId=0,present=false,known=true,gaps={}}}}
+      local report={character={classFile="PALADIN",specTab=3,specKnown=true,gaps={}},equipment={slot}}
+      local findings=Raidwise:EvaluateGearCheck(report)
+      for _,finding in ipairs(findings) do assert(finding.code~="TRINKET_NOT_PREFERRED") end
+      assert(slot.verdict=="B","Call of the Victor should be progression B, got "..tostring(slot.verdict))
     `);
   });
 });
