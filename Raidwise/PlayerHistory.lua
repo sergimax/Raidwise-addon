@@ -292,25 +292,21 @@ function Addon:GetPersonalRating(entryOrMember)
 	if type(entryOrMember) ~= "table" then
 		return self:RatingDefaultPersonal()
 	end
-	-- Always prefer the live history row by GUID so profile labels are not stuck
-	-- on a stale member.rating snapshot from when the window opened.
+	-- Local Profiles are the sole source of editable opinion data.
 	local guid = entryOrMember.guid
-	if type(guid) == "string" and guid ~= "" and self.GetHistoryEntry then
-		local saved = self:GetHistoryEntry(guid)
-		if type(saved) == "table" then
-			entryOrMember = saved
+	if type(guid) == "string" and guid ~= "" and self.GetLocalProfile then
+		local profile = self:GetLocalProfile(guid)
+		if type(profile) == "table" and type(profile.personal) == "table" then
+			local personal = profile.personal
+			return {opinion=self:NormalizePersonalOpinion(personal.opinion), tags=self:NormalizePersonalTags(personal.tags), facts=self:NormalizePersonalFacts(personal.facts), createdAt=tonumber(personal.createdAt) or 0, updatedAt=tonumber(personal.updatedAt) or 0, creatorId=type(personal.creatorId) == "string" and personal.creatorId or ""}
 		end
 	end
-	if type(entryOrMember.rating) == "table" and type(entryOrMember.rating.personal) == "table" then
-		local personal = entryOrMember.rating.personal
-		return {
-			opinion = self:NormalizePersonalOpinion(personal.opinion),
-			tags = self:NormalizePersonalTags(personal.tags),
-			facts = self:NormalizePersonalFacts(personal.facts),
-			createdAt = tonumber(personal.createdAt) or 0,
-			updatedAt = tonumber(personal.updatedAt) or 0,
-			creatorId = type(personal.creatorId) == "string" and personal.creatorId or "",
-		}
+	if type(guid) == "string" and guid ~= "" and self.GetExchangeProfile then
+		local profile = self:GetExchangeProfile(guid)
+		if type(profile) == "table" then
+			return {opinion=self:NormalizePersonalOpinion(profile.opinion), tags=self:NormalizePersonalTags(profile.tags), facts=self:NormalizePersonalFacts(profile.facts),
+				createdAt=0, updatedAt=tonumber(profile.updatedAt) or 0, creatorId=""}
+		end
 	end
 	return self:RatingDefaultPersonal()
 end
@@ -378,6 +374,10 @@ function Addon:GetCommunityRating(entryOrMember)
 	if type(entry) ~= "table" then
 		return nil
 	end
+	if self.GetGlobalKarmaRecord then
+		local record = self:GetGlobalKarmaRecord(entry)
+		if record then return {positivePercent=record.rating, tags={}, isMock=false, isGlobal=true} end
+	end
 	if type(entry.rating) == "table" then
 		local normalized = self:NormalizeCommunityRating(entry.rating.community)
 		if normalized then
@@ -410,12 +410,16 @@ function Addon:GetHistoryEvents(entryOrMember)
 		return {}
 	end
 	local guid = entryOrMember.guid
-	if type(guid) == "string" and guid ~= "" and self.GetHistoryEntry then
-		local saved = self:GetHistoryEntry(guid)
-		if type(saved) == "table" then
-			entryOrMember = saved
-		end
+	local profileFound = false
+	if type(guid) == "string" and guid ~= "" and self.GetLocalProfile then
+		local profile = self:GetLocalProfile(guid)
+		if type(profile) == "table" and type(profile.events) == "table" then entryOrMember, profileFound = profile, true end
 	end
+	if type(guid) == "string" and guid ~= "" and self.GetExchangeProfile and not self:GetLocalProfile(guid) then
+		local profile = self:GetExchangeProfile(guid)
+		if type(profile) == "table" then entryOrMember, profileFound = profile, true end
+	end
+	if entryOrMember == nil or entryOrMember.guid ~= nil and not profileFound then return {} end
 	if type(entryOrMember.events) ~= "table" then
 		return {}
 	end

@@ -61,6 +61,7 @@ end
 local function CreateCooldownHeaderCell(parent)
 	local cell = CreateFrame("Frame", nil, parent)
 	cell:SetHeight(CD_HEADER_H)
+	W.ApplyPlainPanel(cell, UI.TITLE_BG)
 
 	local icon = cell:CreateTexture(nil, "ARTWORK")
 	icon:SetSize(UI.CD_SPEC_ICON, UI.CD_SPEC_ICON)
@@ -189,6 +190,7 @@ end
 local function CreateCooldownValueCell(parent)
 	local cell = CreateFrame("Frame", nil, parent)
 	cell:SetHeight(UI.CD_ROW_H)
+	W.ApplyPlainPanel(cell, UI.CD_ROW_A)
 	cell.chips = {}
 
 	local text = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
@@ -523,6 +525,7 @@ function Addon:RefreshCooldownTable()
 		cell:ClearAllPoints()
 		cell:SetPoint("TOPLEFT", headerBg, "TOPLEFT", CD_INSTANCE_COL_W + (index - 1) * CD_CHAR_COL_W, 0)
 		cell:SetWidth(CD_CHAR_COL_W)
+		W.SetBackdropColor(cell, character.isCurrent and UI.CD_CURRENT_CHARACTER or UI.TITLE_BG)
 		cell.name:SetText(character.displayName)
 		cell.name:SetTextColor(W.ClassColor(character.class))
 		W.SetSpecOrClassIcon(cell.icon, character.specIcon, character.class)
@@ -579,6 +582,7 @@ function Addon:RefreshCooldownTable()
 			cell:ClearAllPoints()
 			cell:SetPoint("TOPLEFT", row, "TOPLEFT", CD_INSTANCE_COL_W + (colIndex - 1) * CD_CHAR_COL_W, 0)
 			cell:SetWidth(CD_CHAR_COL_W)
+			W.SetBackdropColor(cell, character.isCurrent and UI.CD_CURRENT_CHARACTER or stripe)
 
 			local saved = rowData.cells[character.key]
 			cell.tooltipTitle = rowData.name

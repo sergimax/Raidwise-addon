@@ -108,6 +108,7 @@ test("native opinion marks follow social and guild rows, mailbox pages and saved
       addon.db.history={good=saved("Good","positive"),bad=saved("Bad","negative"),
         neutral=saved("Neutral","neutral"),other=saved("Unknown","negative","Other Realm"),
         met={guid="Met",name="Met",realm="My Realm"}}
+		addon:InitializeHistoryStore()
       addon:InitializeClassicOpinionMarkers()
       addon:InitializeClassicOpinionMarkers()
       assert(#hooks.FriendsList_Update==1 and #hooks.DynamicScrollFrame_Update==1)
@@ -195,7 +196,7 @@ test("native opinion marks follow social and guild rows, mailbox pages and saved
       InboxFrame.pageNum=2; MailItem1Sender:SetText("good-MyRealm")
       fire("InboxFrame_Update")
       assert(MailItem1Sender.text:find("[+]",1,true))
-      addon:SavePersonalRatingForGuid("good",nil,"negative",{}, {})
+      addon:SavePersonalRatingForGuid("Good",nil,"negative",{}, {})
       addon:RefreshClassicOpinionMarkers()
       assert(overlay.label.text=="[-]" and GuildFrameButton1Name.text=="Good")
       assert(overlay.shown and highlight.color[1]>highlight.color[2])

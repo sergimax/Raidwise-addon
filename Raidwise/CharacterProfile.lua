@@ -772,8 +772,8 @@ function Addon:SyncOpenProfileHistoryEvent(entry, event)
 		return
 	end
 	member.meetCount = entry.meetCount
-	member.changes = entry.changes
-	member.events = entry.events
+	member.changes = Addon:GetProfileChanges(entry)
+	member.events = Addon:GetHistoryEvents(entry)
 	if type(GetDraftState(frame).draftEvents) == "table" then
 		local already = false
 		for index = 1, #GetDraftState(frame).draftEvents do
@@ -961,14 +961,8 @@ function Addon:SaveProfilePersonalRating(opinion, tagIds, factIds, options)
 	if not entry then
 		return
 	end
-	-- Rebuild from the saved history entry so opinion/tags/facts/changes match the DB.
+	-- Rebuild through the profile APIs; history no longer carries editable data.
 	frame.profileMember = self:HistoryProfileForMember(entry)
-	if type(entry.changes) == "table" then
-		frame.profileMember.changes = entry.changes
-	end
-	if type(entry.events) == "table" then
-		frame.profileMember.events = entry.events
-	end
 	frame.profileMember.rating = {
 		personal = self:GetPersonalRating(entry),
 	}
@@ -1074,12 +1068,6 @@ function Addon:CommitProfileRating()
 		local entry = self:SaveHistoryEventsForGuid(member.guid, frame.profileMember or member, draftEvents)
 		if entry then
 			frame.profileMember = self:HistoryProfileForMember(entry)
-			if type(entry.changes) == "table" then
-				frame.profileMember.changes = entry.changes
-			end
-			if type(entry.events) == "table" then
-				frame.profileMember.events = entry.events
-			end
 			frame.profileMember.rating = {
 				personal = self:GetPersonalRating(entry),
 			}
@@ -1561,7 +1549,7 @@ function Addon:ShowRaidCharacterWindow(member)
 		end
 	end
 	if frame.notesBox and frame.notesHost then
-		if member.guid and member.guid ~= "" then
+		if Addon:CanEditCharacterProfile(member) then
 			frame.notesBox:EnableMouse(true)
 			frame.notesBox:EnableKeyboard(true)
 			W.SetFontColor(frame.notesBox, Theme.TEXT_BODY)
@@ -1576,7 +1564,7 @@ function Addon:ShowRaidCharacterWindow(member)
 	end
 	if frame.notesSaveBtn then
 		frame.notesSaveBtn.label:SetText(T("BTN_SAVE"))
-		if member.guid and member.guid ~= "" then
+		if Addon:CanEditCharacterProfile(member) then
 			frame.notesSaveBtn:Enable()
 		else
 			frame.notesSaveBtn:Disable()
@@ -1584,7 +1572,7 @@ function Addon:ShowRaidCharacterWindow(member)
 	end
 	if frame.notesResetBtn then
 		frame.notesResetBtn.label:SetText(T("BTN_RESET"))
-		if member.guid and member.guid ~= "" then
+		if Addon:CanEditCharacterProfile(member) then
 			frame.notesResetBtn:Enable()
 		else
 			frame.notesResetBtn:Disable()

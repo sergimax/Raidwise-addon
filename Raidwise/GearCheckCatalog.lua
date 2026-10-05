@@ -4,7 +4,7 @@
 local Addon = Raidwise
 
 -- Bump when enchant/gem catalog seeds change materially (saved report dataVersion).
-Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-14-gear1"
+Addon.GEAR_CHECK_DATA_VERSION = "catalog-2026-09-27-gear1"
 
 -- maxLevel: Northrend (or best-in-slot-ish) enchants. stats used for appropriateness only.
 local ENCHANTS = {
@@ -122,6 +122,7 @@ local ENCHANTS = {
 	[3809] = { name = "Greater Inscription of the Crag", maxLevel = true, stats = { spellPower = 24, mp5 = 8 } },
 	[3810] = { name = "Greater Inscription of the Storm", maxLevel = true, stats = { spellPower = 24, critRating = 15 } },
 	[3811] = { name = "Greater Inscription of the Pinnacle", maxLevel = true, stats = { dodgeRating = 20, defenseRating = 15 } },
+	[3806] = { name = "Lesser Inscription of the Storm", maxLevel = false, stats = { spellPower = 18, critRating = 10 } },
 	[3875] = { name = "Greater Inscription of the Axe", maxLevel = false, stats = { attackPower = 30, critRating = 10 } },
 	[3876] = { name = "Greater Inscription of the Crag", maxLevel = false, stats = { spellPower = 18, mp5 = 5 } },
 	-- Inscription profession shoulder enchants (Master's)
