@@ -466,11 +466,16 @@ local function NamedRecordKey(name, realm)
 	return "name:" .. Fold(realm) .. ":" .. Fold(name)
 end
 
+local function ParseCharacterName(value)
+	value = type(value) == "string" and value:match("^%s*(.-)%s*$") or ""
+	if value == "" or value:find("[%s|:%c]") then return nil end
+	local name, realm = value:match("^([^%-]+)%-(.+)$")
+	return name or value, realm or MeetingRealm()
+end
+
 function Addon:AddCharacterRecord(name)
-	name = type(name) == "string" and name:match("^%s*(.-)%s*$") or ""
-	if name == "" or name:find("[%s|:%c]") then return nil end
-	local characterName, realm = name:match("^([^%-]+)%-(.+)$")
-	characterName, realm = characterName or name, realm or MeetingRealm()
+	local characterName, realm = ParseCharacterName(name)
+	if not characterName then return nil end
 	if not self:CanEditCharacterProfile({guid=NamedRecordKey(characterName, realm), name=characterName, realm=realm}) then return nil end
 	for _, entry in pairs(self:HistoryStore()) do
 		if Fold(entry.name) == Fold(characterName) and Fold(CharacterRealm(entry)) == Fold(realm) then
@@ -479,6 +484,28 @@ function Addon:AddCharacterRecord(name)
 		end
 	end
 	local entry = self:EnsureHistoryEntryForGuid(NamedRecordKey(characterName, realm), {name=characterName, realm=realm})
+	self:EnsureLocalProfile(entry.guid, entry)
+	return entry
+end
+
+-- A target supplies the live GUID that a typed name cannot provide.  Using the
+-- normal entry helper also upgrades a matching name-only card and its profile.
+function Addon:AddTargetCharacterRecord()
+	if type(UnitExists) ~= "function" or not UnitExists("target")
+		or type(UnitIsPlayer) ~= "function" or not UnitIsPlayer("target") then
+		return nil, "DATABASE_TARGET_MISSING"
+	end
+	local guid = type(UnitGUID) == "function" and UnitGUID("target") or nil
+	local name, realm = type(UnitName) == "function" and UnitName("target") or nil
+	if not guid or guid == "" or not ParseCharacterName(name) then return nil, "DATABASE_TARGET_MISSING" end
+	local classLabel, class
+	if type(UnitClass) == "function" then classLabel, class = UnitClass("target") end
+	local seed = {
+		name = name, realm = realm or MeetingRealm(), class = class or "", classLabel = classLabel or "",
+	}
+	if not self:CanEditCharacterProfile(guid, seed) then return nil, "DATABASE_TARGET_MISSING" end
+	local entry = self:EnsureHistoryEntryForGuid(guid, seed)
+	if not entry then return nil, "DATABASE_TARGET_MISSING" end
 	self:EnsureLocalProfile(entry.guid, entry)
 	return entry
 end

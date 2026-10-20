@@ -58,7 +58,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 6` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Character database | `LAYOUT_VERSION = 9` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Character database | `LAYOUT_VERSION = 10` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
 | Reputation | `LAYOUT_VERSION = 3` | `PageReputation.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 16` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -351,8 +351,10 @@ is shown in the row tooltip when known, rather than in a table column.
 
 Enter Name or Name-Realm in the database and press Add character (or Enter) to
 create a card and open its profile editor. No scan is required. Duplicate names
-on the same realm reuse the existing record. Name-only cards acquire the live GUID
-when encountered, preserving saved notes, opinion, and character links.
+on the same realm reuse the existing record. Name-only cards use a temporary
+name/realm key and acquire the live GUID when encountered, preserving saved notes,
+opinion, and character links. **Add target** saves the selected player immediately
+with their live GUID and also upgrades a matching name-only card.
 
 Rows open Character profile; notes are edited there. Existing edited records migrate
 to manual source. Imported records retain their original source when edited locally.

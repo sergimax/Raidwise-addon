@@ -1456,7 +1456,10 @@ function Addon:ShowRaidCharacterWindow(member)
 	PaintSavedHeaderLabels(frame, member)
 	PaintDraftEditorLabels(frame)
 
-	if member.guid and member.guid ~= "" then
+	if member.guid and member.guid:match("^name:") then
+		frame.guidText:SetText(T("PROFILE_GUID_PENDING"))
+		W.SetFontColor(frame.guidText, UI.TEXT_DISABLED)
+	elseif member.guid and member.guid ~= "" then
 		frame.guidText:SetText(T("PROFILE_GUID", member.guid))
 		W.SetFontColor(frame.guidText, UI.TEXT_IDLE)
 	else

@@ -85,6 +85,39 @@ test("encounters expire independently of saved cards, filters and name-only iden
   }
 });
 
+test("adding the current target records its live GUID and upgrades a typed card", async () => {
+  const lua = await Lua.create();
+  try {
+    lua.doStringSync(`
+      Raidwise={db={}}
+      function time() return 1000 end
+      function GetRealmName() return "Realm" end
+      function UnitGUID(unit) return unit=="target" and "TARGET" or "SELF" end
+      function UnitName(unit) return unit=="target" and "Targeter" or "Me" end
+      function UnitExists(unit) return unit=="target" end
+      function UnitIsPlayer(unit) return unit=="target" end
+      function UnitClass() return "Mage", "MAGE" end
+    `);
+    for (const module of ["PlayerHistory", "PlayerHistoryStore"]) {
+      lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
+    }
+    lua.doStringSync(`
+      local addon=Raidwise
+      local target=addon:AddTargetCharacterRecord()
+      assert(target and target.guid=="TARGET" and target.name=="Targeter" and target.realm=="Realm")
+      assert(addon:GetCharacterProfileState(target)=="local")
+      function UnitExists() return false end
+      assert(not addon:AddTargetCharacterRecord())
+      local typed=addon:AddCharacterRecord("Upgrade-Realm")
+      function UnitExists(unit) return unit=="target" end
+      function UnitGUID(unit) return unit=="target" and "UPGRADED" or "SELF" end
+      function UnitName(unit) return unit=="target" and "Upgrade" or "Me" end
+      local upgraded=addon:AddTargetCharacterRecord()
+      assert(upgraded==typed and upgraded.guid=="UPGRADED" and not addon.db.history["name:realm:upgrade"])
+    `);
+  } finally { lua.global.close(); }
+});
+
 test("history migration is idempotent and ratings, events, and notes persist", async () => {
   const lua = await Lua.create();
   try {

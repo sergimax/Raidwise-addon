@@ -254,7 +254,8 @@ Filters heading is at y=-36; labels at y=-60 have **14 x 14** icons and a **4** 
 Inputs are at y=-80. Database opinion switch is **160 x 24** at x=498 with a
 **16 x 16** opinion icon, **8** px left inset and **6** px label gap.
 Database addition heading is at y=-120, name label at y=-144, and input at y=-164.
-Its name host is **230 x 24**, followed by a **180 x 24** Add button with a **12** px gap.
+Its name host is **230 x 24**, followed by **150 x 24** Add character and Add target
+buttons, each separated by **12** px; Delete all follows with the same gap.
 Table begins at y=-116 (History) or y=-200 (Database).
 Source column is **150** px with **14** px inline icons. When displays last seen. Rows open Character profile;
 notes are edited there.

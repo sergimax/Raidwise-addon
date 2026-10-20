@@ -7,7 +7,7 @@ local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
 local LAYOUT_VERSION = 6
-local DATABASE_LAYOUT_VERSION = 9
+local DATABASE_LAYOUT_VERSION = 10
 local ROWS_PER_PAGE = 25
 
 local RECORD_SOURCES = {
@@ -291,11 +291,14 @@ local function CreateHistoryPage(parent, database)
 		page.addHeading:SetText(W.T("DATABASE_ADD"))
 		CreateInputLabel(page, "COL_NAME", "Interface\\Icons\\INV_Misc_Note_01", 0, -144)
 		local name, nameHost = CreateHistoryInput(page, 230, 0, -164)
-		local add = W.CreatePlainButton(page, 180, 24, W.T("DATABASE_ADD"))
+		local add = W.CreatePlainButton(page, 150, 24, W.T("DATABASE_ADD"))
 		add:SetPoint("LEFT", nameHost, "RIGHT", 12, 0)
 		page.addButton = add
+		local addTarget = W.CreatePlainButton(page, 150, 24, W.T("DATABASE_ADD_TARGET"))
+		addTarget:SetPoint("LEFT", add, "RIGHT", 12, 0)
+		page.addTargetButton = addTarget
 		page.deleteAllButton = W.CreatePlainButton(page, 180, 24, W.T("DATABASE_DELETE_ALL"))
-		page.deleteAllButton:SetPoint("LEFT", add, "RIGHT", 12, 0)
+		page.deleteAllButton:SetPoint("LEFT", addTarget, "RIGHT", 12, 0)
 		page.deleteAllButton:SetScript("OnClick", function() Addon:ConfirmDeleteCharacterDatabase() end)
 		local function AddRecord()
 			local entry = Addon:AddCharacterRecord(name:GetText())
@@ -308,6 +311,13 @@ local function CreateHistoryPage(parent, database)
 		end
 		add:SetScript("OnClick", AddRecord)
 		name:SetScript("OnEnterPressed", AddRecord)
+		addTarget:SetScript("OnClick", function()
+			local entry, errorKey = Addon:AddTargetCharacterRecord()
+			if not entry then page.hint:SetText(W.T(errorKey or "DATABASE_TARGET_MISSING")); return end
+			page.hint:SetText(W.T("DATABASE_HINT"))
+			Addon:RefreshHistoryView()
+			Addon:ShowRaidCharacterWindow(entry)
+		end)
 	end
 
 	local entryCount = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
@@ -553,6 +563,7 @@ local function ApplyLocale(page)
 		if page.shareButton then page.shareButton.label:SetText(W.T("SYNC_SHARE_ALL")) end
 		for _, field in ipairs(page.filterLabels or {}) do field.label:SetText(W.T(field.key)) end
 		if page.addButton then page.addButton.label:SetText(W.T("DATABASE_ADD")) end
+		if page.addTargetButton then page.addTargetButton.label:SetText(W.T("DATABASE_ADD_TARGET")) end
 		RefreshOpinionButton(page)
 		RefreshSourceButton(page)
 		if page.filterHeading then page.filterHeading:SetText(W.T("HISTORY_FILTERS")) end
