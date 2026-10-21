@@ -33,6 +33,7 @@ addon:SavePersonalRatingForGuid("A",nil,"positive",{},{})
 addon:EnsureHistoryEntryForGuid("B",{name="Bob",realm="Realm"})
 addon:SavePersonalRatingForGuid("B",nil,"positive",{},{})
 assert(addon:LinkPlayerCharacters("A","B"))
+addon:SaveHistoryEventsForGuid("A",nil,{{id="remote-event",type="late_arrival",eventAt=10,context={}}})
 text=assert(addon:BuildSyncExport())
 addon.db={history={}}
 assert(addon:StageSyncImport(text,"Friend-Realm","user"))
@@ -41,24 +42,33 @@ assert(not addon:StageSyncImport(text,"Other","user"),"Review was replaced")
 addon:CancelSyncImport(); assert(not next(addon.db.history))
 assert(addon:StageSyncImport(text,"Friend-Realm","user"))
 assert(addon:ApplySyncImport()==2)
-assert(addon:GetCharacterProfileState(addon.db.history.A)=="imported")
-assert(addon.db.history.A.recordSource=="user" and addon.db.history.A.recordSourceDetail=="Friend-Realm")
-assert(#addon:GetLinkedCharacters("A")==2)
-assert(addon:ShouldMarkCharacterInChat(addon.db.history.A))
+assert(addon.db.history.A and addon.db.history.A.rating==nil and addon.db.history.A.events==nil)
+local received=addon:GetReputationStore().exchangeProfilesBySource["user:friend-realm"]
+assert(received and received.profilesByGuid.A and received.profilesByGuid.B)
+assert(addon:GetReceivedProfileLinks("A","user:friend-realm")[1]=="B")
+assert(not addon:CanEditCharacterProfile(addon.db.history.A))
+assert(not addon:BuildSyncExport()) -- received data is never re-exported as local data
 assert(addon:StageSyncImport(text,"JSON","website"))
-addon:SaveProfileNotesForGuid("A",nil,"local note after preview")
-assert(addon:ApplySyncImport()==1)
-assert(addon.db.history.A.notes=="local note after preview" and addon:GetCharacterProfileState(addon.db.history.A)=="local")
-assert(addon.db.history.B.recordSource=="website")
-addon.db.history.B.name="Impostor"
-assert(addon:StageSyncImport(text,"JSON","website"))
-assert(addon:ApplySyncImport()==0)
-assert(addon.db.history.B.name=="Impostor")
+assert(addon:ApplySyncImport()==2)
+assert(addon:GetReputationStore().exchangeProfilesBySource["website:json"])
+assert(received.profilesByGuid.A.opinion=="positive") -- a second sender cannot overwrite Friend's card
+assert(addon:GetPersonalRating(addon.db.history.A).opinion=="positive") -- received card is readable
+assert(#addon:GetHistoryEvents(addon.db.history.A)==1 and addon:GetHistoryEvents(addon.db.history.A)[1].type=="late_arrival")
+local receivedA=received.profilesByGuid.A
+addon:EnsureLocalProfile("A",addon.db.history.A).personal={opinion="negative",tags={},facts={},createdAt=1,updatedAt=1,creatorId="SELF"}
+assert(addon:GetPersonalRating(addon.db.history.A).opinion=="negative") -- local wins for the same character
+assert(receivedA.opinion=="positive" and addon:CanEditCharacterProfile(addon.db.history.A))
+local forged=addon:DecodeSyncJSON(text); forged.globalKarma={revision=999}; forged.sender="Forged"
+addon.db={history={}}
+assert(addon:StageSyncImport(assert(addon:EncodeSyncJSON(forged)),"Actual-Realm","user"))
+assert(addon:ApplySyncImport()==2)
+assert(not addon:GetGlobalKarmaDataset() and addon:GetReputationStore().exchangeProfilesBySource["user:actual-realm"])
 
 addon.db={history={}}
-addon:EnsureHistoryEntryForGuid("A",{name="Alice",realm="Realm"})
-addon:SavePersonalRatingForGuid("A",nil,"positive",{},{})
 for _, channel in ipairs({"WHISPER","RAID","GUILD"}) do
+  addon.db={history={}}
+  addon:EnsureHistoryEntryForGuid("A",{name="Alice",realm="Realm"})
+  addon:SavePersonalRatingForGuid("A",nil,"positive",{}, {})
   addon:CancelSyncSending(); sent={}
   assert(addon:ShareSyncData("A",channel))
   local offer=sent[1].message

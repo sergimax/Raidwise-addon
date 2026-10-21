@@ -24,6 +24,7 @@ local PAGES = {
 	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03", group = "raiding" },
 	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "raiding" },
 	{ id = "sync", key = "Sync", labelKey = "TAB_SYNC", icon = "Interface\\Icons\\Spell_Arcane_PortalIronForge", group = "exchange" },
+	{ id = "reputation", key = "Reputation", labelKey = "TAB_REPUTATION", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "exchange" },
 	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "exportWeb" },
 	{ id = "syncExport", key = "SyncExport", labelKey = "TAB_SYNC_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "exportWeb" },
 	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01", group = "other" },
