@@ -114,6 +114,8 @@ See [Reputation.md](Reputation.md) for reputation data. Addon semver, rule/catal
 
 The [character-system baseline](Character-System-Baseline.md) records the pre-simplification behavior and known documentation/code discrepancies as of 2026-10-29; it is a historical analysis, not the future design contract.
 
+Agreed changes for the new system are tracked separately in [character-system redesign decisions](Character-System-Redesign.md).
+
 ## Focused searches
 
 Start with named files from the task table, or `Raidwise/` and `tests/`. Examples from the repository root (PowerShell-compatible):
