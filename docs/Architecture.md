@@ -112,6 +112,8 @@ header. Chat summaries are human-readable messages, not versioned data exports.
 
 See [Reputation.md](Reputation.md) for reputation data. Addon semver, rule/catalog revisions, and layout versions serve different purposes. Geometry rules live in `AGENTS.md`; current layouts and dimensions live in [UI-Views.md](UI-Views.md) and [UI-Sizes.md](UI-Sizes.md).
 
+The [character-system baseline](Character-System-Baseline.md) records the pre-simplification behavior and known documentation/code discrepancies as of 2026-10-29; it is a historical analysis, not the future design contract.
+
 ## Focused searches
 
 Start with named files from the task table, or `Raidwise/` and `tests/`. Examples from the repository root (PowerShell-compatible):
