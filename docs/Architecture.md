@@ -116,6 +116,8 @@ The [character-system baseline](Character-System-Baseline.md) records the pre-si
 
 Agreed changes for the new system are tracked separately in [character-system redesign decisions](Character-System-Redesign.md).
 
+The [character-system implementation plan](Character-System-Implementation-Plan.md) orders the work and defines validation for each stage; it does not indicate that the redesign has shipped.
+
 ## Focused searches
 
 Start with named files from the task table, or `Raidwise/` and `tests/`. Examples from the repository root (PowerShell-compatible):
