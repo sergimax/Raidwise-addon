@@ -31,6 +31,7 @@ function Addon:InitializeHistoryStore()
 	-- Old encounter collectors temporarily keep their identity-shaped interface.
 	self.db.history = store.identities
 	if self.InitializeCharacterLinks then self:InitializeCharacterLinks() end
+	self:PruneHistory()
 end
 
 function Addon:HistoryStore()

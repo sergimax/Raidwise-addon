@@ -23,6 +23,7 @@ PlayerHistoryStore.lua
 PlayerRecords.lua
 CharacterLinks.lua
 PlayerRecordBridge.lua
+PlayerEncounters.lua
 RatingPresentation.lua
 ProfileDraft.lua
 UITheme.lua

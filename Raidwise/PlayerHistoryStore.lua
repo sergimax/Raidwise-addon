@@ -848,9 +848,9 @@ function Addon:RecordCurrentGroupHistory(refreshGearScore, rosterSnapshot)
 	end
 end
 
-function Addon:BuildHistoryRoster(database, filters)
+function Addon:BuildHistoryRoster(database, filters, source)
 	local roster = {}
-	local store = self.db and self.db.history or {}
+	local store = source or self.db and self.db.history or {}
 	for _, entry in pairs(store) do
 		local seen = type(entry) == "table" and (tonumber(entry.lastSeenAt) or tonumber(entry.metAt) or 0) or 0
 		local include = database and self:IsCharacterDatabaseEntry(entry)
