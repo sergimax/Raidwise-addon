@@ -141,7 +141,7 @@ test("active bridge retires legacy profiles once and routes reads and writes to 
   const lua = await Lua.create();
   try {
     lua.doStringSync(await readFile(new URL("lua/sync-setup.lua", import.meta.url), "utf8"));
-    for (const module of ["PlayerHistory", "PlayerHistoryStore", "PlayerRecords", "CharacterLinks", "PlayerRecordBridge"]) {
+    for (const module of ["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks", "PlayerEncounters", "Diagnostics"]) {
       lua.doStringSync(await readFile(new URL("../Raidwise/" + module + ".lua", import.meta.url), "utf8"));
     }
     lua.doStringSync(`
@@ -167,9 +167,19 @@ test("active bridge retires legacy profiles once and routes reads and writes to 
       assert(a:GetHistoryEntry('X')==entry and a.db.reputation==nil)
       assert(a:DeleteCharacterDatabaseRecords({'X'})==1)
       assert(not a:IsCharacterDatabaseEntry(entry) and a:GetHistoryEntry('X')==entry)
+      assert(a.db.history==nil and a.db.reputation==nil)
+      a.GetClassicOpinionDiagnostics=function() return 'initialized=true' end
+      a.ShowMainFrame=function(self) self.mainFrame={IsShown=function() return true end} end
+      a.ShowRaidCharacterWindow=function() end
+      a.GearCheckRulesSelfTest=function() return {{ok=true}},1,1 end
+      local report,ok=a:RunDiagnostics()
+      assert(ok and report:find('PASS local character system',1,true))
+      a.db.history={legacy=true}
+      report,ok=a:RunDiagnostics()
+      assert(not ok and report:find('FAIL local character system',1,true) and a.db.history.legacy)
     `);
     const toc = await readFile(new URL("../Raidwise/Raidwise.toc", import.meta.url), "utf8");
-    for (const module of ["SyncTransport", "SyncData", "KarmaData", "PageSync", "PageSyncExport", "PageReputation"]) {
+    for (const module of ["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "ProfileDraft", "CharacterProfile", "ProfilePanels", "SyncTransport", "SyncData", "KarmaData", "PageSync", "PageSyncExport", "PageReputation"]) {
       assert(!toc.split(/\r?\n/).includes(module + ".lua"), module + " remains active");
     }
     lua.doStringSync("assert(Raidwise.OnSyncAddonMessage==nil and Raidwise.StageSyncImport==nil)");

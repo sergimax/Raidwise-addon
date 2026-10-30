@@ -134,15 +134,15 @@ Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/g
 | Row 2 status | six equal cells, **8** px gaps, **20** tall | Gold name + compact counts, **16×16** Battle Shout report icon on the right |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
-| Player cell | **168 × 100** | Four rows: class/spec/role/name; GS and iLvl plus personal opinion and Karma; weapon and armor score report buttons with Flask and **Gear**; gem and enchant score report buttons with Food and **Rescan**. Raid-buff icons moved to hover tip |
+| Player cell | **168 × 100** | Four rows: class/spec/role/name; GS and iLvl plus the explicit selected opinion; weapon and armor score report buttons with Flask and **Gear**; gem and enchant score report buttons with Food and **Rescan**. Raid-buff icons moved to hover tip |
 | Cell buttons | **20** tall | Score report buttons are **44** px; **Gear** and **Rescan** are **48** px; **2** px gaps. Scores are disabled until scanned; Rescan is disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
-| Cell content | **20** px class/spec/role and evaluation buttons; **14** px Flask/Food | The first row shows identity. The second shows GS and iLvl (or `-`) followed by personal-opinion icon and Karma. Rows three and four use score buttons in the left **90** px, a consumable icon, and an action button. Raid buffs listed on card hover |
-| Cell hover tooltip | — | Opinion, tags, Karma percent/tags, **Guild: Name (Rank)**, raid buffs, gear-check grades |
+| Cell content | **20** px class/spec/role and evaluation buttons; **14** px Flask/Food | The first row shows identity. The second shows GS and iLvl (or `-`) followed by an explicit-opinion icon (dash when unset). Rows three and four use score buttons in the left **90** px, a consumable icon, and an action button. Raid buffs listed on card hover |
+| Cell hover tooltip | — | Selected opinion, **Guild: Name (Rank)**, raid buffs, gear-check grades |
 
 Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
 
@@ -243,11 +243,9 @@ Name/class/guild inputs remain 150 px, 166 px stride at y=-80. Opinion button
 remains 160 x 24 and also supports Not set. Manual name input remains 230 px;
 Add / Add target are 150 px each and Delete all is 180 px.
 
-## Reputation tab
+## Retired Reputation tab
 
-Local and received opinion lists share the top **216** px of the page in two
-scrollable columns with an **8** px gap. Global Karma starts below them at y=-252;
-its status, JSON box, and actions retain a fixed lower area.
+Removed from TOC and navigation. Former dimensions are historical; no Karma loader is active.
 
 ## Settings tab
 

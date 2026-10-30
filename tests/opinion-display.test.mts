@@ -27,7 +27,7 @@ test("active opinions agree across chat, roster and live unit tooltips without K
         if tooltipHooks.OnTooltipSetUnit then tooltipHooks.OnTooltipSetUnit(self) end
       end
     `);
-    for (const module of ["PlayerHistory", "PlayerHistoryStore", "PlayerRecords", "CharacterLinks", "PlayerRecordBridge", "PlayerRecordLinks", "RatingPresentation", "RosterWidgets", "UnitTooltips", "ProfileEditor", "ProfileWindow"]) {
+    for (const module of ["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks", "RatingPresentation", "RosterWidgets", "UnitTooltips", "ProfileEditor", "ProfileWindow"]) {
       lua.doStringSync(await readFile(new URL("../Raidwise/" + module + ".lua", import.meta.url), "utf8"));
     }
     lua.doStringSync(`

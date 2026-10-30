@@ -51,7 +51,7 @@ test("database and history: membership, filters, sorting, pages, empty creation 
       GameTooltip={Hide=function() end}
       StaticPopupDialogs={};function StaticPopup_Show() popup={};return popup end
     `);
-    for (const module of ["PlayerHistory", "PlayerHistoryStore", "PlayerRecords", "CharacterLinks", "PlayerRecordBridge", "PlayerRecordLinks", "PlayerEncounters", "PageHistory"]) {
+    for (const module of ["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks", "PlayerEncounters", "PageHistory"]) {
       lua.doStringSync(await readFile(new URL("../Raidwise/" + module + ".lua", import.meta.url), "utf8"));
     }
     lua.doStringSync(`

@@ -24,7 +24,7 @@ async function run(body: string) {
       function GetRealZoneText() return zone end
       function Raidwise:T(key) return key end
     `);
-    for (const module of ["PlayerHistory", "PlayerHistoryStore", "PlayerRecords", "CharacterLinks", "PlayerRecordBridge", "PlayerEncounters"]) {
+    for (const module of ["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerEncounters"]) {
       lua.doStringSync(await readFile(new URL("../Raidwise/" + module + ".lua", import.meta.url), "utf8"));
     }
     lua.doStringSync("Raidwise:InitializeHistoryStore()");

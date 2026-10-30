@@ -7,7 +7,7 @@ async function run(body: string) {
   const lua = await Lua.create();
   try {
     lua.doStringSync(await readFile(new URL("lua/sync-setup.lua", import.meta.url), "utf8"));
-    for (const module of ["PlayerHistory", "PlayerHistoryStore", "PlayerRecords", "CharacterLinks", "PlayerRecordBridge", "PlayerRecordLinks"]) {
+    for (const module of ["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks"]) {
       lua.doStringSync(await readFile(new URL("../Raidwise/" + module + ".lua", import.meta.url), "utf8"));
     }
     lua.doStringSync(`

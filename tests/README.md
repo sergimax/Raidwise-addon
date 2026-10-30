@@ -11,6 +11,14 @@ npm run check
 `npm test` for tests alone or `npm run test:watch` while editing. Failures return
 a nonzero exit status for CI.
 
+The active character-system suites are `player-records`, `encounters`,
+`player-links`, `profile-window`, `database-page`, `opinion-display`, and
+`classic-opinion`. They load PlayerRecords/Support and the active screen APIs,
+not the retired profile migration modules. Older history/sync/Karma cases may
+load retired files explicitly as historical compatibility fixtures; they do not
+mean those modules are shipped in the TOC. Final verification and outstanding
+in-game work: [Character-System-Verification.md](../docs/Character-System-Verification.md).
+
 The runner is TypeScript (`gear-check.test.mts`) using Node's built-in `node:test`
 and `node:assert/strict`. Node runs the erasable TypeScript directly; `tsc` handles
 type checking separately. The existing CommonJS scripts in `scripts/` keep their

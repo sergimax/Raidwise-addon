@@ -135,7 +135,7 @@ end
 function Addon:GetClassicOpinionDiagnostics()
 	local records, opinions, localOpinions = 0, 0, 0
 	local realm = RealmKey(GetRealmName())
-	for _, entry in pairs(self.db and self.db.history or {}) do
+	for _, entry in pairs(self.HistoryStore and self:HistoryStore() or {}) do
 		if type(entry) == "table" then
 			records = records + 1
 			if self:HasPersonalRatingData(self:GetPersonalRating(entry)) then

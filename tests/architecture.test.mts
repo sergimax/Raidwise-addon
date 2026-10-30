@@ -532,21 +532,9 @@ test("Settings and character linking panels avoid circular frame anchors", async
 
     local profile={profilePanels={}}
     Raidwise:CreateProfileCharactersPanel(profile,region(),440,32)
-    assert(profile.profilePanels.characters and #profile.characterConflictButtons==2)
-    local a=Raidwise:EnsureHistoryEntryForGuid("A",{name="First",realm="Realm"})
-    local b=Raidwise:EnsureHistoryEntryForGuid("B",{name="Second",realm="Realm"})
-    Raidwise:SavePersonalRatingForGuid("A",nil,"positive",{}, {})
-    Raidwise:SavePersonalRatingForGuid("B",nil,"negative",{}, {})
-    profile.profileMember=a
-    profile.profileDraft={draftOpinion="positive",draftTags={"unsaved"}}
-    Raidwise:RefreshProfileCharacters(profile)
-    profile.characterCandidateRows[1].buttons.CHAR_LINK_ADD.scripts.OnClick()
-    assert(profile.pendingCharacterLink and not a.playerGroupId)
-    profile.characterConflictButtons[2].scripts.OnClick()
-    assert(a.playerGroupId==b.playerGroupId and Raidwise:GetPersonalRating(a).opinion=="negative")
-    assert(profile.profileDraft.draftOpinion=="negative" and profile.profileDraft.draftTags[1]=="unsaved")
-    profile.characterRows[2].buttons.CHAR_LINK_REMOVE.scripts.OnClick()
-    assert(not b.playerGroupId and #Raidwise:GetLinkedCharacters("A")==1)
+    assert(profile.profilePanels.characters and profile.characterConflictButtons==nil)
+    assert(profile.characterConflictCancel==nil)
+
   `);
 });
 

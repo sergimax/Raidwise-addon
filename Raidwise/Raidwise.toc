@@ -18,15 +18,12 @@ PartyRoster.lua
 RosterRefresh.lua
 RaidRoles.lua
 RaidComposition.lua
-PlayerHistory.lua
-PlayerHistoryStore.lua
 PlayerRecords.lua
-CharacterLinks.lua
+PlayerRecordSupport.lua
 PlayerRecordBridge.lua
 PlayerRecordLinks.lua
 PlayerEncounters.lua
 RatingPresentation.lua
-ProfileDraft.lua
 UITheme.lua
 UIWidgets.lua
 RosterWidgets.lua

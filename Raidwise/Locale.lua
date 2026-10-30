@@ -226,20 +226,14 @@ local Translations = {
 		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time).\n"
 			.. "The group grid shows separate gem, armor, weapon, and enchant grades per player (S / A / B / C / D).\n"
 			.. "Gear on a scanned card opens the full report on Gear check (target).",
-		INFO_SECTION_HISTORY = "Players you have been in a party or raid with.\n"
-			.. "The list is saved on this account and stays after logout.\n"
-			.. "\n"
-			.. "- Name, class, spec, opinion, tags, GearScore, iLvl, where you met, when, and guild\n"
-			.. "- Click a row to open Character\n"
-			.. "- In the profile you can save opinion, tags, facts, events, and a private memo\n"
-			.. "- Karma is a mock preview for future exchange and web features",
+		INFO_SECTION_HISTORY = "History shows this character's group/raid meetings for the last 14 days.\nDatabase lists filled profiles. Click a row to open Profile.\nOpinion, facts, concrete events and a private Note save automatically or with Save.\nLinked characters keep separate opinions. Karma and profile exchange are disabled.",
 		INFO_SECTION_SETTINGS = "Account-wide interface options.\n"
 			.. "\n"
 			.. "- Language: English or Russian\n"
 			.. "- Startup page opened by /raidwise (Info cannot be the startup page)\n"
 			.. "- Report chat channel for Raid roster, Composition, and Gear check reports\n"
 			.. "- Short or full Gear check report wording\n"
-			.. "- Unit tooltip toggles for personal and Karma lines",
+			.. "- Unit tooltip option to hide the selected opinion",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
 		INFO_REPO_SELECTED = "Selected — press Ctrl+C to copy.",
@@ -1049,20 +1043,14 @@ local Translations = {
 		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному).\n"
 			.. "Сетка групп показывает отдельные оценки камней, брони, оружия и чар по игроку (S / A / B / C / D).\n"
 			.. "«Экип» на просканированной карточке открывает полный отчёт на вкладке «Проверка экипа (цель)».",
-		INFO_SECTION_HISTORY = "Игроки, с которыми вы были в группе или рейде.\n"
-			.. "Список сохраняется на аккаунте и остаётся после выхода.\n"
-			.. "\n"
-			.. "- Имя, класс, спек, мнение, теги, GearScore, iLvl, где встретили, когда и гильдия\n"
-			.. "- Клик по строке открывает профиль персонажа\n"
-			.. "- В профиле можно сохранить мнение, теги, факты, события и личное мемо\n"
-			.. "- Karma пока показана как мок для будущего обмена и веб-приложения",
+		INFO_SECTION_HISTORY = "История показывает встречи текущего персонажа в группах/рейдах за 14 дней.\nБаза содержит заполненные профили. Клик по строке открывает Профиль.\nМнение, факты, события и приватная Заметка сохраняются автоматически или кнопкой.\nУ связанных персонажей разные мнения. Карма и обмен профилями отключены.",
 		INFO_SECTION_SETTINGS = "Настройки интерфейса на аккаунте.\n"
 			.. "\n"
 			.. "- Язык: English или Русский\n"
 			.. "- Стартовая страница по /raidwise (Справку выбрать нельзя)\n"
 			.. "- Канал чата для отчётов состава рейда, анализа состава и проверки экипа\n"
 			.. "- Короткая или полная форма отчёта проверки экипа\n"
-			.. "- Переключатели строк личного рейтинга и Karma в подсказках игроков",
+			.. "- Видимость выбранного мнения в подсказках игроков",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
 		INFO_REPO_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",

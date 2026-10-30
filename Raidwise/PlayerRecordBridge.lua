@@ -1,4 +1,4 @@
--- Transitional API for existing screens. Only playerRecords owns profile data.
+-- Screen-facing profile API. Only playerRecords owns character-system data.
 local Addon = Raidwise
 
 local function Key(value)
@@ -28,8 +28,8 @@ function Addon:InitializeHistoryStore()
 		self.db.nextCharacterGroupId, self.db.sync = nil, nil
 		store.activated = true
 	end
-	-- Old encounter collectors temporarily keep their identity-shaped interface.
-	self.db.history = store.identities
+	-- Do not serialize an alias of identities under the retired history key.
+	self.db.history = nil
 	if self.InitializeCharacterLinks then self:InitializeCharacterLinks() end
 	self:PruneHistory()
 end
@@ -173,8 +173,6 @@ function Addon:RemoveHistoryEventForGuid(guid, eventId)
 	if self:CommitPlayerRecordDraft(draft) then return entry end
 end
 
-function Addon:AppendProfileHistoryChange() end
-
 function Addon:AddCharacterRecord(value)
 	if type(value) ~= "string" then return nil end
 	value = value:match("^%s*(.-)%s*$")
@@ -197,24 +195,4 @@ function Addon:AddTargetCharacterRecord()
 	if not entry then return nil, "DATABASE_INVALID_NAME" end
 	entry.classLabel = classLabel
 	return entry
-end
-
-function Addon:DeleteCharacterDatabaseRecords(guids)
-	local store = self:GetPlayerRecordStore()
-	if not store then return 0 end
-	if not guids then
-		guids = {}
-		for key in pairs(store.identities) do
-			if self:IsPlayerRecordFilled(key) then guids[#guids + 1] = key end
-		end
-	end
-	local count = 0
-	for _, key in ipairs(guids) do
-		if self:IsPlayerRecordFilled(key) then
-			store.profiles[key], store.notes[key], store.changes[key] = nil, nil, nil
-			store.generations[key] = (store.generations[key] or 0) + 1
-			count = count + 1
-		end
-	end
-	return count
 end

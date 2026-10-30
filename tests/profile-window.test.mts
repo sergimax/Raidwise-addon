@@ -41,7 +41,7 @@ test("active profile: autosave, explicit save, event editing, retained errors an
       w.ApplyPlainPanel=function() end;w.ApplyOuterBorder=function() end;w.AttachDragHandle=function() end
       w.AttachLayoutVersionLabel=function() end;w.FitCopyBoxToText=function() end
     `);
-    for (const module of ["PlayerHistory", "PlayerHistoryStore", "PlayerRecords", "CharacterLinks", "PlayerRecordBridge", "PlayerRecordLinks", "ProfileEditor", "ProfileWindow"]) {
+    for (const module of ["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks", "ProfileEditor", "ProfileWindow"]) {
       lua.doStringSync(await readFile(new URL("../Raidwise/" + module + ".lua", import.meta.url), "utf8"));
     }
     lua.doStringSync(`

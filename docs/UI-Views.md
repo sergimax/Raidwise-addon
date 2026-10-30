@@ -85,13 +85,9 @@ Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions 
 | short hint | Starts as “After export, press Ctrl+C to copy.” |
 | input for copy | Multiline EditBox on black fill; click selects all; Ctrl+C copies. Padding unchanged. |
 
-## Characters data export
+## Retired exchange pages
 
-Generates copyable synchronization JSON for the complete saved character database. Direct addon sharing remains in each character or database **Share** menu.
-
-## Characters data import
-
-The former Synchronization view is now import-only. It receives addon transfer offers, stages pasted JSON for review, applies or cancels reviewed changes, and manages incoming-request and ignored-sender controls. The pasted JSON and review areas use equal columns below those controls.
+Profile import/export and Share menus are outside the TOC. See [Synchronization.md](Synchronization.md).
 
 ## Character cooldowns
 
@@ -321,11 +317,9 @@ Deletion preserves meetings/counters, so a removed card can remain in History.
 Old meetings age out of History without deleting a filled Profile from Database.
 No tags, GS, ilvl, legacy source columns or sharing controls remain in these lists.
 
-## Reputation
+## Retired Reputation page
 
-Local and received opinions occupy separate scrollable columns at the top of the
-page. The Global Karma heading, status, import box, and actions remain below
-those lists, so large opinion collections cannot overlap the import controls.
+Removed from navigation and TOC; profiles live in Database. No Karma loader.
 
 ## Settings
 

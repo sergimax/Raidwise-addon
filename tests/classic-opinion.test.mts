@@ -89,7 +89,7 @@ test("native opinion marks follow social and guild rows, mailbox pages and saved
           rating={personal={opinion=opinion,updatedAt=100}}}
       end
     `);
-    for (const module of ["PlayerHistory", "PlayerHistoryStore", "PlayerRecords", "CharacterLinks", "PlayerRecordBridge", "PlayerRecordLinks", "RatingPresentation", "ClassicOpinionMarkers"]) {
+    for (const module of ["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks", "RatingPresentation", "ClassicOpinionMarkers"]) {
       lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
     }
     lua.doStringSync(`
