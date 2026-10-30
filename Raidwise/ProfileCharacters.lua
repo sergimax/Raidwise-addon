@@ -36,7 +36,7 @@ AttemptLink = function(frame, otherGuid, seed, chosenOpinion)
 		return
 	end
 	frame.pendingCharacterLink = nil
-	if ok and frame.profileDraft then
+	if ok and frame.profileDraft and not (Addon.GetPlayerRecordStore and Addon:GetPlayerRecordStore()) then
 		frame.profileDraft.draftOpinion = Addon:GetPersonalRating(frame.profileMember).opinion
 	end
 	FinishAction(frame, ok, message)
