@@ -118,6 +118,8 @@ Agreed changes for the new system are tracked separately in [character-system re
 
 The [character-system implementation plan](Character-System-Implementation-Plan.md) orders the work and defines validation for each stage; it does not indicate that the redesign has shipped.
 
+The [new character-system contract](Character-System-Contract.md) defines the planned local data model, reduced event catalog and screen structure; runtime ownership above still describes the shipped implementation.
+
 ## Focused searches
 
 Start with named files from the task table, or `Raidwise/` and `tests/`. Examples from the repository root (PowerShell-compatible):
