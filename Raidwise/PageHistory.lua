@@ -6,47 +6,31 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 6
-local DATABASE_LAYOUT_VERSION = 11
+local LAYOUT_VERSION = 7
+local DATABASE_LAYOUT_VERSION = 12
 local ROWS_PER_PAGE = 25
-
-local RECORD_SOURCES = {
-	manual = {key="SOURCE_MANUAL", icon="Interface\\Icons\\INV_Misc_Note_01"},
-	website = {key="SOURCE_WEBSITE", icon="Interface\\Icons\\INV_Misc_Map_01"},
-	user = {key="SOURCE_USER", icon="Interface\\Icons\\INV_Letter_15"},
-	encounter = {key="SOURCE_ENCOUNTER", icon="Interface\\Icons\\INV_Misc_GroupLooking"},
+local DATABASE_COLUMNS = {
+	{field="nameText", key="COL_NAME", width=180},
+	{field="classText", key="COL_CLASS", width=100},
+	{field="opinionText", key="COL_OPINION", width=90},
+	{field="authorText", key="PROFILE_RECORD_AUTHOR", width=170},
+	{field="guildText", key="COL_GUILD", width=140},
+	{field="countText", key="PROFILE_RECORD_MEETINGS", width=100},
+	{field="actions", key="DATABASE_ACTIONS", width=80},
 }
-local SOURCE_ALL_ICON = "Interface\\Icons\\INV_Misc_Book_11"
-
-local HISTORY_COL_NAME = 90
-local HISTORY_COL_CLASS = 28
-local HISTORY_COL_SPEC = 28
-local HISTORY_COL_OPINION = 70
-local HISTORY_COL_TAGS = 120
-local HISTORY_COL_GS = 52
-local HISTORY_COL_ILVL = 44
-local HISTORY_COL_MET = 130
-local HISTORY_COL_GUILD = 120
-
+local HISTORY_COLUMNS = {
+	{field="nameText", key="COL_NAME", width=180},
+	{field="classText", key="COL_CLASS", width=100},
+	{field="opinionText", key="COL_OPINION", width=90},
+	{field="metText", key="PROFILE_RECORD_LAST_MEETING", width=330},
+	{field="countText", key="PROFILE_RECORD_MEETINGS", width=140},
+}
+local function Columns(database) return database and DATABASE_COLUMNS or HISTORY_COLUMNS end
 local function HistoryTableWidth(database)
-	return HISTORY_COL_NAME + HISTORY_COL_CLASS + HISTORY_COL_SPEC + HISTORY_COL_OPINION
-		+ HISTORY_COL_TAGS + HISTORY_COL_GS + HISTORY_COL_ILVL
-		+ HISTORY_COL_MET + HISTORY_COL_GUILD + 150 + (database and 80 or 0)
+	local width = 0
+	for _, column in ipairs(Columns(database)) do width = width + column.width end
+	return width
 end
-
-local HISTORY_COLUMN_WIDTHS = {
-	HISTORY_COL_NAME,
-	HISTORY_COL_CLASS,
-	HISTORY_COL_SPEC,
-	HISTORY_COL_OPINION,
-	HISTORY_COL_TAGS,
-	HISTORY_COL_GS,
-	HISTORY_COL_ILVL,
-	HISTORY_COL_MET,
-	HISTORY_COL_GUILD,
-	150,
-	80,
-}
 
 function Addon:ConfirmDeleteCharacterDatabase(guid)
 	local guids = {}
@@ -70,117 +54,30 @@ function Addon:ConfirmDeleteCharacterDatabase(guid)
 	if dialog then dialog.data = guids end
 end
 
-local function HistoryColumnOffset(index)
-	local offset = 0
-	for columnIndex = 1, index - 1 do
-		offset = offset + HISTORY_COLUMN_WIDTHS[columnIndex]
-	end
-	return offset
-end
-
--- REFACTOR candidate: same column pattern as History CreateHistoryRow (no buff column).
 local function CreateHistoryRow(parent, database)
 	local row = CreateFrame("Button", nil, parent)
 	row:SetHeight(UI.CD_ROW_H)
 	W.ApplyPlainPanel(row, UI.CD_ROW_A)
-	row:EnableMouse(true)
 	row:RegisterForClicks("LeftButtonUp")
-
-	local function AddTextColumn(index, justify, insetLeft)
-		local text = W.CreateFontString(row, nil, "OVERLAY", "GameFontNormalSmall")
-		text:SetPoint("TOPLEFT", row, "TOPLEFT", HistoryColumnOffset(index) + (insetLeft or 4), -4)
-		text:SetWidth(HISTORY_COLUMN_WIDTHS[index] - (insetLeft or 4) - 4)
-		text:SetJustifyH(justify or "LEFT")
-		text:SetJustifyV("TOP")
-		return text
+	local offset = 0
+	for _, column in ipairs(Columns(database)) do
+		if column.field == "actions" then
+			row.deleteButton = W.CreatePlainButton(row, 72, UI.CD_ROW_H - 8, W.T("DATABASE_DELETE"))
+			row.deleteButton:SetPoint("TOPLEFT", offset + 4, -4)
+			row.deleteButton:SetScript("OnClick", function()
+				if row.member then Addon:ConfirmDeleteCharacterDatabase(row.member.guid) end
+			end)
+		else
+			local label = W.CreateFontString(row, nil, "OVERLAY", "GameFontNormalSmall")
+			label:SetPoint("TOPLEFT", offset + 4, -4); label:SetWidth(column.width - 8)
+			label:SetHeight(UI.CD_ROW_H - 6); label:SetJustifyH("LEFT"); label:SetJustifyV("TOP")
+			row[column.field] = label
+		end
+		offset = offset + column.width
 	end
-
-	row.nameText = AddTextColumn(1, "LEFT")
-
-	row.classIconHost = CreateFrame("Frame", nil, row)
-	row.classIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
-	row.classIconHost:SetPoint(
-		"TOPLEFT",
-		row,
-		"TOPLEFT",
-		HistoryColumnOffset(2) + W.TableIconInset(HISTORY_COL_CLASS, UI.ROSTER_ICON),
-		W.TableIconTopOffset(UI.ROSTER_ICON)
-	)
-	row.classIcon = row.classIconHost:CreateTexture(nil, "ARTWORK")
-	row.classIcon:SetAllPoints(row.classIconHost)
-
-	row.specIconHost = CreateFrame("Frame", nil, row)
-	row.specIconHost:SetSize(UI.ROSTER_ICON, UI.ROSTER_ICON)
-	row.specIconHost:SetPoint(
-		"TOPLEFT",
-		row,
-		"TOPLEFT",
-		HistoryColumnOffset(3) + W.TableIconInset(HISTORY_COL_SPEC, UI.ROSTER_ICON),
-		W.TableIconTopOffset(UI.ROSTER_ICON)
-	)
-	row.specIcon = row.specIconHost:CreateTexture(nil, "ARTWORK")
-	row.specIcon:SetAllPoints(row.specIconHost)
-
-	row.opinionText = AddTextColumn(4, "CENTER")
-	row.tagText = AddTextColumn(5, "LEFT")
-	row.gsText = AddTextColumn(6, "CENTER")
-	row.ilvlText = AddTextColumn(7, "CENTER")
-	row.metText = AddTextColumn(8, "LEFT")
-	row.guildText = AddTextColumn(9, "LEFT")
-	row.sourceText = AddTextColumn(10, "LEFT")
-	if database then
-		row.deleteButton = W.CreatePlainButton(row, 72, UI.CD_ROW_H - 8, W.T("DATABASE_DELETE"))
-		row.deleteButton:SetPoint("TOPLEFT", HistoryColumnOffset(11) + 4, -4)
-		row.deleteButton:SetScript("OnClick", function()
-			if row.member then Addon:ConfirmDeleteCharacterDatabase(row.member.guid) end
-		end)
-	end
-
-	row.classIconHost:EnableMouse(true)
-	row.classIconHost:SetScript("OnEnter", function(self)
-		if not row.classLabel or row.classLabel == "" then
-			return
-		end
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		GameTooltip:AddLine(row.classLabel)
-		GameTooltip:Show()
-	end)
-	row.classIconHost:SetScript("OnLeave", function()
-		GameTooltip:Hide()
-	end)
-
-	row.specIconHost:EnableMouse(true)
-	row.specIconHost:SetScript("OnEnter", function(self)
-		if not row.specLabel or row.specLabel == "" then
-			return
-		end
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		GameTooltip:AddLine(row.specLabel)
-		GameTooltip:Show()
-	end)
-	row.specIconHost:SetScript("OnLeave", function()
-		GameTooltip:Hide()
-	end)
-
-	row:SetScript("OnEnter", function(self)
-		W.SetBackdropColor(self, UI.BTN_HOVER)
-		W.ShowMemberRatingTooltip(self, self.member)
-		if self.member and self.member.metZone and self.member.metZone ~= "" then
-			GameTooltip:AddLine(W.T("COL_ZONE") .. ": " .. self.member.metZone, 0.8, 0.8, 0.8, true)
-			GameTooltip:Show()
-		end
-	end)
-	row:SetScript("OnLeave", function(self)
-		local stripe = self.stripe or UI.CD_ROW_A
-		W.SetBackdropColor(self, stripe)
-		GameTooltip:Hide()
-	end)
-	row:SetScript("OnClick", function(self)
-		if self.member then
-			Addon:ShowRaidCharacterWindow(self.member)
-		end
-	end)
-
+	row:SetScript("OnClick", function() if row.member then Addon:ShowRaidCharacterWindow(row.member) end end)
+	row:SetScript("OnEnter", function(self) W.SetBackdropColor(self, UI.BTN_HOVER); W.ShowMemberRatingTooltip(self, self.member) end)
+	row:SetScript("OnLeave", function(self) W.SetBackdropColor(self, self.stripe or UI.CD_ROW_A); GameTooltip:Hide() end)
 	return row
 end
 
@@ -206,16 +103,9 @@ local function RefreshOpinionButton(page)
 	if not page.opinionButton then return end
 	local _, opinions = Addon:RatingOpinions()
 	local data = opinions[page.filters.opinion]
-	page.opinionButton.label:SetText(W.T(data and data.labelKey or "FILTER_OPINION_ALL"))
+	page.opinionButton.label:SetText(W.T(page.filters.opinion == "unset" and "PROFILE_RECORD_UNSET" or (data and data.labelKey or "FILTER_OPINION_ALL")))
 	page.opinionIcon:SetTexture(data and data.icon or "Interface\\Icons\\INV_Misc_GroupLooking")
 	W.SetFontColor(page.opinionButton.label, data and data.color or UI.TEXT_BODY)
-end
-
-local function RefreshSourceButton(page)
-	if not page.sourceButton then return end
-	local data = RECORD_SOURCES[page.filters.recordSource]
-	page.sourceButton.label:SetText(W.T(data and data.key or "FILTER_SOURCE_ALL"))
-	page.sourceIcon:SetTexture(data and data.icon or SOURCE_ALL_ICON)
 end
 
 local function CreateHistoryPage(parent, database)
@@ -223,6 +113,7 @@ local function CreateHistoryPage(parent, database)
 	page:SetAllPoints(parent)
 	page.database = database
 	page.filters = {}
+	page.inputs = {}
 	page.currentPage = 1
 
 	local hint = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
@@ -254,6 +145,7 @@ local function CreateHistoryPage(parent, database)
 		local x = (index - 1) * 166
 		CreateInputLabel(page, field[2], field[3], x, -60)
 		local input = CreateHistoryInput(page, 150, x, -80)
+		page.inputs[field[1]] = input
 		input:SetScript("OnTextChanged", function(self)
 			page.filters[field[1]] = self:GetText()
 			page.currentPage = 1
@@ -262,7 +154,7 @@ local function CreateHistoryPage(parent, database)
 	end
 	if database then
 
-		local opinions = {"", "positive", "neutral", "negative"}
+		local opinions = {"", "positive", "neutral", "negative", "unset"}
 		local opinionIndex = 1
 		local opinion = W.CreatePlainButton(page, 160, 24, W.T("FILTER_OPINION_ALL"))
 		opinion:SetPoint("TOPLEFT", 498, -80)
@@ -290,6 +182,7 @@ local function CreateHistoryPage(parent, database)
 		local add = W.CreatePlainButton(page, 150, 24, W.T("DATABASE_ADD"))
 		add:SetPoint("LEFT", nameHost, "RIGHT", 12, 0)
 		page.addButton = add
+		page.addName = name
 		local addTarget = W.CreatePlainButton(page, 150, 24, W.T("DATABASE_ADD_TARGET"))
 		addTarget:SetPoint("LEFT", add, "RIGHT", 12, 0)
 		page.addTargetButton = addTarget
@@ -364,27 +257,14 @@ local function CreateHistoryPage(parent, database)
 	W.ApplyPlainPanel(headerBg, UI.TITLE_BG)
 	page.headerBg = headerBg
 
-	local headers = {
-		W.T("COL_NAME"), W.T("COL_CLASS"), W.T("COL_SPEC"), W.T("COL_OPINION"),
-		W.T("COL_TAGS"), W.T("COL_GS"), W.T("COL_ILVL"), W.T("COL_WHEN"), W.T("COL_GUILD"), W.T("COL_RECORD_SOURCE"),
-	}
-	page.headerKeys = {
-		"COL_NAME", "COL_CLASS", "COL_SPEC", "COL_OPINION",
-		"COL_TAGS", "COL_GS", "COL_ILVL", "COL_WHEN", "COL_GUILD", "COL_RECORD_SOURCE",
-	}
-	page.headerLabels = {}
-	if database then
-		headers[#headers + 1] = W.T("DATABASE_ACTIONS")
-		page.headerKeys[#page.headerKeys + 1] = "DATABASE_ACTIONS"
-	end
-	for index = 1, #headers do
+	local offset = 0
+	page.headerKeys, page.headerLabels = {}, {}
+	for index, column in ipairs(Columns(database)) do
 		local label = W.CreateFontString(headerBg, nil, "OVERLAY", "GameFontNormalSmall")
-		label:SetPoint("TOPLEFT", headerBg, "TOPLEFT", HistoryColumnOffset(index) + 4, -10)
-		label:SetWidth(HISTORY_COLUMN_WIDTHS[index] - 8)
-		label:SetJustifyH((index == 4 or index == 6 or index == 7) and "CENTER" or "LEFT")
-		label:SetText(headers[index])
-		W.SetFontColor(label, UI.GOLD)
-		page.headerLabels[index] = label
+		label:SetPoint("TOPLEFT", offset + 4, -10); label:SetWidth(column.width - 8)
+		label:SetJustifyH("LEFT"); label:SetText(W.T(column.key)); W.SetFontColor(label, UI.GOLD)
+		page.headerKeys[index], page.headerLabels[index] = column.key, label
+		offset = offset + column.width
 	end
 
 	local vBar = W.CreateCooldownScrollBar(tableHost, "VERTICAL")
@@ -425,6 +305,15 @@ local function CreateHistoryPage(parent, database)
 end
 
 -- REFACTOR candidate: standard row-pool refresh pattern shared with History.
+local function HistoryHint(page)
+	local hint = W.T(page.database and "DATABASE_HINT" or "HISTORY_HINT")
+	if not page.database and type(UnitName) == "function" then
+		local name, realm = UnitName("player")
+		hint = hint .. " — " .. Addon:LinkedCharacterName({name=name, realm=realm or GetRealmName()})
+	end
+	return hint
+end
+
 local function RefreshPage(self, page)
 	if not page then
 		return
@@ -438,6 +327,7 @@ local function RefreshPage(self, page)
 	end
 
 	page.tableHost:Show()
+	page.hint:SetText(HistoryHint(page))
 
 	local roster = self:BuildHistoryRoster(page.database, page.filters)
 	local content = page.tableContent
@@ -481,62 +371,24 @@ local function RefreshPage(self, page)
 		row.member = member
 		if row.deleteButton then row.deleteButton.label:SetText(W.T("DATABASE_DELETE")) end
 
-		row.nameText:SetText(member.name or "")
+		row.nameText:SetText(self:LinkedCharacterName(member))
 		row.nameText:SetTextColor(W.ClassColor(member.class))
-		row.classLabel = member.classLabel
-		row.specLabel = member.spec
-		W.SetSpecOrClassIcon(row.classIcon, nil, member.class)
-		W.SetSpecOrClassIcon(row.specIcon, member.specIcon, member.class)
-
-		local opinionIcon = W.IconMarkup(W.RatingOpinionIcon(member), 16)
-		if opinionIcon ~= "" then
-			row.opinionText:SetText(opinionIcon)
-			W.SetFontColor(row.opinionText, UI.TEXT_BODY)
+		row.classText:SetText((member.classLabel or member.class or "—") .. (page.database and member.spec and ("\n" .. member.spec) or ""))
+		local personal = self:GetPersonalRating(member)
+		if self:HasPersonalRatingData(personal) then
+			row.opinionText:SetText(self:RatingOpinionLabel(personal.opinion))
+			W.SetFontColor(row.opinionText, self:RatingOpinionColor(personal.opinion))
 		else
-			row.opinionText:SetText(W.RatingOpinionSymbol(member))
-			W.SetFontColor(row.opinionText, W.RatingOpinionColor(member))
+			row.opinionText:SetText(W.T("PROFILE_RECORD_UNSET"))
+			W.SetFontColor(row.opinionText, UI.TEXT_DISABLED)
 		end
-
-		local tags = W.FormatTagLine(member)
-		if tags ~= "" then
-			row.tagText:SetText(tags)
-			W.SetFontColor(row.tagText, UI.TEXT_IDLE)
+		row.countText:SetText(tostring(member.meetCount or 0))
+		if page.database then
+			row.authorText:SetText(member.profileAuthor and self:LinkedCharacterName(member.profileAuthor) or "—")
+			row.guildText:SetText(W.FormatGuildDisplay(member.guildName, member.guildRank))
 		else
-			row.tagText:SetText("-")
-			W.SetFontColor(row.tagText, UI.TEXT_DISABLED)
+			row.metText:SetText(self:FormatHistoryTime(member.lastSeenAt) .. "\n" .. (member.lastSeenZone or ""))
 		end
-
-		if member.gearScore then
-			row.gsText:SetText(tostring(member.gearScore))
-			W.SetFontColor(row.gsText, UI.GOLD)
-		else
-			row.gsText:SetText("-")
-			W.SetFontColor(row.gsText, UI.TEXT_DISABLED)
-		end
-
-		if member.averageIlvl then
-			row.ilvlText:SetText(tostring(member.averageIlvl))
-			W.SetFontColor(row.ilvlText, UI.TEXT_IDLE)
-		else
-			row.ilvlText:SetText("-")
-			W.SetFontColor(row.ilvlText, UI.TEXT_DISABLED)
-		end
-
-		local metWhen = self:FormatHistoryTime(member.lastSeenAt)
-		row.metText:SetText(metWhen)
-		if metWhen ~= "-" then
-			W.SetFontColor(row.metText, UI.TEXT_IDLE)
-		else
-			W.SetFontColor(row.metText, UI.TEXT_DISABLED)
-		end
-
-		local source = self:GetCharacterRecordSource(member)
-		local sourceData = RECORD_SOURCES[source]
-		row.sourceText:SetText(W.IconMarkup(sourceData and sourceData.icon or SOURCE_ALL_ICON, 14) .. " "
-			.. (sourceData and W.T(sourceData.key) or tostring(source)))
-		W.SetFontColor(row.sourceText, UI.TEXT_IDLE)
-		row.guildText:SetText(W.FormatGuildDisplay(member.guildName, member.guildRank))
-		W.SetFontColor(row.guildText, UI.TEXT_IDLE)
 		row:Show()
 	end
 
@@ -556,16 +408,14 @@ end
 local function ApplyLocale(page)
 	if page then
 		if page.deleteAllButton then page.deleteAllButton.label:SetText(W.T("DATABASE_DELETE_ALL")) end
-		if page.shareButton then page.shareButton.label:SetText(W.T("SYNC_SHARE_ALL")) end
 		for _, field in ipairs(page.filterLabels or {}) do field.label:SetText(W.T(field.key)) end
 		if page.addButton then page.addButton.label:SetText(W.T("DATABASE_ADD")) end
 		if page.addTargetButton then page.addTargetButton.label:SetText(W.T("DATABASE_ADD_TARGET")) end
 		RefreshOpinionButton(page)
-		RefreshSourceButton(page)
 		if page.filterHeading then page.filterHeading:SetText(W.T("HISTORY_FILTERS")) end
 		if page.addHeading then page.addHeading:SetText(W.T("DATABASE_ADD")) end
 		if page.hint then
-			page.hint:SetText(W.T(page.database and "DATABASE_HINT" or "HISTORY_HINT"))
+			page.hint:SetText(HistoryHint(page))
 		end
 		if page.refreshBtn then
 			page.refreshBtn.label:SetText(W.T("BTN_REFRESH"))

@@ -169,6 +169,30 @@ end
 
 function Addon:AppendProfileHistoryChange() end
 
+function Addon:AddCharacterRecord(value)
+	if type(value) ~= "string" then return nil end
+	value = value:match("^%s*(.-)%s*$")
+	local name, realm = value:match("^([^%-]+)%-(.+)$")
+	name, realm = name or value, realm or GetRealmName()
+	local key = self:UpsertPlayerRecordIdentity({name=name, realm=realm})
+	if not key then return nil end
+	local entry = self:GetHistoryEntry(key)
+	entry.guid = key
+	return entry
+end
+
+function Addon:AddTargetCharacterRecord()
+	if not UnitExists("target") or not UnitIsPlayer("target") then return nil, "DATABASE_TARGET_MISSING" end
+	local guid = UnitGUID("target")
+	local name, realm = UnitName("target")
+	if not guid or not name then return nil, "DATABASE_TARGET_MISSING" end
+	local classLabel, class = UnitClass("target")
+	local entry = self:EnsureHistoryEntryForGuid(guid, {name=name, realm=realm or GetRealmName(), class=class})
+	if not entry then return nil, "DATABASE_INVALID_NAME" end
+	entry.classLabel = classLabel
+	return entry
+end
+
 function Addon:DeleteCharacterDatabaseRecords(guids)
 	local store = self:GetPlayerRecordStore()
 	if not store then return 0 end

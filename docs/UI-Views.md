@@ -53,8 +53,8 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Raid | `LAYOUT_VERSION = 36` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| History | `LAYOUT_VERSION = 6` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Character database | `LAYOUT_VERSION = 11` | `PageHistory.lua` | Shell title bar (next to page name) |
+| History | `LAYOUT_VERSION = 7` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Character database | `LAYOUT_VERSION = 12` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
 | Reputation | `LAYOUT_VERSION = 3` | `PageReputation.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 17` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -290,41 +290,36 @@ remain outside the TOC for later removal of transitional code.
 
 ## History and Character database
 
-History shows party, raid, and Gear Check encounters within the last 14 days,
-sorted by last seen. Name, class (token or localized label), and guild filters
-combine as case-insensitive substring searches. The When column shows last seen;
-the profile retains first meeting details. Unedited encounter records expire
-at 14 days since last seen. Cleanup runs at login, group collection, scan completion,
-and list refresh. Both views display their filtered entry count and paginate at
-25 rows, so opening a large saved database creates only the visible row frames.
+Active owner: `PageHistory.lua`; list data: `PlayerEncounters.BuildHistoryRoster`.
 
-Character database is a separate personal menu page using the same table. It
-shows manually saved cards and records with import provenance, regardless of age.
-Its filters also include a button cycling all / positive / neutral / negative opinions.
-A source filter cycles All / Manually edited / Website import / User import and
-combines with the other filters. Both tables show source icons (note, map, letter,
-or group for encounters) beside the source labels.
-The switch uses reputation crystal icons and matching green/yellow/red text; All
-uses a group icon and normal text. Both pages have a Filters heading and 14 px
-icons beside input labels. The database has no legacy source filter; its addition
-control has its own heading below the filters.
-A recent encounter with a saved card appears in both views; after 14 days it remains
-only in the database. Both tables show record source alongside name, class, spec,
-opinion, tags, GS, iLvl, last seen, and guild. The first meeting location (Met in)
-is shown in the row tooltip when known, rather than in a table column.
+```text
+DATABASE v12
+[ Filled profiles hint                         Refresh ]
+[ Name ][ Class ][ Guild ][ Opinion: all / + / = / - / unset ]
+[ Add name ][ Add ][ Add target ][ Delete all ]
+[ Name-realm | Class/spec | Opinion | Author | Guild | Meetings | Delete ]
+[ Rows open the shared Profile; 25 rows per page, two-axis scroll ]
 
-Enter Name or Name-Realm in the database and press Add character (or Enter) to
-create a card and open its profile editor. No scan is required. Duplicate names
-on the same realm reuse the existing record. Name-only cards use a temporary
-name/realm key and acquire the live GUID when encountered, preserving saved notes,
-opinion, and character links. **Add target** saves the selected player immediately
-with their live GUID and also upgrades a matching name-only card.
+HISTORY v7
+[ Last 14 days — current character              Refresh ]
+[ Name ][ Class ][ Guild ]
+[ Name-realm | Class | Opinion | Last date / place | Meetings ]
+[ Only this observer's recent group/raid partners; 25 per page ]
+```
 
-Rows open Character profile; notes are edited there. Existing edited records migrate
-to manual source. Imported records retain their original source when edited locally.
-Source tracking supports website/user labels and optional source detail; importing
-and exchange are not implemented in this update. Manual entry is provided in the UI;
-no additional slash command or unit context menu is required.
+The database includes any meaningful saved content, including a private note or
+explicit neutral opinion. A note alone displays Not set and no opinion author.
+Neither scans, links nor opening/adding an empty card creates a database entry.
+Database sorting uses the newest profile/note update; History uses the last
+meeting; both break ties by name/realm and identity key. Searches combine
+case-insensitive name/realm, class and guild substrings.
+
+Adding a name/target opens an unfilled Profile; live GUID discovery preserves
+new profile data via the identity core. Delete confirms the selected identities;
+Delete all snapshots the whole saved database, independent of current filters.
+Deletion preserves meetings/counters, so a removed card can remain in History.
+Old meetings age out of History without deleting a filled Profile from Database.
+No tags, GS, ilvl, legacy source columns or sharing controls remain in these lists.
 
 ## Reputation
 

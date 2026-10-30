@@ -187,13 +187,40 @@ function Addon:HistoryProfileForMember(member)
 	return result
 end
 
-local oldRoster = Addon.BuildHistoryRoster
 function Addon:BuildHistoryRoster(database, filters)
 	self:PruneHistory()
-	-- Use the existing filtering contract with observer-specific copies only.
-	local projected = {}
-	for key, entry in pairs(self:HistoryStore()) do projected[key] = Project(entry) end
-	return oldRoster(self, database, filters, projected)
+	filters = filters or {}
+	local function Fold(value) return (strlower or string.lower)(tostring(value or "")) end
+	local selected = {}
+	local store = self:GetPlayerRecordStore()
+	for _, identity in pairs(self:HistoryStore()) do
+		local entry = Project(identity)
+		local profile, note = store.profiles[entry.guid], store.notes[entry.guid]
+		local opinion = profile and profile.opinion or "unset"
+		local include = database and self:IsPlayerRecordFilled(entry.guid)
+			or not database and entry.lastSeenAt > 0 and entry.lastSeenAt >= time() - RETENTION_SECONDS
+		for _, field in ipairs({"name", "class", "guildName"}) do
+			local value = entry[field]
+			if field == "name" then value = self:LinkedCharacterName(entry) end
+			if field == "class" then value = (value or "") .. " " .. (entry.classLabel or "") end
+			if not Fold(value):find(Fold(filters[field]), 1, true) then include = false end
+		end
+		if database and filters.opinion and filters.opinion ~= "" and filters.opinion ~= opinion then include = false end
+		if include then
+			entry.profileAuthor = opinion ~= "unset" and profile.author or nil
+			entry.profileUpdatedAt = math.max(profile and profile.updatedAt or 0, note and note.updatedAt or 0)
+			selected[#selected + 1] = entry
+		end
+	end
+	table.sort(selected, function(left, right)
+		local leftTime = database and left.profileUpdatedAt or left.lastSeenAt
+		local rightTime = database and right.profileUpdatedAt or right.lastSeenAt
+		if leftTime ~= rightTime then return leftTime > rightTime end
+		local leftName, rightName = self:LinkedCharacterName(left), self:LinkedCharacterName(right)
+		if leftName ~= rightName then return leftName < rightName end
+		return left.guid < right.guid
+	end)
+	return selected
 end
 
 -- Quiet groups still need presence observations; no inspect or gear collection.

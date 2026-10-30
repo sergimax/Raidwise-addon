@@ -225,33 +225,23 @@ height. Layout v1 does not depend on the main shell or theme widgets.
 
 ## History and Character database tabs
 
-Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
+Owner: `PageHistory.lua`. History v7 and Database v12 retain the existing outer
+page, filter/add toolbar anchors, row height and two-axis scrollbar widgets.
+History table starts at y=-116; Database at y=-200. Header height and row height
+come from `UITheme.CD_HEADER_H` / `CD_ROW_H`. Each text cell has 4 px horizontal
+insets; rows contain at most two lines, clipped to row height minus 6 px.
 
-| Element | Size | Notes |
-|---------|------|-------|
-| Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
-| Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 130 + 120 + 150 = 832** | Name, class, spec, Opinion, Tags, GS, iLvl, When, Guild, Record source |
-| Class / spec icons | **18** px | Centered in 28 px columns |
-| Opinion column | **70**, center | Qiraji crystal icon (green / yellow / red) |
-| Tags column | **120** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
-| Met in | Row tooltip | First meeting instance or zone, shown when known |
-| When | **130** | `YYYY-MM-DD HH:MM` |
-| Guild | **120** | Last stored `GuildName (Rank)` |
+| View | Columns in pixels | Total |
+|---|---|---:|
+| Database | name/realm 180, class/spec 100, opinion 90, author 170, guild 140, meetings 100, actions 80 | 860 |
+| History | name/realm 180, class 100, opinion 90, last date/place 330, meetings 140 | 840 |
 
-Name/class/guild filter hosts are **150 x 24** at **166** px intervals, with
-independent backdrops and editable text inset **8** px horizontally / **3** px vertically.
-Filters heading is at y=-36; labels at y=-60 have **14 x 14** icons and a **4** px gap.
-Inputs are at y=-80. Database opinion switch is **160 x 24** at x=498 with a
-**16 x 16** opinion icon, **8** px left inset and **6** px label gap.
-Database addition heading is at y=-120, name label at y=-144, and input at y=-164.
-Its name host is **230 x 24**, followed by **150 x 24** Add character and Add target
-buttons, each separated by **12** px; Delete all follows with the same gap.
-Table begins at y=-116 (History) or y=-200 (Database).
-Source column is **150** px with **14** px inline icons. When displays last seen. Rows open Character profile;
-notes are edited there.
-The filtered entry count sits below Refresh. Previous / page / Next controls sit
-on the Filters heading row at the top right. Tables render **25** rows per page;
-changing a filter returns to page one.
+Delete button: 72 px wide, `CD_ROW_H - 8` high. Header and content share column
+widths. Pools contain at most 25 visible rows per page. Pagination clamps after
+filtering/deletion; scrollbar bounds are recalculated after every refresh.
+Name/class/guild inputs remain 150 px, 166 px stride at y=-80. Opinion button
+remains 160 x 24 and also supports Not set. Manual name input remains 230 px;
+Add / Add target are 150 px each and Delete all is 180 px.
 
 ## Reputation tab
 
