@@ -275,3 +275,37 @@ function Addon:CommitPlayerRecordDraft(draft)
 	drafts[draft], drafts[fresh] = drafts[fresh], nil
 	return true, true
 end
+
+-- Display catalog for the local profile; IDs are the saved-data contract.
+local profileEventCatalog = {
+	{id="organized_run", ru="Организовал совместное прохождение", en="Organized a run"},
+	{id="disrupted_run", ru="Сорвал организацию прохождения", en="Disrupted a run"},
+	{id="fulfilled_agreement", ru="Выполнил договорённость", en="Kept an agreement"},
+	{id="broke_agreement", ru="Нарушил договорённость", en="Broke an agreement"},
+	{id="prepared_for_run", ru="Пришёл подготовленным", en="Came prepared"},
+	{id="followed_instructions", ru="Выполнил указания в прохождении", en="Followed instructions"},
+	{id="late_arrival", ru="Опоздал", en="Arrived late"},
+	{id="no_arrival", ru="Не явился по договорённости", en="Did not arrive as agreed"},
+	{id="afk", ru="Ушёл AFK во время прохождения", en="Went AFK during a run"},
+	{id="left_early", ru="Ушёл до завершения прохождения", en="Left before completion"},
+	{id="rage_quit", ru="Покинул группу после конфликта", en="Left after a conflict"},
+	{id="fair_loot", ru="Распределил добычу по договорённости", en="Distributed loot as agreed"},
+	{id="unfair_loot", ru="Нарушил договорённость о добыче", en="Broke a loot agreement"},
+	{id="loot_dispute", ru="Участвовал в споре о добыче", en="Participated in a loot dispute"},
+	{id="changed_loot_rules", ru="Изменил правила добычи после начала", en="Changed loot rules after starting"},
+	{id="helped_player", ru="Помог игроку", en="Helped a player"},
+	{id="helped_with_gear", ru="Помог со снаряжением", en="Helped with gear"},
+	{id="explained_mechanics", ru="Объяснил механики", en="Explained mechanics"},
+	{id="handled_role", ru="Успешно выполнил свою роль в прохождении", en="Performed their role successfully"},
+	{id="failed_mechanics", ru="Не выполнил механику в прохождении", en="Failed a mechanic"},
+	{id="toxic_behavior", ru="Оскорблял или провоцировал конфликт", en="Insulted or provoked a conflict"},
+	{id="scam", ru="Обманул при обмене или договорённости", en="Deceived in a trade or agreement"},
+}
+
+function Addon:GetProfileEventCatalog()
+	local result = {}
+	for _, entry in ipairs(profileEventCatalog) do
+		result[#result + 1] = {id=entry.id, label=self.db and self.db.locale == "ruRU" and entry.ru or entry.en}
+	end
+	return result
+end

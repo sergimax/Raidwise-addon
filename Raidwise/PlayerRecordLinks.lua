@@ -145,11 +145,14 @@ function Addon:DeleteCharacterDatabaseRecords(keys)
 	local removed, count = {}, 0
 	for _, key in ipairs(keys) do
 		local group = GroupFor(key)
+		local openFrame = self.raidDetailFrame
+		local isOpen = openFrame and openFrame.profileMember and openFrame.profileMember.guid == key
 		if not removed[key] and store.identities[key]
-			and (store.profiles[key] or store.notes[key] or store.changes[key] or group) then
+			and (store.profiles[key] or store.notes[key] or store.changes[key] or group or isOpen) then
 			removed[key], count = true, count + 1
 			-- Tombstone invalidates every existing core draft, including note-only drafts.
 			store.generations[key] = (store.generations[key] or 0) + 1
+			if self.DiscardProfileEdits then self:DiscardProfileEdits(key) end
 			store.profiles[key], store.notes[key], store.changes[key] = nil, nil, nil
 		end
 	end

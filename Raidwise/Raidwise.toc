@@ -32,9 +32,9 @@ UIWidgets.lua
 RosterWidgets.lua
 UnitTooltips.lua
 ClassicOpinionMarkers.lua
-ProfilePanels.lua
 ProfileCharacters.lua
-CharacterProfile.lua
+ProfileEditor.lua
+ProfileWindow.lua
 GearCheckCatalog.lua
 GearCheckSets.lua
 GearCheckTrinkets.lua

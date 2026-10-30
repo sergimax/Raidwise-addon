@@ -46,7 +46,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 23` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 1` | `Diagnostics.lua` | Independent report window; no badge |
-| Character | `PROFILE_LAYOUT_VERSION = 36` | `CharacterProfile.lua` | Title bar (left of close) |
+| Character | `VERSION = 37` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Shell title bar (next to page name) |
 | Characters data export | `LAYOUT_VERSION = 1` | `PageSyncExport.lua` | Shell title bar (next to page name) |
@@ -261,64 +261,32 @@ Raid-wide gear check lives on **Raid roster** (Scan button + report rows per pla
 
 ## Character profile
 
-Standalone window (**460 × 560**) opened from Raid roster or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it. Bronze **2** px outer border.
+Active owner: `ProfileWindow.lua`, layout **v37**, save controller `ProfileEditor.lua`.
 
 ```text
-[ Rhee - Character profile                              v31   X ]
-| (race)(class) Shaman    | (spec) Enhancement                  |
-| GearScore: 6158         | iLvl: 264                           |
-| Personal note: Positive | Karma                               |
-| Friendly, Good Tank     | mock preview text                   |
-| Facts: Raid Leader      | (percentages, sample reports)       |
-| Guild: MyGuild (Member) |                                     |
-| GUID: 0x...              |                                    |
-| Realm: Icecrown         |                                     |
-[ History ] [ Edit note ] [ Facts ] [ Events ] [ Memo ]
-        --- tab content (History selected by default) ---
-(tab: Edit note)
-[ Summary: Positive | Tags: Friendly, Good Tank, Prepared ]
-( ) Positive   (*) Neutral   ( ) Negative
-[ Personal tags — category checkboxes (max 3 per category) ]
-(tab: Facts)
-[ Facts — role checkboxes (max 4) ]
-(tab: Events)
-[ Pick type — (icon) category headings + type buttons, scrollable ]
-[ Add event ]
-[ event rows with category icon · type, Remove, newest first ]
-(tab: Memo)
-[ Memo ]
-[ Personal memo only. Not shared and not recorded in History. ]
-[ Memo — multiline edit box ]
-[ Save ] [ Reset ]
-(tab: History)
-[ Met: Icecrown Citadel          Was in the same party: 3 ]
-[ When: 2026-08-18 18:54 ]
-[ (icon) change log entries, newest first ]
-[ Save and Update ]```
+[ Profile: name-realm                     v37 X ]
+[ Class / guild / spec / known gear              ]
+[ Opinion author                                ]
+[ Not set ][ Positive ][ Neutral ][ Negative     ]
+[ Raid leader ][ PUG leader ][ GM ][ Officer      ]
+[ This character's meeting count, first / last    ]
+[ Events ][ History ][ Characters                ]
+[ Event picker + Add / event rows + edit/remove  ]
+[ History: meetings | profile changes            ]
+[ Characters: links, main, search / target        ]
+[ Private note: local, only for you (blue panel)  ]
+[ Status     ][ Save ][ Reload on error ][ Delete ]
+```
 
-| Block | In-game text / control |
-|-------|------------------------|
-| title | `{characterName} - Character profile` |
-| layout version | Title-bar badge `v` + `PROFILE_LAYOUT_VERSION` (UI structure; not addon semver) |
-| close | **X** (right of title bar); Esc also closes |
-| class / spec | Side-by-side row: race + class icons + name (class-colored), spec icon + name (`-` until inspect) |
-| GearScore / iLvl | Side-by-side row: `GearScore: {score}` and `iLvl: {average}`; `-` when unknown |
-| Race icon | Character-creation race portrait on the class row (same size as class/spec icons); tooltip shows race name and faction |
-| Summary (left column) | Read-only: personal note, tag summary, facts, guild, GUID, realm — reflects **saved** values only until **Save and Update** |
-| Karma (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
-| Tabs | **History**, **Edit note**, **Facts**, **Events**, **Memo** — **History** opens by default |
-| Edit note (editor tab) | Summary line (draft preview); three exclusive radio options; tag checkboxes by category (draft until **Save and Update**) |
-| Facts (editor tab) | Role / identity checkboxes (draft until **Save and Update**); max **4** |
-| Events tab | Pick an event type by category (icon + heading), **Add event** / **Remove** edit a draft list; **Save and Update** persists events with auto zone/instance context on add |
-| Memo (editor tab) | Personal-use hint; multiline EditBox; **Save** / **Reset**. Memo is not written to History |
-| History tab | **Met** (left) and **Was in the same party** count (right) on the first row, then **When**, then logged opinion/tag/facts/event changes with a kind or event-category icon (and any older memo rows if present). Joining the same party or raid logs an **In the same party** attendance event whenever the count increments (first meet, or ≥30 min since last seen) |
-| Save and Update | Bottom of window on **Edit note** / **Facts** / **Events** only; saves opinion, tags, facts, and events. Hidden on **History** and **Memo** (memo uses its own **Save** / **Reset**) |
-| editable | Opinion, tags, facts, events, and notes require a valid GUID; controls are disabled otherwise |
-| persistence | Opinion/tags/facts in `RaidwiseDB.history[guid].rating.personal`; events in `.events`; notes in `.notes`; change log in `.changes`; `meetCount` for party/raid encounters |
-
-Changing opinion, tags, facts, or events (via **Save and Update**) refreshes Raid roster and History when the profile closes or Save and Update is pressed. Closing without Save discards Edit note / Facts / Events drafts.
-
-See also [Reputation.md](Reputation.md) for entity definitions and future share matrix.
+Only the active tab's body is shown. Opinion, facts and the private note remain
+visible. Events have fixed dates/places and explicit authors; no free text or
+backdating. History sublists scroll and paginate; rows show timestamp and actor.
+One draft controls all editable profile fields, with one-second autosave and
+explicit Save. Closing/switching saves or retains a failed draft for retry.
+Reload explicitly discards a failed draft and reads current data. Self-rating is
+disabled, but the private note about oneself remains editable. Full deletion
+invalidates pending drafts before hiding the window. Previous profile modules
+remain outside the TOC for later removal of transitional code.
 
 ## History and Character database
 

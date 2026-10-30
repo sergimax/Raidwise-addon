@@ -359,9 +359,11 @@ function W.CreateCopyBox(parent, scrollName, boxName)
 	scroll:SetPoint("BOTTOMRIGHT", scrollBG, "BOTTOMRIGHT", -UI.COPY_PAD_R, UI.COPY_PAD_B)
 
 	local scrollBar = _G[scroll:GetName() .. "ScrollBar"]
-	scrollBar:ClearAllPoints()
-	scrollBar:SetPoint("TOPLEFT", scrollBG, "TOPRIGHT", 2, -16)
-	scrollBar:SetPoint("BOTTOMLEFT", scrollBG, "BOTTOMRIGHT", 2, 16)
+	if scrollBar then
+		scrollBar:ClearAllPoints()
+		scrollBar:SetPoint("TOPLEFT", scrollBG, "TOPRIGHT", 2, -16)
+		scrollBar:SetPoint("BOTTOMLEFT", scrollBG, "BOTTOMRIGHT", 2, 16)
+	end
 
 	local exportBox = CreateFrame("EditBox", boxName, scroll)
 	exportBox:SetMultiLine(true)

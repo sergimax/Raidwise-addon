@@ -188,43 +188,33 @@ Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW �
 
 Raid-wide gear check is integrated into **Raid roster** (see that section). There is no separate gear-check raid tab.
 
-## Character profile
+## Character profile — active layout v37
 
-Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Raid roster or History; Esc-close via `UISpecialFrames`. No window scroll — tab panels fill the body below the summary. Layout rebuild gated by `PROFILE_LAYOUT_VERSION` (title-bar badge `vN`).
+Owner: `ProfileWindow.lua`; save controller: `ProfileEditor.lua`.
 
-| Element | Size | Notes |
-|---------|------|-------|
-| Window | **460 × 560** | Centered, offset +40 / +20 from parent center; **2** px bronze outer border (`UI.BORDER`) |
-| Title bar | height **20** | Drag handle; inset **2** px from the outer border; `{name} - Character profile`; layout badge `vN` before close |
-| Close button | **16 × 16** | Right of title bar |
-| Body padding | **10** | Same as main shell `PAD` |
-| Content width | **440** | `460 - 10×2` |
-| Header icons | **24** | Race + class in left cell; spec in right cell (`PROFILE_ICON`); column gap **12** |
-| Summary | height **122** | Opinion, tags, facts, guild, GUID, realm (+ Karma column) |
-| Profile tabs | height **26** | **History**, **Edit note**, **Facts**, **Events**, **Memo**; gap **4**; **History** opens by default |
-| Tab host | fills body below tabs | Panels swap in place |
-| Opinion radios | **3** equal columns × **22** | Exclusive Positive / Neutral / Negative |
-| Tag checkboxes | scrolling columns by category | Max **3** tags per category; category heading gold |
-| Fact checkboxes | two columns under Facts tab | Max **4** facts |
-| Event type picker | scroll **140** tall | **16** px category icons + gold headings, then two-column type buttons; **Add event** top-right with heading |
-| Event list | fills remaining Events tab | Fixed **20** px rows (**14** px category icon + label + Remove) |
-| Memo hint | under heading | `GameFontNormalSmall`; personal-use only (not History) |
-| Memo box | **440 × 96** | Multiline EditBox with inner scroll |
-| Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
-| History Met / party count | first row of History tab | **Met** left-aligned; **Was in the same party** right-aligned (`meetCount`) |
-| History When | below Met | First-meeting timestamp |
-| History change log | fills remaining History tab | Scroll; **20** px rows with **14** px icon (event category, or note/tag/facts/memo kind) |
-| Karma mock block | right summary column | Gold heading + wrapped body text |
+| Element | Geometry / behavior |
+|---|---|
+| Window | **680 × 760**, centered, clamped, draggable title |
+| Title bar | x=8, y=-8, **664 × 26**; title **520** px, layout badge and Close |
+| Details / author | x=12, y=-40 / -62; width **656** |
+| Opinion / facts | y=-86 / -116; four **155 × 24** controls, **163** px stride |
+| Meeting summary / self hint | y=-146 / -167; width **656** |
+| Tab buttons | y=-190; three **210 × 24** controls, **218** px stride |
+| Tab host | x=12, y=-223, **656 × 305** |
+| Event picker / Add | **510 × 24** / **130 × 24**, 10 px gap |
+| Event list | y=-32, **235** px high; **62** px rows, at most 25 per page |
+| History lists | two **320 × 245** scroll areas, 10 px gap; y=-22 |
+| Private note panel | x=12, y=-540, **656 × 160**; blue background and explicit local-use label |
+| Private note input | inset 6 px, starts 25 px below panel top; multiline, own scroll |
+| Footer | y=-710; status **310** px, Save **100 × 24**, Reload **100 × 24**, Delete **120 × 24** |
 
-Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** appears on **Edit note** / **Facts** / **Events** and commits those drafts (not memo). Hidden on **History** and **Memo**. Header personal note/tags/facts stay on saved values until that commit. Closing without Save discards drafts.
-
-Profile layout v32 adds a sixth **Characters** tab inside the existing profile
-window. Its tab button shares the existing equal-width tab row. The panel uses
-a **30** px hint, an **84** px linked-character scroll area, **28** px rows with
-**70 x 22** px Main/Unlink buttons, a **24** px search row with a **120 x 24** px
-Link target button, and a candidate scroll area filling the remainder above a
-**58** px status/conflict area. Conflict choices are **155 x 24** px each, with a
-**110 x 24** px Cancel button. Frame width/height remain unchanged.
+Three tabs: Events (default), History (meetings and profile changes), Characters.
+The Characters panel retains its existing scrollable link/search controls inside
+the tab host; conflicting-opinion choices are never requested by the active store.
+Opinion, four facts, meeting summary and private note stay visible on every tab.
+Auto-save runs after one second idle. Close/switch attempts a save; failures retain
+the draft in memory. Old `CharacterProfile.lua` and `ProfilePanels.lua` are not
+loaded by the TOC. No Karma, tag editor, separate Memo tab or Memo Save/Reset.
 
 ## Diagnostics popup
 
