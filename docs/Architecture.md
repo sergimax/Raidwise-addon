@@ -22,6 +22,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Roles, consumables, composition | `RaidRoles.lua`, `RaidComposition.lua` | `UnitConsumableStatus`, `AnalyzeRaidComposition` |
 | Rating catalogs/access | `PlayerHistory.lua` | `GetPersonalRating`, `GetCommunityRating`, normalization |
 | History, profiles, migrations | `PlayerHistoryStore.lua` | Encounter/scan history plus `SavePersonalRatingForGuid`, `SaveHistoryEventsForGuid`, `SaveProfileNotesForGuid`, `PruneHistory`, `AddCharacterRecord`; Local/Exchange access through `GetLocalProfile`, `GetExchangeProfileSources`, and `GetReputationStore` |
+| New local profile core (not yet used by UI) | `PlayerRecords.lua` | Opt-in `InitializePlayerRecords`, `UpsertPlayerRecordIdentity`, `CreatePlayerRecordDraft`, `CommitPlayerRecordDraft`; contract: [Character-System-Contract.md](Character-System-Contract.md). Does not migrate/reset the active history store. |
 | Linked player characters | `CharacterLinks.lua`, `ProfileCharacters.lua` | Group persistence, shared opinion synchronization, and the profile Characters tab |
 | Profile exchange | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua` | Bounded JSON codec; `BuildSyncExport`, `StageSyncImport`, `ApplySyncImport`; characters-data export and import views with consent-based addon transport and Share menus. Contract: [Synchronization.md](Synchronization.md). |
 | Unsaved profile edits | `ProfileDraft.lua` | `CreateProfileDraft`, `ToggleProfileDraftTag`, `AddProfileDraftEvent` |

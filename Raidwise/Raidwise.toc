@@ -20,6 +20,7 @@ RaidRoles.lua
 RaidComposition.lua
 PlayerHistory.lua
 PlayerHistoryStore.lua
+PlayerRecords.lua
 CharacterLinks.lua
 SyncJSON.lua
 KarmaData.lua
