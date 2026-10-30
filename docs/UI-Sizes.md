@@ -330,3 +330,12 @@ Key helpers used across pages (not on `Raidwise` directly):
 4. Reload the UI (`/reload`) and check `/raidwise` (layout rebuild should also fire when versions mismatch).
 
 Header report controls are contextual: chat channels appear only on Raid roster, Raid composition, and Gear check (target); Short / Full appears only on Gear check (target), whose output uses that setting. Both groups are hidden on all other views. Switching views preserves saved selections.
+
+## Character-system transition (2026-10-30)
+
+Shell v23 removes the exchange group and profile-export entry; outer sizes are unchanged.
+Profile v36 removes the 90 x 18 Share button; the title now ends 8 px before
+the layout badge. Its former Karma labels are blank pending the profile redesign.
+Database v11 removes the 150 px Share database button; table and outer sizes are unchanged.
+Settings v17 removes the two Karma tooltip options, leaving two personal options;
+the panel keeps its existing minimum height and column widths.

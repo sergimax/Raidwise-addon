@@ -7,7 +7,7 @@ local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
 local LAYOUT_VERSION = 6
-local DATABASE_LAYOUT_VERSION = 10
+local DATABASE_LAYOUT_VERSION = 11
 local ROWS_PER_PAGE = 25
 
 local RECORD_SOURCES = {
@@ -261,11 +261,7 @@ local function CreateHistoryPage(parent, database)
 		end)
 	end
 	if database then
-		local share = W.CreatePlainButton(page, 150, UI.CD_TOOLBAR_H, W.T("SYNC_SHARE_ALL"))
-		share:SetPoint("RIGHT", refreshBtn, "LEFT", -8, 0)
-		share:SetScript("OnClick", function() Addon:ShowSyncShareMenu(share) end)
-		page.shareButton = share
-		hint:ClearAllPoints(); hint:SetPoint("TOPLEFT", 0, 0); hint:SetPoint("RIGHT", share, "LEFT", -8, 0)
+
 		local opinions = {"", "positive", "neutral", "negative"}
 		local opinionIndex = 1
 		local opinion = W.CreatePlainButton(page, 160, 24, W.T("FILTER_OPINION_ALL"))

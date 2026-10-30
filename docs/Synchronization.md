@@ -1,5 +1,10 @@
 # Profile exchange
 
+**Inactive since the local character-system transition (2026-10-30).** These
+modules are excluded from the TOC; receive/send, profile export and Share menus
+are disabled. The description below is historical, not an active user workflow.
+Future exchange requires a new contract; see [implementation plan](Character-System-Implementation-Plan.md).
+
 The **Export** and **Import** views support explicit Player–Player and Player–External
 exchange. Guild/raid sharing is a broadcast request followed by individually
 accepted whisper transfers; automatic guild replication is not implemented.

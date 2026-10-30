@@ -22,9 +22,9 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Roles, consumables, composition | `RaidRoles.lua`, `RaidComposition.lua` | `UnitConsumableStatus`, `AnalyzeRaidComposition` |
 | Rating catalogs/access | `PlayerHistory.lua` | `GetPersonalRating`, `GetCommunityRating`, normalization |
 | History, profiles, migrations | `PlayerHistoryStore.lua` | Encounter/scan history plus `SavePersonalRatingForGuid`, `SaveHistoryEventsForGuid`, `SaveProfileNotesForGuid`, `PruneHistory`, `AddCharacterRecord`; Local/Exchange access through `GetLocalProfile`, `GetExchangeProfileSources`, and `GetReputationStore` |
-| New local profile core (not yet used by UI) | `PlayerRecords.lua` | Opt-in `InitializePlayerRecords`, `UpsertPlayerRecordIdentity`, `CreatePlayerRecordDraft`, `CommitPlayerRecordDraft`; contract: [Character-System-Contract.md](Character-System-Contract.md). Does not migrate/reset the active history store. |
+| Local profile core and transitional screen APIs | `PlayerRecords.lua`, `PlayerRecordBridge.lua` | `InitializeHistoryStore` activates `playerRecords` once, retiring legacy profiles; existing screen getters/writers route through the bridge. Contract: [Character-System-Contract.md](Character-System-Contract.md). |
 | Linked player characters | `CharacterLinks.lua`, `ProfileCharacters.lua` | Group persistence, shared opinion synchronization, and the profile Characters tab |
-| Profile exchange | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua` | Bounded JSON codec; `BuildSyncExport`, `StageSyncImport`, `ApplySyncImport`; characters-data export and import views with consent-based addon transport and Share menus. Contract: [Synchronization.md](Synchronization.md). |
+| Retired profile exchange (not in TOC) | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua`, `PageReputation.lua`, `KarmaData.lua` | Archived implementation for later redesign; no active transport registration, pages or Karma import. See [Synchronization.md](Synchronization.md). |
 | Unsaved profile edits | `ProfileDraft.lua` | `CreateProfileDraft`, `ToggleProfileDraftTag`, `AddProfileDraftEvent` |
 | Profile window | `CharacterProfile.lua`, `ProfilePanels.lua` | Window, editing and commands in `CharacterProfile`; tab construction and history rendering in `ProfilePanels` |
 | Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `GetTooltipSettings`, `BuildUnitTooltipRatingLinesForMember`; tooltip hooks in `UnitTooltips` |
@@ -41,7 +41,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 - Bootstrap creates the namespace; later modules attach methods before normal event-driven use.
 - `InspectCoordinator` precedes roster consumers and owns inspect API calls/events. Roster and gear retain their queues and result handling.
 - History catalogs, store, presentation, drafts and profile panels precede the profile window.
-- Sync JSON/data/transport load after the history store and character links; the Sync page loads with other pages before the shell. Character and database Share menus delegate to it.
+- PlayerRecords and CharacterLinks precede PlayerRecordBridge, which replaces legacy screen APIs before presentation/UI modules load. Sync/Karma modules and pages are not loaded.
 - `UITheme` precedes `UIWidgets`, then `RosterWidgets`, then views. Theme/color tables retain identity across theme changes.
 - Gear catalogs and report compatibility helpers precede rules, grades, explanations and self-tests. Saved reports and collector precede `GearCheck`; reports and dumps follow it. Pages load before the shell.
 
@@ -119,7 +119,7 @@ Agreed changes for the new system are tracked separately in [character-system re
 
 The [character-system implementation plan](Character-System-Implementation-Plan.md) orders the work and defines validation for each stage; it does not indicate that the redesign has shipped.
 
-The [new character-system contract](Character-System-Contract.md) defines the planned local data model, reduced event catalog and screen structure; runtime ownership above still describes the shipped implementation.
+The [new character-system contract](Character-System-Contract.md) defines the local data model, reduced event catalog and planned screen structure. The transition bridge is active; complete screen redesign and encounter sessions are subsequent stages.
 
 ## Focused searches
 

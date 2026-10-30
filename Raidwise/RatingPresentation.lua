@@ -152,11 +152,7 @@ function Addon:GetTooltipPreviewSample()
 			tags = { "good_raid_leader", "fair_loot", "good_player" },
 			updatedAt = 1,
 		},
-		community = {
-			positivePercent = 51,
-			tags = { "fair_loot", "good_raid_leader", "good_player" },
-			isMock = true,
-		},
+
 	}
 end
 

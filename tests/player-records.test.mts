@@ -136,3 +136,42 @@ test("name identity upgrade moves observer and subject references and drafts wit
     assert(not result and err=='IDENTITY_CONFLICT' and s.notes[typed].text=='only note')
   `);
 });
+
+test("active bridge retires legacy profiles once and routes reads and writes to the new core", async () => {
+  const lua = await Lua.create();
+  try {
+    lua.doStringSync(await readFile(new URL("lua/sync-setup.lua", import.meta.url), "utf8"));
+    for (const module of ["PlayerHistory", "PlayerHistoryStore", "PlayerRecords", "CharacterLinks", "PlayerRecordBridge"]) {
+      lua.doStringSync(await readFile(new URL("../Raidwise/" + module + ".lua", import.meta.url), "utf8"));
+    }
+    lua.doStringSync(`
+      local a=Raidwise
+      a.db.history={old={guid='old',name='Old',rating={personal={opinion='negative'}}}}
+      a.db.reputation={globalKarma={rating=99}}
+      a.db.characters={keep=true};a.db.gearCheckSaved={keep=true};a.db.theme='dark'
+      a:InitializeHistoryStore()
+      assert(not a:GetHistoryEntry('old') and a.db.reputation==nil)
+      assert(a.db.characters.keep and a.db.gearCheckSaved.keep and a.db.theme=='dark')
+      local entry=assert(a:EnsureHistoryEntryForGuid('X',{name='Other',realm='Realm'}))
+      assert(not a:IsCharacterDatabaseEntry(entry))
+      assert(a:SaveProfileNotesForGuid('X',entry,'private'))
+      assert(not a:HasPersonalRatingData(a:GetPersonalRating(entry)))
+      assert(a:SavePersonalRatingForGuid('X',entry,'negative',{}, {'raid_leader'}))
+      assert(a.db.playerRecords.profiles.X.opinion=='negative')
+      assert(a:GetLocalProfile('X').personal.opinion=='negative')
+      assert(a:SaveHistoryEventsForGuid('X',entry,{{type='afk'}}))
+      assert(#a:GetHistoryEvents(entry)==1)
+      assert(a:GetCommunityRating(entry)==nil and #a:GetExchangeProfileSources('X')==0)
+      a:InitializeHistoryStore()
+      assert(a:GetProfileNotes(entry)=='private' and a:GetPersonalRating(entry).opinion=='negative')
+      assert(a:GetHistoryEntry('X')==entry and a.db.reputation==nil)
+      assert(a:DeleteCharacterDatabaseRecords({'X'})==1)
+      assert(not a:IsCharacterDatabaseEntry(entry) and a:GetHistoryEntry('X')==entry)
+    `);
+    const toc = await readFile(new URL("../Raidwise/Raidwise.toc", import.meta.url), "utf8");
+    for (const module of ["SyncTransport", "SyncData", "KarmaData", "PageSync", "PageSyncExport", "PageReputation"]) {
+      assert(!toc.split(/\r?\n/).includes(module + ".lua"), module + " remains active");
+    }
+    lua.doStringSync("assert(Raidwise.OnSyncAddonMessage==nil and Raidwise.StageSyncImport==nil)");
+  } finally { lua.global.close(); }
+});

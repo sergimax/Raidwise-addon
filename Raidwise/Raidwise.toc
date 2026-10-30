@@ -22,10 +22,7 @@ PlayerHistory.lua
 PlayerHistoryStore.lua
 PlayerRecords.lua
 CharacterLinks.lua
-SyncJSON.lua
-KarmaData.lua
-SyncData.lua
-SyncTransport.lua
+PlayerRecordBridge.lua
 RatingPresentation.lua
 ProfileDraft.lua
 UITheme.lua
@@ -57,9 +54,6 @@ PageRaid.lua
 PageComposition.lua
 PageGearCheckTarget.lua
 PageHistory.lua
-PageSyncExport.lua
-PageSync.lua
-PageReputation.lua
 PageSettings.lua
 PageInfo.lua
 ExporterWindow.lua

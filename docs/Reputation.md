@@ -1,5 +1,11 @@
 # Reputation model
 
+**Transition status (2026-10-30):** active profile data now lives in
+`RaidwiseDB.playerRecords`. `PlayerRecordBridge.lua` adapts the existing screens;
+legacy Local/Exchange and Karma are no longer read by the running addon.
+The remainder documents the retired model. Current contract:
+[Character-System-Contract.md](Character-System-Contract.md).
+
 Local player reputation for other characters is stored under `RaidwiseDB.reputation.localProfilesByGuid[guid]` and edited in the Character profile. `RaidwiseDB.history` contains encounter/scan identity only. Catalogs and rating access live in [`PlayerHistory.lua`](../Raidwise/PlayerHistory.lua); persistence and migrations live in [`PlayerHistoryStore.lua`](../Raidwise/PlayerHistoryStore.lua). Draft edits belong to [`ProfileDraft.lua`](../Raidwise/ProfileDraft.lua), and labels/tooltips to [`RatingPresentation.lua`](../Raidwise/RatingPresentation.lua).
 
 ## Data-base separation (foundation)

@@ -31,7 +31,7 @@ local UI = {
 	BORDER_W = Theme.BORDER_W,
 }
 
-local PROFILE_LAYOUT_VERSION = 35
+local PROFILE_LAYOUT_VERSION = 36
 local notesScrollSerial = 0
 local PROFILE_EVENT_ROW_ICON = 14
 
@@ -923,10 +923,10 @@ local function UpdateProfileEditor(frame, member)
 	end
 	UpdateProfileEventsPanel(frame, member)
 	if frame.communityHeading then
-		frame.communityHeading:SetText(T("RATING_COMMUNITY_TITLE"))
+		frame.communityHeading:SetText("")
 	end
 	if frame.communityText then
-		frame.communityText:SetText(T("RATING_COMMUNITY_MOCK"))
+		frame.communityText:SetText("")
 	end
 	Addon:RefreshProfileHistoryPanel(frame, member, PROFILE_EVENT_ROW_ICON)
 end
@@ -1152,17 +1152,10 @@ local function CreateRaidCharacterWindow()
 
 	local layoutVersionText = W.AttachLayoutVersionLabel(titleBar, PROFILE_LAYOUT_VERSION, close)
 	frame.layoutVersionText = layoutVersionText
-	local share = W.CreatePlainButton(titleBar, 90, 18, T("SYNC_SHARE"))
-	share:SetPoint("RIGHT", layoutVersionText, "LEFT", -6, 0)
-	share:SetScript("OnClick", function()
-		local member = frame.profileMember
-		if member and member.guid then Addon:ShowSyncShareMenu(share, member.guid) end
-	end)
-	frame.shareButton = share
 
 	local title = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormal")
 	title:SetPoint("LEFT", 8, 0)
-	title:SetPoint("RIGHT", share, "LEFT", -8, 0)
+	title:SetPoint("RIGHT", layoutVersionText, "LEFT", -8, 0)
 	title:SetJustifyH("LEFT")
 	W.SetFontColor(title, UI.GOLD)
 	frame.titleText = title

@@ -4,13 +4,12 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 22
+local SHELL_LAYOUT_VERSION = 23
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {
 	{ id = "personal", labelKey = "MENU_GROUP_PERSONAL" },
 	{ id = "raiding", labelKey = "MENU_GROUP_RAIDING" },
-	{ id = "exchange", labelKey = "MENU_GROUP_EXCHANGE" },
 	{ id = "exportWeb", labelKey = "MENU_GROUP_EXPORT_WEB" },
 	{ id = "other", labelKey = "MENU_GROUP_OTHER" },
 }
@@ -23,10 +22,7 @@ local PAGES = {
 	{ id = "composition", key = "Composition", labelKey = "TAB_COMPOSITION", icon = "Interface\\Icons\\Spell_Magic_GreaterBlessingofKings", group = "raiding" },
 	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03", group = "raiding" },
 	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "raiding" },
-	{ id = "sync", key = "Sync", labelKey = "TAB_SYNC", icon = "Interface\\Icons\\Spell_Arcane_PortalIronForge", group = "exchange" },
-	{ id = "reputation", key = "Reputation", labelKey = "TAB_REPUTATION", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "exchange" },
 	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "exportWeb" },
-	{ id = "syncExport", key = "SyncExport", labelKey = "TAB_SYNC_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "exportWeb" },
 	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01", group = "other" },
 	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark", group = "other" },
 }
