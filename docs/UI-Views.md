@@ -57,7 +57,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character database | `LAYOUT_VERSION = 12` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
 | Reputation | `LAYOUT_VERSION = 3` | `PageReputation.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 17` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 18` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 The shared shell is **693 px** tall on every page. The Raid viewport fits groups

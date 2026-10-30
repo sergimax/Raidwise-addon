@@ -159,6 +159,7 @@ end
 
 function Addon:RefreshRatingViews()
 	if self.RefreshClassicOpinionMarkers then self:RefreshClassicOpinionMarkers() end
+	if self.RefreshUnitOpinionTooltip then self:RefreshUnitOpinionTooltip() end
 	if self.RefreshHistoryView then self:RefreshHistoryView() end
 	local shell = self.mainFrame
 	if shell and shell:IsShown() and shell.selectedTab == "raid" and self.RefreshRaidRosterView then self:RefreshRaidRosterView(false) end

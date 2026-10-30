@@ -72,11 +72,17 @@ function Addon:EnsureLocalProfile(guid, seed)
 end
 
 function Addon:GetPersonalRating(member)
-	local record = self:GetPlayerRecord(Key(member))
-	local profile = record and record.profile
-	return {opinion=profile and profile.opinion or "neutral", tags={}, facts=profile and profile.facts or {},
+	local store = self:GetPlayerRecordStore()
+	local profile = store and store.profiles[Key(member)]
+	local facts = {}
+	for _, fact in ipairs(profile and profile.facts or {}) do facts[#facts + 1] = fact end
+	return {opinion=profile and profile.opinion or "neutral", tags={}, facts=facts,
 		createdAt=profile and profile.createdAt or 0, updatedAt=profile and profile.updatedAt or 0,
 		creatorId=profile and profile.author and profile.author.guid or "", hasOpinion=profile and profile.opinion ~= nil or false}
+end
+
+function Addon:ShouldMarkCharacterInChat(entry)
+	return entry ~= nil and self:HasPersonalRatingData(self:GetPersonalRating(entry))
 end
 
 function Addon:HasPersonalRatingData(personal)

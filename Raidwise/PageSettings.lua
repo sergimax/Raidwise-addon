@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 17
+local LAYOUT_VERSION = 18
 local CHANGELOG_URL = "https://github.com/sergimax/Raidwise-addon/blob/main/CHANGELOG.md"
 
 local SECTION_HEADER_H = 28
@@ -22,7 +22,6 @@ local STARTUP_GAP = UI.ACTION_BTN_GAP
 
 local CHECK_KEYS = {
 	{ key = "hidePersonal", labelKey = "SETTINGS_TIP_HIDE_PERSONAL" },
-	{ key = "hidePersonalTags", labelKey = "SETTINGS_TIP_HIDE_PERSONAL_TAGS" },
 }
 
 local function CreateSettingsHeading(page, labelKey, anchor)

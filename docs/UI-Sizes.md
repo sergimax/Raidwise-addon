@@ -319,3 +319,7 @@ the layout badge. Its former Karma labels are blank pending the profile redesign
 Database v11 removes the 150 px Share database button; table and outer sizes are unchanged.
 Settings v17 removes the two Karma tooltip options, leaving two personal options;
 the panel keeps its existing minimum height and column widths.
+
+Settings v18 leaves only the selected-opinion visibility checkbox. Retired tag
+and Karma flags have no effect on generated tooltip lines. Panel minimum height,
+360 px options column and preview-column gap remain unchanged.

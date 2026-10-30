@@ -29,7 +29,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Retired profile exchange (not in TOC) | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua`, `PageReputation.lua`, `KarmaData.lua` | Archived implementation for later redesign; no active transport registration, pages or Karma import. See [Synchronization.md](Synchronization.md). |
 | Unsaved profile edits | `ProfileDraft.lua` | `CreateProfileDraft`, `ToggleProfileDraftTag`, `AddProfileDraftEvent` |
 | Profile window | `ProfileWindow.lua`, `ProfileEditor.lua`, `ProfileCharacters.lua` | Active v37 window, unified core drafts, one-second autosave, retained errors; old `CharacterProfile`/`ProfilePanels` are outside TOC. |
-| Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `GetTooltipSettings`, `BuildUnitTooltipRatingLinesForMember`; tooltip hooks in `UnitTooltips` |
+| Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `FindOpinionCharacter`, explicit-opinion tooltip lines (no tags/Karma); `RefreshUnitOpinionTooltip` rebuilds a shown unit fill after save/delete without touching item tooltips |
 | Native friends, ignore, inbox and guild opinion marks | `ClassicOpinionMarkers.lua` | `InitializeClassicOpinionMarkers`, `RefreshClassicOpinionMarkers`; read-only name/realm lookup, secure post-update hooks |
 | Theme / shared controls | `UITheme.lua`, `UIWidgets.lua`, `RosterWidgets.lua` | Stable theme tables; generic controls; roster/grade/rating controls |
 | Raid and target gear views | `PageRaid.lua`, `PageGearCheckTarget.lua` | `RefreshRaidRosterView`, `RefreshGearCheckTargetView`, `ShowGearCheckReport` |

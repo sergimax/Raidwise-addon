@@ -11,7 +11,9 @@ test("native opinion marks follow social and guild rows, mailbox pages and saved
       Raidwise={db={history={}}}
       function Raidwise:T(key) return key end
       function GetRealmName() return "My Realm" end
-      function UnitGUID() return "SELF" end
+      actorGuid="SELF"
+      function UnitGUID() return actorGuid end
+      function UnitName() return "Me","My Realm" end
       function time() return 1000 end
       function ChatFrame_AddMessageEventFilter() end
       hooks={}
@@ -87,7 +89,7 @@ test("native opinion marks follow social and guild rows, mailbox pages and saved
           rating={personal={opinion=opinion,updatedAt=100}}}
       end
     `);
-    for (const module of ["PlayerHistory", "PlayerHistoryStore", "RatingPresentation", "ClassicOpinionMarkers"]) {
+    for (const module of ["PlayerHistory", "PlayerHistoryStore", "PlayerRecords", "CharacterLinks", "PlayerRecordBridge", "PlayerRecordLinks", "RatingPresentation", "ClassicOpinionMarkers"]) {
       lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
     }
     lua.doStringSync(`
@@ -105,10 +107,15 @@ test("native opinion marks follow social and guild rows, mailbox pages and saved
       GuildFrameGuildStatusButton1=row(""); GuildFrameGuildStatusButton1.guildIndex=2
       GuildFrameGuildStatusButton1Name=label("Bad")
       local addon=Raidwise
-      addon.db.history={good=saved("Good","positive"),bad=saved("Bad","negative"),
-        neutral=saved("Neutral","neutral"),other=saved("Unknown","negative","Other Realm"),
-        met={guid="Met",name="Met",realm="My Realm"}}
-		addon:InitializeHistoryStore()
+      addon:InitializeHistoryStore()
+      for _, info in ipairs({{'Good','positive'},{'Bad','negative'},{'Neutral','neutral'},{'Unknown','negative','Other Realm'}}) do
+        local key=info[3] and 'OTHER' or info[1]
+        addon:EnsureHistoryEntryForGuid(key,{name=info[1],realm=info[3] or 'My Realm'})
+        assert(addon:SavePersonalRatingForGuid(key,nil,info[2],{},{}))
+      end
+      addon:EnsureHistoryEntryForGuid('Met',{name='Met',realm='My Realm'})
+      addon:SaveProfileNotesForGuid('Met',nil,'private note')
+      actorGuid='ALT' -- selected opinions remain visible from another character
       addon:InitializeClassicOpinionMarkers()
       addon:InitializeClassicOpinionMarkers()
       assert(#hooks.FriendsList_Update==1 and #hooks.DynamicScrollFrame_Update==1)
@@ -201,6 +208,9 @@ test("native opinion marks follow social and guild rows, mailbox pages and saved
       assert(overlay.label.text=="[-]" and GuildFrameButton1Name.text=="Good")
       assert(overlay.shown and highlight.color[1]>highlight.color[2])
       assert(MailItem1Sender.text:find("[-]",1,true) and not MailItem1Sender.text:find("[+]",1,true))
+      assert(addon:DeleteCharacterDatabaseRecords({'Good'})==1)
+      addon:RefreshClassicOpinionMarkers()
+      assert(not overlay.shown and MailItem1Sender.text=='good-MyRealm')
       mailCount=0
       fire("InboxFrame_Update")
       assert(MailItem1Sender.text=="good-MyRealm", "Empty inbox retained a recycled marker")

@@ -175,7 +175,7 @@ local function FillGradeCells(cell, grades)
     end
 end
 
--- Compact rating row: personal Qiraji crystal icon + Karma percent.
+-- Compact explicit opinion; an unrated character uses a dash.
 local function FormatRatingCellLine(member)
 	local iconMarkup = W.IconMarkup(W.RatingOpinionIcon(member), RAID_LINE_H)
 	if iconMarkup == "" then

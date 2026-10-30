@@ -34,7 +34,7 @@ test("negative personal opinions color the whole chat body red and preserve chat
         filter(nil,event,text,"Sender","Common",nil,nil,nil,nil,nil,nil,nil,123,"A","tail")
       assert(hidden==false and sender=="Sender" and language=="Common")
       assert(lineId==123 and guid=="A" and tail=="tail")
-      assert(message=="|cffffffff<|cffff0000Rw|cffffffff51>|r |cffff0000Hello green |r"..item.."|cffff0000|r"..achievement.."|cffff0000 end ||cffffffff literal ||r|r")
+      assert(message=="|cffffffff<|cffff0000Rw|cffffffff>|r |cffff0000Hello green |r"..item.."|cffff0000|r"..achievement.."|cffff0000 end ||cffffffff literal ||r|r")
     end
     local filter=filters.CHAT_MSG_SAY
     for _, sender in ipairs({"Sender-OtherRealm", "Unknown"}) do
@@ -44,18 +44,16 @@ test("negative personal opinions color the whole chat body red and preserve chat
     for _, percent in ipairs({0, 73}) do
       Raidwise.GetCommunityRating=function() return {positivePercent=percent,tags={},isMock=false} end
       local _, message=filter(nil,"CHAT_MSG_SAY","hello","Sender")
-      assert(message:find("Rw|cffffffff"..percent..">",1,true))
+      assert(message:find("Rw|cffffffff>",1,true) and not message:find(tostring(percent)..">",1,true))
     end
     Raidwise.GetCommunityRating=getCommunity
     Raidwise:EnsureHistoryEntryForGuid("C",{name="Unrated",realm="Realm"})
     assert(filter(nil,"CHAT_MSG_SAY","hello","Unrated")==nil)
     Raidwise:RecordTargetScanHistory({character={guid="C",name="Unrated",realm="Realm"}})
-    local _, unrated=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
-    assert(unrated=="|cffffffff<|cffffffffRw|cffffffff51>|r hello")
+    assert(filter(nil,"CHAT_MSG_SAY","hello","Unrated")==nil)
     getCommunity=Raidwise.GetCommunityRating
     Raidwise.GetCommunityRating=function() return nil end
-    local _, missing=filter(nil,"CHAT_MSG_SAY","hello","Unrated")
-    assert(missing=="|cffffffff<|cffffffffRw|cffffffff>|r hello")
+    assert(filter(nil,"CHAT_MSG_SAY","hello","Unrated")==nil)
     Raidwise.GetCommunityRating=getCommunity
     for _, opinion in ipairs({"positive","neutral"}) do
       Raidwise:SavePersonalRatingForGuid("A",nil,opinion,{},{})
@@ -67,7 +65,7 @@ test("negative personal opinions color the whole chat body red and preserve chat
     assert(Raidwise:LinkPlayerCharacters("A","B"))
     Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{})
     local _, message=filter(nil,"CHAT_MSG_SAY","alt message","Alt")
-    assert(message=="|cffffffff<|cffff0000Rw|cffffffff51>|r |cffff0000alt message|r")
+    assert(message=="|cffffffff<|cffff0000Rw|cffffffff>|r |cffff0000alt message|r")
   `);
 });
 

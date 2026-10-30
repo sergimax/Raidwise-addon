@@ -15,26 +15,8 @@ local function RealmKey(value)
 end
 
 local function FindOpinion(sender)
-	if type(sender) ~= "string" or sender == "" then return end
-	local name, realm = sender:match("^([^%-]+)%-(.+)$")
-	local currentRealm = RealmKey(GetRealmName())
-	name, realm = NameKey(name or sender), realm and RealmKey(realm) or currentRealm
-	local selected, selectedAt, selectedGuid
-	for guid, entry in pairs(Addon.db and Addon.db.history or {}) do
-		if type(entry) == "table" and NameKey(entry.name) == name then
-			local entryRealm = RealmKey(entry.realm)
-			if entryRealm == "" then entryRealm = currentRealm end
-			if entryRealm == realm then
-				local personal = Addon:GetPersonalRating(entry)
-				local updatedAt = tonumber(personal.updatedAt) or 0
-				if Addon:HasPersonalRatingData(personal) and (not selected or updatedAt > selectedAt
-					or (updatedAt == selectedAt and tostring(guid) < selectedGuid)) then
-					selected, selectedAt, selectedGuid = personal.opinion, updatedAt, tostring(guid)
-				end
-			end
-		end
-	end
-	return selected
+	local entry = Addon:FindOpinionCharacter(sender)
+	return entry and Addon:GetPersonalRating(entry).opinion or nil
 end
 
 local function MarkLabel(label, sender)
