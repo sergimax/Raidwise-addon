@@ -649,3 +649,11 @@ Trinket progression corrections from the same report review: Muradin's Spyglass
 is accepted by healer profiles, including Holy Paladin. These remain progression
 choices (B / OK), not preferred endgame choices. Je'Tze's Bell (37835) was already
 in the healer progression pool and remains B / OK.
+
+### Balance held off-hand grading fix (2026-10-31)
+
+Balance now has a separate weapon profile with `offhand` preferred. Previously it
+shared Feral's profile, so a clean held off-hand remained B despite item 50719
+being in the existing Balance BiS union. It now qualifies for S when the normal
+quality/completeness checks pass; a clean non-BiS off-hand qualifies for A.
+Feral and other specializations retain their existing weapon ranks.

@@ -452,6 +452,12 @@ test("Balance BiS weapons and a Sons of Hodir starter shoulder enchant grade cor
       assert(mainHand.verdict=="S", "Balance main hand BiS should be S")
       assert(offHand.verdict=="S", "Balance held off-hand BiS should be S")
       assert(shoulder.verdict=="B", "Lesser Sons of Hodir enchant should be recognized but remain below max")
+      -- The type fix allows clean non-BiS off-hands to reach A, not an unconditional S.
+      offHand.item.itemId=1
+      Raidwise:EvaluateGearCheck(report)
+      assert(offHand.verdict=="A", "Non-BiS Balance off-hand should remain A")
+      assert(not Raidwise:GetGearCheckProfile("DRUID",2,true).weapons.preferred.offhand,
+        "Balance off-hand preference must not change the shared Feral profile")
     `);
   });
 });
