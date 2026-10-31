@@ -4,11 +4,16 @@
 
 Аддон для подготовки к рейду в **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): составы группы и рейда, анализ состава, рейтинг игроков, история встреч, КД на аккаунте и экспорт персонажа в JSON.
 
-![](https://img.shields.io/badge/current_version-1.27.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--09--23-blue)
+![](https://img.shields.io/badge/current_version-2.0.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--10--31-blue)
 
 
 ## Установка
+
+**Обновление до 2.0:** предварительно сохраните копию SavedVariables. Старые
+профили, заметки, связи персонажей и данные обмена сбрасываются без переноса;
+настройки, отчёты Gear Check, КД и валюты сохраняются. Установите полную папку
+аддона и перезапустите клиент: порядок загрузки TOC изменён.
 
 1. Скопируйте папку `Raidwise` в каталог аддонов клиента:
 
@@ -163,23 +168,22 @@ Raidwise/
   RosterRefresh.lua   # coalesced refreshes and shared per-pass roster snapshots
   RaidRoles.lua       # роли и рейд-баффы по спеку / расе
   RaidComposition.lua # покрытие баффов, дебаффов и утилиты в группе / рейде
-  PlayerHistory.lua   # каталоги рейтингов, нормализация и чтение
-  PlayerHistoryStore.lua # history persistence and legacy migration
-  RatingPresentation.lua # rating labels, tooltips, and chat marks
-  ProfileDraft.lua    # plain profile draft editing model
-  ProfilePanels.lua  # построение вкладок профиля и история
-  CharacterLinks.lua # связи персонажей и локальный выбор мейна
+  PlayerRecords.lua   # локальное хранилище Профилей и Заметок
+  PlayerRecordSupport.lua # каталоги и представление персонажей
+  PlayerRecordBridge.lua # API экранов
+  PlayerRecordLinks.lua # связи и удаление данных
+  PlayerEncounters.lua # встречи, счётчики и очистка
+  RatingPresentation.lua # мнения, подсказки и отметки в чате
+  ProfileEditor.lua   # черновики и автосохранение
+  ProfileWindow.lua   # самостоятельное окно Профиля
   ProfileCharacters.lua # вкладка персонажей в профиле
   Diagnostics.lua    # проверки и независимое окно отчёта
   Minimap.lua         # кнопка миникарты и подсказка с готовностью рейда и КД
-  UnitTooltips.lua    # строки личного/общественного рейтинга в подсказках
+  UnitTooltips.lua    # выбранное мнение в подсказках
   ClassicOpinionMarkers.lua # отметки мнения в друзьях, игноре, почте и гильдии
   UITheme.lua         # theme palettes and bound colors/text
   UIWidgets.lua       # общие панели, кнопки, иконки, бейджи версии вёрстки
   RosterWidgets.lua   # roster, rating, and gear presentation helpers
-  CharacterProfile.lua # профиль персонажа (мнение, теги, заметки, история)
-  SyncData.lua         # версия JSON профиля, импорт и предварительный просмотр
-  SyncTransport.lua    # предложения обмена, согласие, игнор и маршрутизация
   GearCheckCatalog.lua # каталоги чар / камней
   GearCheckSets.lua   # id кусков T9/T10 (информационно)
   GearCheckTrinkets.lua # пулы тринкетов по роли
@@ -213,7 +217,7 @@ docs/
   UI-Views.md         # ASCII-схемы каждого вида + таблица layout-версий
   UI-Sizes.md         # размеры окна и элементов
   Gear-Check-Progress.md # фазы Gear Check (план / готово / как тестировать)
-  Reputation.md       # модель личного рейтинга / событий / мемо
+  Reputation.md       # текущая локальная модель персонажей
   Raid-Composition.md # классы и спеки, которые проверяет анализ состава
 types/
   CharacterExport.ts  # TypeScript-типы JSON вкладки Export
@@ -223,12 +227,12 @@ types/
 
 ## Заметки
 
-- Связи хранятся в `RaidwiseDB.characterGroups`, локальный выбор мейна — отдельно в `RaidwiseDB.localCharacterMains`. Старые настройки мейна переносятся автоматически. API `GetSharedCharacterLinks` описан в [Reputation.md](docs/Reputation.md).
+- Связи хранятся в `RaidwiseDB.playerRecords.groups`; мнение каждого связанного персонажа независимо. См. [Reputation.md](docs/Reputation.md).
 - Неполные и недоступные сканы явно помечены и не учитываются как готовые в рейде/мини-карте. Неподтверждённые пустые гнёзда требуют повторного ответа осмотра перед выводом об отсутствующих камнях.
 
 - Целевая сборка: **3.3.5a** (клиенты приватных серверов используют `## Interface: 30300`).
-- Сохранённые переменные лежат в `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Настройки старого `MrcExporterDB` переносятся при первой загрузке. КД и валюта персонажей для таблицы кулдаунов — в `RaidwiseDB.characters` (`.lockouts`, `.currency`). Встречи в группе и рейде — в `RaidwiseDB.history` (ключ — GUID), включая личные рейтинги (`.rating.personal` с мнением/тегами/фактами), события (`.events`), заметки (`.notes`), журнал изменений (`.changes`) и счётчик совместных групп (`.meetCount`). Язык интерфейса — `RaidwiseDB.locale` (`enUS` или `ruRU`). Стартовая вкладка меню — `RaidwiseDB.startupTab`. Флаги подсказок — `RaidwiseDB.tooltip`.
+- Сохранённые переменные лежат в `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Настройки старого `MrcExporterDB` переносятся при первой загрузке. КД и валюты — в `RaidwiseDB.characters`, новая система персонажей — в `RaidwiseDB.playerRecords`. Старые профильные данные не переносятся. Язык — `RaidwiseDB.locale`, стартовая вкладка — `RaidwiseDB.startupTab`, флаги подсказок — `RaidwiseDB.tooltip`.
 - `## X-LastUpdated` в `.toc` задаётся вручную; бейдж в README нужно держать в синхроне.
-- JSON и текстовые экспорты персонажа, КД, Gear Check и синхронизации содержат версию формата. Импорт синхронизации отклоняет неизвестный `reportVersion`; личные мемо никогда не экспортируются.
+- Экспорт экипировки, валют, КД и Gear Check сохраняет версии форматов. Обмен профилями отключён; Заметки остаются локальными.
 - Необязательная зависимость: **GearScore** (`## OptionalDeps`) для поля `gearScore` в экспорте.
 - Пересборка ID для оценки S: `node scripts/generate-gear-check-bis.js` (читает пресеты соседнего веб-репо `Raidwise`; см. `docs/Gear-Check-Surface-From-BiS.md`).
