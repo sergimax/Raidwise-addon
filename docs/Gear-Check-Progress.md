@@ -45,7 +45,7 @@ creation. Keep internal state local or on the single `Raidwise` namespace.
 | Addon semver | `1.26.0`; TOC and `Addon.version` | A release is explicitly requested |
 | Report schema | `3`; `GEAR_CHECK_SCHEMA_VERSION` in collector | The normalized report contract changes; update `types/GearCheck.ts` and compatibility handling |
 | Evaluation rules | `GEAR_CHECK_RULESET_VERSION` in rules | Finding, eligibility, aggregation, or unknown/incomplete-data policy changes; increment `rN` |
-| Catalog data | `catalog-2026-09-14-gear1`; `GEAR_CHECK_DATA_VERSION` | Gem/enchant data, profiles, BiS/trinket pools, or set data change; assign a new catalog revision |
+| Catalog data | `catalog-2026-09-27-gear1`; `GEAR_CHECK_DATA_VERSION` | Gem/enchant data, profiles, BiS/trinket pools, or set data change; assign a new catalog revision |
 | UI layout | Per-shell/page/profile constants | Geometry or frame structure changes under AGENTS.md |
 
 Mechanical refactors and UI/string-only edits do not change rule revisions.
@@ -635,7 +635,7 @@ Compared the existing catalog with the [WoWSims WotLK gem database](https://gith
 - Corrected Subtle Dragon's Eye (42151) from yellow to red. All existing overlapping gem stats matched the reference.
 - Preserve existing meta requirements, profession flags, grading exceptions, legacy gems, and explicit socket-enchant mappings. Older-expansion gems absent from Raidwise were outside this Northrend update.
 - WoWSims stores spell/melee hit, crit, haste, and melee/ranged attack power separately. These are deduplicated into Raidwise's single corresponding in-game stat, never added together. Enchanted Pearl is an all-stat prismatic gem and counts for each meta color.
-- Catalog revision: catalog-2026-09-14-gear1. New gem recognition still needs a resolved gem item ID unless an explicit socket-enchant mapping exists.
+- Catalog revision: catalog-2026-09-27-gear1. New gem recognition still needs a resolved gem item ID unless an explicit socket-enchant mapping exists.
 
 
 Holy Paladin catalog correction (2026-09-14): Ember Skyflare Diamond (41333)
@@ -649,3 +649,11 @@ Trinket progression corrections from the same report review: Muradin's Spyglass
 is accepted by healer profiles, including Holy Paladin. These remain progression
 choices (B / OK), not preferred endgame choices. Je'Tze's Bell (37835) was already
 in the healer progression pool and remains B / OK.
+
+### Balance held off-hand grading fix (2026-10-31)
+
+Balance now has a separate weapon profile with `offhand` preferred. Previously it
+shared Feral's profile, so a clean held off-hand remained B despite item 50719
+being in the existing Balance BiS union. It now qualifies for S when the normal
+quality/completeness checks pass; a clean non-BiS off-hand qualifies for A.
+Feral and other specializations retain their existing weapon ranks.

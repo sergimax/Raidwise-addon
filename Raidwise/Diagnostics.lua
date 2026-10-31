@@ -26,6 +26,18 @@ function Addon:RunDiagnostics()
 			"ClassicOpinionMarkers.lua is missing or outdated. Install the complete Raidwise folder, including Raidwise.toc, then fully exit and restart the game. Check startup Lua errors if this persists.")
 		lines[#lines + 1] = self:GetClassicOpinionDiagnostics()
 	end)
+	if self.GetPlayerRecordStore then
+		Check("local character system", function()
+			local store = self:GetPlayerRecordStore()
+			assert(store and store.activated, "New character store is not active")
+			assert(not self.db.history and not self.db.reputation, "Retired profile roots are still active")
+			assert(not self.OnSyncAddonMessage and not self.StageSyncImport, "Retired profile exchange is active")
+			for _, method in ipairs({"CommitPlayerRecordDraft", "GetCharacterEncounters", "DeleteCharacterDatabaseRecords", "ShowRaidCharacterWindow"}) do
+				assert(type(self[method]) == "function", method .. " module missing")
+			end
+			lines[#lines + 1] = "Character store: schema=" .. tostring(store.schemaVersion) .. "; legacy exchange disabled"
+		end)
+	end
 	if type(InCombatLockdown) == "function" and InCombatLockdown() then
 		skipped = skipped + 1
 		lines[#lines + 1] = "SKIP main window opening: leave combat and run again"

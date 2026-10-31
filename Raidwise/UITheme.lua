@@ -63,6 +63,7 @@ Addon.UITheme = {
 	CD_HSCROLL_H = 16,
 	CD_ROW_A = { 0.094, 0.094, 0.141, 0.95 },
 	CD_ROW_B = { 0.078, 0.078, 0.118, 0.95 },
+	CD_CURRENT_CHARACTER = { 0.180, 0.150, 0.080, 0.95 },
 
 	-- Raid roster tab
 	RAID_BUFF_ICON = 18,
@@ -143,6 +144,7 @@ local lightPalette = {
 	INPUT_BG = { 1, 0.99, 0.97, 1 },
 	CD_ROW_A = { 0.88, 0.87, 0.83, 1 },
 	CD_ROW_B = { 0.96, 0.95, 0.92, 1 },
+	CD_CURRENT_CHARACTER = { 0.91, 0.81, 0.55, 1 },
 	BTN_IDLE = { 0.85, 0.83, 0.78, 1 },
 	BTN_HOVER = { 0.78, 0.75, 0.67, 1 },
 	BTN_SELECTED = { 0.75, 0.65, 0.43, 1 },
@@ -182,7 +184,7 @@ end
 local function TextBackgroundLuminance()
 	local light = Addon:GetTheme() == "light"
 	local value = Luminance(UI.PANEL_BG)
-	for _, key in ipairs({ "TITLE_BG", "INPUT_BG", "CD_ROW_A", "CD_ROW_B", "BTN_IDLE", "BTN_HOVER", "BTN_SELECTED", "BTN_DISABLED" }) do
+	for _, key in ipairs({ "TITLE_BG", "INPUT_BG", "CD_ROW_A", "CD_ROW_B", "CD_CURRENT_CHARACTER", "BTN_IDLE", "BTN_HOVER", "BTN_SELECTED", "BTN_DISABLED" }) do
 		local background = Luminance(UI[key])
 		value = light and math.min(value, background) or math.max(value, background)
 	end

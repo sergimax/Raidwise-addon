@@ -175,7 +175,7 @@ local function FillGradeCells(cell, grades)
     end
 end
 
--- Compact rating row: personal Qiraji crystal icon + Karma percent.
+-- Compact explicit opinion; an unrated character uses a dash.
 local function FormatRatingCellLine(member)
 	local iconMarkup = W.IconMarkup(W.RatingOpinionIcon(member), RAID_LINE_H)
 	if iconMarkup == "" then
@@ -186,20 +186,7 @@ local function FormatRatingCellLine(member)
 	end
 	local personalPart = iconMarkup
 
-	local community = Addon.GetCommunityRating and Addon:GetCommunityRating(member)
-	local percent = community and tonumber(community.positivePercent)
-	local communityPart
-	local communityColor = UI.TEXT_DISABLED
-	if percent then
-		communityPart = tostring(percent) .. "%"
-		communityColor = UI.TEXT_IDLE
-	else
-		communityPart = "—"
-	end
-	if Addon.RatingWrapColor then
-		communityPart = Addon:RatingWrapColor(communityPart, communityColor)
-	end
-	return personalPart .. " " .. communityPart
+	return personalPart
 end
 
 local function FormatGearCategorySummaryLine(summary)

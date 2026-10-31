@@ -114,7 +114,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 | Gap: toolbar → table | 8 px | Table starts below Refresh button |
 | Refresh | **96 × 28** | Top-right of the page |
 | Instance column | **170** | Name + type stacked |
-| Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`), **Remove** **82 × 16** on non-current characters |
+| Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`), **Remove** **82 × 16** on non-current characters; current character column has a gold-tinted background |
 | Header row | **68** | Page-local in `PageCooldowns.lua` (taller: spec icon, name, last check, Remove) |
 | Data row | **34** | Alternate fills **0.094 / 0.078** (Classic `CD_ROW_A` / `CD_ROW_B`) |
 | Currency rows | **1** fixed | **Currency** / **Валюта** title + label column; ~**175** px tall; aligned icon+count chips |
@@ -134,15 +134,15 @@ Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/g
 | Row 2 status | six equal cells, **8** px gaps, **20** tall | Gold name + compact counts, **16×16** Battle Shout report icon on the right |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
-| Player cell | **168 × 100** | Four rows: class/spec/role/name; GS and iLvl plus personal opinion and Karma; weapon and armor score report buttons with Flask and **Gear**; gem and enchant score report buttons with Food and **Rescan**. Raid-buff icons moved to hover tip |
+| Player cell | **168 × 100** | Four rows: class/spec/role/name; GS and iLvl plus the explicit selected opinion; weapon and armor score report buttons with Flask and **Gear**; gem and enchant score report buttons with Food and **Rescan**. Raid-buff icons moved to hover tip |
 | Cell buttons | **20** tall | Score report buttons are **44** px; **Gear** and **Rescan** are **48** px; **2** px gaps. Scores are disabled until scanned; Rescan is disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
 | Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
 | Gap between blocks | **12** | |
-| Cell content | **20** px class/spec/role and evaluation buttons; **14** px Flask/Food | The first row shows identity. The second shows GS and iLvl (or `-`) followed by personal-opinion icon and Karma. Rows three and four use score buttons in the left **90** px, a consumable icon, and an action button. Raid buffs listed on card hover |
-| Cell hover tooltip | — | Opinion, tags, Karma percent/tags, **Guild: Name (Rank)**, raid buffs, gear-check grades |
+| Cell content | **20** px class/spec/role and evaluation buttons; **14** px Flask/Food | The first row shows identity. The second shows GS and iLvl (or `-`) followed by an explicit-opinion icon (dash when unset). Rows three and four use score buttons in the left **90** px, a consumable icon, and an action button. Raid buffs listed on card hover |
+| Cell hover tooltip | — | Selected opinion, **Guild: Name (Rank)**, raid buffs, gear-check grades |
 
 Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
 
@@ -188,43 +188,33 @@ Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW �
 
 Raid-wide gear check is integrated into **Raid roster** (see that section). There is no separate gear-check raid tab.
 
-## Character profile
+## Character profile — active layout v38
 
-Popup (`RaidwiseRaidCharacterFrame`), `FULLSCREEN_DIALOG` strata. Opened from Raid roster or History; Esc-close via `UISpecialFrames`. No window scroll — tab panels fill the body below the summary. Layout rebuild gated by `PROFILE_LAYOUT_VERSION` (title-bar badge `vN`).
+Owner: `ProfileWindow.lua`; save controller: `ProfileEditor.lua`.
 
-| Element | Size | Notes |
-|---------|------|-------|
-| Window | **460 × 560** | Centered, offset +40 / +20 from parent center; **2** px bronze outer border (`UI.BORDER`) |
-| Title bar | height **20** | Drag handle; inset **2** px from the outer border; `{name} - Character profile`; layout badge `vN` before close |
-| Close button | **16 × 16** | Right of title bar |
-| Body padding | **10** | Same as main shell `PAD` |
-| Content width | **440** | `460 - 10×2` |
-| Header icons | **24** | Race + class in left cell; spec in right cell (`PROFILE_ICON`); column gap **12** |
-| Summary | height **122** | Opinion, tags, facts, guild, GUID, realm (+ Karma column) |
-| Profile tabs | height **26** | **History**, **Edit note**, **Facts**, **Events**, **Memo**; gap **4**; **History** opens by default |
-| Tab host | fills body below tabs | Panels swap in place |
-| Opinion radios | **3** equal columns × **22** | Exclusive Positive / Neutral / Negative |
-| Tag checkboxes | scrolling columns by category | Max **3** tags per category; category heading gold |
-| Fact checkboxes | two columns under Facts tab | Max **4** facts |
-| Event type picker | scroll **140** tall | **16** px category icons + gold headings, then two-column type buttons; **Add event** top-right with heading |
-| Event list | fills remaining Events tab | Fixed **20** px rows (**14** px category icon + label + Remove) |
-| Memo hint | under heading | `GameFontNormalSmall`; personal-use only (not History) |
-| Memo box | **440 × 96** | Multiline EditBox with inner scroll |
-| Memo Save / Reset | half width × **28** | `(contentWidth - 8) / 2`; gap **8** |
-| History Met / party count | first row of History tab | **Met** left-aligned; **Was in the same party** right-aligned (`meetCount`) |
-| History When | below Met | First-meeting timestamp |
-| History change log | fills remaining History tab | Scroll; **20** px rows with **14** px icon (event category, or note/tag/facts/memo kind) |
-| Karma mock block | right summary column | Gold heading + wrapped body text |
+| Element | Geometry / behavior |
+|---|---|
+| Window | **680 × 760**, centered, clamped, draggable title |
+| Title bar | x=8, y=-8, **664 × 26**; title **520** px, layout badge and Close |
+| Details / author | x=12, y=-40 / -62; width **656** |
+| Opinion / facts | y=-86 / -116; four **155 × 24** controls, **163** px stride |
+| Meeting summary / self hint | y=-146 / -167; width **656** |
+| Tab buttons | y=-190; three **210 × 24** controls, **218** px stride |
+| Tab host | x=12, y=-223, **656 × 305** |
+| Event picker / Add | **510 × 24** / **130 × 24**, 10 px gap |
+| Event list | y=-32, **235** px high; **62** px rows, at most 25 per page |
+| History lists | two **320 × 245** scroll areas, 10 px gap; y=-22 |
+| Private note panel | x=12, y=-540, **656 × 160**; blue background and explicit local-use label |
+| Private note input | inset 6 px, starts 25 px below panel top; multiline, own scroll |
+| Footer | y=-710; status **310** px, Save **100 × 24**, Reload **100 × 24**, Delete **120 × 24** |
 
-Rating editor requires a valid GUID; controls are disabled when GUID is missing. Bottom window **Save and Update** appears on **Edit note** / **Facts** / **Events** and commits those drafts (not memo). Hidden on **History** and **Memo**. Header personal note/tags/facts stay on saved values until that commit. Closing without Save discards drafts.
-
-Profile layout v32 adds a sixth **Characters** tab inside the existing profile
-window. Its tab button shares the existing equal-width tab row. The panel uses
-a **30** px hint, an **84** px linked-character scroll area, **28** px rows with
-**70 x 22** px Main/Unlink buttons, a **24** px search row with a **120 x 24** px
-Link target button, and a candidate scroll area filling the remainder above a
-**58** px status/conflict area. Conflict choices are **155 x 24** px each, with a
-**110 x 24** px Cancel button. Frame width/height remain unchanged.
+Three tabs: Events (default), History (meetings and profile changes), Characters.
+The Characters panel retains its existing scrollable link/search controls inside
+the tab host; conflicting-opinion choices are never requested by the active store.
+Opinion, four facts, meeting summary and private note stay visible on every tab.
+Auto-save runs after one second idle. Close/switch attempts a save; failures retain
+the draft in memory. Old `CharacterProfile.lua` and `ProfilePanels.lua` are not
+loaded by the TOC. No Karma, tag editor, separate Memo tab or Memo Save/Reset.
 
 ## Diagnostics popup
 
@@ -235,31 +225,27 @@ height. Layout v1 does not depend on the main shell or theme widgets.
 
 ## History and Character database tabs
 
-Same toolbar + scroll table as Character cooldowns (`CD_TOOLBAR_H`, `UI.CD_HEADER_H` **52**, `CD_ROW_H`, scrollbars). No averages line.
+Owner: `PageHistory.lua`. History v8 and Database v13 retain the existing outer
+page, filter/add toolbar anchors, row height and two-axis scrollbar widgets.
+History table starts at y=-116; Database at y=-200. Header height and row height
+come from `UITheme.CD_HEADER_H` / `CD_ROW_H`. Each text cell has 4 px horizontal
+insets; rows contain at most two lines, clipped to row height minus 6 px.
 
-| Element | Size | Notes |
-|---------|------|-------|
-| Header row | **52** | `UI.CD_HEADER_H` (single-line column labels) |
-| Columns | **90 + 28 + 28 + 70 + 120 + 52 + 44 + 130 + 120 + 150 = 832** | Name, class, spec, Opinion, Tags, GS, iLvl, When, Guild, Record source |
-| Class / spec icons | **18** px | Centered in 28 px columns |
-| Opinion column | **70**, center | Qiraji crystal icon (green / yellow / red) |
-| Tags column | **120** | Colored tag summary (up to 3 labels, then `+N`); `-` when none |
-| Met in | Row tooltip | First meeting instance or zone, shown when known |
-| When | **130** | `YYYY-MM-DD HH:MM` |
-| Guild | **120** | Last stored `GuildName (Rank)` |
+| View | Columns in pixels | Total |
+|---|---|---:|
+| Database | name/realm 180, class/spec 100, opinion 90, author 170, guild 140, meetings 100, actions 80 | 860 |
+| History | name/realm 180, class 100, opinion 90, last date/place 330, meetings 140 | 840 |
 
-Name/class/guild filter hosts are **150 x 24** at **166** px intervals, with
-independent backdrops and editable text inset **8** px horizontally / **3** px vertically.
-Filters heading is at y=-36; labels at y=-60 have **14 x 14** icons and a **4** px gap.
-Inputs are at y=-80. Database opinion switch is **160 x 24** at x=498 with a
-**16 x 16** opinion icon, **8** px left inset and **6** px label gap.
-Database addition heading is at y=-120, name label at y=-144, and input at y=-164.
-Its name host is **230 x 24**, followed by a **180 x 24** Add button with a **12** px gap.
-Table begins at y=-116 (History) or y=-200 (Database).
-Source filter is **180 x 24** at x=674, y=-80, with its label at y=-60;
-its **16 x 16** icon uses the same insets as the opinion switch.
-Source column is **150** px with **14** px inline icons. When displays last seen. Rows open Character profile;
-notes are edited there.
+Delete button: 72 px wide, `CD_ROW_H - 8` high. Header and content share column
+widths. Pools contain at most 25 visible rows per page. Pagination clamps after
+filtering/deletion; scrollbar bounds are recalculated after every refresh.
+Name/class/guild inputs remain 150 px, 166 px stride at y=-80. Opinion button
+remains 160 x 24 and also supports Not set. Manual name input remains 230 px;
+Add / Add target are 150 px each and Delete all is 180 px.
+
+## Retired Reputation tab
+
+Removed from TOC and navigation. Former dimensions are historical; no Karma loader is active.
 
 ## Settings tab
 
@@ -322,3 +308,24 @@ Key helpers used across pages (not on `Raidwise` directly):
 4. Reload the UI (`/reload`) and check `/raidwise` (layout rebuild should also fire when versions mismatch).
 
 Header report controls are contextual: chat channels appear only on Raid roster, Raid composition, and Gear check (target); Short / Full appears only on Gear check (target), whose output uses that setting. Both groups are hidden on all other views. Switching views preserves saved selections.
+
+## Character-system transition (2026-10-30)
+
+Shell v23 removes the exchange group and profile-export entry; outer sizes are unchanged.
+Profile v36 removes the 90 x 18 Share button; the title now ends 8 px before
+the layout badge. Its former Karma labels are blank pending the profile redesign.
+Database v11 removes the 150 px Share database button; table and outer sizes are unchanged.
+Settings v17 removes the two Karma tooltip options, leaving two personal options;
+the panel keeps its existing minimum height and column widths.
+
+Settings v18 leaves only the selected-opinion visibility checkbox. Retired tag
+and Karma flags have no effect on generated tooltip lines. Panel minimum height,
+360 px options column and preview-column gap remain unchanged.
+
+Profile v38 restores inline class/spec and coloured opinion icons. Title text is
+330 px; GUID occupies 230 px at x=335 in the title bar. Opinion label is 65 px
+at x=12; four buttons are 139 px wide at x=80/227/374/521, y=-86.
+The event selector opens a 510 x 272 panel below its button, with a 260 px
+scroll area and 26 px rows. Window and existing content sizes are unchanged.
+History v8 / Database v13 restore inline class/spec and coloured opinion icons
+inside existing columns; specialization text appears in both lists.

@@ -35,23 +35,32 @@ const titleLine = "## Title: Raidwise TEST " + hours + minutes;
 // console.log("Updated title: " + titleLine);
 
 fs.mkdirSync(path.dirname(destDir), { recursive: true });
-fs.cpSync(srcDir, destDir, { recursive: true, force: true });
 
-function listFiles(dir, base) {
+function listChangedFiles(dir, base) {
   const files = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      files.push.apply(files, listFiles(fullPath, base));
+      files.push.apply(files, listChangedFiles(fullPath, base));
     } else {
-      files.push(path.relative(base, fullPath));
+      const relativePath = path.relative(base, fullPath);
+      const destPath = path.join(destDir, relativePath);
+      if (
+        !fs.existsSync(destPath) ||
+        !fs.statSync(destPath).isFile() ||
+        !fs.readFileSync(fullPath).equals(fs.readFileSync(destPath))
+      ) {
+        files.push(relativePath);
+      }
     }
   }
   return files;
 }
 
-const files = listFiles(destDir, destDir);
-console.log("Copied " + files.length + " file(s) to " + destDir);
+const files = listChangedFiles(srcDir, srcDir);
+fs.cpSync(srcDir, destDir, { recursive: true, force: true });
+
+console.log("Copied " + files.length + " changed file(s) to " + destDir);
 for (let i = 0; i < files.length; i++) {
   console.log("  " + files[i]);
 }

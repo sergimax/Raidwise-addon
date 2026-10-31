@@ -21,13 +21,15 @@ local function FindHistoryEntryForUnit(unit)
 	if not name or name == "" or not Addon.HistoryStore then
 		return nil, guid
 	end
-	realm = realm or GetRealmName() or ""
+	if not realm or realm == "" then realm = GetRealmName() or "" end
 	local store = Addon:HistoryStore()
+	local fold = strlower or string.lower
+	local realmKey = fold(realm):gsub("%s+", "")
 	for _, entry in pairs(store) do
-		if type(entry) == "table" and entry.name == name then
+		if type(entry) == "table" and fold(entry.name or "") == fold(name) then
 			local entryRealm = entry.realm or ""
-			if entryRealm == "" or realm == "" or entryRealm == realm then
-				return entry, entry.guid or guid
+			if fold(entryRealm):gsub("%s+", "") == realmKey then
+				return entry, guid or entry.guid
 			end
 		end
 	end
@@ -148,6 +150,15 @@ local function OnTooltipSetUnit(tooltip)
 	-- Fresh SetUnit fill. Do not require IsShown — Blizzard often fires this first.
 	ClearAppendMarker(tooltip)
 	TryAppendFromTooltip(tooltip, { requireShown = false, allowRebuild = false })
+end
+
+-- Rebuild the Blizzard unit fill to remove stale lines after save/delete.
+function Addon:RefreshUnitOpinionTooltip()
+	local tooltip = GameTooltip
+	if not tooltip or not tooltip.IsShown or not tooltip:IsShown() then return end
+	if not tooltip.GetUnit then return end
+	local _, unit = tooltip:GetUnit()
+	if unit and UnitExists(unit) and (not UnitIsPlayer or UnitIsPlayer(unit)) then RebuildTooltipUnit(tooltip, unit) end
 end
 
 local function OnTooltipCleared(tooltip)

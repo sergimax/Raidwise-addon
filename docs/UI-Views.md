@@ -29,12 +29,8 @@ Menu tabs (top to bottom; each row has an **18×18** category icon + label). Pag
 [ scope ] Gear check (target)
 [ book  ] History
   ────────
-  Data exchange
-[ portal ] Characters data import
-  ────────
   Export to web
 [ note  ] My gear and CDs exports
-[ note  ] Characters data export
   ────────
   Other
 [ gear  ] Settings
@@ -48,19 +44,20 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 22` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 23` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 1` | `Diagnostics.lua` | Independent report window; no badge |
-| Character | `PROFILE_LAYOUT_VERSION = 35` | `CharacterProfile.lua` | Title bar (left of close) |
+| Character | `VERSION = 37` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Shell title bar (next to page name) |
 | Characters data export | `LAYOUT_VERSION = 1` | `PageSyncExport.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 36` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| History | `LAYOUT_VERSION = 5` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Character database | `LAYOUT_VERSION = 7` | `PageHistory.lua` | Shell title bar (next to page name) |
+| History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Character database | `LAYOUT_VERSION = 13` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 16` | `PageSettings.lua` | Shell title bar (next to page name) |
+| Reputation | `LAYOUT_VERSION = 3` | `PageReputation.lua` | Shell title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 18` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
 
 The shared shell is **693 px** tall on every page. The Raid viewport fits groups
@@ -88,13 +85,9 @@ Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions 
 | short hint | Starts as “After export, press Ctrl+C to copy.” |
 | input for copy | Multiline EditBox on black fill; click selects all; Ctrl+C copies. Padding unchanged. |
 
-## Characters data export
+## Retired exchange pages
 
-Generates copyable synchronization JSON for the complete saved character database. Direct addon sharing remains in each character or database **Share** menu.
-
-## Characters data import
-
-The former Synchronization view is now import-only. It receives addon transfer offers, stages pasted JSON for review, applies or cancels reviewed changes, and manages incoming-request and ignored-sender controls. The pasted JSON and review areas use equal columns below those controls.
+Profile import/export and Share menus are outside the TOC. See [Synchronization.md](Synchronization.md).
 
 ## Character cooldowns
 
@@ -118,7 +111,7 @@ Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you
 | short description | “Lockouts and currency for every character saved on this account.” |
 | Refresh | Requests fresh raid info, then redraws the table (hover tip) |
 | first column | Instance name, then kind in parentheses (`(Raid)` / `(Dungeon)`); **Currency** row at bottom |
-| character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first; **Remove** on other columns deletes that character from `RaidwiseDB.characters` (login again restores) |
+| character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first with a theme-aware gold background across its header and cells; **Remove** on other columns deletes that character from `RaidwiseDB.characters` (login again restores) |
 | saved cell | Compact size/mode tags (`10`, `10h`, `25`, `25h`, …); tooltip lists each variant with time until reset |
 | currency cell | Title line + label column with account totals (`Gold  12kg`); character columns skip one line, then icon+count chips aligned to labels |
 | empty cell | `-` (not saved) |
@@ -264,98 +257,69 @@ Raid-wide gear check lives on **Raid roster** (Scan button + report rows per pla
 
 ## Character profile
 
-Standalone window (**460 × 560**) opened from Raid roster or History (left-click a row or filled player cell). Esc or **X** closes it; drag the title bar to move it. Bronze **2** px outer border.
+Active owner: `ProfileWindow.lua`, layout **v38**, save controller `ProfileEditor.lua`.
 
 ```text
-[ Rhee - Character profile                              v31   X ]
-| (race)(class) Shaman    | (spec) Enhancement                  |
-| GearScore: 6158         | iLvl: 264                           |
-| Personal note: Positive | Karma                               |
-| Friendly, Good Tank     | mock preview text                   |
-| Facts: Raid Leader      | (percentages, sample reports)       |
-| Guild: MyGuild (Member) |                                     |
-| GUID: 0x...              |                                    |
-| Realm: Icecrown         |                                     |
-[ History ] [ Edit note ] [ Facts ] [ Events ] [ Memo ]
-        --- tab content (History selected by default) ---
-(tab: Edit note)
-[ Summary: Positive | Tags: Friendly, Good Tank, Prepared ]
-( ) Positive   (*) Neutral   ( ) Negative
-[ Personal tags — category checkboxes (max 3 per category) ]
-(tab: Facts)
-[ Facts — role checkboxes (max 4) ]
-(tab: Events)
-[ Pick type — (icon) category headings + type buttons, scrollable ]
-[ Add event ]
-[ event rows with category icon · type, Remove, newest first ]
-(tab: Memo)
-[ Memo ]
-[ Personal memo only. Not shared and not recorded in History. ]
-[ Memo — multiline edit box ]
-[ Save ] [ Reset ]
-(tab: History)
-[ Met: Icecrown Citadel          Was in the same party: 3 ]
-[ When: 2026-08-18 18:54 ]
-[ (icon) change log entries, newest first ]
-[ Save and Update ]```
+[ Profile: name-realm    GUID: ...        v38 X ]
+[ Class / guild / spec / known gear              ]
+[ Opinion author                                ]
+[ Opinion: ][ Reset ][ Positive ][ Neutral ][ Negative ]
+[ Raid leader ][ PUG leader ][ GM ][ Officer      ]
+[ This character's meeting count, first / last    ]
+[ Events ][ History ][ Characters                ]
+[ Event picker + Add / event rows + edit/remove  ]
+[ History: meetings | profile changes            ]
+[ Characters: links, main, search / target        ]
+[ Private note: local, only for you (blue panel)  ]
+[ Status     ][ Save ][ Reload on error ][ Delete ]
+```
 
-| Block | In-game text / control |
-|-------|------------------------|
-| title | `{characterName} - Character profile` |
-| layout version | Title-bar badge `v` + `PROFILE_LAYOUT_VERSION` (UI structure; not addon semver) |
-| close | **X** (right of title bar); Esc also closes |
-| class / spec | Side-by-side row: race + class icons + name (class-colored), spec icon + name (`-` until inspect) |
-| GearScore / iLvl | Side-by-side row: `GearScore: {score}` and `iLvl: {average}`; `-` when unknown |
-| Race icon | Character-creation race portrait on the class row (same size as class/spec icons); tooltip shows race name and faction |
-| Summary (left column) | Read-only: personal note, tag summary, facts, guild, GUID, realm — reflects **saved** values only until **Save and Update** |
-| Karma (right column) | Mock preview for a future addon exchange / web app feature (read-only) |
-| Tabs | **History**, **Edit note**, **Facts**, **Events**, **Memo** — **History** opens by default |
-| Edit note (editor tab) | Summary line (draft preview); three exclusive radio options; tag checkboxes by category (draft until **Save and Update**) |
-| Facts (editor tab) | Role / identity checkboxes (draft until **Save and Update**); max **4** |
-| Events tab | Pick an event type by category (icon + heading), **Add event** / **Remove** edit a draft list; **Save and Update** persists events with auto zone/instance context on add |
-| Memo (editor tab) | Personal-use hint; multiline EditBox; **Save** / **Reset**. Memo is not written to History |
-| History tab | **Met** (left) and **Was in the same party** count (right) on the first row, then **When**, then logged opinion/tag/facts/event changes with a kind or event-category icon (and any older memo rows if present). Joining the same party or raid logs an **In the same party** attendance event whenever the count increments (first meet, or ≥30 min since last seen) |
-| Save and Update | Bottom of window on **Edit note** / **Facts** / **Events** only; saves opinion, tags, facts, and events. Hidden on **History** and **Memo** (memo uses its own **Save** / **Reset**) |
-| editable | Opinion, tags, facts, events, and notes require a valid GUID; controls are disabled otherwise |
-| persistence | Opinion/tags/facts in `RaidwiseDB.history[guid].rating.personal`; events in `.events`; notes in `.notes`; change log in `.changes`; `meetCount` for party/raid encounters |
-
-Changing opinion, tags, facts, or events (via **Save and Update**) refreshes Raid roster and History when the profile closes or Save and Update is pressed. Closing without Save discards Edit note / Facts / Events drafts.
-
-See also [Reputation.md](Reputation.md) for entity definitions and future share matrix.
+Only the active tab's body is shown. Opinion, facts and the private note remain
+visible. Events have fixed dates/places and explicit authors; no free text or
+backdating. History sublists scroll and paginate; rows show timestamp and actor.
+One draft controls all editable profile fields, with one-second autosave and
+explicit Save. Closing/switching saves or retains a failed draft for retry.
+Reload explicitly discards a failed draft and reads current data. Self-rating is
+disabled, but the private note about oneself remains editable. Full deletion
+invalidates pending drafts before hiding the window. Previous profile modules
+remain outside the TOC for later removal of transitional code.
 
 ## History and Character database
 
-History shows party, raid, and Gear Check encounters within the last 14 days,
-sorted by last seen. Name, class (token or localized label), and guild filters
-combine as case-insensitive substring searches. The When column shows last seen;
-the profile retains first meeting details. Unedited encounter records expire
-at 14 days since last seen. Cleanup runs at login, group collection, scan completion,
-and list refresh.
+Active owner: `PageHistory.lua`; list data: `PlayerEncounters.BuildHistoryRoster`.
 
-Character database is a separate personal menu page using the same table. It
-shows manually saved cards and records with import provenance, regardless of age.
-Its filters also include a button cycling all / positive / neutral / negative opinions.
-A source filter cycles All / Manually edited / Website import / User import and
-combines with the other filters. Both tables show source icons (note, map, letter,
-or group for encounters) beside the source labels.
-The switch uses reputation crystal icons and matching green/yellow/red text; All
-uses a group icon and normal text. Both pages have a Filters heading and 14 px
-icons beside input labels. Database addition has its own heading below the filters.
-A recent encounter with a saved card appears in both views; after 14 days it remains
-only in the database. Both tables show record source alongside name, class, spec,
-opinion, tags, GS, iLvl, last seen, and guild. The first meeting location (Met in)
-is shown in the row tooltip when known, rather than in a table column.
+```text
+DATABASE v13
+[ Filled profiles hint                         Refresh ]
+[ Name ][ Class ][ Guild ][ Opinion: all / + / = / - / unset ]
+[ Add name ][ Add ][ Add target ][ Delete all ]
+[ Name-realm | Class/spec | Opinion | Author | Guild | Meetings | Delete ]
+[ Rows open the shared Profile; 25 rows per page, two-axis scroll ]
 
-Enter Name or Name-Realm in the database and press Add character (or Enter) to
-create a card and open its profile editor. No scan is required. Duplicate names
-on the same realm reuse the existing record. Name-only cards acquire the live GUID
-when encountered, preserving saved notes, opinion, and character links.
+HISTORY v8
+[ Last 14 days — current character              Refresh ]
+[ Name ][ Class ][ Guild ]
+[ Name-realm | Class | Opinion | Last date / place | Meetings ]
+[ Only this observer's recent group/raid partners; 25 per page ]
+```
 
-Rows open Character profile; notes are edited there. Existing edited records migrate
-to manual source. Imported records retain their original source when edited locally.
-Source tracking supports website/user labels and optional source detail; importing
-and exchange are not implemented in this update. Manual entry is provided in the UI;
-no additional slash command or unit context menu is required.
+The database includes any meaningful saved content, including a private note or
+explicit neutral opinion. A note alone displays Not set and no opinion author.
+Neither scans, links nor opening/adding an empty card creates a database entry.
+Database sorting uses the newest profile/note update; History uses the last
+meeting; both break ties by name/realm and identity key. Searches combine
+case-insensitive name/realm, class and guild substrings.
+
+Adding a name/target opens an unfilled Profile; live GUID discovery preserves
+new profile data via the identity core. Delete confirms the selected identities;
+Delete all snapshots the whole saved database, independent of current filters.
+Deletion preserves meetings/counters, so a removed card can remain in History.
+Old meetings age out of History without deleting a filled Profile from Database.
+No tags, GS, ilvl, legacy source columns or sharing controls remain in these lists.
+
+## Retired Reputation page
+
+Removed from navigation and TOC; profiles live in Database. No Karma loader.
 
 ## Settings
 
@@ -440,3 +404,9 @@ Switching language updates the left menu, page labels, and visible tables withou
 The shared header contains Short / Full exclusive report-form radios immediately before the chat channels. They retain `RaidwiseDB.reportForm` and are removed from Settings. Full form names and help remain localized in tooltips.
 
 Header report controls are contextual: chat channels appear only on Raid roster, Raid composition, and Gear check (target); Short / Full appears only on Gear check (target), whose output uses that setting. Both groups are hidden on all other views. Switching views preserves saved selections.
+
+Profile v38: GUID in the title bar; explicit Opinion label; Reset clears the
+opinion. Opinion buttons retain coloured labels/icons. Events/History/Characters
+keep the active highlight on mouse leave. Event types use a scrollable chooser
+with direct selection. Profile and both character lists show class/spec icons;
+unset opinions in lists retain their separate, uncoloured label.

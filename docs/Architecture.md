@@ -20,17 +20,19 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Saved reports and dumps | `GearCheckSavedReports.lua`, `GearCheckDump.lua` | `SaveGearCheckReport`, `FormatGearCheckDump`; dump module owns asynchronous raid export jobs |
 | Rosters and shared refresh | `PartyRoster.lua`, `RosterRefresh.lua` | `BuildRaidGroups`, `BuildRosterSnapshot`, `ScheduleRosterRefresh` |
 | Roles, consumables, composition | `RaidRoles.lua`, `RaidComposition.lua` | `UnitConsumableStatus`, `AnalyzeRaidComposition` |
-| Rating catalogs/access | `PlayerHistory.lua` | `GetPersonalRating`, `GetCommunityRating`, normalization |
-| History, migrations, persistence | `PlayerHistoryStore.lua` | `RecordCurrentGroupHistory`, `SavePersonalRatingForGuid`, `SaveHistoryEventsForGuid`, `SaveProfileNotesForGuid`, `PruneHistory`, `AddCharacterRecord` |
-| Linked player characters | `CharacterLinks.lua`, `ProfileCharacters.lua` | Group persistence, shared opinion synchronization, and the profile Characters tab |
-| Profile exchange | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua` | Bounded JSON codec; `BuildSyncExport`, `StageSyncImport`, `ApplySyncImport`; characters-data export and import views with consent-based addon transport and Share menus. Contract: [Synchronization.md](Synchronization.md). |
-| Unsaved profile edits | `ProfileDraft.lua` | `CreateProfileDraft`, `ToggleProfileDraftTag`, `AddProfileDraftEvent` |
-| Profile window | `CharacterProfile.lua`, `ProfilePanels.lua` | Window, editing and commands in `CharacterProfile`; tab construction and history rendering in `ProfilePanels` |
-| Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `GetTooltipSettings`, `BuildUnitTooltipRatingLinesForMember`; tooltip hooks in `UnitTooltips` |
+| Profile catalogs and identity support | `PlayerRecordSupport.lua`, `PlayerRecords.lua` | Three opinions, four facts, 22 event types; context capture, self-rating checks and identity presentation |
+| Profile persistence and screen API | `PlayerRecords.lua`, `PlayerRecordBridge.lua` | `InitializeHistoryStore` activates `playerRecords` once without migrating old reviews; core drafts and screen-facing reads/writes |
+| Group encounter sessions and retention | `PlayerEncounters.lua` | `RecordCurrentGroupHistory`, `GetCharacterEncounters`, `GetCharacterMeetingStats`, `PruneHistory`; 30-second lightweight presence observations, no inspect. Scan identity updates do not create meetings. |
+| Database and recent-history lists | `PageHistory.lua`, `PlayerEncounters.lua` | `BuildHistoryRoster` selects filled profiles or recent encounters for the current observer; database sorts by profile/note update. Unset and explicit neutral opinions have distinct filters. |
+| Linked player characters and deletion | `PlayerRecordLinks.lua`, `ProfileCharacters.lua` | Active groups in `playerRecords.groups`, no opinion synchronization; journal and generation-safe deletion. Display helpers live in `PlayerRecordSupport.lua`. |
+| Retired profile exchange (not in TOC) | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua`, `PageReputation.lua`, `KarmaData.lua` | Archived implementation for later redesign; no active transport registration, pages or Karma import. See [Synchronization.md](Synchronization.md). |
+| Unsaved profile edits | `ProfileEditor.lua` | One-second autosave, explicit save, retained failed drafts, reload and invalidation on deletion |
+| Profile window | `ProfileWindow.lua`, `ProfileEditor.lua`, `ProfileCharacters.lua` | Active v38 window, unified core drafts, one-second autosave, retained errors; old `CharacterProfile`/`ProfilePanels` are outside TOC. |
+| Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `FindOpinionCharacter`, explicit-opinion tooltip lines (no tags/Karma); `RefreshUnitOpinionTooltip` rebuilds a shown unit fill after save/delete without touching item tooltips |
 | Native friends, ignore, inbox and guild opinion marks | `ClassicOpinionMarkers.lua` | `InitializeClassicOpinionMarkers`, `RefreshClassicOpinionMarkers`; read-only name/realm lookup, secure post-update hooks |
 | Theme / shared controls | `UITheme.lua`, `UIWidgets.lua`, `RosterWidgets.lua` | Stable theme tables; generic controls; roster/grade/rating controls |
 | Raid and target gear views | `PageRaid.lua`, `PageGearCheckTarget.lua` | `RefreshRaidRosterView`, `RefreshGearCheckTargetView`, `ShowGearCheckReport` |
-| Other pages | `PageCooldowns.lua`, `PageExport.lua`, `PageSyncExport.lua`, `PageComposition.lua`, `PageHistory.lua` (History and Character database), `PageSettings.lua`, `PageInfo.lua` | `Addon.Pages.*` registrations |
+| Other pages | `PageCooldowns.lua`, `PageExport.lua`, `PageComposition.lua`, `PageHistory.lua` (History and Character database), `PageSettings.lua`, `PageInfo.lua` | `Addon.Pages.*` registrations |
 | Shell and navigation | `ExporterWindow.lua`, `Minimap.lua` | `CreateMainFrame`, `SelectTab`, `RefreshLocalizedUI`; separate minimap entry point |
 
 ## Load order and contracts
@@ -39,8 +41,8 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 
 - Bootstrap creates the namespace; later modules attach methods before normal event-driven use.
 - `InspectCoordinator` precedes roster consumers and owns inspect API calls/events. Roster and gear retain their queues and result handling.
-- History catalogs, store, presentation, drafts and profile panels precede the profile window.
-- Sync JSON/data/transport load after the history store and character links; the Sync page loads with other pages before the shell. Character and database Share menus delegate to it.
+- Profile core/support, screen APIs, links and encounters precede presentation; ProfileEditor and ProfileCharacters precede ProfileWindow.
+- Legacy PlayerHistory, PlayerHistoryStore, CharacterLinks, ProfileDraft, CharacterProfile/ProfilePanels and Sync/Karma modules are not loaded; historical fixtures may load them explicitly in tests.
 - `UITheme` precedes `UIWidgets`, then `RosterWidgets`, then views. Theme/color tables retain identity across theme changes.
 - Gear catalogs and report compatibility helpers precede rules, grades, explanations and self-tests. Saved reports and collector precede `GearCheck`; reports and dumps follow it. Pages load before the shell.
 
@@ -81,16 +83,18 @@ and individual reports; shared snapshots remain complete.
 
 `ScheduleRosterRefresh` merges same-frame requests. Each pass builds one snapshot shared by history and the visible raid/composition page. Hidden views are not redrawn; history still records. Snapshots are not cached across passes. Inspect queue advancement is immediate; consumable icons have their own targeted refresh path.
 
-Profile commands persist drafts through the store and refresh rating views. Notes have separate Save/Reset behavior. `InitializeHistoryStore` migrates entries at addon initialization, before UI construction; explicit write methods also normalize entries. Rating/history getters do not initialize or migrate SavedVariables. Karma includes mock fallback data. Explicit profile exchange uses the Sync modules and a reviewed import; mock Karma data is never exported.
+Profile commands commit one core draft, then refresh rating views. The local note shares
+save controls but does not change opinion authorship. Initialization activates the new
+store once; no old review migration runs. Read APIs do not initialize SavedVariables.
+Group observations track independent observer/subject sessions and preserve counters
+when details expire. There is no active Karma fallback or profile exchange.
 
 Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The shell dispatches these methods; page modules own control labels and entry-specific collection. `entering=true` requests the original tab-entry work (lockout requests, roster refresh or history recording); locale refresh omits it. Public refresh wrappers remain compatible. Profile extraction preserves anchors, dimensions and named-frame versions.
 
 ### SavedVariables and versions
 
 Copyable character/gear and cooldown JSON exports carry numeric `reportVersion: 1`.
-Versioned Player profile JSON uses the same `reportVersion: 1` contract; the
-Sync importer rejects unknown report versions before staging. Private memos
-remain excluded from that exchange. Target Gear
+Profile JSON exchange is disabled. Target Gear
 Check text dumps and both synchronous/asynchronous raid dump headers carry
 `reportVersion=1`, including raid exports with only failed/skipped scans.
 Gear dumps also include the embedded report's `schemaVersion`.
@@ -104,12 +108,21 @@ header. Chat summaries are human-readable messages, not versioned data exports.
 | Key | Owner / purpose |
 |---|---|
 | `characters` | `CharacterLockouts`: account-wide lockouts/currency |
-| `history` | `PlayerHistoryStore`: GUID-keyed meetings, saved cards and source metadata; name-only cards use realm/name keys until encountered |
+| `playerRecords` | Versioned identities, shared profiles/notes, changes, groups, personal encounters/counters; core/support, bridge, links and encounter modules |
+| `history`, `reputation` | Retired roots, not active storage or aliases; legacy profile data is not imported |
 | `gearCheckSaved` | `GearCheckSavedReports`: snapshots and retention (~14 days) |
 | `tooltip` | `RatingPresentation` / Settings: rating tooltip visibility |
 | `locale`, `theme`, `startupTab`, `reportChannel`, `reportForm` | Preferences consumed by locale, theme, shell and reporting |
 
 See [Reputation.md](Reputation.md) for reputation data. Addon semver, rule/catalog revisions, and layout versions serve different purposes. Geometry rules live in `AGENTS.md`; current layouts and dimensions live in [UI-Views.md](UI-Views.md) and [UI-Sizes.md](UI-Sizes.md).
+
+The [character-system baseline](Character-System-Baseline.md) records the pre-simplification behavior and known documentation/code discrepancies as of 2026-10-29; it is a historical analysis, not the future design contract.
+
+Agreed changes for the new system are tracked separately in [character-system redesign decisions](Character-System-Redesign.md).
+
+The [character-system implementation plan](Character-System-Implementation-Plan.md) orders the work and defines validation for each stage; it does not indicate that the redesign has shipped.
+
+The [new character-system contract](Character-System-Contract.md) defines the local data model, reduced event catalog and planned screen structure. The transition bridge is active; complete screen redesign and encounter sessions are subsequent stages.
 
 ## Focused searches
 

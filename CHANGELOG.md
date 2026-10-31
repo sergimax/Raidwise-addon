@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.0] - 2026-10-31
+
+### Added
+- Shared account-wide character Profiles with three explicit opinions, four facts, authored events, and a separate private Note; meeting counters remain specific to each of your characters.
+- Automatic group/raid encounter sessions with dates and places, a five-minute rejoin grace period, and 14-day detail retention while lifetime counters remain.
+- Unified one-second autosave, an explicit Save button, save status, and recovery of failed drafts within the session.
+- Filtered counts and 25-row pagination in History and Character database, plus direct Profile creation by name or current target.
+
+### Changed
+- **Breaking:** the new character store replaces legacy profiles, opinions, notes, links, and exchange data without migration. Existing settings, lockouts, currencies, and saved Gear Check reports are preserved. Back up SavedVariables before upgrading.
+- Character database contains filled Profiles; History contains recent encounters for the current character. Deleting Profile data also removes its Note, change log, and links while preserving meetings and counters.
+- Linked characters retain independent opinions. Editing a Profile or event assigns the editing character as author; changing only the private Note does not change opinion authorship.
+- Profile tabs now show Events, History, and Characters; event types use a scrollable chooser, the header includes GUID, and opinion controls include an explicit label and Reset action.
+- Character cooldowns highlight the current character's entire column in both themes.
+
+### Removed
+- Reputation, Karma, character-profile import/export, sharing menus, and profile transport are disabled pending redesign. Gear, currency, lockout, and Gear Check exports remain available.
+- Standalone impression tags and automatic shared opinions across linked characters; the event catalog now describes concrete occurrences.
+
+### Fixed
+- Restored class/spec icons and coloured opinion icons in Profiles, History, and Character database, and persistent active-tab highlighting in Profiles.
+- Gear Check now grades clean Balance Druid BiS off-hand item 50719 as S; clean non-BiS off-hands can reach A without changing Feral weapon preferences.
+- Gear Check recognizes Lesser Inscription of the Storm and additional Reign, Mithril Pocketwatch, and Call of the Victor trinket variants/pools.
+
 ## [1.27.0] - 2026-09-23
 
 ### Added

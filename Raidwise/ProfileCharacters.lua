@@ -15,31 +15,9 @@ local function FinishAction(frame, ok, message)
 	if Addon.RefreshRatingViews then Addon:RefreshRatingViews() end
 end
 
-AttemptLink = function(frame, otherGuid, seed, chosenOpinion)
-	local sourceGuid = CurrentGuid(frame)
-	local ok, message = Addon:LinkPlayerCharacters(sourceGuid, otherGuid, seed, chosenOpinion)
-	if not ok and message == "CHAR_LINK_CONFLICT" then
-		frame.pendingCharacterLink = { sourceGuid = sourceGuid, otherGuid = otherGuid, seed = seed }
-		frame.charactersStatus:SetText(W.T("CHAR_LINK_CONFLICT"))
-		for index, entry in ipairs({ frame.profileMember, Addon:GetHistoryEntry(otherGuid) or seed }) do
-			local opinion = Addon:GetPersonalRating(entry).opinion
-			local button = frame.characterConflictButtons[index]
-			button.label:SetText(W.T("CHAR_LINK_KEEP", Addon:RatingOpinionLabel(opinion)))
-			button:SetScript("OnClick", function()
-				local pending = frame.pendingCharacterLink
-				if not pending or not frame.profileMember or frame.profileMember.guid ~= pending.sourceGuid then return end
-				AttemptLink(frame, pending.otherGuid, pending.seed, opinion)
-			end)
-			button:Show()
-		end
-		frame.characterConflictCancel:Show()
-		return
-	end
-	frame.pendingCharacterLink = nil
-	if ok and frame.profileDraft then
-		frame.profileDraft.draftOpinion = Addon:GetPersonalRating(frame.profileMember).opinion
-	end
-	FinishAction(frame, ok, message)
+AttemptLink = function(frame, otherGuid, seed)
+ local ok, message = Addon:LinkPlayerCharacters(CurrentGuid(frame), otherGuid, seed)
+ FinishAction(frame, ok, message)
 end
 
 CurrentGuid = function(frame)
@@ -136,11 +114,7 @@ function Addon:RefreshProfileCharacters(frame)
 	frame.charactersHint:SetText(W.T("CHAR_LINK_HINT"))
 	frame.charactersSearchLabel:SetText(W.T("CHAR_LINK_SEARCH"))
 	frame.charactersTarget.label:SetText(W.T("CHAR_LINK_TARGET"))
-	frame.characterConflictCancel.label:SetText(W.T("CHAR_LINK_CANCEL"))
 	frame.charactersStatus:SetText("")
-	frame.pendingCharacterLink = nil
-	for _, button in ipairs(frame.characterConflictButtons) do button:Hide() end
-	frame.characterConflictCancel:Hide()
 	local linked = self:GetLinkedCharacters(guid)
 	if #linked == 0 and guid and guid ~= "" then
 		linked = { { guid = guid, entry = frame.profileMember, role = "main" } }
@@ -197,18 +171,7 @@ function Addon:CreateProfileCharactersPanel(frame, parent, width, layoutVersion)
 	status:SetJustifyH("LEFT")
 	status:SetJustifyV("TOP")
 	frame.charactersStatus = status
-	frame.characterConflictButtons = {}
-	for index = 1, 2 do
-		local button = W.CreatePlainButton(panel, 155, 24, "")
-		button:SetPoint("BOTTOMLEFT", (index - 1) * 159, 0)
-		button:Hide()
-		frame.characterConflictButtons[index] = button
-	end
-	local cancel = W.CreatePlainButton(panel, 110, 24, W.T("CHAR_LINK_CANCEL"))
-	cancel:SetPoint("BOTTOMRIGHT", 0, 0)
-	cancel:SetScript("OnClick", function() Addon:RefreshProfileCharacters(frame) end)
-	cancel:Hide()
-	frame.characterConflictCancel = cancel
+
 	local candidatesScroll, candidatesContent = CreateList(panel, "RaidwiseCharacterCandidatesV" .. layoutVersion, 1)
 	candidatesScroll:SetPoint("TOPLEFT", searchHost, "BOTTOMLEFT", 0, -6)
 	candidatesScroll:SetPoint("BOTTOMRIGHT", status, "TOPRIGHT", -24, 4)

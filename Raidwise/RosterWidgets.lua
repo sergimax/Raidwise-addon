@@ -274,13 +274,14 @@ end
 function W.RatingOpinion(member)
 	if Addon.GetPersonalRating then
 		local rating = Addon:GetPersonalRating(member)
-		return rating.opinion, rating.tags
+		return Addon:HasPersonalRatingData(rating) and rating.opinion or nil, {}
 	end
-	return "neutral", {}
+	return nil, {}
 end
 
 function W.RatingOpinionText(member)
 	local opinion = W.RatingOpinion(member)
+	if not opinion then return W.T("PROFILE_RECORD_UNSET") end
 	if Addon.RatingOpinionLabel then
 		return Addon:RatingOpinionLabel(opinion)
 	end
@@ -289,6 +290,7 @@ end
 
 function W.RatingOpinionSymbol(member)
 	local opinion = W.RatingOpinion(member)
+	if not opinion then return "—" end
 	if Addon.RatingOpinionSymbol then
 		return Addon:RatingOpinionSymbol(opinion)
 	end
@@ -297,6 +299,7 @@ end
 
 function W.RatingOpinionIcon(member)
 	local opinion = W.RatingOpinion(member)
+	if not opinion then return "" end
 	if Addon.RatingOpinionIcon then
 		return Addon:RatingOpinionIcon(opinion)
 	end
@@ -305,6 +308,7 @@ end
 
 function W.RatingOpinionColor(member)
 	local opinion = W.RatingOpinion(member)
+	if not opinion then return UI.TEXT_DISABLED end
 	if Addon.RatingOpinionColor then
 		return Addon:RatingOpinionColor(opinion)
 	end
@@ -315,13 +319,7 @@ function W.FormatOpinionLine(member)
 	return W.T("RATING_PROFILE_OPINION", W.RatingOpinionText(member))
 end
 
-function W.FormatTagLine(member)
-	local _, tags = W.RatingOpinion(member)
-	if Addon.RatingTagColoredSummary then
-		return Addon:RatingTagColoredSummary(tags, 3)
-	end
-	return ""
-end
+function W.FormatTagLine(member) return "" end
 
 function W.ShowMemberRatingTooltip(anchor, member, opts)
 	if not member then
@@ -331,26 +329,10 @@ function W.ShowMemberRatingTooltip(anchor, member, opts)
 	GameTooltip:SetOwner(anchor, "ANCHOR_RIGHT")
 	local opinionText = W.RatingOpinionText(member)
 	if Addon.RatingWrapColor and Addon.RatingOpinionColor then
-		opinionText = Addon:RatingWrapColor(opinionText, Addon:RatingOpinionColor(W.RatingOpinion(member)))
+		opinionText = Addon:RatingWrapColor(opinionText, W.RatingOpinionColor(member))
 	end
 	GameTooltip:AddLine(W.T("COL_OPINION") .. ": " .. opinionText)
-	local tags = W.FormatTagLine(member)
-	if tags ~= "" then
-		GameTooltip:AddLine(W.T("COL_TAGS") .. ": " .. tags, 0.8, 0.8, 0.8, true)
-	end
-	if Addon.GetCommunityRating then
-		local community = Addon:GetCommunityRating(member)
-		local percent = community and tonumber(community.positivePercent)
-		if percent then
-			GameTooltip:AddLine(W.T("TOOLTIP_COMMUNITY_POSITIVE", percent), 0.8, 0.8, 0.8)
-			if Addon.RatingTagColoredSummary and community.tags then
-				local communityTags = Addon:RatingTagColoredSummary(community.tags, 3)
-				if communityTags ~= "" then
-					GameTooltip:AddLine(communityTags, 0.75, 0.75, 0.75, true)
-				end
-			end
-		end
-	end
+
 	local guildText = W.FormatGuildDisplay(member.guildName, member.guildRank)
 	if Addon.BuildLinkedCharacterTooltipLines then
 		for _, line in ipairs(Addon:BuildLinkedCharacterTooltipLines(member)) do

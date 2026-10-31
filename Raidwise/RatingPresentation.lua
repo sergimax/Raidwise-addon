@@ -56,29 +56,31 @@ local function NegativeChatMessage(message, color, marker)
 end
 
 local function ChatRealmKey(realm)
-	return string.lower((realm or ""):gsub("%s+", ""))
+	return (strlower or string.lower)((realm or ""):gsub("%s+", ""))
 end
 
-local function FindChatHistoryEntry(sender, guid)
-	local store = Addon:HistoryStore()
+function Addon:FindOpinionCharacter(sender, guid)
+	if not self.db then return nil end
+	if type(sender) ~= "string" then return nil end
+	local store = self:HistoryStore()
 	if guid and guid ~= "" and store[guid] then
-		return store[guid]
+		local personal = self:GetPersonalRating(store[guid])
+		return self:HasPersonalRatingData(personal) and store[guid] or nil
 	end
 	local name, realm = sender:match("^([^-]+)%-(.+)$")
-	name = name or sender
-	local currentRealm = ChatRealmKey(GetRealmName())
-	local senderRealm = realm and ChatRealmKey(realm) or currentRealm
-	for _, entry in pairs(store) do
-		if type(entry) == "table" and entry.name == name then
-			local entryRealm = ChatRealmKey(entry.realm)
-			if entryRealm == "" then
-				entryRealm = currentRealm
-			end
-			if entryRealm == senderRealm then
-				return entry
+	name, realm = (strlower or string.lower)(name or sender), ChatRealmKey(realm or GetRealmName())
+	local selected, selectedTime, selectedKey
+	for key, entry in pairs(store) do
+		if (strlower or string.lower)(entry.name or "") == name and ChatRealmKey(entry.realm or GetRealmName()) == realm then
+			local personal = self:GetPersonalRating(entry)
+			local updatedAt = personal.updatedAt or 0
+			if self:HasPersonalRatingData(personal) and (not selected or updatedAt > selectedTime
+				or updatedAt == selectedTime and tostring(key) < selectedKey) then
+				selected, selectedTime, selectedKey = entry, updatedAt, tostring(key)
 			end
 		end
 	end
+	return selected
 end
 
 local function PersonalOpinionChatFilter(frame, event, message, sender, ...)
@@ -86,15 +88,12 @@ local function PersonalOpinionChatFilter(frame, event, message, sender, ...)
 		return
 	end
 	-- Sender GUID is chat argument 12 in Wrath; older servers may omit it.
-	local entry = FindChatHistoryEntry(sender, select(10, ...))
+	local entry = Addon:FindOpinionCharacter(sender, select(10, ...))
 	if not Addon:ShouldMarkCharacterInChat(entry) then return end
 	local personal = Addon:GetPersonalRating(entry)
 	local mark = NATIVE_OPINION_COLORS[personal.opinion] or NATIVE_OPINION_COLORS.neutral
 	local color = "|cff" .. Addon:RatingColorHex(mark)
-	local community = entry and Addon:GetCommunityRating(entry)
-	local percent = community and tonumber(community.positivePercent)
-	local rating = percent and tostring(percent) or ""
-	local marker = "|cffffffff<" .. color .. "Rw|cffffffff" .. rating .. ">|r"
+	local marker = "|cffffffff<" .. color .. "Rw|cffffffff>|r"
 	if personal.opinion == "negative" then
 		return false, NegativeChatMessage(message, color, marker), sender, ...
 	end
@@ -112,104 +111,27 @@ for _, event in ipairs({
 end
 
 function Addon:GetTooltipSettings()
-	if not self.db then
-		return {
-			hidePersonal = false,
-			hidePersonalTags = false,
-			hideCommunity = false,
-			hideCommunityTags = false,
-		}
-	end
-	if type(self.db.tooltip) ~= "table" then
-		self.db.tooltip = {
-			hidePersonal = false,
-			hidePersonalTags = false,
-			hideCommunity = false,
-			hideCommunityTags = false,
-		}
-	end
-	local tip = self.db.tooltip
-	if tip.hidePersonal == nil then
-		tip.hidePersonal = false
-	end
-	if tip.hidePersonalTags == nil then
-		tip.hidePersonalTags = false
-	end
-	if tip.hideCommunity == nil then
-		tip.hideCommunity = false
-	end
-	if tip.hideCommunityTags == nil then
-		tip.hideCommunityTags = false
-	end
-	return tip
+	if not self.db then return {hidePersonal=false} end
+	self.db.tooltip = self.db.tooltip or {}
+	if self.db.tooltip.hidePersonal == nil then self.db.tooltip.hidePersonal = false end
+	return self.db.tooltip
 end
 
--- Sample rows for Settings preview panels (not tied to a real player).
 function Addon:GetTooltipPreviewSample()
-	return {
-		personal = {
-			opinion = "positive",
-			tags = { "good_raid_leader", "fair_loot", "good_player" },
-			updatedAt = 1,
-		},
-		community = {
-			positivePercent = 51,
-			tags = { "fair_loot", "good_raid_leader", "good_player" },
-			isMock = true,
-		},
-	}
+	return {personal={opinion="positive",hasOpinion=true,updatedAt=1}}
 end
 
--- Build tooltip lines for personal + community ratings.
--- layout: "compact" (default) or "stacked"
+-- Keep the positional API while deliberately ignoring retired community data.
 function Addon:BuildUnitTooltipRatingLines(personal, community, options, layout)
 	options = options or self:GetTooltipSettings()
-	layout = layout or "compact"
-	local lines = {}
-
-	if not options.hidePersonal and self:HasPersonalRatingData(personal) then
-		local opinionText = self:RatingWrapColor(
-			self:RatingOpinionLabel(personal.opinion),
-			self:RatingOpinionColor(personal.opinion)
-		)
-		local tagSummary = ""
-		if not options.hidePersonalTags then
-			tagSummary = self:RatingTagColoredSummary(personal.tags, 3)
-		end
-		if layout == "stacked" then
-			lines[#lines + 1] = opinionText
-			if tagSummary ~= "" then
-				lines[#lines + 1] = tagSummary
-			end
-		elseif tagSummary ~= "" then
-			lines[#lines + 1] = opinionText .. ": " .. tagSummary
-		else
-			lines[#lines + 1] = opinionText
-		end
-	end
-
-	if not options.hideCommunity and type(community) == "table" then
-		local percent = tonumber(community.positivePercent)
-		if percent then
-			lines[#lines + 1] = self:T("TOOLTIP_COMMUNITY_POSITIVE", percent)
-		end
-		if not options.hideCommunityTags then
-			local tagSummary = self:RatingTagColoredSummary(community.tags, 3)
-			if tagSummary ~= "" then
-				lines[#lines + 1] = tagSummary
-			end
-		end
-	end
-
-	return lines
+	if options.hidePersonal or not self:HasPersonalRatingData(personal) then return {} end
+	return {self:RatingWrapColor(self:RatingOpinionLabel(personal.opinion), self:RatingOpinionColor(personal.opinion))}
 end
 
-function Addon:BuildUnitTooltipRatingLinesForMember(entryOrMember, options, layout)
-	local personal = self:GetPersonalRating(entryOrMember)
-	local community = self:GetCommunityRating(entryOrMember)
-	local lines = self:BuildUnitTooltipRatingLines(personal, community, options, layout)
+function Addon:BuildUnitTooltipRatingLinesForMember(member, options, layout)
+	local lines = self:BuildUnitTooltipRatingLines(self:GetPersonalRating(member), nil, options, layout)
 	if self.BuildLinkedCharacterTooltipLines then
-		for _, line in ipairs(self:BuildLinkedCharacterTooltipLines(entryOrMember)) do lines[#lines + 1] = line end
+		for _, line in ipairs(self:BuildLinkedCharacterTooltipLines(member)) do lines[#lines+1]=line end
 	end
 	return lines
 end

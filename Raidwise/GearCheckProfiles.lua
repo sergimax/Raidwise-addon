@@ -289,6 +289,14 @@ local W_FERAL = Weapons(
 	{ "bow", "gun", "crossbow", "wand", "fishingPole" }
 )
 
+-- Balance uses held off-hands; keep the shared Feral weapon ranks unchanged.
+local W_BALANCE = Weapons(
+	{ "staff", "polearm", "mace2h", "sword2h", "axe2h", "fist", "mace1h", "offhand" },
+	{ "dagger", "sword1h", "axe1h" },
+	{ "shield" },
+	{ "bow", "gun", "crossbow", "wand", "fishingPole" }
+)
+
 -- Trinket pools: see GearCheckTrinkets.lua (preferred = BiS; allowed = + progression).
 
 local TRINKET_POOLS = Addon.GearCheckTrinketPools or {}
@@ -403,7 +411,7 @@ local PROFILES = {
 	["WARLOCK-3"] = Profile("Destruction", A_CLOTH, S_DRUID_BALANCE, W_CASTER, { 41285, 41333, 41376 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
 
 	-- Druid
-	["DRUID-1"] = Profile("Balance", A_LEATHER_CASTER, S_DRUID_BALANCE, W_FERAL, { 41285, 41333, 41401 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
+	["DRUID-1"] = Profile("Balance", A_LEATHER_CASTER, S_DRUID_BALANCE, W_BALANCE, { 41285, 41333, 41401 }, { weaponSetup = "1h_oh", trinketPool = "caster" }),
 	["DRUID-2"] = Profile("Feral", A_LEATHER, S_DRUID_FERAL, W_FERAL, { 41398, 41397, 41285 }, { weaponSetup = "2h", trinketPool = "phys" }),
 	["DRUID-3"] = Profile("Restoration", A_LEATHER_CASTER, S_DRUID_RESTO, W_FERAL, { 41376, 41401, 41333 }, { weaponSetup = "1h_oh", trinketPool = "healer" }),
 }

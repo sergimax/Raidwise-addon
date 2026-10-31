@@ -6,6 +6,13 @@ local Translations = {
 	enUS = {
 		TAB_SYNC = "Characters data import",
 		TAB_SYNC_EXPORT = "Characters data export",
+		TAB_REPUTATION = "Reputation",
+		REPUTATION_LOCAL = "My local opinions",
+		REPUTATION_RECEIVED = "Received opinions (read-only)",
+		REPUTATION_GLOBAL = "Global Karma",
+		REPUTATION_KARMA_EMPTY = "No Global Karma dataset installed.",
+		REPUTATION_KARMA_INFO = "%s — revision %s, published %s",
+		REPUTATION_KARMA_REVIEW = "Review Karma JSON",
 		SYNC_DESCRIPTION = "Receive shared characters or paste JSON from the web app. Review changes before applying them.",
 		SYNC_EXPORT_DESCRIPTION = "Export saved character profiles as JSON. Use a character Share menu to send directly to another Raidwise user.",
 		SYNC_SEARCH = "Find a known character (refine name to narrow results)",
@@ -219,20 +226,14 @@ local Translations = {
 		INFO_SECTION_GEARRAID = "Scan everyone in your party or raid (one inspect at a time).\n"
 			.. "The group grid shows separate gem, armor, weapon, and enchant grades per player (S / A / B / C / D).\n"
 			.. "Gear on a scanned card opens the full report on Gear check (target).",
-		INFO_SECTION_HISTORY = "Players you have been in a party or raid with.\n"
-			.. "The list is saved on this account and stays after logout.\n"
-			.. "\n"
-			.. "- Name, class, spec, opinion, tags, GearScore, iLvl, where you met, when, and guild\n"
-			.. "- Click a row to open Character\n"
-			.. "- In the profile you can save opinion, tags, facts, events, and a private memo\n"
-			.. "- Karma is a mock preview for future exchange and web features",
+		INFO_SECTION_HISTORY = "History shows this character's group/raid meetings for the last 14 days.\nDatabase lists filled profiles. Click a row to open Profile.\nOpinion, facts, concrete events and a private Note save automatically or with Save.\nLinked characters keep separate opinions. Karma and profile exchange are disabled.",
 		INFO_SECTION_SETTINGS = "Account-wide interface options.\n"
 			.. "\n"
 			.. "- Language: English or Russian\n"
 			.. "- Startup page opened by /raidwise (Info cannot be the startup page)\n"
 			.. "- Report chat channel for Raid roster, Composition, and Gear check reports\n"
 			.. "- Short or full Gear check report wording\n"
-			.. "- Unit tooltip toggles for personal and Karma lines",
+			.. "- Unit tooltip option to hide the selected opinion",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Select the URL, then press Ctrl+C to copy.",
 		INFO_REPO_SELECTED = "Selected — press Ctrl+C to copy.",
@@ -306,19 +307,29 @@ local Translations = {
 		RAID_CHAT_WEAPON_ISSUES = "[Rw] weapon issues: %s",
 		RAID_CHAT_WEAPON_ALL = "[Rw] no weapon issues.",
 		RAID_CHAT_WEAPON_NONE = "[Rw] no weapon scan yet.",
-		HISTORY_HINT = "Party, raid and Gear Check encounters from the last 14 days.",
+		HISTORY_HINT = "Group and raid meetings from the last 14 days for the current character.",
 		TAB_DATABASE = "Character database",
-		DATABASE_HINT = "Saved character cards. Enter Name or Name-Realm to add a record.",
+		DATABASE_HINT = "Filled profiles. Adding a name opens an empty Profile; save information to include it here.",
 		DATABASE_ADD = "Add character",
+		DATABASE_ADD_TARGET = "Add target",
+		DATABASE_TARGET_MISSING = "Target a player before adding them.",
 		DATABASE_ACTIONS = "Actions",
 		DATABASE_DELETE = "Delete",
 		DATABASE_DELETE_ALL = "Delete all",
-		DATABASE_DELETE_CONFIRM = "Delete %s from Character database?\nThis cannot be undone.",
-		DATABASE_DELETE_ALL_CONFIRM = "Delete all %d Character database records?\nThis cannot be undone.",
+		DATABASE_DELETE_CONFIRM = "Delete profile data for %s? Opinion, facts, events, private note, change log and links will be cleared. Meetings and counters remain.\nThis cannot be undone.",
+		DATABASE_DELETE_ALL_CONFIRM = "Clear profile data for all %d records, including private notes, change logs and links? Meetings and counters remain.\nThis cannot be undone.",
 		DATABASE_INVALID_NAME = "Enter a character name without spaces or chat markup.",
 		FILTER_OPINION_ALL = "Opinion: all",
+		PROFILE_RECORD_AUTHOR = "Opinion author",
+		PROFILE_RECORD_MEETINGS = "Meetings",
+		PROFILE_RECORD_LAST_MEETING = "Last meeting: date / place",
+		PROFILE_RECORD_UNSET = "Not set",
 		FILTER_SOURCE_ALL = "Source: all",
 		HISTORY_FILTERS = "Filters",
+		HISTORY_ENTRY_COUNT = "Entries: %d",
+		HISTORY_PAGE = "Page %d/%d",
+		HISTORY_PREVIOUS = "Previous",
+		HISTORY_NEXT = "Next",
 		COL_RECORD_SOURCE = "Record source",
 		SOURCE_MANUAL = "Local profile",
 		PROFILE_READ_ONLY = "To prevent self-rating, you can only edit your memo and character links.",
@@ -631,6 +642,7 @@ local Translations = {
 		PROFILE_WHEN = "When: %s",
 		PROFILE_REALM = "Realm: %s",
 		PROFILE_GUID = "GUID: %s",
+		PROFILE_GUID_PENDING = "GUID: pending encounter",
 		PROFILE_TAB_OPINION = "Edit note",
 		PROFILE_TAB_FACTS = "Facts",
 		PROFILE_TAB_EVENTS = "Events",
@@ -643,7 +655,7 @@ local Translations = {
 		CHAR_LINK_REMOVE = "Unlink",
 		CHAR_LINK_TARGET = "Link target",
 		CHAR_LINK_SEARCH = "Find a character in History:",
-		CHAR_LINK_HINT = "Main is local only, never exchanged. Alt links identify one player for exchange. Opinion is shared. Auto-saved.",
+		CHAR_LINK_HINT = "Links are for reference only. Each character keeps its own opinion. Changes save immediately.",
 		CHAR_LINK_SAVED = "Character links saved.",
 		CHAR_LINK_INVALID = "Select a known character to link.",
 		CHAR_LINK_SELF = "This is the same character.",
@@ -654,8 +666,7 @@ local Translations = {
 		CHAR_LINK_CONFLICT = "Opinions differ. Choose the opinion to share before linking:",
 		CHAR_LINK_KEEP = "Use %s",
 		CHAR_LINK_CANCEL = "Cancel",
-		CHAR_LINK_TOOLTIP = "Same player (local links):",
-		CHAR_LINK_TOOLTIP_ROW = "%s — %s",
+		CHAR_LINK_TOOLTIP = "%s (%s) with alts in %s (local links):",
 		CHAR_LINK_HISTORY_ADD = "Linked character: %s",
 		CHAR_LINK_HISTORY_REMOVE = "Unlinked character: %s",
 		CHAR_LINK_HISTORY_ROLE = "%s is now %s",
@@ -678,7 +689,7 @@ local Translations = {
 		RATING_FACTS_LIMIT = "Maximum %s facts may be selected.",
 		RATING_FACTS_NONE = "none",
 		RATING_PROFILE_FACTS = "Facts: %s",
-		RATING_PROFILE_OPINION = "Personal note: %s",
+		RATING_PROFILE_OPINION = "Opinion: %s",
 		RATING_PROFILE_SUMMARY = "Summary: %s | Tags: %s",
 		RATING_DISPLAY_WITH_TAGS = "%s (%s)",
 		RATING_TAGS_NONE = "no tags set",
@@ -781,7 +792,7 @@ local Translations = {
 		SETTINGS_REPORT_FORM_FULL = "Full",
 		SETTINGS_TOOLTIP = "Unit tooltips",
 		SETTINGS_TOOLTIP_HINT = "Add personal and Karma lines to player tooltips (mouseover / target). Karma data is a mock preview until exchange is available.",
-		SETTINGS_TIP_HIDE_PERSONAL = "Hide personal opinion",
+		SETTINGS_TIP_HIDE_PERSONAL = "Hide selected opinion",
 		SETTINGS_TIP_HIDE_PERSONAL_TAGS = "Hide personal tags",
 		SETTINGS_TIP_HIDE_COMMUNITY = "Hide Karma",
 		SETTINGS_TIP_HIDE_COMMUNITY_TAGS = "Hide Karma tags",
@@ -812,6 +823,13 @@ local Translations = {
 	ruRU = {
 		TAB_SYNC = "Импорт данных персонажей",
 		TAB_SYNC_EXPORT = "Экспорт данных персонажей",
+		TAB_REPUTATION = "Репутация",
+		REPUTATION_LOCAL = "Мои локальные мнения",
+		REPUTATION_RECEIVED = "Полученные мнения (только чтение)",
+		REPUTATION_GLOBAL = "Глобальная Karma",
+		REPUTATION_KARMA_EMPTY = "Глобальная база Karma не установлена.",
+		REPUTATION_KARMA_INFO = "%s — ревизия %s, опубликовано %s",
+		REPUTATION_KARMA_REVIEW = "Проверить JSON Karma",
 		SYNC_DESCRIPTION = "Получайте общих персонажей или вставляйте JSON из веб-приложения. Проверьте изменения перед применением.",
 		SYNC_EXPORT_DESCRIPTION = "Экспортируйте сохранённые профили персонажей в JSON. Для прямой отправки другому пользователю Raidwise используйте меню «Поделиться» персонажа.",
 		SYNC_SEARCH = "Поиск известного персонажа (уточните имя)",
@@ -1025,20 +1043,14 @@ local Translations = {
 		INFO_SECTION_GEARRAID = "Сканирование всей группы или рейда (осмотр по одному).\n"
 			.. "Сетка групп показывает отдельные оценки камней, брони, оружия и чар по игроку (S / A / B / C / D).\n"
 			.. "«Экип» на просканированной карточке открывает полный отчёт на вкладке «Проверка экипа (цель)».",
-		INFO_SECTION_HISTORY = "Игроки, с которыми вы были в группе или рейде.\n"
-			.. "Список сохраняется на аккаунте и остаётся после выхода.\n"
-			.. "\n"
-			.. "- Имя, класс, спек, мнение, теги, GearScore, iLvl, где встретили, когда и гильдия\n"
-			.. "- Клик по строке открывает профиль персонажа\n"
-			.. "- В профиле можно сохранить мнение, теги, факты, события и личное мемо\n"
-			.. "- Karma пока показана как мок для будущего обмена и веб-приложения",
+		INFO_SECTION_HISTORY = "История показывает встречи текущего персонажа в группах/рейдах за 14 дней.\nБаза содержит заполненные профили. Клик по строке открывает Профиль.\nМнение, факты, события и приватная Заметка сохраняются автоматически или кнопкой.\nУ связанных персонажей разные мнения. Карма и обмен профилями отключены.",
 		INFO_SECTION_SETTINGS = "Настройки интерфейса на аккаунте.\n"
 			.. "\n"
 			.. "- Язык: English или Русский\n"
 			.. "- Стартовая страница по /raidwise (Справку выбрать нельзя)\n"
 			.. "- Канал чата для отчётов состава рейда, анализа состава и проверки экипа\n"
 			.. "- Короткая или полная форма отчёта проверки экипа\n"
-			.. "- Переключатели строк личного рейтинга и Karma в подсказках игроков",
+			.. "- Видимость выбранного мнения в подсказках игроков",
 		INFO_GITHUB = "GitHub",
 		INFO_REPO_HINT = "Выделите URL, затем нажмите Ctrl+C, чтобы скопировать.",
 		INFO_REPO_SELECTED = "Выделено — нажмите Ctrl+C, чтобы скопировать.",
@@ -1112,19 +1124,29 @@ local Translations = {
 		RAID_CHAT_WEAPON_ISSUES = "[Rw] проблемы оружия: %s",
 		RAID_CHAT_WEAPON_ALL = "[Rw] с оружием всё в порядке.",
 		RAID_CHAT_WEAPON_NONE = "[Rw] ещё нет скана оружия.",
-		HISTORY_HINT = "Встречи в группах, рейдах и проверки экипировки за последние 14 дней.",
+		HISTORY_HINT = "Встречи в группах и рейдах за последние 14 дней для текущего персонажа.",
 		TAB_DATABASE = "База персонажей",
-		DATABASE_HINT = "Сохранённые карточки. Введите Имя или Имя-Сервер для добавления.",
+		DATABASE_HINT = "Заполненные профили. Добавление имени открывает пустой Профиль; сохраните сведения для включения в Базу.",
 		DATABASE_ADD = "Добавить персонажа",
+		DATABASE_ADD_TARGET = "Добавить цель",
+		DATABASE_TARGET_MISSING = "Выберите персонажа целью перед добавлением.",
 		DATABASE_ACTIONS = "Действия",
 		DATABASE_DELETE = "Удалить",
 		DATABASE_DELETE_ALL = "Удалить всё",
-		DATABASE_DELETE_CONFIRM = "Удалить %s из базы персонажей?\nДействие нельзя отменить.",
-		DATABASE_DELETE_ALL_CONFIRM = "Удалить все %d записей базы персонажей?\nДействие нельзя отменить.",
+		DATABASE_DELETE_CONFIRM = "Очистить данные %s: мнение, факты, события, Заметку, журнал и связи? Встречи и счётчики сохранятся.\nДействие нельзя отменить.",
+		DATABASE_DELETE_ALL_CONFIRM = "Очистить данные всех %d профилей, включая Заметки, журналы и связи? Встречи и счётчики сохранятся.\nДействие нельзя отменить.",
 		DATABASE_INVALID_NAME = "Введите имя персонажа без пробелов и разметки чата.",
 		FILTER_OPINION_ALL = "Мнение: все",
+		PROFILE_RECORD_AUTHOR = "Автор мнения",
+		PROFILE_RECORD_MEETINGS = "Встречи",
+		PROFILE_RECORD_LAST_MEETING = "Последняя встреча: дата / место",
+		PROFILE_RECORD_UNSET = "Не задано",
 		FILTER_SOURCE_ALL = "Источник: все",
 		HISTORY_FILTERS = "Фильтры",
+		HISTORY_ENTRY_COUNT = "Записей: %d",
+		HISTORY_PAGE = "Страница %d/%d",
+		HISTORY_PREVIOUS = "Назад",
+		HISTORY_NEXT = "Далее",
 		COL_RECORD_SOURCE = "Источник записи",
 		SOURCE_MANUAL = "Локальный профиль",
 		PROFILE_READ_ONLY = "Чтобы исключить самооценку, доступны только заметка и связи персонажей.",
@@ -1437,6 +1459,7 @@ local Translations = {
 		PROFILE_WHEN = "Когда: %s",
 		PROFILE_REALM = "Реалм: %s",
 		PROFILE_GUID = "GUID: %s",
+		PROFILE_GUID_PENDING = "GUID: ожидает встречи",
 		PROFILE_TAB_OPINION = "Изменить заметку",
 		PROFILE_TAB_FACTS = "Факты",
 		PROFILE_TAB_EVENTS = "События",
@@ -1449,7 +1472,7 @@ local Translations = {
 		CHAR_LINK_REMOVE = "Отвязать",
 		CHAR_LINK_TARGET = "Связать цель",
 		CHAR_LINK_SEARCH = "Найти персонажа в истории:",
-		CHAR_LINK_HINT = "Мейн — локальный, не передаётся. Для обмена: альты — один игрок. Мнение общее. Сохраняется сразу.",
+		CHAR_LINK_HINT = "Связи справочные. У каждого персонажа своё мнение. Изменения сохраняются сразу.",
 		CHAR_LINK_SAVED = "Связи персонажей сохранены.",
 		CHAR_LINK_INVALID = "Выберите известного персонажа для связи.",
 		CHAR_LINK_SELF = "Это тот же персонаж.",
@@ -1460,8 +1483,7 @@ local Translations = {
 		CHAR_LINK_CONFLICT = "Мнения различаются. Выберите общее мнение перед связыванием:",
 		CHAR_LINK_KEEP = "Выбрать: %s",
 		CHAR_LINK_CANCEL = "Отмена",
-		CHAR_LINK_TOOLTIP = "Один игрок (локальные связи):",
-		CHAR_LINK_TOOLTIP_ROW = "%s — %s",
+		CHAR_LINK_TOOLTIP = "%s (%s), альты на %s (локальные связи):",
 		CHAR_LINK_HISTORY_ADD = "Связан персонаж: %s",
 		CHAR_LINK_HISTORY_REMOVE = "Отвязан персонаж: %s",
 		CHAR_LINK_HISTORY_ROLE = "%s теперь %s",
@@ -1484,7 +1506,7 @@ local Translations = {
 		RATING_FACTS_LIMIT = "Можно выбрать максимум %s фактов.",
 		RATING_FACTS_NONE = "нет",
 		RATING_PROFILE_FACTS = "Факты: %s",
-		RATING_PROFILE_OPINION = "Личная заметка: %s",
+		RATING_PROFILE_OPINION = "Мнение: %s",
 		RATING_PROFILE_SUMMARY = "Сводка: %s | Теги: %s",
 		RATING_DISPLAY_WITH_TAGS = "%s (%s)",
 		RATING_TAGS_NONE = "теги не заданы",
@@ -1587,7 +1609,7 @@ local Translations = {
 		SETTINGS_REPORT_FORM_FULL = "Полная",
 		SETTINGS_TOOLTIP = "Подсказки игроков",
 		SETTINGS_TOOLTIP_HINT = "Добавлять личный рейтинг и Karma в подсказки при наведении / цели. Данные Karma пока макет до обмена.",
-		SETTINGS_TIP_HIDE_PERSONAL = "Скрыть личное мнение",
+		SETTINGS_TIP_HIDE_PERSONAL = "Скрыть выбранное мнение",
 		SETTINGS_TIP_HIDE_PERSONAL_TAGS = "Скрыть личные теги",
 		SETTINGS_TIP_HIDE_COMMUNITY = "Скрыть Karma",
 		SETTINGS_TIP_HIDE_COMMUNITY_TAGS = "Скрыть теги Karma",
