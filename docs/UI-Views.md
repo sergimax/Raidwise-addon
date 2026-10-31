@@ -53,8 +53,8 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Raid | `LAYOUT_VERSION = 36` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| History | `LAYOUT_VERSION = 7` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Character database | `LAYOUT_VERSION = 12` | `PageHistory.lua` | Shell title bar (next to page name) |
+| History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Shell title bar (next to page name) |
+| Character database | `LAYOUT_VERSION = 13` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
 | Reputation | `LAYOUT_VERSION = 3` | `PageReputation.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 18` | `PageSettings.lua` | Shell title bar (next to page name) |
@@ -257,13 +257,13 @@ Raid-wide gear check lives on **Raid roster** (Scan button + report rows per pla
 
 ## Character profile
 
-Active owner: `ProfileWindow.lua`, layout **v37**, save controller `ProfileEditor.lua`.
+Active owner: `ProfileWindow.lua`, layout **v38**, save controller `ProfileEditor.lua`.
 
 ```text
-[ Profile: name-realm                     v37 X ]
+[ Profile: name-realm    GUID: ...        v38 X ]
 [ Class / guild / spec / known gear              ]
 [ Opinion author                                ]
-[ Not set ][ Positive ][ Neutral ][ Negative     ]
+[ Opinion: ][ Reset ][ Positive ][ Neutral ][ Negative ]
 [ Raid leader ][ PUG leader ][ GM ][ Officer      ]
 [ This character's meeting count, first / last    ]
 [ Events ][ History ][ Characters                ]
@@ -289,14 +289,14 @@ remain outside the TOC for later removal of transitional code.
 Active owner: `PageHistory.lua`; list data: `PlayerEncounters.BuildHistoryRoster`.
 
 ```text
-DATABASE v12
+DATABASE v13
 [ Filled profiles hint                         Refresh ]
 [ Name ][ Class ][ Guild ][ Opinion: all / + / = / - / unset ]
 [ Add name ][ Add ][ Add target ][ Delete all ]
 [ Name-realm | Class/spec | Opinion | Author | Guild | Meetings | Delete ]
 [ Rows open the shared Profile; 25 rows per page, two-axis scroll ]
 
-HISTORY v7
+HISTORY v8
 [ Last 14 days — current character              Refresh ]
 [ Name ][ Class ][ Guild ]
 [ Name-realm | Class | Opinion | Last date / place | Meetings ]
@@ -404,3 +404,9 @@ Switching language updates the left menu, page labels, and visible tables withou
 The shared header contains Short / Full exclusive report-form radios immediately before the chat channels. They retain `RaidwiseDB.reportForm` and are removed from Settings. Full form names and help remain localized in tooltips.
 
 Header report controls are contextual: chat channels appear only on Raid roster, Raid composition, and Gear check (target); Short / Full appears only on Gear check (target), whose output uses that setting. Both groups are hidden on all other views. Switching views preserves saved selections.
+
+Profile v38: GUID in the title bar; explicit Opinion label; Reset clears the
+opinion. Opinion buttons retain coloured labels/icons. Events/History/Characters
+keep the active highlight on mouse leave. Event types use a scrollable chooser
+with direct selection. Profile and both character lists show class/spec icons;
+unset opinions in lists retain their separate, uncoloured label.

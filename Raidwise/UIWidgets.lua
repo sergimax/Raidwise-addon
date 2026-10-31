@@ -526,6 +526,19 @@ function W.IconMarkup(iconPath, size)
 	return string.format("|T%s:%d:%d:0:0:64:64:%d:%d:%d:%d|t", iconPath, size, size, left, right, left, right)
 end
 
+-- Inline class atlas and specialization icons for compact profile/list labels.
+function W.CharacterIconMarkup(member, size)
+	member = member or {}
+	size = size or 14
+	local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[member.class]
+	local classIcon = ""
+	if coords then
+		classIcon = string.format("|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:%d:%d:0:0:256:256:%d:%d:%d:%d|t ",
+			size, size, coords[1] * 256, coords[2] * 256, coords[3] * 256, coords[4] * 256)
+	end
+	return classIcon .. (member.specIcon and (W.IconMarkup(member.specIcon, size) .. " ") or "")
+end
+
 function W.SetSpecOrClassIcon(texture, specIcon, classToken)
 	if specIcon and specIcon ~= "" then
 		W.SetSpellIconTexture(texture, specIcon)

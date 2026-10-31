@@ -1,7 +1,7 @@
 -- Active profile UI; the legacy CharacterProfile window is no longer loaded.
 local Addon = Raidwise
 local W = Addon.Widgets
-local VERSION = 37
+local VERSION = 38
 local WIDTH, HEIGHT = 680, 760
 local Refresh
 local words, translated = {}, setmetatable({}, {__mode="k"})
@@ -21,6 +21,17 @@ local function Button(parent, x, y, width, text, action)
 	button:SetPoint("TOPLEFT", x, y); button:SetScript("OnClick", action)
 	if words[text] then translated[button.label] = words[text] end
 	return button
+end
+local function SelectedButton(button, selected)
+	button.selected = selected
+	W.SetMenuButtonState(button, selected, false)
+	button:SetScript("OnEnter", function(self) W.SetMenuButtonState(self, self.selected, true) end)
+	button:SetScript("OnLeave", function(self) W.SetMenuButtonState(self, self.selected, false) end)
+end
+local function OpinionLabel(opinion)
+	if not opinion then return Text("Сбросить", "Reset") end
+	return W.IconMarkup(Addon:RatingOpinionIcon(opinion), 14) .. " "
+		.. Addon:RatingWrapColor(Addon:RatingOpinionLabel(opinion), Addon:RatingOpinionColor(opinion))
 end
 local function Time(value) return Addon:FormatHistoryTime(value) or "—" end
 local function Author(value) return value and Addon:LinkedCharacterName(value) or "—" end
@@ -84,7 +95,8 @@ Refresh = function(frame)
 	frame.profileMember.guid = draft.key
 	frame.title:SetText(Text("Профиль: ", "Profile: ") .. Author(frame.profileMember))
 	local identity = record.identity or frame.profileMember
-	frame.details:SetText(table.concat({identity.classLabel or identity.class or "", identity.guildName or "",
+	frame.guidLabel:SetText("GUID: " .. (identity.guid or draft.key))
+	frame.details:SetText(W.CharacterIconMarkup(identity, 16) .. table.concat({identity.classLabel or identity.class or "", identity.guildName or "",
 		identity.spec or "", identity.gearScore and ("GS: " .. identity.gearScore) or ""}, "  "))
 	frame.author:SetText(Text("Автор мнения: ", "Opinion author: ") .. Author(record.profile and record.profile.author))
 	local stats = Addon:GetCharacterMeetingStats(draft.key)
@@ -92,8 +104,8 @@ Refresh = function(frame)
 		.. "  |  " .. Time(stats.firstMetAt) .. " — " .. Time(stats.lastMetAt))
 	frame.selfHint:SetText(Editable(frame) and "" or Text("Самооценка запрещена. Заметка доступна.", "Self-rating is disabled. Private note is available."))
 	for _, button in ipairs(frame.opinions) do
-		button.label:SetText(button.opinion and Addon:RatingOpinionLabel(button.opinion) or Text("Не задано", "Not set"))
-		W.SetMenuButtonState(button, draft.opinion == button.opinion, false)
+		button.label:SetText(OpinionLabel(button.opinion))
+		SelectedButton(button, draft.opinion == button.opinion)
 		if Editable(frame) then button:Enable() else button:Disable() end
 	end
 	for _, button in ipairs(frame.facts) do
@@ -106,10 +118,14 @@ Refresh = function(frame)
 	if frame.notesBox:GetText() ~= draft.note then
 		frame.updatingNote = true; frame.notesBox:SetText(draft.note); frame.updatingNote = false
 	end
-	for id, panel in pairs(frame.profilePanels) do if id == frame.selectedProfileTab then panel:Show() else panel:Hide() end end
+	for id, panel in pairs(frame.profilePanels) do
+		SelectedButton(frame.profileTabs[id], id == frame.selectedProfileTab)
+		if id == frame.selectedProfileTab then panel:Show() else panel:Hide() end
+	end
+	if frame.selectedProfileTab ~= "events" then frame.eventMenu:Hide() end
 	if frame.selectedProfileTab == "characters" then Addon:RefreshProfileCharacters(frame) end
 	local types = frame.eventTypes
-	frame.typeButton.label:SetText(types[frame.typeIndex].label)
+	frame.typeButton.label:SetText(types[frame.typeIndex].label .. "  v")
 	if Editable(frame) then frame.add:Enable() else frame.add:Disable() end
 	local events = {}
 	for _, event in ipairs(draft.events) do events[#events + 1] = event end
@@ -144,7 +160,7 @@ Refresh = function(frame)
 	for index = #record.changes, 1, -1 do changes[#changes + 1] = record.changes[index] end
 	Render(frame.changeList, Slice(changes, frame.historyPage), function(row, change)
 		local detail = change.kind
-		if change.kind == "opinion" then detail = Text("Мнение: ", "Opinion: ") .. (change.before or "—") .. " → " .. (change.after or "—") end
+		if change.kind == "opinion" then detail = Text("Мнение: ", "Opinion: ") .. (change.before and OpinionLabel(change.before) or "—") .. " → " .. (change.after and OpinionLabel(change.after) or "—") end
 		if change.kind == "facts" then detail = Text("Факты: ", "Facts: ") .. table.concat(change.after or {}, ", ") end
 		if change.kind == "events" then detail = Text("Изменены события", "Events changed") end
 		if change.detail then detail = detail .. ": " .. (type(change.detail) == "table" and change.detail.name or change.detail) end
@@ -177,13 +193,15 @@ local function Create()
 	titleBar:SetPoint("TOPLEFT", 8, -8); titleBar:SetSize(WIDTH - 16, 26); W.AttachDragHandle(titleBar, frame)
 	local close = Button(titleBar, WIDTH - 48, 0, 24, "X", function() frame:Hide() end)
 	W.AttachLayoutVersionLabel(titleBar, VERSION, close)
-	frame.title = Label(titleBar, 0, 0, 520, "")
+	frame.title = Label(titleBar, 0, 0, 330, "")
+	frame.guidLabel = Label(titleBar, 335, 0, 230, "")
 	frame.details = Label(frame, 12, -40, WIDTH - 24, "")
 	frame.author = Label(frame, 12, -62, WIDTH - 24, "")
+	Label(frame, 12, -92, 65, Text("Мнение:", "Opinion:"))
 	frame.opinions = {}
 	for index, opinion in ipairs({"unset", "positive", "neutral", "negative"}) do
-		local label = opinion == "unset" and Text("Не задано", "Not set") or Addon:RatingOpinionLabel(opinion)
-		local button = Button(frame, 12 + (index - 1) * 163, -86, 155, label, function()
+		local label = OpinionLabel(opinion ~= "unset" and opinion or nil)
+		local button = Button(frame, 80 + (index - 1) * 147, -86, 139, label, function()
 			frame.editor.draft.opinion = opinion ~= "unset" and opinion or nil; Changed(frame)
 		end)
 		button.opinion = opinion ~= "unset" and opinion or nil; frame.opinions[#frame.opinions + 1] = button
@@ -199,18 +217,39 @@ local function Create()
 	end
 	frame.meetings = Label(frame, 12, -146, WIDTH - 24, "")
 	frame.selfHint = Label(frame, 12, -167, WIDTH - 24, "")
-	frame.profilePanels = {}
+	frame.profilePanels, frame.profileTabs = {}, {}
 	for index, tab in ipairs({{"events", Text("События", "Events")}, {"history", Text("История", "History")}, {"characters", Text("Персонажи", "Characters")}}) do
 		local panel = CreateFrame("Frame", nil, frame); panel:SetPoint("TOPLEFT", 12, -223); panel:SetSize(WIDTH - 24, 305)
 		frame.profilePanels[tab[1]] = panel
-		Button(frame, 12 + (index - 1) * 218, -190, 210, tab[2], function() frame.selectedProfileTab = tab[1]; Refresh(frame) end)
+		frame.profileTabs[tab[1]] = Button(frame, 12 + (index - 1) * 218, -190, 210, tab[2], function() frame.selectedProfileTab = tab[1]; Refresh(frame) end)
 	end
 	local events = frame.profilePanels.events
 	frame.typeIndex, frame.eventPage, frame.historyPage = 1, 1, 1
 	frame.eventTypes = Addon:GetProfileEventCatalog()
 	frame.typeButton = Button(events, 0, 0, 510, "", function()
-		frame.typeIndex = frame.typeIndex % #frame.eventTypes + 1; Refresh(frame)
+		if frame.eventMenu:IsShown() then frame.eventMenu:Hide() else
+			for index, button in ipairs(frame.eventChoices) do
+				button.label:SetText(frame.eventTypes[index].label)
+				SelectedButton(button, index == frame.typeIndex)
+			end
+			frame.eventMenu:Show()
+		end
 	end)
+	-- A scrollable chooser selects any event directly instead of cycling 22 types.
+	frame.eventMenu = CreateFrame("Frame", nil, events)
+	frame.eventMenu:SetPoint("TOPLEFT", frame.typeButton, "BOTTOMLEFT", 0, -2)
+	frame.eventMenu:SetSize(510, 272); frame.eventMenu:SetFrameLevel(100)
+	frame.eventMenu:EnableMouse(true); W.ApplyPlainPanel(frame.eventMenu); W.ApplyOuterBorder(frame.eventMenu)
+	local choices = List(frame.eventMenu, "RaidwiseProfileEventChoicesV" .. VERSION, 6, -6, 498, 260)
+	choices.content:SetHeight(#frame.eventTypes * 26)
+	frame.eventChoices = {}
+	for index, info in ipairs(frame.eventTypes) do
+		local choice = Button(choices.content, 0, -(index - 1) * 26, choices.width, info.label, function()
+			frame.typeIndex = index; frame.eventMenu:Hide(); Refresh(frame)
+		end)
+		frame.eventChoices[index] = choice
+	end
+	frame.eventMenu:Hide()
 	frame.add = Button(events, 520, 0, 130, Text("Добавить", "Add"), function()
 		local id, err = Addon:AddPlayerRecordDraftEvent(frame.editor.draft, frame.eventTypes[frame.typeIndex].id)
 		if id then Changed(frame) else frame.editor.status, frame.editor.error = "error", err; UpdateStatus(frame) end
@@ -270,11 +309,12 @@ end
 function Addon:ShowRaidCharacterWindow(member)
 	local frame = self.raidDetailFrame
 	if frame and frame.profileMember then self:CloseProfileEditor(frame.editor) end
-	local entry = self:EnsureHistoryEntryForGuid(member.guid, member)
+	local entry = self.UpsertHistoryMember and self:UpsertHistoryMember(member) or self:EnsureHistoryEntryForGuid(member.guid, member)
 	if not entry then return end
 	if not frame or frame.layoutVersion ~= VERSION then frame = Create(); self.raidDetailFrame = frame end
 	frame.profileMember = self:HistoryProfileForMember(entry)
 	frame.editor = self:OpenProfileEditor(entry.guid)
+	frame.eventMenu:Hide()
 	frame.selectedProfileTab, frame.eventPage, frame.historyPage = "events", 1, 1
 	Refresh(frame); frame:Show()
 end

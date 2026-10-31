@@ -34,6 +34,8 @@ test("active profile: autosave, explicit save, event editing, retained errors an
       function CreateFrame(_,_,parent) return region(parent) end
       Raidwise.Widgets={}
       local w=Raidwise.Widgets
+      function w.IconMarkup(path) return path and ('|T'..path..':14|t') or '' end
+      function w.CharacterIconMarkup(member) return w.IconMarkup(member.specIcon) end
       function w.CreateFontString(parent) return region(parent) end
       function w.CreatePlainButton(parent,_,_,label) local b=region(parent);b.label=region(b);b.label:SetText(label);return b end
       function w.CreateCopyBox(parent) return region(parent),region(parent) end
@@ -47,6 +49,9 @@ test("active profile: autosave, explicit save, event editing, retained errors an
     lua.doStringSync(`
       local a=Raidwise
       function a:FactSummary(facts) return table.concat(facts,',') end
+      function a:RatingOpinionIcon(opinion) return 'icon-'..opinion end
+      function a:RatingWrapColor(label) return label end
+      function a:RatingOpinionColor() return {1,1,1} end
       function a:RatingOpinionLabel(opinion) return opinion end
       function a:GetCharacterMeetingStats() return {count=0} end
       function a:GetCharacterEncounters() return {} end
@@ -57,7 +62,15 @@ test("active profile: autosave, explicit save, event editing, retained errors an
       local y=a:EnsureHistoryEntryForGuid('Y',{name='Another',realm='Realm'})
       a:ShowRaidCharacterWindow(x)
       local f=a.raidDetailFrame
-      assert(f.layoutVersion==37 and f.selectedProfileTab=='events' and not a:IsPlayerRecordFilled('X'))
+      assert(f.selectedProfileTab=='events' and not a:IsPlayerRecordFilled('X'))
+      assert(f.guidLabel:GetText()=='GUID: X')
+      assert(f.profileTabs.events.selected and not f.profileTabs.history.selected)
+      f.profileTabs.history.scripts.OnClick();assert(f.profileTabs.history.selected and not f.profileTabs.events.selected)
+      f.profileTabs.history.scripts.OnLeave(f.profileTabs.history);assert(f.profileTabs.history.selected)
+      f.profileTabs.events.scripts.OnClick()
+      assert(f.opinions[1].label:GetText()=='Reset')
+      f.typeButton.scripts.OnClick();assert(f.eventMenu:IsShown() and f.typeIndex==1)
+      f.eventChoices[3].scripts.OnClick();assert(f.typeIndex==3 and not f.eventMenu:IsShown())
       assert(#f.opinions==4 and #f.facts==4 and f.profilePanels.opinion==nil)
       f.notesBox:SetText('private')
       assert(f.editor.dirty and f.status:GetText()=='Unsaved changes')
@@ -65,6 +78,7 @@ test("active profile: autosave, explicit save, event editing, retained errors an
       f.scripts.OnUpdate(f,0.5);assert(a:GetProfileNotes(x)=='private' and not f.editor.dirty)
       assert(not a:HasPersonalRatingData(a:GetPersonalRating(x)))
       f.opinions[2].scripts.OnClick();assert(f.editor.draft.opinion=='positive')
+      assert(f.opinions[2].label:GetText():find('|Ticon-positive:14|t',1,true))
       f.save.scripts.OnClick();assert(a:GetPersonalRating(x).opinion=='positive')
       f.add.scripts.OnClick();f.save.scripts.OnClick()
       local event=a:GetHistoryEvents(x)[1];assert(event.author.guid=='SELF')

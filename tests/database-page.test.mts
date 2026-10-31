@@ -38,6 +38,8 @@ test("database and history: membership, filters, sorting, pages, empty creation 
       function CreateFrame() return region() end
       Raidwise.Widgets={};local w=Raidwise.Widgets
       function w.T(key,...) return key end
+      function w.IconMarkup(path) return path and ('|T'..path..':14|t') or '' end
+      function w.CharacterIconMarkup(member) return w.IconMarkup(member.specIcon) end
       function w.CreateFontString() return region() end
       function w.CreatePlainButton(_,_,_,label) local b=region();b.label=region();b.label:SetText(label);return b end
       function w.CreateTextInput() return region(),region() end
@@ -56,8 +58,10 @@ test("database and history: membership, filters, sorting, pages, empty creation 
     }
     lua.doStringSync(`
       local a=Raidwise;a:InitializeHistoryStore()
-      function a:RatingOpinionLabel(value) return value end
+      function a:RatingOpinionIcon(opinion) return 'icon-'..opinion end
+      function a:RatingWrapColor(label) return label end
       function a:RatingOpinionColor() return {1,1,1} end
+      function a:RatingOpinionLabel(value) return value end
       function a:ShowRaidCharacterWindow(member) self.opened=member end
       local db=a.Pages.Database.Create(region());local history=a.Pages.History.Create(region())
       a.mainFrame=region();a.mainFrame.pages={database=db,history=history}
@@ -76,6 +80,7 @@ test("database and history: membership, filters, sorting, pages, empty creation 
       assert(history.rowFrames[1].deleteButton==nil)
       db.filters.opinion='neutral';a:RefreshHistoryView();assert(db.entryTotal==1)
       assert(db.rowFrames[1].member.guid==neutral.guid and db.rowFrames[1].authorText:GetText()=='SELF-Realm')
+      assert(db.rowFrames[1].opinionText:GetText():find('|Ticon-neutral:14|t',1,true))
       db.filters.opinion='unset';a:RefreshHistoryView();assert(db.entryTotal==2)
       assert(db.rowFrames[1].opinionText:GetText()=='PROFILE_RECORD_UNSET')
       db.filters={name='note-realm'};a:RefreshHistoryView();assert(db.entryTotal==1)

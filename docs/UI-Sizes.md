@@ -188,7 +188,7 @@ Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW �
 
 Raid-wide gear check is integrated into **Raid roster** (see that section). There is no separate gear-check raid tab.
 
-## Character profile — active layout v37
+## Character profile — active layout v38
 
 Owner: `ProfileWindow.lua`; save controller: `ProfileEditor.lua`.
 
@@ -225,7 +225,7 @@ height. Layout v1 does not depend on the main shell or theme widgets.
 
 ## History and Character database tabs
 
-Owner: `PageHistory.lua`. History v7 and Database v12 retain the existing outer
+Owner: `PageHistory.lua`. History v8 and Database v13 retain the existing outer
 page, filter/add toolbar anchors, row height and two-axis scrollbar widgets.
 History table starts at y=-116; Database at y=-200. Header height and row height
 come from `UITheme.CD_HEADER_H` / `CD_ROW_H`. Each text cell has 4 px horizontal
@@ -321,3 +321,11 @@ the panel keeps its existing minimum height and column widths.
 Settings v18 leaves only the selected-opinion visibility checkbox. Retired tag
 and Karma flags have no effect on generated tooltip lines. Panel minimum height,
 360 px options column and preview-column gap remain unchanged.
+
+Profile v38 restores inline class/spec and coloured opinion icons. Title text is
+330 px; GUID occupies 230 px at x=335 in the title bar. Opinion label is 65 px
+at x=12; four buttons are 139 px wide at x=80/227/374/521, y=-86.
+The event selector opens a 510 x 272 panel below its button, with a 260 px
+scroll area and 26 px rows. Window and existing content sizes are unchanged.
+History v8 / Database v13 restore inline class/spec and coloured opinion icons
+inside existing columns; specialization text appears in both lists.

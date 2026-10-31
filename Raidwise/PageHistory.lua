@@ -6,8 +6,8 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 7
-local DATABASE_LAYOUT_VERSION = 12
+local LAYOUT_VERSION = 8
+local DATABASE_LAYOUT_VERSION = 13
 local ROWS_PER_PAGE = 25
 local DATABASE_COLUMNS = {
 	{field="nameText", key="COL_NAME", width=180},
@@ -373,10 +373,10 @@ local function RefreshPage(self, page)
 
 		row.nameText:SetText(self:LinkedCharacterName(member))
 		row.nameText:SetTextColor(W.ClassColor(member.class))
-		row.classText:SetText((member.classLabel or member.class or "—") .. (page.database and member.spec and ("\n" .. member.spec) or ""))
+		row.classText:SetText(W.CharacterIconMarkup(member, 14) .. (member.classLabel or member.class or "—") .. (member.spec and ("\n" .. member.spec) or ""))
 		local personal = self:GetPersonalRating(member)
 		if self:HasPersonalRatingData(personal) then
-			row.opinionText:SetText(self:RatingOpinionLabel(personal.opinion))
+			row.opinionText:SetText(W.IconMarkup(self:RatingOpinionIcon(personal.opinion), 14) .. " " .. self:RatingWrapColor(self:RatingOpinionLabel(personal.opinion), self:RatingOpinionColor(personal.opinion)))
 			W.SetFontColor(row.opinionText, self:RatingOpinionColor(personal.opinion))
 		else
 			row.opinionText:SetText(W.T("PROFILE_RECORD_UNSET"))
