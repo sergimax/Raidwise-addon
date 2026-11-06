@@ -200,11 +200,18 @@ test("event journals migrate atomically, retain reversible history and reject un
     local invalid={X=legacy,Y={{kind='events',before={},after={{id='dup'},{id='dup'}}}}}
     s.changes=invalid;s.journalVersion=1
     local result,err=a:InitializePlayerRecords()
-    assert(not result and err=='INVALID_JOURNAL' and s.changes==invalid and s.journalVersion==1)
-    assert(equal(s.changes.X,original))
+    assert(result==s and s.journalVersion==2 and s.changes.Y==nil)
+    assert(s.quarantine.entries[1].section=='changes' and s.quarantine.entries[1].value[1].after[1].id=='dup')
+    assert(equal(invalid.X,original))
+    local preserved=s.changes
     s.journalVersion=99
     result,err=a:InitializePlayerRecords()
-    assert(not result and err=='UNSUPPORTED_JOURNAL' and s.changes==invalid and s.journalVersion==99)
+    assert(not result and err=='UNSUPPORTED_JOURNAL' and s.changes==preserved and s.journalVersion==99)
+    s.journalVersion=2;assert(a:InitializePlayerRecords()==s)
+    local archived=s.quarantine.entries[1].value
+    assert(a:RestorePlayerRecordEntry(1,original))
+    assert(s.changes.Y[1].events and s.changes.Y[1].before==nil)
+    assert(s.quarantine.entries[1].value==archived and archived[1].after[1].id=='dup')
   `);
 });
 
@@ -269,6 +276,93 @@ test("event deltas retain authorship, original dates and atomic stale-draft reje
   `);
 });
 
+test("damaged profile fields are quarantined without changing healthy records and repairs preserve originals", async () => {
+  await run(`
+    local a=Raidwise;local s=a:InitializePlayerRecords()
+    a:UpsertPlayerRecordIdentity({guid='GOOD',name='Good'})
+    local good=a:CreatePlayerRecordDraft('GOOD');good.opinion='positive';good.note='private';assert(a:CommitPlayerRecordDraft(good))
+    local profile,note,journal=s.profiles.GOOD,s.notes.GOOD,s.changes.GOOD
+    local badProfiles={ {}, {facts='wrong',events={},revision=1}, {facts={},events='wrong',revision=1},
+      {facts={},events={{id='e',type='afk',eventAt=1,updatedAt=1,author={},context=false}},revision=1},
+      {facts={'unknown'},events={},revision=1}, {facts={},events={},revision='bad'} }
+    for index,value in ipairs(badProfiles) do
+      local key='BAD'..index;a:UpsertPlayerRecordIdentity({guid=key,name='Bad'})
+      s.profiles[key]=value
+    end
+    s.notes.BAD1={text={},revision=1};s.notes.BAD2={text='original secret',revision='bad'}
+    local stale=a:CreatePlayerRecordDraft('BAD1')
+    assert(a:InitializePlayerRecords()==s)
+    assert(s.profiles.GOOD==profile and s.notes.GOOD==note and s.changes.GOOD==journal)
+    assert(a:IsPlayerRecordFilled('GOOD') and not a:IsPlayerRecordFilled('BAD1'))
+    assert(#s.quarantine.entries==8 and a:GetPlayerRecordHealth().quarantined==8)
+    assert(not a:CommitPlayerRecordDraft(stale))
+    local archive=s.quarantine;assert(a:InitializePlayerRecords()==s and #archive.entries==8)
+    local profileIndex,noteIndex
+    for index,entry in ipairs(archive.entries) do
+      if entry.section=='profiles' and entry.key=='BAD1' then profileIndex=index;assert(entry.value==badProfiles[1]) end
+      if entry.section=='notes' and entry.key=='BAD2' then noteIndex=index;assert(entry.value.text=='original secret') end
+    end
+    local ok,err=a:RestorePlayerRecordEntry(profileIndex,{})
+    assert(not ok and err=='INVALID_REPAIR' and not archive.entries[profileIndex].restored)
+    local repaired={facts={},events={},revision=0,opinion='negative'}
+    assert(a:RestorePlayerRecordEntry(profileIndex,repaired))
+    assert(s.profiles.BAD1~=repaired and a:IsPlayerRecordFilled('BAD1'))
+    assert(next(archive.entries[profileIndex].value)==nil and archive.entries[profileIndex].restored)
+    local draft=a:CreatePlayerRecordDraft('BAD2');draft.note='new data';assert(a:CommitPlayerRecordDraft(draft))
+    ok,err=a:RestorePlayerRecordEntry(noteIndex,{text='repaired',revision=1})
+    assert(not ok and err=='REPAIR_CONFLICT' and s.notes.BAD2.text=='new data')
+    assert(archive.entries[noteIndex].value.text=='original secret')
+    good.note='still editable';assert(a:CommitPlayerRecordDraft(good))
+    assert(a:GetPlayerRecordHealth().quarantined==7)
+  `);
+});
+
+test("nested encounters, counters, identities, links and journals isolate at the smallest safe boundary", async () => {
+  await run(`
+    local a=Raidwise;local s=a:InitializePlayerRecords()
+    a:UpsertPlayerRecordIdentity({guid='GOOD',name='Good'})
+    s.identities.BAD={name={},realm='Realm'}
+    s.meetingStats.SELF={GOOD={count=1},BAD={count='wrong'}}
+    local healthy={id='m',startedAt=1,lastSeenAt=2,places={{zoneName='Zone',firstSeenAt=1,lastSeenAt=2}}}
+    local broken={id='b',startedAt=1,lastSeenAt='wrong',places={}}
+    s.encounters.SELF={GOOD={healthy},BAD={broken},NO_STATS={healthy}}
+    s.encounters.BROKEN=false
+    s.groups.bad={members=7};s.generations.BAD='wrong'
+    s.changes.BAD={{id='c',at=1,actor={},kind='events',events={{id='e',afterIndex=1}}}}
+    assert(a:InitializePlayerRecords()==s)
+    assert(s.encounters.SELF.GOOD[1]==healthy and s.meetingStats.SELF.GOOD.count==1)
+    assert(s.identities.BAD==nil and s.groups.bad==nil and s.generations.BAD==nil and s.changes.BAD==nil)
+    assert(not s.encounters.SELF.BAD and not s.encounters.SELF.NO_STATS and not s.encounters.BROKEN)
+    assert(#s.quarantine.entries==8)
+    local index
+    for position,entry in ipairs(s.quarantine.entries) do
+      if entry.section=='encounters' and entry.key=='BAD' then index=position;assert(entry.value[1]==broken) end
+    end
+    assert(not a:RestorePlayerRecordEntry(index,{healthy})) -- Missing counter remains unsafe.
+    s.meetingStats.SELF.BAD={count=1}
+    s.encounters.SELF=nil -- Restoring into an absent observer must create its nested map.
+    assert(a:RestorePlayerRecordEntry(index,{healthy}))
+    assert(s.encounters.SELF.BAD[1].id=='m' and s.encounters.BAD==nil)
+  `);
+});
+
+test("unknown formats and invalid roots remain untouched and unavailable until repaired", async () => {
+  await run(`
+    local a=Raidwise;local s=a:InitializePlayerRecords()
+    s.profiles.BAD={};s.journalVersion=99
+    assert(not a:InitializePlayerRecords() and s.quarantine==nil and s.profiles.BAD~=nil)
+    assert(a:GetPlayerRecordStore()==nil and a:GetPlayerRecordHealth().reason=='UNSUPPORTED_JOURNAL')
+    s.journalVersion=2;s.notes='original malformed section'
+    assert(not a:InitializePlayerRecords() and s.notes=='original malformed section' and s.quarantine==nil)
+    assert(a:GetPlayerRecordStore()==nil and a:GetPlayerRecordHealth().reason=='INVALID_STORE')
+    s.notes={};s.quarantine={version=99,entries={}}
+    assert(not a:InitializePlayerRecords() and s.quarantine.version==99 and s.profiles.BAD~=nil)
+    s.quarantine=nil;assert(a:InitializePlayerRecords()==s and a:GetPlayerRecordStore()==s)
+    s.schemaVersion=99;local archive=s.quarantine
+    assert(not a:InitializePlayerRecords() and s.schemaVersion==99 and s.quarantine==archive)
+  `);
+});
+
 test("active bridge retires legacy profiles once and routes reads and writes to the new core", async () => {
   const lua = await Lua.create();
   try {
@@ -306,6 +400,21 @@ test("active bridge retires legacy profiles once and routes reads and writes to 
       a.GearCheckRulesSelfTest=function() return {{ok=true}},1,1 end
       local report,ok=a:RunDiagnostics()
       assert(ok and report:find('PASS local character system',1,true))
+      local good=assert(a:EnsureHistoryEntryForGuid('GOOD',{name='Good',realm='Realm'}))
+      assert(a:SavePersonalRatingForGuid('GOOD',good,'positive',{},{}))
+      a:EnsureHistoryEntryForGuid('BROKEN',{name='Broken',realm='Realm'})
+      local raw={text='SENSITIVE NOTE',revision='bad'}
+      a.db.playerRecords.profiles.BROKEN={}
+      a.db.playerRecords.notes.BROKEN=raw
+      assert(a:InitializeHistoryStore())
+      assert(#a:BuildHistoryRoster(true)==1 and a:BuildHistoryRoster(true)[1].guid=='GOOD')
+      a:PruneHistory();a:RecordCurrentGroupHistory(false)
+      report,ok=a:RunDiagnostics()
+      assert(ok and report:find('WARN damaged records isolated',1,true) and report:find('quarantined=2',1,true))
+      assert(not report:find('SENSITIVE NOTE',1,true))
+      local found=false
+      for _,entry in ipairs(a.db.playerRecords.quarantine.entries) do if entry.value==raw then found=true end end
+      assert(found and a.db.characters.keep and a.db.gearCheckSaved.keep)
       a.db.history={legacy=true}
       report,ok=a:RunDiagnostics()
       assert(not ok and report:find('FAIL local character system',1,true) and a.db.history.legacy)

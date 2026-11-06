@@ -261,7 +261,15 @@ function Addon:OnInitialize()
 		self:Print("Player record modules failed to load. Reinstall the complete Raidwise folder and restart the client.")
 		return
 	end
-	self:InitializeHistoryStore()
+	local initialized, err = self:InitializeHistoryStore()
+	if not initialized then
+		self:Print("Player records unavailable: " .. tostring(err) .. ". Saved data was preserved. Run /rw diagnose.")
+		return
+	end
+	local health = self.GetPlayerRecordHealth and self:GetPlayerRecordHealth()
+	if health and health.quarantined > 0 then
+		self:Print("Player records: " .. health.quarantined .. " damaged entries isolated; originals preserved. Run /rw diagnose.")
+	end
 	if self.InitializeClassicOpinionMarkers then self:InitializeClassicOpinionMarkers() end
 	if self.CreateMinimapButton then
 		self:CreateMinimapButton()

@@ -20,7 +20,7 @@ Addon.SyncLinkedPlayerOpinion = function() end
 
 function Addon:InitializeHistoryStore()
 	local store, err = self:InitializePlayerRecords()
-	if not store then error("Raidwise playerRecords: " .. tostring(err)) end
+	if not store then return nil, err end
 	if not store.activated then
 		-- Reset only the retired character subsystem, once per account.
 		self.db.history, self.db.reputation = nil, nil
@@ -32,6 +32,7 @@ function Addon:InitializeHistoryStore()
 	self.db.history = nil
 	if self.InitializeCharacterLinks then self:InitializeCharacterLinks() end
 	self:PruneHistory()
+	return true
 end
 
 function Addon:HistoryStore()

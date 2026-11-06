@@ -422,6 +422,16 @@ test("active TOC bootstrap initializes profiles without retired-module warnings 
       assert(not messages[1]:find('PlayerHistory.lua',1,true))
       Raidwise[method]=saved
     end
+    local store=Raidwise.db.playerRecords
+    store.notes.BROKEN={text='private original',revision='bad'}
+    messages={};Raidwise:OnInitialize()
+    assert(#messages==2 and messages[1]:find('damaged entries isolated',1,true))
+    assert(not messages[1]:find('private original',1,true))
+    assert(Raidwise:GetPersonalRating({guid=key}).opinion=='positive')
+    store.journalVersion=99
+    messages={};Raidwise:OnInitialize()
+    assert(#messages==1 and messages[1]:find('UNSUPPORTED_JOURNAL',1,true))
+    assert(Raidwise:GetPlayerRecordStore()==nil and store.journalVersion==99)
   `);
 });
 

@@ -29,11 +29,18 @@ in-game work: [Character-System-Verification.md](../docs/Character-System-Verifi
 
 `player-records.test.mts` also verifies journal v1-to-v2 migration (reconstruction
 of old event snapshots, ordering, authors, dates, baseline gaps, idempotence and
-atomic rejection), and 100/1,000 sequential event saves with linear journal
+unknown-version rejection), and 100/1,000 sequential event saves with linear journal
 storage. Detached profile/page reads must not traverse the whole journal.
 `profile-window.test.mts` exercises the 25-row journal pages and page clamping
 without whole-record reads. These are storage/read-path checks, not in-game
 latency or memory benchmarks; draft validation still visits current events.
+
+Storage recovery tests cover damaged profile/note/event fields, nested encounters
+and counters, identities/groups, journals, preserved quarantine originals,
+idempotence, explicit repair and overwrite conflicts. Integration checks use the
+real bridge, database roster, presence observations, bootstrap and diagnostics;
+private note content must not appear in reports. Unsupported formats/invalid roots
+remain untouched and unavailable. Recovery procedure: the character-system contract.
 
 The runner is TypeScript (`gear-check.test.mts`) using Node's built-in `node:test`
 and `node:assert/strict`. Node runs the erasable TypeScript directly; `tsc` handles

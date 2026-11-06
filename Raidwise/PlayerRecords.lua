@@ -1,6 +1,7 @@
 -- Active local profile core; screen APIs use this store through PlayerRecordBridge.
 local Addon = Raidwise
 local drafts = setmetatable({}, {__mode = "k"})
+local rejectedStores = setmetatable({}, {__mode = "k"})
 local eventTypes = {}
 for eventType in string.gmatch("organized_run disrupted_run fulfilled_agreement broke_agreement prepared_for_run followed_instructions late_arrival no_arrival afk left_early rage_quit fair_loot unfair_loot loot_dispute changed_loot_rules helped_player helped_with_gear explained_mechanics handled_role failed_mechanics toxic_behavior scam", "%S+") do
 	eventTypes[eventType] = true
@@ -130,22 +131,201 @@ local function MigrateJournal(store)
 	return true
 end
 
+local function Number(value)
+	return type(value) == "number" and value == value and value >= 0 and value < math.huge
+end
+
+local function Integer(value)
+	return Number(value) and value % 1 == 0
+end
+
+local function Fields(value, fields, validate)
+	for _, field in ipairs(fields) do
+		if value[field] ~= nil and not validate(value[field]) then return false end
+	end
+	return true
+end
+
+local function Text(value) return type(value) == "string" end
+
+local function Plain(value, seen, depth)
+	if type(value) ~= "table" then
+		return value == nil or Text(value) or type(value) == "boolean" or (type(value) == "number" and value == value and math.abs(value) < math.huge)
+	end
+	seen, depth = seen or {}, depth or 0
+	if seen[value] or depth > 64 then return false end
+	seen[value] = true
+	for key, child in pairs(value) do
+		if (not Text(key) and type(key) ~= "number") or not Plain(child, seen, depth + 1) then return false end
+	end
+	seen[value] = nil
+	return true
+end
+
+local function Author(value)
+	return type(value) == "table" and Fields(value, {"guid", "name", "realm", "class"}, Text)
+end
+
+local function Facts(value)
+	if not IsList(value) then return false end
+	local seen = {}
+	for _, fact in ipairs(value) do
+		local valid = false
+		for _, known in ipairs(factOrder) do if fact == known then valid = true end end
+		if not valid or seen[fact] then return false end
+		seen[fact] = true
+	end
+	return true
+end
+
+local function Opinion(value)
+	return value == "positive" or value == "neutral" or value == "negative"
+end
+
+local function Event(value)
+	return type(value) == "table" and Safe(value.id) and eventTypes[value.type] == true
+		and Number(value.eventAt) and Number(value.updatedAt) and Author(value.author)
+		and type(value.context) == "table" and Text(value.context.zoneName)
+		and Fields(value.context, {"instanceName"}, Text)
+end
+
+local function Events(value)
+	if not EventIndex(value) then return false end
+	for _, event in ipairs(value) do if not Event(event) then return false end end
+	return true
+end
+
+local function Journal(rows, version)
+	if not IsList(rows) then return false end
+	for _, row in ipairs(rows) do
+		if type(row) ~= "table" or not Safe(row.id) or not Number(row.at) or not Author(row.actor) or not Text(row.kind) then return false end
+		if row.kind == "events" then
+			if version ~= 2 then
+				if not Events(row.before) or not Events(row.after) then return false end
+			else
+				if not IsList(row.events) or (row.baseline ~= nil and not Events(row.baseline)) then return false end
+				local seen = {}
+				for _, delta in ipairs(row.events) do
+					if type(delta) ~= "table" or not Safe(delta.id) or seen[delta.id] then return false end
+					seen[delta.id] = true
+					if not delta.beforeIndex and not delta.afterIndex then return false end
+					if not delta.beforeIndex and not delta.after then return false end
+					if not delta.afterIndex and not delta.before then return false end
+					for _, field in ipairs({"beforeIndex", "afterIndex"}) do
+						if delta[field] ~= nil and (not Integer(delta[field]) or delta[field] < 1) then return false end
+					end
+					for _, field in ipairs({"before", "after"}) do
+						if delta[field] ~= nil and (not Event(delta[field]) or delta[field].id ~= delta.id) then return false end
+					end
+				end
+			end
+		elseif row.kind == "opinion" then
+			if not Fields(row, {"before", "after"}, Opinion) then return false end
+		elseif row.kind == "facts" then
+			if not Facts(row.before) or not Facts(row.after) then return false end
+		end
+		if row.detail ~= nil and not Text(row.detail) and not (type(row.detail) == "table" and Text(row.detail.name)) then return false end
+	end
+	return true
+end
+
+local function ValidEntry(store, section, key, value, observer)
+	if not Text(key) or key == "" or not Plain(value) then return false end
+	if section == "generations" then return Integer(value) end
+	if type(value) ~= "table" then return false end
+	if section == "identities" then
+		return Identity({name=value.name, realm=value.realm}) ~= nil and Text(value.realm)
+			and Fields(value, {"guid", "class", "classLabel", "spec", "specIcon", "race", "faction", "guildName", "guildRank"}, Text)
+			and Fields(value, {"gearScore", "averageIlvl", "gender", "lastScannedAt"}, Number)
+	elseif section == "profiles" then
+		return Facts(value.facts) and Events(value.events) and Integer(value.revision)
+			and Fields(value, {"opinion"}, Opinion) and Fields(value, {"author"}, Author)
+			and Fields(value, {"createdAt", "updatedAt"}, Number)
+	elseif section == "notes" then
+		return Text(value.text) and Integer(value.revision) and Fields(value, {"updatedAt"}, Number)
+	elseif section == "changes" then return Journal(value, store.journalVersion)
+	elseif section == "meetingStats" then
+		return Integer(value.count) and Fields(value, {"firstMetAt", "lastMetAt"}, Number)
+			and Fields(value, {"lastEncounterId"}, Text)
+	elseif section == "encounters" then
+		if not IsList(value) then return false end
+		for _, row in ipairs(value) do
+			if type(row) ~= "table" or not Safe(row.id) or not Number(row.startedAt) or not Number(row.lastSeenAt)
+				or not Fields(row, {"endedAt", "lastAbsentAt"}, Number) or not IsList(row.places) then return false end
+			for _, place in ipairs(row.places) do
+				if type(place) ~= "table" or not Text(place.zoneName) or not Number(place.firstSeenAt) or not Number(place.lastSeenAt)
+					or not Fields(place, {"instanceName"}, Text) then return false end
+			end
+		end
+		local stats = store.meetingStats[observer]
+		return #value == 0 or (type(stats) == "table" and ValidEntry(store, "meetingStats", key, stats[key]))
+	elseif section == "groups" then
+		if type(value.members) ~= "table" or not Text(value.mainKey) then return false end
+		for member, present in pairs(value.members) do
+			if not Text(member) or present ~= true or not store.identities[member] then return false end
+		end
+		return value.members[value.mainKey] == true
+	end
+	return false
+end
+
+local function IsolateEntries(store)
+	local quarantine = store.quarantine or {version=1, entries={}}
+	local function Isolate(section, key, value, observer)
+		quarantine.entries[#quarantine.entries + 1] = {section=section, key=key, observer=observer,
+			value=value, journalVersion=store.journalVersion or 1, reason="INVALID_ENTRY", at=time()}
+	end
+	-- Validate identities/counters before the groups/encounters that refer to them.
+	for _, section in ipairs({"identities", "profiles", "notes", "changes", "generations", "meetingStats", "encounters", "groups"}) do
+		for key, value in pairs(store[section]) do
+			if section == "meetingStats" or section == "encounters" then
+				if not Text(key) or type(value) ~= "table" then
+					Isolate(section, key, value); store[section][key] = nil
+				else
+					for subject, rows in pairs(value) do
+						if not ValidEntry(store, section, subject, rows, key) then
+							Isolate(section, subject, rows, key); value[subject] = nil
+						end
+					end
+				end
+			elseif not ValidEntry(store, section, key, value) then
+				Isolate(section, key, value); store[section][key] = nil
+				-- Invalidate drafts without changing healthy profile/note contents.
+				if section == "profiles" or section == "notes" or section == "generations" or section == "identities" then
+					for draft, state in pairs(drafts) do if state.store == store and state.key == key then drafts[draft] = nil end end
+				end
+			end
+		end
+	end
+	if #quarantine.entries > 0 then store.quarantine = quarantine end
+end
+
 function Addon:GetPlayerRecordStore()
 	local store = self.db and self.db.playerRecords
-	return type(store) == "table" and store.schemaVersion == 1 and store or nil
+	if type(store) ~= "table" or store.schemaVersion ~= 1 or rejectedStores[store] then return nil end
+	if store.journalVersion ~= nil and store.journalVersion ~= 1 and store.journalVersion ~= 2 then return nil end
+	for _, section in ipairs(sections) do if type(store[section]) ~= "table" then return nil end end
+	if not Integer(store.nextId) then return nil end
+	return store
 end
 
 function Addon:InitializePlayerRecords()
 	if not self.db then return nil, "NO_DATABASE" end
 	if self.db.playerRecords ~= nil then
-		if not self:GetPlayerRecordStore() then return nil, "UNSUPPORTED_SCHEMA" end
-		local current = self:GetPlayerRecordStore()
+		local current = self.db.playerRecords
+		if type(current) ~= "table" or current.schemaVersion ~= 1 then return nil, "UNSUPPORTED_SCHEMA" end
+		local function Reject(reason) rejectedStores[current] = reason; return nil, reason end
 		for _, section in ipairs(sections) do
-			if type(current[section]) ~= "table" then return nil, "INVALID_STORE" end
+			if type(current[section]) ~= "table" then return Reject("INVALID_STORE") end
 		end
-		if type(current.nextId) ~= "number" or current.nextId < 0 or current.nextId % 1 ~= 0 then return nil, "INVALID_STORE" end
+		if not Integer(current.nextId) then return Reject("INVALID_STORE") end
+		if current.journalVersion ~= nil and current.journalVersion ~= 1 and current.journalVersion ~= 2 then return Reject("UNSUPPORTED_JOURNAL") end
+		if current.quarantine ~= nil and (type(current.quarantine) ~= "table" or current.quarantine.version ~= 1
+			or not IsList(current.quarantine.entries)) then return Reject("INVALID_QUARANTINE") end
+		IsolateEntries(current)
 		local migrated, err = MigrateJournal(current)
-		if not migrated then return nil, err end
+		if not migrated then return Reject(err) end
+		rejectedStores[current] = nil
 		return self:GetPlayerRecordStore()
 	end
 	local store = {schemaVersion=1, journalVersion=2, nextId=0}
@@ -156,6 +336,54 @@ end
 
 function Addon:GetPlayerRecordEventTypes()
 	return Copy(eventTypes)
+end
+
+function Addon:GetPlayerRecordHealth()
+	local store = self.db and self.db.playerRecords
+	local err = type(store) == "table" and rejectedStores[store]
+	if not self:GetPlayerRecordStore() then
+		if type(store) ~= "table" or store.schemaVersion ~= 1 then err = "UNSUPPORTED_SCHEMA" end
+		return {status="unavailable", reason=err or "INVALID_STORE", quarantined=0}
+	end
+	local count = 0
+	for _, entry in ipairs(store.quarantine and store.quarantine.entries or {}) do
+		if type(entry) == "table" and not entry.restored then count = count + 1 end
+	end
+	return {status=count > 0 and "quarantined" or "healthy", quarantined=count}
+end
+
+-- Explicit repair only: retain the original archive, never overwrite live data.
+function Addon:RestorePlayerRecordEntry(index, replacement)
+	local store = self:GetPlayerRecordStore()
+	local entry = store and store.quarantine and store.quarantine.entries[index]
+	if type(entry) ~= "table" or entry.restored then return nil, "UNKNOWN_QUARANTINE_ENTRY" end
+	local section, key, observer = entry.section, entry.key, entry.observer
+	local known = false
+	for _, name in ipairs(sections) do if section == name then known = true end end
+	if not known or not Text(key) or (observer ~= nil and not Text(observer)) then return nil, "INVALID_REPAIR" end
+	if observer and section ~= "encounters" and section ~= "meetingStats" then return nil, "INVALID_REPAIR" end
+	local target = store[section]
+	if observer then target = target[observer] end
+	if target and target[key] ~= nil then return nil, "REPAIR_CONFLICT" end
+	local context = {identities=store.identities, meetingStats=store.meetingStats, journalVersion=entry.journalVersion}
+	if (section == "encounters" or section == "meetingStats") and not observer then
+		if type(replacement) ~= "table" or not Plain(replacement) then return nil, "INVALID_REPAIR" end
+		for subject, value in pairs(replacement) do
+			if not ValidEntry(context, section, subject, value, key) then return nil, "INVALID_REPAIR" end
+		end
+	elseif not ValidEntry(context, section, key, replacement, observer) then return nil, "INVALID_REPAIR" end
+	local repaired = Copy(replacement)
+	if section == "changes" then
+		local temporary = {journalVersion=entry.journalVersion, changes={[key]=repaired}}
+		local ok, err = MigrateJournal(temporary)
+		if not ok then return nil, err end
+		repaired = temporary.changes[key]
+	end
+	if observer and not target then target = {}; store[section][observer] = target end
+	target[key] = repaired
+	entry.restored = true
+	for draft, state in pairs(drafts) do if state.store == store and state.key == key then drafts[draft] = nil end end
+	return true
 end
 
 function Addon:GetPlayerRecordProfile(key)
