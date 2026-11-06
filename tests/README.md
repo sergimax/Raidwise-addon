@@ -11,6 +11,14 @@ npm run check
 `npm test` for tests alone or `npm run test:watch` while editing. Failures return
 a nonzero exit status for CI.
 
+The Addon tests workflow runs on branch pushes, pull requests and manual dispatch, on both Windows and Ubuntu.
+Tag publication has its own release workflow and checks.
+Required checks/branch protection are configured separately in GitHub.
+
+`architecture.test.mts` loads all active modules in TOC order and exercises
+bootstrap and profile persistence, including missing core/bridge APIs.
+Native UI construction and social-hook initialization are excluded from this bootstrap test; it is not a visual or in-client loading test.
+
 The active character-system suites are `player-records`, `encounters`,
 `player-links`, `profile-window`, `database-page`, `opinion-display`, and
 `classic-opinion`. They load PlayerRecords/Support and the active screen APIs,

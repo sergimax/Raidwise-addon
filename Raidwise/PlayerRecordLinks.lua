@@ -1,4 +1,4 @@
--- Active associations and profile deletion; legacy CharacterLinks keeps display helpers.
+-- Active associations and profile deletion; display helpers live in PlayerRecordSupport.
 local Addon = Raidwise
 
 local function GroupFor(key)

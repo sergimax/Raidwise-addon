@@ -383,6 +383,48 @@ test("profile panel construction and history rendering survive extraction", asyn
   `);
 });
 
+test("active TOC bootstrap initializes profiles without retired-module warnings and detects missing APIs", async () => {
+  const toc = await readFile(new URL("../Raidwise/Raidwise.toc", import.meta.url), "utf8");
+  const modules = toc.split(/\r?\n/).filter(line => line.endsWith(".lua")).map(line => line.slice(0, -4));
+  await run(modules, `
+    SlashCmdList={}
+    GameTooltip={}
+    function GetLocale() return 'enUS' end
+    function GetAddOnMetadata() return '' end
+    function GetRealmName() return 'Realm' end
+    function UnitGUID() return 'SELF' end
+    function UnitName() return 'Me' end
+    function time() return 1000 end
+    function ChatFrame_AddMessageEventFilter() end
+  `, `
+    -- Isolate bootstrap/storage from native UI construction and social hooks.
+    Raidwise.CreateMainFrame=nil
+    Raidwise.CreateMinimapButton=nil
+    Raidwise.InitializeClassicOpinionMarkers=nil
+    local messages={}
+    function Raidwise:Print(message) messages[#messages+1]=message end
+    assert(Raidwise.RatingTagGroups==nil)
+    Raidwise:OnInitialize()
+    assert(Raidwise:GetPlayerRecordStore().activated)
+    assert(#messages==1 and messages[1]==Raidwise:T('CHAT_LOADED',Raidwise.version), table.concat(messages,' | '))
+    local key=assert(Raidwise:UpsertPlayerRecordIdentity({guid='OTHER',name='Other'}))
+    local draft=assert(Raidwise:CreatePlayerRecordDraft(key))
+    draft.opinion='positive'; assert(Raidwise:CommitPlayerRecordDraft(draft))
+    assert(Raidwise:GetPersonalRating({guid=key}).opinion=='positive')
+    Raidwise:OnInitialize()
+    assert(#messages==2 and Raidwise:GetPersonalRating({guid=key}).opinion=='positive')
+    for _,method in ipairs({'InitializeHistoryStore','GetPlayerRecordStore','CreatePlayerRecordDraft','CommitPlayerRecordDraft','GetPersonalRating'}) do
+      local saved=Raidwise[method]
+      Raidwise[method]=nil
+      messages={}
+      Raidwise:OnInitialize()
+      assert(#messages==1 and messages[1]:find('Player record modules failed to load',1,true))
+      assert(not messages[1]:find('PlayerHistory.lua',1,true))
+      Raidwise[method]=saved
+    end
+  `);
+});
+
 test("every shipped module compiles as Lua 5.1", async () => {
   const lua = await Lua.create();
   try {

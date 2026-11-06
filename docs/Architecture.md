@@ -42,6 +42,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 [Raidwise.toc](../Raidwise/Raidwise.toc) is the authoritative executable load order. Read it when adding/moving modules; do not maintain a duplicate full list here.
 
 - Bootstrap creates the namespace; later modules attach methods before normal event-driven use.
+- Initialization checks the active profile core/bridge APIs before opening UI. Missing APIs report an incomplete installation; retired `RatingTagGroups` is not a startup requirement.
 - `InspectCoordinator` precedes roster consumers and owns inspect API calls/events. Roster and gear retain their queues and result handling.
 - Profile core/support, screen APIs, links and encounters precede presentation; ProfileEditor and ProfileCharacters precede ProfileWindow.
 - Legacy PlayerHistory, PlayerHistoryStore, CharacterLinks, ProfileDraft, CharacterProfile/ProfilePanels and Sync/Karma modules are not loaded; historical fixtures may load them explicitly in tests.
@@ -122,9 +123,9 @@ The [character-system baseline](Character-System-Baseline.md) records the pre-si
 
 Agreed changes for the new system are tracked separately in [character-system redesign decisions](Character-System-Redesign.md).
 
-The [character-system implementation plan](Character-System-Implementation-Plan.md) orders the work and defines validation for each stage; it does not indicate that the redesign has shipped.
+The [character-system implementation plan](Character-System-Implementation-Plan.md) records the stages and their validation. Shipped behavior and the dated acceptance results are recorded in [Character-System-Verification.md](Character-System-Verification.md).
 
-The [new character-system contract](Character-System-Contract.md) defines the local data model, reduced event catalog and planned screen structure. The transition bridge is active; complete screen redesign and encounter sessions are subsequent stages.
+The [character-system contract](Character-System-Contract.md) defines the local data model, reduced event catalog and screen structure. The bridge, redesigned ProfileWindow and group encounter sessions are active in the TOC; legacy profile and exchange modules remain outside it.
 
 ## Focused searches
 

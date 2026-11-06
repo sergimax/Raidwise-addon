@@ -55,7 +55,7 @@ function Addon:EnsureHistoryEntryForGuid(guid, seed)
 end
 
 function Addon:PruneHistory()
-	-- Retention of individual encounters is introduced in the next stage.
+	-- Replaced by PlayerEncounters later in the TOC, before initialization.
 end
 
 function Addon:GetLocalProfile(guid)

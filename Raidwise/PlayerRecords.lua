@@ -1,4 +1,4 @@
--- Opt-in local profile core. Existing UI/history APIs remain on the old store.
+-- Active local profile core; screen APIs use this store through PlayerRecordBridge.
 local Addon = Raidwise
 local drafts = setmetatable({}, {__mode = "k"})
 local eventTypes = {}
