@@ -16,16 +16,18 @@ async function run(modules: string[], setup: string, scenario: string): Promise<
 }
 
 test("negative personal opinions color the whole chat body red and preserve chat arguments and links", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "RatingPresentation"], `
+  await run(["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks", "PlayerEncounters", "RatingPresentation"], `
     Raidwise.db={}
     function time() return 1000 end
     function GetRealmName() return "Realm" end
     function UnitGUID() return "SELF" end
+    function UnitName() return "Me", "Realm" end
     filters={}
     function ChatFrame_AddMessageEventFilter(event, callback) filters[event]=callback end
   `, `
+    Raidwise:InitializeHistoryStore()
     Raidwise:EnsureHistoryEntryForGuid("A",{name="Sender",realm="Realm"})
-    Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{})
+    assert(Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{}))
     local item="|cffa335ee|Hitem:123:0:0|h[Item]|h|r"
     local achievement="|cffffff00|Hachievement:456:Player:1:0|h[Achievement]|h|r"
     local text="Hello |cff00ff00green|r "..item..achievement.." end ||cffffffff literal ||r"
@@ -64,6 +66,8 @@ test("negative personal opinions color the whole chat body red and preserve chat
     Raidwise:EnsureHistoryEntryForGuid("B",{name="Alt",realm="Realm"})
     assert(Raidwise:LinkPlayerCharacters("A","B"))
     Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{})
+    assert(filter(nil,"CHAT_MSG_SAY","alt message","Alt")==nil)
+    Raidwise:SavePersonalRatingForGuid("B",nil,"negative",{},{})
     local _, message=filter(nil,"CHAT_MSG_SAY","alt message","Alt")
     assert(message=="|cffffffff<|cffff0000Rw|cffffffff>|r |cffff0000alt message|r")
   `);

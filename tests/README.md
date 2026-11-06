@@ -115,6 +115,29 @@ records, but error text can contain runtime values: review before sharing.
 
 ## Test selection
 
+`record-reads.test.mts` checks detached screen reads (including nested identity
+data and roster authors), name-index rename/upgrade/recovery, profile deletion,
+and sparse selection among 10,000 identities. Warm lookup and roster tests reject
+a full identity scan; encounter summaries must not copy whole histories.
+The chat-color regression uses the active core and verifies independent opinions
+for linked characters. Historical migration fixtures remain explicitly separate.
+
+For timings, run `node scripts/benchmark-records.mts`. It seeds synthetic 1k/10k
+identities with 11 filled profiles/recent encounters, reports the cold name-index
+lookup, 100 warm lookups and ten builds of each list. `--dense` fills every record;
+`--baseline` loads Lua from Git HEAD instead of the working tree, without checkout.
+These are single-process WASM measurements, not pass/fail latency thresholds or
+WoW FPS/RAM estimates. Cold lookup includes index construction; sorting and
+retention costs remain for dense lists. After committing, HEAD becomes the new
+baseline; the audit evidence records the revision used for the comparison.
+
+`release.test.mts` validates the runtime allowlist and builds an actual ZIP from
+HEAD in a temporary directory, then reads its central directory. The package must
+contain exactly TOC modules, the TOC and tracked media. No release is published.
+`node scripts/package-addon.mts <output.zip>` is also the release workflow command;
+it always packages tracked HEAD content, not uncommitted working files. Missing
+TOC modules, traversal paths and unsupported XML entries fail before archiving.
+
 For focused iteration, run `node --test tests/scan.test.mts` (substitute the
 relevant file below). Before finishing code/test changes, run `npm run check`
 after the final edit. Reuse installed dependencies unless missing or the lockfile

@@ -416,9 +416,9 @@ test("active bridge retires legacy profiles once and routes reads and writes to 
       assert(a:GetCommunityRating(entry)==nil and #a:GetExchangeProfileSources('X')==0)
       a:InitializeHistoryStore()
       assert(a:GetProfileNotes(entry)=='private' and a:GetPersonalRating(entry).opinion=='negative')
-      assert(a:GetHistoryEntry('X')==entry and a.db.reputation==nil)
+      assert(a:GetHistoryEntry('X').name==entry.name and a.db.reputation==nil)
       assert(a:DeleteCharacterDatabaseRecords({'X'})==1)
-      assert(not a:IsCharacterDatabaseEntry(entry) and a:GetHistoryEntry('X')==entry)
+      assert(not a:IsCharacterDatabaseEntry(entry) and a:GetHistoryEntry('X').name==entry.name)
       assert(a.db.history==nil and a.db.reputation==nil)
       a.GetClassicOpinionDiagnostics=function() return 'initialized=true' end
       a.ShowMainFrame=function(self) self.mainFrame={IsShown=function() return true end} end

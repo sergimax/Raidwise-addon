@@ -49,6 +49,52 @@ local function NamedKey(identity)
 	return "name:" .. RealmKey(identity.realm) .. ":" .. Fold(identity.name)
 end
 
+-- Runtime index only. Owners update it with identity writes; it is never saved.
+local indexedStore, identityNames
+local function IdentityIndex(store)
+	if indexedStore ~= store then
+		indexedStore, identityNames = store, {}
+		for key, identity in pairs(store.identities) do
+			local name = NamedKey(identity)
+			identityNames[name] = identityNames[name] or {}
+			identityNames[name][key] = true
+		end
+	end
+	return identityNames
+end
+
+local function UnindexIdentity(store, key)
+	local identity = store.identities[key]
+	if indexedStore ~= store or not identity then return end
+	local name = NamedKey(identity)
+	local keys = identityNames[name]
+	if keys then
+		keys[key] = nil
+		if not next(keys) then identityNames[name] = nil end
+	end
+end
+
+function Addon:GetPlayerRecordIdentity(key)
+	local store = self:GetPlayerRecordStore()
+	local identity = store and store.identities[key]
+	if not identity then return nil end
+	local result = Copy(identity)
+	result.guid = key
+	return result
+end
+
+function Addon:FindPlayerRecordIdentities(name, realm)
+	local store = self:GetPlayerRecordStore()
+	local result = {}
+	if not store then return result end
+	local identity = Identity({name=name, realm=realm})
+	if not identity then return result end
+	for key in pairs(IdentityIndex(store)[NamedKey(identity)] or {}) do
+		result[key] = self:GetPlayerRecordIdentity(key)
+	end
+	return result
+end
+
 local function Actor()
 	local guid = type(UnitGUID) == "function" and UnitGUID("player")
 	local name, realm
@@ -304,6 +350,8 @@ local function IsolateEntries(store)
 	if #quarantine.entries > 0 then store.quarantine = quarantine end
 end
 
+-- INTERNAL mutable access for core, bridge, links and encounters only.
+-- Views use detached identity/profile/roster APIs; writes must go through owners.
 function Addon:GetPlayerRecordStore()
 	local store = self.db and self.db.playerRecords
 	if type(store) ~= "table" or store.schemaVersion ~= 1 or rejectedStores[store] then return nil end
@@ -314,6 +362,7 @@ function Addon:GetPlayerRecordStore()
 end
 
 function Addon:InitializePlayerRecords()
+	indexedStore, identityNames = nil, nil
 	if not self.db then return nil, "NO_DATABASE" end
 	if self.db.playerRecords ~= nil then
 		local current = self.db.playerRecords
@@ -385,6 +434,7 @@ function Addon:RestorePlayerRecordEntry(index, replacement)
 	end
 	if observer and not target then target = {}; store[section][observer] = target end
 	target[key] = repaired
+	if section == "identities" then indexedStore, identityNames = nil, nil end
 	entry.restored = true
 	for draft, state in pairs(drafts) do if state.store == store and state.key == key then drafts[draft] = nil end end
 	return true
@@ -461,8 +511,8 @@ function Addon:UpsertPlayerRecordIdentity(seed)
 		return nil, "IDENTITY_CONFLICT"
 	end
 	if not identity.guid then
-		for savedKey, saved in pairs(store.identities) do
-			if saved.guid and NamedKey(saved) == oldKey then
+		for savedKey in pairs(IdentityIndex(store)[oldKey] or {}) do
+			if not savedKey:match("^name:") then
 				if key ~= oldKey and key ~= savedKey then return nil, "IDENTITY_CONFLICT" end
 				key = savedKey
 			end
@@ -493,11 +543,18 @@ function Addon:UpsertPlayerRecordIdentity(seed)
 		for draft, state in pairs(drafts) do
 			if state.store == store and state.key == oldKey then state.key, draft.key = key, key end
 		end
+		UnindexIdentity(store, oldKey)
 		store.identities[oldKey] = nil
 	end
+	UnindexIdentity(store, key)
 	local previous = store.identities[key] or {}
 	for field, value in pairs(identity) do previous[field] = value end
 	store.identities[key] = previous
+	if indexedStore == store then
+		local name = NamedKey(previous)
+		identityNames[name] = identityNames[name] or {}
+		identityNames[name][key] = true
+	end
 	return key
 end
 

@@ -22,9 +22,9 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Saved reports and dumps | `GearCheckSavedReports.lua`, `GearCheckDump.lua` | `SaveGearCheckReport`, `FormatGearCheckDump`; dump module owns asynchronous raid export jobs |
 | Rosters and shared refresh | `PartyRoster.lua`, `RosterRefresh.lua` | `BuildRaidGroups`, `BuildRosterSnapshot`, `ScheduleRosterRefresh` |
 | Roles, consumables, composition | `RaidRoles.lua`, `RaidComposition.lua` | `UnitConsumableStatus`, `AnalyzeRaidComposition` |
-| Profile catalogs and identity support | `PlayerRecordSupport.lua`, `PlayerRecords.lua` | Three opinions, four facts, 22 event types; context capture, self-rating checks and identity presentation |
+| Profile catalogs and identity support | `PlayerRecordSupport.lua`, `PlayerRecords.lua` | Three opinions, four facts, 22 event types; context capture, self-rating checks; detached identity reads and normalized name/realm index |
 | Profile persistence and screen API | `PlayerRecords.lua`, `PlayerRecordBridge.lua` | `InitializeHistoryStore` activates `playerRecords` once without migrating old reviews; validation/quarantine and `RestorePlayerRecordEntry`; core drafts, journal v2 migration, separate profile/journal reads |
-| Group encounter sessions and retention | `PlayerEncounters.lua` | `RecordCurrentGroupHistory`, `GetCharacterEncounters`, `GetCharacterMeetingStats`, `PruneHistory`; 30-second lightweight presence observations, no inspect. Scan identity updates do not create meetings. |
+| Group encounter sessions and retention | `PlayerEncounters.lua` | `RecordCurrentGroupHistory`, `GetCharacterEncounters`, `GetCharacterMeetingStats`, `PruneCharacterEncounters`, `ProjectCharacterEncounters`; bridge retains the `PruneHistory` compatibility entry point. 30-second presence observations, no inspect. |
 | Database and recent-history lists | `PageHistory.lua`, `PlayerEncounters.lua` | `BuildHistoryRoster` selects filled profiles or recent encounters for the current observer; database sorts by profile/note update. Unset and explicit neutral opinions have distinct filters. |
 | Linked player characters and deletion | `PlayerRecordLinks.lua`, `ProfileCharacters.lua` | Active groups in `playerRecords.groups`, no opinion synchronization; journal and generation-safe deletion. Display helpers live in `PlayerRecordSupport.lua`. |
 | Retired profile exchange (not in TOC) | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua`, `PageReputation.lua`, `KarmaData.lua` | Archived implementation for later redesign; no active transport registration, pages or Karma import. See [Synchronization.md](Synchronization.md). |
@@ -46,6 +46,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 - Initialization checks the active profile core/bridge APIs before opening UI. Missing APIs report an incomplete installation; retired `RatingTagGroups` is not a startup requirement.
 - `InspectCoordinator` precedes roster consumers and owns inspect API calls/events. Roster and gear retain their queues and result handling.
 - Profile core/support, screen APIs, links and encounters precede presentation; ProfileEditor and ProfileCharacters precede ProfileWindow.
+- `HistoryProfileForMember` belongs to support and explicitly calls the encounter projection. `PruneHistory` belongs to bridge and delegates to encounter retention. Later modules do not replace either method or capture its previous implementation.
 - Legacy PlayerHistory, PlayerHistoryStore, CharacterLinks, ProfileDraft, CharacterProfile/ProfilePanels and Sync/Karma modules are not loaded; historical fixtures may load them explicitly in tests.
 - `UITheme` precedes `UIWidgets`, then `RosterWidgets`, then views. Theme/color tables retain identity across theme changes.
 - Gear catalogs and report compatibility helpers precede rules, grades, explanations and self-tests. Saved reports and collector precede `GearCheck`; reports and dumps follow it. Pages load before the shell.
@@ -85,6 +86,23 @@ enchants. The legacy combined `gearGrade` and `enchantSocketGrade` fields remain
 available for older consumers and saved reports.
 
 ### Refresh and reputation flow
+
+`GetPlayerRecordStore` is internal mutable access for core/bridge/links/encounters.
+Views use detached `GetHistoryEntry`/`GetPlayerRecordIdentity`, profile, link and
+roster reads. `HistoryStore` remains an explicit full identity snapshot for
+compatibility/diagnostics; it must not be used for per-message/per-row lookup.
+`FindPlayerRecordIdentities` returns only a normalized name/realm bucket. Its
+runtime index is built lazily, updated on identity upsert/rename/GUID upgrade,
+and reset on initialization, identity recovery or replacement of the store.
+Profile deletion retains identity/counters; opinion lookup reads current profiles
+and cannot return the deleted opinion. Direct writes to identity names outside
+the core are unsupported because they bypass validation and index maintenance.
+
+Database candidates come from profile/note keys; history candidates come from the
+current observer's recent encounters. Projection reads summary scalars without
+copying encounter histories. Filtering/sorting still materializes the matching
+list, and retention still walks stored encounters. Dense 10k lists are not made
+constant-time by the name index. Reproducible workloads: tests/README.md.
 
 Composition uses groups 1–5 from live collection or the shared snapshot, excluding
 reserve groups 6–8. Its counts, providers and chat reports use that same subset.
@@ -155,6 +173,23 @@ Agreed changes for the new system are tracked separately in [character-system re
 The [character-system implementation plan](Character-System-Implementation-Plan.md) records the stages and their validation. Shipped behavior and the dated acceptance results are recorded in [Character-System-Verification.md](Character-System-Verification.md).
 
 The [character-system contract](Character-System-Contract.md) defines the local data model, reduced event catalog and screen structure. The bridge, redesigned ProfileWindow and group encounter sessions are active in the TOC; legacy profile and exchange modules remain outside it.
+
+## Runtime package and deferred UI extraction
+
+The release workflow uses `scripts/package-addon.mts`: TOC + its Lua entries +
+tracked media from HEAD. Retired Lua stays in the repository for historical tests
+but is excluded from the installable ZIP. XML includes are not currently used;
+the packager rejects them until recursive dependency handling is implemented.
+
+Audit D08 remains deliberate follow-up debt, not a file-length target. When raid
+export behavior changes, extract the `PageRaid` export state/actions together
+(`UpdateRaidExportView`, `ShowRaidExportText`, `ExitRaidExportView`,
+`RunGearCheckRaidExport`) while preserving dump-job ownership in `GearCheckDump`.
+When target saved-report behavior changes, extract its list/selection/save/delete
+controller from `PageGearCheckTarget` while preserving persistence ownership in
+`GearCheckSavedReports`. Keep control creation and geometry in each page; verify
+cancel/restart, selection and navigation before changing those boundaries. Queue 6
+does not alter these features or layout versions, so no mechanical split is made.
 
 ## Focused searches
 

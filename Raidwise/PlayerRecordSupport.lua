@@ -22,6 +22,7 @@ function Addon:HistoryProfileForMember(member)
 	for key, value in pairs(member) do if value ~= nil and value ~= "" then result[key] = value end end
 	result.rating = {personal=self:GetPersonalRating(result)}
 	result.events, result.notes, result.changes = self:GetHistoryEvents(result), self:GetProfileNotes(result), self:GetProfileChanges(result)
+	if self.ProjectCharacterEncounters then result = self:ProjectCharacterEncounters(result) end
 	return result
 end
 
