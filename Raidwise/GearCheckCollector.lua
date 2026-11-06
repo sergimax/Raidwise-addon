@@ -291,6 +291,32 @@ end
 
 local scanTip
 local inspectGemCache = {}
+local GEM_CACHE_LIMIT = 1024
+local GEM_CACHE_TTL = 10
+local gemCacheCount, nextGemCacheSweep = 0, 0
+
+local function PrepareGemCache(key, now)
+	if now >= nextGemCacheSweep then
+		for cachedKey, entry in pairs(inspectGemCache) do
+			if now - entry.time >= GEM_CACHE_TTL then
+				inspectGemCache[cachedKey] = nil
+				gemCacheCount = gemCacheCount - 1
+			end
+		end
+		nextGemCacheSweep = now + 1
+	end
+	if not inspectGemCache[key] then
+		if gemCacheCount >= GEM_CACHE_LIMIT then
+			local oldestKey, oldestTime
+			for cachedKey, entry in pairs(inspectGemCache) do
+				if not oldestTime or entry.time < oldestTime then oldestKey, oldestTime = cachedKey, entry.time end
+			end
+			inspectGemCache[oldestKey] = nil
+			gemCacheCount = gemCacheCount - 1
+		end
+		gemCacheCount = gemCacheCount + 1
+	end
+end
 
 -- Cache only the exact equipped hyperlink, including socket enchant fields.
 -- A different link replaces the slot entry; short expiry also bounds stale reads.
@@ -519,13 +545,14 @@ local function CollectGemItemIds(itemLink, parsed, unit, slotId, slotKey)
 	local gems, fromTip = ScanInventorySocketData(itemLink, parsed, unit, slotId)
 	local key = GemCacheKey(unit, slotKey)
 	if key then
-		local cached = inspectGemCache[key]
 		local now = GetTime()
-		if cached and cached.link == itemLink and now - cached.time < 10 then
+		PrepareGemCache(key, now)
+		local cached = inspectGemCache[key]
+		if cached and cached.link == itemLink and now - cached.time < GEM_CACHE_TTL then
 			gems = MergeGemReads(gems, cached.gems)
 		end
 		-- Expiry is measured from the first read, not extended by cache hits.
-		local cacheTime = cached and cached.link == itemLink and now - cached.time < 10 and cached.time or now
+		local cacheTime = cached and cached.link == itemLink and now - cached.time < GEM_CACHE_TTL and cached.time or now
 		local cacheable = {}
 		for index = 1, #gems do
 			if (gems[index].enchantId or 0) > 0 then

@@ -27,6 +27,14 @@ function Addon:RunDiagnostics()
 		lines[#lines + 1] = self:GetClassicOpinionDiagnostics()
 	end)
 	if self.GetPlayerRecordStore then
+		if self.GetPlayerRecordHealth then
+			local health = self:GetPlayerRecordHealth()
+			lines[#lines + 1] = "Character storage: " .. health.status .. "; quarantined=" .. health.quarantined
+				.. (health.reason and ("; reason=" .. health.reason) or "")
+			if health.quarantined > 0 then
+				lines[#lines + 1] = "WARN damaged records isolated; originals retained in playerRecords.quarantine. Repair procedure: docs/Character-System-Contract.md."
+			end
+		end
 		Check("local character system", function()
 			local store = self:GetPlayerRecordStore()
 			assert(store and store.activated, "New character store is not active")

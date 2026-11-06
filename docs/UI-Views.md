@@ -9,8 +9,8 @@ Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.m
 Classic-theme plain panels: left menu flush against content (no gap), no footer.
 
 ```text
-[ Menu 170 ][ Content 890 x 940 ]
- [ Raidwise v1.x ] [ {page} vN  X ]
+[ Menu 170 ][ Content 890 x 693 ]
+ [ Raidwise {semver} ] [ {page} vN  X ]
  [ menu tabs... ]  [ page body     ]
 ```
 
@@ -45,18 +45,15 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 23` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
-| Diagnostics popup | `LAYOUT_VERSION = 1` | `Diagnostics.lua` | Independent report window; no badge |
-| Character | `VERSION = 37` | `ProfileWindow.lua` | Title bar (left of close) |
+| Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
+| Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Shell title bar (next to page name) |
-| Characters data export | `LAYOUT_VERSION = 1` | `PageSyncExport.lua` | Shell title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 36` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Character database | `LAYOUT_VERSION = 13` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Characters data import | `LAYOUT_VERSION = 4` | `PageSync.lua` | Shell title bar (next to page name) |
-| Reputation | `LAYOUT_VERSION = 3` | `PageReputation.lua` | Shell title bar (next to page name) |
+| Character database | `DATABASE_LAYOUT_VERSION = 13` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 18` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
 
@@ -64,7 +61,9 @@ The shared shell is **693 px** tall on every page. The Raid viewport fits groups
 1-5; groups 6-8 are below the fold and accessible by scrolling. Settings now scrolls
 vertically so all controls remain accessible in the shorter window.
 
-Rules: see `.cursor/rules/layout-versions.mdc`. Do **not** bump layout versions for locale-only string edits.
+The table lists active views only. Retired `PageSyncExport`, `PageSync` and
+`PageReputation` are outside the TOC and have no active navigation or badges.
+Rules: see [AGENTS.md](../AGENTS.md). Do **not** bump layout versions for locale-only string edits.
 
 ## Export gear and CDs
 
@@ -208,16 +207,18 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 Report buttons include 14 px icons and Chat preview tooltips for the displayed report, using the current Short/Full setting. With no report, the tooltip indicates that a scan is needed.
 
-Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, Scan, Character profile, Show as a text, Select all (top band), then Save report, Delete selected report, scrollable saved list. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
+Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, progress, Scan, Inspect target, Character profile, Show as a text, Select all (top band), then Save report, Delete selected report, scrollable saved list. Spec / progress: Gear Check specification + `docs/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
 
 ```text
 [ short description — full width ]
 [ surface-level limitation — full width ]
 
-LEFT (~670px)                          RIGHT (~220px)
+LEFT (640px)                          RIGHT (~220px)
 [ summary: Overall / class+spec icons / who / GS+iLvl … ]  [ status line 1 ]
                                         [ status line 2 … ]
+                                        [ Scan progress ]
                                         [ Scan ]
+                                        [ Inspect target ]
                                         [ Character profile ]
                                         [ Show as a text ]
                                         [ Select all ]
@@ -249,9 +250,9 @@ LEFT (~670px)                          RIGHT (~220px)
 | Delete selected report | Removes the currently viewed saved entry (hover tip) |
 | saved panel (right) | Scrollable list of all saved entries; click loads frozen snapshot |
 
-`LAYOUT_VERSION = 10`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
+`LAYOUT_VERSION = 15`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
 
-Saved snapshot fields: `rulesetVersion` (`wotlk-3.3.5a-{addonVersion}`), `dataVersion` (`GEAR_CHECK_DATA_VERSION` in catalog). Expired entries prune on load/save.
+Saved snapshot fields: `rulesetVersion` (`GEAR_CHECK_RULESET_VERSION` in rules), `dataVersion` (`GEAR_CHECK_DATA_VERSION` in catalog), both independent of addon semver. Expired entries prune on load/save.
 
 Raid-wide gear check lives on **Raid roster** (Scan button + report rows per player cell). See that section for layout and interaction.
 

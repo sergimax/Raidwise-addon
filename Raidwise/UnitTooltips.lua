@@ -4,7 +4,7 @@
 
 local Addon = Raidwise
 
--- REFACTOR candidate: GUID lookup then linear scan of entire history store by name/realm.
+-- GUID first, then the core's normalized name/realm index.
 local function FindHistoryEntryForUnit(unit)
 	if not unit or not UnitExists(unit) then
 		return nil, nil
@@ -22,7 +22,7 @@ local function FindHistoryEntryForUnit(unit)
 		return nil, guid
 	end
 	if not realm or realm == "" then realm = GetRealmName() or "" end
-	local store = Addon:HistoryStore()
+	local store = Addon:FindPlayerRecordIdentities(name, realm)
 	local fold = strlower or string.lower
 	local realmKey = fold(realm):gsub("%s+", "")
 	for _, entry in pairs(store) do

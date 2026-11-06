@@ -16,16 +16,18 @@ async function run(modules: string[], setup: string, scenario: string): Promise<
 }
 
 test("negative personal opinions color the whole chat body red and preserve chat arguments and links", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "RatingPresentation"], `
+  await run(["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks", "PlayerEncounters", "RatingPresentation"], `
     Raidwise.db={}
     function time() return 1000 end
     function GetRealmName() return "Realm" end
     function UnitGUID() return "SELF" end
+    function UnitName() return "Me", "Realm" end
     filters={}
     function ChatFrame_AddMessageEventFilter(event, callback) filters[event]=callback end
   `, `
+    Raidwise:InitializeHistoryStore()
     Raidwise:EnsureHistoryEntryForGuid("A",{name="Sender",realm="Realm"})
-    Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{})
+    assert(Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{}))
     local item="|cffa335ee|Hitem:123:0:0|h[Item]|h|r"
     local achievement="|cffffff00|Hachievement:456:Player:1:0|h[Achievement]|h|r"
     local text="Hello |cff00ff00green|r "..item..achievement.." end ||cffffffff literal ||r"
@@ -64,6 +66,8 @@ test("negative personal opinions color the whole chat body red and preserve chat
     Raidwise:EnsureHistoryEntryForGuid("B",{name="Alt",realm="Realm"})
     assert(Raidwise:LinkPlayerCharacters("A","B"))
     Raidwise:SavePersonalRatingForGuid("A",nil,"negative",{},{})
+    assert(filter(nil,"CHAT_MSG_SAY","alt message","Alt")==nil)
+    Raidwise:SavePersonalRatingForGuid("B",nil,"negative",{},{})
     local _, message=filter(nil,"CHAT_MSG_SAY","alt message","Alt")
     assert(message=="|cffffffff<|cffff0000Rw|cffffffff>|r |cffff0000alt message|r")
   `);
@@ -380,6 +384,58 @@ test("profile panel construction and history rendering survive extraction", asyn
     for _,key in ipairs({"opinion","facts","events","notes","history"}) do assert(frame.profilePanels[key],key) end
     Raidwise:RefreshProfileHistoryPanel(frame,{changes={}},14)
     assert(#frame.historyRows==1)
+  `);
+});
+
+test("active TOC bootstrap initializes profiles without retired-module warnings and detects missing APIs", async () => {
+  const toc = await readFile(new URL("../Raidwise/Raidwise.toc", import.meta.url), "utf8");
+  const modules = toc.split(/\r?\n/).filter(line => line.endsWith(".lua")).map(line => line.slice(0, -4));
+  await run(modules, `
+    SlashCmdList={}
+    GameTooltip={}
+    function GetLocale() return 'enUS' end
+    function GetAddOnMetadata() return '' end
+    function GetRealmName() return 'Realm' end
+    function UnitGUID() return 'SELF' end
+    function UnitName() return 'Me' end
+    function time() return 1000 end
+    function ChatFrame_AddMessageEventFilter() end
+  `, `
+    -- Isolate bootstrap/storage from native UI construction and social hooks.
+    Raidwise.CreateMainFrame=nil
+    Raidwise.CreateMinimapButton=nil
+    Raidwise.InitializeClassicOpinionMarkers=nil
+    local messages={}
+    function Raidwise:Print(message) messages[#messages+1]=message end
+    assert(Raidwise.RatingTagGroups==nil)
+    Raidwise:OnInitialize()
+    assert(Raidwise:GetPlayerRecordStore().activated)
+    assert(#messages==1 and messages[1]==Raidwise:T('CHAT_LOADED',Raidwise.version), table.concat(messages,' | '))
+    local key=assert(Raidwise:UpsertPlayerRecordIdentity({guid='OTHER',name='Other'}))
+    local draft=assert(Raidwise:CreatePlayerRecordDraft(key))
+    draft.opinion='positive'; assert(Raidwise:CommitPlayerRecordDraft(draft))
+    assert(Raidwise:GetPersonalRating({guid=key}).opinion=='positive')
+    Raidwise:OnInitialize()
+    assert(#messages==2 and Raidwise:GetPersonalRating({guid=key}).opinion=='positive')
+    for _,method in ipairs({'InitializeHistoryStore','GetPlayerRecordStore','CreatePlayerRecordDraft','CommitPlayerRecordDraft','GetPersonalRating'}) do
+      local saved=Raidwise[method]
+      Raidwise[method]=nil
+      messages={}
+      Raidwise:OnInitialize()
+      assert(#messages==1 and messages[1]:find('Player record modules failed to load',1,true))
+      assert(not messages[1]:find('PlayerHistory.lua',1,true))
+      Raidwise[method]=saved
+    end
+    local store=Raidwise.db.playerRecords
+    store.notes.BROKEN={text='private original',revision='bad'}
+    messages={};Raidwise:OnInitialize()
+    assert(#messages==2 and messages[1]:find('damaged entries isolated',1,true))
+    assert(not messages[1]:find('private original',1,true))
+    assert(Raidwise:GetPersonalRating({guid=key}).opinion=='positive')
+    store.journalVersion=99
+    messages={};Raidwise:OnInitialize()
+    assert(#messages==1 and messages[1]:find('UNSUPPORTED_JOURNAL',1,true))
+    assert(Raidwise:GetPlayerRecordStore()==nil and store.journalVersion==99)
   `);
 });
 

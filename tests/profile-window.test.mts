@@ -105,6 +105,27 @@ test("active profile: autosave, explicit save, event editing, retained errors an
       a:ShowRaidCharacterWindow(empty);f.notesBox:SetText('not yet saved')
       assert(a:DeleteCharacterDatabaseRecords({'EMPTY'})==1)
       a:TickProfileEditor(f.editor,10);assert(a:GetProfileNotes(empty)=='')
+      local draft=a:CreatePlayerRecordDraft('X')
+      for index=1,60 do
+        draft.opinion=index%2==0 and 'positive' or 'negative'
+        assert(a:CommitPlayerRecordDraft(draft))
+      end
+      local wholeRecord=a.GetPlayerRecord
+      a.GetPlayerRecord=function() error('UI must not copy the entire journal') end
+      local getPage=a.GetPlayerRecordChangePage
+      local requestedPage,returnedRows
+      a.GetPlayerRecordChangePage=function(self,key,page)
+        local rows=getPage(self,key,page)
+        requestedPage,returnedRows=page,#rows
+        return rows
+      end
+      a:ShowRaidCharacterWindow(x)
+      assert(requestedPage==1 and returnedRows==25)
+      f.historyPage=2;f.profileTabs.history.scripts.OnClick()
+      assert(requestedPage==2 and returnedRows==25 and f.historyPages:GetText():find('2 / ',1,true))
+      f.historyPage=999;f.profileTabs.history.scripts.OnClick()
+      assert(requestedPage==f.maxHistoryPage and returnedRows>0 and returnedRows<=25)
+      a.GetPlayerRecord=wholeRecord;a.GetPlayerRecordChangePage=getPage
     `);
   } finally { lua.global.close(); }
 });

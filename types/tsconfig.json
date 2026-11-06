@@ -1,0 +1,10 @@
+{
+  "extends": "../tests/tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "erasableSyntaxOnly": false
+  },
+  "include": ["*.ts", "../tests/export-contracts.test.mts"],
+  "exclude": []
+}

@@ -1,6 +1,6 @@
 # Raidwise UI sizes
 
-Reference for the main window and pages. All units are WoW UI pixels. Shared theme and widgets live in `UIWidgets.lua`; shell sizes in `ExporterWindow.lua`; page-specific columns in each `Page*.lua`. Values here must stay in sync with those tables.
+Reference for the main window and pages. All units are WoW UI pixels. Shared theme constants live in `UITheme.lua` and widgets in `UIWidgets.lua`; shell sizes in `ExporterWindow.lua`; page-specific columns in each `Page*.lua`. Values here must stay in sync with those tables.
 
 View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture: [`Architecture.md`](Architecture.md).
 
@@ -165,6 +165,8 @@ Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollb
 
 ## Gear check (target) tab
 
+Current layout: **v15**. The dimensions below include the progress bar and Inspect target control.
+
 Layout v14 adds **Inspect target**, **220 x 28** px, between Scan and Character
 profile with a **4** px gap. The top block grows another **32** px.
 
@@ -173,15 +175,15 @@ gap. The top block grows by **24** px. It shows inspect/spec/gems/evaluation
 stages and elapsed seconds, not a completion percentage; retries can revisit
 earlier stages. It hides when scanning ends, leaving the final status visible.
 
-Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**176** px): multi-line status, **Scan**, **Character profile**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 12`.
+Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**228** px): multi-line status, progress bar, **Scan**, **Inspect target**, **Character profile**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 15`.
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Left column | **~670** px | `innerW − RIGHT_COL_W − COL_GAP` |
+| Left column | **640** px | `innerW − RIGHT_COL_W − COL_GAP` |
 | Right column | **220** px | Top band + saved sidebar |
 | Summary (left) | height **124** | Top block; report row below `max(124, right top)` |
 | Class / spec icons | **18** px | On who line under Overall; tooltips show class / spec names |
-| Right top band | height **~144** | Status + 3 stacked buttons |
+| Right top band | height **228** | Status, progress bar and 5 stacked buttons |
 | Report / filter rows | left width only | Five equal buttons each; report labels include 14 px icons and hover previews of the current chat output |
 | Breakdown | left, fills height | Slot groups with verdict color |
 | Saved list | right sidebar below delete | Scroll + vertical bar; all entries (not capped) |
@@ -221,7 +223,7 @@ loaded by the TOC. No Karma, tag editor, separate Memo tab or Memo Save/Reset.
 Independent **620 x 420** px centered dialog with a title and close button.
 The report scroll area has **20** px left/bottom, **40** px right and **48** px
 top insets; its multiline edit box is **550** px wide with **340** px initial
-height. Layout v1 does not depend on the main shell or theme widgets.
+height. Layout v2 uses a named scroll frame for the Wrath template and does not depend on the main shell or theme widgets.
 
 ## History and Character database tabs
 
@@ -270,7 +272,7 @@ The shared header has a **132 x 18** px Short / Full radio group, **16** px befo
 
 Category bars: **28** px high, **16** pt gold text, theme-aware `TITLE_BG` fill, **3** px gold left accent, **10** px text inset; **20** px gap above each subsequent category. Hint/control content uses the same **10** px inset; radio grids use inner width minus **20** px.
 
-Below: **Unit tooltips** category bar and hint, then one shared panel with **10** px padding. Left: **360** px options column with four **24 × 24** checkboxes and **6** px row gaps. Right: remaining width after a **20** px column gap, containing a small **Live tooltip preview** label and compact + stacked samples. Preview text wraps within the right column. Panel height follows sample text height with a **120** px minimum content height plus **20** px padding (`LAYOUT_VERSION = 10`).
+Below: **Unit tooltips** category bar and hint, then one shared panel with **10** px padding. Left: **360** px options column with the selected-opinion visibility checkbox (**24 × 24**); retired tag/Karma options are not displayed. Right: remaining width after a **20** px column gap, containing a small **Live tooltip preview** label and compact + stacked samples. Preview text wraps within the right column. Panel height follows sample text height with a **120** px minimum content height plus **20** px padding (`LAYOUT_VERSION = 18`).
 
 ## Fonts
 
@@ -302,14 +304,17 @@ Key helpers used across pages (not on `Raidwise` directly):
 
 ## Changing sizes
 
-1. Edit the `UI` / theme constants in `UIWidgets.lua`, `ExporterWindow.lua`, or the relevant `Page*.lua`.
+1. Edit the `UI` / theme constants in `UITheme.lua`, `ExporterWindow.lua`, or the relevant `Page*.lua`.
 2. Bump that view’s `LAYOUT_VERSION` when structure or named frames change.
 3. Update this document and [`UI-Views.md`](UI-Views.md) to match (include the new `vN`).
 4. Reload the UI (`/reload`) and check `/raidwise` (layout rebuild should also fire when versions mismatch).
 
 Header report controls are contextual: chat channels appear only on Raid roster, Raid composition, and Gear check (target); Short / Full appears only on Gear check (target), whose output uses that setting. Both groups are hidden on all other views. Switching views preserves saved selections.
 
-## Character-system transition (2026-10-30)
+## Historical character-system transition (2026-10-30)
+
+The sequence below records earlier layouts, not the current profile screen.
+Current profile dimensions are in the active v38 section above.
 
 Shell v23 removes the exchange group and profile-export entry; outer sizes are unchanged.
 Profile v36 removes the 90 x 18 Share button; the title now ends 8 px before

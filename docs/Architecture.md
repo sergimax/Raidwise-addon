@@ -22,9 +22,9 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Saved reports and dumps | `GearCheckSavedReports.lua`, `GearCheckDump.lua` | `SaveGearCheckReport`, `FormatGearCheckDump`; dump module owns asynchronous raid export jobs |
 | Rosters and shared refresh | `PartyRoster.lua`, `RosterRefresh.lua` | `BuildRaidGroups`, `BuildRosterSnapshot`, `ScheduleRosterRefresh` |
 | Roles, consumables, composition | `RaidRoles.lua`, `RaidComposition.lua` | `UnitConsumableStatus`, `AnalyzeRaidComposition` |
-| Profile catalogs and identity support | `PlayerRecordSupport.lua`, `PlayerRecords.lua` | Three opinions, four facts, 22 event types; context capture, self-rating checks and identity presentation |
-| Profile persistence and screen API | `PlayerRecords.lua`, `PlayerRecordBridge.lua` | `InitializeHistoryStore` activates `playerRecords` once without migrating old reviews; core drafts and screen-facing reads/writes |
-| Group encounter sessions and retention | `PlayerEncounters.lua` | `RecordCurrentGroupHistory`, `GetCharacterEncounters`, `GetCharacterMeetingStats`, `PruneHistory`; 30-second lightweight presence observations, no inspect. Scan identity updates do not create meetings. |
+| Profile catalogs and identity support | `PlayerRecordSupport.lua`, `PlayerRecords.lua` | Three opinions, four facts, 22 event types; context capture, self-rating checks; detached identity reads and normalized name/realm index |
+| Profile persistence and screen API | `PlayerRecords.lua`, `PlayerRecordBridge.lua` | `InitializeHistoryStore` activates `playerRecords` once without migrating old reviews; validation/quarantine and `RestorePlayerRecordEntry`; core drafts, journal v2 migration, separate profile/journal reads |
+| Group encounter sessions and retention | `PlayerEncounters.lua` | `RecordCurrentGroupHistory`, `GetCharacterEncounters`, `GetCharacterMeetingStats`, `PruneCharacterEncounters`, `ProjectCharacterEncounters`; bridge retains the `PruneHistory` compatibility entry point. 30-second presence observations, no inspect. |
 | Database and recent-history lists | `PageHistory.lua`, `PlayerEncounters.lua` | `BuildHistoryRoster` selects filled profiles or recent encounters for the current observer; database sorts by profile/note update. Unset and explicit neutral opinions have distinct filters. |
 | Linked player characters and deletion | `PlayerRecordLinks.lua`, `ProfileCharacters.lua` | Active groups in `playerRecords.groups`, no opinion synchronization; journal and generation-safe deletion. Display helpers live in `PlayerRecordSupport.lua`. |
 | Retired profile exchange (not in TOC) | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua`, `PageReputation.lua`, `KarmaData.lua` | Archived implementation for later redesign; no active transport registration, pages or Karma import. See [Synchronization.md](Synchronization.md). |
@@ -42,8 +42,11 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 [Raidwise.toc](../Raidwise/Raidwise.toc) is the authoritative executable load order. Read it when adding/moving modules; do not maintain a duplicate full list here.
 
 - Bootstrap creates the namespace; later modules attach methods before normal event-driven use.
+- `CharacterExport` provides `Addon.EscapeJsonString` before `CharacterLockouts`; both export formats share complete JSON string escaping (including U+0000–U+001F).
+- Initialization checks the active profile core/bridge APIs before opening UI. Missing APIs report an incomplete installation; retired `RatingTagGroups` is not a startup requirement.
 - `InspectCoordinator` precedes roster consumers and owns inspect API calls/events. Roster and gear retain their queues and result handling.
 - Profile core/support, screen APIs, links and encounters precede presentation; ProfileEditor and ProfileCharacters precede ProfileWindow.
+- `HistoryProfileForMember` belongs to support and explicitly calls the encounter projection. `PruneHistory` belongs to bridge and delegates to encounter retention. Later modules do not replace either method or capture its previous implementation.
 - Legacy PlayerHistory, PlayerHistoryStore, CharacterLinks, ProfileDraft, CharacterProfile/ProfilePanels and Sync/Karma modules are not loaded; historical fixtures may load them explicitly in tests.
 - `UITheme` precedes `UIWidgets`, then `RosterWidgets`, then views. Theme/color tables retain identity across theme changes.
 - Gear catalogs and report compatibility helpers precede rules, grades, explanations and self-tests. Saved reports and collector precede `GearCheck`; reports and dumps follow it. Pages load before the shell.
@@ -59,6 +62,13 @@ Dump diagnostics include a copied request trace (requests/events/accepted/last
 payload) and `character.talentRead` (readiness, raw group/tab count, selected group,
 and per-tree points). These distinguish event delivery from empty talent reads;
 an incomplete final verdict alone does not prove the ready event was absent.
+
+The collector's gem cache retains at most 1,024 GUID/slot entries, tied to the
+exact item link. Reads expire after 10 seconds from the initial read, without
+extension on a cache hit. Collection sweeps expired entries at most once per
+second; reaching capacity evicts the oldest entry before inserting a new key.
+No idle timer is added: unused expired entries are removed on subsequent
+collection, and memory remains bounded while idle.
 
 `CollectGearCheck` normalizes truthy numeric WoW API results to a boolean before
 passing inspect readiness to the collector; its strict `true` check must not
@@ -77,6 +87,23 @@ available for older consumers and saved reports.
 
 ### Refresh and reputation flow
 
+`GetPlayerRecordStore` is internal mutable access for core/bridge/links/encounters.
+Views use detached `GetHistoryEntry`/`GetPlayerRecordIdentity`, profile, link and
+roster reads. `HistoryStore` remains an explicit full identity snapshot for
+compatibility/diagnostics; it must not be used for per-message/per-row lookup.
+`FindPlayerRecordIdentities` returns only a normalized name/realm bucket. Its
+runtime index is built lazily, updated on identity upsert/rename/GUID upgrade,
+and reset on initialization, identity recovery or replacement of the store.
+Profile deletion retains identity/counters; opinion lookup reads current profiles
+and cannot return the deleted opinion. Direct writes to identity names outside
+the core are unsupported because they bypass validation and index maintenance.
+
+Database candidates come from profile/note keys; history candidates come from the
+current observer's recent encounters. Projection reads summary scalars without
+copying encounter histories. Filtering/sorting still materializes the matching
+list, and retention still walks stored encounters. Dense 10k lists are not made
+constant-time by the name index. Reproducible workloads: tests/README.md.
+
 Composition uses groups 1–5 from live collection or the shared snapshot, excluding
 reserve groups 6–8. Its counts, providers and chat reports use that same subset.
 Raid gear scanning also uses groups 1–5. Roster grade summaries filter saved and
@@ -91,9 +118,30 @@ store once; no old review migration runs. Read APIs do not initialize SavedVaria
 Group observations track independent observer/subject sessions and preserve counters
 when details expire. There is no active Karma fallback or profile exchange.
 
+Loading validates nested records and quarantines damaged components with their
+original values preserved. Healthy records remain available. Unknown versions
+or invalid root containers remain untouched and unavailable; bootstrap reports
+the error. `GetPlayerRecordHealth` supplies content-free diagnostic status;
+`RestorePlayerRecordEntry` validates explicit repairs without overwriting live data.
+
+Profile event journals use independent `journalVersion=2`, storing event deltas
+by ID instead of full before/after arrays. Initialization atomically converts
+the remaining valid old journals while preserving their history; unknown journal versions fail
+without replacement. ProfileWindow copies the profile and one 25-row journal
+page separately; whole-record reads remain available for explicit compatibility
+consumers. Format and migration: [character-system contract](Character-System-Contract.md).
+
 Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The shell dispatches these methods; page modules own control labels and entry-specific collection. `entering=true` requests the original tab-entry work (lockout requests, roster refresh or history recording); locale refresh omits it. Public refresh wrappers remain compatible. Profile extraction preserves anchors, dimensions and named-frame versions.
 
 ### SavedVariables and versions
+
+Identity scope is one realm per SavedVariables dataset (user decision,
+2026-11-06). GUID keys remain unchanged, including saved Gear Check reports.
+Core identity upsert rejects a known GUID with a different normalized realm
+before moving aliases. Group history respects this conflict for observer and
+subject; chat GUID lookup also checks the sender realm. These guards do not
+provide multi-realm/server storage. See the identity section of the
+[character-system contract](Character-System-Contract.md).
 
 Copyable character/gear and cooldown JSON exports carry numeric `reportVersion: 1`.
 Profile JSON exchange is disabled. Target Gear
@@ -122,9 +170,26 @@ The [character-system baseline](Character-System-Baseline.md) records the pre-si
 
 Agreed changes for the new system are tracked separately in [character-system redesign decisions](Character-System-Redesign.md).
 
-The [character-system implementation plan](Character-System-Implementation-Plan.md) orders the work and defines validation for each stage; it does not indicate that the redesign has shipped.
+The [character-system implementation plan](Character-System-Implementation-Plan.md) records the stages and their validation. Shipped behavior and the dated acceptance results are recorded in [Character-System-Verification.md](Character-System-Verification.md).
 
-The [new character-system contract](Character-System-Contract.md) defines the local data model, reduced event catalog and planned screen structure. The transition bridge is active; complete screen redesign and encounter sessions are subsequent stages.
+The [character-system contract](Character-System-Contract.md) defines the local data model, reduced event catalog and screen structure. The bridge, redesigned ProfileWindow and group encounter sessions are active in the TOC; legacy profile and exchange modules remain outside it.
+
+## Runtime package and deferred UI extraction
+
+The release workflow uses `scripts/package-addon.mts`: TOC + its Lua entries +
+tracked media from HEAD. Retired Lua stays in the repository for historical tests
+but is excluded from the installable ZIP. XML includes are not currently used;
+the packager rejects them until recursive dependency handling is implemented.
+
+Audit D08 remains deliberate follow-up debt, not a file-length target. When raid
+export behavior changes, extract the `PageRaid` export state/actions together
+(`UpdateRaidExportView`, `ShowRaidExportText`, `ExitRaidExportView`,
+`RunGearCheckRaidExport`) while preserving dump-job ownership in `GearCheckDump`.
+When target saved-report behavior changes, extract its list/selection/save/delete
+controller from `PageGearCheckTarget` while preserving persistence ownership in
+`GearCheckSavedReports`. Keep control creation and geometry in each page; verify
+cancel/restart, selection and navigation before changing those boundaries. Queue 6
+does not alter these features or layout versions, so no mechanical split is made.
 
 ## Focused searches
 

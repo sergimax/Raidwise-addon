@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] - 2026-11-06
+
+### Added
+- Damaged character records are isolated while healthy profiles remain available; startup and `/rw diagnose` report storage health without exposing private notes.
+- A documented recovery API validates repaired records and preserves quarantined originals without overwriting live data.
+
+### Changed
+- Profile event journals store changes by event ID instead of repeated full event lists. Existing journals migrate automatically while preserving history and authorship; the History tab reads one page at a time.
+- Name-based opinion lookup uses an index, and Database/History build lists from relevant profiles and encounters instead of every known identity.
+- Release ZIPs include only active TOC modules and media, excluding retired profile and exchange code retained for historical tests.
+
+### Fixed
+- Removed the false missing-player-rating-module warning on startup; incomplete installations now identify missing active profile APIs.
+- Conflicting realms for the same GUID can no longer overwrite character identity or reuse another realm's opinions and encounter counters. Storage remains scoped to one realm.
+- Character and cooldown JSON exports correctly escape all control characters while preserving Unicode text.
+- Gem inspection cache entries expire and storage is capped, preventing unbounded growth during long sessions.
+- Editing identity, linked-character or roster data returned to the UI no longer changes saved records outside the normal save APIs.
+
 ## [2.0.0] - 2026-10-31
 
 ### Added

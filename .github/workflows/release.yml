@@ -32,8 +32,8 @@ jobs:
         run: node scripts/prepare-release.mts "$RELEASE_TAG" "$RELEASE_NOTES"
       - run: npm ci --ignore-scripts
       - run: npm run check
-      - name: Package tracked addon files from the tagged commit
-        run: git archive --format=zip --output="$RELEASE_ZIP" HEAD Raidwise/
+      - name: Package TOC modules and assets from the tagged commit
+        run: node scripts/package-addon.mts "$RELEASE_ZIP"
       - name: Publish release and installable ZIP
         env:
           GH_TOKEN: ${{ github.token }}

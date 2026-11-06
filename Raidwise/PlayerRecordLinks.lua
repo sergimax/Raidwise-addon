@@ -1,4 +1,4 @@
--- Active associations and profile deletion; legacy CharacterLinks keeps display helpers.
+-- Active associations and profile deletion; display helpers live in PlayerRecordSupport.
 local Addon = Raidwise
 
 local function GroupFor(key)
@@ -43,7 +43,7 @@ function Addon:GetLinkedCharacters(key)
 	for memberKey in pairs(group and group.members or key and {[key]=true} or {}) do
 		local entry = store and store.identities[memberKey]
 		if entry then
-			result[#result + 1] = {guid=memberKey, entry=entry,
+			result[#result + 1] = {guid=memberKey, entry=self:GetPlayerRecordIdentity(memberKey),
 				role=(not group or group.mainKey == memberKey) and "main" or "alt"}
 		end
 	end
@@ -62,7 +62,7 @@ function Addon:GetCharacterLinkCandidates(key, search)
 	for candidateKey, entry in pairs(store and store.identities or {}) do
 		if candidateKey ~= key and not (group and group.members[candidateKey])
 			and (strlower or string.lower)(self:LinkedCharacterName(entry)):find(search, 1, true) then
-			result[#result + 1] = entry
+			result[#result + 1] = self:GetPlayerRecordIdentity(candidateKey)
 		end
 	end
 	table.sort(result, function(left, right) return self:LinkedCharacterName(left) < self:LinkedCharacterName(right) end)

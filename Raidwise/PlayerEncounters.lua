@@ -57,7 +57,7 @@ function Addon:GetCharacterMeetingStats(subjectKey, observerKey)
 	return Copy(rows and rows[subjectKey] or {count=0})
 end
 
-function Addon:PruneHistory()
+function Addon:PruneCharacterEncounters()
 	local store = self:GetPlayerRecordStore()
 	if not store then return end
 	local now = time()
@@ -79,10 +79,12 @@ function Addon:UpsertHistoryMember(member)
 	if type(member) ~= "table" or not member.guid or member.guid == "" then return nil end
 	local entry = self:EnsureHistoryEntryForGuid(member.guid, member)
 	if not entry then return nil end
+	-- Owner-only mutable access; public identity reads are detached.
+	local saved = self:GetPlayerRecordStore().identities[entry.guid]
 	for _, field in ipairs({"classLabel", "spec", "specIcon", "race", "faction", "gender", "guildName", "guildRank", "gearScore", "averageIlvl"}) do
-		if member[field] ~= nil and member[field] ~= "" then entry[field] = member[field] end
+		if member[field] ~= nil and member[field] ~= "" then saved[field] = member[field] end
 	end
-	return entry
+	return self:GetHistoryEntry(entry.guid)
 end
 
 function Addon:RecordTargetScanHistory(report)
@@ -95,7 +97,7 @@ function Addon:RecordTargetScanHistory(report)
 	member.specIcon = character.specKnown and character.specIcon or nil
 	local entry = self:UpsertHistoryMember(member)
 	if not entry then return end
-	entry.lastScannedAt = tonumber(report.collection and report.collection.collectedAt) or time()
+	self:GetPlayerRecordStore().identities[entry.guid].lastScannedAt = tonumber(report.collection and report.collection.collectedAt) or time()
 	self:PruneHistory()
 	if self.RefreshHistoryView then self:RefreshHistoryView() end
 end
@@ -106,7 +108,7 @@ function Addon:RecordCurrentGroupHistory(refreshGearScore, rosterSnapshot)
 	if not store or not observer then return end
 	local now, present = time(), {}
 	local name, realm = UnitName("player")
-	if name then self:UpsertPlayerRecordIdentity({guid=observer, name=name, realm=realm}) end
+	if not name or not self:UpsertPlayerRecordIdentity({guid=observer, name=name, realm=realm}) then return end
 	store.encounters[observer] = store.encounters[observer] or {}
 	store.meetingStats[observer] = store.meetingStats[observer] or {}
 	local subjects, stats = store.encounters[observer], store.meetingStats[observer]
@@ -114,6 +116,7 @@ function Addon:RecordCurrentGroupHistory(refreshGearScore, rosterSnapshot)
 	for _, unit in ipairs(Units()) do
 		local guid = UnitGUID(unit)
 		if guid and guid ~= observer and not present[guid] then
+			present[guid] = true
 			local member = rosterSnapshot and rosterSnapshot.byUnit and rosterSnapshot.byUnit[unit]
 			if not member or member.guid ~= guid then
 				local unitName, unitRealm = UnitName(unit)
@@ -161,10 +164,14 @@ function Addon:RecordCurrentGroupHistory(refreshGearScore, rosterSnapshot)
 	end
 end
 
-local function Project(entry)
+function Addon:ProjectCharacterEncounters(entry)
 	local result = Copy(entry)
-	local stat = Addon:GetCharacterMeetingStats(entry.guid)
-	local recent = Last(Addon:GetCharacterEncounters(entry.guid))
+	local store = self:GetPlayerRecordStore()
+	local observer = Observer()
+	local stats = store and store.meetingStats[observer]
+	local subjects = store and store.encounters[observer]
+	local stat = stats and stats[entry.guid] or {count=0}
+	local recent = Last(subjects and subjects[entry.guid])
 	result.meetCount, result.metAt = stat.count, stat.firstMetAt or 0
 	result.lastSeenAt = recent and recent.lastSeenAt or 0
 	local place = recent and Last(recent.places)
@@ -178,38 +185,40 @@ local function Project(entry)
 	return result
 end
 
-local oldProfile = Addon.HistoryProfileForMember
-function Addon:HistoryProfileForMember(member)
-	local result = oldProfile(self, member)
-	if type(result) ~= "table" then return result end
-	local projection = Project(result)
-	for _, field in ipairs({"meetCount", "metAt", "lastSeenAt", "metZone", "lastSeenZone", "metRealm"}) do result[field] = projection[field] end
-	return result
-end
-
 function Addon:BuildHistoryRoster(database, filters)
 	self:PruneHistory()
 	filters = filters or {}
 	local function Fold(value) return (strlower or string.lower)(tostring(value or "")) end
 	local selected = {}
 	local store = self:GetPlayerRecordStore()
-	for _, identity in pairs(self:HistoryStore()) do
-		local entry = Project(identity)
-		local profile, note = store.profiles[entry.guid], store.notes[entry.guid]
-		local opinion = profile and profile.opinion or "unset"
-		local include = database and self:IsPlayerRecordFilled(entry.guid)
-			or not database and entry.lastSeenAt > 0 and entry.lastSeenAt >= time() - RETENTION_SECONDS
-		for _, field in ipairs({"name", "class", "guildName"}) do
-			local value = entry[field]
-			if field == "name" then value = self:LinkedCharacterName(entry) end
-			if field == "class" then value = (value or "") .. " " .. (entry.classLabel or "") end
-			if not Fold(value):find(Fold(filters[field]), 1, true) then include = false end
-		end
-		if database and filters.opinion and filters.opinion ~= "" and filters.opinion ~= opinion then include = false end
-		if include then
-			entry.profileAuthor = opinion ~= "unset" and profile.author or nil
-			entry.profileUpdatedAt = math.max(profile and profile.updatedAt or 0, note and note.updatedAt or 0)
-			selected[#selected + 1] = entry
+	if not store then return selected end
+	local candidates = {}
+	if database then
+		for key in pairs(store.profiles) do candidates[key] = true end
+		for key in pairs(store.notes) do candidates[key] = true end
+	else
+		for key in pairs(store.encounters[Observer()] or {}) do candidates[key] = true end
+	end
+	for key in pairs(candidates) do
+		local identity = self:GetPlayerRecordIdentity(key)
+		if identity then
+			local entry = self:ProjectCharacterEncounters(identity)
+			local profile, note = store.profiles[entry.guid], store.notes[entry.guid]
+			local opinion = profile and profile.opinion or "unset"
+			local include = database and self:IsPlayerRecordFilled(entry.guid)
+				or not database and entry.lastSeenAt > 0 and entry.lastSeenAt >= time() - RETENTION_SECONDS
+			for _, field in ipairs({"name", "class", "guildName"}) do
+				local value = entry[field]
+				if field == "name" then value = self:LinkedCharacterName(entry) end
+				if field == "class" then value = (value or "") .. " " .. (entry.classLabel or "") end
+				if not Fold(value):find(Fold(filters[field]), 1, true) then include = false end
+			end
+			if database and filters.opinion and filters.opinion ~= "" and filters.opinion ~= opinion then include = false end
+			if include then
+				entry.profileAuthor = opinion ~= "unset" and Copy(profile.author) or nil
+				entry.profileUpdatedAt = math.max(profile and profile.updatedAt or 0, note and note.updatedAt or 0)
+				selected[#selected + 1] = entry
+			end
 		end
 	end
 	table.sort(selected, function(left, right)

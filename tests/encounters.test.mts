@@ -38,6 +38,26 @@ async function run(body: string) {
   } finally { lua.global.close(); }
 }
 
+test("realm conflicts do not reuse another observer's counters or update a colliding subject", async () => {
+  await run(`
+    local a=Raidwise;local s=a:GetPlayerRecordStore()
+    a:RecordCurrentGroupHistory(false)
+    local session=s.encounters.SELF.X[1]
+    local originalName=UnitName
+    now=1010
+    function UnitName(unit) return UnitGUID(unit),'OtherRealm' end
+    a:RecordCurrentGroupHistory(false)
+    assert(s.meetingStats.SELF.X.count==1 and session.lastSeenAt==1000 and not session.lastAbsentAt)
+    assert(s.identities.SELF.realm=='Realm' and s.identities.X.realm=='Realm')
+    function UnitName(unit) return UnitGUID(unit),unit=='player' and 'Realm' or 'OtherRealm' end
+    a:RecordCurrentGroupHistory(false)
+    assert(s.meetingStats.SELF.X.count==1 and session.lastSeenAt==1000 and not session.lastAbsentAt)
+    UnitName=originalName
+    a:RecordCurrentGroupHistory(false)
+    assert(session.lastSeenAt==1010 and s.meetingStats.SELF.X.count==1)
+  `);
+});
+
 test("presence sessions deduplicate members, survive quiet groups, zone and raid transitions", async () => {
   await run(`
     local a=Raidwise

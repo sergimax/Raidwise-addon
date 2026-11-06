@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "2.0.0"
+Addon.version = "2.1.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -255,7 +255,21 @@ end
 -- Run once when this addon finishes loading.
 function Addon:OnInitialize()
 	EnsureDB()
-	if self.InitializeHistoryStore then self:InitializeHistoryStore() end
+	if type(self.InitializeHistoryStore) ~= "function" or type(self.GetPlayerRecordStore) ~= "function"
+		or type(self.CreatePlayerRecordDraft) ~= "function" or type(self.CommitPlayerRecordDraft) ~= "function"
+		or type(self.GetPersonalRating) ~= "function" then
+		self:Print("Player record modules failed to load. Reinstall the complete Raidwise folder and restart the client.")
+		return
+	end
+	local initialized, err = self:InitializeHistoryStore()
+	if not initialized then
+		self:Print("Player records unavailable: " .. tostring(err) .. ". Saved data was preserved. Run /rw diagnose.")
+		return
+	end
+	local health = self.GetPlayerRecordHealth and self:GetPlayerRecordHealth()
+	if health and health.quarantined > 0 then
+		self:Print("Player records: " .. health.quarantined .. " damaged entries isolated; originals preserved. Run /rw diagnose.")
+	end
 	if self.InitializeClassicOpinionMarkers then self:InitializeClassicOpinionMarkers() end
 	if self.CreateMinimapButton then
 		self:CreateMinimapButton()
@@ -272,9 +286,6 @@ function Addon:OnInitialize()
 		if not ok then
 			self:Print("UI failed to load: " .. tostring(err))
 		end
-	end
-	if not self.RatingTagGroups then
-		self:Print("Player rating module failed to load. Update PlayerHistory.lua and /reload.")
 	end
 	self:Print(self:T("CHAT_LOADED", self.version))
 end
