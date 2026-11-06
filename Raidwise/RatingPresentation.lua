@@ -63,12 +63,13 @@ function Addon:FindOpinionCharacter(sender, guid)
 	if not self.db then return nil end
 	if type(sender) ~= "string" then return nil end
 	local store = self:HistoryStore()
+	local name, realm = sender:match("^([^-]+)%-(.+)$")
+	name, realm = (strlower or string.lower)(name or sender), ChatRealmKey(realm or GetRealmName())
 	if guid and guid ~= "" and store[guid] then
+		if ChatRealmKey(store[guid].realm or GetRealmName()) ~= realm then return nil end
 		local personal = self:GetPersonalRating(store[guid])
 		return self:HasPersonalRatingData(personal) and store[guid] or nil
 	end
-	local name, realm = sender:match("^([^-]+)%-(.+)$")
-	name, realm = (strlower or string.lower)(name or sender), ChatRealmKey(realm or GetRealmName())
 	local selected, selectedTime, selectedKey
 	for key, entry in pairs(store) do
 		if (strlower or string.lower)(entry.name or "") == name and ChatRealmKey(entry.realm or GetRealmName()) == realm then

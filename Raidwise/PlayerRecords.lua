@@ -41,8 +41,12 @@ local function Identity(seed)
 	return {guid=seed.guid, name=seed.name, realm=realm, class=seed.class}
 end
 
+local function RealmKey(realm)
+	return Fold(realm):gsub("%s+", "")
+end
+
 local function NamedKey(identity)
-	return "name:" .. Fold(identity.realm):gsub("%s+", "") .. ":" .. Fold(identity.name)
+	return "name:" .. RealmKey(identity.realm) .. ":" .. Fold(identity.name)
 end
 
 local function Actor()
@@ -451,6 +455,11 @@ function Addon:UpsertPlayerRecordIdentity(seed)
 	if not identity then return nil, "INVALID_IDENTITY" end
 	local oldKey = NamedKey(identity)
 	local key = identity.guid or oldKey
+	local existing = store.identities[key]
+	-- GUID keys belong to one realm. Refuse a collision before moving any aliases.
+	if identity.guid and existing and RealmKey(existing.realm) ~= RealmKey(identity.realm) then
+		return nil, "IDENTITY_CONFLICT"
+	end
 	if not identity.guid then
 		for savedKey, saved in pairs(store.identities) do
 			if saved.guid and NamedKey(saved) == oldKey then

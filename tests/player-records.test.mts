@@ -103,6 +103,32 @@ test("invalid and stale commits are atomic; self notes work without self ratings
   `);
 });
 
+test("cross-realm GUID collisions leave identities, aliases, drafts and linked data unchanged", async () => {
+  await run(`
+    local a=Raidwise;local s=a:InitializePlayerRecords()
+    a:UpsertPlayerRecordIdentity({guid='X',name='Alice',realm='Realm'})
+    local draft=a:CreatePlayerRecordDraft('X');draft.opinion='negative';draft.note='Alice note'
+    assert(a:CommitPlayerRecordDraft(draft))
+    local alias=a:UpsertPlayerRecordIdentity({name='Bob',realm='OtherRealm'})
+    local typed=a:CreatePlayerRecordDraft(alias);typed.note='Bob note';assert(a:CommitPlayerRecordDraft(typed))
+    s.meetingStats.SELF={X={count=7},[alias]={count=2}}
+    s.encounters.SELF={X={{id='old'}},[alias]={{id='typed'}}}
+    s.groups.g={members={X=true,[alias]=true},mainKey='X'}
+    local profile,changes,nextId=s.profiles.X,s.changes.X,s.nextId
+    local key,err=a:UpsertPlayerRecordIdentity({guid='X',name='Bob',realm='OtherRealm'})
+    assert(not key and err=='IDENTITY_CONFLICT')
+    assert(s.identities.X.name=='Alice' and s.identities.X.realm=='Realm' and s.identities[alias])
+    assert(s.profiles.X==profile and s.changes.X==changes and s.nextId==nextId)
+    assert(draft.key=='X' and typed.key==alias and s.notes[alias].text=='Bob note')
+    assert(s.meetingStats.SELF.X.count==7 and s.meetingStats.SELF[alias].count==2)
+    assert(s.encounters.SELF.X[1].id=='old' and s.groups.g.members[alias])
+    assert(a:UpsertPlayerRecordIdentity({guid='X',name='Renamed',realm='R E A L M'})=='X')
+    assert(s.identities.X.name=='Renamed' and s.profiles.X==profile)
+    draft.note='after rename';assert(a:CommitPlayerRecordDraft(draft))
+    typed.note='still separate';assert(a:CommitPlayerRecordDraft(typed))
+  `);
+});
+
 test("name identity upgrade moves observer and subject references and drafts without merging conflicts", async () => {
   await run(`
     local a=Raidwise; local s=a:InitializePlayerRecords()

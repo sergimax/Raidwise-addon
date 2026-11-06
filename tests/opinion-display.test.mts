@@ -58,6 +58,8 @@ test("active opinions agree across chat, roster and live unit tooltips without K
       assert(message:find(item,1,true) and message:find(achievement,1,true) and message:find('|cffff0000 after',1,true))
       assert(filters.CHAT_MSG_SAY(nil,'CHAT_MSG_SAY','hello','Rated-OtherRealm')==nil)
       assert(a:FindOpinionCharacter('Rated','X')==entry)
+      assert(a:FindOpinionCharacter('Rated-OtherRealm','X')==nil)
+      assert(a:FindOpinionCharacter('Renamed-R E A L M','X')==entry)
       a:DeleteCharacterDatabaseRecords({'X'})
       assert(#GameTooltip.lines==1 and GameTooltip.lines[1]=='base')
       assert(filters.CHAT_MSG_SAY(nil,'CHAT_MSG_SAY','hello','Rated')==nil)

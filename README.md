@@ -256,6 +256,8 @@ types/
 
 ## Notes
 
+- Character/profile data and saved Gear Check reports support one realm per SavedVariables dataset. Shared storage across independent realms/servers is not supported; see the [identity contract](docs/Character-System-Contract.md).
+
 - Incomplete/unavailable scans remain visibly marked and do not count as ready in raid/minimap summaries; unconfirmed empty sockets require another inspect response before being reported as missing gems.
 
 Offline development checks use TypeScript, Node.js 24, and a Lua 5.1 WebAssembly

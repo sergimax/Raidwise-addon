@@ -106,7 +106,7 @@ function Addon:RecordCurrentGroupHistory(refreshGearScore, rosterSnapshot)
 	if not store or not observer then return end
 	local now, present = time(), {}
 	local name, realm = UnitName("player")
-	if name then self:UpsertPlayerRecordIdentity({guid=observer, name=name, realm=realm}) end
+	if not name or not self:UpsertPlayerRecordIdentity({guid=observer, name=name, realm=realm}) then return end
 	store.encounters[observer] = store.encounters[observer] or {}
 	store.meetingStats[observer] = store.meetingStats[observer] or {}
 	local subjects, stats = store.encounters[observer], store.meetingStats[observer]
@@ -114,6 +114,7 @@ function Addon:RecordCurrentGroupHistory(refreshGearScore, rosterSnapshot)
 	for _, unit in ipairs(Units()) do
 		local guid = UnitGUID(unit)
 		if guid and guid ~= observer and not present[guid] then
+			present[guid] = true
 			local member = rosterSnapshot and rosterSnapshot.byUnit and rosterSnapshot.byUnit[unit]
 			if not member or member.guid ~= guid then
 				local unitName, unitRealm = UnitName(unit)

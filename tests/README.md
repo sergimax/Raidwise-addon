@@ -42,6 +42,12 @@ real bridge, database roster, presence observations, bootstrap and diagnostics;
 private note content must not appear in reports. Unsupported formats/invalid roots
 remain untouched and unavailable. Recovery procedure: the character-system contract.
 
+Identity scope is one realm. `player-records` verifies that a conflicting realm
+cannot overwrite a known GUID or move its aliases, drafts, journal or links;
+same-realm renames still work. `encounters` covers observer/subject conflicts,
+and `opinion-display` checks realm matching on the chat GUID fast path. These
+guards do not constitute multi-realm persistence or a saved-report migration.
+
 The runner is TypeScript (`gear-check.test.mts`) using Node's built-in `node:test`
 and `node:assert/strict`. Node runs the erasable TypeScript directly; `tsc` handles
 type checking separately. The existing CommonJS scripts in `scripts/` keep their

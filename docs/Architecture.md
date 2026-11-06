@@ -109,6 +109,14 @@ Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The
 
 ### SavedVariables and versions
 
+Identity scope is one realm per SavedVariables dataset (user decision,
+2026-11-06). GUID keys remain unchanged, including saved Gear Check reports.
+Core identity upsert rejects a known GUID with a different normalized realm
+before moving aliases. Group history respects this conflict for observer and
+subject; chat GUID lookup also checks the sender realm. These guards do not
+provide multi-realm/server storage. See the identity section of the
+[character-system contract](Character-System-Contract.md).
+
 Copyable character/gear and cooldown JSON exports carry numeric `reportVersion: 1`.
 Profile JSON exchange is disabled. Target Gear
 Check text dumps and both synchronous/asynchronous raid dump headers carry
