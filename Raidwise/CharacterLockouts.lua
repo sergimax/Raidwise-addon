@@ -480,16 +480,7 @@ function Addon:BuildCooldownTable()
 	}
 end
 
--- REFACTOR candidate: duplicate of CharacterExport.lua JsonEscape; consolidate shared JSON helpers.
-local function JsonEscape(value)
-	local str = tostring(value or "")
-	str = str:gsub("\\", "\\\\")
-	str = str:gsub('"', '\\"')
-	str = str:gsub("\n", "\\n")
-	str = str:gsub("\r", "\\r")
-	str = str:gsub("\t", "\\t")
-	return str
-end
+local JsonEscape = Addon.EscapeJsonString
 
 local function FormatJsonBoolean(value)
 	if value then

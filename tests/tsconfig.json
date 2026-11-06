@@ -10,5 +10,6 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["*.mts"]
+  "include": ["*.mts"],
+  "exclude": ["export-contracts.test.mts"]
 }

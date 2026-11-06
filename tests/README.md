@@ -7,9 +7,31 @@ npm ci --ignore-scripts
 npm run check
 ```
 
-`npm run check` type-checks the TypeScript test runner and runs the tests. Use
+`npm run check` type-checks the TypeScript test runner and export contracts, then runs the tests. Use
 `npm test` for tests alone or `npm run test:watch` while editing. Failures return
 a nonzero exit status for CI.
+
+`npm run typecheck` runs both `tests/tsconfig.json` and `types/tsconfig.json`.
+The second project explicitly includes all three `types/*.ts` files and
+`export-contracts.test.mts`. It permits the existing `InstanceDifficulty` enum
+and extensionless type import; this preserves the public TypeScript contract.
+The export test imports these types with `import type`, so Node never executes
+the enum. Other tests retain the erasable-only compiler restriction. The export
+test is excluded from the first project because it is checked by the second;
+`npm test` still runs it through the normal `*.test.mts` glob.
+
+`export-contracts.test.mts` parses real Lua character/cooldown JSON as `unknown`,
+validates fields and reconstructs values with explicit contract return types.
+Required type changes therefore affect compilation, and malformed runtime values
+fail assertions. Fixtures cover all 32 control bytes, quotes/backslashes, Unicode,
+names on/off, optional GearScore/currency, populated lockouts and empty lists.
+Gear Check's model is explicitly type-checked; its real Lua behavior remains
+covered by the existing gear/report tests, not a new complete runtime TS validator.
+
+The gem fixture also inserts 2,048 unique GUIDs without expiry, checks the
+1,024-entry cap and oldest-entry eviction, then checks expiration, GUID isolation
+and the original non-sliding 10-second TTL. Expiry cleanup happens during
+collection, not through an idle timer.
 
 The Addon tests workflow runs on branch pushes, pull requests and manual dispatch, on both Windows and Ubuntu.
 Tag publication has its own release workflow and checks.

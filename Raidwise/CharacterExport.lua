@@ -25,16 +25,16 @@ local SLOT_NAMES = {
 }
 
 -- Escape a string for JSON output.
--- REFACTOR candidate: duplicate of CharacterLockouts.lua JsonEscape; consolidate shared JSON helpers.
 local function JsonEscape(value)
-	local str = tostring(value or "")
-	str = str:gsub("\\", "\\\\")
-	str = str:gsub('"', '\\"')
-	str = str:gsub("\n", "\\n")
-	str = str:gsub("\r", "\\r")
-	str = str:gsub("\t", "\\t")
-	return str
+	return (tostring(value or ""):gsub('[%z\1-\31\\"]', function(character)
+		if character == '"' then return '\\"' end
+		if character == "\\" then return "\\\\" end
+		return string.format("\\u%04x", string.byte(character))
+	end))
 end
+
+-- CharacterLockouts follows this module in the TOC and shares the encoder.
+Addon.EscapeJsonString = JsonEscape
 
 -- Join numbers as a JSON array: [1,2,3]
 local function FormatJsonNumberArray(values)

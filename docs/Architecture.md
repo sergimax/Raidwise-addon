@@ -42,6 +42,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 [Raidwise.toc](../Raidwise/Raidwise.toc) is the authoritative executable load order. Read it when adding/moving modules; do not maintain a duplicate full list here.
 
 - Bootstrap creates the namespace; later modules attach methods before normal event-driven use.
+- `CharacterExport` provides `Addon.EscapeJsonString` before `CharacterLockouts`; both export formats share complete JSON string escaping (including U+0000–U+001F).
 - Initialization checks the active profile core/bridge APIs before opening UI. Missing APIs report an incomplete installation; retired `RatingTagGroups` is not a startup requirement.
 - `InspectCoordinator` precedes roster consumers and owns inspect API calls/events. Roster and gear retain their queues and result handling.
 - Profile core/support, screen APIs, links and encounters precede presentation; ProfileEditor and ProfileCharacters precede ProfileWindow.
@@ -60,6 +61,13 @@ Dump diagnostics include a copied request trace (requests/events/accepted/last
 payload) and `character.talentRead` (readiness, raw group/tab count, selected group,
 and per-tree points). These distinguish event delivery from empty talent reads;
 an incomplete final verdict alone does not prove the ready event was absent.
+
+The collector's gem cache retains at most 1,024 GUID/slot entries, tied to the
+exact item link. Reads expire after 10 seconds from the initial read, without
+extension on a cache hit. Collection sweeps expired entries at most once per
+second; reaching capacity evicts the oldest entry before inserting a new key.
+No idle timer is added: unused expired entries are removed on subsequent
+collection, and memory remains bounded while idle.
 
 `CollectGearCheck` normalizes truthy numeric WoW API results to a boolean before
 passing inspect readiness to the collector; its strict `true` check must not

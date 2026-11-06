@@ -56,6 +56,41 @@ clock = 20
 cached = collectCached(link, parse(link), "target", nil, "head")
 assert(cached[1].itemId == 0)
 
+-- Bounded storage even when many GUIDs arrive before any entry expires.
+local cache = private("inspectGemCache")
+local limit = private("GEM_CACHE_LIMIT")
+local guid = "oldest"
+local oldUnitGUID = UnitGUID
+function UnitGUID() return guid end
+clock = 30
+reads = {[1]="item:41398"}
+collectCached(link, parse(link), "target", nil, "head")
+clock = 31
+for index = 1, limit * 2 do
+    guid = "load-" .. index
+    collectCached(link, parse(link), "target", nil, "head")
+end
+local count = 0
+for _ in pairs(cache) do count = count + 1 end
+assert(count == limit and cache["oldest:head"] == nil)
+
+-- Expired entries are removed on the next collection; hits do not extend TTL.
+clock = 42; guid = "sticky"
+collectCached(link, parse(link), "target", nil, "head")
+count = 0; for _ in pairs(cache) do count = count + 1 end
+assert(count == 1)
+clock = 51; reads = {}
+cached = collectCached(link, parse(link), "target", nil, "head")
+assert(cached[1].itemId == 41398)
+guid = "different-player"
+cached = collectCached(link, parse(link), "target", nil, "head")
+assert(cached[1].itemId == 0)
+guid = "sticky"
+clock = 52
+cached = collectCached(link, parse(link), "target", nil, "head")
+assert(cached[1].itemId == 0)
+UnitGUID = oldUnitGUID
+
 local normalizeItem = private("NormalizeItem")
 function GetItemStats() return {EMPTY_SOCKET_META=1, EMPTY_SOCKET_RED=1} end
 function UnitIsUnit() return false end
