@@ -27,6 +27,14 @@ load retired files explicitly as historical compatibility fixtures; they do not
 mean those modules are shipped in the TOC. Final verification and outstanding
 in-game work: [Character-System-Verification.md](../docs/Character-System-Verification.md).
 
+`player-records.test.mts` also verifies journal v1-to-v2 migration (reconstruction
+of old event snapshots, ordering, authors, dates, baseline gaps, idempotence and
+atomic rejection), and 100/1,000 sequential event saves with linear journal
+storage. Detached profile/page reads must not traverse the whole journal.
+`profile-window.test.mts` exercises the 25-row journal pages and page clamping
+without whole-record reads. These are storage/read-path checks, not in-game
+latency or memory benchmarks; draft validation still visits current events.
+
 The runner is TypeScript (`gear-check.test.mts`) using Node's built-in `node:test`
 and `node:assert/strict`. Node runs the erasable TypeScript directly; `tsc` handles
 type checking separately. The existing CommonJS scripts in `scripts/` keep their

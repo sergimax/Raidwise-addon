@@ -90,7 +90,7 @@ Refresh = function(frame)
 	local draft = frame.editor.draft
 	for label, pair in pairs(translated) do label:SetText(Addon.db.locale == "ruRU" and pair[1] or pair[2]) end
 	frame.eventTypes = Addon:GetProfileEventCatalog()
-	local record = Addon:GetPlayerRecord(draft.key)
+	local record = Addon:GetPlayerRecordProfile(draft.key)
 	-- A live scan can resolve a name-only card while this window remains open.
 	frame.profileMember.guid = draft.key
 	frame.title:SetText(Text("Профиль: ", "Profile: ") .. Author(frame.profileMember))
@@ -151,14 +151,16 @@ Refresh = function(frame)
 	end)
 	local meetings = Addon:GetCharacterEncounters(draft.key)
 	table.sort(meetings, function(left, right) return left.lastSeenAt > right.lastSeenAt end)
+	local changeCount = Addon:GetPlayerRecordChangeCount(draft.key)
+	frame.maxHistoryPage = math.max(1, math.ceil(math.max(changeCount, #meetings) / 25))
+	frame.historyPage = math.min(frame.historyPage, frame.maxHistoryPage)
 	Render(frame.meetingList, Slice(meetings, frame.historyPage), function(row, meeting)
 		local places = {}
 		for _, place in ipairs(meeting.places) do places[#places + 1] = place.zoneName end
 		row.label:SetText(Time(meeting.startedAt) .. " — " .. Time(meeting.lastSeenAt) .. "\n" .. table.concat(places, ", "))
 	end)
-	local changes = {}
-	for index = #record.changes, 1, -1 do changes[#changes + 1] = record.changes[index] end
-	Render(frame.changeList, Slice(changes, frame.historyPage), function(row, change)
+	local changes = Addon:GetPlayerRecordChangePage(draft.key, frame.historyPage)
+	Render(frame.changeList, changes, function(row, change)
 		local detail = change.kind
 		if change.kind == "opinion" then detail = Text("Мнение: ", "Opinion: ") .. (change.before and OpinionLabel(change.before) or "—") .. " → " .. (change.after and OpinionLabel(change.after) or "—") end
 		if change.kind == "facts" then detail = Text("Факты: ", "Facts: ") .. table.concat(change.after or {}, ", ") end
@@ -167,9 +169,8 @@ Refresh = function(frame)
 		row.label:SetText(Time(change.at) .. " | " .. Author(change.actor) .. "\n" .. detail)
 	end)
 	frame.eventPages:SetText(frame.eventPage .. " / " .. math.max(1, math.ceil(#events / 25)))
-	frame.historyPages:SetText(frame.historyPage .. " / " .. math.max(1, math.ceil(math.max(#changes, #meetings) / 25)))
+	frame.historyPages:SetText(frame.historyPage .. " / " .. frame.maxHistoryPage)
 	frame.maxEventPage = math.max(1, math.ceil(#events / 25))
-	frame.maxHistoryPage = math.max(1, math.ceil(math.max(#changes, #meetings) / 25))
 	UpdateStatus(frame)
 end
 

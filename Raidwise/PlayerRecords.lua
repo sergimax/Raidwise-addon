@@ -57,6 +57,79 @@ local function NextId(store)
 	return tostring(store.nextId)
 end
 
+local function IsList(values)
+	if type(values) ~= "table" then return false end
+	local count = 0
+	for key in pairs(values) do
+		if type(key) ~= "number" or key < 1 or key % 1 ~= 0 then return false end
+		count = count + 1
+	end
+	for index = 1, count do if values[index] == nil then return false end end
+	return count == #values
+end
+
+local function EventIndex(events)
+	if not IsList(events) then return nil end
+	local result = {}
+	for index, event in ipairs(events) do
+		if type(event) ~= "table" or type(event.id) ~= "string" or result[event.id] then return nil end
+		result[event.id] = index
+	end
+	return result
+end
+
+-- Positions make deletions/reordering reversible without copying unchanged events.
+local function EventDelta(before, after)
+	local beforeIndex, afterIndex = EventIndex(before), EventIndex(after)
+	if not beforeIndex or not afterIndex then return nil end
+	local delta = {}
+	for index, event in ipairs(before) do
+		local nextIndex = afterIndex[event.id]
+		local nextEvent = nextIndex and after[nextIndex]
+		local changed = not Equal(event, nextEvent)
+		if changed or index ~= nextIndex then
+			delta[#delta + 1] = {id=event.id, beforeIndex=index, afterIndex=nextIndex,
+				before=changed and Copy(event) or nil, after=changed and Copy(nextEvent) or nil}
+		end
+	end
+	for index, event in ipairs(after) do
+		if not beforeIndex[event.id] then
+			delta[#delta + 1] = {id=event.id, afterIndex=index, after=Copy(event)}
+		end
+	end
+	return delta
+end
+
+local function MigrateJournal(store)
+	if store.journalVersion == 2 then return true end
+	if store.journalVersion ~= nil and store.journalVersion ~= 1 then return nil, "UNSUPPORTED_JOURNAL" end
+	local migrated = {}
+	for key, rows in pairs(store.changes) do
+		if not IsList(rows) then return nil, "INVALID_JOURNAL" end
+		local target, previousEvents = {}, {}
+		for _, change in ipairs(rows) do
+			if type(change) ~= "table" then return nil, "INVALID_JOURNAL" end
+			local result = {}
+			for field, value in pairs(change) do
+				if change.kind ~= "events" or (field ~= "before" and field ~= "after") then result[field] = Copy(value) end
+			end
+			if change.kind == "events" then
+				local delta = EventDelta(change.before, change.after)
+				if not delta then return nil, "INVALID_JOURNAL" end
+				-- Preserve an initial snapshot or a gap in imported/historical journals.
+				if not Equal(previousEvents, change.before) then result.baseline = Copy(change.before) end
+				result.events = delta
+				previousEvents = change.after
+			end
+			target[#target + 1] = result
+		end
+		migrated[key] = target
+	end
+	-- Publish only after every row is converted; failures leave the source intact.
+	store.changes, store.journalVersion = migrated, 2
+	return true
+end
+
 function Addon:GetPlayerRecordStore()
 	local store = self.db and self.db.playerRecords
 	return type(store) == "table" and store.schemaVersion == 1 and store or nil
@@ -71,9 +144,11 @@ function Addon:InitializePlayerRecords()
 			if type(current[section]) ~= "table" then return nil, "INVALID_STORE" end
 		end
 		if type(current.nextId) ~= "number" or current.nextId < 0 or current.nextId % 1 ~= 0 then return nil, "INVALID_STORE" end
+		local migrated, err = MigrateJournal(current)
+		if not migrated then return nil, err end
 		return self:GetPlayerRecordStore()
 	end
-	local store = {schemaVersion=1, nextId=0}
+	local store = {schemaVersion=1, journalVersion=2, nextId=0}
 	for _, section in ipairs(sections) do store[section] = {} end
 	self.db.playerRecords = store
 	return store
@@ -83,10 +158,38 @@ function Addon:GetPlayerRecordEventTypes()
 	return Copy(eventTypes)
 end
 
-function Addon:GetPlayerRecord(key)
+function Addon:GetPlayerRecordProfile(key)
 	local store = self:GetPlayerRecordStore()
 	if not store then return nil end
-	return Copy({identity=store.identities[key], profile=store.profiles[key], note=store.notes[key], changes=store.changes[key] or {}})
+	return Copy({identity=store.identities[key], profile=store.profiles[key], note=store.notes[key]})
+end
+
+function Addon:GetPlayerRecordChanges(key)
+	local store = self:GetPlayerRecordStore()
+	return Copy(store and store.changes[key] or {})
+end
+
+function Addon:GetPlayerRecordChangeCount(key)
+	local store = self:GetPlayerRecordStore()
+	return #(store and store.changes[key] or {})
+end
+
+-- Newest first, bounded copies; callers can use the count to clamp their page.
+function Addon:GetPlayerRecordChangePage(key, page)
+	local store = self:GetPlayerRecordStore()
+	local rows = store and store.changes[key] or {}
+	page = math.max(1, math.floor(tonumber(page) or 1))
+	local result = {}
+	local last = #rows - (page - 1) * 25
+	for index = last, math.max(1, last - 24), -1 do result[#result + 1] = Copy(rows[index]) end
+	return result
+end
+
+-- Compatibility snapshot for explicit whole-record consumers, not UI refreshes.
+function Addon:GetPlayerRecord(key)
+	local record = self:GetPlayerRecordProfile(key)
+	if record then record.changes = self:GetPlayerRecordChanges(key) end
+	return record
 end
 
 function Addon:IsPlayerRecordFilled(key)
@@ -185,17 +288,6 @@ function Addon:AddPlayerRecordDraftEvent(draft, eventType)
 	return event.id
 end
 
-local function IsList(values)
-	if type(values) ~= "table" then return false end
-	local count = 0
-	for key in pairs(values) do
-		if type(key) ~= "number" or key < 1 or key % 1 ~= 0 then return false end
-		count = count + 1
-	end
-	for index = 1, count do if values[index] == nil then return false end end
-	return count == #values
-end
-
 local function NormalizeFacts(facts)
 	if not IsList(facts) then return nil end
 	local selected, result = {}, {}
@@ -262,8 +354,13 @@ function Addon:CommitPlayerRecordDraft(draft)
 		-- No private text enters the change journal.
 		for _, field in ipairs({"opinion", "facts", "events"}) do
 			if not Equal(before[field], profile[field]) then
-				changes[#changes + 1] = {id=NextId(store), at=now, actor=Copy(actor), kind=field,
-					before=Copy(before[field]), after=Copy(profile[field])}
+				local change = {id=NextId(store), at=now, actor=Copy(actor), kind=field}
+				if field == "events" then
+					change.events = EventDelta(before.events, profile.events)
+				else
+					change.before, change.after = Copy(before[field]), Copy(profile[field])
+				end
+				changes[#changes + 1] = change
 			end
 		end
 		store.changes[key] = changes

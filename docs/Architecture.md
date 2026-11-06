@@ -23,7 +23,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Rosters and shared refresh | `PartyRoster.lua`, `RosterRefresh.lua` | `BuildRaidGroups`, `BuildRosterSnapshot`, `ScheduleRosterRefresh` |
 | Roles, consumables, composition | `RaidRoles.lua`, `RaidComposition.lua` | `UnitConsumableStatus`, `AnalyzeRaidComposition` |
 | Profile catalogs and identity support | `PlayerRecordSupport.lua`, `PlayerRecords.lua` | Three opinions, four facts, 22 event types; context capture, self-rating checks and identity presentation |
-| Profile persistence and screen API | `PlayerRecords.lua`, `PlayerRecordBridge.lua` | `InitializeHistoryStore` activates `playerRecords` once without migrating old reviews; core drafts and screen-facing reads/writes |
+| Profile persistence and screen API | `PlayerRecords.lua`, `PlayerRecordBridge.lua` | `InitializeHistoryStore` activates `playerRecords` once without migrating old reviews; core drafts, journal v2 migration, separate `GetPlayerRecordProfile` and `GetPlayerRecordChangePage` reads |
 | Group encounter sessions and retention | `PlayerEncounters.lua` | `RecordCurrentGroupHistory`, `GetCharacterEncounters`, `GetCharacterMeetingStats`, `PruneHistory`; 30-second lightweight presence observations, no inspect. Scan identity updates do not create meetings. |
 | Database and recent-history lists | `PageHistory.lua`, `PlayerEncounters.lua` | `BuildHistoryRoster` selects filled profiles or recent encounters for the current observer; database sorts by profile/note update. Unset and explicit neutral opinions have distinct filters. |
 | Linked player characters and deletion | `PlayerRecordLinks.lua`, `ProfileCharacters.lua` | Active groups in `playerRecords.groups`, no opinion synchronization; journal and generation-safe deletion. Display helpers live in `PlayerRecordSupport.lua`. |
@@ -91,6 +91,13 @@ save controls but does not change opinion authorship. Initialization activates t
 store once; no old review migration runs. Read APIs do not initialize SavedVariables.
 Group observations track independent observer/subject sessions and preserve counters
 when details expire. There is no active Karma fallback or profile exchange.
+
+Profile event journals use independent `journalVersion=2`, storing event deltas
+by ID instead of full before/after arrays. Initialization atomically converts
+the old journal while preserving its history; unknown journal versions fail
+without replacement. ProfileWindow copies the profile and one 25-row journal
+page separately; whole-record reads remain available for explicit compatibility
+consumers. Format and migration: [character-system contract](Character-System-Contract.md).
 
 Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The shell dispatches these methods; page modules own control labels and entry-specific collection. `entering=true` requests the original tab-entry work (lockout requests, roster refresh or history recording); locale refresh omits it. Public refresh wrappers remain compatible. Profile extraction preserves anchors, dimensions and named-frame versions.
 

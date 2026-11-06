@@ -90,18 +90,17 @@ function Addon:HasPersonalRatingData(personal)
 end
 
 function Addon:GetHistoryEvents(member)
-	local record = self:GetPlayerRecord(Key(member))
+	local record = self:GetPlayerRecordProfile(Key(member))
 	return record and record.profile and record.profile.events or {}
 end
 
 function Addon:GetProfileNotes(member)
-	local record = self:GetPlayerRecord(Key(member))
+	local record = self:GetPlayerRecordProfile(Key(member))
 	return record and record.note and record.note.text or ""
 end
 
 function Addon:GetProfileChanges(member)
-	local record = self:GetPlayerRecord(Key(member))
-	return record and record.changes or {}
+	return self:GetPlayerRecordChanges(Key(member))
 end
 
 function Addon:IsCharacterDatabaseEntry(entry)

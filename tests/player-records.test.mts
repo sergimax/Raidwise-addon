@@ -137,6 +137,138 @@ test("name identity upgrade moves observer and subject references and drafts wit
   `);
 });
 
+test("event journals migrate atomically, retain reversible history and reject unknown versions", async () => {
+  await run(`
+    local function copy(value)
+      if type(value)~='table' then return value end
+      local result={};for key,child in pairs(value) do result[key]=copy(child) end;return result
+    end
+    local function equal(left,right)
+      if type(left)~=type(right) then return false end
+      if type(left)~='table' then return left==right end
+      for key,value in pairs(left) do if not equal(value,right[key]) then return false end end
+      for key in pairs(right) do if left[key]==nil then return false end end
+      return true
+    end
+    local a=Raidwise;local s=a:InitializePlayerRecords()
+    a:UpsertPlayerRecordIdentity({guid='X',name='Other'})
+    local draft=a:CreatePlayerRecordDraft('X');draft.note='private';assert(a:CommitPlayerRecordDraft(draft))
+    local first={id='one',type='afk',eventAt=10,updatedAt=10,context={zoneName='Old'},author={guid='OLD'}}
+    local second=copy(first);second.id='two'
+    local edited=copy(first);edited.type='helped_player';edited.author={guid='EDITOR'};edited.updatedAt=20
+    local snapshots={
+      {{first},{first,second}},
+      {{first,second},{second,edited}},
+      {{second,edited},{edited}},
+      {{edited},{}},
+      {{second},{second,first}}, -- A discontinuity retains its own baseline.
+    }
+    local legacy={}
+    for index,pair in ipairs(snapshots) do
+      legacy[#legacy+1]={id=tostring(index),at=index*10,actor={guid='AUTHOR'},kind='events',
+        before=copy(pair[1]),after=copy(pair[2])}
+    end
+    legacy[#legacy+1]={id='opinion',at=80,actor={guid='AUTHOR'},kind='opinion',after='negative'}
+    legacy[#legacy+1]={id='link',at=90,actor={guid='AUTHOR'},kind='character_link',detail='Alt'}
+    s.profiles.X={opinion='negative',facts={},events=copy(snapshots[5][2]),revision=7,author={guid='AUTHOR'}}
+    draft=a:CreatePlayerRecordDraft('X')
+    s.changes.X=legacy;s.journalVersion=nil
+    local original=copy(legacy);local nextId=s.nextId;local note=s.notes.X;local profile=s.profiles.X
+    assert(a:InitializePlayerRecords()==s and s.journalVersion==2)
+    assert(s.nextId==nextId and s.notes.X==note and s.profiles.X==profile and equal(legacy,original))
+    local current={}
+    for index,pair in ipairs(snapshots) do
+      local change=s.changes.X[index]
+      if change.baseline then current=copy(change.baseline) end
+      assert(equal(current,pair[1]))
+      assert(change.id==tostring(index) and change.at==index*10 and change.actor.guid=='AUTHOR')
+      assert(change.before==nil and change.after==nil)
+      local byId={}
+      for position,event in ipairs(current) do byId[event.id]={position=position,event=event} end
+      for _,delta in ipairs(change.events) do
+        if not delta.afterIndex then byId[delta.id]=nil
+        else byId[delta.id]={position=delta.afterIndex,event=copy(delta.after or byId[delta.id].event)} end
+      end
+      current={};for _,row in pairs(byId) do current[row.position]=row.event end
+      assert(equal(current,pair[2]))
+    end
+    assert(equal(s.changes.X[6],original[6]) and equal(s.changes.X[7],original[7]))
+    local migrated=s.changes;assert(a:InitializePlayerRecords()==s and s.changes==migrated)
+    draft.note='after migration';assert(a:CommitPlayerRecordDraft(draft))
+    draft.events[1].type='helped_player';assert(a:CommitPlayerRecordDraft(draft))
+    assert(s.changes.X[8].events[1].before.id=='two' and s.changes.X[8].events[1].after.author.guid=='SELF')
+    local invalid={X=legacy,Y={{kind='events',before={},after={{id='dup'},{id='dup'}}}}}
+    s.changes=invalid;s.journalVersion=1
+    local result,err=a:InitializePlayerRecords()
+    assert(not result and err=='INVALID_JOURNAL' and s.changes==invalid and s.journalVersion==1)
+    assert(equal(s.changes.X,original))
+    s.journalVersion=99
+    result,err=a:InitializePlayerRecords()
+    assert(not result and err=='UNSUPPORTED_JOURNAL' and s.changes==invalid and s.journalVersion==99)
+  `);
+});
+
+test("100 and 1000 event histories grow linearly and profile/page reads stay detached", async () => {
+  await run(`
+    local a=Raidwise;local s=a:InitializePlayerRecords()
+    for _,count in ipairs({100,1000}) do
+      local key='X'..count
+      a:UpsertPlayerRecordIdentity({guid=key,name='Other'})
+      local draft=a:CreatePlayerRecordDraft(key)
+      for index=1,count do
+        assert(a:AddPlayerRecordDraftEvent(draft,'afk'))
+        assert(a:CommitPlayerRecordDraft(draft))
+      end
+      local copies=0
+      for _,change in ipairs(s.changes[key]) do
+        assert(change.before==nil and change.after==nil and change.baseline==nil)
+        assert(#change.events==1)
+        for _,delta in ipairs(change.events) do
+          if delta.before then copies=copies+1 end
+          if delta.after then copies=copies+1 end
+        end
+      end
+      assert(copies==count and a:GetPlayerRecordChangeCount(key)==count)
+      local page=a:GetPlayerRecordChangePage(key,2)
+      assert(#page==25 and page[1].id==s.changes[key][count-25].id)
+      page[1].events[1].after.type='mutated'
+      assert(s.changes[key][count-25].events[1].after.type=='afk')
+      assert(#a:GetPlayerRecordChangePage(key,count)==0)
+      local profile=a:GetPlayerRecordProfile(key)
+      assert(profile.changes==nil and #profile.profile.events==count)
+      profile.profile.events[1].context.zoneName='mutated'
+      assert(s.profiles[key].events[1].context.zoneName=='First')
+      -- A cycle outside the requested page detects accidental full-journal copies.
+      s.changes[key][1].unread=s.changes[key][1]
+      assert(a:GetPlayerRecordProfile(key).changes==nil)
+      assert(#a:GetPlayerRecordChangePage(key,1)==25)
+      s.changes[key][1].unread=nil
+    end
+  `);
+});
+
+test("event deltas retain authorship, original dates and atomic stale-draft rejection", async () => {
+  await run(`
+    local a=Raidwise;local s=a:InitializePlayerRecords()
+    a:UpsertPlayerRecordIdentity({guid='X',name='Other'})
+    local draft=a:CreatePlayerRecordDraft('X')
+    local id=a:AddPlayerRecordDraftEvent(draft,'afk');assert(a:CommitPlayerRecordDraft(draft))
+    local stale=a:CreatePlayerRecordDraft('X')
+    now=2000;actorGuid='ALT';actorName='Alt'
+    draft.events[1].type='helped_player';assert(a:CommitPlayerRecordDraft(draft))
+    local delta=s.changes.X[2].events[1]
+    assert(delta.id==id and delta.before.author.guid=='SELF' and delta.after.author.guid=='ALT')
+    assert(delta.before.eventAt==1000 and delta.after.eventAt==1000 and delta.after.updatedAt==2000)
+    local count=#s.changes.X
+    stale.events={};local ok,err=a:CommitPlayerRecordDraft(stale)
+    assert(not ok and err=='STALE_DRAFT' and #s.changes.X==count)
+    draft.events={};assert(a:CommitPlayerRecordDraft(draft))
+    delta=s.changes.X[3].events[1]
+    assert(delta.before.id==id and delta.before.author.guid=='ALT' and delta.after==nil)
+    assert(#a:GetPlayerRecord('X').changes==3)
+  `);
+});
+
 test("active bridge retires legacy profiles once and routes reads and writes to the new core", async () => {
   const lua = await Lua.create();
   try {
