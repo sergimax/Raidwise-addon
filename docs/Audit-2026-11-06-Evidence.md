@@ -12,8 +12,10 @@
 Регрессия загрузки находится в `tests/architecture.test.mts`
 (`active TOC bootstrap...`): реальный список модулей TOC, инициализация активного
 хранилища, повторное чтение сохранённого мнения и обработка отсутствующих API.
-После исправлений `npm run check` прошёл: **78/78**, typecheck успешен.
+После **первой очереди** `npm run check` прошёл: **78/78**, typecheck успешен.
 GitHub CI и игровой клиент в этой проверке не запускались.
+Результат после всех шести очередей — в следующем разделе; исходные пробы
+и статические наблюдения в конце документа не описывают текущее состояние.
 
 ## Проверка шестой очереди
 
@@ -294,7 +296,10 @@ F01 startup Player rating module failed to load. Update PlayerHistory.lua and /r
 и завершалась ошибкой фикстуры. После исправления структуры получен именно отказ
 JSON parser из-за control character; первоначальная ошибка не включена в findings.
 
-## Статические наблюдения
+## Статические наблюдения исходного аудита
+
+Срез `de9cd9d9c4f501008c210dc017f268807a751b10`, до исправлений. Текущие владельцы,
+триггеры CI, layout versions и состав ZIP описаны в архитектуре и результатах выше.
 
 - Retired-файлы: CharacterLinks, CharacterProfile, KarmaData, PageReputation,
   PageSync, PageSyncExport, PlayerHistory, PlayerHistoryStore, ProfileDraft,

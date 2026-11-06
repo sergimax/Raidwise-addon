@@ -145,15 +145,19 @@ changes; repeat successful checks only after new edits or unresolved concerns.
 
 | Changed behavior | Start with |
 |---|---|
-| Release tag/version validation and changelog extraction | `release.test.mts` |
+| Release tag/version validation, changelog extraction and ZIP contents | `release.test.mts` |
 | Report compatibility/state, read-only getters, page dispatch, shared member collection, profile builders | `architecture.test.mts` |
 | Scan lifecycle, retries, cancellation | `scan.test.mts` |
 | Inspect ownership and roster handoff | `inspect.test.mts` |
 | Collection, grades, gems, meta, report chat/header | `gear-check.test.mts` |
 | Saved revision compatibility | `saved-revisions.test.mts` |
 | Roster snapshot sharing | `roster-refresh.test.mts` |
-| Ratings, migrations, profile drafts/saving | `history.test.mts` |
-| Profile JSON exchange, consent/transport, imports and privacy | `sync.test.mts`; Sync controls/anchors in `architecture.test.mts`; Classic text inputs in `theme.test.mts` |
+| Active profile drafts, journal migration, quarantine/recovery | `player-records.test.mts`, `profile-window.test.mts` |
+| Identity read models/index, associations and deletion | `record-reads.test.mts`, `player-links.test.mts` |
+| Meetings/retention and Database/History lists | `encounters.test.mts`, `database-page.test.mts` |
+| Character/cooldown JSON and TypeScript contracts | `export-contracts.test.mts` |
+| Retired profile migration and draft behavior (historical only) | `history.test.mts` |
+| Retired profile exchange (historical only) | `sync.test.mts`; historical Sync controls in `architecture.test.mts` |
 | Native friends, ignore, inbox and guild opinion marks | `classic-opinion.test.mts` |
 | Bare-client profile notes and diagnostics scroll template names | `architecture.test.mts` |
 | Theme bindings | `theme.test.mts` |
@@ -215,7 +219,12 @@ during rendering. Existing scan timing tests remain unchanged. These are offline
 call counts, not measured in-game CPU or raid-scan speed improvements; the manual
 timing protocol below remains pending. No speculative per-card diffing is added.
 
-## UI composition (phase 7)
+## UI composition (refactoring phase 7)
+
+This section records the earlier extraction. Theme and shell boundaries remain
+active; the profile builders described here belong to retired `ProfilePanels`.
+The current window is owned by `ProfileWindow`/`ProfileEditor`/`ProfileCharacters`;
+use their tests and the architecture map for current profile work.
 
 `UITheme.lua` initializes stable theme/color tables and color/text bindings.
 `UIWidgets.lua` supplies generic controls; `RosterWidgets.lua` supplies roster,
@@ -233,7 +242,12 @@ unchanged shell dimensions. Profile command regressions also cover the corrected
 draft-event removal. Visual parity still needs in-game checks: both themes,
 English/Russian, profile tabs, header visibility, and tooltip interactions.
 
-## Profile and history separation (phase 6)
+## Historical profile and history separation (refactoring phase 6)
+
+The modules and save/reset behavior below predate the character-system redesign.
+They are outside the TOC and release ZIP, except the still-active presentation
+module. These historical fixtures are not instructions for the current UI.
+Current ownership and acceptance are described above and in [the contract](../docs/Character-System-Contract.md).
 
 - `PlayerHistory.lua`: rating catalogs, normalization, and rating access.
 - `PlayerHistoryStore.lua`: encounter/scan history, Local Profile persistence,
@@ -250,8 +264,9 @@ and real profile commit/add-event/notes command wrappers with a minimal frame.
 `sync.test.mts` covers Local-only export, sender isolation, and read-only
 received profiles.
 It does not validate visual layout or interaction with a running WoW client.
-In game, edit and close without saving, reopen, commit changes, switch players,
-and exercise Notes Save/Reset in both languages. No layout version is bumped.
+Current in-game acceptance must exercise autosave, explicit Save, failed-draft
+retention and switching players in both languages; the old Notes Save/Reset
+controls are not part of the active profile window.
 
 ## Gear pipeline separation (phase 5)
 

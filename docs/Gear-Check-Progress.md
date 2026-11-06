@@ -27,11 +27,12 @@ the current boundaries after those extractions.
 | `GearCheckDump.lua` | Text exports and cancellable asynchronous raid dump jobs |
 | `GearCheckSavedReports.lua` | Manual snapshot storage, revision metadata, listing/deletion, 14-day retention |
 | `GearCheckSelfTest.lua` | Shipped rule fixtures, retaining `/rw gearcheck test` |
-| `PlayerHistory.lua`, `PlayerHistoryStore.lua` | Rating catalogs/normalization versus history storage, migration, events, and notes |
-| `ProfileDraft.lua`, `RatingPresentation.lua` | Plain draft edits versus display labels, tooltips, and chat marks |
-| `ProfilePanels.lua` | Profile tab construction and history-list rendering; window and edit/commit orchestration remain in `CharacterProfile.lua` |
+| `PlayerRecords.lua`, `PlayerRecordSupport.lua`, `PlayerRecordBridge.lua` | Active profile storage/drafts, catalogs and identity presentation, detached screen reads; see [architecture](Architecture.md) |
+| `PlayerEncounters.lua`, `PlayerRecordLinks.lua` | Observer-specific meetings/retention and character associations without opinion sharing |
+| `ProfileEditor.lua`, `ProfileCharacters.lua`, `ProfileWindow.lua` | Autosave/explicit commit, linked-character controls and the active profile window |
+| `RatingPresentation.lua` | Display labels, tooltips and chat marks; indexed identity lookup |
 | `UITheme.lua`, `UIWidgets.lua`, `RosterWidgets.lua` | Theme bindings, generic controls, and domain-specific rendering respectively |
-| `Page*.lua`, `CharacterProfile.lua`, `ExporterWindow.lua` | Render views, invoke services, declare header report capabilities, and assemble panels |
+| `Page*.lua`, `ExporterWindow.lua` | Render pages, invoke services, declare header report capabilities, and assemble the shell |
 
 The TOC is the authoritative load order. Load catalogs before rules, rules before
 grades/explanations, theme before generic/domain widgets, and services before page

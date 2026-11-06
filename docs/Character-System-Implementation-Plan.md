@@ -5,6 +5,10 @@
 и ограничения записаны в итоговом отчёте. Отдельная правка Gear Check от
 2026-10-31 устранила прежний сбой Balance BiS off-hand; `npm run check`: **75/75**.
 
+Этот план сохраняет историю этапов переработки, включая прежних владельцев
+и результаты тестов. Последующая работа по шести очередям — в
+[аудите 2026-11-06](Audit-2026-11-06.md); текущие владельцы — в [архитектуре](Architecture.md).
+
 Результат этапа 0: [контракт, каталог и схема экранов](Character-System-Contract.md).
 Результат этапа 1: `Raidwise/PlayerRecords.lua`, проверки `tests/player-records.test.mts`.
 Итог, отчёт из клиента и ограничения проверки: [Character-System-Verification.md](Character-System-Verification.md).

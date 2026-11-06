@@ -3,7 +3,8 @@
 Current implementation after the character-system redesign. Detailed fields and
 rules: [contract](Character-System-Contract.md). Original behavior is retained in
 [baseline](Character-System-Baseline.md); implementation/verification status is
-tracked in the [plan](Character-System-Implementation-Plan.md).
+tracked in the [plan](Character-System-Implementation-Plan.md). Subsequent fixes
+and remaining limitations are recorded in the [November audit](Audit-2026-11-06.md).
 
 ## Storage and ownership
 
@@ -17,7 +18,8 @@ reset on subsequent logins. Other addon settings, lockouts and gear reports rema
 
 ## Profile
 
-The independent v37 window contains three tabs: Events, History, Characters.
+The independent profile window contains three tabs: Events, History, Characters.
+Current layout versions and dimensions live in [UI views](UI-Views.md) and [UI sizes](UI-Sizes.md).
 Opinion, four facts, authorship, meeting summary and the private Note stay visible.
 There are three explicit opinions and a distinct Not set state. Events use the
 22-type catalog and automatically captured time/place; backdating is unavailable.
@@ -31,8 +33,8 @@ never part of shared opinion data or the change log.
 
 ## Database, History and deletion
 
-Database v12 lists meaningfully filled profiles; one Note or an explicit neutral
-opinion suffices. Adding a name/target only opens an empty Profile. History v7
+Database lists meaningfully filled profiles; one Note or an explicit neutral
+opinion suffices. Adding a name/target only opens an empty Profile. History
 lists current observer's group/raid meetings from the last 14 days, including
 players with or without saved profiles. A target scan never creates a meeting.
 
@@ -45,6 +47,9 @@ counts, events, changes, notes and filled profiles.
 Manual links retain a local Main but never share opinions. Full deletion clears
 the selected profile, Note, changes and links, invalidates pending drafts and
 preserves encounters/counters plus other members' profiles. It requires confirmation.
+Identities and quarantined originals also remain. The storage/cleanup matrix in
+the [contract](Character-System-Contract.md) defines retention and bulk-delete scope;
+profile deletion is not a complete SavedVariables purge.
 
 ## Presentation
 
