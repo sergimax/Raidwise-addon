@@ -4,13 +4,18 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-2.0.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--10--31-blue)
+![](https://img.shields.io/badge/current_version-2.1.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--11--06-blue)
 
 
 ## Install
 
-**Upgrading to 2.0:** back up SavedVariables first. Legacy character profiles,
+**Upgrading from 2.0 to 2.1:** existing profiles and notes are preserved; event
+journals migrate automatically to compact change records. Damaged entries are
+isolated with their originals retained. `/rw diagnose` reports storage health;
+the [character-system contract](docs/Character-System-Contract.md) documents repair.
+
+**Upgrading from before 2.0:** back up SavedVariables first. Legacy character profiles,
 notes, links, and exchanged data are reset without migration; settings, saved
 Gear Check reports, lockouts, and currencies remain. Install the full addon
 folder and restart the client because the TOC load order changed.
