@@ -26,6 +26,31 @@ folder and restart the client because the TOC load order changed.
 4. If you previously used **mrc-exporter**, remove that folder from AddOns so only Raidwise loads.
 
 
+## Releases
+
+Pushing a stable version tag such as `vX.Y.Z` triggers
+[the release workflow](.github/workflows/release.yml). The tagged commit must
+already contain matching versions in `Raidwise/Raidwise.toc` and
+`Raidwise/Raidwise.lua`, plus a dated `CHANGELOG.md` entry for that version.
+Prepare version changes using the [release procedure](.agents/skills/bump/SKILL.md).
+
+After `npm run check` passes, GitHub Actions publishes a release with notes from
+that changelog entry and `Raidwise-vX.Y.Z.zip`. The ZIP contains the tracked
+`Raidwise/` folder from the tagged commit, ready to extract into `Interface/AddOns/`.
+Branches and PR merges alone do not publish releases. Tags must point to commits
+containing the workflow; existing tags are not processed retroactively.
+The workflow uses GitHub's built-in token with `contents: write`; no personal
+access token is needed. An existing release is not overwritten: rerunning a
+successful publication fails rather than replacing its assets.
+
+After the prepared changes are committed and pushed, publish an explicitly
+requested version (replace `X.Y.Z` with that version):
+
+```sh
+git tag -a vX.Y.Z -m "Raidwise X.Y.Z"
+git push origin vX.Y.Z
+```
+
 ## Usage
 
 In-game slash commands:

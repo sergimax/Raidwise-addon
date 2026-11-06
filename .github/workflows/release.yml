@@ -1,0 +1,44 @@
+name: Release addon
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+      RELEASE_NOTES: ${{ runner.temp }}/release-notes.md
+      RELEASE_ZIP: ${{ runner.temp }}/Raidwise-${{ github.ref_name }}.zip
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Validate release version and changelog
+        run: node scripts/prepare-release.mts "$RELEASE_TAG" "$RELEASE_NOTES"
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - name: Package tracked addon files from the tagged commit
+        run: git archive --format=zip --output="$RELEASE_ZIP" HEAD Raidwise/
+      - name: Publish release and installable ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$RELEASE_TAG" "$RELEASE_ZIP"
+          --verify-tag
+          --title "Raidwise $RELEASE_TAG"
+          --notes-file "$RELEASE_NOTES"

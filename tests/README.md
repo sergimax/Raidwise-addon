@@ -71,6 +71,7 @@ changes; repeat successful checks only after new edits or unresolved concerns.
 
 | Changed behavior | Start with |
 |---|---|
+| Release tag/version validation and changelog extraction | `release.test.mts` |
 | Report compatibility/state, read-only getters, page dispatch, shared member collection, profile builders | `architecture.test.mts` |
 | Scan lifecycle, retries, cancellation | `scan.test.mts` |
 | Inspect ownership and roster handoff | `inspect.test.mts` |
