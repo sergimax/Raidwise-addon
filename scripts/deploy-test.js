@@ -15,6 +15,18 @@ const destDir =
   path.basename(destInput).toLowerCase() === "raidwise"
     ? destInput
     : path.join(destInput, "Raidwise");
+const useColor = process.stdout.isTTY && process.env.NO_COLOR === undefined;
+const colors = {
+  reset: "\u001b[0m",
+  green: "\u001b[32m",
+  yellow: "\u001b[33m",
+  cyan: "\u001b[36m",
+  dim: "\u001b[2m",
+};
+
+function color(text, name) {
+  return useColor ? colors[name] + text + colors.reset : text;
+}
 
 if (!fs.existsSync(srcDir)) {
   console.error("Source directory not found: " + srcDir);
@@ -45,13 +57,12 @@ function listChangedFiles(dir, base) {
     } else {
       const relativePath = path.relative(base, fullPath);
       const destPath = path.join(destDir, relativePath);
-      if (
-        !fs.existsSync(destPath) ||
-        !fs.statSync(destPath).isFile() ||
-        !fs.readFileSync(fullPath).equals(fs.readFileSync(destPath))
-      ) {
-        files.push(relativePath);
+      let status = "new";
+      if (fs.existsSync(destPath) && fs.statSync(destPath).isFile()) {
+        if (fs.readFileSync(fullPath).equals(fs.readFileSync(destPath))) continue;
+        status = "updated";
       }
+      files.push({ path: relativePath, status });
     }
   }
   return files;
@@ -60,7 +71,22 @@ function listChangedFiles(dir, base) {
 const files = listChangedFiles(srcDir, srcDir);
 fs.cpSync(srcDir, destDir, { recursive: true, force: true });
 
-console.log("Copied " + files.length + " changed file(s) to " + destDir);
-for (let i = 0; i < files.length; i++) {
-  console.log("  " + files[i]);
+const addedCount = files.filter((file) => file.status === "new").length;
+const updatedCount = files.length - addedCount;
+console.log(color("Raidwise test deployment", "cyan"));
+console.log("Destination: " + destDir);
+console.log(
+  "Copied " + files.length + " file(s): " +
+    color(addedCount + " new", "green") + ", " +
+    color(updatedCount + " updated", "yellow")
+);
+
+if (files.length === 0) {
+  console.log(color("No changes; destination is already up to date.", "dim"));
+} else {
+  for (const file of files) {
+    const label = file.status === "new" ? "NEW" : "UPDATED";
+    const labelColor = file.status === "new" ? "green" : "yellow";
+    console.log("  " + color(label.padEnd(7), labelColor) + file.path);
+  }
 }
