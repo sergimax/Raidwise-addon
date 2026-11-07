@@ -390,6 +390,11 @@ SlashCmdList["RAIDWISE"] = function(msg)
 		return
 	end
 
+	if msg == "guildexport" or msg == "guild export" then
+		if Addon.ShowGuildRosterExport then Addon:ShowGuildRosterExport() else Addon:Print("Guild roster export is unavailable.") end
+		return
+	end
+
 	if msg == "close" then
 		Addon:HideMainFrame()
 		return
@@ -478,6 +483,9 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 	elseif event == "UPDATE_INSTANCE_INFO" then
 		Addon:OnUpdateInstanceInfo()
 	elseif event == "PLAYER_GUILD_UPDATE" or event == "GUILD_ROSTER_UPDATE" then
+		if event == "GUILD_ROSTER_UPDATE" and Addon.guildRosterExportPending and Addon.CompleteGuildRosterExport then
+			Addon:CompleteGuildRosterExport()
+		end
 		Addon:OnGuildInfoUpdated()
 	elseif event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then
 		Addon:OnGroupRosterUpdated()

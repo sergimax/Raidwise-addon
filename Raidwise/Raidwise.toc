@@ -12,6 +12,7 @@ Raidwise.lua
 Locale.lua
 ChatReports.lua
 CharacterExport.lua
+GuildRosterExport.lua
 CharacterLockouts.lua
 InspectCoordinator.lua
 PartyRoster.lua

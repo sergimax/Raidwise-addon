@@ -101,9 +101,12 @@ This eligibility threshold is independent of PR and should report eligible/ineli
 
 ## Architecture and rollout
 
-- Begin as a focused module set in `Raidwise/`, registered in `Raidwise.toc` only when the export UI is ready. Use the shared `Raidwise` namespace and Lua 5.1/WoW 3.3.5a APIs.
-- Keep raw roster collection, note parsing, alt resolution, PR calculations, and presentation in separate boundaries. The parser and calculator should not depend on frames or live game APIs.
-- If later extracted, move the pure data modules first and retain a thin adapter in the addon. Stable JSON schema and module APIs make that extraction possible.
+- Design for eventual extraction as an optional companion addon from the first implementation. Use a namespaced `RaidwiseEPGP` module API and versioned JSON snapshot as the boundary; do not make future code depend on private Raidwise UI state or SavedVariables internals.
+- Keep the current integration as a thin adapter: WoW roster API collection, event/command wiring, and display. Snapshot normalization, parsing, correction handling, alt resolution, policy, and PR calculations belong in pure modules with no frame globals or WoW API calls.
+- Keep exported data and editable/corrected data distinct. The data contract should be portable outside the addon; only the adapter translates to/from WoW APIs and the host addon's shared JSON escaping.
+- Avoid cross-module mutation and implicit load-order dependencies. Expose explicit functions that accept records/config and return results; any host integration should be optional and capability-checked.
+- Stage 1 currently collects a Lua snapshot and formats JSON separately (`CollectGuildRosterSnapshot`, `FormatGuildRosterSnapshot`). Continue this separation in later stages and add parser/calculator tests against supplied data fixtures.
+- When extracting, move the pure modules and their tests first, then add a companion-addon adapter for roster access/UI. Keep the JSON schema and pure APIs stable so migration does not require rewriting data logic.
 - No semver or layout version bump is needed for planning. When UI structure is implemented, update the relevant layout version and UI docs per `AGENTS.md`.
 - For implementation, follow `tests/README.md`; add behavior-based parser, resolver, and PR coverage and run `npm run check` before completion.
 
