@@ -25,18 +25,22 @@ Officer notes have two supported forms: numeric `EP,GP` for a main character, or
 Preserve the raw value and report invalid or ambiguous entries instead of guessing.
 Numeric parsing should accept comma decimal/list conventions only according to an explicitly documented grammar; examples currently suggest integer EP and GP separated by a comma.
 
-PR is `EP / GP`, subject to the guild's zero-GP policy.
-Since examples include GP=0, define a configurable minimum GP (or an explicit zero-GP result) before presenting a numeric PR.
+PR is `EP / max(GP, minimumGP)`. The configurable minimum GP defaults to **500**; GP=0 therefore uses effective GP=500.
+Show both recorded GP and effective GP so the floor is visible.
 Never silently divide by zero or invent a value.
+
+Add a separate configurable minimum EP threshold for BIS rolls.
+It defaults to **4000** for the current guild profile.
+This eligibility threshold is independent of PR and should report eligible/ineligible/unknown without changing EP or PR.
 
 ## Stages
 
 ### 0. Confirm contracts and edge cases
 
 - Record supported game version and roster APIs available in 3.3.5a; export only data the client can actually read.
-- Specify note grammar from the examples: separators `/` and `\`, optional parentheses, decimal comma/dot, `?`, one/two specs, heal specs without DPS, low-level/no-spec members, and free-form names/spec labels.
+- Allow officers to correct exported notes manually and mark records as malformed or ambiguous. Parsing should preserve raw note text, expose the parsed result for review, and let corrections/flags be stored with the snapshot.
 - Define how officer-note alt references resolve (case normalization, realm, missing main, duplicate character names, cycles, and chains).
-- Agree on zero GP and invalid EP/GP handling.
+- Use minimum GP 500 by default and minimum EP for BIS rolls 4000 by default; both are configurable.
 - Keep raw values so grammar improvements can be reparsed without another guild scan.
 
 ### 1. Guild roster JSON export
@@ -75,6 +79,24 @@ Never silently divide by zero or invent a value.
 
 **Deliverable:** current PR view with transparent inputs and explicit handling for non-computable rows.
 
+### 5. Current-raid item competitors
+
+- Join the current raid roster to the imported guild snapshot and main/alt map, with explicit handling when a raid character is not in the snapshot.
+- Reuse the existing mass GearCheck collection and report APIs; do not create a second equipment-inspection pipeline.
+- For a selected item or slot, identify raid members whose current equipment indicates a plausible upgrade/competition candidate, using item/spec compatibility and the collected gear report.
+- Show the evidence and confidence for each candidate, alongside main/alt identity and PR/BIS-roll eligibility where available. GearCheck estimates competition; it does not assign loot or replace EPGP ordering.
+
+**Deliverable:** an in-raid competitor view grounded in current scan results and guild roster data.
+
+### 6. Raid composition proposal
+
+- Accept configurable minimum GearScore, minimum DPS, and raid-experience requirements as inputs. Keep thresholds and experience criteria editable per proposal.
+- Use parsed roster specs and available GS/DPS values to filter and rank candidates; use experience only when recorded in a defined source/field, otherwise mark it unknown rather than treating it as zero.
+- Propose a composition that also respects role/spec coverage and the target raid size. Explain included/excluded candidates and missing data; allow officer review and manual adjustment.
+- Reuse existing role and composition concepts where applicable, while keeping proposal generation separate from live raid composition analysis.
+
+**Deliverable:** a reviewable roster proposal with criteria, rationale, and uncertainty visible.
+
 ## Architecture and rollout
 
 - Begin as a focused module set in `Raidwise/`, registered in `Raidwise.toc` only when the export UI is ready. Use the shared `Raidwise` namespace and Lua 5.1/WoW 3.3.5a APIs.
@@ -90,4 +112,7 @@ Never silently divide by zero or invent a value.
 3. The guild's minimum GP and rounding/display rules for PR.
 4. Whether alt characters can have their own EP/GP and how conflicts are handled.
 5. Preferred UI: a new page in the current window, a separate window, or export-first with external visualization.
+
+6. Where raid experience will be recorded and how it will be measured (for example, encounter kills or officer-entered experience).
+7. How item-level competitor matching should map specs to eligible loot and define an upgrade.
 
