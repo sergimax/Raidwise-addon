@@ -6,9 +6,9 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 ## Shell
 
-### EPGP roster (layout v3)
+### EPGP roster (layout v4)
 
-Full-width toolbar with roster refresh, character search, minimum GP and BIS EP settings, followed by a status line, group/raid scope filters, previous/next pagination, a 12 px progress bar, and a scrollable report. The report shows up to 20 matching members per page and includes snapshot completeness, officer-note access, character/main identity, EP, recorded/effective GP, PR, BIS eligibility, link/parse status, and main-spec GS/DPS. Progress reports roster members collected and then note/link/PR processing.
+Full-width toolbar with roster refresh, character search, minimum GP and BIS EP settings, followed by a status line, group/raid scope filters, previous/next pagination, a 12 px progress bar, and a two-axis scrollable table. Twenty rows are shown per page. Columns show character, main, EP, recorded/effective GP, PR, BIS eligibility, link/parse status, and main-spec GS/DPS. The page is under the export menu group. Progress reports roster members collected and then note/link/PR processing.
 Current view is read-only after refresh; correction and JSON import controls remain future work.
 
 | Element | Size | Notes |

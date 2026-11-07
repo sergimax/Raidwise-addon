@@ -5,7 +5,7 @@ local W = Addon.Widgets
 local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 3
+local LAYOUT_VERSION = 4
 local PAGE_SIZE = 20
 
 local function FormatValue(value)
@@ -44,9 +44,8 @@ local function CurrentGroupNames(raidOnly)
 	return names
 end
 
-local function BuildReport(snapshot, query, pageNumber, groupOnly, raidOnly)
-	if not snapshot then return "No guild roster snapshot. Click Refresh guild roster." end
-	pageNumber = math.max(1, tonumber(pageNumber) or 1)
+local function GetFilteredMembers(snapshot, query, groupOnly, raidOnly)
+	if not snapshot then return {} end
 	local groupNames = (groupOnly or raidOnly) and CurrentGroupNames(raidOnly) or nil
 	local filtered = {}
 	query = (query or ""):lower()
@@ -56,52 +55,61 @@ local function BuildReport(snapshot, query, pageNumber, groupOnly, raidOnly)
 		local inGroup = not groupNames or groupNames[tostring(member.name or ""):lower()]
 		if inGroup and (query == "" or searchable:find(query, 1, true)) then filtered[#filtered + 1] = member end
 	end
-	local pageCount = math.max(1, math.ceil(#filtered / PAGE_SIZE))
-	pageNumber = math.min(pageNumber, pageCount)
-	local lines = {
-		"Members: " .. tostring(snapshot.memberCountExported or #snapshot.members)
-			.. " / " .. tostring(snapshot.memberCountReported or #snapshot.members)
-			.. "    Snapshot: " .. FormatValue(snapshot.scannedAt)
-		.. "    Complete: " .. tostring(snapshot.complete ~= false)
-		.. "    Officer notes: " .. tostring(snapshot.officerNotesStatus or "unknown"),
-		"Minimum GP: " .. tostring(snapshot.epgpSettings.minimumGP)
-			.. "    BIS minimum EP: " .. tostring(snapshot.epgpSettings.bisMinimumEP),
-		"Character | Main | EP | GP | Effective GP | PR | BIS | Status | Main spec / GS / DPS",
-	}
-	lines[#lines + 1] = string.format("Matches: %d    Page: %d / %d    Page size: %d", #filtered, pageNumber, pageCount, PAGE_SIZE)
-	for rowIndex = (pageNumber - 1) * PAGE_SIZE + 1, math.min(pageNumber * PAGE_SIZE, #filtered) do
-		local member = filtered[rowIndex]
-		local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
-		local mainSpec = specs[1] and specs[1].label or ""
-		local mainGs = specs[1] and FormatValue(specs[1].gearScore) or "—"
-		local mainDps = specs[1] and FormatValue(specs[1].dps) or "—"
-		if member then
-			local bis = member.bisEligibilityStatus == "available"
-				and (member.bisEligible and "eligible" or "ineligible") or member.bisEligibilityStatus
-			local mainName = member.mainIndex and snapshot.members[member.mainIndex].name or member.name
-			lines[#lines + 1] = table.concat({
-				tostring(member.name or "?"), tostring(mainName or "?"), FormatValue(member.ep),
-				FormatValue(member.gp), FormatValue(member.effectiveGP),
-				member.pr and string.format("%.4f", member.pr) or FormatValue(member.prStatus),
-				bis, tostring(member.linkStatus or member.publicNoteParsed.status),
-				table.concat({ mainSpec, mainGs, mainDps }, " / "),
-			}, " | ")
-		end
-	end
-	return table.concat(lines, "\n"), pageNumber, pageCount, #filtered
+	return filtered
 end
 
 local function RefreshReport(page)
-	local text, pageNumber, pageCount, count = BuildReport(Addon.db.epgp.view, page.search:GetText(), page.pageNumber, page.groupOnly:GetChecked(), page.raidOnly:GetChecked())
-	page.pageNumber = pageNumber or 1
-	page.report:SetText(text)
-	page.pageLabel:SetText(string.format("Page %d / %d (%d)", page.pageNumber, pageCount or 1, count or 0))
-	if page.previous then
-		if page.pageNumber > 1 then page.previous:Enable() else page.previous:Disable() end
+	local snapshot = Addon.db.epgp.view
+	local filtered = GetFilteredMembers(snapshot, page.search:GetText(), page.groupOnly:GetChecked(), page.raidOnly:GetChecked())
+	local pageCount = math.max(1, math.ceil(#filtered / PAGE_SIZE))
+	page.pageNumber = math.min(math.max(page.pageNumber or 1, 1), pageCount)
+	local first = (page.pageNumber - 1) * PAGE_SIZE + 1
+	local visible = math.min(PAGE_SIZE, math.max(0, #filtered - first + 1))
+	local columns = page.columns
+	local tableWidth = 0
+	for _, column in ipairs(columns) do tableWidth = tableWidth + column.width end
+	local contentHeight = UI.CD_HEADER_H + math.max(visible, 1) * UI.CD_ROW_H
+	page.tableContent:SetSize(tableWidth, contentHeight)
+	page.tableHeader:SetWidth(tableWidth)
+	page.pageLabel:SetText(string.format("Page %d / %d (%d)", page.pageNumber, pageCount, #filtered))
+	if page.previous then if page.pageNumber > 1 then page.previous:Enable() else page.previous:Disable() end end
+	if page.next then if page.pageNumber < pageCount then page.next:Enable() else page.next:Disable() end end
+	W.HidePoolFrom(page.rowFrames, visible + 1)
+	for rowIndex = 1, visible do
+		local member = filtered[first + rowIndex - 1]
+		local row = page.rowFrames[rowIndex]
+		if not row then
+			row = CreateFrame("Frame", nil, page.tableContent)
+			W.ApplyPlainPanel(row, UI.CD_ROW_A)
+			row.cells = {}
+			local x = 0
+			for columnIndex, column in ipairs(columns) do
+				local cell = W.CreateFontString(row, nil, "OVERLAY", "GameFontNormalSmall")
+				cell:SetPoint("TOPLEFT", x + 4, -4); cell:SetWidth(column.width - 8); cell:SetHeight(UI.CD_ROW_H - 6)
+				cell:SetJustifyH("LEFT"); cell:SetJustifyV("TOP")
+				row.cells[columnIndex] = cell
+				x = x + column.width
+			end
+			page.rowFrames[rowIndex] = row
+		end
+		row:ClearAllPoints(); row:SetPoint("TOPLEFT", page.tableContent, "TOPLEFT", 0, -(UI.CD_HEADER_H + (rowIndex - 1) * UI.CD_ROW_H))
+		row:SetSize(tableWidth, UI.CD_ROW_H); row:Show()
+		local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
+		local mainSpec = specs[1] or {}
+		local mainName = member.mainIndex and snapshot.members[member.mainIndex].name or member.name
+		local bis = member.bisEligibilityStatus == "available" and (member.bisEligible and "Yes" or "No") or "?"
+		local values = {
+			member.name or "?", mainName or "?", FormatValue(member.ep), FormatValue(member.gp),
+			FormatValue(member.effectiveGP), member.pr and string.format("%.3f", member.pr) or FormatValue(member.prStatus),
+			bis, member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or "?",
+			table.concat({mainSpec.label or "", mainSpec.gearScore and tostring(mainSpec.gearScore) or "—", mainSpec.dps and tostring(mainSpec.dps) or "—"}, " / "),
+		}
+		for columnIndex, cell in ipairs(row.cells) do cell:SetText(tostring(values[columnIndex] or "")) end
+		W.SetBackdropColor(row, rowIndex % 2 == 0 and UI.CD_ROW_B or UI.CD_ROW_A)
 	end
-	if page.next then
-		if page.pageNumber < (pageCount or 1) then page.next:Enable() else page.next:Disable() end
-	end
+	W.LayoutTableScrollBars(page)
+	page.snapshotLabel:SetText(snapshot and ("Members " .. tostring(snapshot.memberCountReported or #snapshot.members)
+		.. " | " .. tostring(snapshot.officerNotesStatus or "unknown")) or "No roster snapshot")
 end
 
 local function ApplySettings(page)
@@ -209,7 +217,7 @@ function Addon:FinishEPGPRosterCollection(snapshot, err)
 	local resolved = self.GuildRosterLinks.Resolve(parsed)
 	self.db.epgp.view = self.GuildEPGP.Calculate(resolved, self.db.epgp)
 	if page then
-		page.report:SetText(BuildReport(self.db.epgp.view, page.search:GetText()))
+		RefreshReport(page)
 		page.status:SetText("Complete: " .. tostring(#snapshot.members) .. " of " .. tostring(snapshot.memberCountReported) .. " members processed (notes, links, PR ready).")
 		page.progress:SetProgress(1, 1)
 	end
@@ -256,10 +264,10 @@ local function CreateEPGPPage(parent)
 	local status = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
 	status:SetPoint("TOPLEFT", minimumLabel, "BOTTOMLEFT", 0, -10); status:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	status:SetJustifyH("LEFT")
-	local groupOnly = CreateFrame("CheckButton", "RaidwiseEPGPGroupOnlyV3", page, "UICheckButtonTemplate")
+	local groupOnly = CreateFrame("CheckButton", "RaidwiseEPGPGroupOnlyV4", page, "UICheckButtonTemplate")
 	groupOnly:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE); groupOnly:SetPoint("TOPLEFT", status, "BOTTOMLEFT", 0, -4)
 	local groupText = _G[groupOnly:GetName() .. "Text"]; if groupText then groupText:SetText(W.T("EPGP_FILTER_GROUP")) end
-	local raidOnly = CreateFrame("CheckButton", "RaidwiseEPGPRaidOnlyV3", page, "UICheckButtonTemplate")
+	local raidOnly = CreateFrame("CheckButton", "RaidwiseEPGPRaidOnlyV4", page, "UICheckButtonTemplate")
 	raidOnly:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE); raidOnly:SetPoint("LEFT", groupOnly, "RIGHT", 115, 0)
 	local raidText = _G[raidOnly:GetName() .. "Text"]; if raidText then raidText:SetText(W.T("EPGP_FILTER_RAID")) end
 	groupOnly:SetScript("OnClick", function() if groupOnly:GetChecked() then raidOnly:SetChecked(false) end; page.pageNumber = 1; RefreshReport(page) end)
@@ -276,11 +284,48 @@ local function CreateEPGPPage(parent)
 	progress:SetPoint("TOPLEFT", groupOnly, "BOTTOMLEFT", 0, -5)
 	progress:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	progress:SetProgress(0, 1)
-	local report, host = W.CreateCopyBox(page, "RaidwiseEPGPRosterScrollV1", "RaidwiseEPGPRosterBoxV1")
-	host:SetPoint("TOPLEFT", progress, "BOTTOMLEFT", 0, -7); host:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
-	if report.SetMaxLetters then report:SetMaxLetters(0) end
-	page.minimumGP, page.bisMinimumEP, page.status, page.search, page.report, page.progress = minimumGP, bisMinimumEP, status, search, report, progress
+	local snapshotLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
+	snapshotLabel:SetPoint("TOPLEFT", progress, "BOTTOMLEFT", 0, -5); snapshotLabel:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+	snapshotLabel:SetJustifyH("LEFT")
+	local tableHost = CreateFrame("Frame", nil, page)
+	tableHost:SetPoint("TOPLEFT", snapshotLabel, "BOTTOMLEFT", 0, -5); tableHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
+	W.ApplyPlainPanel(tableHost, UI.PANEL_BG)
+	local tableScroll = CreateFrame("ScrollFrame", "RaidwiseEPGPRosterScrollV3", tableHost)
+	tableScroll:SetPoint("TOPLEFT", 1, -1); tableScroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 2), UI.CD_HSCROLL_H + 2)
+	tableScroll:EnableMouseWheel(true)
+	local tableContent = CreateFrame("Frame", nil, tableScroll); tableContent:SetSize(1, 1); tableScroll:SetScrollChild(tableContent)
+	local columns = {
+		{key="Character", width=105}, {key="Main", width=105}, {key="EP", width=55},
+		{key="GP", width=55}, {key="Eff GP", width=60}, {key="PR", width=65},
+		{key="BIS", width=50}, {key="Link / parse", width=100}, {key="Main spec / GS / DPS", width=190},
+	}
+	local tableHeader = CreateFrame("Frame", nil, tableContent); tableHeader:SetPoint("TOPLEFT", 0, 0); tableHeader:SetHeight(UI.CD_HEADER_H)
+	W.ApplyPlainPanel(tableHeader, UI.TITLE_BG)
+	local columnX = 0
+	for _, column in ipairs(columns) do
+		local label = W.CreateFontString(tableHeader, nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("TOPLEFT", columnX + 4, -8); label:SetWidth(column.width - 8)
+		label:SetText(column.key); W.SetFontColor(label, UI.GOLD)
+		columnX = columnX + column.width
+	end
+	local verticalBar = W.CreateCooldownScrollBar(tableHost, "VERTICAL")
+	verticalBar:SetPoint("TOPRIGHT", -1, -1); verticalBar:SetPoint("BOTTOMRIGHT", -1, UI.CD_HSCROLL_H + 2)
+	verticalBar:SetScript("OnValueChanged", function(bar) tableScroll:SetVerticalScroll(bar:GetValue() or 0) end)
+	local horizontalBar = W.CreateCooldownScrollBar(tableHost, "HORIZONTAL")
+	horizontalBar:SetPoint("BOTTOMLEFT", 1, 1); horizontalBar:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 2), 1)
+	horizontalBar:SetScript("OnValueChanged", function(bar) tableScroll:SetHorizontalScroll(bar:GetValue() or 0) end)
+	tableScroll:SetScript("OnMouseWheel", function(scroll, delta)
+		local maxValue = math.max(0, (tableContent:GetHeight() or 0) - (scroll:GetHeight() or 0))
+		local value = math.max(0, math.min(maxValue, (scroll:GetVerticalScroll() or 0) - delta * UI.CD_ROW_H))
+		scroll:SetVerticalScroll(value); verticalBar:SetValue(value)
+	end)
+	tableScroll:SetScript("OnSizeChanged", function()
+		W.LayoutTableScrollBars({tableHost=tableHost, scroll=tableScroll, tableContent=tableContent, vBar=verticalBar, hBar=horizontalBar})
+	end)
+	page.minimumGP, page.bisMinimumEP, page.status, page.search, page.progress = minimumGP, bisMinimumEP, status, search, progress
 	page.groupOnly, page.raidOnly, page.previous, page.next, page.pageLabel, page.pageNumber = groupOnly, raidOnly, previous, nextPage, pageLabel, 1
+	page.snapshotLabel, page.tableContent, page.tableHeader, page.rowFrames, page.columns = snapshotLabel, tableContent, tableHeader, {}, columns
+	page.scroll, page.vBar, page.hBar, page.tableHost = tableScroll, verticalBar, horizontalBar, tableHost
 	minimumGP:SetText(tostring(Addon.db.epgp.minimumGP or 500))
 	bisMinimumEP:SetText(tostring(Addon.db.epgp.bisMinimumEP or 4000))
 	apply:SetScript("OnClick", function() ApplySettings(page) end)
