@@ -48,6 +48,7 @@ local defaults = {
 		nextId = 0,
 		reports = {},
 	},
+	epgp = { minimumGP = 500, bisMinimumEP = 4000, snapshot = nil },
 }
 
 -- Recursively copy a value (tables become independent copies).
@@ -493,6 +494,10 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 	elseif event == "UPDATE_INSTANCE_INFO" then
 		Addon:OnUpdateInstanceInfo()
 	elseif event == "PLAYER_GUILD_UPDATE" or event == "GUILD_ROSTER_UPDATE" then
+		if event == "GUILD_ROSTER_UPDATE" and Addon.epgpRefreshPending then
+			Addon.epgpRefreshPending = nil
+			if Addon.StartEPGPRosterCollection then Addon:StartEPGPRosterCollection() end
+		end
 		if event == "GUILD_ROSTER_UPDATE" and Addon.guildRosterExportPending and Addon.CompleteGuildRosterExport then
 			Addon:CompleteGuildRosterExport()
 		end

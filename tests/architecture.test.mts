@@ -302,7 +302,7 @@ test("shell dispatches page lifecycle without knowing page controls", async () =
       assert(not Raidwise:IsAllowedStartupTab(retired))
       assert(Raidwise:GetStartupTab()=='cooldowns')
     end
-    local expectedPageGroups={"personal","personal","raiding","raiding","raiding","raiding","exportWeb","other","other"}
+    local expectedPageGroups={"personal","personal","raiding","raiding","raiding","raiding","raiding","exportWeb","other","other"}
     for index, pageInfo in ipairs(Raidwise.MenuPages) do
       assert(pageInfo.group==expectedPageGroups[index])
     end

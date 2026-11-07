@@ -125,6 +125,10 @@ This is the user-facing integration stage for the data modules from stages 1–4
 
 **Deliverable:** an in-game EPGP page that can import or refresh a roster, review/correct parsed data, inspect the alt map, and sort/filter PR and BIS eligibility with visible source and uncertainty.
 
+**Current implementation status:** the initial `PageEPGP.lua` provides full-roster refresh, a searchable read-only report, and configurable/persisted minimum GP and BIS EP settings.
+External JSON paste/import, row sorting and structured filters, per-record corrections/review flags, and the dedicated grouped alt-map interaction are still outstanding; the current report shows direct and terminal main names plus parse/link statuses as text.
+Do not treat this initial page as the completed 4a acceptance deliverable.
+
 ### 5. Current-raid item competitors
 
 - Join the current raid roster to the imported guild snapshot and main/alt map, with explicit handling when a raid character is not in the snapshot.
