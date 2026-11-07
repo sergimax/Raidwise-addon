@@ -15,6 +15,7 @@ CharacterExport.lua
 GuildRosterExport.lua
 GuildRosterParser.lua
 GuildRosterLinks.lua
+GuildEPGP.lua
 CharacterLockouts.lua
 InspectCoordinator.lua
 PartyRoster.lua

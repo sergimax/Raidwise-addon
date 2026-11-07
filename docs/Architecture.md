@@ -20,6 +20,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Raw guild roster JSON export | `GuildRosterExport.lua` | `FormatGuildRosterExport`, asynchronous `/rw guildexport[ all|80]`; officer-note availability is explicit |
 | Guild note parsing | `GuildRosterParser.lua` | `Raidwise.GuildRosterParser`: pure `ParsePublicNote`, `ParseOfficerNote`, `ParseGuildRosterSnapshot` |
 | Guild main/alt resolution | `GuildRosterLinks.lua` | `Raidwise.GuildRosterLinks.Resolve(parsedSnapshot)`; pure name matching and graph diagnostics |
+| Guild EPGP calculations | `GuildEPGP.lua` | `Raidwise.GuildEPGP.Calculate(resolvedSnapshot, settings)`; pure PR and BIS eligibility |
 | Inspect timing, identity, retries | `InspectCoordinator.lua`, `GearCheck.lua`, `PartyRoster.lua` | `StartInspectRequest`, `RetryInspectRequest`, `StartGearCheckUnitScan`, `CancelGearCheckScan` |
 | Item links, sockets and gems | `GearCheckCollector.lua` | `CollectGearCheckObservation`; private `ParseItemLinkParts`, `NormalizeItem` |
 | Report compatibility and completeness | `GearCheckReport.lua` | `NormalizeGearCheckReport`, `GetGearCheckScanState`; canonical nested fields win over legacy aliases |

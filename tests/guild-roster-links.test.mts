@@ -37,3 +37,32 @@ test("guild main and alt resolution reports groups and unsafe links", async () =
     `);
   } finally { lua.global.close(); }
 });
+
+test("guild EPGP calculations apply GP floor and BIS EP threshold", async () => {
+  const lua = await Lua.create();
+  try {
+    lua.doStringSync("Raidwise = {}\n");
+    for (const name of ["GuildEPGP"]) {
+      lua.doStringSync((await readFile(new URL(`../Raidwise/${name}.lua`, import.meta.url), "utf8")).replace(/^\uFEFF/, ""));
+    }
+    lua.doStringSync(`
+      local snapshot={members={
+        {name="Main",mainBalance={ep=4000,gp=0},mainIndex=1,linkStatus="main"},
+        {name="Alt",mainIndex=1,linkStatus="linked"},
+        {name="Below",mainBalance={ep=3999,gp=100},mainIndex=3,linkStatus="main"},
+        {name="Unknown",linkStatus="unresolved"},
+        {name="Bad",mainBalance={ep=-1,gp=500},mainIndex=5,linkStatus="main"},
+      }}
+      local result=Raidwise.GuildEPGP.Calculate(snapshot)
+      assert(result.epgpSettings.minimumGP==500 and result.epgpSettings.bisMinimumEP==4000)
+      assert(result.members[1].effectiveGP==500 and result.members[1].pr==8 and result.members[1].bisEligible)
+      assert(result.members[2].balanceOwnerIndex==1 and result.members[2].bisEligible)
+      assert(result.members[3].pr==3999/500 and result.members[3].bisEligible==false)
+      assert(result.members[4].prStatus=="unknown" and result.members[4].bisEligibilityStatus=="unknown")
+      assert(result.members[5].prStatus=="invalid")
+      local custom=Raidwise.GuildEPGP.Calculate(snapshot,{minimumGP=1000,bisMinimumEP=4500})
+      assert(custom.members[1].pr==4 and custom.members[1].bisEligible==false)
+      assert(Raidwise.GuildEPGP.Calculate(snapshot,{minimumGP=-1})==nil)
+    `);
+  } finally { lua.global.close(); }
+});
