@@ -18,6 +18,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Chat preparation and gear reports | `ChatReports.lua`, `GearCheckReports.lua` | `PrepareReportMessage`, `BuildGearCheckChatMessages` |
 | Gear/bags/currency export, lockouts | `CharacterExport.lua`, `CharacterLockouts.lua` | `FormatEquippedGearExport`, `CollectCharacterCurrency`, `BuildCooldownTable` |
 | Raw guild roster JSON export | `GuildRosterExport.lua` | `FormatGuildRosterExport`, asynchronous `/rw guildexport[ all|80]`; officer-note availability is explicit |
+| Guild note parsing | `GuildRosterParser.lua` | `Raidwise.GuildRosterParser`: pure `ParsePublicNote`, `ParseOfficerNote`, `ParseGuildRosterSnapshot` |
 | Inspect timing, identity, retries | `InspectCoordinator.lua`, `GearCheck.lua`, `PartyRoster.lua` | `StartInspectRequest`, `RetryInspectRequest`, `StartGearCheckUnitScan`, `CancelGearCheckScan` |
 | Item links, sockets and gems | `GearCheckCollector.lua` | `CollectGearCheckObservation`; private `ParseItemLinkParts`, `NormalizeItem` |
 | Report compatibility and completeness | `GearCheckReport.lua` | `NormalizeGearCheckReport`, `GetGearCheckScanState`; canonical nested fields win over legacy aliases |

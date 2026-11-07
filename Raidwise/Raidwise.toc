@@ -13,6 +13,7 @@ Locale.lua
 ChatReports.lua
 CharacterExport.lua
 GuildRosterExport.lua
+GuildRosterParser.lua
 CharacterLockouts.lua
 InspectCoordinator.lua
 PartyRoster.lua

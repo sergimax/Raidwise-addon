@@ -59,12 +59,14 @@ Filtered exports retain the total roster count and record `levelFilter` and `mem
 
 ### 2. Note parsing and normalized roster
 
-- Implement a pure parser that accepts a raw member record and returns parsed fields plus warnings/confidence.
+- Implement a pure parser that accepts a raw member record and returns parsed fields plus warnings/confidence. The initial parser module is `GuildRosterParser.lua`; call `Raidwise.GuildRosterParser.ParseGuildRosterSnapshot(snapshot)` to produce an additive normalized snapshot.
 - Parse each spec segment independently; do not assume every segment has a GearScore or DPS, and do not assign DPS to healing specs unless explicitly applicable.
 - Preserve original capitalization/text and token spans where practical; normalized spec aliases should be additive, not destructive.
 - Build summary counts for parsed, partial, ambiguous, and unparsed notes. Include fixtures derived from the supplied examples and adversarial cases.
 
 **Deliverable:** normalized roster JSON and an inspectable parse report. Parser must be independently testable without WoW APIs.
+
+Initial parser contract: each row retains its original note fields and adds `publicNoteParsed` (`raw`, optional `playerName`, ordered `specs`, `status`, `warnings`) and `officerNoteParsed` (`raw`, `status`, and either `ep`/`gp` or `mainReference`). Parse statuses are `empty`, `parsed`, `partial`, or `ambiguous`; officer-note statuses include `missing`, `unavailable`, `parsed`, `reference`, and `invalid`. Parsing is deliberately conservative and will be refined against real corrected exports before it is used for automatic decisions.
 
 ### 3. Alt map
 
