@@ -395,6 +395,11 @@ SlashCmdList["RAIDWISE"] = function(msg)
 		return
 	end
 
+	if msg == "guildexport all" or msg == "guild export all" then
+		if Addon.ShowFullGuildRosterExport then Addon:ShowFullGuildRosterExport() else Addon:Print("Guild roster export is unavailable.") end
+		return
+	end
+
 	if msg == "close" then
 		Addon:HideMainFrame()
 		return

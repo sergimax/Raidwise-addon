@@ -94,10 +94,35 @@ function Addon:ShowGuildRosterExport()
 	self:CompleteGuildRosterExport()
 end
 
+function Addon:ShowFullGuildRosterExport()
+	if not (IsInGuild and IsInGuild()) then
+		self:Print("You must be in a guild to export the guild roster.")
+		return
+	end
+	if type(SetGuildRosterShowOffline) ~= "function" then
+		self:Print("This client does not support showing offline guild members through the roster API.")
+		return
+	end
+	self.guildRosterExportIncludeOffline = true
+	self.guildRosterExportPreviousOffline = type(GetGuildRosterShowOffline) == "function" and GetGuildRosterShowOffline() or nil
+	SetGuildRosterShowOffline(true)
+	self.guildRosterExportPending = true
+	if type(GuildRoster) == "function" then GuildRoster() end
+	self:Print("Refreshing the full guild roster, including offline members...")
+end
+
 function Addon:CompleteGuildRosterExport()
 	if not self.guildRosterExportPending and IsInGuild and not IsInGuild() then return end
 	self.guildRosterExportPending = nil
 	local text, err = self:FormatGuildRosterExport()
+	if self.guildRosterExportIncludeOffline then
+		self.guildRosterExportIncludeOffline = nil
+		local previousOffline = self.guildRosterExportPreviousOffline
+		self.guildRosterExportPreviousOffline = nil
+		if previousOffline ~= nil and previousOffline ~= true and type(SetGuildRosterShowOffline) == "function" then
+			SetGuildRosterShowOffline(previousOffline)
+		end
+	end
 	if not text then self:Print(err); return end
 	local frame = self.guildRosterExportFrame
 	if not frame then
