@@ -14,6 +14,7 @@ ChatReports.lua
 CharacterExport.lua
 GuildRosterExport.lua
 GuildRosterParser.lua
+GuildRosterLinks.lua
 CharacterLockouts.lua
 InspectCoordinator.lua
 PartyRoster.lua
