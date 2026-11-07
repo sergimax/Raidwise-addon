@@ -22,9 +22,11 @@ function Addon:FormatGuildRosterSnapshot(snapshot)
 	end
 	local members = {}
 	local officerNotesAvailable = snapshot.officerNotesStatus == "available"
+	local levelFilter = snapshot.levelFilter
 	for index = 1, #snapshot.members do
 		local member = snapshot.members[index]
-		if type(member) == "table" and member.name then
+		if type(member) == "table" and member.name
+			and (levelFilter == nil or member.level == levelFilter) then
 			members[#members + 1] = "{"
 				.. '"name":' .. JsonString(member.name)
 				.. ',"rank":' .. JsonString(member.rank)
@@ -44,7 +46,9 @@ function Addon:FormatGuildRosterSnapshot(snapshot)
 	local complete = #members == snapshot.memberCountReported
 	local output = '{"format":"RaidwiseGuildRoster","schemaVersion":' .. SCHEMA_VERSION
 		.. ',"scannedAt":' .. JsonNumber(snapshot.scannedAt)
+		.. ',"levelFilter":' .. JsonNumber(levelFilter)
 		.. ',"memberCountReported":' .. JsonNumber(snapshot.memberCountReported)
+		.. ',"memberCountMatchingFilter":' .. #members
 		.. ',"memberCountExported":' .. #members
 		.. ',"complete":' .. (complete and "true" or "false")
 		.. ',"officerNotesStatus":' .. JsonString(officerNotesAvailable and "available" or "unavailable")
@@ -74,9 +78,10 @@ function Addon:CollectGuildRosterSnapshot()
 	return snapshot
 end
 
-function Addon:FormatGuildRosterExport()
+function Addon:FormatGuildRosterExport(levelFilter)
 	local snapshot, err = self:CollectGuildRosterSnapshot()
 	if not snapshot then return nil, err end
+	snapshot.levelFilter = levelFilter
 	return self:FormatGuildRosterSnapshot(snapshot)
 end
 
@@ -103,6 +108,7 @@ function Addon:ShowFullGuildRosterExport()
 		self:Print("This client does not support showing offline guild members through the roster API.")
 		return
 	end
+	self.guildRosterExportLevelFilter = nil
 	self.guildRosterExportIncludeOffline = true
 	self.guildRosterExportPreviousOffline = type(GetGuildRosterShowOffline) == "function" and GetGuildRosterShowOffline() or nil
 	SetGuildRosterShowOffline(true)
@@ -111,10 +117,30 @@ function Addon:ShowFullGuildRosterExport()
 	self:Print("Refreshing the full guild roster, including offline members...")
 end
 
+function Addon:ShowLevel80GuildRosterExport()
+	if not (IsInGuild and IsInGuild()) then
+		self:Print("You must be in a guild to export the guild roster.")
+		return
+	end
+	if type(SetGuildRosterShowOffline) ~= "function" then
+		self:Print("This client does not support showing offline guild members through the roster API.")
+		return
+	end
+	self.guildRosterExportLevelFilter = 80
+	self.guildRosterExportIncludeOffline = true
+	self.guildRosterExportPreviousOffline = type(GetGuildRosterShowOffline) == "function" and GetGuildRosterShowOffline() or nil
+	SetGuildRosterShowOffline(true)
+	self.guildRosterExportPending = true
+	if type(GuildRoster) == "function" then GuildRoster() end
+	self:Print("Refreshing the full guild roster; export will include level 80 characters only...")
+end
+
 function Addon:CompleteGuildRosterExport()
 	if not self.guildRosterExportPending and IsInGuild and not IsInGuild() then return end
 	self.guildRosterExportPending = nil
-	local text, err = self:FormatGuildRosterExport()
+	local levelFilter = self.guildRosterExportLevelFilter
+	self.guildRosterExportLevelFilter = nil
+	local text, err = self:FormatGuildRosterExport(levelFilter)
 	if self.guildRosterExportIncludeOffline then
 		self.guildRosterExportIncludeOffline = nil
 		local previousOffline = self.guildRosterExportPreviousOffline

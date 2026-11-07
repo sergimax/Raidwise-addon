@@ -54,6 +54,9 @@ This eligibility threshold is independent of PR and should report eligible/ineli
 
 **Deliverable:** reproducible raw JSON snapshot, with schema version and completeness metadata.
 
+Roster export commands: `/rw guildexport` uses the current roster visibility; `/rw guildexport all` includes offline members; `/rw guildexport 80` includes all level-80 members, including offline members.
+Filtered exports retain the total roster count and record `levelFilter` and `memberCountMatchingFilter` in the JSON metadata.
+
 ### 2. Note parsing and normalized roster
 
 - Implement a pure parser that accepts a raw member record and returns parsed fields plus warnings/confidence.

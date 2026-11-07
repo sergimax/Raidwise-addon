@@ -400,6 +400,11 @@ SlashCmdList["RAIDWISE"] = function(msg)
 		return
 	end
 
+	if msg == "guildexport 80" or msg == "guild export 80" then
+		if Addon.ShowLevel80GuildRosterExport then Addon:ShowLevel80GuildRosterExport() else Addon:Print("Guild roster export is unavailable.") end
+		return
+	end
+
 	if msg == "close" then
 		Addon:HideMainFrame()
 		return
