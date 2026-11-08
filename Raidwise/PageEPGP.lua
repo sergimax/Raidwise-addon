@@ -5,8 +5,9 @@ local W = Addon.Widgets
 local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 5
-local PAGE_SIZE = 20
+local LAYOUT_VERSION = 6
+local PAGE_SIZE = 25
+local EPGP_ROW_H = 28
 
 local function FormatValue(value)
 	if value == nil then return "—" end
@@ -58,9 +59,35 @@ local function GetFilteredMembers(snapshot, query, groupOnly, raidOnly)
 	return filtered
 end
 
+local function SortValue(member, columnIndex, snapshot)
+	local main = member.mainIndex and snapshot.members[member.mainIndex] or member
+	local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
+	local spec = specs[1] or {}
+	if columnIndex == 1 then return tostring(member.name or ""):lower() end
+	if columnIndex == 2 then return tostring(main.name or ""):lower() end
+	if columnIndex == 3 then return member.ep end
+	if columnIndex == 4 then return member.gp end
+	if columnIndex == 5 then return member.effectiveGP end
+	if columnIndex == 6 then return member.pr end
+	if columnIndex == 7 then return member.bisEligible end
+	if columnIndex == 8 then return tostring(member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or ""):lower() end
+	if columnIndex == 9 then return tostring(spec.label or ""):lower() end
+end
+
 local function RefreshReport(page)
 	local snapshot = Addon.db.epgp.view
 	local filtered = GetFilteredMembers(snapshot, page.search:GetText(), page.groupOnly:GetChecked(), page.raidOnly:GetChecked())
+	if snapshot and page.sortColumn then
+		local sortColumn, descending = page.sortColumn, page.sortDescending
+		table.sort(filtered, function(left, right)
+			local leftValue, rightValue = SortValue(left, sortColumn, snapshot), SortValue(right, sortColumn, snapshot)
+			if leftValue == rightValue then return tostring(left.name or ""):lower() < tostring(right.name or ""):lower() end
+			if leftValue == nil then return false end
+			if rightValue == nil then return true end
+			if descending then return leftValue > rightValue end
+			return leftValue < rightValue
+		end)
+	end
 	local pageCount = math.max(1, math.ceil(#filtered / PAGE_SIZE))
 	page.pageNumber = math.min(math.max(page.pageNumber or 1, 1), pageCount)
 	local first = (page.pageNumber - 1) * PAGE_SIZE + 1
@@ -68,7 +95,7 @@ local function RefreshReport(page)
 	local columns = page.columns
 	local tableWidth = 0
 	for _, column in ipairs(columns) do tableWidth = tableWidth + column.width end
-	local contentHeight = UI.CD_HEADER_H + math.max(visible, 1) * UI.CD_ROW_H
+	local contentHeight = UI.CD_HEADER_H + math.max(visible, 1) * EPGP_ROW_H
 	page.tableContent:SetSize(tableWidth, contentHeight)
 	page.tableHeader:SetWidth(tableWidth)
 	page.pageLabel:SetText(string.format("Page %d / %d (%d)", page.pageNumber, pageCount, #filtered))
@@ -85,15 +112,15 @@ local function RefreshReport(page)
 			local x = 0
 			for columnIndex, column in ipairs(columns) do
 				local cell = W.CreateFontString(row, nil, "OVERLAY", "GameFontNormalSmall")
-				cell:SetPoint("TOPLEFT", x + 4, -4); cell:SetWidth(column.width - 8); cell:SetHeight(UI.CD_ROW_H - 6)
+				cell:SetPoint("TOPLEFT", x + 4, -4); cell:SetWidth(column.width - 8); cell:SetHeight(EPGP_ROW_H - 6)
 				cell:SetJustifyH("LEFT"); cell:SetJustifyV("TOP")
 				row.cells[columnIndex] = cell
 				x = x + column.width
 			end
 			page.rowFrames[rowIndex] = row
 		end
-		row:ClearAllPoints(); row:SetPoint("TOPLEFT", page.tableContent, "TOPLEFT", 0, -(UI.CD_HEADER_H + (rowIndex - 1) * UI.CD_ROW_H))
-		row:SetSize(tableWidth, UI.CD_ROW_H); row:Show()
+		row:ClearAllPoints(); row:SetPoint("TOPLEFT", page.tableContent, "TOPLEFT", 0, -(UI.CD_HEADER_H + (rowIndex - 1) * EPGP_ROW_H))
+		row:SetSize(tableWidth, EPGP_ROW_H); row:Show()
 		local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
 		local mainSpec = specs[1] or {}
 		local mainMember = member.mainIndex and snapshot.members[member.mainIndex] or member
@@ -109,11 +136,11 @@ local function RefreshReport(page)
 			cell:SetText(tostring(values[columnIndex] or ""))
 			if columnIndex == 1 then
 				local classToken = member.classFileName or member.class
-				cell:SetText(W.CharacterIconMarkup({class=classToken}, 12) .. tostring(member.name or "?"))
+				cell:SetText(W.CharacterIconMarkup({class=classToken}, 24) .. tostring(member.name or "?"))
 				cell:SetTextColor(W.ClassColor(classToken))
 			elseif columnIndex == 2 then
 				local classToken = mainMember.classFileName or mainMember.class
-				cell:SetText(W.CharacterIconMarkup({class=classToken}, 12) .. tostring(mainName or "?"))
+				cell:SetText(W.CharacterIconMarkup({class=classToken}, 24) .. tostring(mainName or "?"))
 				cell:SetTextColor(W.ClassColor(classToken))
 			elseif columnIndex == 3 then
 				cell:SetTextColor(0.25, 1, 0.25)
@@ -322,10 +349,24 @@ local function CreateEPGPPage(parent)
 	local tableHeader = CreateFrame("Frame", nil, tableContent); tableHeader:SetPoint("TOPLEFT", 0, 0); tableHeader:SetHeight(UI.CD_HEADER_H)
 	W.ApplyPlainPanel(tableHeader, UI.TITLE_BG)
 	local columnX = 0
-	for _, column in ipairs(columns) do
-		local label = W.CreateFontString(tableHeader, nil, "OVERLAY", "GameFontNormalSmall")
-		label:SetPoint("TOPLEFT", columnX + 4, -8); label:SetWidth(column.width - 8)
+	local headerButtons = {}
+	for columnIndex, column in ipairs(columns) do
+		local sortIndex = columnIndex
+		local button = CreateFrame("Button", nil, tableHeader)
+		button:SetPoint("TOPLEFT", columnX, 0); button:SetWidth(column.width); button:SetHeight(UI.CD_HEADER_H)
+		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
+		label:SetPoint("TOPLEFT", 4, -8); label:SetWidth(column.width - 8)
 		label:SetText(column.key); W.SetFontColor(label, UI.GOLD)
+		button:SetScript("OnClick", function()
+			if page.sortColumn == sortIndex then
+				page.sortDescending = not page.sortDescending
+			else
+				page.sortColumn, page.sortDescending = sortIndex, false
+			end
+			page.pageNumber = 1
+			RefreshReport(page)
+		end)
+		headerButtons[columnIndex] = button
 		columnX = columnX + column.width
 	end
 	local verticalBar = W.CreateCooldownScrollBar(tableHost, "VERTICAL")
@@ -336,7 +377,7 @@ local function CreateEPGPPage(parent)
 	horizontalBar:SetScript("OnValueChanged", function(bar) tableScroll:SetHorizontalScroll(bar:GetValue() or 0) end)
 	tableScroll:SetScript("OnMouseWheel", function(scroll, delta)
 		local maxValue = math.max(0, (tableContent:GetHeight() or 0) - (scroll:GetHeight() or 0))
-		local value = math.max(0, math.min(maxValue, (scroll:GetVerticalScroll() or 0) - delta * UI.CD_ROW_H))
+		local value = math.max(0, math.min(maxValue, (scroll:GetVerticalScroll() or 0) - delta * EPGP_ROW_H))
 		scroll:SetVerticalScroll(value); verticalBar:SetValue(value)
 	end)
 	tableScroll:SetScript("OnSizeChanged", function()
@@ -345,6 +386,7 @@ local function CreateEPGPPage(parent)
 	page.minimumGP, page.bisMinimumEP, page.status, page.search, page.progress = minimumGP, bisMinimumEP, status, search, progress
 	page.groupOnly, page.raidOnly, page.previous, page.next, page.pageLabel, page.pageNumber = groupOnly, raidOnly, previous, nextPage, pageLabel, 1
 	page.snapshotLabel, page.tableContent, page.tableHeader, page.rowFrames, page.columns = snapshotLabel, tableContent, tableHeader, {}, columns
+	page.headerButtons = headerButtons
 	page.scroll, page.vBar, page.hBar, page.tableHost = tableScroll, verticalBar, horizontalBar, tableHost
 	minimumGP:SetText(tostring(Addon.db.epgp.minimumGP or 500))
 	bisMinimumEP:SetText(tostring(Addon.db.epgp.bisMinimumEP or 4000))
