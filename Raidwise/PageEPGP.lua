@@ -5,7 +5,7 @@ local W = Addon.Widgets
 local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 10
+local LAYOUT_VERSION = 12
 local PAGE_SIZE = 25
 local EPGP_ROW_H = 28
 
@@ -105,7 +105,7 @@ local function SortValue(member, columnIndex, snapshot)
 		return member.bisEligible and 1 or 0
 	end
 	if columnIndex == 9 then return tostring(member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or ""):lower() end
-	if columnIndex == 10 then return tostring(spec.label or ""):lower() end
+	if columnIndex == 10 then return tostring(member.publicNote or ""):lower() end
 end
 
 local function RefreshReport(page)
@@ -204,7 +204,7 @@ local function RefreshReport(page)
 			memberType, member.name or "?", mainName or "?", FormatValue(member.ep), FormatValue(member.gp),
 			FormatValue(member.effectiveGP), member.pr and string.format("%.3f", member.pr) or FormatValue(member.prStatus),
 			rollStatus, member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or "?",
-			table.concat({mainSpec.label or "", mainSpec.gearScore and tostring(mainSpec.gearScore) or "—", mainSpec.dps and tostring(mainSpec.dps) or "—"}, " / "),
+			tostring(member.publicNote or ""),
 		}
 		for columnIndex, cell in ipairs(row.cells) do
 			cell:SetText(tostring(values[columnIndex] or ""))
@@ -253,7 +253,7 @@ local function ApplySettings(page)
 	local minimumGP = tonumber(page.minimumGP:GetText())
 	local bisMinimumEP = tonumber(page.bisMinimumEP:GetText())
 	if not minimumGP or minimumGP < 0 or not bisMinimumEP or bisMinimumEP < 0 then
-		page.status:SetText("Settings must be non-negative numbers.")
+		page.status:SetText("GP base and BIS EP threshold must be non-negative numbers.")
 		return false
 	end
 	settings.minimumGP, settings.bisMinimumEP = minimumGP, bisMinimumEP
@@ -436,8 +436,8 @@ local function CreateEPGPPage(parent)
 	local tableContent = CreateFrame("Frame", nil, tableScroll); tableContent:SetSize(1, 1); tableScroll:SetScrollChild(tableContent)
 	local columns = {
 		{key="Тип", width=42}, {key="Персонаж", width=125}, {key="Мейн", width=105}, {key="EP", width=55},
-		{key="GP", width=55}, {key="Eff GP", width=60}, {key="PR", width=65},
-		{key="min EP", width=60}, {key="Статус", width=100}, {key="Спек / GS / DPS", width=190},
+		{key="GP", width=55}, {key="GP used", width=60}, {key="PR", width=65},
+		{key="min EP", width=60}, {key="Статус", width=100}, {key="Заметка", width=240},
 	}
 	local tableHeader = CreateFrame("Frame", nil, tableContent); tableHeader:SetPoint("TOPLEFT", 0, 0); tableHeader:SetHeight(UI.CD_HEADER_H)
 	W.ApplyPlainPanel(tableHeader, UI.TITLE_BG)
@@ -482,7 +482,7 @@ local function CreateEPGPPage(parent)
 	page.snapshotLabel, page.tableContent, page.tableHeader, page.rowFrames, page.columns = snapshotLabel, tableContent, tableHeader, {}, columns
 	page.headerButtons = headerButtons
 	page.scroll, page.vBar, page.hBar, page.tableHost = tableScroll, verticalBar, horizontalBar, tableHost
-	minimumGP:SetText(tostring(Addon.db.epgp.minimumGP or 500))
+	minimumGP:SetText(tostring(Addon.db.epgp.minimumGP == nil and 500 or Addon.db.epgp.minimumGP))
 	bisMinimumEP:SetText(tostring(Addon.db.epgp.bisMinimumEP or 4000))
 	apply:SetScript("OnClick", function() ApplySettings(page) end)
 	page.layoutVersion = LAYOUT_VERSION

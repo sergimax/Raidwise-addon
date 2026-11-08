@@ -25,10 +25,11 @@ function EPGP.Calculate(snapshot, settings)
 		local balanceOwner = main or (member.mainBalance and member or nil)
 		row.balanceOwnerIndex = balanceOwner and (member.mainIndex or index) or nil
 		local balance = balanceOwner and balanceOwner.mainBalance or nil
-		if balance and IsNonNegativeNumber(balance.ep) and IsNonNegativeNumber(balance.gp) then
-			local effectiveGP = math.max(balance.gp, minimumGP)
-			row.ep, row.gp, row.effectiveGP = balance.ep, balance.gp, effectiveGP
-			row.pr, row.prStatus = balance.ep / effectiveGP, "available"
+		local validGP = balance and (balance.gp == nil or IsNonNegativeNumber(balance.gp))
+		local formulaGP = balance and validGP and ((balance.gp or 0) + minimumGP) or nil
+		if balance and IsNonNegativeNumber(balance.ep) and validGP and formulaGP > 0 then
+			row.ep, row.gp, row.effectiveGP = balance.ep, balance.gp, formulaGP
+			row.pr, row.prStatus = balance.ep / formulaGP, "available"
 			row.bisEligible, row.bisEligibilityStatus = balance.ep >= bisMinimumEP, "available"
 		elseif balance then
 			row.prStatus, row.bisEligibilityStatus = "invalid", "unknown"

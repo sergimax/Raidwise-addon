@@ -93,8 +93,9 @@ function Parser.ParseOfficerNote(note)
 	local result = { raw = raw, status = "missing" }
 	if value == "" then return result end
 	local ep, gp = value:match("^(%d+)%s*,%s*(%d+)$")
+	if not ep then ep = value:match("^(%d+)%s*,%s*$") end
 	if ep then
-		result.kind, result.ep, result.gp, result.status = "balance", tonumber(ep), tonumber(gp), "parsed"
+		result.kind, result.ep, result.gp, result.status = "balance", tonumber(ep), gp and tonumber(gp) or nil, "parsed"
 	else
 		result.kind, result.mainReference, result.status = "mainReference", value, "reference"
 		if value:match("^%-?%d+[,%.]%d+") or value:match("^%-") then

@@ -25,9 +25,7 @@ Officer notes have two supported forms: numeric `EP,GP` for a main character, or
 Preserve the raw value and report invalid or ambiguous entries instead of guessing.
 Numeric parsing should accept comma decimal/list conventions only according to an explicitly documented grammar; examples currently suggest integer EP and GP separated by a comma.
 
-PR is `EP / max(GP, minimumGP)`. The configurable minimum GP defaults to **500**; GP=0 therefore uses effective GP=500.
-Show both recorded GP and effective GP so the floor is visible.
-Never silently divide by zero or invent a value.
+PR is `EP / GP-used`, where `GP-used = recorded GP + GP base`. The configurable GP base defaults to **500** and also serves as GP-used when recorded GP is zero or missing. Show recorded GP and GP used so the calculation is visible. Negative or malformed GP remains invalid.
 
 Add a separate configurable minimum EP threshold for BIS rolls.
 It defaults to **4000** for the current guild profile.
@@ -42,7 +40,7 @@ This eligibility threshold is independent of PR and should report eligible/ineli
 - **Public-note grammar:** intentionally tolerant, not a fixed strict grammar. Split specs on `/` or `\\` when the segment structure is clear; recognize an optional player name/date, free-form spec label, optional GearScore and optional parenthesized Saurfang 25/25H DPS. Accept dot or comma decimal notation only when unambiguous in context. Preserve unknown `?` separately from missing data. One spec, two specs, two healing specs, absent DPS, no spec (low-level), and unrecognized labels are valid partial records. If a token can be interpreted in multiple ways, retain raw text and flag for officer review instead of guessing.
 - **Officer-note grammar:** trim surrounding whitespace. A non-negative integer pair `EP,GP` is a balance record. Otherwise, a non-empty value is a main-character reference. Empty is missing. Other numeric forms, negative values, and malformed pairs are invalid and need review. This makes `0,0` a valid balance and avoids interpreting decimal commas as EP/GP.
 - **Alt resolution:** normalize names by trimming whitespace and case-folding; compare within the current realm/guild snapshot (no cross-realm inference). A reference must resolve to exactly one member. Missing or duplicate matches remain unresolved. Resolve references to their terminal main while recording the direct link; detect self-links and cycles and exclude invalid chains from balance inheritance. Numeric balance notes identify mains. An alt's own numeric balance is a conflict requiring review, not an automatic override.
-- **EPGP policy:** minimum GP defaults to 500 and is configurable. `effectiveGP = max(recordedGP, minimumGP)` and `PR = EP / effectiveGP`; preserve/display both GP values. Negative or malformed EP/GP are invalid. Minimum EP for BIS rolls defaults to 4000 and is independently configurable; eligibility is `EP >= threshold` for a character linked to a valid main balance. Missing/invalid balance yields unknown eligibility. Thresholds are stored with the snapshot/calculation so results are reproducible.
+- **EPGP policy:** configurable GP base defaults to 500. `GP-used = recordedGP + GP-base`, treating zero or missing recorded GP as 0, and `PR = EP / GP-used`; preserve/display recorded GP and GP used. Negative or malformed EP/GP or GP base are invalid. Minimum EP for BIS rolls defaults to 4000 and is independently configurable; eligibility is `EP >= threshold` for a character linked to a valid main balance. Missing/invalid EP yields unknown eligibility.
 - **Data retention:** retain raw notes and roster fields in every snapshot. Parsing is additive; later grammar updates can reprocess existing snapshots, while manual corrections and review flags remain attached to the corresponding member record.
 
 ### 1. Guild roster JSON export
@@ -79,7 +77,7 @@ Initial parser contract: each row retains its original note fields and adds `pub
 
 ### 4. EP/GP and PR view
 
-- The calculation core is implemented in `GuildEPGP.lua` as `Raidwise.GuildEPGP.Calculate(resolvedSnapshot, settings)`. Defaults are `minimumGP=500` and `bisMinimumEP=4000`; both can be overridden per call. `effectiveGP=max(recordedGP, minimumGP)`, `PR=EP/effectiveGP`, and BIS eligibility uses the main balance's EP.
+- The calculation core is implemented in `GuildEPGP.lua` as `Raidwise.GuildEPGP.Calculate(resolvedSnapshot, settings)`. Configurable `minimumGP` defaults to 500; `bisMinimumEP=4000` is independently configurable. `GP-used = recordedGP + minimumGP`, treating missing or zero recorded GP as 0; `PR=EP/GP-used`; BIS eligibility uses the main balance's EP.
 - The pure calculation core produces per-member `ep`, recorded `gp`, `effectiveGP`, `pr`, `prStatus`, `bisEligible`, and `bisEligibilityStatus`, retaining main/alt association. Missing and invalid values remain non-numeric and get explicit statuses.
 - The interactive PR view and persistent user-configurable settings remain presentation/integration work; the calculation API is ready for that view.
 - Display EP, GP, effective GP if a floor is used, PR, and the source note. Sort/filter without changing source values.
@@ -113,7 +111,7 @@ This is the user-facing integration stage for the data modules from stages 1–4
 #### PR and BIS eligibility view
 
 - Show EP, recorded GP, effective GP, PR, BIS threshold, and eligibility. Sort by PR/EP/GP and filter to BIS-eligible, ineligible, unknown, or linked alt.
-- Add page settings for minimum GP (default 500) and BIS minimum EP (default 4000). Validate non-negative numeric input, persist settings in the EPGP page's own SavedVariables branch, and include the active values with any displayed/exported result.
+- Add page settings for GP base (default 500) and BIS minimum EP (default 4000). Persist both settings and include their active values with displayed/exported results.
 - Do not count alts as extra balances. Make it clear that their displayed EPGP values are inherited from the resolved main. Unknown and invalid values remain distinct from zero.
 
 #### Layout and acceptance checks
@@ -125,7 +123,7 @@ This is the user-facing integration stage for the data modules from stages 1–4
 
 **Deliverable:** an in-game EPGP page that can import or refresh a roster, review/correct parsed data, inspect the alt map, and sort/filter PR and BIS eligibility with visible source and uncertainty.
 
-**Current implementation status:** the initial `PageEPGP.lua` provides full-roster refresh, a searchable read-only report, and configurable/persisted minimum GP and BIS EP settings.
+**Current implementation status:** the initial `PageEPGP.lua` provides full-roster refresh, a searchable read-only report, and configurable/persisted GP base and BIS EP threshold. PR uses `recorded GP + GP base`; zero or missing recorded GP uses the base alone.
 External JSON paste/import, row sorting and structured filters, per-record corrections/review flags, and the dedicated grouped alt-map interaction are still outstanding; the current report shows direct and terminal main names plus parse/link statuses as text.
 Do not treat this initial page as the completed 4a acceptance deliverable.
 

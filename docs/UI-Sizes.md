@@ -6,9 +6,9 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 ## Shell
 
-### EPGP roster (layout v10)
+### EPGP roster (layout v12)
 
-Full-width toolbar with roster refresh, character search, minimum GP and minimum EP for roll settings, followed by status, group/raid scope filters, an include-linked-mains/alts option, pagination, progress, and a two-axis scrollable table. Twenty-five rows are shown per page at 28 px row height. In full-guild view, clicking a main row collapses or expands its alts. Main rows use the current-character highlight background and larger font; alt rows remain indented. The first column displays type M/T; character and main names include 24 px class icons and class colors; table sorting keeps each main's group contiguous. EP is green, GP red, and `min EP` eligibility is green/red. Other columns show recorded/effective GP, PR, note/link status, and main-spec GS/DPS. The page is under the export menu group.
+Full-width toolbar with roster refresh, character search, GP base (default 500), minimum EP for roll settings, followed by status, group/raid scope filters, an include-linked-mains/alts option, pagination, progress, and a two-axis scrollable table. Twenty-five rows are shown per page at 28 px row height. In full-guild view, clicking a main row collapses or expands its alts. Main rows use the current-character highlight background and larger font; alt rows remain indented. The first column displays type M/T; character and main names include 24 px class icons and class colors; table sorting keeps each main's group contiguous. EP is green, GP red, and `min EP` eligibility is green/red. The `GP used` column shows recorded GP plus the configured GP base; zero or missing recorded GP uses the base alone. Other columns show PR, note/link status, and the raw public note. The page is under the export menu group.
 Current view is read-only after refresh; correction and JSON import controls remain future work.
 
 | Element | Size | Notes |
