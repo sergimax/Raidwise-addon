@@ -5,7 +5,7 @@ local W = Addon.Widgets
 local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 6
+local LAYOUT_VERSION = 7
 local PAGE_SIZE = 25
 local EPGP_ROW_H = 28
 
@@ -77,11 +77,20 @@ end
 local function RefreshReport(page)
 	local snapshot = Addon.db.epgp.view
 	local filtered = GetFilteredMembers(snapshot, page.search:GetText(), page.groupOnly:GetChecked(), page.raidOnly:GetChecked())
-	if snapshot and page.sortColumn then
-		local sortColumn, descending = page.sortColumn, page.sortDescending
+	if snapshot then
+		local sortColumn, descending = page.sortColumn or 2, page.sortDescending
 		table.sort(filtered, function(left, right)
-			local leftValue, rightValue = SortValue(left, sortColumn, snapshot), SortValue(right, sortColumn, snapshot)
-			if leftValue == rightValue then return tostring(left.name or ""):lower() < tostring(right.name or ""):lower() end
+			local leftMainIndex = left.mainIndex or left.rosterIndex
+			local rightMainIndex = right.mainIndex or right.rosterIndex
+			if leftMainIndex == rightMainIndex then
+				local leftIsMain, rightIsMain = leftMainIndex == left.rosterIndex, rightMainIndex == right.rosterIndex
+				if leftIsMain ~= rightIsMain then return leftIsMain end
+				return tostring(left.name or ""):lower() < tostring(right.name or ""):lower()
+			end
+			local leftRoot = snapshot.members[leftMainIndex] or left
+			local rightRoot = snapshot.members[rightMainIndex] or right
+			local leftValue, rightValue = SortValue(leftRoot, sortColumn, snapshot), SortValue(rightRoot, sortColumn, snapshot)
+			if leftValue == rightValue then return tostring(leftRoot.name or ""):lower() < tostring(rightRoot.name or ""):lower() end
 			if leftValue == nil then return false end
 			if rightValue == nil then return true end
 			if descending then return leftValue > rightValue end
@@ -136,7 +145,8 @@ local function RefreshReport(page)
 			cell:SetText(tostring(values[columnIndex] or ""))
 			if columnIndex == 1 then
 				local classToken = member.classFileName or member.class
-				cell:SetText(W.CharacterIconMarkup({class=classToken}, 24) .. tostring(member.name or "?"))
+				local isAlt = member.mainIndex and member.mainIndex ~= member.rosterIndex
+				cell:SetText((isAlt and "   ↳ " or "▾ ") .. W.CharacterIconMarkup({class=classToken}, 24) .. tostring(member.name or "?"))
 				cell:SetTextColor(W.ClassColor(classToken))
 			elseif columnIndex == 2 then
 				local classToken = mainMember.classFileName or mainMember.class

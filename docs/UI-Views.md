@@ -53,7 +53,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Shell title bar (next to page name) |
-| EPGP roster | `LAYOUT_VERSION = 6` | `PageEPGP.lua` | Shell title bar (next to page name) |
+| EPGP roster | `LAYOUT_VERSION = 7` | `PageEPGP.lua` | Shell title bar (next to page name) |
 | Character database | `DATABASE_LAYOUT_VERSION = 13` | `PageHistory.lua` | Shell title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 18` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
