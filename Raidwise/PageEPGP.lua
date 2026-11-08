@@ -5,7 +5,7 @@ local W = Addon.Widgets
 local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 7
+local LAYOUT_VERSION = 10
 local PAGE_SIZE = 25
 local EPGP_ROW_H = 28
 
@@ -45,16 +45,30 @@ local function CurrentGroupNames(raidOnly)
 	return names
 end
 
-local function GetFilteredMembers(snapshot, query, groupOnly, raidOnly)
+local function GetFilteredMembers(snapshot, query, groupOnly, raidOnly, includeLinked)
 	if not snapshot then return {} end
 	local groupNames = (groupOnly or raidOnly) and CurrentGroupNames(raidOnly) or nil
 	local filtered = {}
 	query = (query or ""):lower()
-	for _, member in ipairs(snapshot.members or {}) do
+	local scoped, matched, selectedGroups = {}, {}, {}
+	for index, member in ipairs(snapshot.members or {}) do
 		local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
 		local searchable = (tostring(member.name or "") .. " " .. tostring(member.publicNote or "") .. " " .. tostring(specs[1] and specs[1].label or "")):lower()
 		local inGroup = not groupNames or groupNames[tostring(member.name or ""):lower()]
-		if inGroup and (query == "" or searchable:find(query, 1, true)) then filtered[#filtered + 1] = member end
+		if inGroup then
+			scoped[#scoped + 1] = member
+			if query == "" or searchable:find(query, 1, true) then
+				matched[#matched + 1] = member
+				selectedGroups[member.mainIndex or index] = true
+			end
+		end
+	end
+	if includeLinked and groupNames then
+		for index, member in ipairs(snapshot.members) do
+			if selectedGroups[member.mainIndex or index] then filtered[#filtered + 1] = member end
+		end
+	else
+		filtered = matched
 	end
 	return filtered
 end
@@ -63,23 +77,27 @@ local function SortValue(member, columnIndex, snapshot)
 	local main = member.mainIndex and snapshot.members[member.mainIndex] or member
 	local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
 	local spec = specs[1] or {}
-	if columnIndex == 1 then return tostring(member.name or ""):lower() end
-	if columnIndex == 2 then return tostring(main.name or ""):lower() end
-	if columnIndex == 3 then return member.ep end
-	if columnIndex == 4 then return member.gp end
-	if columnIndex == 5 then return member.effectiveGP end
-	if columnIndex == 6 then return member.pr end
-	if columnIndex == 7 then
+	if columnIndex == 1 then
+		local index = member.rosterIndex
+		return member.mainIndex and member.mainIndex ~= index and "t" or "m"
+	end
+	if columnIndex == 2 then return tostring(member.name or ""):lower() end
+	if columnIndex == 3 then return tostring(main.name or ""):lower() end
+	if columnIndex == 4 then return member.ep end
+	if columnIndex == 5 then return member.gp end
+	if columnIndex == 6 then return member.effectiveGP end
+	if columnIndex == 7 then return member.pr end
+	if columnIndex == 8 then
 		if member.bisEligibilityStatus ~= "available" then return nil end
 		return member.bisEligible and 1 or 0
 	end
-	if columnIndex == 8 then return tostring(member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or ""):lower() end
-	if columnIndex == 9 then return tostring(spec.label or ""):lower() end
+	if columnIndex == 9 then return tostring(member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or ""):lower() end
+	if columnIndex == 10 then return tostring(spec.label or ""):lower() end
 end
 
 local function RefreshReport(page)
 	local snapshot = Addon.db.epgp.view
-	local filtered = GetFilteredMembers(snapshot, page.search:GetText(), page.groupOnly:GetChecked(), page.raidOnly:GetChecked())
+	local filtered = GetFilteredMembers(snapshot, page.search:GetText(), page.groupOnly:GetChecked(), page.raidOnly:GetChecked(), page.includeLinked:GetChecked())
 	if snapshot then
 		local sortColumn, descending = page.sortColumn or 2, page.sortDescending
 		table.sort(filtered, function(left, right)
@@ -100,6 +118,18 @@ local function RefreshReport(page)
 			return leftValue < rightValue
 		end)
 	end
+	if snapshot and not page.groupOnly:GetChecked() and not page.raidOnly:GetChecked() then
+		local visibleMembers, collapsed = {}, page.collapsedGroups or {}
+		local collapsedRoots = {}
+		for _, member in ipairs(filtered) do
+			local rootIndex = member.mainIndex or member.rosterIndex
+			local isAlt = member.mainIndex and member.mainIndex ~= member.rosterIndex
+			if not (isAlt and collapsed[rootIndex]) then visibleMembers[#visibleMembers + 1] = member end
+			if not isAlt and collapsed[rootIndex] then collapsedRoots[rootIndex] = true end
+		end
+		filtered = visibleMembers
+		page.collapsedRoots = collapsedRoots
+	end
 	local pageCount = math.max(1, math.ceil(#filtered / PAGE_SIZE))
 	page.pageNumber = math.min(math.max(page.pageNumber or 1, 1), pageCount)
 	local first = (page.pageNumber - 1) * PAGE_SIZE + 1
@@ -118,8 +148,24 @@ local function RefreshReport(page)
 		local member = filtered[first + rowIndex - 1]
 		local row = page.rowFrames[rowIndex]
 		if not row then
-			row = CreateFrame("Frame", nil, page.tableContent)
+			row = CreateFrame("Button", nil, page.tableContent)
 			W.ApplyPlainPanel(row, UI.CD_ROW_A)
+			row:RegisterForClicks("LeftButtonUp")
+			row:SetScript("OnClick", function(clickedRow)
+				local clickedMember = clickedRow.member
+				if not clickedMember or page.groupOnly:GetChecked() or page.raidOnly:GetChecked() then return end
+				local rootIndex = clickedMember.mainIndex or clickedMember.rosterIndex
+				if clickedMember.rosterIndex ~= rootIndex then return end
+				local hasAlts = false
+				for _, candidate in ipairs((Addon.db.epgp.view and Addon.db.epgp.view.members) or {}) do
+					if candidate.mainIndex == rootIndex and candidate.rosterIndex ~= rootIndex then hasAlts = true; break end
+				end
+				if hasAlts then
+					page.collapsedGroups = page.collapsedGroups or {}
+					page.collapsedGroups[rootIndex] = not page.collapsedGroups[rootIndex]
+					RefreshReport(page)
+				end
+			end)
 			row.cells = {}
 			local x = 0
 			for columnIndex, column in ipairs(columns) do
@@ -133,39 +179,56 @@ local function RefreshReport(page)
 		end
 		row:ClearAllPoints(); row:SetPoint("TOPLEFT", page.tableContent, "TOPLEFT", 0, -(UI.CD_HEADER_H + (rowIndex - 1) * EPGP_ROW_H))
 		row:SetSize(tableWidth, EPGP_ROW_H); row:Show()
+		row.member = member
 		local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
 		local mainSpec = specs[1] or {}
 		local mainMember = member.mainIndex and snapshot.members[member.mainIndex] or member
 		local mainName = mainMember.name or member.name
 		local rollStatus = member.bisEligibilityStatus == "available" and (member.bisEligible and "Yes" or "No") or "?"
+		local isAlt = member.mainIndex and member.mainIndex ~= member.rosterIndex
+		local memberType = isAlt and "T" or (member.mainIndex == member.rosterIndex and "M" or "?")
 		local values = {
-			member.name or "?", mainName or "?", FormatValue(member.ep), FormatValue(member.gp),
+			memberType, member.name or "?", mainName or "?", FormatValue(member.ep), FormatValue(member.gp),
 			FormatValue(member.effectiveGP), member.pr and string.format("%.3f", member.pr) or FormatValue(member.prStatus),
 			rollStatus, member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or "?",
 			table.concat({mainSpec.label or "", mainSpec.gearScore and tostring(mainSpec.gearScore) or "—", mainSpec.dps and tostring(mainSpec.dps) or "—"}, " / "),
 		}
 		for columnIndex, cell in ipairs(row.cells) do
 			cell:SetText(tostring(values[columnIndex] or ""))
+			if columnIndex <= 3 and not isAlt then
+				cell:SetFontObject(GameFontNormal)
+			elseif columnIndex <= 3 then
+				cell:SetFontObject(GameFontNormalSmall)
+			end
 			if columnIndex == 1 then
-				local classToken = member.classFileName or member.class
-				local isAlt = member.mainIndex and member.mainIndex ~= member.rosterIndex
-				cell:SetText((isAlt and "   ↳ " or "▾ ") .. W.CharacterIconMarkup({class=classToken}, 24) .. tostring(member.name or "?"))
-				cell:SetTextColor(W.ClassColor(classToken))
+				cell:SetJustifyH("CENTER")
+				if memberType == "M" then cell:SetTextColor(0.25, 0.9, 1) elseif memberType == "T" then cell:SetTextColor(1, 0.8, 0.2) else cell:SetTextColor(1, 0.35, 0.35) end
 			elseif columnIndex == 2 then
+				local classToken = member.classFileName or member.class
+				local rootIndex = member.mainIndex or member.rosterIndex
+				local collapsed = page.collapsedGroups and page.collapsedGroups[rootIndex]
+				local prefix = isAlt and "   ↳ " or ((page.collapsedRoots and page.collapsedRoots[rootIndex]) and "+ " or "− ")
+				cell:SetText(prefix .. W.CharacterIconMarkup({class=classToken}, 24) .. tostring(member.name or "?"))
+				cell:SetTextColor(W.ClassColor(classToken))
+			elseif columnIndex == 3 then
 				local classToken = mainMember.classFileName or mainMember.class
 				cell:SetText(W.CharacterIconMarkup({class=classToken}, 24) .. tostring(mainName or "?"))
 				cell:SetTextColor(W.ClassColor(classToken))
-			elseif columnIndex == 3 then
-				cell:SetTextColor(0.25, 1, 0.25)
 			elseif columnIndex == 4 then
+				cell:SetTextColor(0.25, 1, 0.25)
+			elseif columnIndex == 5 then
 				cell:SetTextColor(1, 0.3, 0.3)
-			elseif columnIndex == 7 and member.bisEligibilityStatus == "available" then
+			elseif columnIndex == 8 and member.bisEligibilityStatus == "available" then
 				if member.bisEligible then cell:SetTextColor(0.25, 1, 0.25) else cell:SetTextColor(1, 0.3, 0.3) end
 			else
 				W.SetFontColor(cell, UI.TEXT_IDLE)
 			end
 		end
-		W.SetBackdropColor(row, rowIndex % 2 == 0 and UI.CD_ROW_B or UI.CD_ROW_A)
+		if not isAlt then
+			W.SetBackdropColor(row, UI.CD_CURRENT_CHARACTER)
+		else
+			W.SetBackdropColor(row, rowIndex % 2 == 0 and UI.CD_ROW_B or UI.CD_ROW_A)
+		end
 	end
 	W.LayoutTableScrollBars(page)
 	page.snapshotLabel:SetText(snapshot and ("Members " .. tostring(snapshot.memberCountReported or #snapshot.members)
@@ -324,14 +387,18 @@ local function CreateEPGPPage(parent)
 	local status = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
 	status:SetPoint("TOPLEFT", minimumLabel, "BOTTOMLEFT", 0, -10); status:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	status:SetJustifyH("LEFT")
-	local groupOnly = CreateFrame("CheckButton", "RaidwiseEPGPGroupOnlyV4", page, "UICheckButtonTemplate")
+	local groupOnly = CreateFrame("CheckButton", "RaidwiseEPGPGroupOnlyV8", page, "UICheckButtonTemplate")
 	groupOnly:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE); groupOnly:SetPoint("TOPLEFT", status, "BOTTOMLEFT", 0, -4)
 	local groupText = _G[groupOnly:GetName() .. "Text"]; if groupText then groupText:SetText(W.T("EPGP_FILTER_GROUP")) end
-	local raidOnly = CreateFrame("CheckButton", "RaidwiseEPGPRaidOnlyV4", page, "UICheckButtonTemplate")
+	local raidOnly = CreateFrame("CheckButton", "RaidwiseEPGPRaidOnlyV8", page, "UICheckButtonTemplate")
 	raidOnly:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE); raidOnly:SetPoint("LEFT", groupOnly, "RIGHT", 115, 0)
 	local raidText = _G[raidOnly:GetName() .. "Text"]; if raidText then raidText:SetText(W.T("EPGP_FILTER_RAID")) end
 	groupOnly:SetScript("OnClick", function() if groupOnly:GetChecked() then raidOnly:SetChecked(false) end; page.pageNumber = 1; RefreshReport(page) end)
 	raidOnly:SetScript("OnClick", function() if raidOnly:GetChecked() then groupOnly:SetChecked(false) end; page.pageNumber = 1; RefreshReport(page) end)
+	local includeLinked = CreateFrame("CheckButton", "RaidwiseEPGPLinkedGroupV8", page, "UICheckButtonTemplate")
+	includeLinked:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE); includeLinked:SetPoint("TOPLEFT", groupOnly, "BOTTOMLEFT", 0, -2)
+	local linkedText = _G[includeLinked:GetName() .. "Text"]; if linkedText then linkedText:SetText(W.T("EPGP_INCLUDE_LINKED")) end
+	includeLinked:SetScript("OnClick", function() page.pageNumber = 1; RefreshReport(page) end)
 	local previous = W.CreatePlainButton(page, 90, UI.ACTION_BTN_H, W.T("EPGP_PREVIOUS"))
 	previous:SetPoint("LEFT", raidOnly, "RIGHT", 115, 0)
 	local nextPage = W.CreatePlainButton(page, 90, UI.ACTION_BTN_H, W.T("EPGP_NEXT"))
@@ -341,7 +408,7 @@ local function CreateEPGPPage(parent)
 	previous:SetScript("OnClick", function() page.pageNumber = math.max(1, page.pageNumber - 1); RefreshReport(page) end)
 	nextPage:SetScript("OnClick", function() page.pageNumber = page.pageNumber + 1; RefreshReport(page) end)
 	local progress = W.CreateProgressBar(page, 12)
-	progress:SetPoint("TOPLEFT", groupOnly, "BOTTOMLEFT", 0, -5)
+	progress:SetPoint("TOPLEFT", includeLinked, "BOTTOMLEFT", 0, -5)
 	progress:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	progress:SetProgress(0, 1)
 	local snapshotLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
@@ -355,9 +422,9 @@ local function CreateEPGPPage(parent)
 	tableScroll:EnableMouseWheel(true)
 	local tableContent = CreateFrame("Frame", nil, tableScroll); tableContent:SetSize(1, 1); tableScroll:SetScrollChild(tableContent)
 	local columns = {
-		{key="Character", width=105}, {key="Main", width=105}, {key="EP", width=55},
+		{key="Тип", width=42}, {key="Персонаж", width=125}, {key="Мейн", width=105}, {key="EP", width=55},
 		{key="GP", width=55}, {key="Eff GP", width=60}, {key="PR", width=65},
-		{key="min EP", width=60}, {key="Link / parse", width=100}, {key="Main spec / GS / DPS", width=190},
+		{key="min EP", width=60}, {key="Статус", width=100}, {key="Спек / GS / DPS", width=190},
 	}
 	local tableHeader = CreateFrame("Frame", nil, tableContent); tableHeader:SetPoint("TOPLEFT", 0, 0); tableHeader:SetHeight(UI.CD_HEADER_H)
 	W.ApplyPlainPanel(tableHeader, UI.TITLE_BG)
@@ -398,6 +465,7 @@ local function CreateEPGPPage(parent)
 	end)
 	page.minimumGP, page.bisMinimumEP, page.status, page.search, page.progress = minimumGP, bisMinimumEP, status, search, progress
 	page.groupOnly, page.raidOnly, page.previous, page.next, page.pageLabel, page.pageNumber = groupOnly, raidOnly, previous, nextPage, pageLabel, 1
+	page.includeLinked = includeLinked
 	page.snapshotLabel, page.tableContent, page.tableHeader, page.rowFrames, page.columns = snapshotLabel, tableContent, tableHeader, {}, columns
 	page.headerButtons = headerButtons
 	page.scroll, page.vBar, page.hBar, page.tableHost = tableScroll, verticalBar, horizontalBar, tableHost
