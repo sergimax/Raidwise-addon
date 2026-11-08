@@ -5,7 +5,7 @@ local W = Addon.Widgets
 local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 4
+local LAYOUT_VERSION = 5
 local PAGE_SIZE = 20
 
 local function FormatValue(value)
@@ -96,15 +96,35 @@ local function RefreshReport(page)
 		row:SetSize(tableWidth, UI.CD_ROW_H); row:Show()
 		local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
 		local mainSpec = specs[1] or {}
-		local mainName = member.mainIndex and snapshot.members[member.mainIndex].name or member.name
-		local bis = member.bisEligibilityStatus == "available" and (member.bisEligible and "Yes" or "No") or "?"
+		local mainMember = member.mainIndex and snapshot.members[member.mainIndex] or member
+		local mainName = mainMember.name or member.name
+		local rollStatus = member.bisEligibilityStatus == "available" and (member.bisEligible and "Yes" or "No") or "?"
 		local values = {
 			member.name or "?", mainName or "?", FormatValue(member.ep), FormatValue(member.gp),
 			FormatValue(member.effectiveGP), member.pr and string.format("%.3f", member.pr) or FormatValue(member.prStatus),
-			bis, member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or "?",
+			rollStatus, member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or "?",
 			table.concat({mainSpec.label or "", mainSpec.gearScore and tostring(mainSpec.gearScore) or "—", mainSpec.dps and tostring(mainSpec.dps) or "—"}, " / "),
 		}
-		for columnIndex, cell in ipairs(row.cells) do cell:SetText(tostring(values[columnIndex] or "")) end
+		for columnIndex, cell in ipairs(row.cells) do
+			cell:SetText(tostring(values[columnIndex] or ""))
+			if columnIndex == 1 then
+				local classToken = member.classFileName or member.class
+				cell:SetText(W.CharacterIconMarkup({class=classToken}, 12) .. tostring(member.name or "?"))
+				cell:SetTextColor(W.ClassColor(classToken))
+			elseif columnIndex == 2 then
+				local classToken = mainMember.classFileName or mainMember.class
+				cell:SetText(W.CharacterIconMarkup({class=classToken}, 12) .. tostring(mainName or "?"))
+				cell:SetTextColor(W.ClassColor(classToken))
+			elseif columnIndex == 3 then
+				cell:SetTextColor(0.25, 1, 0.25)
+			elseif columnIndex == 4 then
+				cell:SetTextColor(1, 0.3, 0.3)
+			elseif columnIndex == 7 and member.bisEligibilityStatus == "available" then
+				if member.bisEligible then cell:SetTextColor(0.25, 1, 0.25) else cell:SetTextColor(1, 0.3, 0.3) end
+			else
+				W.SetFontColor(cell, UI.TEXT_IDLE)
+			end
+		end
 		W.SetBackdropColor(row, rowIndex % 2 == 0 and UI.CD_ROW_B or UI.CD_ROW_A)
 	end
 	W.LayoutTableScrollBars(page)
@@ -297,7 +317,7 @@ local function CreateEPGPPage(parent)
 	local columns = {
 		{key="Character", width=105}, {key="Main", width=105}, {key="EP", width=55},
 		{key="GP", width=55}, {key="Eff GP", width=60}, {key="PR", width=65},
-		{key="BIS", width=50}, {key="Link / parse", width=100}, {key="Main spec / GS / DPS", width=190},
+		{key="min EP", width=60}, {key="Link / parse", width=100}, {key="Main spec / GS / DPS", width=190},
 	}
 	local tableHeader = CreateFrame("Frame", nil, tableContent); tableHeader:SetPoint("TOPLEFT", 0, 0); tableHeader:SetHeight(UI.CD_HEADER_H)
 	W.ApplyPlainPanel(tableHeader, UI.TITLE_BG)
