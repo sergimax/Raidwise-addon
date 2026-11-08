@@ -48,24 +48,37 @@ end
 local function GetFilteredMembers(snapshot, query, groupOnly, raidOnly, includeLinked)
 	if not snapshot then return {} end
 	local groupNames = (groupOnly or raidOnly) and CurrentGroupNames(raidOnly) or nil
-	local filtered = {}
+	local filtered, matched, selectedGroups = {}, {}, {}
 	query = (query or ""):lower()
-	local scoped, matched, selectedGroups = {}, {}, {}
 	for index, member in ipairs(snapshot.members or {}) do
 		local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
 		local searchable = (tostring(member.name or "") .. " " .. tostring(member.publicNote or "") .. " " .. tostring(specs[1] and specs[1].label or "")):lower()
 		local inGroup = not groupNames or groupNames[tostring(member.name or ""):lower()]
 		if inGroup then
-			scoped[#scoped + 1] = member
 			if query == "" or searchable:find(query, 1, true) then
 				matched[#matched + 1] = member
 				selectedGroups[member.mainIndex or index] = true
 			end
 		end
 	end
-	if includeLinked and groupNames then
+	if query ~= "" then
 		for index, member in ipairs(snapshot.members) do
-			if selectedGroups[member.mainIndex or index] then filtered[#filtered + 1] = member end
+			local isMain = member.mainIndex == index
+			local nameMatches = tostring(member.name or ""):lower():find(query, 1, true)
+			if isMain and nameMatches then selectedGroups[index] = true end
+		end
+	end
+	if (includeLinked and groupNames) or query ~= "" then
+		local included = {}
+		for _, member in ipairs(matched) do
+			local index = member.rosterIndex
+			if index then included[index] = true; filtered[#filtered + 1] = member end
+		end
+		for index, member in ipairs(snapshot.members) do
+			if selectedGroups[member.mainIndex or index] and not included[index] then
+				filtered[#filtered + 1] = member
+				included[index] = true
+			end
 		end
 	else
 		filtered = matched
