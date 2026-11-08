@@ -69,7 +69,10 @@ local function SortValue(member, columnIndex, snapshot)
 	if columnIndex == 4 then return member.gp end
 	if columnIndex == 5 then return member.effectiveGP end
 	if columnIndex == 6 then return member.pr end
-	if columnIndex == 7 then return member.bisEligible end
+	if columnIndex == 7 then
+		if member.bisEligibilityStatus ~= "available" then return nil end
+		return member.bisEligible and 1 or 0
+	end
 	if columnIndex == 8 then return tostring(member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or ""):lower() end
 	if columnIndex == 9 then return tostring(spec.label or ""):lower() end
 end
