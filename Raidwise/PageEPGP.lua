@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
 local LAYOUT_VERSION = 12
-local PAGE_SIZE = 25
+local PAGE_SIZE = 50
 local EPGP_ROW_H = 28
 
 local function FormatValue(value)
