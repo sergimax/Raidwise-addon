@@ -5,7 +5,7 @@ local W = Addon.Widgets
 local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 14
+local LAYOUT_VERSION = 15
 local PAGE_SIZE = 50
 local EPGP_ROW_H = 28
 
@@ -98,8 +98,7 @@ local function SortValue(member, columnIndex, snapshot)
 	if columnIndex == 3 then return member.ep end
 	if columnIndex == 4 then return member.effectiveGP end
 	if columnIndex == 5 then return member.pr end
-	if columnIndex == 6 then return tostring(member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or ""):lower() end
-	if columnIndex == 7 then return tostring(member.publicNote or ""):lower() end
+	if columnIndex == 6 then return tostring(member.publicNote or ""):lower() end
 end
 
 local function RefreshReport(page)
@@ -194,6 +193,11 @@ local function RefreshReport(page)
 		local isAlt = member.mainIndex and member.mainIndex ~= member.rosterIndex
 		local memberType = isAlt and "T" or (member.mainIndex == member.rosterIndex and "M" or "?")
 		local typeLabel = isAlt and "Альт" or (memberType == "M" and "Мейн" or "?")
+		local linkStatus = member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status)
+		if linkStatus and linkStatus ~= "main" and linkStatus ~= "linked" then
+			local statusLabel = linkStatus == "invalid" and "Ошибка" or (linkStatus == "invalid-chain" and "Ссылка" or linkStatus)
+			typeLabel = typeLabel .. " " .. statusLabel
+		end
 		local rootIndex = member.mainIndex or member.rosterIndex
 		local hasAlts = false
 		for _, candidate in ipairs(snapshot.members) do
@@ -208,7 +212,6 @@ local function RefreshReport(page)
 		local values = {
 			typeLabel, member.name or "?", FormatValue(member.ep) .. " [" .. rollStatus .. "]", gpValue,
 			member.pr and string.format("%.3f", member.pr) or FormatValue(member.prStatus),
-			member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or "?",
 			tostring(member.publicNote or ""),
 		}
 		for columnIndex, cell in ipairs(row.cells) do
@@ -432,8 +435,8 @@ local function CreateEPGPPage(parent)
 	tableScroll:EnableMouseWheel(true)
 	local tableContent = CreateFrame("Frame", nil, tableScroll); tableContent:SetSize(1, 1); tableScroll:SetScrollChild(tableContent)
 	local columns = {
-		{key="Тип", width=60}, {key="Персонаж", width=150}, {key="EP [ролл]", width=105},
-		{key="GP (+база)", width=100}, {key="PR", width=65}, {key="Статус", width=100}, {key="Заметка", width=240},
+		{key="Тип", width=105}, {key="Персонаж", width=150}, {key="EP [ролл]", width=105},
+		{key="GP (+база)", width=100}, {key="PR", width=65}, {key="Заметка", width=240},
 	}
 	local tableHeader = CreateFrame("Frame", nil, tableContent); tableHeader:SetPoint("TOPLEFT", 0, 0); tableHeader:SetHeight(UI.CD_HEADER_H)
 	W.ApplyPlainPanel(tableHeader, UI.TITLE_BG)
