@@ -406,8 +406,22 @@ local function CreateEPGPPage(parent)
 	local raidOnly = CreateFrame("CheckButton", "RaidwiseEPGPRaidOnlyV8", page, "UICheckButtonTemplate")
 	raidOnly:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE); raidOnly:SetPoint("LEFT", groupOnly, "RIGHT", 115, 0)
 	local raidText = _G[raidOnly:GetName() .. "Text"]; if raidText then raidText:SetText(W.T("EPGP_FILTER_RAID")) end
-	groupOnly:SetScript("OnClick", function() if groupOnly:GetChecked() then raidOnly:SetChecked(false) end; page.pageNumber = 1; RefreshReport(page) end)
-	raidOnly:SetScript("OnClick", function() if raidOnly:GetChecked() then groupOnly:SetChecked(false) end; page.pageNumber = 1; RefreshReport(page) end)
+	groupOnly:SetScript("OnClick", function()
+		if groupOnly:GetChecked() then
+			raidOnly:SetChecked(false)
+			includeLinked:SetChecked(false)
+		end
+		page.pageNumber = 1
+		RefreshReport(page)
+	end)
+	raidOnly:SetScript("OnClick", function()
+		if raidOnly:GetChecked() then
+			groupOnly:SetChecked(false)
+			includeLinked:SetChecked(false)
+		end
+		page.pageNumber = 1
+		RefreshReport(page)
+	end)
 	local includeLinked = CreateFrame("CheckButton", "RaidwiseEPGPLinkedGroupV8", page, "UICheckButtonTemplate")
 	includeLinked:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE); includeLinked:SetPoint("LEFT", raidOnly, "RIGHT", 135, 0)
 	local linkedText = _G[includeLinked:GetName() .. "Text"]; if linkedText then linkedText:SetText(W.T("EPGP_INCLUDE_LINKED")) end
