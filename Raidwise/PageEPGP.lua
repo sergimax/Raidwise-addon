@@ -189,7 +189,7 @@ local function RefreshReport(page)
 		local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
 		local mainSpec = specs[1] or {}
 		local mainMember = member.mainIndex and snapshot.members[member.mainIndex] or member
-		local rollStatus = member.bisEligibilityStatus == "available" and (member.bisEligible and "v" or "x") or "?"
+		local rollStatus = member.bisEligibilityStatus == "available" and (member.bisEligible and "V" or "X") or "?"
 		local isAlt = member.mainIndex and member.mainIndex ~= member.rosterIndex
 		local memberType = isAlt and "T" or (member.mainIndex == member.rosterIndex and "M" or "?")
 		local typeLabel = isAlt and "Альт" or (memberType == "M" and "Мейн" or "?")
@@ -210,12 +210,13 @@ local function RefreshReport(page)
 			gpValue = "? (+" .. tostring(member.effectiveGP) .. ")"
 		end
 		local values = {
-			typeLabel, member.name or "?", FormatValue(member.ep) .. " [" .. rollStatus .. "]", gpValue,
+			typeLabel, member.name or "?", FormatValue(member.ep) .. " " .. rollStatus, gpValue,
 			member.pr and string.format("%.3f", member.pr) or FormatValue(member.prStatus),
 			tostring(member.publicNote or ""),
 		}
 		for columnIndex, cell in ipairs(row.cells) do
 			cell:SetText(tostring(values[columnIndex] or ""))
+			if columnIndex == 3 or columnIndex == 4 then cell:SetJustifyH("RIGHT") end
 			if columnIndex <= 2 and not isAlt then
 				cell:SetFontObject(GameFontNormal)
 			elseif columnIndex <= 2 then
@@ -449,8 +450,8 @@ local function CreateEPGPPage(parent)
 	tableScroll:EnableMouseWheel(true)
 	local tableContent = CreateFrame("Frame", nil, tableScroll); tableContent:SetSize(1, 1); tableScroll:SetScrollChild(tableContent)
 	local columns = {
-		{key="Тип", width=105}, {key="Персонаж", width=150}, {key="EP [ролл]", width=105},
-		{key="GP (+база)", width=100}, {key="PR", width=65}, {key="Заметка", width=240},
+		{key=W.T("EPGP_COL_TYPE"), width=105}, {key=W.T("EPGP_COL_CHARACTER"), width=150}, {key=W.T("EPGP_COL_EP_ROLL"), width=105},
+		{key=W.T("EPGP_COL_GP_BASE"), width=100}, {key=W.T("EPGP_COL_PR"), width=65}, {key=W.T("EPGP_COL_NOTE"), width=240},
 	}
 	local tableHeader = CreateFrame("Frame", nil, tableContent); tableHeader:SetPoint("TOPLEFT", 0, 0); tableHeader:SetHeight(UI.CD_HEADER_H)
 	W.ApplyPlainPanel(tableHeader, UI.TITLE_BG)
@@ -462,6 +463,7 @@ local function CreateEPGPPage(parent)
 		button:SetPoint("TOPLEFT", columnX, 0); button:SetWidth(column.width); button:SetHeight(UI.CD_HEADER_H)
 		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("TOPLEFT", 4, -8); label:SetWidth(column.width - 8)
+		if columnIndex == 3 or columnIndex == 4 then label:SetJustifyH("RIGHT") end
 		label:SetText(column.key); W.SetFontColor(label, UI.GOLD)
 		button:SetScript("OnClick", function()
 			if page.sortColumn == sortIndex then
