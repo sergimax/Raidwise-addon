@@ -6,7 +6,7 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 ## Shell
 
-### EPGP roster (layout v15)
+### EPGP roster (layout v16)
 
 Full-width toolbar with roster refresh, character search, GP base (default 500), minimum EP for roll settings, followed by status, group/raid scope filters, an include-linked-mains/alts option, pagination, progress, and a two-axis scrollable table.
 Fifty rows are shown per page at 28 px row height.

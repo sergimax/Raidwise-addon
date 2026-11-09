@@ -5,7 +5,7 @@ local W = Addon.Widgets
 local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 15
+local LAYOUT_VERSION = 16
 local PAGE_SIZE = 50
 local EPGP_ROW_H = 28
 
@@ -409,11 +409,11 @@ local function CreateEPGPPage(parent)
 	groupOnly:SetScript("OnClick", function() if groupOnly:GetChecked() then raidOnly:SetChecked(false) end; page.pageNumber = 1; RefreshReport(page) end)
 	raidOnly:SetScript("OnClick", function() if raidOnly:GetChecked() then groupOnly:SetChecked(false) end; page.pageNumber = 1; RefreshReport(page) end)
 	local includeLinked = CreateFrame("CheckButton", "RaidwiseEPGPLinkedGroupV8", page, "UICheckButtonTemplate")
-	includeLinked:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE); includeLinked:SetPoint("TOPLEFT", groupOnly, "BOTTOMLEFT", 0, -2)
+	includeLinked:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE); includeLinked:SetPoint("LEFT", raidOnly, "RIGHT", 135, 0)
 	local linkedText = _G[includeLinked:GetName() .. "Text"]; if linkedText then linkedText:SetText(W.T("EPGP_INCLUDE_LINKED")) end
 	includeLinked:SetScript("OnClick", function() page.pageNumber = 1; RefreshReport(page) end)
 	local previous = W.CreatePlainButton(page, 90, UI.ACTION_BTN_H, W.T("EPGP_PREVIOUS"))
-	previous:SetPoint("LEFT", raidOnly, "RIGHT", 115, 0)
+	previous:SetPoint("TOPLEFT", groupOnly, "BOTTOMLEFT", 0, -2)
 	local nextPage = W.CreatePlainButton(page, 90, UI.ACTION_BTN_H, W.T("EPGP_NEXT"))
 	nextPage:SetPoint("LEFT", previous, "RIGHT", 5, 0)
 	local pageLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
@@ -421,7 +421,7 @@ local function CreateEPGPPage(parent)
 	previous:SetScript("OnClick", function() page.pageNumber = math.max(1, page.pageNumber - 1); RefreshReport(page) end)
 	nextPage:SetScript("OnClick", function() page.pageNumber = page.pageNumber + 1; RefreshReport(page) end)
 	local progress = W.CreateProgressBar(page, 12)
-	progress:SetPoint("TOPLEFT", includeLinked, "BOTTOMLEFT", 0, -5)
+	progress:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -5)
 	progress:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	progress:SetProgress(0, 1)
 	local snapshotLabel = W.CreateFontString(page, nil, "OVERLAY", "GameFontNormalSmall")
