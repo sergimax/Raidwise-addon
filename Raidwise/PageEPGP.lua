@@ -5,7 +5,7 @@ local W = Addon.Widgets
 local UI = Addon.UITheme
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 12
+local LAYOUT_VERSION = 14
 local PAGE_SIZE = 50
 local EPGP_ROW_H = 28
 
@@ -95,17 +95,11 @@ local function SortValue(member, columnIndex, snapshot)
 		return member.mainIndex and member.mainIndex ~= index and "t" or "m"
 	end
 	if columnIndex == 2 then return tostring(member.name or ""):lower() end
-	if columnIndex == 3 then return tostring(main.name or ""):lower() end
-	if columnIndex == 4 then return member.ep end
-	if columnIndex == 5 then return member.gp end
-	if columnIndex == 6 then return member.effectiveGP end
-	if columnIndex == 7 then return member.pr end
-	if columnIndex == 8 then
-		if member.bisEligibilityStatus ~= "available" then return nil end
-		return member.bisEligible and 1 or 0
-	end
-	if columnIndex == 9 then return tostring(member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or ""):lower() end
-	if columnIndex == 10 then return tostring(member.publicNote or ""):lower() end
+	if columnIndex == 3 then return member.ep end
+	if columnIndex == 4 then return member.effectiveGP end
+	if columnIndex == 5 then return member.pr end
+	if columnIndex == 6 then return tostring(member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or ""):lower() end
+	if columnIndex == 7 then return tostring(member.publicNote or ""):lower() end
 end
 
 local function RefreshReport(page)
@@ -196,43 +190,46 @@ local function RefreshReport(page)
 		local specs = member.publicNoteParsed and member.publicNoteParsed.specs or {}
 		local mainSpec = specs[1] or {}
 		local mainMember = member.mainIndex and snapshot.members[member.mainIndex] or member
-		local mainName = mainMember.name or member.name
-		local rollStatus = member.bisEligibilityStatus == "available" and (member.bisEligible and "Yes" or "No") or "?"
+		local rollStatus = member.bisEligibilityStatus == "available" and (member.bisEligible and "v" or "x") or "?"
 		local isAlt = member.mainIndex and member.mainIndex ~= member.rosterIndex
 		local memberType = isAlt and "T" or (member.mainIndex == member.rosterIndex and "M" or "?")
+		local typeLabel = isAlt and "Альт" or (memberType == "M" and "Мейн" or "?")
+		local rootIndex = member.mainIndex or member.rosterIndex
+		local hasAlts = false
+		for _, candidate in ipairs(snapshot.members) do
+			if candidate.mainIndex == rootIndex and candidate.rosterIndex ~= rootIndex then hasAlts = true; break end
+		end
+		local gpValue = member.gp == nil and "?" or tostring(member.gp)
+		if member.effectiveGP and member.gp ~= nil and member.effectiveGP ~= member.gp then
+			gpValue = gpValue .. " (+" .. tostring(member.effectiveGP - member.gp) .. ")"
+		elseif member.gp == nil and member.effectiveGP then
+			gpValue = "? (+" .. tostring(member.effectiveGP) .. ")"
+		end
 		local values = {
-			memberType, member.name or "?", mainName or "?", FormatValue(member.ep), FormatValue(member.gp),
-			FormatValue(member.effectiveGP), member.pr and string.format("%.3f", member.pr) or FormatValue(member.prStatus),
-			rollStatus, member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or "?",
+			typeLabel, member.name or "?", FormatValue(member.ep) .. " [" .. rollStatus .. "]", gpValue,
+			member.pr and string.format("%.3f", member.pr) or FormatValue(member.prStatus),
+			member.linkStatus or (member.publicNoteParsed and member.publicNoteParsed.status) or "?",
 			tostring(member.publicNote or ""),
 		}
 		for columnIndex, cell in ipairs(row.cells) do
 			cell:SetText(tostring(values[columnIndex] or ""))
-			if columnIndex <= 3 and not isAlt then
+			if columnIndex <= 2 and not isAlt then
 				cell:SetFontObject(GameFontNormal)
-			elseif columnIndex <= 3 then
+			elseif columnIndex <= 2 then
 				cell:SetFontObject(GameFontNormalSmall)
 			end
 			if columnIndex == 1 then
-				cell:SetJustifyH("CENTER")
 				if memberType == "M" then cell:SetTextColor(0.25, 0.9, 1) elseif memberType == "T" then cell:SetTextColor(1, 0.8, 0.2) else cell:SetTextColor(1, 0.35, 0.35) end
 			elseif columnIndex == 2 then
 				local classToken = member.classFileName or member.class
-				local rootIndex = member.mainIndex or member.rosterIndex
 				local collapsed = page.collapsedGroups and page.collapsedGroups[rootIndex]
-				local prefix = isAlt and "   ↳ " or ((page.collapsedRoots and page.collapsedRoots[rootIndex]) and "+ " or "− ")
+				local prefix = isAlt and "   ↳ " or (hasAlts and ((page.collapsedRoots and page.collapsedRoots[rootIndex]) and "+ " or "− ") or "")
 				cell:SetText(prefix .. W.CharacterIconMarkup({class=classToken}, 24) .. tostring(member.name or "?"))
 				cell:SetTextColor(W.ClassColor(classToken))
-			elseif columnIndex == 3 then
-				local classToken = mainMember.classFileName or mainMember.class
-				cell:SetText(W.CharacterIconMarkup({class=classToken}, 24) .. tostring(mainName or "?"))
-				cell:SetTextColor(W.ClassColor(classToken))
-			elseif columnIndex == 4 then
-				cell:SetTextColor(0.25, 1, 0.25)
-			elseif columnIndex == 5 then
-				cell:SetTextColor(1, 0.3, 0.3)
-			elseif columnIndex == 8 and member.bisEligibilityStatus == "available" then
+			elseif columnIndex == 3 and member.bisEligibilityStatus == "available" then
 				if member.bisEligible then cell:SetTextColor(0.25, 1, 0.25) else cell:SetTextColor(1, 0.3, 0.3) end
+			elseif columnIndex == 4 then
+				cell:SetTextColor(1, 0.3, 0.3)
 			else
 				W.SetFontColor(cell, UI.TEXT_IDLE)
 			end
@@ -435,9 +432,8 @@ local function CreateEPGPPage(parent)
 	tableScroll:EnableMouseWheel(true)
 	local tableContent = CreateFrame("Frame", nil, tableScroll); tableContent:SetSize(1, 1); tableScroll:SetScrollChild(tableContent)
 	local columns = {
-		{key="Тип", width=42}, {key="Персонаж", width=125}, {key="Мейн", width=105}, {key="EP", width=55},
-		{key="GP", width=55}, {key="GP used", width=60}, {key="PR", width=65},
-		{key="min EP", width=60}, {key="Статус", width=100}, {key="Заметка", width=240},
+		{key="Тип", width=60}, {key="Персонаж", width=150}, {key="EP [ролл]", width=105},
+		{key="GP (+база)", width=100}, {key="PR", width=65}, {key="Статус", width=100}, {key="Заметка", width=240},
 	}
 	local tableHeader = CreateFrame("Frame", nil, tableContent); tableHeader:SetPoint("TOPLEFT", 0, 0); tableHeader:SetHeight(UI.CD_HEADER_H)
 	W.ApplyPlainPanel(tableHeader, UI.TITLE_BG)
