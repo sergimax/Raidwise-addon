@@ -85,7 +85,7 @@ if (files.length === 0) {
   console.log(color("No changes; destination is already up to date.", "dim"));
 } else {
   for (const file of files) {
-    const label = file.status === "new" ? "NEW" : "UPDATED";
+    const label = file.status === "new" ? "NEW " : "UPDATED ";
     const labelColor = file.status === "new" ? "green" : "yellow";
     console.log("  " + color(label.padEnd(7), labelColor) + file.path);
   }
