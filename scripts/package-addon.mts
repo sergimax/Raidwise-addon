@@ -3,8 +3,8 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 /** Runtime allowlist: executable TOC entries plus tracked media, never spare Lua files. */
-export function getPackageFiles(toc: string, tracked: string[]): string[] {
-  const files = new Set(["Raidwise/Raidwise.toc"]);
+export function getPackageFiles(toc: string, tracked: string[], addon = "Raidwise"): string[] {
+  const files = new Set([`${addon}/${addon}.toc`]);
   for (const raw of toc.split(/\r?\n/)) {
     const entry = raw.trim().replaceAll("\\", "/");
     if (!entry || entry.startsWith("#")) continue;
@@ -12,10 +12,10 @@ export function getPackageFiles(toc: string, tracked: string[]): string[] {
     if (!/^[A-Za-z0-9_/-]+\.lua$/.test(entry) || entry.startsWith("/")) {
       throw new Error(`Unsupported TOC entry: ${entry}`);
     }
-    files.add(`Raidwise/${entry}`);
+    files.add(`${addon}/${entry}`);
   }
   for (const file of tracked) {
-    if (/^Raidwise\/[A-Za-z0-9_ /.-]+\.(blp|tga|png|jpg|ogg|mp3|wav|ttf)$/i.test(file)) files.add(file);
+    if (new RegExp(`^${addon}/[A-Za-z0-9_ /.-]+\\.(blp|tga|png|jpg|ogg|mp3|wav|ttf)$`, "i").test(file)) files.add(file);
   }
   for (const file of files) {
     if (!tracked.includes(file)) throw new Error(`Missing tracked runtime file: ${file}`);
@@ -24,9 +24,12 @@ export function getPackageFiles(toc: string, tracked: string[]): string[] {
 }
 
 export function packageAddon(output: string): string[] {
-  const toc = execFileSync("git", ["show", "HEAD:Raidwise/Raidwise.toc"], { encoding: "utf8" });
-  const tracked = execFileSync("git", ["ls-tree", "-r", "--name-only", "HEAD", "--", "Raidwise/"], { encoding: "utf8" }).trim().split("\n");
-  const files = getPackageFiles(toc, tracked);
+  const files: string[] = [];
+  for (const addon of ["Raidwise", "Raidwise_EPGP"]) {
+    const toc = execFileSync("git", ["show", `HEAD:${addon}/${addon}.toc`], { encoding: "utf8" });
+    const tracked = execFileSync("git", ["ls-tree", "-r", "--name-only", "HEAD", "--", `${addon}/`], { encoding: "utf8" }).trim().split("\n");
+    files.push(...getPackageFiles(toc, tracked, addon));
+  }
   execFileSync("git", ["archive", "--format=zip", `--output=${resolve(output)}`, "HEAD", "--", ...files]);
   return files;
 }

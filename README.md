@@ -4,7 +4,7 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-2.1.0-purple)
+![](https://img.shields.io/badge/current_version-2.2.0-purple)
 ![](https://img.shields.io/badge/last_updated-2026--11--06-blue)
 
 
@@ -20,14 +20,15 @@ notes, links, and exchanged data are reset without migration; settings, saved
 Gear Check reports, lockouts, and currencies remain. Install the full addon
 folder and restart the client because the TOC load order changed.
 
-1. Copy the `Raidwise` folder into your client’s AddOns directory:
+1. Copy both `Raidwise` and `Raidwise_EPGP` folders into your client’s AddOns directory:
 
    ```text
    <WoW>/Interface/AddOns/Raidwise/
+   <WoW>/Interface/AddOns/Raidwise_EPGP/
    ```
 
 2. Fully restart the client after installing new files or an updated TOC. Use `/reload` for edits to already loaded files.
-3. Enable **Raidwise** on the character select AddOns screen if needed.
+3. Enable **Raidwise** and **Raidwise EPGP** on the character select AddOns screen if needed.
 4. If you previously used **mrc-exporter**, remove that folder from AddOns so only Raidwise loads.
 
 
@@ -40,9 +41,8 @@ already contain matching versions in `Raidwise/Raidwise.toc` and
 Prepare version changes using the [release procedure](.agents/skills/bump/SKILL.md).
 
 After `npm run check` passes, GitHub Actions publishes a release with notes from
-that changelog entry and `Raidwise-vX.Y.Z.zip`. The ZIP contains `Raidwise/` with
-the TOC, its Lua modules and tracked media from the tagged commit, ready to extract
-into `Interface/AddOns/`. Retired Lua modules remain in the repository for historical
+that changelog entry and `Raidwise-vX.Y.Z.zip`. The ZIP contains both `Raidwise/`
+and `Raidwise_EPGP/`, ready to extract into `Interface/AddOns/`. Retired Lua modules remain in the repository for historical
 tests and are excluded by [the packager](scripts/package-addon.mts).
 Branches and PR merges alone do not publish releases. Tags must point to commits
 containing the workflow; existing tags are not processed retroactively.

@@ -6,6 +6,18 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 ## Shell
 
+### EPGP roster (layout v16)
+
+Full-width toolbar with roster refresh, character search, GP base (default 500), minimum EP for roll settings, followed by status, group/raid scope filters, an include-linked-mains/alts option, pagination, progress, and a two-axis scrollable table.
+Fifty rows are shown per page at 28 px row height.
+In full-guild view, clicking a main row collapses or expands its alts.
+Main rows use the current-character highlight background and larger font; alt rows remain indented.
+The first column displays “Мейн” or “Альт” plus the link status when it is not the normal main/linked state; `invalid` is shown as “Ошибка” and `invalid-chain` as “Ссылка”. Character names include 24 px class icons and class colors, with expand/collapse markers only on mains that have alts. Table sorting keeps each main's group contiguous.
+The EP column retains its numeric value and appends `V` when eligible, `X` when ineligible, or `?` when eligibility is unknown (for example, `97090 V`). EP and GP values are right-aligned. The GP column shows recorded GP and the added base in parentheses (for example, `1599 (+500)`); PR uses the sum. No separate status column is shown.
+Other columns show PR, note/link status, and the raw public note.
+The page is under the export menu group.
+Current view is read-only after refresh; correction and JSON import controls remain future work.
+
 | Element | Size | Notes |
 |---------|------|-------|
 | Content frame (`RaidwiseFrame`) | **890 × 693** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |

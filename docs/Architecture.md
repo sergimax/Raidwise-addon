@@ -4,6 +4,8 @@ Lua 5.1 / WoW 3.3.5a (`Interface: 30300`). Shipped code lives in `Raidwise/` on 
 
 Repository audit (2026-11-06): [findings and remediation plan](Audit-2026-11-06.md), [verification and reproduction](Audit-2026-11-06-Evidence.md). This is a dated assessment, not a replacement for the contracts below.
 
+Guild EPGP roster roadmap: [EPGP implementation plan](EPGP-Plan.md).
+
 ## Find the owner first
 
 Paths below are relative to `Raidwise/`. Search the entry point before reading its helpers or callers.
@@ -15,6 +17,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Language | `Locale.lua` | `Addon:T`; search exact keys in both languages |
 | Chat preparation and gear reports | `ChatReports.lua`, `GearCheckReports.lua` | `PrepareReportMessage`, `BuildGearCheckChatMessages` |
 | Gear/bags/currency export, lockouts | `CharacterExport.lua`, `CharacterLockouts.lua` | `FormatEquippedGearExport`, `CollectCharacterCurrency`, `BuildCooldownTable` |
+| Guild EPGP module | `Raidwise/Modules/EPGP/` | Roster export, note parsing, main/alt graph, PR/BIS calculations, and EPGP page; keeps a narrow contract with core shell, locale, DB and roster events |
 | Inspect timing, identity, retries | `InspectCoordinator.lua`, `GearCheck.lua`, `PartyRoster.lua` | `StartInspectRequest`, `RetryInspectRequest`, `StartGearCheckUnitScan`, `CancelGearCheckScan` |
 | Item links, sockets and gems | `GearCheckCollector.lua` | `CollectGearCheckObservation`; private `ParseItemLinkParts`, `NormalizeItem` |
 | Report compatibility and completeness | `GearCheckReport.lua` | `NormalizeGearCheckReport`, `GetGearCheckScanState`; canonical nested fields win over legacy aliases |

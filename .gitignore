@@ -1,4 +1,6 @@
 node_modules/
 diagnostics/
-____EXAMPLES
+
+____EXAMPLES/*
+
 ____GEAR_REPORTS_TO_CHECK

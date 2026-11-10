@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 Raidwise = Raidwise or {}
 local Addon = Raidwise
 
-Addon.version = "2.1.0"
+Addon.version = "2.2.0"
 -- Filled from ## X-LastUpdated in Raidwise.toc on load.
 Addon.lastUpdated = ""
 
@@ -48,6 +48,7 @@ local defaults = {
 		nextId = 0,
 		reports = {},
 	},
+	epgp = { minimumGP = 500, bisMinimumEP = 4000, snapshot = nil },
 }
 
 -- Recursively copy a value (tables become independent copies).
@@ -281,6 +282,10 @@ function Addon:OnInitialize()
 	if self.SetLocale then
 		self:SetLocale(self.db.locale, true)
 	end
+	if type(LoadAddOn) == "function" then
+		local loaded, reason = LoadAddOn("Raidwise_EPGP")
+		if not loaded and reason then self:Print("EPGP module unavailable: " .. tostring(reason)) end
+	end
 	if self.CreateMainFrame then
 		local ok, err = pcall(self.CreateMainFrame, self)
 		if not ok then
@@ -390,6 +395,21 @@ SlashCmdList["RAIDWISE"] = function(msg)
 		return
 	end
 
+	if msg == "guildexport" or msg == "guild export" then
+		if Addon.ShowGuildRosterExport then Addon:ShowGuildRosterExport() else Addon:Print("Guild roster export is unavailable.") end
+		return
+	end
+
+	if msg == "guildexport all" or msg == "guild export all" then
+		if Addon.ShowFullGuildRosterExport then Addon:ShowFullGuildRosterExport() else Addon:Print("Guild roster export is unavailable.") end
+		return
+	end
+
+	if msg == "guildexport 80" or msg == "guild export 80" then
+		if Addon.ShowLevel80GuildRosterExport then Addon:ShowLevel80GuildRosterExport() else Addon:Print("Guild roster export is unavailable.") end
+		return
+	end
+
 	if msg == "close" then
 		Addon:HideMainFrame()
 		return
@@ -478,6 +498,13 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 	elseif event == "UPDATE_INSTANCE_INFO" then
 		Addon:OnUpdateInstanceInfo()
 	elseif event == "PLAYER_GUILD_UPDATE" or event == "GUILD_ROSTER_UPDATE" then
+		if event == "GUILD_ROSTER_UPDATE" and Addon.epgpRefreshPending then
+			Addon.epgpRefreshPending = nil
+			if Addon.StartEPGPRosterCollection then Addon:StartEPGPRosterCollection() end
+		end
+		if event == "GUILD_ROSTER_UPDATE" and Addon.guildRosterExportPending and Addon.CompleteGuildRosterExport then
+			Addon:CompleteGuildRosterExport()
+		end
 		Addon:OnGuildInfoUpdated()
 	elseif event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then
 		Addon:OnGroupRosterUpdated()
