@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] - 2026-11-10
+
+### Added
+- Guild EPGP roster with searchable and sortable member data, main/alt links, PR calculation, roll EP indicators, and current group/raid filters.
+- Separate `Raidwise_EPGP` addon module with its own TOC and dependency on Raidwise.
+
+### Changed
+- Installation and release ZIP now include both the core addon and the EPGP module.
+
 ## [2.1.0] - 2026-11-06
 
 ### Added
