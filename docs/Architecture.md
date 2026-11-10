@@ -17,7 +17,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Language | `Locale.lua` | `Addon:T`; search exact keys in both languages |
 | Chat preparation and gear reports | `ChatReports.lua`, `GearCheckReports.lua` | `PrepareReportMessage`, `BuildGearCheckChatMessages` |
 | Gear/bags/currency export, lockouts | `CharacterExport.lua`, `CharacterLockouts.lua` | `FormatEquippedGearExport`, `CollectCharacterCurrency`, `BuildCooldownTable` |
-| Guild EPGP module | `Raidwise/Modules/EPGP/` | Roster export, note parsing, main/alt graph, PR/BIS calculations, and EPGP page; keeps a narrow contract with core shell, locale, DB and roster events |
+| Guild EPGP module | `Raidwise_EPGP/` | Roster export, note parsing, main/alt graph, PR/BIS calculations, EPGP page and guild raid planner; keeps a narrow contract with core shell, locale, DB and roster events |
 | Inspect timing, identity, retries | `InspectCoordinator.lua`, `GearCheck.lua`, `PartyRoster.lua` | `StartInspectRequest`, `RetryInspectRequest`, `StartGearCheckUnitScan`, `CancelGearCheckScan` |
 | Item links, sockets and gems | `GearCheckCollector.lua` | `CollectGearCheckObservation`; private `ParseItemLinkParts`, `NormalizeItem` |
 | Report compatibility and completeness | `GearCheckReport.lua` | `NormalizeGearCheckReport`, `GetGearCheckScanState`; canonical nested fields win over legacy aliases |

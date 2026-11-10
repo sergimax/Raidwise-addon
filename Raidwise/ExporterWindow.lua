@@ -4,12 +4,13 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 26
+local SHELL_LAYOUT_VERSION = 27
 
 -- Visual groups for the left menu (ids stay stable for a future module split).
 local MENU_GROUPS = {
 	{ id = "personal", labelKey = "MENU_GROUP_PERSONAL" },
 	{ id = "raiding", labelKey = "MENU_GROUP_RAIDING" },
+	{ id = "guild", labelKey = "MENU_GROUP_GUILD" },
 	{ id = "exportWeb", labelKey = "MENU_GROUP_EXPORT_WEB" },
 	{ id = "other", labelKey = "MENU_GROUP_OTHER" },
 }

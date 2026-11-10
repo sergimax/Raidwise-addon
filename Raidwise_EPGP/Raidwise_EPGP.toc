@@ -10,3 +10,4 @@ GuildRosterParser.lua
 GuildRosterLinks.lua
 GuildEPGP.lua
 PageEPGP.lua
+PageRaidPlanner.lua

@@ -69,3 +69,18 @@ test("guild EPGP calculations apply GP base and BIS EP threshold", async () => {
     `);
   } finally { lua.global.close(); }
 });
+
+test("raid planner GearScore threshold accepts compact note values", async () => {
+  const lua = await Lua.create();
+  try {
+    lua.doStringSync("Raidwise = {}\n");
+    const page = (await readFile(new URL("../Raidwise_EPGP/PageRaidPlanner.lua", import.meta.url), "utf8")).replace(/^\uFEFF/, "");
+    lua.doStringSync(page);
+    lua.doStringSync(`
+      assert(Raidwise.RaidPlannerGearScoreThreshold("5800") == 5800)
+      assert(Raidwise.RaidPlannerGearScoreThreshold("5.8") == 5800)
+      assert(Raidwise.RaidPlannerGearScoreThreshold("6") == 6000)
+      assert(Raidwise.RaidPlannerGearScoreThreshold("6,2") == 6200)
+    `);
+  } finally { lua.global.close(); }
+});
