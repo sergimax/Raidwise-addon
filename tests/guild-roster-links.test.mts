@@ -8,7 +8,7 @@ test("guild main and alt resolution reports groups and unsafe links", async () =
   try {
     lua.doStringSync("Raidwise = {}\n");
     for (const name of ["GuildRosterParser", "GuildRosterLinks"]) {
-      lua.doStringSync((await readFile(new URL(`../Raidwise/${name}.lua`, import.meta.url), "utf8")).replace(/^\uFEFF/, ""));
+      lua.doStringSync((await readFile(new URL(`../Raidwise/Modules/EPGP/${name}.lua`, import.meta.url), "utf8")).replace(/^\uFEFF/, ""));
     }
     lua.doStringSync(`
       local snapshot={members={
@@ -43,7 +43,7 @@ test("guild EPGP calculations apply GP base and BIS EP threshold", async () => {
   try {
     lua.doStringSync("Raidwise = {}\n");
     for (const name of ["GuildEPGP"]) {
-      lua.doStringSync((await readFile(new URL(`../Raidwise/${name}.lua`, import.meta.url), "utf8")).replace(/^\uFEFF/, ""));
+      lua.doStringSync((await readFile(new URL(`../Raidwise/Modules/EPGP/${name}.lua`, import.meta.url), "utf8")).replace(/^\uFEFF/, ""));
     }
     lua.doStringSync(`
       local snapshot={members={

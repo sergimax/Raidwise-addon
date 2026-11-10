@@ -511,3 +511,10 @@ Addon.Pages.EPGP = {
 	Create = CreateEPGPPage,
 	Refresh = function(page) if page then RefreshReport(page) end end,
 }
+
+if Addon.MenuPages then
+	table.insert(Addon.MenuPages, {
+		id = "epgp", key = "EPGP", labelKey = "TAB_EPGP",
+		icon = "Interface\\Icons\\INV_Misc_Coin_02", group = "exportWeb",
+	})
+end

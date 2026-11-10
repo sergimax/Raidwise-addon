@@ -1,0 +1,12 @@
+## Interface: 30300
+## Title: Raidwise EPGP
+## Notes: Guild roster and EPGP module for Raidwise
+## Dependencies: Raidwise
+## LoadOnDemand: 1
+## SavedVariables: RaidwiseDB
+
+GuildRosterExport.lua
+GuildRosterParser.lua
+GuildRosterLinks.lua
+GuildEPGP.lua
+PageEPGP.lua

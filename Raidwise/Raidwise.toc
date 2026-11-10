@@ -12,10 +12,6 @@ Raidwise.lua
 Locale.lua
 ChatReports.lua
 CharacterExport.lua
-GuildRosterExport.lua
-GuildRosterParser.lua
-GuildRosterLinks.lua
-GuildEPGP.lua
 CharacterLockouts.lua
 InspectCoordinator.lua
 PartyRoster.lua
@@ -57,7 +53,6 @@ PageRaid.lua
 PageComposition.lua
 PageGearCheckTarget.lua
 PageHistory.lua
-PageEPGP.lua
 PageSettings.lua
 PageInfo.lua
 ExporterWindow.lua

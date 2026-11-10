@@ -282,6 +282,10 @@ function Addon:OnInitialize()
 	if self.SetLocale then
 		self:SetLocale(self.db.locale, true)
 	end
+	if type(LoadAddOn) == "function" then
+		local loaded, reason = LoadAddOn("Raidwise_EPGP")
+		if not loaded and reason then self:Print("EPGP module unavailable: " .. tostring(reason)) end
+	end
 	if self.CreateMainFrame then
 		local ok, err = pcall(self.CreateMainFrame, self)
 		if not ok then

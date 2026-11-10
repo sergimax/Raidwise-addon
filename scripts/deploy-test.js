@@ -8,13 +8,11 @@ if (!destArg) {
 }
 
 const repoRoot = path.resolve(__dirname, "..");
-const srcDir = path.join(repoRoot, "Raidwise");
-const tocPath = path.join(srcDir, "Raidwise.toc");
 const destInput = path.resolve(destArg);
-const destDir =
-  path.basename(destInput).toLowerCase() === "raidwise"
-    ? destInput
-    : path.join(destInput, "Raidwise");
+const destRoot = ["raidwise", "raidwise_epgp"].includes(path.basename(destInput).toLowerCase())
+  ? path.dirname(destInput)
+  : destInput;
+const addons = ["Raidwise", "Raidwise_EPGP"];
 const useColor = process.stdout.isTTY && process.env.NO_COLOR === undefined;
 const colors = {
   reset: "\u001b[0m",
@@ -28,32 +26,21 @@ function color(text, name) {
   return useColor ? colors[name] + text + colors.reset : text;
 }
 
-if (!fs.existsSync(srcDir)) {
-  console.error("Source directory not found: " + srcDir);
-  process.exit(1);
+for (const addon of addons) {
+  if (!fs.existsSync(path.join(repoRoot, addon))) {
+    console.error("Source directory not found: " + path.join(repoRoot, addon));
+    process.exit(1);
+  }
 }
 
-const now = new Date();
-const hours = String(now.getHours()).padStart(2, "0");
-const minutes = String(now.getMinutes()).padStart(2, "0");
-const titleLine = "## Title: Raidwise TEST " + hours + minutes;
+fs.mkdirSync(destRoot, { recursive: true });
 
-// const toc = fs.readFileSync(tocPath, "utf8");
-// if (!/^## Title:.*$/m.test(toc)) {
-//   console.error("Could not find ## Title line in " + tocPath);
-//   process.exit(1);
-// }
-// fs.writeFileSync(tocPath, toc.replace(/^## Title:.*$/m, titleLine), "utf8");
-// console.log("Updated title: " + titleLine);
-
-fs.mkdirSync(path.dirname(destDir), { recursive: true });
-
-function listChangedFiles(dir, base) {
+function listChangedFiles(dir, base, destDir, prefix) {
   const files = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      files.push.apply(files, listChangedFiles(fullPath, base));
+      files.push.apply(files, listChangedFiles(fullPath, base, destDir, prefix));
     } else {
       const relativePath = path.relative(base, fullPath);
       const destPath = path.join(destDir, relativePath);
@@ -62,19 +49,24 @@ function listChangedFiles(dir, base) {
         if (fs.readFileSync(fullPath).equals(fs.readFileSync(destPath))) continue;
         status = "updated";
       }
-      files.push({ path: relativePath, status });
+      files.push({ path: path.join(prefix, relativePath), sourcePath: fullPath, destPath, status });
     }
   }
   return files;
 }
 
-const files = listChangedFiles(srcDir, srcDir);
-fs.cpSync(srcDir, destDir, { recursive: true, force: true });
+const files = [];
+for (const addon of addons) {
+  const srcDir = path.join(repoRoot, addon);
+  const destDir = path.join(destRoot, addon);
+  files.push.apply(files, listChangedFiles(srcDir, srcDir, destDir, addon));
+  fs.cpSync(srcDir, destDir, { recursive: true, force: true });
+}
 
 const addedCount = files.filter((file) => file.status === "new").length;
 const updatedCount = files.length - addedCount;
 console.log(color("Raidwise test deployment", "cyan"));
-console.log("Destination: " + destDir);
+console.log("Destination: " + destRoot);
 console.log(
   "Copied " + files.length + " file(s): " +
     color(addedCount + " new", "green") + ", " +
