@@ -513,8 +513,15 @@ Addon.Pages.EPGP = {
 }
 
 if Addon.MenuPages then
+	local hasGuildGroup = false
+	for _, group in ipairs(Addon.MenuGroups or {}) do
+		if group.id == "guild" then hasGuildGroup = true; break end
+	end
+	if not hasGuildGroup and Addon.MenuGroups then
+		table.insert(Addon.MenuGroups, { id = "guild", labelKey = "MENU_GROUP_GUILD" })
+	end
 	table.insert(Addon.MenuPages, {
 		id = "epgp", key = "EPGP", labelKey = "TAB_EPGP",
-		icon = "Interface\\Icons\\INV_Misc_Coin_02", group = "exportWeb",
+		icon = "Interface\\Icons\\INV_Misc_Coin_02", group = "guild",
 	})
 end
