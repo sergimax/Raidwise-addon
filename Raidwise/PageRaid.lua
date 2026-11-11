@@ -1426,7 +1426,6 @@ end
 
 local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	local offline = member and member.unit and UnitIsConnected and not UnitIsConnected(member.unit)
-	if member then stripe = W.RaidScanBackground(gearEntry) end
 	cell.stripe = stripe
 	W.SetBackdropColor(cell, stripe)
 	-- Cells are reused as the roster changes; restore icons when a player reconnects.
