@@ -29,7 +29,7 @@ Current view is read-only after refresh; correction and JSON import controls rem
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
 | Panel fill | **#1a1915** ≈ RGB **0.10, 0.10, 0.08** | Low-noise Ivory theme; flat fill (no border edges) |
 | Title / status fill | **#24221c** ≈ RGB **0.14, 0.13, 0.11** | Same texture |
-| Gear Check gradation | S gold → A green → D red | `GEAR_S` / `GEAR_GOOD` / `GEAR_OK` / `GEAR_REPLACE` / `GEAR_BAD` — grades S…D and spec ranks (preferred…forbidden) |
+| Gear Check gradation | S bright gold → A green → B amber → C orange → D red | `GEAR_S` / `GEAR_GOOD` / `GEAR_OK` / `GEAR_REPLACE` / `GEAR_BAD` — brighter, distinct rank colors in both themes; grades S…D and spec ranks (preferred…forbidden) |
 | Idle text | **#c1b9a7** ≈ RGB **0.76, 0.73, 0.66** | Ivory body / menu idle |
 
 Shell height is **693** = **40** title/padding + **110** raid header + **524**

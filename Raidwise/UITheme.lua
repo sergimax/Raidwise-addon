@@ -121,11 +121,11 @@ Addon.UITheme = {
 	TEXT_DISABLED = { 0.569, 0.541, 0.478 },
 	TEXT_ALERT = { 0.741, 0.537, 0.435 },
 	-- Gear Check gradation: S gold, then A green through D red. Spec ranks share A–D.
-	GEAR_S = { 0.851, 0.780, 0.565 },
-	GEAR_BAD = { 0.741, 0.537, 0.435 },
-	GEAR_REPLACE = { 0.741, 0.537, 0.435 },
-	GEAR_OK = { 0.769, 0.682, 0.451 },
-	GEAR_GOOD = { 0.580, 0.647, 0.522 },
+	GEAR_S = { 1.000, 0.820, 0.300 },
+	GEAR_BAD = { 1.000, 0.380, 0.360 },
+	GEAR_REPLACE = { 1.000, 0.560, 0.250 },
+	GEAR_OK = { 0.980, 0.770, 0.250 },
+	GEAR_GOOD = { 0.480, 0.880, 0.480 },
 }
 
 Addon.Widgets = {}
@@ -160,11 +160,11 @@ local lightPalette = {
 	BORDER = { 0.51, 0.44, 0.29, 1 },
 	TEXT_GOOD = { 0.12, 0.42, 0.17 },
 	TEXT_ALERT = { 0.72, 0.12, 0.12 },
-	GEAR_S = { 0.48, 0.32, 0.00 },
-	GEAR_BAD = { 0.72, 0.12, 0.12 },
-	GEAR_REPLACE = { 0.66, 0.29, 0.03 },
-	GEAR_OK = { 0.48, 0.38, 0.09 },
-	GEAR_GOOD = { 0.12, 0.42, 0.17 },
+	GEAR_S = { 0.60, 0.34, 0.00 },
+	GEAR_BAD = { 0.78, 0.12, 0.12 },
+	GEAR_REPLACE = { 0.78, 0.29, 0.02 },
+	GEAR_OK = { 0.60, 0.43, 0.04 },
+	GEAR_GOOD = { 0.10, 0.48, 0.15 },
 }
 local darkPalette = {}
 for key in pairs(lightPalette) do
