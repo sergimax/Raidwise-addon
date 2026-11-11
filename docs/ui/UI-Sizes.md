@@ -135,7 +135,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/gems/armor/weapons/enchants), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 45`.
+Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/gems/armor/weapons/enchants), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 46`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -147,7 +147,7 @@ Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/g
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
 | Player cell | **168 × 100** | Four rows × four columns: class + spec / name; weapon / armor; empty / gems / enchants; opinion / Gear / Rescan. Role icon is omitted; role remains available in the detailed tooltip. GS/iLvl appear under the name. Flask and Food have separate **20 × 46** vertical status slots at the right edge; green means present, red means missing, muted means unknown. No drawn grid lines; raid-buff icons remain in hover tip |
-| Cell buttons | **20** tall | Score report buttons are **56** px wide with transparent idle fill and a thin outline; **Gear** and **Rescan** are **56** px wide; **2** px gaps. Scores are disabled until scanned; Rescan is disabled while any scan/export runs |
+| Cell buttons | **12** tall for grade reports; **20** for actions | Four **112 × 12** weapon / armor / gem / enchant report buttons stack vertically. They have transparent fill at rest and no hover fill; reports remain available on click. **Gear** and **Rescan** remain **56 × 20** below them. Scores are disabled until scanned; Rescan is disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
