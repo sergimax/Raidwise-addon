@@ -13,7 +13,7 @@ Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): part
 **Upgrading from 2.0 to 2.1:** existing profiles and notes are preserved; event
 journals migrate automatically to compact change records. Damaged entries are
 isolated with their originals retained. `/rw diagnose` reports storage health;
-the [character-system contract](docs/Character-System-Contract.md) documents repair.
+the [character-system contract](docs/characters/Character-System-Contract.md) documents repair.
 
 **Upgrading from before 2.0:** back up SavedVariables first. Legacy character profiles,
 notes, links, and exchanged data are reset without migration; settings, saved
@@ -116,7 +116,7 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 - Gold rows are covered; dim rows are missing. Section titles show present/total (red when nothing in the section is present)
 - Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to the report chat channel (header)
 - **Report missing** posts absent classes to the report chat channel (header); **Refresh** re-reads the group (same inspect path as Raid roster)
-- Full tracking list: [`docs/Raid-Composition.md`](docs/Raid-Composition.md)
+- Full tracking list: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md)
 - Reports preview their output; effect reports include clickable spell links and fit one 255-byte chat message.
 
 **Gear check (target)** tab:
@@ -127,7 +127,7 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 - Report buttons show icons and previews; summaries list all grade counts, and gem reports group warnings by theme without gem IDs.
 - **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
 - **Character profile** opens the scanned player's profile; target scans also record that player in History
-- Surface-level disclaimer; rules and known false positives: [`docs/Gear-Check-Progress.md`](docs/Gear-Check-Progress.md)
+- Surface-level disclaimer; rules and known false positives: [`docs/gear-check/Gear-Check-Progress.md`](docs/gear-check/Gear-Check-Progress.md)
 - `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
 
 **History** shows this character's group/raid meetings from the last 14 days.
@@ -152,10 +152,10 @@ controls the opinion line.
 Profile exchange, its menus/pages, and Karma are disabled pending future work.
 Gear/currency/lockout export remains available. Full profile deletion clears the
 opinion, facts, events, Note, changes and links but preserves meetings/counters.
-See [current model](docs/Reputation.md), [contract](docs/Character-System-Contract.md)
-and [redesign acceptance](docs/Character-System-Verification.md).
-Subsequent fixes and remaining checks: [November audit](docs/Audit-2026-11-06.md)
-and [verification evidence](docs/Audit-2026-11-06-Evidence.md).
+See [current model](docs/characters/Reputation.md), [contract](docs/characters/Character-System-Contract.md)
+and [redesign acceptance](docs/characters/Character-System-Verification.md).
+Subsequent fixes and remaining checks: [November audit](docs/audits/Audit-2026-11-06.md)
+and [verification evidence](docs/audits/Audit-2026-11-06-Evidence.md).
 
 Report controls in the shared header:
 
@@ -181,7 +181,7 @@ The minimap button position is saved in `RaidwiseDB.minimapAngle`.
 - About overview (one sentence per line, with lists) plus per-menu feature sections (same icons as the left menu, each with that view’s layout `vN`)
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
-View layouts: [`docs/UI-Views.md`](docs/UI-Views.md). Pixel sizes: [`docs/UI-Sizes.md`](docs/UI-Sizes.md). Reputation model: [`docs/Reputation.md`](docs/Reputation.md). Composition tracking: [`docs/Raid-Composition.md`](docs/Raid-Composition.md).
+View layouts: [`docs/ui/UI-Views.md`](docs/ui/UI-Views.md). Pixel sizes: [`docs/ui/UI-Sizes.md`](docs/ui/UI-Sizes.md). Reputation model: [`docs/characters/Reputation.md`](docs/characters/Reputation.md). Composition tracking: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md).
 
 Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet). `types/GearCheck.ts` describes the Gear Check normalized report (`schemaVersion` 3).
 
@@ -265,7 +265,7 @@ types/
 
 ## Notes
 
-- Character/profile data and saved Gear Check reports support one realm per SavedVariables dataset. Shared storage across independent realms/servers is not supported; see the [identity contract](docs/Character-System-Contract.md).
+- Character/profile data and saved Gear Check reports support one realm per SavedVariables dataset. Shared storage across independent realms/servers is not supported; see the [identity contract](docs/characters/Character-System-Contract.md).
 
 - Incomplete/unavailable scans remain visibly marked and do not count as ready in raid/minimap summaries; unconfirmed empty sockets require another inspect response before being reported as missing gems.
 
@@ -278,4 +278,4 @@ runtime: `npm ci --ignore-scripts`, then `npm run check`. See
 - `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
 - Character, cooldown and Gear Check exports retain their format versions. Profile exchange is disabled; private Notes remain local.
 - Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.
-- Regenerating S-grade BiS IDs: `node scripts/generate-gear-check-bis.js` (reads sibling `Raidwise` web-app presets; see `docs/Gear-Check-Surface-From-BiS.md`).
+- Regenerating S-grade BiS IDs: `node scripts/generate-gear-check-bis.js` (reads sibling `Raidwise` web-app presets; see `docs/gear-check/Gear-Check-Surface-From-BiS.md`).

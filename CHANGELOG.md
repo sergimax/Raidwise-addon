@@ -337,7 +337,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Profile History shows **Was in the same party** count (increments after ≥30 minutes since last seen in a group)
 - Left menu category icons for each tab
 - **Info** page feature sections with the same menu icons and each view’s layout `vN`
-- Reputation model docs ([`docs/Reputation.md`](docs/Reputation.md))
+- Reputation model docs ([`docs/characters/Reputation.md`](docs/characters/Reputation.md))
 
 ### Changed
 - Slash commands: `/raidwise` / `/rw` open the window; `/raidwise close` / `/rw close` close it (removed `help`, `version`, `status`, `show`, `hide`)
