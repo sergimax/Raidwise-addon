@@ -135,7 +135,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/gems/armor/weapons/enchants), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 50`.
+Compact two-row header (grade chips + GS/roles + Flask/Food report controls + icon toolbar, then gear-category reports), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 51`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -143,7 +143,8 @@ Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/g
 | Row 1 chips | **≥72** wide | Colored `S · A · B · C · D`; full `GEAR_CHECK_RAID_HINT` on hover |
 | Row 1 GS / roles | remaining width | One line; per-role GS on hover |
 | Row 1 toolbar | **4×28** icons, **4** px gaps (**124** wide) | Scan, Export all, Refresh, Back to roster (icon + tooltip) |
-| Row 2 status | six equal cells, **8** px gaps, **20** tall | Gold name + compact counts, **16×16** Battle Shout report icon on the right |
+| Row 1 reports | Flask/Food report cells, **104×28** each | **16×16** Battle Shout button left of label and count |
+| Row 2 reports | four equal cells, **8** px gaps, **20** tall | Gear category name + compact counts; **16×16** Battle Shout button left of each label |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
 | Player cell | **168 × 100** | Four columns × four rows: class+spec icons sharing column 1 / opinion / Flask / Weapon; name centered across columns 1–2 / Flask / Armor; GS / iLvl / Food / Gems; Gear / Rescan / Food / Enchant. The category report buttons stack in the right column. Flask and Food have separate **20 × 46** vertical status slots in column 3; green means present, red means missing, muted means unknown. No drawn grid lines; raid-buff icons remain in hover tip |

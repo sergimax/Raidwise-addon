@@ -49,7 +49,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 50` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 51` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -129,8 +129,8 @@ cells from opening a different character's report.
 Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1 (same inspect/GS pipeline as before; no separate party tab).
 
 ```text
-[ S·A·B·C·D  Average GS 6158  Tanks 2 · Healers 6 · Melee 12 · Range 5   [scan][export][refresh][back] ]
-[ Flask 22/25 [shout] | Food 20/25 [shout] | Gems … [shout] | Armor … [shout] | Weapons … [shout] | Enchants … [shout] ]
+[ S·A·B·C·D  Average GS 6158  Tanks 2 · Healers 6 · Melee 12 · Range 5  [shout] Flask 22/25 [shout] Food 20/25 [scan][export][refresh][back] ]
+[ [shout] Gems … | [shout] Armor … | [shout] Weapons … | [shout] Enchants … ]
 [ scan / export status (reserved height)                                 ]
 [ progress bar track (always reserved)                                   ]
         8 px gap
@@ -146,14 +146,15 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 
 | Block | In-game text / control |
 |-------|------------------------|
-| mini table | Two rows: chips + GS/roles + icon toolbar (**28**), then six status cells (**20**); **4** px between rows |
+| mini table | Two rows: chips + GS/roles + Flask/Food reports + icon toolbar (**28**), then four gear-category report cells (**20**); **4** px between rows |
 | row 1 grade chips | Colored `S · A · B · C · D`; hover shows `GEAR_CHECK_RAID_HINT` |
 | row 1 GS / roles | `Average GS` plus role counts on one line; hover shows per-role count and average GS |
 | row 1 toolbar | Icon buttons **Scan**, **Export all**, **Refresh**, **Back to roster** in a horizontal strip (**28×28**, **4** px gap). Hover shows the action name and tip. **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
-| row 2 status | Six equal cells: **Flask**, **Food**, **Gems**, **Armor**, **Weapons** (main/off/2H/relic), **Enchants** — gold name + compact counts, **16×16** Battle Shout icon on the right |
+| row 1 reports | **Flask** and **Food** compact counts, each with a **16×16** Battle Shout report button immediately left of its label; hover previews the report |
+| row 2 reports | Four equal cells: **Gems**, **Armor**, **Weapons** (main/off/2H/relic), **Enchants** — compact counts, each with a **16×16** Battle Shout report button immediately left of its label |
 | flask / food | `Flask n/total` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Missing names and `(n missing)` live in the hover tip. Out of range / offline are not listed as missing |
 | gems / armor / weapons / enchants | Separate S / A / B / C / D counts (+ Failed). Weapons include main-hand, off-hand, two-hand and relic slots. Dim until first scan (`Press Scan to check.`) |
-| report icon | Same Battle Shout icon on every status cell; hover (cell or icon) shows the category tip, current counts, plus a preview of the chat line(s) that will be posted |
+| report icon | Battle Shout button to the left of each category label; hover (cell or icon) shows the category tip, current counts, plus a preview of the chat line(s) that will be posted |
 | scan status | Below the mini table; reserved **28** px; scan/export/rescan text. After a successful full scan, shows the completion message, player count, and last full-scan date/time (local clock, including seconds). Restored when returning from export or refreshing locale; individual rescans do not change the full-scan timestamp. Before the first full scan, idle text is empty. |
 | progress bar | Below status (**4** px gap); height **14**; track always reserved |
 | column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |

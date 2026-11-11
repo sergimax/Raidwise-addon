@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 50
+local LAYOUT_VERSION = 51
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -698,12 +698,12 @@ local function CreateRaidRosterHeader(page)
 	end
 
 	local function CreateSummaryCell(tooltipKey, buildMessages, onClick)
-		local cell = CreateFrame("Frame", nil, summaryCol)
+		local cell = CreateFrame("Frame", nil, miniTable)
 		local reportBtn = CreateChatReportButton(cell, tooltipKey, buildMessages, onClick)
-		reportBtn:SetPoint("RIGHT", cell, "RIGHT", 0, 0)
+		reportBtn:SetPoint("LEFT", cell, "LEFT", 0, 0)
 		local body = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-		body:SetPoint("LEFT", cell, "LEFT", 0, 0)
-		body:SetPoint("RIGHT", reportBtn, "LEFT", -iconGap, 0)
+		body:SetPoint("LEFT", reportBtn, "RIGHT", iconGap, 0)
+		body:SetPoint("RIGHT", cell, "RIGHT", 0, 0)
 		body:SetHeight(row2H)
 		body:SetJustifyH("LEFT")
 		body:SetJustifyV("MIDDLE")
@@ -769,7 +769,8 @@ local function CreateRaidRosterHeader(page)
 	page.enchantGradeSummaryLabel = enchantGradeCol.body
 	page.reportEnchantBtn = enchantGradeCol.reportBtn
 
-	local summaryRows = { flaskCol, foodCol, gemGradeCol, armorGradeCol, weaponGradeCol, enchantGradeCol }
+	local consumableRows = { flaskCol, foodCol }
+	local summaryRows = { gemGradeCol, armorGradeCol, weaponGradeCol, enchantGradeCol }
 
 	local toolbar = CreateHeaderColumn()
 	page.raidToolbar = toolbar
@@ -830,7 +831,13 @@ local function CreateRaidRosterHeader(page)
 		statsCol:ClearAllPoints()
 		statsCol:SetHeight(row1H)
 		statsCol:SetPoint("TOPLEFT", legendCol, "TOPRIGHT", colGap, 0)
-		statsCol:SetPoint("TOPRIGHT", toolbar, "TOPLEFT", -colGap, 0)
+
+		for index, cell in ipairs(consumableRows) do
+			cell:ClearAllPoints()
+			cell:SetSize(104, row1H)
+			cell:SetPoint("RIGHT", index == 1 and foodCol or toolbar, "LEFT", -colGap, 0)
+		end
+		statsCol:SetPoint("RIGHT", flaskCol, "LEFT", -colGap, 0)
 
 		summaryCol:ClearAllPoints()
 		summaryCol:SetHeight(row2H)
