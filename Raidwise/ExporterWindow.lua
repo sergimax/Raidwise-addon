@@ -110,14 +110,20 @@ end
 
 local function CreateHeaderReportChannels(frame, titleBar, close)
 	local host = CreateFrame("Frame", nil, titleBar)
-	host:SetSize(406, 18)
+	host:SetSize(486, 18)
 	host:SetPoint("RIGHT", close, "LEFT", -24, 0)
 	frame.reportChannelHost = host
 	frame.reportChannelRadios = {}
+	local heading = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
+	heading:SetPoint("LEFT", 0, 0)
+	heading:SetWidth(76)
+	heading:SetJustifyH("LEFT")
+	heading:SetText(W.T("HEADER_REPORT_CHANNEL"))
+	W.SetFontColor(heading, UI.TEXT_DISABLED)
 	for index, choice in ipairs(HEADER_CHAT_CHOICES) do
 		local button = CreateFrame("Button", nil, host)
 		button:SetSize(42, 18)
-		button:SetPoint("LEFT", (index - 1) * 52, 0)
+		button:SetPoint("LEFT", 80 + (index - 1) * 52, 0)
 		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("LEFT", 0, 0)
 		label:SetWidth(24)
@@ -162,14 +168,20 @@ end
 
 local function CreateHeaderReportForm(frame, titleBar)
 	local host = CreateFrame("Frame", nil, titleBar)
-	host:SetSize(132, 18)
+	host:SetSize(220, 18)
 	host:SetPoint("RIGHT", frame.reportChannelHost, "LEFT", -16, 0)
 	frame.reportFormHost = host
 	frame.reportFormRadios = {}
+	local heading = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
+	heading:SetPoint("LEFT", 0, 0)
+	heading:SetWidth(84)
+	heading:SetJustifyH("LEFT")
+	heading:SetText(W.T("HEADER_REPORT_FORM"))
+	W.SetFontColor(heading, UI.TEXT_DISABLED)
 	for index, formId in ipairs({ "short", "full" }) do
 		local button = CreateFrame("Button", nil, host)
 		button:SetSize(62, 18)
-		button:SetPoint("LEFT", (index - 1) * 70, 0)
+		button:SetPoint("LEFT", 88 + (index - 1) * 66, 0)
 		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("LEFT", 0, 0)
 		label:SetWidth(44)
