@@ -103,28 +103,28 @@ Addon.UITheme = {
 
 	TEXT_BODY = { 1, 1, 1 },
 	INPUT_BG = { 0, 0, 0, 1 },
-	-- Colors — Classic theme (preview/themes.html #classic)
-	GOLD = { 1.000, 0.824, 0.000 },
-	GOLD_DIM = { 0.769, 0.627, 0.290 }, -- Menu group headings / separators
-	BORDER = { 0.420, 0.341, 0.188, 1 },
+	-- Colors — Low-noise Ivory theme (docs/ui/low-noise-ivory.html)
+	GOLD = { 0.851, 0.780, 0.565 },
+	GOLD_DIM = { 0.549, 0.510, 0.416 }, -- Menu group headings / separators
+	BORDER = { 0.188, 0.180, 0.157, 1 },
 	BORDER_W = 2,
-	TEXT_IDLE = { 1.000, 0.933, 0.733 },
-	TEXT_GOOD = { 0.350, 0.850, 0.400 },
-	PANEL_BG = { 0.071, 0.071, 0.110, 0.98 },
-	TITLE_BG = { 0.110, 0.110, 0.165, 1 },
-	BTN_IDLE = { 0.125, 0.110, 0.165, 0.98 },
-	BTN_HOVER = { 0.180, 0.150, 0.200, 1 },
-	BTN_SELECTED = { 0.230, 0.188, 0.125, 1 },
-	BTN_DISABLED = { 0.055, 0.055, 0.078, 0.95 },
-	TEXT_HOVER = { 1.000, 0.910, 0.550 },
-	TEXT_DISABLED = { 0.690, 0.627, 0.439 },
-	TEXT_ALERT = { 1.000, 0.251, 0.251 },
+	TEXT_IDLE = { 0.757, 0.725, 0.655 },
+	TEXT_GOOD = { 0.580, 0.647, 0.522 },
+	PANEL_BG = { 0.102, 0.098, 0.082, 1 },
+	TITLE_BG = { 0.141, 0.133, 0.110, 1 },
+	BTN_IDLE = { 0.165, 0.157, 0.133, 1 },
+	BTN_HOVER = { 0.224, 0.212, 0.173, 1 },
+	BTN_SELECTED = { 0.161, 0.153, 0.122, 1 },
+	BTN_DISABLED = { 0.090, 0.086, 0.075, 1 },
+	TEXT_HOVER = { 0.890, 0.827, 0.643 },
+	TEXT_DISABLED = { 0.569, 0.541, 0.478 },
+	TEXT_ALERT = { 0.741, 0.537, 0.435 },
 	-- Gear Check gradation: S gold, then A green through D red. Spec ranks share A–D.
-	GEAR_S = { 1.000, 0.824, 0.000 },
-	GEAR_BAD = { 1.000, 0.251, 0.251 },
-	GEAR_REPLACE = { 1.000, 0.600, 0.200 },
-	GEAR_OK = { 0.950, 0.780, 0.350 },
-	GEAR_GOOD = { 0.350, 0.850, 0.400 },
+	GEAR_S = { 0.851, 0.780, 0.565 },
+	GEAR_BAD = { 0.741, 0.537, 0.435 },
+	GEAR_REPLACE = { 0.741, 0.537, 0.435 },
+	GEAR_OK = { 0.769, 0.682, 0.451 },
+	GEAR_GOOD = { 0.580, 0.647, 0.522 },
 }
 
 Addon.Widgets = {}

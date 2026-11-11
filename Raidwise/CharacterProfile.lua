@@ -7,7 +7,7 @@ local function T(key, ...)
 	return W.T(key, ...)
 end
 
--- Profile-local sizes (keep in sync with docs/UI-Sizes.md Character profile).
+-- Profile-local sizes (keep in sync with docs/ui/UI-Sizes.md Character profile).
 -- Colors come from Addon.UITheme (Classic).
 local Theme = Addon.UITheme
 local UI = {

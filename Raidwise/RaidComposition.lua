@@ -1,5 +1,5 @@
 -- Raid composition checklist (Wowhead-style exclusive buff/debuff categories).
--- Keep in sync with docs/Raid-Composition.md.
+-- Keep in sync with docs/raid/Raid-Composition.md.
 
 local Addon = Raidwise
 
