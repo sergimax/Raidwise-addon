@@ -145,7 +145,7 @@ Features from the spec or locked decisions that are **not done** yet (or only pa
 | Slot policy naming | §9 | Spec `UNSUPPORTED`; unused for trinkets (now CHECKED) |
 | Unknown / not-checkable UI | §8 | Info findings exist; All-filter hides pure info → easy to miss “cannot evaluate” |
 | Catalog / profile completeness | Phase 8+ | Seeded + “being maintained”; 27/30 specs use dedicated stat templates; expand on false-positive reports |
-| Surface rules from BiS examples | Wired into profiles + `WEAPON_SETUP` / trinket pools; see `docs/Gear-Check-Surface-From-BiS.md` + `GearCheckTrinkets.lua` |
+| Surface rules from BiS examples | Wired into profiles + `WEAPON_SETUP` / trinket pools; see `Gear-Check-Surface-From-BiS.md` + `GearCheckTrinkets.lua` |
 
 ### Explicitly out of scope (do not treat as incomplete)
 
@@ -591,9 +591,9 @@ Legacy name: `S_DRUID_BALANCE` is also used for all mage/warlock specs (rename t
 | `Raidwise/PageGearCheckTarget.lua` | Target/self UI (scan, save, saved list) |
 | `Raidwise/PageRaid.lua` | Raid roster grid + integrated gear-check scan/report rows |
 | `gear-check-debug/stats-matrix.html` | Stat rank matrix editor + Lua export |
-| `docs/Gear-Check-Progress.md` | This tracker |
+| `docs/gear-check/Gear-Check-Progress.md` | This tracker |
 | `docs/RaidWise Addon — Gear Check Specification.md` | Product spec |
-| `docs/Gear-Check-Surface-From-BiS.md` | Armor / weapon / trinket surface rules distilled from example BiS lists |
+| `Gear-Check-Surface-From-BiS.md` | Armor / weapon / trinket surface rules distilled from example BiS lists |
 
 Scans are **not** auto-persisted; user must press **Save report** (spec §25).
 

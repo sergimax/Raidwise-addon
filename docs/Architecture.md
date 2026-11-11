@@ -2,9 +2,9 @@
 
 Lua 5.1 / WoW 3.3.5a (`Interface: 30300`). Shipped code lives in `Raidwise/` on the single `Raidwise` namespace. GearScore is optional. Rules: [AGENTS.md](../AGENTS.md). Checks: [tests/README.md](../tests/README.md).
 
-Repository audit (2026-11-06): [findings and remediation plan](Audit-2026-11-06.md), [verification and reproduction](Audit-2026-11-06-Evidence.md). This is a dated assessment, not a replacement for the contracts below.
+Repository audit (2026-11-06): [findings and remediation plan](audits/Audit-2026-11-06.md), [verification and reproduction](audits/Audit-2026-11-06-Evidence.md). This is a dated assessment, not a replacement for the contracts below.
 
-Guild EPGP roster roadmap: [EPGP implementation plan](EPGP-Plan.md).
+Guild EPGP roster roadmap: [EPGP implementation plan](raid/EPGP-Plan.md).
 
 ## Find the owner first
 
@@ -30,7 +30,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Group encounter sessions and retention | `PlayerEncounters.lua` | `RecordCurrentGroupHistory`, `GetCharacterEncounters`, `GetCharacterMeetingStats`, `PruneCharacterEncounters`, `ProjectCharacterEncounters`; bridge retains the `PruneHistory` compatibility entry point. 30-second presence observations, no inspect. |
 | Database and recent-history lists | `PageHistory.lua`, `PlayerEncounters.lua` | `BuildHistoryRoster` selects filled profiles or recent encounters for the current observer; database sorts by profile/note update. Unset and explicit neutral opinions have distinct filters. |
 | Linked player characters and deletion | `PlayerRecordLinks.lua`, `ProfileCharacters.lua` | Active groups in `playerRecords.groups`, no opinion synchronization; journal and generation-safe deletion. Display helpers live in `PlayerRecordSupport.lua`. |
-| Retired profile exchange (not in TOC) | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua`, `PageReputation.lua`, `KarmaData.lua` | Archived implementation for later redesign; no active transport registration, pages or Karma import. See [Synchronization.md](Synchronization.md). |
+| Retired profile exchange (not in TOC) | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua`, `PageReputation.lua`, `KarmaData.lua` | Archived implementation for later redesign; no active transport registration, pages or Karma import. See [Synchronization.md](characters/Synchronization.md). |
 | Unsaved profile edits | `ProfileEditor.lua` | One-second autosave, explicit save, retained failed drafts, reload and invalidation on deletion |
 | Profile window | `ProfileWindow.lua`, `ProfileEditor.lua`, `ProfileCharacters.lua` | Active v38 window, unified core drafts, one-second autosave, retained errors; old `CharacterProfile`/`ProfilePanels` are outside TOC. |
 | Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `FindOpinionCharacter`, explicit-opinion tooltip lines (no tags/Karma); `RefreshUnitOpinionTooltip` rebuilds a shown unit fill after save/delete without touching item tooltips |
@@ -79,7 +79,7 @@ receive a raw `UnitIsUnit` result of `1`.
 
 `StartGearCheckUnitScan` requests inspect through the coordinator. `CollectGearCheck` supplies readiness to `CollectGearCheckObservation(unit, inspectReady)` and retains the observation. Collection does not evaluate. Finalization calls `EvaluateGearCheck`, which produces findings and invokes grade aggregation. Formatting belongs in reports, dumps and explanations.
 
-Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level inspect and counts). `NormalizeGearCheckReport` is the adapter at collection, evaluation and snapshot creation boundaries; canonical fields are `character`, `equipment`, and `collection`. Equipment/inspect accessors centralize reads of legacy reports. Rule and catalog revisions are independent of addon semver; saved reports retain original metadata. See [Gear-Check-Progress.md](Gear-Check-Progress.md) for compatibility and grading details.
+Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level inspect and counts). `NormalizeGearCheckReport` is the adapter at collection, evaluation and snapshot creation boundaries; canonical fields are `character`, `equipment`, and `collection`. Equipment/inspect accessors centralize reads of legacy reports. Rule and catalog revisions are independent of addon semver; saved reports retain original metadata. See [Gear-Check-Progress.md](gear-check/Gear-Check-Progress.md) for compatibility and grading details.
 
 `GetGearCheckScanState` derives `complete`, `incomplete`, or `unavailable` independently of S/A/B/C/D grades. Overall results carry optional `scanState`, `scanReason`, and `provisional` metadata. Views and chat show incomplete/unavailable labels; raid/minimap readiness counts exclude those reports. Diagnostic grades remain available for partial observations.
 
@@ -132,7 +132,7 @@ by ID instead of full before/after arrays. Initialization atomically converts
 the remaining valid old journals while preserving their history; unknown journal versions fail
 without replacement. ProfileWindow copies the profile and one 25-row journal
 page separately; whole-record reads remain available for explicit compatibility
-consumers. Format and migration: [character-system contract](Character-System-Contract.md).
+consumers. Format and migration: [character-system contract](characters/Character-System-Contract.md).
 
 Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The shell dispatches these methods; page modules own control labels and entry-specific collection. `entering=true` requests the original tab-entry work (lockout requests, roster refresh or history recording); locale refresh omits it. Public refresh wrappers remain compatible. Profile extraction preserves anchors, dimensions and named-frame versions.
 
@@ -144,7 +144,7 @@ Core identity upsert rejects a known GUID with a different normalized realm
 before moving aliases. Group history respects this conflict for observer and
 subject; chat GUID lookup also checks the sender realm. These guards do not
 provide multi-realm/server storage. See the identity section of the
-[character-system contract](Character-System-Contract.md).
+[character-system contract](characters/Character-System-Contract.md).
 
 Copyable character/gear and cooldown JSON exports carry numeric `reportVersion: 1`.
 Profile JSON exchange is disabled. Target Gear
@@ -167,15 +167,15 @@ header. Chat summaries are human-readable messages, not versioned data exports.
 | `tooltip` | `RatingPresentation` / Settings: rating tooltip visibility |
 | `locale`, `theme`, `startupTab`, `reportChannel`, `reportForm` | Preferences consumed by locale, theme, shell and reporting |
 
-See [Reputation.md](Reputation.md) for reputation data. Addon semver, rule/catalog revisions, and layout versions serve different purposes. Geometry rules live in `AGENTS.md`; current layouts and dimensions live in [UI-Views.md](UI-Views.md) and [UI-Sizes.md](UI-Sizes.md).
+See [Reputation.md](characters/Reputation.md) for reputation data. Addon semver, rule/catalog revisions, and layout versions serve different purposes. Geometry rules live in `AGENTS.md`; current layouts and dimensions live in [UI-Views.md](ui/UI-Views.md) and [UI-Sizes.md](ui/UI-Sizes.md).
 
-The [character-system baseline](Character-System-Baseline.md) records the pre-simplification behavior and known documentation/code discrepancies as of 2026-10-29; it is a historical analysis, not the future design contract.
+The [character-system baseline](characters/Character-System-Baseline.md) records the pre-simplification behavior and known documentation/code discrepancies as of 2026-10-29; it is a historical analysis, not the future design contract.
 
-Agreed changes for the new system are tracked separately in [character-system redesign decisions](Character-System-Redesign.md).
+Agreed changes for the new system are tracked separately in [character-system redesign decisions](characters/Character-System-Redesign.md).
 
-The [character-system implementation plan](Character-System-Implementation-Plan.md) records the stages and their validation. Shipped behavior and the dated acceptance results are recorded in [Character-System-Verification.md](Character-System-Verification.md).
+The [character-system implementation plan](characters/Character-System-Implementation-Plan.md) records the stages and their validation. Shipped behavior and the dated acceptance results are recorded in [Character-System-Verification.md](characters/Character-System-Verification.md).
 
-The [character-system contract](Character-System-Contract.md) defines the local data model, reduced event catalog and screen structure. The bridge, redesigned ProfileWindow and group encounter sessions are active in the TOC; legacy profile and exchange modules remain outside it.
+The [character-system contract](characters/Character-System-Contract.md) defines the local data model, reduced event catalog and screen structure. The bridge, redesigned ProfileWindow and group encounter sessions are active in the TOC; legacy profile and exchange modules remain outside it.
 
 ## Runtime package and deferred UI extraction
 

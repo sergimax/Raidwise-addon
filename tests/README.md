@@ -47,7 +47,7 @@ The active character-system suites are `player-records`, `encounters`,
 not the retired profile migration modules. Older history/sync/Karma cases may
 load retired files explicitly as historical compatibility fixtures; they do not
 mean those modules are shipped in the TOC. Final verification and outstanding
-in-game work: [Character-System-Verification.md](../docs/Character-System-Verification.md).
+in-game work: [Character-System-Verification.md](../docs/characters/Character-System-Verification.md).
 
 `player-records.test.mts` also verifies journal v1-to-v2 migration (reconstruction
 of old event snapshots, ordering, authors, dates, baseline gaps, idempotence and
@@ -195,7 +195,7 @@ metadata unchanged, new rules and catalog revisions can change independently,
 legacy saved entries retain their metadata, and absent revision constants return
 `unknown`. The normalized report schema and source snapshot remain unchanged.
 Module ownership, revision policy, and saved-report compatibility are documented
-in `docs/Gear-Check-Progress.md` under Current module boundaries and compatibility.
+in `docs/gear-check/Gear-Check-Progress.md` under Current module boundaries and compatibility.
 
 ## Roster refresh coalescing (phase 8)
 
@@ -247,7 +247,7 @@ English/Russian, profile tabs, header visibility, and tooltip interactions.
 The modules and save/reset behavior below predate the character-system redesign.
 They are outside the TOC and release ZIP, except the still-active presentation
 module. These historical fixtures are not instructions for the current UI.
-Current ownership and acceptance are described above and in [the contract](../docs/Character-System-Contract.md).
+Current ownership and acceptance are described above and in [the contract](../docs/characters/Character-System-Contract.md).
 
 - `PlayerHistory.lua`: rating catalogs, normalization, and rating access.
 - `PlayerHistoryStore.lua`: encounter/scan history, Local Profile persistence,

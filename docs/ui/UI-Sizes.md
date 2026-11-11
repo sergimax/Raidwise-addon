@@ -27,10 +27,10 @@ Current view is read-only after refresh; correction and JSON import controls rem
 | Title bar | height **20** | Top of content; drag handle; **active menu name** + page `vN` + close **X** |
 | Close button | **16 × 16** | Right side of content title bar |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
-| Panel fill | **#12121c** ≈ RGB **0.07, 0.07, 0.11** | Classic theme; alpha 0.98; flat fill (no border edges) |
-| Title / status fill | **#1c1c2a** ≈ RGB **0.11, 0.11, 0.165** | Same texture |
+| Panel fill | **#1a1915** ≈ RGB **0.10, 0.10, 0.08** | Low-noise Ivory theme; flat fill (no border edges) |
+| Title / status fill | **#24221c** ≈ RGB **0.14, 0.13, 0.11** | Same texture |
 | Gear Check gradation | S gold → A green → D red | `GEAR_S` / `GEAR_GOOD` / `GEAR_OK` / `GEAR_REPLACE` / `GEAR_BAD` — grades S…D and spec ranks (preferred…forbidden) |
-| Idle text | **#ffeebb** ≈ RGB **1.00, 0.93, 0.73** | Body / menu idle |
+| Idle text | **#c1b9a7** ≈ RGB **0.76, 0.73, 0.66** | Ivory body / menu idle |
 
 Shell height is **693** = **40** title/padding + **110** raid header + **524**
 active-group block + **19** scroll insets. The raid viewport shows groups 1-5
