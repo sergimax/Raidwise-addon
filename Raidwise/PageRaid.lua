@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 51
+local LAYOUT_VERSION = 52
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -17,6 +17,11 @@ local RAID_ICON = 24
 local RAID_BTN_H = 20
 local RAID_BTN_GAP = 2
 local RAID_ACTION_W = 48
+local RAID_GRADE_REPORT_W = 44
+local RAID_GRADE_REPORT_H = 20
+local RAID_GRADE_REPORT_X = 122
+local RAID_GRADE_REPORT_TOP = -3
+local RAID_GRADE_REPORT_GAP = 5
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
 local RAID_REPORT_ICON = "Interface\\Icons\\Ability_Warrior_BattleShout"
@@ -144,10 +149,10 @@ local function SummarizeGearCategory(results, field)
 end
 
 local GRADE_CELL_CATEGORIES = {
-    { key = "weapon", reportCategory = "weapon", tooltipKey = "BTN_RAID_MEMBER_WEAPON_REPORT_TIP", icon = "Interface\\Icons\\INV_Sword_04", x = 122, y = -2, width = 44 },
-    { key = "armor", reportCategory = "armor", tooltipKey = "BTN_RAID_MEMBER_ARMOR_REPORT_TIP", icon = "Interface\\Icons\\INV_Chest_Plate04", x = 122, y = -26, width = 44 },
-    { key = "gem", reportCategory = "gems", tooltipKey = "BTN_RAID_MEMBER_GEMS_REPORT_TIP", icon = "Interface\\Icons\\INV_Misc_Gem_Diamond_01", x = 122, y = -50, width = 44 },
-    { key = "enchant", reportCategory = "enchants", tooltipKey = "BTN_RAID_MEMBER_ENCHANTS_REPORT_TIP", icon = "Interface\\Icons\\INV_Enchant_EssenceMagicLarge", x = 122, y = -76, width = 44 },
+    { key = "weapon", reportCategory = "weapon", tooltipKey = "BTN_RAID_MEMBER_WEAPON_REPORT_TIP", icon = "Interface\\Icons\\INV_Sword_04" },
+    { key = "armor", reportCategory = "armor", tooltipKey = "BTN_RAID_MEMBER_ARMOR_REPORT_TIP", icon = "Interface\\Icons\\INV_Chest_Plate04" },
+    { key = "gem", reportCategory = "gems", tooltipKey = "BTN_RAID_MEMBER_GEMS_REPORT_TIP", icon = "Interface\\Icons\\INV_Misc_Gem_Diamond_01" },
+    { key = "enchant", reportCategory = "enchants", tooltipKey = "BTN_RAID_MEMBER_ENCHANTS_REPORT_TIP", icon = "Interface\\Icons\\INV_Enchant_EssenceMagicLarge" },
 }
 
 local function HideGradeCells(cell)
@@ -1169,8 +1174,8 @@ local function CreateRaidPlayerCell(parent)
 
 	cell.gradeCells = {}
 	for index, category in ipairs(GRADE_CELL_CATEGORIES) do
-		local gradeCell = W.CreatePlainButton(cell, category.width, RAID_BTN_H, "")
-	gradeCell:SetPoint("TOPLEFT", cell, "TOPLEFT", category.x, category.y)
+		local gradeCell = W.CreatePlainButton(cell, RAID_GRADE_REPORT_W, RAID_GRADE_REPORT_H, "")
+		gradeCell:SetPoint("TOPLEFT", cell, "TOPLEFT", RAID_GRADE_REPORT_X, RAID_GRADE_REPORT_TOP - (index - 1) * (RAID_GRADE_REPORT_H + RAID_GRADE_REPORT_GAP))
 		W.SetBackdropColor(gradeCell, { 0, 0, 0, 0 })
 		W.ApplyOuterBorder(gradeCell, UI.BORDER, 1)
 		gradeCell.noHoverFill = true
