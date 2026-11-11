@@ -49,7 +49,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 36` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 45` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -121,7 +121,7 @@ Rows come only from current lockouts; each instance is one row with all size/mod
 
 ## Raid roster
 
-Layout v36 uses four compact player-card rows. Gear buttons keep
+Layout v45 uses a compact four-by-four player cell: class+spec/name/flask; weapon/armor/flask; (empty)/gems/enchants/food; opinion/Gear/Rescan/food. The role icon is removed from the cell while the role remains in the member data and detailed tooltip. Category and action buttons shift left and widen to fill the space, and category buttons use outlined idle styling with a hover fill. The name keeps GS/iLvl as a compact second line. Flask and Food occupy separate vertical status slots along the right edge. Gear-grade report controls retain clickable ratings. Gear buttons keep
 `SecureActionButtonTemplate`: their target action selects the cell's current
 unit, then PostClick opens target check. Unit/GUID validation prevents stale
 cells from opening a different character's report.
