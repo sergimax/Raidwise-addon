@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 49
+local LAYOUT_VERSION = 50
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -16,7 +16,7 @@ local RAID_LINE_H = 14
 local RAID_ICON = 24
 local RAID_BTN_H = 20
 local RAID_BTN_GAP = 2
-local RAID_ACTION_W = 44
+local RAID_ACTION_W = 48
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
 local RAID_REPORT_ICON = "Interface\\Icons\\Ability_Warrior_BattleShout"
@@ -144,10 +144,10 @@ local function SummarizeGearCategory(results, field)
 end
 
 local GRADE_CELL_CATEGORIES = {
-    { key = "weapon", reportCategory = "weapon", tooltipKey = "BTN_RAID_MEMBER_WEAPON_REPORT_TIP", icon = "Interface\\Icons\\INV_Sword_04", x = 124, y = -2, width = 42 },
-    { key = "armor", reportCategory = "armor", tooltipKey = "BTN_RAID_MEMBER_ARMOR_REPORT_TIP", icon = "Interface\\Icons\\INV_Chest_Plate04", x = 124, y = -26, width = 42 },
-    { key = "gem", reportCategory = "gems", tooltipKey = "BTN_RAID_MEMBER_GEMS_REPORT_TIP", icon = "Interface\\Icons\\INV_Misc_Gem_Diamond_01", x = 124, y = -50, width = 42 },
-    { key = "enchant", reportCategory = "enchants", tooltipKey = "BTN_RAID_MEMBER_ENCHANTS_REPORT_TIP", icon = "Interface\\Icons\\INV_Enchant_EssenceMagicLarge", x = 124, y = -76, width = 42 },
+    { key = "weapon", reportCategory = "weapon", tooltipKey = "BTN_RAID_MEMBER_WEAPON_REPORT_TIP", icon = "Interface\\Icons\\INV_Sword_04", x = 122, y = -2, width = 44 },
+    { key = "armor", reportCategory = "armor", tooltipKey = "BTN_RAID_MEMBER_ARMOR_REPORT_TIP", icon = "Interface\\Icons\\INV_Chest_Plate04", x = 122, y = -26, width = 44 },
+    { key = "gem", reportCategory = "gems", tooltipKey = "BTN_RAID_MEMBER_GEMS_REPORT_TIP", icon = "Interface\\Icons\\INV_Misc_Gem_Diamond_01", x = 122, y = -50, width = 44 },
+    { key = "enchant", reportCategory = "enchants", tooltipKey = "BTN_RAID_MEMBER_ENCHANTS_REPORT_TIP", icon = "Interface\\Icons\\INV_Enchant_EssenceMagicLarge", x = 122, y = -76, width = 44 },
 }
 
 local function HideGradeCells(cell)
@@ -1131,7 +1131,7 @@ local function CreateRaidPlayerCell(parent)
 	cell.nameText:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -26)
 	cell.nameText:SetWidth(98)
 	cell.nameText:SetHeight(12)
-	cell.nameText:SetJustifyH("LEFT")
+	cell.nameText:SetJustifyH("CENTER")
 	cell.nameText:SetJustifyV("MIDDLE")
 	W.SetLightThemeTextOutline(cell.nameText)
 

@@ -135,7 +135,7 @@ See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
 
 ## Raid roster tab
 
-Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/gems/armor/weapons/enchants), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 49`.
+Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/gems/armor/weapons/enchants), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 50`.
 
 | Element | Size | Notes |
 |---------|------|-------|
@@ -146,8 +146,8 @@ Compact two-row header (grade chips + GS/roles + icon toolbar, then flask/food/g
 | Row 2 status | six equal cells, **8** px gaps, **20** tall | Gold name + compact counts, **16×16** Battle Shout report icon on the right |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
-| Player cell | **168 × 100** | Four columns × four rows: class+spec icons sharing column 1 / opinion / Flask / Weapon; name spanning columns 1–2 / Flask / Armor; GS / iLvl / Food / Gems; Gear / Rescan / Food / Enchant. The category report buttons stack in the right column. Role icon is omitted; role remains available in the detailed tooltip. Flask and Food have separate **20 × 46** vertical status slots in column 3; green means present, red means missing, muted means unknown. No drawn grid lines; raid-buff icons remain in hover tip |
-| Cell buttons | **20** tall | Four icon-only report buttons stack in the rightmost column with category tooltips and click-to-report behavior. They have transparent fill at rest and no hover fill. **Gear** and **Rescan** are **44 × 20**. Scores are disabled until scanned; Rescan is disabled while any scan/export runs |
+| Player cell | **168 × 100** | Four columns × four rows: class+spec icons sharing column 1 / opinion / Flask / Weapon; name centered across columns 1–2 / Flask / Armor; GS / iLvl / Food / Gems; Gear / Rescan / Food / Enchant. The category report buttons stack in the right column. Flask and Food have separate **20 × 46** vertical status slots in column 3; green means present, red means missing, muted means unknown. No drawn grid lines; raid-buff icons remain in hover tip |
+| Cell buttons | **20** tall | Four **44 × 20** icon-only report buttons stack in the rightmost column with minimal inset, category tooltips and click-to-report behavior. They have transparent fill at rest and no hover fill. **Gear** and **Rescan** are **48 × 20** and fill the first two columns. Scores are disabled until scanned; Rescan is disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
 | Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |

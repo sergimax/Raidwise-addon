@@ -49,7 +49,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
 | My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 49` | `PageRaid.lua` | Shell title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 50` | `PageRaid.lua` | Shell title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Shell title bar (next to page name) |
@@ -121,7 +121,7 @@ Rows come only from current lockouts; each instance is one row with all size/mod
 
 ## Raid roster
 
-Layout v49 uses four columns by four rows: combined class/spec icons/opinion/Flask/Weapon; name spanning columns 1–2/Flask/Armor; GS/iLvl/Food/Gems; Gear/Rescan/Food/Enchant. The class and spec icons share the first column; the name spans the first two columns for longer character names. The four gear-category icons form a vertical stack in the rightmost column and retain their report tooltip and click action. The role icon is removed from the cell while the role remains in member data and the detailed tooltip. Flask and Food occupy separate vertical status slots in the third column. Gear buttons keep
+Layout v50 uses four columns by four rows: class+spec icons/opinion/Flask/Weapon; name spanning columns 1–2/Flask/Armor; GS/iLvl/Food/Gems; Gear/Rescan/Food/Enchant. Class and spec share the first cell, opinion moves to the first row, and the name is centered across the first two columns. The four gear-category icons form a vertical stack in the rightmost column and retain their report tooltip and click action. Flask and Food occupy separate vertical status slots in the third column. Buttons fill their columns with minimal insets. Gear buttons keep
 `SecureActionButtonTemplate`: their target action selects the cell's current
 unit, then PostClick opens target check. Unit/GUID validation prevents stale
 cells from opening a different character's report.
