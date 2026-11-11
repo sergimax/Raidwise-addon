@@ -61,9 +61,9 @@ Addon.UITheme = {
 	PROFILE_ICON = 24,
 	CD_SCROLLBAR_W = 16,
 	CD_HSCROLL_H = 16,
-	CD_ROW_A = { 0.094, 0.094, 0.141, 0.95 },
-	CD_ROW_B = { 0.078, 0.078, 0.118, 0.95 },
-	CD_CURRENT_CHARACTER = { 0.180, 0.150, 0.080, 0.95 },
+	CD_ROW_A = { 0.125, 0.118, 0.098, 1 },
+	CD_ROW_B = { 0.090, 0.086, 0.075, 1 },
+	CD_CURRENT_CHARACTER = { 0.255, 0.220, 0.145, 1 },
 
 	-- Raid roster tab
 	RAID_BUFF_ICON = 18,
