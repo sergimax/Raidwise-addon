@@ -21,10 +21,10 @@ Current view is read-only after refresh; correction and JSON import controls rem
 | Element | Size | Notes |
 |---------|------|-------|
 | Main frame (`RaidwiseFrame`) | **890 × 753** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Menu panel (`RaidwiseMenu`) | **888 × 60** | Horizontal navigation at the top of the window |
-| Page viewport | **870 × 653** | Same usable page height as before moving the menu and title bar |
-| Title bar | height **20** | Bottom of window; drag handle; addon name/version, active page name/layout version, available report controls, close **X** |
-| Close button | **16 × 16** | Right side of bottom title bar |
+| Title bar | height **20** | Very top of window; drag handle; addon name/version, active page name/layout version, available report controls, close **X** |
+| Menu panel (`RaidwiseMenu`) | **888 × 60** | Horizontal navigation directly below the title bar |
+| Page viewport | **870 × 653** | Same usable page height as before moving the title bar |
+| Close button | **16 × 16** | Right side of top title bar |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the active page name |
 | Panel fill | **#1a1915** ≈ RGB **0.10, 0.10, 0.08** | Low-noise Ivory theme; flat fill (no border edges) |
 | Title / status fill | **#24221c** ≈ RGB **0.14, 0.13, 0.11** | Same texture |
@@ -32,8 +32,8 @@ Current view is read-only after refresh; correction and JSON import controls rem
 | Idle text | **#c1b9a7** ≈ RGB **0.76, 0.73, 0.66** | Ivory body / menu idle |
 
 The page viewport remains **653 px** high = **40** title/padding + **110** raid header + **524**
-active-group block + **19** scroll insets. The shell has a **60 px** navigation area at the top
-and a 20 px title/control bar at the bottom, for an overall height of **753 px**. The raid viewport shows groups 1-5
+active-group block + **19** scroll insets. The shell has a 20 px title/control bar at the top,
+followed by a **60 px** navigation area, for an overall height of **753 px**. The raid viewport shows groups 1-5
 without any of groups 6-8 until scrolled; all other pages share this page height.
 
 ## Top navigation
@@ -47,14 +47,15 @@ without any of groups 6-8 until scrolled; all other pages share this page height
 | Vertical gap | 2 px | Between rows |
 | Cell inset | 10 px left/right; 2 px top | From the menu panel edge |
 | Group headings and separators | not rendered | Group IDs remain in page metadata |
-| Idle fill | **0.125, 0.110, 0.165** | Menu + action buttons |
-| Hover fill | **0.180, 0.150, 0.200** | Label `{1.00, 0.91, 0.55}` |
-| Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
-| Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
+| Idle fill | `BTN_IDLE` = **0.165, 0.157, 0.133** | Menu + action buttons (dark theme) |
+| Hover fill | `BTN_HOVER` = **0.224, 0.212, 0.173** | Hovered tab or action button |
+| Active menu fill | `MENU_SELECTED_BG` = **0.300, 0.235, 0.120** | Warm gold-brown; active label uses `GOLD` |
+| Action selected fill | `BTN_SELECTED` = **0.161, 0.153, 0.122** | Other selected buttons retain their existing state |
+| Disabled fill | `BTN_DISABLED` = **0.090, 0.086, 0.075** | Dark theme |
 
-### Bottom title and report controls
+### Top title and report controls
 
-The footer displays **Raidwise** and its addon version, then the active page name and
+The title bar displays **Raidwise** and its addon version, then the active page name and
 its `LAYOUT_VERSION`, then report format and chat controls when the active page supports
 them. The controls are compacted to fit the single-row title bar: the chat host is **337 px**
 wide and the format host is **184 px** wide, with an **8 px** gap. The close button remains
@@ -287,7 +288,7 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 
 Below: **Startup page** heading, hint, then an **4-column** radio group (`UIRadioButtonTemplate`, **16** px, row **22**, 8 px gaps); selected page is stored in `RaidwiseDB.startupTab`.
 
-Report chat channel selection lives in the bottom title bar: **337 x 18** px group with eight **35 x 18** px cells. Each right-aligned **20** px label is followed by its **14** px radio with a **1** px gap; the group ends **24** px before Close. Labels: Slf / Say / Prt / Rd / Rdw / Gld / Gof / Aut. The page title is capped at **170–240** px by the visible report controls, with its version immediately after it. The Settings channel section is removed (Settings layout v13; shell layout v28).
+Report chat channel selection lives in the top title bar: **337 x 18** px group with eight **35 x 18** px cells. Each right-aligned **20** px label is followed by its **14** px radio with a **1** px gap; the group ends **24** px before Close. Labels: Slf / Say / Prt / Rd / Rdw / Gld / Gof / Aut. The page title is capped at **170–240** px by the visible report controls, with its version immediately after it. The Settings channel section is removed (Settings layout v13; shell layout v29).
 
 The shared header has a **184 x 18** px Short / Full radio group, **8** px before the chat-channel group. Each option is **50 x 18** px; a **30** px label precedes its **14** px radio by **1** px. Stored in `RaidwiseDB.reportForm`, default `short`; the Settings form section is removed.
 

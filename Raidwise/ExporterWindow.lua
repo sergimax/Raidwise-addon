@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 28
+local SHELL_LAYOUT_VERSION = 29
 
 -- Visual groups for navigation (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -343,8 +343,8 @@ end
 
 local function CreateTitleBar(frame)
 	local titleBar = CreateFrame("Frame", nil, frame)
-	titleBar:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 1, 1)
-	titleBar:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1)
+	titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1)
+	titleBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1)
 	titleBar:SetHeight(UI.TITLE_H)
 	W.ApplyPlainPanel(titleBar, UI.TITLE_BG)
 	W.AttachDragHandle(titleBar, frame)
@@ -496,8 +496,8 @@ function Addon:CreateMainFrame()
 
 	local menu = CreateFrame("Frame", "RaidwiseMenu", frame)
 	W.DetachFrameChildren(menu)
-	menu:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1)
-	menu:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1)
+	menu:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -(UI.TITLE_H + 1))
+	menu:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -(UI.TITLE_H + 1))
 	menu:SetHeight(UI.MENU_BAR_H)
 	W.ApplyPlainPanel(menu)
 	menu:EnableMouse(true)
@@ -519,8 +519,8 @@ function Addon:CreateMainFrame()
 	end
 
 	local content = CreateFrame("Frame", nil, frame)
-	content:SetPoint("TOPLEFT", UI.PAD, -(UI.MENU_BAR_H + UI.PAD))
-	content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -UI.PAD, UI.PAD + UI.TITLE_H)
+	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.MENU_BAR_H + UI.PAD))
+	content:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
 
 	frame.pages = {}
 	for index = 1, #PAGES do

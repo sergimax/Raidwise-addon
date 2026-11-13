@@ -116,6 +116,7 @@ Addon.UITheme = {
 	BTN_IDLE = { 0.165, 0.157, 0.133, 1 },
 	BTN_HOVER = { 0.224, 0.212, 0.173, 1 },
 	BTN_SELECTED = { 0.161, 0.153, 0.122, 1 },
+	MENU_SELECTED_BG = { 0.300, 0.235, 0.120, 1 },
 	BTN_DISABLED = { 0.090, 0.086, 0.075, 1 },
 	TEXT_HOVER = { 0.890, 0.827, 0.643 },
 	TEXT_DISABLED = { 0.569, 0.541, 0.478 },
@@ -150,6 +151,7 @@ local lightPalette = {
 	BTN_IDLE = { 0.85, 0.83, 0.78, 1 },
 	BTN_HOVER = { 0.78, 0.75, 0.67, 1 },
 	BTN_SELECTED = { 0.75, 0.65, 0.43, 1 },
+	MENU_SELECTED_BG = { 0.75, 0.65, 0.43, 1 },
 	BTN_DISABLED = { 0.89, 0.88, 0.85, 1 },
 	TEXT_BODY = { 0.12, 0.12, 0.15 },
 	TEXT_IDLE = { 0.20, 0.18, 0.14 },
@@ -186,7 +188,7 @@ end
 local function TextBackgroundLuminance()
 	local light = Addon:GetTheme() == "light"
 	local value = Luminance(UI.PANEL_BG)
-	for _, key in ipairs({ "TITLE_BG", "INPUT_BG", "CD_ROW_A", "CD_ROW_B", "CD_CURRENT_CHARACTER", "BTN_IDLE", "BTN_HOVER", "BTN_SELECTED", "BTN_DISABLED" }) do
+	for _, key in ipairs({ "TITLE_BG", "INPUT_BG", "CD_ROW_A", "CD_ROW_B", "CD_CURRENT_CHARACTER", "BTN_IDLE", "BTN_HOVER", "BTN_SELECTED", "MENU_SELECTED_BG", "BTN_DISABLED" }) do
 		local background = Luminance(UI[key])
 		value = light and math.min(value, background) or math.max(value, background)
 	end

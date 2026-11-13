@@ -477,7 +477,10 @@ end
 
 function W.SetMenuButtonState(button, selected, hovering)
 	if selected then
-		W.SetPlainButtonState(button, "selected")
+		W.SetBackdropColor(button, UI.MENU_SELECTED_BG)
+		if button.label then
+			W.SetFontColor(button.label, UI.GOLD)
+		end
 	elseif hovering then
 		W.SetPlainButtonState(button, "hover")
 	else
