@@ -21,28 +21,26 @@ Current view is read-only after refresh; correction and JSON import controls rem
 | Element | Size | Notes |
 |---------|------|-------|
 | Main frame (`RaidwiseFrame`) | **890 × 753** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Menu panel (`RaidwiseMenu`) | **888 × 60** | Horizontal navigation below the main title bar |
-| Page viewport | **870 × 653** | Same usable page height as before the menu move |
-| Menu brand cell | **171 × 28** | First cell in row 1; **Raidwise** + dim addon semver |
-| Title/version gap | 8 px | Between name and version |
-| Title bar | height **20** | Top of content; drag handle; **active menu name** + page `vN` + close **X** |
-| Close button | **16 × 16** | Right side of content title bar |
-| Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
+| Menu panel (`RaidwiseMenu`) | **888 × 60** | Horizontal navigation at the top of the window |
+| Page viewport | **870 × 653** | Same usable page height as before moving the menu and title bar |
+| Title bar | height **20** | Bottom of window; drag handle; addon name/version, active page name/layout version, available report controls, close **X** |
+| Close button | **16 × 16** | Right side of bottom title bar |
+| Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the active page name |
 | Panel fill | **#1a1915** ≈ RGB **0.10, 0.10, 0.08** | Low-noise Ivory theme; flat fill (no border edges) |
 | Title / status fill | **#24221c** ≈ RGB **0.14, 0.13, 0.11** | Same texture |
 | Gear Check gradation | S bright gold → A green → B amber → C orange → D red | `GEAR_S` / `GEAR_GOOD` / `GEAR_OK` / `GEAR_REPLACE` / `GEAR_BAD` — brighter, distinct rank colors in both themes; grades S…D and spec ranks (preferred…forbidden) |
 | Idle text | **#c1b9a7** ≈ RGB **0.76, 0.73, 0.66** | Ivory body / menu idle |
 
 The page viewport remains **653 px** high = **40** title/padding + **110** raid header + **524**
-active-group block + **19** scroll insets. The shell adds a **60 px** navigation area
-below its 20 px title bar, for an overall height of **753 px**. The raid viewport shows groups 1-5
+active-group block + **19** scroll insets. The shell has a **60 px** navigation area at the top
+and a 20 px title/control bar at the bottom, for an overall height of **753 px**. The raid viewport shows groups 1-5
 without any of groups 6-8 until scrolled; all other pages share this page height.
 
 ## Top navigation
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Navigation grid | **5 columns × 2 rows** | First cell is the Raidwise brand; remaining nine cells are page tabs |
+| Navigation grid | **5 columns × 2 rows** | Nine page tabs; final cell remains empty |
 | Menu button | **171 × 28** | **18×18** icon left, label to the right |
 | Menu icon | **18 × 18** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
 | Horizontal gap | 3 px | Between cells |
@@ -53,6 +51,14 @@ without any of groups 6-8 until scrolled; all other pages share this page height
 | Hover fill | **0.180, 0.150, 0.200** | Label `{1.00, 0.91, 0.55}` |
 | Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
 | Disabled fill | **0.055, 0.055, 0.078** | Label `{0.69, 0.63, 0.44}` |
+
+### Bottom title and report controls
+
+The footer displays **Raidwise** and its addon version, then the active page name and
+its `LAYOUT_VERSION`, then report format and chat controls when the active page supports
+them. The controls are compacted to fit the single-row title bar: the chat host is **337 px**
+wide and the format host is **184 px** wide, with an **8 px** gap. The close button remains
+at the far right.
 
 Groups (top to bottom): **Personal** — Character cooldowns (watch), Character database (book); **Raiding** — Raid roster (Glory of the Raider), Raid composition (Greater Blessing of Kings), Gear check (target) (spyglass), History (book); **Data exchange** — Characters data import (portal); **Export to web** — My gear and CDs exports (note), Characters data export (note); **Other** — Settings (gear), Info (question mark).
 
@@ -281,9 +287,9 @@ Language heading, hint, then two **120 × 28** locale buttons (**English**, **Р
 
 Below: **Startup page** heading, hint, then an **4-column** radio group (`UIRadioButtonTemplate`, **16** px, row **22**, 8 px gaps); selected page is stored in `RaidwiseDB.startupTab`.
 
-Report chat channel selection lives in the shared title bar: **406 x 18** px group, eight **42 x 18** px cells spaced **10** px apart. Each right-aligned **24** px label is followed by its **14** px radio with a **2** px gap; the group ends **24** px before Close. Labels: Slf / Say / Prt / Rd / Rdw / Gld / Gof / Aut. The page title is capped at **230** px, with its version immediately after it. The Settings channel section is removed (Settings layout v13; shell layout v15).
+Report chat channel selection lives in the bottom title bar: **337 x 18** px group with eight **35 x 18** px cells. Each right-aligned **20** px label is followed by its **14** px radio with a **1** px gap; the group ends **24** px before Close. Labels: Slf / Say / Prt / Rd / Rdw / Gld / Gof / Aut. The page title is capped at **170–240** px by the visible report controls, with its version immediately after it. The Settings channel section is removed (Settings layout v13; shell layout v28).
 
-The shared header has a **132 x 18** px Short / Full radio group, **16** px before the chat-channel group. Each cell is **62 x 18** px, with **8** px between cells; a **44** px label precedes its **14** px radio by **2** px. Stored in `RaidwiseDB.reportForm`, default `short`; the Settings form section is removed.
+The shared header has a **184 x 18** px Short / Full radio group, **8** px before the chat-channel group. Each option is **50 x 18** px; a **30** px label precedes its **14** px radio by **1** px. Stored in `RaidwiseDB.reportForm`, default `short`; the Settings form section is removed.
 
 Category bars: **28** px high, **16** pt gold text, theme-aware `TITLE_BG` fill, **3** px gold left accent, **10** px text inset; **20** px gap above each subsequent category. Hint/control content uses the same **10** px inset; radio grids use inner width minus **20** px.
 

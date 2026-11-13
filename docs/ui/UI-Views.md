@@ -6,45 +6,45 @@ Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.m
 
 ## Shell
 
-Classic-theme plain panels: horizontal navigation below the title bar and above the page content; no footer.
+Classic-theme plain panels: horizontal navigation at the top, page content in the middle, and a compact title/control bar at the bottom.
 
 ```text
 [ Main window 890 x 753 ]
- [ {page} vN                                      X ]
- [ Raidwise ][ tab ][ tab ][ tab ][ tab           ]
- [ tab      ][ tab ][ tab ][ tab ][ tab           ]
- [ page body: 870 x 653                         ]
+ [ tab ][ tab ][ tab ][ tab ][ tab ]
+ [ tab ][ tab ][ tab ][ tab ][     ]
+ [ page body: 870 x 653           ]
+ [ Raidwise vX | {page} vN | {format controls} | {chat controls} | X ]
 ```
 
-Title bar (left to right): **active menu item name**, that page’s layout badge **`vN`**, close **X**. The navigation sits directly below it in two rows of five cells; the first cell contains **Raidwise** + dim addon semver (`Addon.version`), followed by the nine page tabs in `PAGES` order. Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
+Bottom bar (left to right): **Raidwise** + addon semver, active page name + its layout badge **`vN`**, then available format/chat controls and close **X**. The two-row navigation is at the top; nine page tabs fill five cells in row one and four in row two. Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
 
 Menu tabs each have an **18×18** category icon + label. Group metadata (`PAGES[].group` + `Addon.MenuGroups`) remains available to code, while visual headings and separators are omitted to keep the compact navigation quiet. Current tab order:
 
 ```text
-[ Raidwise ] [ watch ] Character cooldowns [ book ] Character database [ glory ] Raid roster [ BoK ] Raid composition
+[ watch ] Character cooldowns [ book ] Character database [ glory ] Raid roster [ BoK ] Raid composition
 [ scope ] Gear check (target) [ book ] History [ note ] My gear and CDs exports [ gear ] Settings [ ? ] Info
 ```
 
 Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
 ## Layout versions
 
-Independent from addon semver (`Addon.version` in the menu title bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
+Independent from addon semver (`Addon.version` in the bottom title bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 27` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 28` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
-| Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
-| My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Shell title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 52` | `PageRaid.lua` | Shell title bar (next to page name) |
-| Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Shell title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Shell title bar (next to page name) |
-| History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Shell title bar (next to page name) |
-| EPGP roster | `LAYOUT_VERSION = 16` | `PageEPGP.lua` | Shell title bar (next to page name) |
-| Character database | `DATABASE_LAYOUT_VERSION = 13` | `PageHistory.lua` | Shell title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 18` | `PageSettings.lua` | Shell title bar (next to page name) |
-| Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
+| Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Bottom title bar (next to page name) |
+| My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Bottom title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 52` | `PageRaid.lua` | Bottom title bar (next to page name) |
+| Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Bottom title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Bottom title bar (next to page name) |
+| History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Bottom title bar (next to page name) |
+| EPGP roster | `LAYOUT_VERSION = 16` | `PageEPGP.lua` | Bottom title bar (next to page name) |
+| Character database | `DATABASE_LAYOUT_VERSION = 13` | `PageHistory.lua` | Bottom title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 18` | `PageSettings.lua` | Bottom title bar (next to page name) |
+| Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Bottom title bar (next to page name) |
 
 The shared shell is **753 px** tall on every page, with a **653 px** page viewport. The Raid viewport fits groups
 1-5; groups 6-8 are below the fold and accessible by scrolling. Settings now scrolls
@@ -385,7 +385,7 @@ Switching language updates the left menu, page labels, and visible tables withou
 ## Adding a view
 
 1. Add a tab in `PAGES` in `ExporterWindow.lua` (shell) with a menu `group` and a `Page*.lua` module under `Addon.Pages`.
-2. Give the view a `LAYOUT_VERSION` constant, stamp it on the frame, and show it in the shell title bar next to the menu name (pages) or with `AttachLayoutVersionLabel` (profile popup).
+2. Give the view a `LAYOUT_VERSION` constant, stamp it on the frame, and show it in the bottom shell title bar next to the page name (pages) or with `AttachLayoutVersionLabel` (profile popup).
 3. Paste a new `## Title` scheme here (same `[ block ]` style) including the layout `vN`.
 4. Implement the page and record sizes in `UI-Sizes.md`.
 5. See [`Architecture.md`](Architecture.md) for load order and the two version concepts (addon semver vs layout).

@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 27
+local SHELL_LAYOUT_VERSION = 28
 
 -- Visual groups for navigation (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -110,28 +110,28 @@ end
 
 local function CreateHeaderReportChannels(frame, titleBar, close)
 	local host = CreateFrame("Frame", nil, titleBar)
-	host:SetSize(486, 18)
+	host:SetSize(337, 18)
 	host:SetPoint("RIGHT", close, "LEFT", -24, 0)
 	frame.reportChannelHost = host
 	frame.reportChannelRadios = {}
 	local heading = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
 	heading:SetPoint("LEFT", 0, 0)
-	heading:SetWidth(76)
+	heading:SetWidth(54)
 	heading:SetJustifyH("LEFT")
 	heading:SetText(W.T("HEADER_REPORT_CHANNEL"))
 	W.SetFontColor(heading, UI.TEXT_DISABLED)
 	for index, choice in ipairs(HEADER_CHAT_CHOICES) do
 		local button = CreateFrame("Button", nil, host)
-		button:SetSize(42, 18)
-		button:SetPoint("LEFT", 80 + (index - 1) * 52, 0)
+		button:SetSize(35, 18)
+		button:SetPoint("LEFT", 56 + (index - 1) * 35, 0)
 		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("LEFT", 0, 0)
-		label:SetWidth(24)
+		label:SetWidth(20)
 		label:SetJustifyH("RIGHT")
 		label:SetText(choice.label)
 		local radio = CreateFrame("CheckButton", nil, button, "UIRadioButtonTemplate")
 		radio:SetSize(14, 14)
-		radio:SetPoint("LEFT", label, "RIGHT", 2, 0)
+		radio:SetPoint("LEFT", label, "RIGHT", 1, 0)
 		radio.channelId = choice.id
 		radio.chatType = choice.chatType
 		radio.label = label
@@ -168,28 +168,28 @@ end
 
 local function CreateHeaderReportForm(frame, titleBar)
 	local host = CreateFrame("Frame", nil, titleBar)
-	host:SetSize(220, 18)
-	host:SetPoint("RIGHT", frame.reportChannelHost, "LEFT", -16, 0)
+	host:SetSize(184, 18)
+	host:SetPoint("RIGHT", frame.reportChannelHost, "LEFT", -8, 0)
 	frame.reportFormHost = host
 	frame.reportFormRadios = {}
 	local heading = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
 	heading:SetPoint("LEFT", 0, 0)
-	heading:SetWidth(84)
+	heading:SetWidth(76)
 	heading:SetJustifyH("LEFT")
 	heading:SetText(W.T("HEADER_REPORT_FORM"))
 	W.SetFontColor(heading, UI.TEXT_DISABLED)
 	for index, formId in ipairs({ "short", "full" }) do
 		local button = CreateFrame("Button", nil, host)
-		button:SetSize(62, 18)
-		button:SetPoint("LEFT", 88 + (index - 1) * 66, 0)
+		button:SetSize(50, 18)
+		button:SetPoint("LEFT", 78 + (index - 1) * 52, 0)
 		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("LEFT", 0, 0)
-		label:SetWidth(44)
+		label:SetWidth(30)
 		label:SetJustifyH("RIGHT")
 		label:SetText(formId == "short" and "Short" or "Full")
 		local radio = CreateFrame("CheckButton", nil, button, "UIRadioButtonTemplate")
 		radio:SetSize(14, 14)
-		radio:SetPoint("LEFT", label, "RIGHT", 2, 0)
+		radio:SetPoint("LEFT", label, "RIGHT", 1, 0)
 		radio.formId = formId
 		radio.label = label
 		local function SelectForm()
@@ -238,7 +238,8 @@ local function UpdateShellHeader(frame, tabId)
 		end
 	end
 	if frame.titleText then
-		frame.titleText:SetWidth(math.min(230, frame.titleText:GetStringWidth() or 230))
+		local titleWidth = usesReportForm and 170 or (usesReportChat and 190 or 240)
+		frame.titleText:SetWidth(titleWidth)
 	end
 	if not frame.pageLayoutVersionText then
 		return
@@ -342,8 +343,8 @@ end
 
 local function CreateTitleBar(frame)
 	local titleBar = CreateFrame("Frame", nil, frame)
-	titleBar:SetPoint("TOPLEFT", 1, -1)
-	titleBar:SetPoint("TOPRIGHT", -1, -1)
+	titleBar:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 1, 1)
+	titleBar:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1)
 	titleBar:SetHeight(UI.TITLE_H)
 	W.ApplyPlainPanel(titleBar, UI.TITLE_BG)
 	W.AttachDragHandle(titleBar, frame)
@@ -365,12 +366,23 @@ local function CreateTitleBar(frame)
 		frame:Hide()
 	end)
 
+	local addonName = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormal")
+	addonName:SetPoint("LEFT", 8, 0)
+	addonName:SetText("Raidwise")
+	W.SetFontColor(addonName, UI.GOLD)
+
+	local addonVersion = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormalSmall")
+	addonVersion:SetPoint("LEFT", addonName, "RIGHT", 4, 0)
+	addonVersion:SetText("v" .. tostring(Addon.version))
+	W.SetFontColor(addonVersion, UI.TEXT_DISABLED)
+
 	local title = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormal")
-	title:SetPoint("LEFT", 8, 0)
-	title:SetWidth(230)
+	title:SetPoint("LEFT", addonVersion, "RIGHT", 12, 0)
+	title:SetWidth(170)
 	title:SetJustifyH("LEFT")
-	title:SetText("Raidwise")
-	W.SetFontColor(title, UI.GOLD)
+	title:SetWordWrap(false)
+	title:SetText("")
+	W.SetFontColor(title, UI.TEXT_BODY)
 
 	local pageLayoutVersionText = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormalSmall")
 	pageLayoutVersionText:SetPoint("LEFT", title, "RIGHT", 8, 0)
@@ -382,38 +394,11 @@ local function CreateTitleBar(frame)
 	CreateHeaderReportForm(frame, titleBar)
 
 	frame.titleBar = titleBar
+	frame.addonNameText = addonName
+	frame.addonVersionText = addonVersion
 	frame.titleText = title
 	frame.pageLayoutVersionText = pageLayoutVersionText
 	return titleBar
-end
-
-local MENU_HEADER_GAP = 8
-
-local function UpdateMenuHeaderLayout(frame)
-	if not frame or not frame.menuTitleBar or not frame.menuNameLabel or not frame.menuVersionLabel then
-		return
-	end
-	local titleBar = frame.menuTitleBar
-	local nameLabel = frame.menuNameLabel
-	local versionLabel = frame.menuVersionLabel
-	local nameWidth = nameLabel:GetStringWidth() or 0
-	local versionWidth = versionLabel:GetStringWidth() or 0
-	local totalWidth = nameWidth + MENU_HEADER_GAP + versionWidth
-	nameLabel:ClearAllPoints()
-	versionLabel:ClearAllPoints()
-	nameLabel:SetPoint("LEFT", titleBar, "CENTER", -totalWidth / 2, 0)
-	versionLabel:SetPoint("LEFT", nameLabel, "RIGHT", MENU_HEADER_GAP, 0)
-end
-
-local function UpdateMenuHeader(frame)
-	if not frame then
-		return
-	end
-	if frame.menuVersionLabel then
-		frame.menuVersionLabel:SetText("v" .. tostring(Addon.version))
-		W.SetFontColor(frame.menuVersionLabel, UI.TEXT_DISABLED)
-	end
-	UpdateMenuHeaderLayout(frame)
 end
 
 local function CreateMenuGroupHeading(parent, labelKey, yOffset)
@@ -511,37 +496,20 @@ function Addon:CreateMainFrame()
 
 	local menu = CreateFrame("Frame", "RaidwiseMenu", frame)
 	W.DetachFrameChildren(menu)
-	menu:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -(UI.TITLE_H + 1))
-	menu:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -(UI.TITLE_H + 1))
+	menu:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1)
+	menu:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1)
 	menu:SetHeight(UI.MENU_BAR_H)
 	W.ApplyPlainPanel(menu)
 	menu:EnableMouse(true)
 
-	local menuTitleBar = CreateFrame("Frame", nil, menu)
 	local menuGap = UI.MENU_BTN_GAP or 4
 	local menuColumns = UI.MENU_COLUMNS or 5
 	local menuButtonWidth = math.floor((UI.CONTENT_WIDTH - UI.PAD * 2 - menuGap * (menuColumns - 1)) / menuColumns)
-	menuTitleBar:SetSize(menuButtonWidth, UI.MENU_BTN_H)
-	menuTitleBar:SetPoint("TOPLEFT", menu, "TOPLEFT", UI.PAD, -2)
-	W.ApplyPlainPanel(menuTitleBar, UI.TITLE_BG)
-
-	local menuNameLabel = W.CreateFontString(menuTitleBar, nil, "OVERLAY", "GameFontNormal")
-	menuNameLabel:SetText("Raidwise")
-	W.SetFontColor(menuNameLabel, UI.GOLD)
-
-	local menuVersionLabel = W.CreateFontString(menuTitleBar, nil, "OVERLAY", "GameFontNormalSmall")
-	menuVersionLabel:SetText("v" .. tostring(Addon.version))
-	W.SetFontColor(menuVersionLabel, UI.TEXT_DISABLED)
-	frame.menuTitleBar = menuTitleBar
-	frame.menuNameLabel = menuNameLabel
-	frame.menuVersionLabel = menuVersionLabel
-	UpdateMenuHeaderLayout(frame)
-
 	frame.menuButtons = {}
 	frame.menuGroupHeadings = {}
 	for index = 1, #PAGES do
 		local pageInfo = PAGES[index]
-		local cellIndex = index
+		local cellIndex = index - 1
 		local row = math.floor(cellIndex / menuColumns)
 		local column = cellIndex % menuColumns
 		local xOffset = UI.PAD + column * (menuButtonWidth + menuGap)
@@ -551,8 +519,8 @@ function Addon:CreateMainFrame()
 	end
 
 	local content = CreateFrame("Frame", nil, frame)
-	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.MENU_BAR_H + UI.PAD))
-	content:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
+	content:SetPoint("TOPLEFT", UI.PAD, -(UI.MENU_BAR_H + UI.PAD))
+	content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -UI.PAD, UI.PAD + UI.TITLE_H)
 
 	frame.pages = {}
 	for index = 1, #PAGES do
@@ -587,9 +555,6 @@ function Addon:RefreshLocalizedUI()
 		return
 	end
 
-	if frame.menuVersionLabel then
-		UpdateMenuHeader(frame)
-	end
 	if frame.menuGroupHeadings then
 		for index = 1, #frame.menuGroupHeadings do
 			local heading = frame.menuGroupHeadings[index]
