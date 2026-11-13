@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 55
+local LAYOUT_VERSION = 56
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -1151,26 +1151,26 @@ local function CreateRaidPlayerCell(parent)
 	W.SetLightThemeTextOutline(cell.nameText)
 
 	cell.gearScoreText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gearScoreText:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -68)
+	cell.gearScoreText:SetPoint("TOPLEFT", cell, "TOPLEFT", 52, -34)
 	cell.gearScoreText:SetSize(40, 28)
 	cell.gearScoreText:SetJustifyH("CENTER")
 	cell.gearScoreText:SetJustifyV("MIDDLE")
 
 	cell.itemLevelText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.itemLevelText:SetPoint("TOPLEFT", cell, "TOPLEFT", 44, -68)
+	cell.itemLevelText:SetPoint("TOPLEFT", cell, "TOPLEFT", 94, -34)
 	cell.itemLevelText:SetSize(40, 28)
 	cell.itemLevelText:SetJustifyH("CENTER")
 	cell.itemLevelText:SetJustifyV("MIDDLE")
 
 	cell.opinionText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.opinionText:SetPoint("TOPLEFT", cell, "TOPLEFT", 86, -68)
+	cell.opinionText:SetPoint("TOPLEFT", cell, "TOPLEFT", 132, -34)
 	cell.opinionText:SetSize(34, 28)
 	cell.opinionText:SetJustifyH("CENTER")
 	cell.opinionText:SetJustifyV("MIDDLE")
 
 	cell.gradesText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gradesText:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -40)
-	cell.gradesText:SetSize(163, 26)
+	cell.gradesText:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -69)
+	cell.gradesText:SetSize(164, 26)
 	cell.gradesText:SetJustifyH("CENTER")
 	cell.gradesText:SetJustifyV("MIDDLE")
 	cell.gradesText:SetWordWrap(true)
@@ -1178,7 +1178,7 @@ local function CreateRaidPlayerCell(parent)
 	cell.gradeCells = {}
 	for index, category in ipairs(GRADE_CELL_CATEGORIES) do
 		local gradeCell = W.CreatePlainButton(cell, RAID_GRADE_REPORT_W, RAID_GRADE_REPORT_H, "")
-		gradeCell:SetPoint("TOPLEFT", cell, "TOPLEFT", RAID_GRADE_REPORT_X + (index - 1) * (RAID_GRADE_REPORT_W + RAID_GRADE_REPORT_GAP), RAID_GRADE_REPORT_TOP)
+		gradeCell:SetPoint("TOPLEFT", cell, "TOPLEFT", 35 + (index - 1) * 33, -69)
 		W.SetBackdropColor(gradeCell, { 0, 0, 0, 0 })
 		W.ApplyOuterBorder(gradeCell, UI.BORDER, 1)
 		gradeCell.noHoverFill = true
@@ -1196,20 +1196,20 @@ local function CreateRaidPlayerCell(parent)
 
 	cell.flaskHost = W.CreateConsumableStatusHost(cell)
 	cell.flaskHost:SetSize(16, 16)
-	cell.flaskHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 148, -2)
+	cell.flaskHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 148, -16)
 	cell.flaskHost.icon:ClearAllPoints()
 	cell.flaskHost.icon:SetSize(16, 16)
 	cell.flaskHost.icon:SetPoint("CENTER", cell.flaskHost, "CENTER")
 	cell.foodHost = W.CreateConsumableStatusHost(cell)
 	cell.foodHost:SetSize(16, 16)
-	cell.foodHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 148, -20)
+	cell.foodHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 148, -2)
 	cell.foodHost.icon:ClearAllPoints()
 	cell.foodHost.icon:SetSize(16, 16)
 	cell.foodHost.icon:SetPoint("CENTER", cell.foodHost, "CENTER")
 
 	local gearBtn = W.CreatePlainButton(cell, RAID_ACTION_W, RAID_BTN_H, W.T("BTN_RAID_GEAR"), "SecureActionButtonTemplate")
 	gearBtn:SetSize(RAID_ACTION_W, RAID_BTN_H)
-	gearBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 122, -68)
+	gearBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -34)
 	gearBtn:SetSize(44, 28)
 	W.SetPlainButtonTooltip(gearBtn, "BTN_RAID_GEAR_TIP")
 	gearBtn:RegisterForClicks("LeftButtonUp")
@@ -1230,7 +1230,7 @@ local function CreateRaidPlayerCell(parent)
 
 	local rescanBtn = W.CreatePlainButton(cell, RAID_ACTION_W, RAID_BTN_H, W.T("BTN_RAID_RESCAN"))
 	rescanBtn:SetSize(RAID_ACTION_W, RAID_BTN_H)
-	rescanBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -40)
+	rescanBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -69)
 	rescanBtn:SetSize(31, 26)
 	W.SetPlainButtonTooltip(rescanBtn, "BTN_RAID_RESCAN_TIP")
 	rescanBtn:SetScript("OnClick", function()
