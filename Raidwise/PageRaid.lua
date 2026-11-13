@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 54
+local LAYOUT_VERSION = 55
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -20,7 +20,7 @@ local RAID_ACTION_W = 48
 local RAID_GRADE_REPORT_W = 31
 local RAID_GRADE_REPORT_H = 26
 local RAID_GRADE_REPORT_X = 35
-local RAID_GRADE_REPORT_TOP = -32
+local RAID_GRADE_REPORT_TOP = -40
 local RAID_GRADE_REPORT_GAP = 2
 local RAID_GROUP_LABEL_H = 16
 local RAID_BLOCK_GAP = 12
@@ -1132,44 +1132,44 @@ local function CreateRaidPlayerCell(parent)
 
 	cell.classIconHost = CreateFrame("Frame", nil, cell)
 	cell.classIconHost:SetSize(RAID_ICON, RAID_ICON)
-	cell.classIconHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -4)
+	cell.classIconHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -8)
 	cell.classIcon = cell.classIconHost:CreateTexture(nil, "ARTWORK")
 	cell.classIcon:SetAllPoints(cell.classIconHost)
 
 	cell.specIconHost = CreateFrame("Frame", nil, cell)
 	cell.specIconHost:SetSize(RAID_ICON, RAID_ICON)
-	cell.specIconHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 26, -4)
+	cell.specIconHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 26, -8)
 	cell.specIcon = cell.specIconHost:CreateTexture(nil, "ARTWORK")
 	cell.specIcon:SetAllPoints(cell.specIconHost)
 
 	cell.nameText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.nameText:SetPoint("TOPLEFT", cell, "TOPLEFT", 52, -4)
-	cell.nameText:SetWidth(78)
-	cell.nameText:SetHeight(28)
+	cell.nameText:SetPoint("TOPLEFT", cell, "TOPLEFT", 52, -2)
+	cell.nameText:SetWidth(76)
+	cell.nameText:SetHeight(36)
 	cell.nameText:SetJustifyH("CENTER")
 	cell.nameText:SetJustifyV("MIDDLE")
 	W.SetLightThemeTextOutline(cell.nameText)
 
 	cell.gearScoreText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gearScoreText:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -64)
+	cell.gearScoreText:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -68)
 	cell.gearScoreText:SetSize(40, 28)
 	cell.gearScoreText:SetJustifyH("CENTER")
 	cell.gearScoreText:SetJustifyV("MIDDLE")
 
 	cell.itemLevelText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.itemLevelText:SetPoint("TOPLEFT", cell, "TOPLEFT", 44, -64)
+	cell.itemLevelText:SetPoint("TOPLEFT", cell, "TOPLEFT", 44, -68)
 	cell.itemLevelText:SetSize(40, 28)
 	cell.itemLevelText:SetJustifyH("CENTER")
 	cell.itemLevelText:SetJustifyV("MIDDLE")
 
 	cell.opinionText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.opinionText:SetPoint("TOPLEFT", cell, "TOPLEFT", 86, -64)
+	cell.opinionText:SetPoint("TOPLEFT", cell, "TOPLEFT", 86, -68)
 	cell.opinionText:SetSize(34, 28)
 	cell.opinionText:SetJustifyH("CENTER")
 	cell.opinionText:SetJustifyV("MIDDLE")
 
 	cell.gradesText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gradesText:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -32)
+	cell.gradesText:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -40)
 	cell.gradesText:SetSize(163, 26)
 	cell.gradesText:SetJustifyH("CENTER")
 	cell.gradesText:SetJustifyV("MIDDLE")
@@ -1195,23 +1195,21 @@ local function CreateRaidPlayerCell(parent)
 	end
 
 	cell.flaskHost = W.CreateConsumableStatusHost(cell)
-	cell.flaskHost:SetSize(16, 28)
-	cell.flaskHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 150, -4)
+	cell.flaskHost:SetSize(16, 16)
+	cell.flaskHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 148, -2)
 	cell.flaskHost.icon:ClearAllPoints()
-	cell.flaskHost.icon:SetSize(12, 12)
+	cell.flaskHost.icon:SetSize(16, 16)
 	cell.flaskHost.icon:SetPoint("CENTER", cell.flaskHost, "CENTER")
-	W.ApplyPlainPanel(cell.flaskHost, UI.BTN_IDLE)
 	cell.foodHost = W.CreateConsumableStatusHost(cell)
-	cell.foodHost:SetSize(16, 28)
-	cell.foodHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 132, -4)
+	cell.foodHost:SetSize(16, 16)
+	cell.foodHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 148, -20)
 	cell.foodHost.icon:ClearAllPoints()
-	cell.foodHost.icon:SetSize(12, 12)
+	cell.foodHost.icon:SetSize(16, 16)
 	cell.foodHost.icon:SetPoint("CENTER", cell.foodHost, "CENTER")
-	W.ApplyPlainPanel(cell.foodHost, UI.BTN_IDLE)
 
 	local gearBtn = W.CreatePlainButton(cell, RAID_ACTION_W, RAID_BTN_H, W.T("BTN_RAID_GEAR"), "SecureActionButtonTemplate")
 	gearBtn:SetSize(RAID_ACTION_W, RAID_BTN_H)
-	gearBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 122, -64)
+	gearBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 122, -68)
 	gearBtn:SetSize(44, 28)
 	W.SetPlainButtonTooltip(gearBtn, "BTN_RAID_GEAR_TIP")
 	gearBtn:RegisterForClicks("LeftButtonUp")
@@ -1232,7 +1230,7 @@ local function CreateRaidPlayerCell(parent)
 
 	local rescanBtn = W.CreatePlainButton(cell, RAID_ACTION_W, RAID_BTN_H, W.T("BTN_RAID_RESCAN"))
 	rescanBtn:SetSize(RAID_ACTION_W, RAID_BTN_H)
-	rescanBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -32)
+	rescanBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -40)
 	rescanBtn:SetSize(31, 26)
 	W.SetPlainButtonTooltip(rescanBtn, "BTN_RAID_RESCAN_TIP")
 	rescanBtn:SetScript("OnClick", function()
@@ -1431,11 +1429,7 @@ local function FillRaidConsumableIcons(cell, member)
 			host:Hide()
 			return
 		end
-		host.icon:Hide()
-		local color = consumable.unknown and UI.BTN_DISABLED
-			or (consumable.present and UI.CONSUMABLE_PRESENT_BG)
-			or UI.RAID_SCAN_D
-		W.SetBackdropColor(host, color)
+		W.SetBackdropColor(host, { 0, 0, 0, 0 })
 	end
 	FillStatusSlot(cell.flaskHost, status and status.flask, "RAID_CONSUMABLE_FLASK")
 	FillStatusSlot(cell.foodHost, status and status.food, "RAID_CONSUMABLE_FOOD")

@@ -157,7 +157,7 @@ Compact two-row header (grade chips + GS/roles + Flask/Food report controls + ic
 | Row 2 reports | four equal cells, **8** px gaps, **20** tall | Gear category name + compact counts; **16×16** Battle Shout button left of each label |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
 | Progress bar | full width × **14** | **4** px under status; always reserved |
-| Player cell | **168 × 100** | Three rows: class+spec / name / Food / Flask; Rescan / Armor / Weapon / Enchant / Gems; GS / iLvl / opinion / Gear. Food and Flask status cells are **16 × 28**; green means present, red means missing, muted means unknown. No drawn grid lines; raid-buff icons remain in hover tip |
+| Player cell | **168 × 100** | Three rows: class+spec / name / Food / Flask; Rescan / Armor / Weapon / Enchant / Gems; GS / iLvl / opinion / Gear. Food and Flask icons are **16 × 16**, stacked at the right of the name; green tint means present, red means missing, muted means unknown. No drawn grid lines; raid-buff icons remain in hover tip |
 | Cell buttons | Rescan **31 × 26**; grades **31 × 26**; Gear **44 × 28** | Row 2 has Rescan plus four grade report buttons with verdict-colored backgrounds. Category tooltips and click-to-report behavior are retained. Scores are disabled until scanned; Rescan is disabled while any scan/export runs |
 | Cell gap | **2** | Between cells and columns |
 | Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |

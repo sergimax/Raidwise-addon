@@ -37,7 +37,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
 | My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Top title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 54` | `PageRaid.lua` | Top title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 55` | `PageRaid.lua` | Top title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Top title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Top title bar (next to page name) |
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Top title bar (next to page name) |
@@ -109,7 +109,7 @@ Rows come only from current lockouts; each instance is one row with all size/mod
 
 ## Raid roster
 
-Layout v54 uses three rows: class+spec / name / Food / Flask; Rescan / Armor / Weapon / Enchant / Gems; GS / iLvl / opinion / Gear. Gear category report buttons use the verdict color as their background and retain their tooltip and click action. Gear buttons keep
+Layout v55 uses three rows: class+spec / name / Food icon / Flask icon; Rescan / Armor / Weapon / Enchant / Gems; GS / iLvl / opinion / Gear. Food and Flask icons are stacked at the right of the name, tinted green when present and red when missing (unknown stays muted). Gear category report buttons use the verdict color as their background and retain their tooltip and click action. Gear buttons keep
 `SecureActionButtonTemplate`: their target action selects the cell's current
 unit, then PostClick opens target check. Unit/GUID validation prevents stale
 cells from opening a different character's report.
