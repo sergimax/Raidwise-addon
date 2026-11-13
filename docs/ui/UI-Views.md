@@ -37,7 +37,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
 | My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Top title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 52` | `PageRaid.lua` | Top title bar (next to page name) |
+| Raid | `LAYOUT_VERSION = 54` | `PageRaid.lua` | Top title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Top title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Top title bar (next to page name) |
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Top title bar (next to page name) |
@@ -109,7 +109,7 @@ Rows come only from current lockouts; each instance is one row with all size/mod
 
 ## Raid roster
 
-Layout v50 uses four columns by four rows: class+spec icons/opinion/Flask/Weapon; name spanning columns 1–2/Flask/Armor; GS/iLvl/Food/Gems; Gear/Rescan/Food/Enchant. Class and spec share the first cell, opinion moves to the first row, and the name is centered across the first two columns. The four gear-category icons form a vertical stack in the rightmost column and retain their report tooltip and click action. Flask and Food occupy separate vertical status slots in the third column. Buttons fill their columns with minimal insets. Gear buttons keep
+Layout v54 uses three rows: class+spec / name / Food / Flask; Rescan / Armor / Weapon / Enchant / Gems; GS / iLvl / opinion / Gear. Gear category report buttons use the verdict color as their background and retain their tooltip and click action. Gear buttons keep
 `SecureActionButtonTemplate`: their target action selects the cell's current
 unit, then PostClick opens target check. Unit/GUID validation prevents stale
 cells from opening a different character's report.
@@ -123,10 +123,9 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 [ progress bar track (always reserved)                                   ]
         8 px gap
 [ roster table — or export copy box when text view is on                 ]
-[class+spec][opinion][Flask][Weapon ]
-[     name spans two columns     ][Flask][Armor  ]
-[  GS  ][ iLvl ][Food ][Gems   ]
-[ Gear ][Rescan][Food ][Enchant]
+[class+spec][  name  ][Food ][Flask]
+[Rescan][Armor ][Weapon ][Enchant][Gems]
+[  GS  ][ iLvl ][opinion][ Gear ]
         12 px gap
 [ 6              ][ 7              ][ 8              ]
 [ player cell    ] ...
