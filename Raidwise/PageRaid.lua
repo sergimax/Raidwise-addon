@@ -239,7 +239,7 @@ end
 
 -- Compact explicit opinion; an unrated character uses a dash.
 local function FormatRatingCellLine(member)
-	local iconMarkup = W.IconMarkup(W.RatingOpinionIcon(member), 16)
+	local iconMarkup = W.IconMarkup(W.RatingOpinionIcon(member), 24)
 	if iconMarkup == "" then
 		iconMarkup = W.RatingOpinionSymbol(member)
 		if Addon.RatingWrapColor then
