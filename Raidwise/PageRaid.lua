@@ -23,6 +23,59 @@ local RAID_GRADE_REPORT_X = 35
 local RAID_GRADE_REPORT_TOP = -40
 local RAID_GRADE_REPORT_GAP = 2
 local RAID_GROUP_LABEL_H = 16
+
+local function GearScoreColor(score)
+	local minimum, midpoint, maximum = 5200, 5750, 6300
+	if score <= minimum then
+		return { 0.25, 1, 0.25 }
+	elseif score >= maximum then
+		return { 1, 0.25, 0.25 }
+	end
+	local progress = score <= midpoint
+		and (score - minimum) / (midpoint - minimum)
+		or (score - midpoint) / (maximum - midpoint)
+	if score <= midpoint then
+		return { 0.25 + 0.75 * progress, 1, 0.25 }
+	end
+	return { 1, 1 - 0.75 * progress, 0.25 }
+end
+
+local ILVL_COLOR_STOPS = {
+	{ 200, { 0.035, 0.647, 0.698 } },
+	{ 213, { 0.204, 0.431, 0.988 } },
+	{ 219, { 0.341, 0.388, 0.984 } },
+	{ 232, { 0.541, 0.369, 0.800 } },
+	{ 245, { 0.812, 0.373, 0.486 } },
+	{ 251, { 0.863, 0.412, 0.294 } },
+	{ 258, { 0.914, 0.451, 0.106 } },
+	{ 264, { 0.945, 0.420, 0.000 } },
+	{ 277, { 0.973, 0.184, 0.000 } },
+}
+
+local function ItemLevelColor(itemLevel)
+	local minimumLevel, maximumLevel = 232, 277
+	if itemLevel <= minimumLevel then
+		for index = 2, #ILVL_COLOR_STOPS do
+			if ILVL_COLOR_STOPS[index][1] == minimumLevel then
+				return ILVL_COLOR_STOPS[index][2]
+			end
+		end
+	end
+	for index = 2, #ILVL_COLOR_STOPS do
+		local previous, current = ILVL_COLOR_STOPS[index - 1], ILVL_COLOR_STOPS[index]
+		if itemLevel <= current[1] and current[1] >= minimumLevel then
+			local startLevel = math.max(previous[1], minimumLevel)
+			local startColor = previous[1] < minimumLevel and current[2] or previous[2]
+			local progress = (itemLevel - startLevel) / (current[1] - startLevel)
+			return {
+				startColor[1] + (current[2][1] - startColor[1]) * progress,
+				startColor[2] + (current[2][2] - startColor[2]) * progress,
+				startColor[3] + (current[2][3] - startColor[3]) * progress,
+			}
+		end
+	end
+	return ILVL_COLOR_STOPS[#ILVL_COLOR_STOPS][2]
+end
 local RAID_BLOCK_GAP = 12
 local RAID_REPORT_ICON = "Interface\\Icons\\Ability_Warrior_BattleShout"
 local RAID_TOOLBAR_SCAN_ICON = "Interface\\Icons\\INV_Misc_Spyglass_03"
@@ -1496,8 +1549,8 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		W.SetFontColor(cell.gearScoreText, UI.TEXT_DISABLED)
 		W.SetFontColor(cell.itemLevelText, UI.TEXT_DISABLED)
 	elseif hasScannedStats and member.gearScore then
-		W.SetFontColor(cell.gearScoreText, UI.GOLD)
-		W.SetFontColor(cell.itemLevelText, UI.GOLD)
+		W.SetFontColor(cell.gearScoreText, GearScoreColor(member.gearScore))
+		W.SetFontColor(cell.itemLevelText, ItemLevelColor(member.averageIlvl or 0))
 	else
 		W.SetFontColor(cell.gearScoreText, UI.TEXT_IDLE)
 		W.SetFontColor(cell.itemLevelText, UI.TEXT_IDLE)
