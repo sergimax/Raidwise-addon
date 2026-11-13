@@ -385,7 +385,7 @@ local function CreateTitleBar(frame)
 	W.SetFontColor(title, UI.TEXT_BODY)
 
 	local pageLayoutVersionText = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormalSmall")
-	pageLayoutVersionText:SetPoint("LEFT", title, "RIGHT", 8, 0)
+	pageLayoutVersionText:SetPoint("LEFT", title, "RIGHT", 2, 0)
 	pageLayoutVersionText:SetJustifyH("LEFT")
 	pageLayoutVersionText:SetText("")
 	W.SetFontColor(pageLayoutVersionText, UI.TEXT_DISABLED)
