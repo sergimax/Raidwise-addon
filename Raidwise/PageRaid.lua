@@ -175,9 +175,11 @@ local function FillGradeCells(cell, grades)
         local gradeCell = cell.gradeCells[index]
         local grade = grades[index]
         gradeCell.label:SetText(W.IconMarkup(category.icon, RAID_LINE_H) .. " " .. tostring(grade or "-"))
-        gradeCell.gradeColor = W.GearVerdictColor(grade)
-        W.SetBackdropColor(gradeCell, gradeCell.gradeColor)
-        W.SetFontColor(gradeCell.label, UI.PANEL_BG)
+		local verdictColor = W.GearVerdictColor(grade)
+		local isProblem = grade == "C" or grade == "D"
+		gradeCell.gradeColor = isProblem and verdictColor or UI.BTN_IDLE
+		W.SetBackdropColor(gradeCell, gradeCell.gradeColor)
+		W.SetFontColor(gradeCell.label, isProblem and UI.PANEL_BG or verdictColor)
         gradeCell:Show()
     end
 end
@@ -1142,11 +1144,11 @@ local function CreateRaidPlayerCell(parent)
 	cell.specIcon = cell.specIconHost:CreateTexture(nil, "ARTWORK")
 	cell.specIcon:SetAllPoints(cell.specIconHost)
 
-	cell.nameText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
+	cell.nameText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalLarge")
 	cell.nameText:SetPoint("TOPLEFT", cell, "TOPLEFT", 52, -2)
 	cell.nameText:SetWidth(76)
 	cell.nameText:SetHeight(36)
-	cell.nameText:SetJustifyH("CENTER")
+	cell.nameText:SetJustifyH("LEFT")
 	cell.nameText:SetJustifyV("MIDDLE")
 	W.SetLightThemeTextOutline(cell.nameText)
 
