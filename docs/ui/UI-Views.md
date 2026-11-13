@@ -6,35 +6,23 @@ Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.m
 
 ## Shell
 
-Classic-theme plain panels: left menu flush against content (no gap), no footer.
+Classic-theme plain panels: horizontal navigation below the title bar and above the page content; no footer.
 
 ```text
-[ Menu 170 ][ Content 890 x 693 ]
- [ Raidwise {semver} ] [ {page} vN  X ]
- [ menu tabs... ]  [ page body     ]
+[ Main window 890 x 753 ]
+ [ {page} vN                                      X ]
+ [ Raidwise ][ tab ][ tab ][ tab ][ tab           ]
+ [ tab      ][ tab ][ tab ][ tab ][ tab           ]
+ [ page body: 870 x 653                         ]
 ```
 
-Title bar (content, left to right): **active menu item name**, that page’s layout badge **`vN`**, close **X**. Menu title bar (centered): **Raidwise** + dim addon semver (`Addon.version`, same style as page `vN`). Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
+Title bar (left to right): **active menu item name**, that page’s layout badge **`vN`**, close **X**. The navigation sits directly below it in two rows of five cells; the first cell contains **Raidwise** + dim addon semver (`Addon.version`), followed by the nine page tabs in `PAGES` order. Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
 
-Menu tabs (top to bottom; each row has an **18×18** category icon + label). Pages are grouped (`PAGES[].group` + `Addon.MenuGroups`) with a dim heading and a 1 px gold split between groups — stable ids for a future module split:
+Menu tabs each have an **18×18** category icon + label. Group metadata (`PAGES[].group` + `Addon.MenuGroups`) remains available to code, while visual headings and separators are omitted to keep the compact navigation quiet. Current tab order:
 
 ```text
-  Personal
-[ watch ] Character cooldowns
-[ book  ] Character database
-  ────────
-  Raiding
-[ glory ] Raid roster
-[ BoK   ] Raid composition
-[ scope ] Gear check (target)
-[ book  ] History
-  ────────
-  Export to web
-[ note  ] My gear and CDs exports
-  ────────
-  Other
-[ gear  ] Settings
-[  ?    ] Info
+[ Raidwise ] [ watch ] Character cooldowns [ book ] Character database [ glory ] Raid roster [ BoK ] Raid composition
+[ scope ] Gear check (target) [ book ] History [ note ] My gear and CDs exports [ gear ] Settings [ ? ] Info
 ```
 
 Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
@@ -44,7 +32,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 26` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 27` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Shell title bar (next to page name) |
@@ -58,7 +46,7 @@ Independent from addon semver (`Addon.version` in the menu title bar). Bump a vi
 | Settings | `LAYOUT_VERSION = 18` | `PageSettings.lua` | Shell title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Shell title bar (next to page name) |
 
-The shared shell is **693 px** tall on every page. The Raid viewport fits groups
+The shared shell is **753 px** tall on every page, with a **653 px** page viewport. The Raid viewport fits groups
 1-5; groups 6-8 are below the fold and accessible by scrolling. Settings now scrolls
 vertically so all controls remain accessible in the shorter window.
 

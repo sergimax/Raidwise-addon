@@ -5,14 +5,14 @@ local Addon = Raidwise
 Addon.UITheme = {
 	-- Content panel (RaidwiseFrame)
 	CONTENT_WIDTH = 890,
-	CONTENT_HEIGHT = 693, -- title/padding 40 + raid header 110 + groups 1-5 524 + scroll insets 19
+	CONTENT_HEIGHT = 693, -- prior shell height: title/padding 40 + raid header 110 + groups 1-5 524 + scroll insets 19
 	PAD = 10,
 	TITLE_H = 20,
 	CLOSE_SIZE = 16,
 
-	-- Left menu (RaidwiseMenu)
-	MENU_WIDTH = 170,
-	MENU_GAP = 0,
+	-- Horizontal menu (RaidwiseMenu)
+	MENU_BAR_H = 60,
+	MENU_COLUMNS = 5,
 	MENU_BTN_H = 28,
 	MENU_BTN_GAP = 3,
 	MENU_ICON = 18,

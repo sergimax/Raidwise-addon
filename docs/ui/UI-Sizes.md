@@ -20,10 +20,11 @@ Current view is read-only after refresh; correction and JSON import controls rem
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Content frame (`RaidwiseFrame`) | **890 × 693** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Menu panel (`RaidwiseMenu`) | **170 × 693** | Flush against content left edge (no gap) |
-| Menu title bar | height **20** | Top of menu; drag handle; centered **Raidwise** + dim addon semver (same fonts/colors as content title + page `vN`) |
-| Menu title gap | 8 px | Between name and version (matches content title bar) |
+| Main frame (`RaidwiseFrame`) | **890 × 753** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
+| Menu panel (`RaidwiseMenu`) | **888 × 60** | Horizontal navigation below the main title bar |
+| Page viewport | **870 × 653** | Same usable page height as before the menu move |
+| Menu brand cell | **171 × 28** | First cell in row 1; **Raidwise** + dim addon semver |
+| Title/version gap | 8 px | Between name and version |
 | Title bar | height **20** | Top of content; drag handle; **active menu name** + page `vN` + close **X** |
 | Close button | **16 × 16** | Right side of content title bar |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the menu name |
@@ -32,21 +33,22 @@ Current view is read-only after refresh; correction and JSON import controls rem
 | Gear Check gradation | S bright gold → A green → B amber → C orange → D red | `GEAR_S` / `GEAR_GOOD` / `GEAR_OK` / `GEAR_REPLACE` / `GEAR_BAD` — brighter, distinct rank colors in both themes; grades S…D and spec ranks (preferred…forbidden) |
 | Idle text | **#c1b9a7** ≈ RGB **0.76, 0.73, 0.66** | Ivory body / menu idle |
 
-Shell height is **693** = **40** title/padding + **110** raid header + **524**
-active-group block + **19** scroll insets. The raid viewport shows groups 1-5
-without any of groups 6-8 until scrolled; all other pages share this height.
+The page viewport remains **653 px** high = **40** title/padding + **110** raid header + **524**
+active-group block + **19** scroll insets. The shell adds a **60 px** navigation area
+below its 20 px title bar, for an overall height of **753 px**. The raid viewport shows groups 1-5
+without any of groups 6-8 until scrolled; all other pages share this page height.
 
-## Left menu
+## Top navigation
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Menu button | **158 × 28** | Width is `MENU_WIDTH - 12`; **18×18** icon left, label to the right |
+| Navigation grid | **5 columns × 2 rows** | First cell is the Raidwise brand; remaining nine cells are page tabs |
+| Menu button | **171 × 28** | **18×18** icon left, label to the right |
 | Menu icon | **18 × 18** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
-| Gap between buttons | 3 px | Inside a group |
-| First button offset | 8 px below menu title | Then group heading, then buttons |
-| Group heading | height **16** | Dim gold (`GOLD_DIM`); 2 px gap above the first button in the group |
-| Gap around separator | 8 px | Extra space above and below the split (in addition to the 3 px button gap) |
-| Group separator | height **1** | Gold-dim line, 10 px inset from menu edges |
+| Horizontal gap | 3 px | Between cells |
+| Vertical gap | 2 px | Between rows |
+| Cell inset | 10 px left/right; 2 px top | From the menu panel edge |
+| Group headings and separators | not rendered | Group IDs remain in page metadata |
 | Idle fill | **0.125, 0.110, 0.165** | Menu + action buttons |
 | Hover fill | **0.180, 0.150, 0.200** | Label `{1.00, 0.91, 0.55}` |
 | Selected fill | **0.230, 0.188, 0.125** | Gold label `{1.00, 0.82, 0.00}` |
@@ -267,7 +269,7 @@ Removed from TOC and navigation. Former dimensions are historical; no Karma load
 Settings uses a vertical scroll viewport with a **16** px scrollbar and **4** px
 gap; inner content width is **850**. Content height follows the bottom of the
 Changelog controls with **10** px padding and updates after locale/preview changes.
-Mouse-wheel and scrollbar navigation keep lower controls accessible at shell height **693**.
+Mouse-wheel and scrollbar navigation keep lower controls accessible in the **653 px** page viewport (753 px shell).
 
 Layout v15 retains the Changelog dimensions introduced in v14: the standard **28** px heading with **20** px section gap, a copy hint, and a URL copy box beside a **130 x 28** px Select all button with the standard **8** px gap. Both controls anchor vertically to the hint, avoiding a circular anchor dependency during window creation.
 

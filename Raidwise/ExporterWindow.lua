@@ -1,12 +1,12 @@
--- Details-style shell: plain panels, left menu, tabbed content pages.
+-- Details-style shell: plain panels, top navigation, tabbed content pages.
 
 local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 26
+local SHELL_LAYOUT_VERSION = 27
 
--- Visual groups for the left menu (ids stay stable for a future module split).
+-- Visual groups for navigation (ids stay stable for a future module split).
 local MENU_GROUPS = {
 	{ id = "personal", labelKey = "MENU_GROUP_PERSONAL" },
 	{ id = "raiding", labelKey = "MENU_GROUP_RAIDING" },
@@ -14,7 +14,7 @@ local MENU_GROUPS = {
 	{ id = "other", labelKey = "MENU_GROUP_OTHER" },
 }
 
--- WotLK Interface\Icons paths (one per left-menu category).
+-- WotLK Interface\Icons paths (one per navigation category).
 local PAGES = {
 	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", group = "personal" },
 	{ id = "database", key = "Database", labelKey = "TAB_DATABASE", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "personal" },
@@ -439,10 +439,10 @@ local function CreateMenuSeparator(parent, yOffset)
 	return sep
 end
 
-local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
+local function CreateMenuButton(parent, tabId, label, xOffset, yOffset, width, iconPath)
 	local button = CreateFrame("Button", nil, parent)
-	button:SetSize(UI.MENU_WIDTH - 12, UI.MENU_BTN_H)
-	button:SetPoint("TOP", 0, yOffset)
+	button:SetSize(width, UI.MENU_BTN_H)
+	button:SetPoint("TOPLEFT", parent, "TOPLEFT", xOffset, yOffset)
 	W.ApplyPlainPanel(button, UI.BTN_IDLE)
 	button.tabId = tabId
 
@@ -492,13 +492,13 @@ function Addon:CreateMainFrame()
 	-- Named frames are reused by CreateFrame; clear leftover children first.
 	local frame = CreateFrame("Frame", "RaidwiseFrame", UIParent)
 	W.DetachFrameChildren(frame)
-	frame:SetSize(UI.CONTENT_WIDTH, UI.CONTENT_HEIGHT)
+	frame:SetSize(UI.CONTENT_WIDTH, UI.CONTENT_HEIGHT + UI.MENU_BAR_H)
 	frame:SetPoint("CENTER")
 	frame:SetMovable(true)
 	frame:EnableMouse(true)
 	frame:SetFrameStrata("DIALOG")
 	frame:SetClampedToScreen(true)
-	frame:SetClampRectInsets(-UI.MENU_WIDTH, 0, 0, 0)
+	frame:SetClampRectInsets(0, 0, 0, 0)
 	frame:Hide()
 	W.ApplyPlainPanel(frame)
 	frame.layoutVersion = SHELL_LAYOUT_VERSION
@@ -511,18 +511,19 @@ function Addon:CreateMainFrame()
 
 	local menu = CreateFrame("Frame", "RaidwiseMenu", frame)
 	W.DetachFrameChildren(menu)
-	menu:SetWidth(UI.MENU_WIDTH)
-	menu:SetPoint("TOPRIGHT", frame, "TOPLEFT", 0, 0)
-	menu:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", 0, 0)
+	menu:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -(UI.TITLE_H + 1))
+	menu:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -(UI.TITLE_H + 1))
+	menu:SetHeight(UI.MENU_BAR_H)
 	W.ApplyPlainPanel(menu)
 	menu:EnableMouse(true)
 
 	local menuTitleBar = CreateFrame("Frame", nil, menu)
-	menuTitleBar:SetPoint("TOPLEFT", 1, -1)
-	menuTitleBar:SetPoint("TOPRIGHT", -1, -1)
-	menuTitleBar:SetHeight(UI.TITLE_H)
+	local menuGap = UI.MENU_BTN_GAP or 4
+	local menuColumns = UI.MENU_COLUMNS or 5
+	local menuButtonWidth = math.floor((UI.CONTENT_WIDTH - UI.PAD * 2 - menuGap * (menuColumns - 1)) / menuColumns)
+	menuTitleBar:SetSize(menuButtonWidth, UI.MENU_BTN_H)
+	menuTitleBar:SetPoint("TOPLEFT", menu, "TOPLEFT", UI.PAD, -2)
 	W.ApplyPlainPanel(menuTitleBar, UI.TITLE_BG)
-	W.AttachDragHandle(menuTitleBar, frame)
 
 	local menuNameLabel = W.CreateFontString(menuTitleBar, nil, "OVERLAY", "GameFontNormal")
 	menuNameLabel:SetText("Raidwise")
@@ -538,31 +539,19 @@ function Addon:CreateMainFrame()
 
 	frame.menuButtons = {}
 	frame.menuGroupHeadings = {}
-	local menuY = -(UI.TITLE_H + 8)
-	local lastGroup = nil
 	for index = 1, #PAGES do
 		local pageInfo = PAGES[index]
-		if pageInfo.group ~= lastGroup then
-			if lastGroup then
-				menuY = menuY - UI.MENU_GROUP_GAP
-				CreateMenuSeparator(menu, menuY)
-				menuY = menuY - UI.MENU_SEP_H - UI.MENU_GROUP_GAP
-			end
-			local groupInfo = MenuGroupById(pageInfo.group)
-			if groupInfo then
-				local heading = CreateMenuGroupHeading(menu, groupInfo.labelKey, menuY)
-				frame.menuGroupHeadings[#frame.menuGroupHeadings + 1] = heading
-				menuY = menuY - UI.MENU_GROUP_HEADING_H - UI.MENU_GROUP_HEADING_GAP
-			end
-			lastGroup = pageInfo.group
-		end
-		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), menuY, pageInfo.icon)
+		local cellIndex = index
+		local row = math.floor(cellIndex / menuColumns)
+		local column = cellIndex % menuColumns
+		local xOffset = UI.PAD + column * (menuButtonWidth + menuGap)
+		local yOffset = -2 - row * (UI.MENU_BTN_H + 2)
+		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), xOffset, yOffset, menuButtonWidth, pageInfo.icon)
 		frame.menuButtons[#frame.menuButtons + 1] = button
-		menuY = menuY - UI.MENU_BTN_H - UI.MENU_BTN_GAP
 	end
 
 	local content = CreateFrame("Frame", nil, frame)
-	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.PAD))
+	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.MENU_BAR_H + UI.PAD))
 	content:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
 
 	frame.pages = {}
