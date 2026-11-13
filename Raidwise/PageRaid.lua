@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 56
+local LAYOUT_VERSION = 59
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -17,7 +17,7 @@ local RAID_ICON = 24
 local RAID_BTN_H = 20
 local RAID_BTN_GAP = 2
 local RAID_ACTION_W = 48
-local RAID_GRADE_REPORT_W = 31
+local RAID_GRADE_REPORT_W = 27
 local RAID_GRADE_REPORT_H = 26
 local RAID_GRADE_REPORT_X = 35
 local RAID_GRADE_REPORT_TOP = -40
@@ -1171,8 +1171,8 @@ local function CreateRaidPlayerCell(parent)
 	cell.opinionText:SetJustifyV("MIDDLE")
 
 	cell.gradesText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gradesText:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -69)
-	cell.gradesText:SetSize(164, 26)
+	cell.gradesText:SetPoint("TOPLEFT", cell, "TOPLEFT", 49, -69)
+	cell.gradesText:SetSize(115, 26)
 	cell.gradesText:SetJustifyH("CENTER")
 	cell.gradesText:SetJustifyV("MIDDLE")
 	cell.gradesText:SetWordWrap(true)
@@ -1180,7 +1180,7 @@ local function CreateRaidPlayerCell(parent)
 	cell.gradeCells = {}
 	for index, category in ipairs(GRADE_CELL_CATEGORIES) do
 		local gradeCell = W.CreatePlainButton(cell, RAID_GRADE_REPORT_W, RAID_GRADE_REPORT_H, "")
-		gradeCell:SetPoint("TOPLEFT", cell, "TOPLEFT", 35 + (index - 1) * 33, -69)
+		gradeCell:SetPoint("TOPLEFT", cell, "TOPLEFT", 49 + (index - 1) * (RAID_GRADE_REPORT_W + RAID_GRADE_REPORT_GAP), -69)
 		W.SetBackdropColor(gradeCell, { 0, 0, 0, 0 })
 		W.ApplyOuterBorder(gradeCell, UI.BORDER, 1)
 		gradeCell.noHoverFill = true
@@ -1233,7 +1233,7 @@ local function CreateRaidPlayerCell(parent)
 	local rescanBtn = W.CreatePlainButton(cell, RAID_ACTION_W, RAID_BTN_H, W.T("BTN_RAID_RESCAN"))
 	rescanBtn:SetSize(RAID_ACTION_W, RAID_BTN_H)
 	rescanBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -69)
-	rescanBtn:SetSize(31, 26)
+	rescanBtn:SetSize(44, 26)
 	W.SetPlainButtonTooltip(rescanBtn, "BTN_RAID_RESCAN_TIP")
 	rescanBtn:SetScript("OnClick", function()
 		local frame = Addon.mainFrame
