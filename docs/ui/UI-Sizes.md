@@ -21,10 +21,11 @@ Current view is read-only after refresh; correction and JSON import controls rem
 | Element | Size | Notes |
 |---------|------|-------|
 | Main frame (`RaidwiseFrame`) | **890 × 753** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Title bar | height **20** | Very top of window; drag handle; addon name/version, active page name/layout version, available report controls, close **X** |
+| Title bar | height **20** | Very top of window; drag handle; addon name/version, active page name/layout version, available report controls, collapse and close buttons |
 | Menu panel (`RaidwiseMenu`) | **888 × 60** | Horizontal navigation directly below the title bar |
 | Page viewport | **870 × 653** | Same usable page height as before moving the title bar |
-| Close button | **16 × 16** | Right side of top title bar |
+| Collapse / expand button | **16 × 16** | Beside Close; reduces window to the title bar and restores it |
+| Close button | **16 × 16** | Rightmost title bar button |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the active page name |
 | Panel fill | **#1a1915** ≈ RGB **0.10, 0.10, 0.08** | Low-noise Ivory theme; flat fill (no border edges) |
 | Title / status fill | **#24221c** ≈ RGB **0.14, 0.13, 0.11** | Same texture |
@@ -57,7 +58,7 @@ without any of groups 6-8 until scrolled; all other pages share this page height
 
 The title bar displays **Raidwise** and its addon version, then the active page name and
 its `LAYOUT_VERSION`, then report format and chat controls when the active page supports
-them. The controls are compacted to fit the single-row title bar: the chat host is **337 px**
+them. The title bar also has collapse/expand and close buttons at the right. The controls are compacted to fit the single-row title bar: the chat host is **337 px**
 wide and the format host is **184 px** wide, with an **8 px** gap. The close button remains
 at the far right.
 
@@ -277,6 +278,8 @@ Settings uses a vertical scroll viewport with a **16** px scrollbar and **4** px
 gap; inner content width is **850**. Content height follows the bottom of the
 Changelog controls with **10** px padding and updates after locale/preview changes.
 Mouse-wheel and scrollbar navigation keep lower controls accessible in the **653 px** page viewport (753 px shell).
+
+Settings v19 adds a **Window behavior** section with a checkbox to hide Raidwise when combat starts.
 
 Layout v15 retains the Changelog dimensions introduced in v14: the standard **28** px heading with **20** px section gap, a copy hint, and a URL copy box beside a **130 x 28** px Select all button with the standard **8** px gap. Both controls anchor vertically to the hint, avoiding a circular anchor dependency during window creation.
 

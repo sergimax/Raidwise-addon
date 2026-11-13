@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 29
+local SHELL_LAYOUT_VERSION = 30
 
 -- Visual groups for navigation (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -108,10 +108,10 @@ function Addon:RefreshHeaderReportChannels()
 	end
 end
 
-local function CreateHeaderReportChannels(frame, titleBar, close)
+local function CreateHeaderReportChannels(frame, titleBar, controlAnchor)
 	local host = CreateFrame("Frame", nil, titleBar)
 	host:SetSize(337, 18)
-	host:SetPoint("RIGHT", close, "LEFT", -24, 0)
+	host:SetPoint("RIGHT", controlAnchor, "LEFT", -12, 0)
 	frame.reportChannelHost = host
 	frame.reportChannelRadios = {}
 	local heading = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
@@ -366,6 +366,23 @@ local function CreateTitleBar(frame)
 		frame:Hide()
 	end)
 
+	local collapse = CreateFrame("Button", nil, titleBar)
+	collapse:SetSize(UI.CLOSE_SIZE, UI.CLOSE_SIZE)
+	collapse:SetPoint("RIGHT", close, "LEFT", -4, 0)
+	local collapseText = W.CreateFontString(collapse, nil, "OVERLAY", "GameFontNormal")
+	collapseText:SetPoint("CENTER", 0, 0)
+	collapseText:SetText("-")
+	W.SetFontColor(collapseText, UI.TEXT_IDLE)
+	collapse:SetScript("OnClick", function()
+		Addon:ToggleMainFrameCollapsed()
+	end)
+	collapse:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+		GameTooltip:AddLine(W.T(frame.collapsed and "WINDOW_EXPAND" or "WINDOW_COLLAPSE"))
+		GameTooltip:Show()
+	end)
+	collapse:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
 	local addonName = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormal")
 	addonName:SetPoint("LEFT", 8, 0)
 	addonName:SetText("Raidwise")
@@ -390,10 +407,12 @@ local function CreateTitleBar(frame)
 	pageLayoutVersionText:SetText("")
 	W.SetFontColor(pageLayoutVersionText, UI.TEXT_DISABLED)
 
-	CreateHeaderReportChannels(frame, titleBar, close)
+	CreateHeaderReportChannels(frame, titleBar, collapse)
 	CreateHeaderReportForm(frame, titleBar)
 
 	frame.titleBar = titleBar
+	frame.collapseButton = collapse
+	frame.collapseButtonText = collapseText
 	frame.addonNameText = addonName
 	frame.addonVersionText = addonVersion
 	frame.titleText = title
@@ -430,6 +449,7 @@ local function CreateMenuButton(parent, tabId, label, xOffset, yOffset, width, i
 	button:SetPoint("TOPLEFT", parent, "TOPLEFT", xOffset, yOffset)
 	W.ApplyPlainPanel(button, UI.BTN_IDLE)
 	button.tabId = tabId
+	button.isMenuTab = true
 
 	local icon = button:CreateTexture(nil, "ARTWORK")
 	icon:SetSize(UI.MENU_ICON, UI.MENU_ICON)
@@ -501,6 +521,7 @@ function Addon:CreateMainFrame()
 	menu:SetHeight(UI.MENU_BAR_H)
 	W.ApplyPlainPanel(menu)
 	menu:EnableMouse(true)
+	frame.menu = menu
 
 	local menuGap = UI.MENU_BTN_GAP or 4
 	local menuColumns = UI.MENU_COLUMNS or 5
@@ -521,6 +542,8 @@ function Addon:CreateMainFrame()
 	local content = CreateFrame("Frame", nil, frame)
 	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.MENU_BAR_H + UI.PAD))
 	content:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
+	frame.content = content
+	frame.expandedHeight = UI.CONTENT_HEIGHT + UI.MENU_BAR_H
 
 	frame.pages = {}
 	for index = 1, #PAGES do
@@ -588,6 +611,9 @@ end
 
 function Addon:ShowMainFrame()
 	local frame = self:CreateMainFrame()
+	if frame.collapsed then
+		self:ToggleMainFrameCollapsed()
+	end
 	-- Prefer configured startup tab each time the window is opened.
 	self:SelectTab(self:GetStartupTab())
 	frame:Show()
@@ -598,6 +624,26 @@ function Addon:HideMainFrame()
 	if self.HideSyncShareMenu then self:HideSyncShareMenu() end
 	if self.mainFrame then
 		self.mainFrame:Hide()
+	end
+end
+
+function Addon:ToggleMainFrameCollapsed()
+	local frame = self.mainFrame
+	if not frame or not frame.menu or not frame.content then return end
+	frame.collapsed = not frame.collapsed
+	if frame.collapsed then
+		frame.menu:Hide()
+		frame.content:Hide()
+		frame:SetHeight(UI.TITLE_H + 2)
+		frame.collapseButtonText:SetText("+")
+	else
+		frame:SetHeight(frame.expandedHeight)
+		frame.menu:Show()
+		frame.content:Show()
+		frame.collapseButtonText:SetText("-")
+	end
+	if frame.collapseButton then
+		GameTooltip:Hide()
 	end
 end
 

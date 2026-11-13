@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 18
+local LAYOUT_VERSION = 19
 local CHANGELOG_URL = "https://github.com/sergimax/Raidwise-addon/blob/main/CHANGELOG.md"
 
 local SECTION_HEADER_H = 28
@@ -372,7 +372,42 @@ local function CreateSettingsPage(parent)
 
 	local startupAnchor = CreateStartupTabRadios(page, startupHint)
 
-	local tipHeading = CreateSettingsHeading(page, "SETTINGS_TOOLTIP", startupAnchor)
+	local windowHeading = CreateSettingsHeading(page, "SETTINGS_WINDOW", startupAnchor)
+	page.windowHeading = windowHeading
+
+	local hideInCombatCheck = CreateFrame(
+		"CheckButton",
+		"RaidwiseSettingsHideInCombatV" .. tostring(LAYOUT_VERSION),
+		content,
+		"UICheckButtonTemplate"
+	)
+	hideInCombatCheck:SetSize(UI.CHECK_SIZE, UI.CHECK_SIZE)
+	hideInCombatCheck:SetPoint("TOPLEFT", windowHeading, "BOTTOMLEFT", 0, -6)
+	hideInCombatCheck:SetChecked(Addon.db and Addon.db.hideInCombat and true or false)
+	local templateCheckText = _G[hideInCombatCheck:GetName() .. "Text"]
+	if templateCheckText then
+		templateCheckText:SetText("")
+		templateCheckText:Hide()
+	end
+	local hideInCombatLabel = W.CreateFontString(content, nil, "OVERLAY", "GameFontHighlight")
+	hideInCombatLabel:SetPoint("LEFT", hideInCombatCheck, "RIGHT", 4, 0)
+	hideInCombatLabel:SetPoint("RIGHT", content, "RIGHT", -SECTION_INSET, 0)
+	hideInCombatLabel:SetJustifyH("LEFT")
+	hideInCombatLabel:SetText(W.T("SETTINGS_HIDE_IN_COMBAT"))
+	hideInCombatCheck:SetScript("OnClick", function(check)
+		if Addon.db then Addon.db.hideInCombat = check:GetChecked() and true or false end
+	end)
+	page.hideInCombatCheck = hideInCombatCheck
+	page.hideInCombatLabel = hideInCombatLabel
+
+	local hideInCombatHint = W.CreateFontString(content, nil, "OVERLAY", "GameFontHighlightSmall")
+	hideInCombatHint:SetPoint("TOPLEFT", hideInCombatCheck, "BOTTOMLEFT", 4, -2)
+	hideInCombatHint:SetPoint("RIGHT", content, "RIGHT", -SECTION_INSET, 0)
+	hideInCombatHint:SetJustifyH("LEFT")
+	hideInCombatHint:SetText(W.T("SETTINGS_HIDE_IN_COMBAT_HINT"))
+	page.hideInCombatHint = hideInCombatHint
+
+	local tipHeading = CreateSettingsHeading(page, "SETTINGS_TOOLTIP", hideInCombatHint)
 	page.tipHeading = tipHeading
 
 	local tipHint = W.CreateFontString(content, nil, "OVERLAY", "GameFontHighlight")
@@ -503,6 +538,15 @@ local function ApplySettingsLocale(page)
 	end
 	if page.startupHint then
 		page.startupHint:SetText(W.T("SETTINGS_STARTUP_TAB_HINT"))
+	end
+	if page.windowHeading then
+		page.windowHeading:SetText(W.T("SETTINGS_WINDOW"))
+	end
+	if page.hideInCombatLabel then
+		page.hideInCombatLabel:SetText(W.T("SETTINGS_HIDE_IN_COMBAT"))
+	end
+	if page.hideInCombatHint then
+		page.hideInCombatHint:SetText(W.T("SETTINGS_HIDE_IN_COMBAT_HINT"))
 	end
 	if page.startupRadios then
 		for index = 1, #page.startupRadios do

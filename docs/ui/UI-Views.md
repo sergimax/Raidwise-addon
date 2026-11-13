@@ -10,7 +10,7 @@ Classic-theme plain panels: compact title/control bar at the very top, followed 
 
 ```text
 [ Main window 890 x 753 ]
- [ Raidwise vX | {page} vN | {format controls} | {chat controls} | X ]
+[ Raidwise vX | {page} vN | {format controls} | {chat controls} | [−] [X] ]
  [ tab ][ tab ][ tab ][ tab ][ tab ]
  [ tab ][ tab ][ tab ][ tab ][     ]
  [ page body: 870 x 653           ]
@@ -32,7 +32,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 29` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 30` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
@@ -43,7 +43,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Top title bar (next to page name) |
 | EPGP roster | `LAYOUT_VERSION = 16` | `PageEPGP.lua` | Top title bar (next to page name) |
 | Character database | `DATABASE_LAYOUT_VERSION = 13` | `PageHistory.lua` | Top title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 18` | `PageSettings.lua` | Top title bar (next to page name) |
+| Settings | `LAYOUT_VERSION = 19` | `PageSettings.lua` | Top title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Top title bar (next to page name) |
 
 The shared shell is **753 px** tall on every page, with a **653 px** page viewport. The Raid viewport fits groups

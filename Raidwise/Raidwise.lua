@@ -34,6 +34,7 @@ local defaults = {
 	theme = "dark",
 	includeGearNames = true,
 	startupTab = "cooldowns",
+	hideInCombat = false,
 	reportChannel = "auto",
 	reportForm = "short",
 	characters = {},
@@ -478,6 +479,7 @@ local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 frame:RegisterEvent("UPDATE_INSTANCE_INFO")
 frame:RegisterEvent("PLAYER_GUILD_UPDATE")
 frame:RegisterEvent("GUILD_ROSTER_UPDATE")
@@ -495,6 +497,10 @@ frame:SetScript("OnEvent", function(_, event, arg1)
 		Addon:OnPlayerLogin()
 	elseif event == "PLAYER_ENTERING_WORLD" then
 		Addon:OnPlayerEnteringWorld()
+	elseif event == "PLAYER_REGEN_DISABLED" then
+		if Addon.db and Addon.db.hideInCombat then
+			Addon:HideMainFrame()
+		end
 	elseif event == "UPDATE_INSTANCE_INFO" then
 		Addon:OnUpdateInstanceInfo()
 	elseif event == "PLAYER_GUILD_UPDATE" or event == "GUILD_ROSTER_UPDATE" then
