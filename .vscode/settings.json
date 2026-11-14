@@ -31,7 +31,7 @@
   "peacock.color": "#284B63",
   "github.copilot.chat.commitMessageGeneration.instructions": [
   {
-    "text": "Use Conventional Commits: <type>(<scope>): <description>. Scope is required. Write one concise subject, preferably under 72 characters. Describe the main outcome. No body, bullet points, file list, or implementation summary."
+    "text": "Use Conventional Commits: <type>(<scope>): <description>. Scope is required. Write one concise subject, preferably under 72 characters. Describe the main outcome. No body, bullet points, file list, or implementation summary. No need to mention version numbers of uppdated modules"
   }
 ]
 }
