@@ -38,6 +38,8 @@ test("installable ZIP contains every allowlisted tracked runtime file and no ret
       offset += 46 + nameLength + zip.readUInt16LE(offset + 30) + zip.readUInt16LE(offset + 32);
     }
     assert.deepEqual(names.sort(), expected);
+    assert.deepEqual([...new Set(names.map((name) => name.split("/")[0]))].sort(), ["Raidwise", "Raidwise_EPGP"]);
+    assert(names.includes("Raidwise/Raidwise.toc") && names.includes("Raidwise_EPGP/Raidwise_EPGP.toc"));
     assert(!names.includes("Raidwise/PlayerHistory.lua"));
   } finally { rmSync(dir, {recursive:true, force:true}); }
 });

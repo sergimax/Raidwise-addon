@@ -4,12 +4,18 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag (vMAJOR.MINOR.PATCH)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -17,10 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      RELEASE_TAG: ${{ github.ref_name }}
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.tag || github.ref }}
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
@@ -34,15 +41,20 @@ jobs:
       - run: npm run check
       - name: Package TOC modules and assets from the tagged commit
         env:
-          RELEASE_ZIP: ${{ runner.temp }}/Raidwise-${{ github.ref_name }}.zip
+          RELEASE_ZIP: ${{ runner.temp }}/Raidwise-${{ inputs.tag || github.ref_name }}.zip
         run: node scripts/package-addon.mts "$RELEASE_ZIP"
       - name: Publish release and installable ZIP
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_NOTES: ${{ runner.temp }}/release-notes.md
-          RELEASE_ZIP: ${{ runner.temp }}/Raidwise-${{ github.ref_name }}.zip
-        run: >-
-          gh release create "$RELEASE_TAG" "$RELEASE_ZIP"
-          --verify-tag
-          --title "Raidwise $RELEASE_TAG"
-          --notes-file "$RELEASE_NOTES"
+          RELEASE_ZIP: ${{ runner.temp }}/Raidwise-${{ inputs.tag || github.ref_name }}.zip
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$RELEASE_ZIP" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$RELEASE_TAG" "$RELEASE_ZIP" \
+              --verify-tag \
+              --title "Raidwise $RELEASE_TAG" \
+              --notes-file "$RELEASE_NOTES" \
+              --repo "$GITHUB_REPOSITORY"
+          fi
