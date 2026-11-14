@@ -34,7 +34,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 32` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
-| Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
+| Character | `PROFILE_LAYOUT_VERSION = 39` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
 | My gear and CDs exports | `LAYOUT_VERSION = 5` | `PageExport.lua` | Top title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 55` | `PageRaid.lua` | Top title bar (next to page name) |
@@ -247,32 +247,35 @@ Raid-wide gear check lives on **Raid roster** (Scan button + report rows per pla
 
 ## Character profile
 
-Active owner: `ProfileWindow.lua`, layout **v38**, save controller `ProfileEditor.lua`.
+Active owner: `ProfileWindow.lua`, layout **v39** (`PROFILE_LAYOUT_VERSION`), save controller `ProfileEditor.lua`.
 
 ```text
-[ Profile: name-realm    GUID: ...        v38 X ]
-[ Class / guild / spec / known gear              ]
-[ Opinion author                                ]
-[ Opinion: ][ Reset ][ Positive ][ Neutral ][ Negative ]
-[ Raid leader ][ PUG leader ][ GM ][ Officer      ]
-[ This character's meeting count, first / last    ]
-[ Events ][ History ][ Characters                ]
-[ Event picker + Add / event rows + edit/remove  ]
-[ History: meetings | profile changes            ]
-[ Characters: links, main, search / target        ]
-[ Private note: local, only for you (blue panel)  ]
-[ Status     ][ Save ][ Reload on error ][ Delete ]
+[ Name-realm                         Actions     v39 X ]
+[ Class / guild / spec / known gear                    ]
+[ Opinion · selected roles                      Edit  ]
+[ Author · updated time / self-profile explanation     ]
+[ Expandable opinion and role editor; Done             ]
+[ Overview ][ Events ][ Meetings ][ Characters ] [Journal]
+[ Overview: recent events (60%) | Private note (40%)    ]
+[ Add event / All events        | Meeting/link summaries]
+[ Status           Save/retry · Reload on error · To note]
 ```
 
-Only the active tab's body is shown. Opinion, facts and the private note remain
-visible. Events have fixed dates/places and explicit authors; no free text or
-backdating. History sublists scroll and paginate; rows show timestamp and actor.
-One draft controls all editable profile fields, with one-second autosave and
-explicit Save. Closing/switching saves or retains a failed draft for retry.
-Reload explicitly discards a failed draft and reads current data. Self-rating is
-disabled, but the private note about oneself remains editable. Full deletion
-invalidates pending drafts before hiding the window. Previous profile modules
-remain outside the TOC for later removal of transitional code.
+Overview opens by default and shows up to three latest events. The private note
+appears only here; other sections offer To note with focus. The opinion and
+selected roles stay in the header; Edit expands controls and Done collapses them.
+Self-profiles hide rating and event creation controls with an explanation.
+Events retain type/date/place/author and offer type editing/removal. Add event
+opens a grouped searchable chooser: selection prepares, explicit Add confirms
+and captures the context. Type editing preserves original event date/place.
+Meetings show the current observer and lifetime summary above their own list;
+the journal opens separately with Back. Both have independent 25-row pagination.
+Characters initially show existing links; Link character reveals search/target.
+Each row offers profile navigation, main designation and permitted unlinking.
+GUID and confirmed deletion are in Actions. One-second autosave, retained failed
+drafts and close/switch saves remain; manual Save appears for dirty drafts,
+Retry/Reload on error. Reload explicitly discards the draft. Deletion invalidates
+pending drafts before hiding. Previous profile modules remain outside the TOC.
 
 ## History and Character database
 

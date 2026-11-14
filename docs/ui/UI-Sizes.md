@@ -213,33 +213,33 @@ Full-width description + limitation, then **two columns** with a responsive righ
 
 Raid-wide gear check is integrated into **Raid roster** (see that section). There is no separate gear-check raid tab.
 
-## Character profile — active layout v38
+## Character profile — active layout v39
 
 Owner: `ProfileWindow.lua`; save controller: `ProfileEditor.lua`.
 
 | Element | Geometry / behavior |
 |---|---|
-| Window | **680 × 760**, centered, clamped, draggable title |
-| Title bar | x=8, y=-8, **664 × 26**; title **520** px, layout badge and Close |
-| Details / author | x=12, y=-40 / -62; width **656** |
-| Opinion / facts | y=-86 / -116; four **155 × 24** controls, **163** px stride |
-| Meeting summary / self hint | y=-146 / -167; width **656** |
-| Tab buttons | y=-190; three **210 × 24** controls, **218** px stride |
-| Tab host | x=12, y=-223, **656 × 305** |
-| Event picker / Add | **510 × 24** / **130 × 24**, 10 px gap |
-| Event list | y=-32, **235** px high; **62** px rows, at most 25 per page |
-| History lists | two **320 × 245** scroll areas, 10 px gap; y=-22 |
-| Private note panel | x=12, y=-540, **656 × 160**; blue background and explicit local-use label |
-| Private note input | inset 6 px, starts 25 px below panel top; multiline, own scroll |
-| Footer | y=-710; status **310** px, Save **100 × 24**, Reload **100 × 24**, Delete **120 × 24** |
+| Window | **900 × 700**, centered, clamped, draggable title |
+| Title bar | x=12, y=-10, **876 × 26**; title 590 px; Actions, badge and Close |
+| Details / opinion / author | y=-42 / -68 / -104; opinion height 30 px |
+| Opinion editor | x=12, y=-142, **876 × 70**; two rows of 180 × 24 buttons, 188 px stride; Done |
+| Navigation | y=-146 collapsed / -222 expanded; four 140 × 24 tabs, 148 px stride; journal 226 px |
+| Content host | x=12; y=-182 / -258; right inset 12, bottom inset 48; **876 × 470 / 394** |
+| Overview columns | **520 / 336** px, **20** px gap |
+| Recent events | y=-40; up to **228** px high, three 62 px rows; All events y=-280 |
+| Private note | right column; **336 × 340 / 264**; blue panel, 6 px inset, input starts y=-32 |
+| Overview summaries | 10 / 60 px below note; bounded meeting/link text and detail actions |
+| Event/journal lists | full width; y=-40; **392 / 316** px high; 62 px rows; 25 rows/page |
+| Meeting list | y=-60; **370 / 294** px high; independent 25-row pages |
+| Link list | fills available body when search closed; **112** px when open |
+| Link search | y=-158; bottom inset 58; own candidate scroll |
+| Event chooser | **620 × 480**, centered; grouped list **300** px high; search and explicit confirmation |
+| Footer | status x=12 y=-668, 510 px; Save 110, Reload 110, To note 116 px; buttons y=-664 |
 
-Three tabs: Events (default), History (meetings and profile changes), Characters.
-The Characters panel retains its existing scrollable link/search controls inside
-the tab host; conflicting-opinion choices are never requested by the active store.
-Opinion, four facts, meeting summary and private note stay visible on every tab.
-Auto-save runs after one second idle. Close/switch attempts a save; failures retain
-the draft in memory. Old `CharacterProfile.lua` and `ProfilePanels.lua` are not
-loaded by the TOC. No Karma, tag editor, separate Memo tab or Memo Save/Reset.
+Overview is the default. Long lists and the note scroll independently. Expanding
+the opinion editor reduces the body height without changing the outer window.
+The note exists only in Overview. Autosave remains one second; closing/switching
+saves or retains the failed draft. GUID/deletion are in the Actions menu.
 
 ## Diagnostics popup
 
@@ -339,7 +339,7 @@ Header report controls are contextual: chat channels appear only on Raid roster,
 ## Historical character-system transition (2026-10-30)
 
 The sequence below records earlier layouts, not the current profile screen.
-Current profile dimensions are in the active v38 section above.
+Current profile dimensions are in the active v39 section above.
 
 Shell v23 removes the exchange group and profile-export entry; outer sizes are unchanged.
 Profile v36 removes the 90 x 18 Share button; the title now ends 8 px before

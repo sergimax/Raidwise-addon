@@ -53,8 +53,9 @@ in-game work: [Character-System-Verification.md](../docs/characters/Character-Sy
 of old event snapshots, ordering, authors, dates, baseline gaps, idempotence and
 unknown-version rejection), and 100/1,000 sequential event saves with linear journal
 storage. Detached profile/page reads must not traverse the whole journal.
-`profile-window.test.mts` exercises the 25-row journal pages and page clamping
-without whole-record reads. These are storage/read-path checks, not in-game
+`profile-window.test.mts` exercises Overview navigation, expandable opinion controls,
+searchable event selection with explicit confirmation, character-link search, and
+independent meeting/journal pages with clamping without whole-record reads. These are storage/read-path checks, not in-game
 latency or memory benchmarks; draft validation still visits current events.
 
 Storage recovery tests cover damaged profile/note/event fields, nested encounters
