@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.3.1] - 2026-11-15
+
+### Fixed
+- Release publication no longer fails on unavailable runner context when preparing paths for the installable ZIP containing `Raidwise/` and `Raidwise_EPGP/`.
+- Existing releases can receive or replace their installable ZIP through a manual workflow run for the original tag, preserving release notes and other assets.
+
 ## [2.3.0] - 2026-11-15
 
 ### Added
