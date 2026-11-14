@@ -6,13 +6,13 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 4
+local LAYOUT_VERSION = 5
 
 local function CreateExportPage(parent)
 	local page = CreateFrame("Frame", nil, parent)
 	page:SetAllPoints(parent)
 
-	local innerW = W.ContentInnerWidth()
+	local innerW = math.max(1, (page:GetWidth() or UI.CONTENT_WIDTH) - UI.PAD * 2)
 
 	local desc = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	desc:SetPoint("TOPLEFT", 0, 0)

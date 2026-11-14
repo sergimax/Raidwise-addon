@@ -36,7 +36,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
-| My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Top title bar (next to page name) |
+| My gear and CDs exports | `LAYOUT_VERSION = 5` | `PageExport.lua` | Top title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 55` | `PageRaid.lua` | Top title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Top title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 20` | `PageGearCheckTarget.lua` | Top title bar (next to page name) |
