@@ -33,7 +33,9 @@ The gem fixture also inserts 2,048 unique GUIDs without expiry, checks the
 and the original non-sliding 10-second TTL. Expiry cleanup happens during
 collection, not through an idle timer.
 
-The Addon tests workflow runs on branch pushes, pull requests and manual dispatch, on both Windows and Ubuntu.
+The Addon tests workflow runs only on pull requests (opened, synchronized with new
+commits, or reopened), on both Windows and Ubuntu. Branch pushes without a pull
+request and manual dispatch do not trigger it.
 Tag publication has its own release workflow and checks.
 Required checks/branch protection are configured separately in GitHub.
 
@@ -388,12 +390,9 @@ Do not treat offline test runtime as the in-game baseline. Phase 1's automated
 coverage is ready; its manual timing gate remains open until these observations
 are recorded.
 
-## Manual CI and future automation
+## Pull request CI
 
 `.github/workflows/tests.yml` runs the same install/check commands on Windows and
-Linux. It has only `workflow_dispatch`, so it does not run on pushes or PRs. Once
-the workflow is on GitHub's default branch, use **Actions → Addon tests → Run
-workflow**. The workflow has been prepared locally; it has not been run on GitHub.
-
-To automate later, add `pull_request:` and the desired `push:` branch filter
-under `on:`. The test files and commands do not need to change.
+Linux for `pull_request` events: opening or reopening a PR and pushing new commits
+to its branch. It has no `push` or `workflow_dispatch` trigger. Release tag pushes
+are handled separately by `.github/workflows/release.yml`.

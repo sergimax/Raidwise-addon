@@ -277,7 +277,7 @@ types/
 
 Offline development checks use TypeScript, Node.js 24, and a Lua 5.1 WebAssembly
 runtime: `npm ci --ignore-scripts`, then `npm run check`. See
-[tests/README.md](tests/README.md) for test organization, watch mode, and manual CI.
+[tests/README.md](tests/README.md) for test organization, watch mode, and pull request CI.
 
 - Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
 - Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts and currency snapshots for the cooldowns table live in `RaidwiseDB.characters` (`.lockouts`, `.currency`). The character system lives in `RaidwiseDB.playerRecords`; old profile roots are retired without review migration. Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`). Startup left-menu page is `RaidwiseDB.startupTab`. Unit tooltip visibility flags live in `RaidwiseDB.tooltip`.
