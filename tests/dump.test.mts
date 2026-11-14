@@ -37,8 +37,16 @@ test("dump output, frame progress, cancellation, restart, and export routing", a
       lua.doStringSync(await readFile(new URL(path, import.meta.url), "utf8"));
     }
     lua.doStringSync(`
+      -- This fixture exercises colon-separated WoW item links, including empty fields.
+      function strsplit(delimiter,value)
+        assert(delimiter==":")
+        local fields={}
+        for field in (value..delimiter):gmatch("(.-)"..delimiter) do fields[#fields+1]=field end
+        return unpack(fields)
+      end
       local report = {
         schemaVersion=3, character={name="Tester", gaps={{code="SPEC_UNKNOWN"}}},
+        overall={status="B",summary="Needs work"},
         equipment={{key="head",slotName="HeadSlot",policy="CHECKED",verdict="B",item={
           itemId=123, name="Test helm", stats={strength=10,agility=5},
           enchant={enchantId=1,name="Test enchant",present=true,known=true},
@@ -60,7 +68,16 @@ test("dump output, frame progress, cancellation, restart, and export routing", a
       local failedOnly=Raidwise:FormatGearCheckRaidDump({{member={name="Offline"},status="skipped"}})
       assert(failedOnly:find("reportVersion=1",1,true))
       assert(expected:find("2 players, 1 reports, 1 failed/skipped",1,true))
-      assert(expected:find(target,1,true) and expected:find("Player: Offline",1,true))
+      assert(expected:find("HeadSlot: Test helm (id=123)",1,true))
+      assert(expected:find("Offline — skipped",1,true))
+      assert(not expected:find("Overall:",1,true) and not expected:find("verdict=",1,true))
+      assert(not expected:find("enchant:",1,true) and not expected:find("socket ",1,true))
+      local full=Raidwise:FormatGearCheckRaidDump(results,true)
+      assert(full:find("Overall: B — Needs work Slots: HeadSlot",1,true))
+      assert(full:find("HeadSlot: Test helm (id=123) verdict=B",1,true))
+      assert(full:find("enchant: id=1",1,true))
+      assert(full:find("socket 1: id=2 name=Test gem",1,true))
+      assert(full:find("Offline — skipped",1,true))
       local progress, callbacks, output = 0, 0, nil
       local function done(text)
         callbacks=callbacks+1; output=text
@@ -84,6 +101,10 @@ test("dump output, frame progress, cancellation, restart, and export routing", a
       assert(callbacks==3 and output==expected)
       assert(not Raidwise:BuildGearCheckRaidDumpAsync({},nil,done))
       assert(callbacks==4 and output=="" and Raidwise:FormatGearCheckRaidDump({})=="")
+      local fullOutput
+      assert(Raidwise:BuildGearCheckRaidDumpAsync(results,nil,function(text) fullOutput=text end,true))
+      for index=1,3 do ScanRuntime:Tick(0.01) end
+      assert(fullOutput==full and not Raidwise:IsGearCheckRaidDumpBusy())
       local displayed, printed
       Raidwise.Print=function(_,message) printed=message end
       Raidwise.ShowRaidGearCheckExportText=function(_,text) displayed=text end

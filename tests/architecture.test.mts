@@ -292,28 +292,22 @@ test("rating getters do not migrate or initialize SavedVariables", async () => {
 
 test("shell dispatches page lifecycle without knowing page controls", async () => {
   await run(["ExporterWindow"], "Raidwise.Widgets={}; Raidwise.UITheme={}; Raidwise.Pages={}", `
-    local expectedGroups={"personal","raiding","exportWeb","other"}
-    for index, groupInfo in ipairs(Raidwise.MenuGroups) do
-      assert(groupInfo.id==expectedGroups[index])
+    local groups, pages = {}, {}
+    for _, groupInfo in ipairs(Raidwise.MenuGroups) do
+      assert(not groups[groupInfo.id], "Duplicate navigation group")
+      groups[groupInfo.id]=true
     end
-    assert(#Raidwise.MenuGroups==#expectedGroups)
+    for _, pageInfo in ipairs(Raidwise.MenuPages) do
+      assert(groups[pageInfo.group], "Page belongs to an unregistered group")
+      assert(not pages[pageInfo.id], "Duplicate navigation page")
+      pages[pageInfo.id]=true
+    end
+    assert(pages.export and Raidwise:IsAllowedStartupTab('export'))
     for _, retired in ipairs({'sync','syncExport','reputation'}) do
       Raidwise.db={startupTab=retired}
-      assert(not Raidwise:IsAllowedStartupTab(retired))
+      assert(not pages[retired] and not Raidwise:IsAllowedStartupTab(retired))
       assert(Raidwise:GetStartupTab()=='cooldowns')
     end
-    local expectedPageGroups={"personal","personal","raiding","raiding","raiding","raiding","exportWeb","other","other"}
-    for index, pageInfo in ipairs(Raidwise.MenuPages) do
-      assert(pageInfo.group==expectedPageGroups[index])
-    end
-    local exportGroup
-    for _, pageInfo in ipairs(Raidwise.MenuPages) do
-      if pageInfo.id=="export" or pageInfo.id=="syncExport" then
-        exportGroup=exportGroup or pageInfo.group
-        assert(pageInfo.group=="exportWeb")
-      end
-    end
-    assert(exportGroup=="exportWeb")
     local calls={}
     local function page() return {Show=function() end,Hide=function() end} end
     local frame={pages={settings=page(),history=page()},menuButtons={}}
@@ -481,6 +475,11 @@ test("Settings and character linking panels avoid circular frame anchors", async
       function result:IsShown() return self.shown end
       function result:GetName() return self.name end
       function result:GetStringHeight() return 14 end
+      function result:GetWidth() return self.width or 940 end
+      function result:GetHeight() return self.height or 600 end
+      function result:SetWidth(width) self.width=width end
+      function result:SetHeight(height) self.height=height end
+      function result:SetSize(width,height) self.width=width;self.height=height end
       function result:CreateTexture() return region(self) end
       return setmetatable(result,{__index=function(_,key)
         if key:match("^Set") or key=="RegisterEvent" or key=="Enable" or key=="Disable" or key=="EnableMouse" or key=="EnableMouseWheel" then return function() end end

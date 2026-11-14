@@ -40,6 +40,15 @@ Required checks/branch protection are configured separately in GitHub.
 `architecture.test.mts` loads all active modules in TOC order and exercises
 bootstrap and profile persistence, including missing core/bridge APIs.
 Native UI construction and social-hook initialization are excluded from this bootstrap test; it is not a visual or in-client loading test.
+Navigation assertions check registered group membership, unique page IDs and
+retired-page rejection rather than a fixed menu order. The anchor regression's
+frame fixture implements size getters/setters so page construction reaches the
+actual circular-anchor checks.
+
+`dump.test.mts` provides the colon-splitting WoW helper used by item links and
+checks compact versus full raid exports (grades, enchants and sockets), matching
+synchronous/asynchronous output, cancellation and export routing.
+
 
 The active character-system suites are `player-records`, `encounters`,
 `player-links`, `profile-window`, `database-page`, `opinion-display`, and
