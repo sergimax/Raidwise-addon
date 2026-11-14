@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 15
+local LAYOUT_VERSION = 16
 
 local RIGHT_COL_W = 220
 local COL_GAP = 10
@@ -859,7 +859,9 @@ local function CreateGearCheckTargetPage(parent)
 	page.debugMode = false
 	page.activeFilter = "all"
 
-	local innerW = W.ContentInnerWidth()
+	-- Page is inset inside the shell already; use its actual width instead of
+	-- the global content width (which includes shell padding assumptions).
+	local innerW = math.max(1, (page:GetWidth() or UI.CONTENT_WIDTH) - UI.PAD * 2)
 
 	local desc = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	desc:SetPoint("TOPLEFT", 0, 0)
@@ -878,9 +880,11 @@ local function CreateGearCheckTargetPage(parent)
 	W.SetFontColor(limit, UI.TEXT_DISABLED)
 	page.limit = limit
 
-	local leftW = innerW - RIGHT_COL_W - COL_GAP
+	-- Keep both columns inside the content viewport even when the shell is narrow.
+	local rightW = math.min(RIGHT_COL_W, math.floor((innerW - COL_GAP) * 0.34))
+	local leftW = innerW - rightW - COL_GAP
 	page.leftW = leftW
-	page.rightW = RIGHT_COL_W
+	page.rightW = rightW
 
 	local topY = -UI.CHECK_TO_BUTTONS
 
@@ -895,11 +899,11 @@ local function CreateGearCheckTargetPage(parent)
 	-- Right top: status, Scan, text view, select all
 	local rightTop = CreateFrame("Frame", nil, page)
 	rightTop:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", leftW + COL_GAP, topY)
-	rightTop:SetWidth(RIGHT_COL_W)
+	rightTop:SetWidth(rightW)
 	rightTop:SetHeight(RIGHT_TOP_H)
 	page.rightTop = rightTop
 
-	local selectBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("BTN_SELECT_ALL"))
+	local selectBtn = W.CreatePlainButton(rightTop, rightW, UI.ACTION_BTN_H, W.T("BTN_SELECT_ALL"))
 	selectBtn:SetPoint("BOTTOMLEFT", 0, 0)
 	selectBtn:SetPoint("BOTTOMRIGHT", rightTop, "BOTTOMRIGHT", 0, 0)
 	selectBtn:Disable()
@@ -911,7 +915,7 @@ local function CreateGearCheckTargetPage(parent)
 	end)
 	page.selectBtn = selectBtn
 
-	local debugBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_TEXT_VIEW"))
+	local debugBtn = W.CreatePlainButton(rightTop, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_TEXT_VIEW"))
 	debugBtn:SetPoint("BOTTOMLEFT", selectBtn, "TOPLEFT", 0, 4)
 	debugBtn:SetPoint("BOTTOMRIGHT", selectBtn, "TOPRIGHT", 0, 4)
 	W.SetPlainButtonTooltip(debugBtn, "GEAR_CHECK_TEXT_VIEW_TIP")
@@ -921,7 +925,7 @@ local function CreateGearCheckTargetPage(parent)
 	end)
 	page.debugBtn = debugBtn
 
-	local profileBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_PROFILE"))
+	local profileBtn = W.CreatePlainButton(rightTop, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_PROFILE"))
 	profileBtn:SetPoint("BOTTOMLEFT", debugBtn, "TOPLEFT", 0, 4)
 	profileBtn:SetPoint("BOTTOMRIGHT", debugBtn, "TOPRIGHT", 0, 4)
 	profileBtn:Disable()
@@ -931,8 +935,8 @@ local function CreateGearCheckTargetPage(parent)
 	end)
 	page.profileBtn = profileBtn
 
-	local scanBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
-	local inspectBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_INSPECT"))
+	local scanBtn = W.CreatePlainButton(rightTop, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
+	local inspectBtn = W.CreatePlainButton(rightTop, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_INSPECT"))
 	inspectBtn:SetPoint("BOTTOMLEFT", profileBtn, "TOPLEFT", 0, 4)
 	inspectBtn:SetPoint("BOTTOMRIGHT", profileBtn, "TOPRIGHT", 0, 4)
 	inspectBtn:SetScript("OnClick", function() Addon:OpenTargetInspection() end)
@@ -1126,11 +1130,11 @@ local function CreateGearCheckTargetPage(parent)
 
 	-- Right sidebar: save, delete, saved list (aligned with breakdown)
 	local rightSidebar = CreateFrame("Frame", nil, page)
-	rightSidebar:SetPoint("TOPLEFT", filterHost, "BOTTOMLEFT", leftW + COL_GAP, -6)
+	rightSidebar:SetPoint("TOPLEFT", page, "TOPLEFT", leftW + COL_GAP, topY - TOP_BLOCK_H - 8 - UI.ACTION_BTN_H - 6 - UI.ACTION_BTN_H - 6)
 	rightSidebar:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 	page.rightSidebar = rightSidebar
 
-	local saveBtn = W.CreatePlainButton(rightSidebar, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVE"))
+	local saveBtn = W.CreatePlainButton(rightSidebar, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVE"))
 	saveBtn:SetPoint("TOPLEFT", 0, 0)
 	saveBtn:SetPoint("TOPRIGHT", rightSidebar, "TOPRIGHT", 0, 0)
 	saveBtn:Disable()
@@ -1140,7 +1144,7 @@ local function CreateGearCheckTargetPage(parent)
 	end)
 	page.saveBtn = saveBtn
 
-	local savedDeleteBtn = W.CreatePlainButton(rightSidebar, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVED_DELETE"))
+	local savedDeleteBtn = W.CreatePlainButton(rightSidebar, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVED_DELETE"))
 	savedDeleteBtn:SetPoint("TOPLEFT", saveBtn, "BOTTOMLEFT", 0, -6)
 	savedDeleteBtn:SetPoint("TOPRIGHT", saveBtn, "BOTTOMRIGHT", 0, -6)
 	savedDeleteBtn:Disable()
@@ -1177,7 +1181,7 @@ local function CreateGearCheckTargetPage(parent)
 	page.savedScroll = savedScroll
 
 	local savedContent = CreateFrame("Frame", nil, savedScroll)
-	savedContent:SetWidth(math.max(100, RIGHT_COL_W - UI.CD_SCROLLBAR_W - 20))
+	savedContent:SetWidth(math.max(100, rightW - UI.CD_SCROLLBAR_W - 20))
 	savedContent:SetHeight(18)
 	savedScroll:SetScrollChild(savedContent)
 	page.savedContent = savedContent

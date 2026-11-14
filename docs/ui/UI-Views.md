@@ -39,7 +39,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | My gear and CDs exports | `LAYOUT_VERSION = 4` | `PageExport.lua` | Top title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 55` | `PageRaid.lua` | Top title bar (next to page name) |
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Top title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 15` | `PageGearCheckTarget.lua` | Top title bar (next to page name) |
+| Gear check (target) | `LAYOUT_VERSION = 16` | `PageGearCheckTarget.lua` | Top title bar (next to page name) |
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Top title bar (next to page name) |
 | EPGP roster | `LAYOUT_VERSION = 16` | `PageEPGP.lua` | Top title bar (next to page name) |
 | Character database | `DATABASE_LAYOUT_VERSION = 13` | `PageHistory.lua` | Top title bar (next to page name) |
@@ -239,7 +239,7 @@ LEFT (640px)                          RIGHT (~220px)
 | Delete selected report | Removes the currently viewed saved entry (hover tip) |
 | saved panel (right) | Scrollable list of all saved entries; click loads frozen snapshot |
 
-`LAYOUT_VERSION = 15`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
+`LAYOUT_VERSION = 16`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems|ok`; `/rw gearcheck test`.
 
 Saved snapshot fields: `rulesetVersion` (`GEAR_CHECK_RULESET_VERSION` in rules), `dataVersion` (`GEAR_CHECK_DATA_VERSION` in catalog), both independent of addon semver. Expired entries prune on load/save.
 

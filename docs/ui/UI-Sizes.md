@@ -198,7 +198,7 @@ gap. The top block grows by **24** px. It shows inspect/spec/gems/evaluation
 stages and elapsed seconds, not a completion percentage; retries can revisit
 earlier stages. It hides when scanning ends, leaving the final status visible.
 
-Full-width description + limitation, then **two columns** (`LEFT_W ≈ innerW − 220 − 10`, right sidebar **220** px). Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**228** px): multi-line status, progress bar, **Scan**, **Inspect target**, **Character profile**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 15`.
+Full-width description + limitation, then **two columns** with a responsive right sidebar (up to **220** px) and **10** px gap, sized to the content width. Left: summary (**124** px), five report buttons, five filters, breakdown scroll. Right top band (**228** px): multi-line status, progress bar, **Scan**, **Inspect target**, **Character profile**, **Show as a text**, **Select all**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Text view replaces main body; top band stays. `LAYOUT_VERSION = 16`.
 
 | Element | Size | Notes |
 |---------|------|-------|
