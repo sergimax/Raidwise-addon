@@ -20,10 +20,10 @@ Current view is read-only after refresh; correction and JSON import controls rem
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Main frame (`RaidwiseFrame`) | **890 × 693** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
+| Main frame (`RaidwiseFrame`) | **970 × 693** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
 | Title bar | height **20** | Very top of window; drag handle; addon name/version, active page name/layout version, available report controls, collapse and close buttons |
 | Menu panel (`RaidwiseMenu`) | **85 × 671** | Narrow left navigation; title background fill |
-| Page viewport | **793 × 653** | 2 px gap after menu |
+| Page viewport | **873 × 653** | 2 px gap after menu |
 | Collapse / expand button | **16 × 16** | Beside Close; reduces window to the title bar and restores it |
 | Close button | **16 × 16** | Rightmost title bar button |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the active page name |

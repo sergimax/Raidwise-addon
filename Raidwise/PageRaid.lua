@@ -253,11 +253,23 @@ end
 
 local function FormatGearCategorySummaryLine(summary)
 	summary = summary or {}
+	local parts = {}
+	for _, grade in ipairs({ "s", "a", "b", "c", "d" }) do
+		local count = tonumber(summary[grade]) or 0
+		if count > 0 then
+			if #parts > 0 then parts[#parts + 1] = " · " end
+			parts[#parts + 1] = W.WrapGearGradation(string.upper(grade)) .. " " .. tostring(count)
+		end
+	end
 	local failedSuffix = ""
 	if (summary.failed or 0) > 0 then
 		failedSuffix = " · Failed " .. tostring(summary.failed)
 	end
-	return W.FormatGearVerdictCountsLine(nil, summary, failedSuffix)
+	if #parts == 0 and failedSuffix == "" then
+		return WrapThemeColor(UI.TEXT_DISABLED, "0")
+	end
+	parts[#parts + 1] = failedSuffix
+	return table.concat(parts)
 end
 
 local function FillGearCategorySummaryLabel(label, heading, summary)

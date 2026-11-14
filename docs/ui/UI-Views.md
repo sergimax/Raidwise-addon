@@ -32,7 +32,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 31` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 32` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |

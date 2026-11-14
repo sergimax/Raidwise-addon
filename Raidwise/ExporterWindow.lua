@@ -4,7 +4,7 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 31
+local SHELL_LAYOUT_VERSION = 32
 
 -- Visual groups for navigation (ids stay stable for a future module split).
 local MENU_GROUPS = {
@@ -237,8 +237,7 @@ local function UpdateShellHeader(frame, tabId)
 		end
 	end
 	if frame.titleText then
-		local titleWidth = usesReportForm and 170 or (usesReportChat and 190 or 240)
-		frame.titleText:SetWidth(titleWidth)
+		frame.titleText:SetWidth(frame.titleText:GetStringWidth())
 	end
 	if not frame.pageLayoutVersionText then
 		return
