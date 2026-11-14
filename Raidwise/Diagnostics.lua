@@ -32,7 +32,7 @@ function Addon:RunDiagnostics()
 			lines[#lines + 1] = "Character storage: " .. health.status .. "; quarantined=" .. health.quarantined
 				.. (health.reason and ("; reason=" .. health.reason) or "")
 			if health.quarantined > 0 then
-				lines[#lines + 1] = "WARN damaged records isolated; originals retained in playerRecords.quarantine. Repair procedure: docs/Character-System-Contract.md."
+				lines[#lines + 1] = "WARN damaged records isolated; originals retained in playerRecords.quarantine. Repair procedure: docs/characters/Character-System-Contract.md."
 			end
 		end
 		Check("local character system", function()

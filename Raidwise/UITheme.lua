@@ -4,21 +4,20 @@ local Addon = Raidwise
 
 Addon.UITheme = {
 	-- Content panel (RaidwiseFrame)
-	CONTENT_WIDTH = 890,
-	CONTENT_HEIGHT = 693, -- title/padding 40 + raid header 110 + groups 1-5 524 + scroll insets 19
+	CONTENT_WIDTH = 970,
+	CONTENT_HEIGHT = 693, -- prior shell height: title/padding 40 + raid header 110 + groups 1-5 524 + scroll insets 19
 	PAD = 10,
 	TITLE_H = 20,
 	CLOSE_SIZE = 16,
 
-	-- Left menu (RaidwiseMenu)
-	MENU_WIDTH = 170,
-	MENU_GAP = 0,
-	MENU_BTN_H = 28,
-	MENU_BTN_GAP = 3,
-	MENU_ICON = 18,
+	-- Left navigation (RaidwiseMenu)
+	MENU_BAR_W = 90,
+	MENU_BTN_H = 27,
+	MENU_BTN_GAP = 1,
+	MENU_ICON = 16,
 	MENU_GROUP_HEADING_H = 16,
 	MENU_GROUP_HEADING_GAP = 2,
-	MENU_GROUP_GAP = 8,
+	MENU_GROUP_GAP = 3,
 	MENU_SEP_H = 1,
 
 	-- Status bar (under menu + content)
@@ -61,9 +60,9 @@ Addon.UITheme = {
 	PROFILE_ICON = 24,
 	CD_SCROLLBAR_W = 16,
 	CD_HSCROLL_H = 16,
-	CD_ROW_A = { 0.094, 0.094, 0.141, 0.95 },
-	CD_ROW_B = { 0.078, 0.078, 0.118, 0.95 },
-	CD_CURRENT_CHARACTER = { 0.180, 0.150, 0.080, 0.95 },
+	CD_ROW_A = { 0.125, 0.118, 0.098, 1 },
+	CD_ROW_B = { 0.090, 0.086, 0.075, 1 },
+	CD_CURRENT_CHARACTER = { 0.255, 0.220, 0.145, 1 },
 
 	-- Raid roster tab
 	RAID_BUFF_ICON = 18,
@@ -73,6 +72,7 @@ Addon.UITheme = {
 	RAID_SCAN_D = { 0.29, 0.11, 0.13, 1 },
 	RAID_SCAN_INCOMPLETE = { 0.12, 0.20, 0.30, 1 },
 	RAID_SCAN_NONE = { 0.16, 0.16, 0.18, 1 },
+	CONSUMABLE_PRESENT_BG = { 0.20, 0.36, 0.21, 1 },
 	RAID_BUFF_MAX = 8,
 	RAID_BUFF_GAP = 2,
 	PARTY_BUFF_ICON = 14,
@@ -92,7 +92,7 @@ Addon.UITheme = {
 	RAID_HEADER_COL_COUNT = 4,
 	RAID_HEADER_COL_GAP = 8,
 	RAID_HEADER_ROW_GAP = 4,
-	RAID_SUMMARY_COL_COUNT = 6,
+	RAID_SUMMARY_COL_COUNT = 4,
 	RAID_SUMMARY_COL_GAP = 8,
 	RAID_SUMMARY_HEADING_H = 14,
 	RAID_SUMMARY_BODY_H = 32,
@@ -103,28 +103,29 @@ Addon.UITheme = {
 
 	TEXT_BODY = { 1, 1, 1 },
 	INPUT_BG = { 0, 0, 0, 1 },
-	-- Colors — Classic theme (preview/themes.html #classic)
-	GOLD = { 1.000, 0.824, 0.000 },
-	GOLD_DIM = { 0.769, 0.627, 0.290 }, -- Menu group headings / separators
-	BORDER = { 0.420, 0.341, 0.188, 1 },
+	-- Colors — Low-noise Ivory theme (docs/ui/low-noise-ivory.html)
+	GOLD = { 0.851, 0.780, 0.565 },
+	GOLD_DIM = { 0.549, 0.510, 0.416 }, -- Menu group headings / separators
+	BORDER = { 0.188, 0.180, 0.157, 1 },
 	BORDER_W = 2,
-	TEXT_IDLE = { 1.000, 0.933, 0.733 },
-	TEXT_GOOD = { 0.350, 0.850, 0.400 },
-	PANEL_BG = { 0.071, 0.071, 0.110, 0.98 },
-	TITLE_BG = { 0.110, 0.110, 0.165, 1 },
-	BTN_IDLE = { 0.125, 0.110, 0.165, 0.98 },
-	BTN_HOVER = { 0.180, 0.150, 0.200, 1 },
-	BTN_SELECTED = { 0.230, 0.188, 0.125, 1 },
-	BTN_DISABLED = { 0.055, 0.055, 0.078, 0.95 },
-	TEXT_HOVER = { 1.000, 0.910, 0.550 },
-	TEXT_DISABLED = { 0.690, 0.627, 0.439 },
-	TEXT_ALERT = { 1.000, 0.251, 0.251 },
+	TEXT_IDLE = { 0.757, 0.725, 0.655 },
+	TEXT_GOOD = { 0.580, 0.647, 0.522 },
+	PANEL_BG = { 0.102, 0.098, 0.082, 1 },
+	TITLE_BG = { 0.141, 0.133, 0.110, 1 },
+	BTN_IDLE = { 0.165, 0.157, 0.133, 1 },
+	BTN_HOVER = { 0.224, 0.212, 0.173, 1 },
+	BTN_SELECTED = { 0.161, 0.153, 0.122, 1 },
+	MENU_SELECTED_BG = { 0.300, 0.235, 0.120, 1 },
+	BTN_DISABLED = { 0.090, 0.086, 0.075, 1 },
+	TEXT_HOVER = { 0.890, 0.827, 0.643 },
+	TEXT_DISABLED = { 0.569, 0.541, 0.478 },
+	TEXT_ALERT = { 0.741, 0.537, 0.435 },
 	-- Gear Check gradation: S gold, then A green through D red. Spec ranks share A–D.
-	GEAR_S = { 1.000, 0.824, 0.000 },
-	GEAR_BAD = { 1.000, 0.251, 0.251 },
-	GEAR_REPLACE = { 1.000, 0.600, 0.200 },
-	GEAR_OK = { 0.950, 0.780, 0.350 },
-	GEAR_GOOD = { 0.350, 0.850, 0.400 },
+	GEAR_S = { 1.000, 0.820, 0.300 },
+	GEAR_BAD = { 1.000, 0.380, 0.360 },
+	GEAR_REPLACE = { 1.000, 0.560, 0.250 },
+	GEAR_OK = { 0.980, 0.770, 0.250 },
+	GEAR_GOOD = { 0.480, 0.880, 0.480 },
 }
 
 Addon.Widgets = {}
@@ -139,6 +140,7 @@ local lightPalette = {
 	RAID_SCAN_D = { 0.94, 0.73, 0.74, 1 },
 	RAID_SCAN_INCOMPLETE = { 0.76, 0.85, 0.95, 1 },
 	RAID_SCAN_NONE = { 0.85, 0.85, 0.87, 1 },
+	CONSUMABLE_PRESENT_BG = { 0.55, 0.74, 0.49, 1 },
 	PANEL_BG = { 0.94, 0.93, 0.90, 1 },
 	TITLE_BG = { 0.84, 0.82, 0.77, 1 },
 	INPUT_BG = { 1, 0.99, 0.97, 1 },
@@ -148,6 +150,7 @@ local lightPalette = {
 	BTN_IDLE = { 0.85, 0.83, 0.78, 1 },
 	BTN_HOVER = { 0.78, 0.75, 0.67, 1 },
 	BTN_SELECTED = { 0.75, 0.65, 0.43, 1 },
+	MENU_SELECTED_BG = { 0.75, 0.65, 0.43, 1 },
 	BTN_DISABLED = { 0.89, 0.88, 0.85, 1 },
 	TEXT_BODY = { 0.12, 0.12, 0.15 },
 	TEXT_IDLE = { 0.20, 0.18, 0.14 },
@@ -158,11 +161,11 @@ local lightPalette = {
 	BORDER = { 0.51, 0.44, 0.29, 1 },
 	TEXT_GOOD = { 0.12, 0.42, 0.17 },
 	TEXT_ALERT = { 0.72, 0.12, 0.12 },
-	GEAR_S = { 0.48, 0.32, 0.00 },
-	GEAR_BAD = { 0.72, 0.12, 0.12 },
-	GEAR_REPLACE = { 0.66, 0.29, 0.03 },
-	GEAR_OK = { 0.48, 0.38, 0.09 },
-	GEAR_GOOD = { 0.12, 0.42, 0.17 },
+	GEAR_S = { 0.60, 0.34, 0.00 },
+	GEAR_BAD = { 0.78, 0.12, 0.12 },
+	GEAR_REPLACE = { 0.78, 0.29, 0.02 },
+	GEAR_OK = { 0.60, 0.43, 0.04 },
+	GEAR_GOOD = { 0.10, 0.48, 0.15 },
 }
 local darkPalette = {}
 for key in pairs(lightPalette) do
@@ -184,7 +187,7 @@ end
 local function TextBackgroundLuminance()
 	local light = Addon:GetTheme() == "light"
 	local value = Luminance(UI.PANEL_BG)
-	for _, key in ipairs({ "TITLE_BG", "INPUT_BG", "CD_ROW_A", "CD_ROW_B", "CD_CURRENT_CHARACTER", "BTN_IDLE", "BTN_HOVER", "BTN_SELECTED", "BTN_DISABLED" }) do
+	for _, key in ipairs({ "TITLE_BG", "INPUT_BG", "CD_ROW_A", "CD_ROW_B", "CD_CURRENT_CHARACTER", "BTN_IDLE", "BTN_HOVER", "BTN_SELECTED", "MENU_SELECTED_BG", "BTN_DISABLED" }) do
 		local background = Luminance(UI[key])
 		value = light and math.min(value, background) or math.max(value, background)
 	end

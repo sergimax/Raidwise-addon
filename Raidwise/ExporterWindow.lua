@@ -1,20 +1,19 @@
--- Details-style shell: plain panels, left menu, tabbed content pages.
+-- Details-style shell: plain panels, top navigation, tabbed content pages.
 
 local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 26
+local SHELL_LAYOUT_VERSION = 32
 
--- Visual groups for the left menu (ids stay stable for a future module split).
+-- Visual groups for navigation (ids stay stable for a future module split).
 local MENU_GROUPS = {
 	{ id = "personal", labelKey = "MENU_GROUP_PERSONAL" },
 	{ id = "raiding", labelKey = "MENU_GROUP_RAIDING" },
-	{ id = "exportWeb", labelKey = "MENU_GROUP_EXPORT_WEB" },
 	{ id = "other", labelKey = "MENU_GROUP_OTHER" },
 }
 
--- WotLK Interface\Icons paths (one per left-menu category).
+-- WotLK Interface\Icons paths (one per navigation category).
 local PAGES = {
 	{ id = "cooldowns", key = "Cooldowns", labelKey = "TAB_COOLDOWNS", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", group = "personal" },
 	{ id = "database", key = "Database", labelKey = "TAB_DATABASE", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "personal" },
@@ -23,7 +22,7 @@ local PAGES = {
 	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03", group = "raiding" },
 	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "raiding" },
 	-- Module pages are appended by their separately loaded addon.
-	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "exportWeb" },
+	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "other" },
 	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01", group = "other" },
 	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark", group = "other" },
 }
@@ -108,24 +107,30 @@ function Addon:RefreshHeaderReportChannels()
 	end
 end
 
-local function CreateHeaderReportChannels(frame, titleBar, close)
+local function CreateHeaderReportChannels(frame, titleBar, controlAnchor)
 	local host = CreateFrame("Frame", nil, titleBar)
-	host:SetSize(406, 18)
-	host:SetPoint("RIGHT", close, "LEFT", -24, 0)
+	host:SetSize(337, 18)
+	host:SetPoint("RIGHT", controlAnchor, "LEFT", -12, 0)
 	frame.reportChannelHost = host
 	frame.reportChannelRadios = {}
+	local heading = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
+	heading:SetPoint("LEFT", 0, 0)
+	heading:SetWidth(54)
+	heading:SetJustifyH("LEFT")
+	heading:SetText(W.T("HEADER_REPORT_CHANNEL"))
+	W.SetFontColor(heading, UI.TEXT_DISABLED)
 	for index, choice in ipairs(HEADER_CHAT_CHOICES) do
 		local button = CreateFrame("Button", nil, host)
-		button:SetSize(42, 18)
-		button:SetPoint("LEFT", (index - 1) * 52, 0)
+		button:SetSize(35, 18)
+		button:SetPoint("LEFT", 56 + (index - 1) * 35, 0)
 		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("LEFT", 0, 0)
-		label:SetWidth(24)
+		label:SetWidth(20)
 		label:SetJustifyH("RIGHT")
 		label:SetText(choice.label)
 		local radio = CreateFrame("CheckButton", nil, button, "UIRadioButtonTemplate")
 		radio:SetSize(14, 14)
-		radio:SetPoint("LEFT", label, "RIGHT", 2, 0)
+		radio:SetPoint("LEFT", label, "RIGHT", 1, 0)
 		radio.channelId = choice.id
 		radio.chatType = choice.chatType
 		radio.label = label
@@ -162,22 +167,28 @@ end
 
 local function CreateHeaderReportForm(frame, titleBar)
 	local host = CreateFrame("Frame", nil, titleBar)
-	host:SetSize(132, 18)
-	host:SetPoint("RIGHT", frame.reportChannelHost, "LEFT", -16, 0)
+	host:SetSize(184, 18)
+	host:SetPoint("RIGHT", frame.reportChannelHost, "LEFT", -8, 0)
 	frame.reportFormHost = host
 	frame.reportFormRadios = {}
+	local heading = W.CreateFontString(host, nil, "OVERLAY", "GameFontNormalSmall")
+	heading:SetPoint("LEFT", 0, 0)
+	heading:SetWidth(76)
+	heading:SetJustifyH("LEFT")
+	heading:SetText(W.T("HEADER_REPORT_FORM"))
+	W.SetFontColor(heading, UI.TEXT_DISABLED)
 	for index, formId in ipairs({ "short", "full" }) do
 		local button = CreateFrame("Button", nil, host)
-		button:SetSize(62, 18)
-		button:SetPoint("LEFT", (index - 1) * 70, 0)
+		button:SetSize(50, 18)
+		button:SetPoint("LEFT", 78 + (index - 1) * 52, 0)
 		local label = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
 		label:SetPoint("LEFT", 0, 0)
-		label:SetWidth(44)
+		label:SetWidth(30)
 		label:SetJustifyH("RIGHT")
 		label:SetText(formId == "short" and "Short" or "Full")
 		local radio = CreateFrame("CheckButton", nil, button, "UIRadioButtonTemplate")
 		radio:SetSize(14, 14)
-		radio:SetPoint("LEFT", label, "RIGHT", 2, 0)
+		radio:SetPoint("LEFT", label, "RIGHT", 1, 0)
 		radio.formId = formId
 		radio.label = label
 		local function SelectForm()
@@ -226,7 +237,7 @@ local function UpdateShellHeader(frame, tabId)
 		end
 	end
 	if frame.titleText then
-		frame.titleText:SetWidth(math.min(230, frame.titleText:GetStringWidth() or 230))
+		frame.titleText:SetWidth(frame.titleText:GetStringWidth())
 	end
 	if not frame.pageLayoutVersionText then
 		return
@@ -330,8 +341,8 @@ end
 
 local function CreateTitleBar(frame)
 	local titleBar = CreateFrame("Frame", nil, frame)
-	titleBar:SetPoint("TOPLEFT", 1, -1)
-	titleBar:SetPoint("TOPRIGHT", -1, -1)
+	titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1)
+	titleBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1)
 	titleBar:SetHeight(UI.TITLE_H)
 	W.ApplyPlainPanel(titleBar, UI.TITLE_BG)
 	W.AttachDragHandle(titleBar, frame)
@@ -353,61 +364,64 @@ local function CreateTitleBar(frame)
 		frame:Hide()
 	end)
 
+	local collapse = CreateFrame("Button", nil, titleBar)
+	collapse:SetSize(UI.CLOSE_SIZE, UI.CLOSE_SIZE)
+	collapse:SetPoint("RIGHT", close, "LEFT", -4, 0)
+	local collapseText = W.CreateFontString(collapse, nil, "OVERLAY", "GameFontNormal")
+	collapseText:SetPoint("CENTER", 0, 0)
+	collapseText:SetText("-")
+	W.SetFontColor(collapseText, UI.TEXT_IDLE)
+	collapse:SetScript("OnClick", function()
+		Addon:ToggleMainFrameCollapsed()
+	end)
+	collapse:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+		GameTooltip:AddLine(W.T(frame.collapsed and "WINDOW_EXPAND" or "WINDOW_COLLAPSE"))
+		GameTooltip:Show()
+	end)
+	collapse:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+	local addonName = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormal")
+	addonName:SetPoint("LEFT", 8, 0)
+	addonName:SetText("Raidwise")
+	W.SetFontColor(addonName, UI.GOLD)
+
+	local addonVersion = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormalSmall")
+	addonVersion:SetPoint("LEFT", addonName, "RIGHT", 4, 0)
+	addonVersion:SetText("v" .. tostring(Addon.version))
+	W.SetFontColor(addonVersion, UI.TEXT_DISABLED)
+
 	local title = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormal")
-	title:SetPoint("LEFT", 8, 0)
-	title:SetWidth(230)
+	title:SetPoint("LEFT", addonVersion, "RIGHT", 12, 0)
+	title:SetWidth(170)
 	title:SetJustifyH("LEFT")
-	title:SetText("Raidwise")
-	W.SetFontColor(title, UI.GOLD)
+	title:SetWordWrap(false)
+	title:SetText("")
+	W.SetFontColor(title, UI.TEXT_BODY)
 
 	local pageLayoutVersionText = W.CreateFontString(titleBar, nil, "OVERLAY", "GameFontNormalSmall")
-	pageLayoutVersionText:SetPoint("LEFT", title, "RIGHT", 8, 0)
+	pageLayoutVersionText:SetPoint("LEFT", title, "RIGHT", 2, 0)
 	pageLayoutVersionText:SetJustifyH("LEFT")
 	pageLayoutVersionText:SetText("")
 	W.SetFontColor(pageLayoutVersionText, UI.TEXT_DISABLED)
 
-	CreateHeaderReportChannels(frame, titleBar, close)
+	CreateHeaderReportChannels(frame, titleBar, collapse)
 	CreateHeaderReportForm(frame, titleBar)
 
 	frame.titleBar = titleBar
+	frame.collapseButton = collapse
+	frame.collapseButtonText = collapseText
+	frame.addonNameText = addonName
+	frame.addonVersionText = addonVersion
 	frame.titleText = title
 	frame.pageLayoutVersionText = pageLayoutVersionText
 	return titleBar
 end
 
-local MENU_HEADER_GAP = 8
-
-local function UpdateMenuHeaderLayout(frame)
-	if not frame or not frame.menuTitleBar or not frame.menuNameLabel or not frame.menuVersionLabel then
-		return
-	end
-	local titleBar = frame.menuTitleBar
-	local nameLabel = frame.menuNameLabel
-	local versionLabel = frame.menuVersionLabel
-	local nameWidth = nameLabel:GetStringWidth() or 0
-	local versionWidth = versionLabel:GetStringWidth() or 0
-	local totalWidth = nameWidth + MENU_HEADER_GAP + versionWidth
-	nameLabel:ClearAllPoints()
-	versionLabel:ClearAllPoints()
-	nameLabel:SetPoint("LEFT", titleBar, "CENTER", -totalWidth / 2, 0)
-	versionLabel:SetPoint("LEFT", nameLabel, "RIGHT", MENU_HEADER_GAP, 0)
-end
-
-local function UpdateMenuHeader(frame)
-	if not frame then
-		return
-	end
-	if frame.menuVersionLabel then
-		frame.menuVersionLabel:SetText("v" .. tostring(Addon.version))
-		W.SetFontColor(frame.menuVersionLabel, UI.TEXT_DISABLED)
-	end
-	UpdateMenuHeaderLayout(frame)
-end
-
 local function CreateMenuGroupHeading(parent, labelKey, yOffset)
 	local heading = W.CreateFontString(parent, nil, "OVERLAY", "GameFontNormalSmall")
 	heading:SetPoint("TOPLEFT", 10, yOffset)
-	heading:SetPoint("TOPRIGHT", -10, yOffset)
+	heading:SetPoint("TOPRIGHT", -6, yOffset)
 	heading:SetHeight(UI.MENU_GROUP_HEADING_H)
 	heading:SetJustifyH("LEFT")
 	heading:SetJustifyV("MIDDLE")
@@ -427,12 +441,13 @@ local function CreateMenuSeparator(parent, yOffset)
 	return sep
 end
 
-local function CreateMenuButton(parent, tabId, label, yOffset, iconPath)
+local function CreateMenuButton(parent, tabId, label, xOffset, yOffset, width, iconPath)
 	local button = CreateFrame("Button", nil, parent)
-	button:SetSize(UI.MENU_WIDTH - 12, UI.MENU_BTN_H)
-	button:SetPoint("TOP", 0, yOffset)
+	button:SetSize(width, UI.MENU_BTN_H)
+	button:SetPoint("TOPLEFT", parent, "TOPLEFT", xOffset, yOffset)
 	W.ApplyPlainPanel(button, UI.BTN_IDLE)
 	button.tabId = tabId
+	button.isMenuTab = true
 
 	local icon = button:CreateTexture(nil, "ARTWORK")
 	icon:SetSize(UI.MENU_ICON, UI.MENU_ICON)
@@ -486,7 +501,7 @@ function Addon:CreateMainFrame()
 	frame:EnableMouse(true)
 	frame:SetFrameStrata("DIALOG")
 	frame:SetClampedToScreen(true)
-	frame:SetClampRectInsets(-UI.MENU_WIDTH, 0, 0, 0)
+	frame:SetClampRectInsets(0, 0, 0, 0)
 	frame:Hide()
 	W.ApplyPlainPanel(frame)
 	frame.layoutVersion = SHELL_LAYOUT_VERSION
@@ -499,59 +514,41 @@ function Addon:CreateMainFrame()
 
 	local menu = CreateFrame("Frame", "RaidwiseMenu", frame)
 	W.DetachFrameChildren(menu)
-	menu:SetWidth(UI.MENU_WIDTH)
-	menu:SetPoint("TOPRIGHT", frame, "TOPLEFT", 0, 0)
-	menu:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", 0, 0)
-	W.ApplyPlainPanel(menu)
+	menu:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -(UI.TITLE_H + 1))
+	menu:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 1, 1)
+	menu:SetWidth(UI.MENU_BAR_W)
+	W.ApplyPlainPanel(menu, UI.TITLE_BG)
 	menu:EnableMouse(true)
+	frame.menu = menu
 
-	local menuTitleBar = CreateFrame("Frame", nil, menu)
-	menuTitleBar:SetPoint("TOPLEFT", 1, -1)
-	menuTitleBar:SetPoint("TOPRIGHT", -1, -1)
-	menuTitleBar:SetHeight(UI.TITLE_H)
-	W.ApplyPlainPanel(menuTitleBar, UI.TITLE_BG)
-	W.AttachDragHandle(menuTitleBar, frame)
-
-	local menuNameLabel = W.CreateFontString(menuTitleBar, nil, "OVERLAY", "GameFontNormal")
-	menuNameLabel:SetText("Raidwise")
-	W.SetFontColor(menuNameLabel, UI.GOLD)
-
-	local menuVersionLabel = W.CreateFontString(menuTitleBar, nil, "OVERLAY", "GameFontNormalSmall")
-	menuVersionLabel:SetText("v" .. tostring(Addon.version))
-	W.SetFontColor(menuVersionLabel, UI.TEXT_DISABLED)
-	frame.menuTitleBar = menuTitleBar
-	frame.menuNameLabel = menuNameLabel
-	frame.menuVersionLabel = menuVersionLabel
-	UpdateMenuHeaderLayout(frame)
-
+	local menuGap = UI.MENU_BTN_GAP or 4
+	local menuButtonWidth = UI.MENU_BAR_W - 4
 	frame.menuButtons = {}
 	frame.menuGroupHeadings = {}
-	local menuY = -(UI.TITLE_H + 8)
-	local lastGroup = nil
+	local currentGroup
+	local row = 0
 	for index = 1, #PAGES do
 		local pageInfo = PAGES[index]
-		if pageInfo.group ~= lastGroup then
-			if lastGroup then
-				menuY = menuY - UI.MENU_GROUP_GAP
-				CreateMenuSeparator(menu, menuY)
-				menuY = menuY - UI.MENU_SEP_H - UI.MENU_GROUP_GAP
-			end
-			local groupInfo = MenuGroupById(pageInfo.group)
-			if groupInfo then
-				local heading = CreateMenuGroupHeading(menu, groupInfo.labelKey, menuY)
-				frame.menuGroupHeadings[#frame.menuGroupHeadings + 1] = heading
-				menuY = menuY - UI.MENU_GROUP_HEADING_H - UI.MENU_GROUP_HEADING_GAP
-			end
-			lastGroup = pageInfo.group
+		if pageInfo.group ~= currentGroup then
+			currentGroup = pageInfo.group
+			local groupInfo = MenuGroupById(currentGroup)
+			if row > 0 then row = row + 1 end
+			local heading = CreateMenuGroupHeading(menu, groupInfo.labelKey, -UI.PAD - row * (UI.MENU_BTN_H + menuGap))
+			frame.menuGroupHeadings[#frame.menuGroupHeadings + 1] = heading
+			row = row + 1
 		end
-		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), menuY, pageInfo.icon)
+		local xOffset = 2
+		local yOffset = -UI.PAD - row * (UI.MENU_BTN_H + menuGap)
+		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), xOffset, yOffset, menuButtonWidth, pageInfo.icon)
 		frame.menuButtons[#frame.menuButtons + 1] = button
-		menuY = menuY - UI.MENU_BTN_H - UI.MENU_BTN_GAP
+		row = row + 1
 	end
 
 	local content = CreateFrame("Frame", nil, frame)
-	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.PAD))
+	content:SetPoint("TOPLEFT", UI.MENU_BAR_W + 2, -(UI.TITLE_H + UI.PAD))
 	content:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
+	frame.content = content
+	frame.expandedHeight = UI.CONTENT_HEIGHT
 
 	frame.pages = {}
 	for index = 1, #PAGES do
@@ -586,9 +583,6 @@ function Addon:RefreshLocalizedUI()
 		return
 	end
 
-	if frame.menuVersionLabel then
-		UpdateMenuHeader(frame)
-	end
 	if frame.menuGroupHeadings then
 		for index = 1, #frame.menuGroupHeadings do
 			local heading = frame.menuGroupHeadings[index]
@@ -622,6 +616,9 @@ end
 
 function Addon:ShowMainFrame()
 	local frame = self:CreateMainFrame()
+	if frame.collapsed then
+		self:ToggleMainFrameCollapsed()
+	end
 	-- Prefer configured startup tab each time the window is opened.
 	self:SelectTab(self:GetStartupTab())
 	frame:Show()
@@ -632,6 +629,26 @@ function Addon:HideMainFrame()
 	if self.HideSyncShareMenu then self:HideSyncShareMenu() end
 	if self.mainFrame then
 		self.mainFrame:Hide()
+	end
+end
+
+function Addon:ToggleMainFrameCollapsed()
+	local frame = self.mainFrame
+	if not frame or not frame.menu or not frame.content then return end
+	frame.collapsed = not frame.collapsed
+	if frame.collapsed then
+		frame.menu:Hide()
+		frame.content:Hide()
+		frame:SetHeight(UI.TITLE_H + 2)
+		frame.collapseButtonText:SetText("+")
+	else
+		frame:SetHeight(frame.expandedHeight)
+		frame.menu:Show()
+		frame.content:Show()
+		frame.collapseButtonText:SetText("-")
+	end
+	if frame.collapseButton then
+		GameTooltip:Hide()
 	end
 end
 

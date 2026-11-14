@@ -60,7 +60,7 @@ Example: `feat(settings): add light and dark theme toggle`.
 ## Layout versions
 
 Apply these rules when changing UI structure or geometry in `Raidwise/**/*.lua`,
-or updating `docs/UI-Views.md` and `docs/UI-Sizes.md`. Layout versions (`vN`) are
+or updating `docs/ui/UI-Views.md` and `docs/ui/UI-Sizes.md`. Layout versions (`vN`) are
 independent of addon semver (`Addon.version`).
 
 Bump the relevant layout constant for new or removed panels, tabs, or columns;
@@ -82,4 +82,4 @@ User-visible color tweaks can qualify for PATCH in a requested semver release.
 - Content page badges belong in the shell title bar via `UpdateShellHeader` in `ExporterWindow.lua`, showing page name plus `vN`; do not add per-page toolbar badges.
 - Profile badges use `Addon.Widgets.AttachLayoutVersionLabel` on the profile title bar.
 - `SHELL_LAYOUT_VERSION` is for rebuilding only and is not shown in the title bar.
-- Update the layout table in `docs/UI-Views.md`; update affected sizes in `docs/UI-Sizes.md` when pixels change.
+- Update the layout table in `docs/ui/UI-Views.md`; update affected sizes in `docs/ui/UI-Sizes.md` when pixels change.

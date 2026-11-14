@@ -6,12 +6,12 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 15
+local LAYOUT_VERSION = 20
 
 local RIGHT_COL_W = 220
 local COL_GAP = 10
 local SUMMARY_H = 124
-local RIGHT_TOP_H = UI.ACTION_BTN_H * 5 + 20 + 68
+local RIGHT_TOP_H = UI.ACTION_BTN_H * 4 + 24 + 68
 local TOP_BLOCK_H = math.max(SUMMARY_H, RIGHT_TOP_H)
 
 local ApplyReportToPage
@@ -22,7 +22,6 @@ local FILTERS = {
 	{ id = "items", labelKey = "GEAR_CHECK_FILTER_ITEMS", tipKey = "GEAR_CHECK_FILTER_ITEMS_TIP" },
 	{ id = "enchants", labelKey = "GEAR_CHECK_FILTER_ENCHANTS", tipKey = "GEAR_CHECK_FILTER_ENCHANTS_TIP" },
 	{ id = "gems", labelKey = "GEAR_CHECK_FILTER_GEMS", tipKey = "GEAR_CHECK_FILTER_GEMS_TIP" },
-	{ id = "ok", labelKey = "GEAR_CHECK_FILTER_OK", tipKey = "GEAR_CHECK_FILTER_OK_TIP" },
 }
 
 local REPORT_BUTTONS = {
@@ -30,7 +29,6 @@ local REPORT_BUTTONS = {
 	{ mode = "items", labelKey = "GEAR_CHECK_REPORT_ITEMS", tipKey = "GEAR_CHECK_REPORT_ITEMS_TIP" },
 	{ mode = "enchants", labelKey = "GEAR_CHECK_REPORT_ENCHANTS", tipKey = "GEAR_CHECK_REPORT_ENCHANTS_TIP" },
 	{ mode = "gems", labelKey = "GEAR_CHECK_REPORT_GEMS", tipKey = "GEAR_CHECK_REPORT_GEMS_TIP" },
-	{ mode = "ok", labelKey = "GEAR_CHECK_REPORT_OK", tipKey = "GEAR_CHECK_REPORT_OK_TIP" },
 }
 
 local REPORT_ICONS = {
@@ -38,7 +36,7 @@ local REPORT_ICONS = {
 	items = "Interface\\Icons\\INV_Sword_04",
 	enchants = "Interface\\Icons\\INV_Misc_Gem_Diamond_01",
 	gems = "Interface\\Icons\\INV_Misc_Gem_Ruby_02",
-	ok = "Interface\\Icons\\Spell_Holy_BlessingOfStrength",
+	full = "Interface\\Icons\\Spell_Holy_BlessingOfStrength",
 }
 
 local function ReportButtonLabel(info)
@@ -226,10 +224,7 @@ local function BuildBreakdownGroups(report, filterId)
 		end
 	end
 
-	if filterId == "ok" then
-		AppendOkSlots()
-	else
-		for index = 1, #findings do
+	for index = 1, #findings do
 			local finding = findings[index]
 			if FindingMatchesFilter(finding, filterId) then
 				local severity = finding.severity
@@ -251,11 +246,8 @@ local function BuildBreakdownGroups(report, filterId)
 					end
 				end
 			end
-		end
-		if filterId == "all" then
-			AppendOkSlots()
-		end
 	end
+	if filterId == "all" then AppendOkSlots() end
 
 	local list = {}
 	for index = 1, #order do
@@ -393,16 +385,6 @@ local function UpdateDebugVisibility(page)
 			page.copyHost:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 		else
 			page.copyHost:Hide()
-		end
-	end
-	if page.debugBtn and page.debugBtn.label then
-		page.debugBtn.label:SetText(debug and W.T("GEAR_CHECK_TEXT_VIEW_ON") or W.T("GEAR_CHECK_TEXT_VIEW"))
-	end
-	if page.selectBtn then
-		if debug and page.dumpBox and (page.dumpBox:GetText() or "") ~= "" then
-			page.selectBtn:Enable()
-		else
-			page.selectBtn:Disable()
 		end
 	end
 	if page.saveBtn then
@@ -654,78 +636,28 @@ local function ApplyBreakdown(page, report)
 
 	local filterId = page.activeFilter or "all"
 	local groups = report and BuildBreakdownGroups(report, filterId) or {}
-	local headerH = BreakdownFilterHeaderHeight(page, filterId)
 	local emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_SCAN")
 	if report then
 		if #groups == 0 then
-			if filterId == "ok" then
-				emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_OK")
-			else
-				emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_FILTER")
-			end
+			emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_FILTER")
 		end
 	end
 
-	if not report or #groups == 0 then
-		EnsureBreakdownRows(page, 1)
-		local row = page.breakRows[1]
-		row:ClearAllPoints()
-		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -headerH)
-		row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, -headerH)
-		row.title:SetText(emptyText)
-		W.SetFontColor(row.title, UI.TEXT_DISABLED)
-		row.detail:SetText("")
-		row.detail:Hide()
-		row:SetHeight(18)
-		row:Show()
-		content:SetHeight(math.max(24, headerH + 18 + 4))
-		scroll:SetVerticalScroll(0)
-		if page.breakBar then
-			page.breakBar:SetMinMaxValues(0, 0)
-			page.breakBar:SetValue(0)
-		end
-		return
+	local output = {}
+	if #groups == 0 then
+		output[1] = emptyText
 	end
-
-	EnsureBreakdownRows(page, #groups)
-	local y = -headerH
-	local width = math.max(100, (content:GetWidth() or W.ContentInnerWidth()) - 4)
 	for index = 1, #groups do
 		local group = groups[index]
-		local row = page.breakRows[index]
-		row:ClearAllPoints()
-		row:SetPoint("TOPLEFT", content, "TOPLEFT", 0, y)
-		row:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, y)
-		row.title:SetWidth(width)
 		local verdict = group.verdict or "B"
-		row.title:SetText(string.format("[%s] %s", W.WrapGearGradation(verdict), group.label))
-		W.SetFontColor(row.title, UI.TEXT_IDLE)
-
-		local detailParts = {}
+		output[#output + 1] = string.format("[%s] %s", verdict, group.label)
 		for lineIndex = 1, #group.lines do
-			detailParts[#detailParts + 1] = "• " .. group.lines[lineIndex].message
+			output[#output + 1] = "  • " .. group.lines[lineIndex].message
 		end
-		local detailText = table.concat(detailParts, "\n")
-		row.detail:SetWidth(width - 12)
-		row.detail:SetText(detailText)
-		row.detail:Show()
-		W.SetFontColor(row.detail, UI.TEXT_DISABLED)
-
-		local titleH = row.title:GetStringHeight() or 14
-		local detailH = row.detail:GetStringHeight() or 0
-		local rowH = titleH + 2 + detailH + 8
-		row:SetHeight(rowH)
-		row:Show()
-		y = y - rowH
 	end
-	local contentH = math.max(24, -y + 4)
-	content:SetHeight(contentH)
-	local viewH = scroll:GetHeight() or 0
-	local maxV = math.max(0, contentH - viewH)
-	scroll:SetVerticalScroll(0)
-	if page.breakBar then
-		page.breakBar:SetMinMaxValues(0, maxV)
-		page.breakBar:SetValue(0)
+	if page.breakBox then
+		page.breakBox:SetText(table.concat(output, "\n"))
+		if page.breakBox.Fit then page.breakBox:Fit() elseif W.FitCopyBoxToText then W.FitCopyBoxToText(page.breakBox) end
 	end
 end
 
@@ -859,7 +791,9 @@ local function CreateGearCheckTargetPage(parent)
 	page.debugMode = false
 	page.activeFilter = "all"
 
-	local innerW = W.ContentInnerWidth()
+	-- Page is inset inside the shell already; use its actual width instead of
+	-- the global content width (which includes shell padding assumptions).
+	local innerW = math.max(1, (page:GetWidth() or UI.CONTENT_WIDTH) - UI.PAD * 2)
 
 	local desc = W.CreateFontString(page, nil, "OVERLAY", "GameFontHighlight")
 	desc:SetPoint("TOPLEFT", 0, 0)
@@ -878,9 +812,11 @@ local function CreateGearCheckTargetPage(parent)
 	W.SetFontColor(limit, UI.TEXT_DISABLED)
 	page.limit = limit
 
-	local leftW = innerW - RIGHT_COL_W - COL_GAP
+	-- Keep both columns inside the content viewport even when the shell is narrow.
+	local rightW = math.min(RIGHT_COL_W, math.floor((innerW - COL_GAP) * 0.34))
+	local leftW = innerW - rightW - COL_GAP
 	page.leftW = leftW
-	page.rightW = RIGHT_COL_W
+	page.rightW = rightW
 
 	local topY = -UI.CHECK_TO_BUTTONS
 
@@ -892,49 +828,53 @@ local function CreateGearCheckTargetPage(parent)
 	W.ApplyPlainPanel(summaryHost, UI.PANEL_BG)
 	page.summaryHost = summaryHost
 
-	-- Right top: status, Scan, text view, select all
+	-- Right top: status, Scan, inspect, character profile
 	local rightTop = CreateFrame("Frame", nil, page)
 	rightTop:SetPoint("TOPLEFT", limit, "BOTTOMLEFT", leftW + COL_GAP, topY)
-	rightTop:SetWidth(RIGHT_COL_W)
+	rightTop:SetWidth(rightW)
 	rightTop:SetHeight(RIGHT_TOP_H)
 	page.rightTop = rightTop
 
-	local selectBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("BTN_SELECT_ALL"))
-	selectBtn:SetPoint("BOTTOMLEFT", 0, 0)
-	selectBtn:SetPoint("BOTTOMRIGHT", rightTop, "BOTTOMRIGHT", 0, 0)
-	selectBtn:Disable()
-	W.SetPlainButtonTooltip(selectBtn, "GEAR_CHECK_SELECT_ALL_TIP")
-	selectBtn:SetScript("OnClick", function()
-		if Addon.SelectGearCheckDump then
-			Addon:SelectGearCheckDump()
-		end
-	end)
-	page.selectBtn = selectBtn
-
-	local debugBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_TEXT_VIEW"))
-	debugBtn:SetPoint("BOTTOMLEFT", selectBtn, "TOPLEFT", 0, 4)
-	debugBtn:SetPoint("BOTTOMRIGHT", selectBtn, "TOPRIGHT", 0, 4)
-	W.SetPlainButtonTooltip(debugBtn, "GEAR_CHECK_TEXT_VIEW_TIP")
-	debugBtn:SetScript("OnClick", function()
-		page.debugMode = not page.debugMode
-		UpdateDebugVisibility(page)
-	end)
-	page.debugBtn = debugBtn
-
-	local profileBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_PROFILE"))
-	profileBtn:SetPoint("BOTTOMLEFT", debugBtn, "TOPLEFT", 0, 4)
-	profileBtn:SetPoint("BOTTOMRIGHT", debugBtn, "TOPRIGHT", 0, 4)
+	local profileBtn = W.CreatePlainButton(rightTop, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_PROFILE"))
+	profileBtn:SetPoint("BOTTOMLEFT", rightTop, "BOTTOMLEFT", 0, 0)
+	profileBtn:SetPoint("BOTTOMRIGHT", rightTop, "BOTTOMRIGHT", 0, 0)
 	profileBtn:Disable()
 	W.SetPlainButtonTooltip(profileBtn, "GEAR_CHECK_PROFILE_TIP")
 	profileBtn:SetScript("OnClick", function()
 		Addon:OpenGearCheckCharacterProfile(page.lastReport)
 	end)
 	page.profileBtn = profileBtn
+	local fullReportBtn = W.CreatePlainButton(rightTop, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_REPORT_OK"))
+	fullReportBtn:SetPoint("BOTTOMLEFT", profileBtn, "TOPLEFT", 0, 4)
+	fullReportBtn:SetPoint("BOTTOMRIGHT", profileBtn, "TOPRIGHT", 0, 4)
+	W.SetPlainButtonTooltip(fullReportBtn, "GEAR_CHECK_REPORT_OK_TIP")
+	fullReportBtn:SetScript("OnClick", function()
+		local report = page.lastReport or (Addon.GetLastGearCheckReport and Addon:GetLastGearCheckReport())
+		local function ShowFullReport(fullReport, status)
+			if not fullReport then Addon:Print(W.T("CHAT_GEARCHECK_NO_REPORT")); return end
+			ApplyReportToPage(page, fullReport, status or "ok")
+			page.lastReport = fullReport
+			if Addon.FormatGearCheckDump and page.breakBox then
+				page.breakBox:SetText(Addon:FormatGearCheckDump(fullReport))
+				if page.breakBox.Fit then page.breakBox:Fit() elseif W.FitCopyBoxToText then W.FitCopyBoxToText(page.breakBox) end
+			end
+			if page.breakBox then page.breakBox:SetFocus(); page.breakBox:HighlightText() end
+		end
+		if report then ShowFullReport(report, page.lastStatus); return end
+		if not Addon.StartGearCheckScan then return end
+		if page.statusLabel then page.statusLabel:SetText(W.T("GEAR_CHECK_STATUS_SCANNING")) end
+		if page.scanBtn then page.scanBtn:Disable() end
+		Addon:StartGearCheckScan(function(scanned, status)
+			if page.scanBtn then page.scanBtn:Enable() end
+			ShowFullReport(scanned, status)
+		end)
+	end)
+	page.fullReportBtn = fullReportBtn
 
-	local scanBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
-	local inspectBtn = W.CreatePlainButton(rightTop, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_INSPECT"))
-	inspectBtn:SetPoint("BOTTOMLEFT", profileBtn, "TOPLEFT", 0, 4)
-	inspectBtn:SetPoint("BOTTOMRIGHT", profileBtn, "TOPRIGHT", 0, 4)
+	local scanBtn = W.CreatePlainButton(rightTop, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SCAN"))
+	local inspectBtn = W.CreatePlainButton(rightTop, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_INSPECT"))
+	inspectBtn:SetPoint("BOTTOMLEFT", fullReportBtn, "TOPLEFT", 0, 4)
+	inspectBtn:SetPoint("BOTTOMRIGHT", fullReportBtn, "TOPRIGHT", 0, 4)
 	inspectBtn:SetScript("OnClick", function() Addon:OpenTargetInspection() end)
 	page.inspectBtn = inspectBtn
 	scanBtn:SetPoint("BOTTOMLEFT", inspectBtn, "TOPLEFT", 0, 4)
@@ -1126,11 +1066,11 @@ local function CreateGearCheckTargetPage(parent)
 
 	-- Right sidebar: save, delete, saved list (aligned with breakdown)
 	local rightSidebar = CreateFrame("Frame", nil, page)
-	rightSidebar:SetPoint("TOPLEFT", filterHost, "BOTTOMLEFT", leftW + COL_GAP, -6)
+	rightSidebar:SetPoint("TOPLEFT", page, "TOPLEFT", leftW + COL_GAP, topY - TOP_BLOCK_H - 8 - UI.ACTION_BTN_H - 6 - UI.ACTION_BTN_H - 6)
 	rightSidebar:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
 	page.rightSidebar = rightSidebar
 
-	local saveBtn = W.CreatePlainButton(rightSidebar, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVE"))
+	local saveBtn = W.CreatePlainButton(rightSidebar, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVE"))
 	saveBtn:SetPoint("TOPLEFT", 0, 0)
 	saveBtn:SetPoint("TOPRIGHT", rightSidebar, "TOPRIGHT", 0, 0)
 	saveBtn:Disable()
@@ -1140,7 +1080,7 @@ local function CreateGearCheckTargetPage(parent)
 	end)
 	page.saveBtn = saveBtn
 
-	local savedDeleteBtn = W.CreatePlainButton(rightSidebar, RIGHT_COL_W, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVED_DELETE"))
+	local savedDeleteBtn = W.CreatePlainButton(rightSidebar, rightW, UI.ACTION_BTN_H, W.T("GEAR_CHECK_SAVED_DELETE"))
 	savedDeleteBtn:SetPoint("TOPLEFT", saveBtn, "BOTTOMLEFT", 0, -6)
 	savedDeleteBtn:SetPoint("TOPRIGHT", saveBtn, "BOTTOMRIGHT", 0, -6)
 	savedDeleteBtn:Disable()
@@ -1177,7 +1117,7 @@ local function CreateGearCheckTargetPage(parent)
 	page.savedScroll = savedScroll
 
 	local savedContent = CreateFrame("Frame", nil, savedScroll)
-	savedContent:SetWidth(math.max(100, RIGHT_COL_W - UI.CD_SCROLLBAR_W - 20))
+	savedContent:SetWidth(math.max(100, rightW - UI.CD_SCROLLBAR_W - 20))
 	savedContent:SetHeight(18)
 	savedScroll:SetScrollChild(savedContent)
 	page.savedContent = savedContent
@@ -1235,6 +1175,17 @@ local function CreateGearCheckTargetPage(parent)
 	breakScroll:SetPoint("BOTTOMRIGHT", -(UI.CD_SCROLLBAR_W + 6), 8)
 	breakScroll:EnableMouseWheel(true)
 	page.breakScroll = breakScroll
+	local breakBox, breakCopyHost = W.CreateCopyBox(
+		breakHost,
+		"RaidwiseGearCheckBreakCopyScrollV" .. tostring(LAYOUT_VERSION),
+		"RaidwiseGearCheckBreakCopyBoxV" .. tostring(LAYOUT_VERSION)
+	)
+	breakCopyHost:SetPoint("TOPLEFT", breakHost, "TOPLEFT", 0, 0)
+	breakCopyHost:SetPoint("BOTTOMRIGHT", breakHost, "BOTTOMRIGHT", 0, 0)
+	breakCopyHost:SetFrameLevel(breakHost:GetFrameLevel() + 5)
+	page.breakBox = breakBox
+	page.breakCopyHost = breakCopyHost
+	breakScroll:Hide()
 
 	local breakContent = CreateFrame("Frame", nil, breakScroll)
 	breakContent:SetWidth(math.max(100, leftW - UI.CD_SCROLLBAR_W - 20))
@@ -1316,18 +1267,15 @@ local function ApplyLocale(page)
 	if page.profileBtn then
 		page.profileBtn.label:SetText(W.T("GEAR_CHECK_PROFILE"))
 	end
+	if page.fullReportBtn then
+		page.fullReportBtn.label:SetText(W.T("GEAR_CHECK_REPORT_OK"))
+	end
 	if page.scanBtn and page.scanBtn.label then
 		page.scanBtn.label:SetText(W.T("GEAR_CHECK_SCAN"))
 	end
 	if page.inspectBtn then page.inspectBtn.label:SetText(W.T("GEAR_CHECK_INSPECT")) end
 	if page.saveBtn and page.saveBtn.label then
 		page.saveBtn.label:SetText(W.T("GEAR_CHECK_SAVE"))
-	end
-	if page.debugBtn and page.debugBtn.label then
-		page.debugBtn.label:SetText(page.debugMode and W.T("GEAR_CHECK_TEXT_VIEW_ON") or W.T("GEAR_CHECK_TEXT_VIEW"))
-	end
-	if page.selectBtn and page.selectBtn.label then
-		page.selectBtn.label:SetText(W.T("BTN_SELECT_ALL"))
 	end
 	local buttons = page.filterButtons or {}
 	for index = 1, #buttons do

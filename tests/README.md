@@ -33,13 +33,24 @@ The gem fixture also inserts 2,048 unique GUIDs without expiry, checks the
 and the original non-sliding 10-second TTL. Expiry cleanup happens during
 collection, not through an idle timer.
 
-The Addon tests workflow runs on branch pushes, pull requests and manual dispatch, on both Windows and Ubuntu.
+The Addon tests workflow runs only on pull requests (opened, synchronized with new
+commits, or reopened), on both Windows and Ubuntu. Branch pushes without a pull
+request and manual dispatch do not trigger it.
 Tag publication has its own release workflow and checks.
 Required checks/branch protection are configured separately in GitHub.
 
 `architecture.test.mts` loads all active modules in TOC order and exercises
 bootstrap and profile persistence, including missing core/bridge APIs.
 Native UI construction and social-hook initialization are excluded from this bootstrap test; it is not a visual or in-client loading test.
+Navigation assertions check registered group membership, unique page IDs and
+retired-page rejection rather than a fixed menu order. The anchor regression's
+frame fixture implements size getters/setters so page construction reaches the
+actual circular-anchor checks.
+
+`dump.test.mts` provides the colon-splitting WoW helper used by item links and
+checks compact versus full raid exports (grades, enchants and sockets), matching
+synchronous/asynchronous output, cancellation and export routing.
+
 
 The active character-system suites are `player-records`, `encounters`,
 `player-links`, `profile-window`, `database-page`, `opinion-display`, and
@@ -47,14 +58,15 @@ The active character-system suites are `player-records`, `encounters`,
 not the retired profile migration modules. Older history/sync/Karma cases may
 load retired files explicitly as historical compatibility fixtures; they do not
 mean those modules are shipped in the TOC. Final verification and outstanding
-in-game work: [Character-System-Verification.md](../docs/Character-System-Verification.md).
+in-game work: [Character-System-Verification.md](../docs/characters/Character-System-Verification.md).
 
 `player-records.test.mts` also verifies journal v1-to-v2 migration (reconstruction
 of old event snapshots, ordering, authors, dates, baseline gaps, idempotence and
 unknown-version rejection), and 100/1,000 sequential event saves with linear journal
 storage. Detached profile/page reads must not traverse the whole journal.
-`profile-window.test.mts` exercises the 25-row journal pages and page clamping
-without whole-record reads. These are storage/read-path checks, not in-game
+`profile-window.test.mts` exercises Overview navigation, expandable opinion controls,
+searchable event selection with explicit confirmation, character-link search, and
+independent meeting/journal pages with clamping without whole-record reads. These are storage/read-path checks, not in-game
 latency or memory benchmarks; draft validation still visits current events.
 
 Storage recovery tests cover damaged profile/note/event fields, nested encounters
@@ -195,7 +207,7 @@ metadata unchanged, new rules and catalog revisions can change independently,
 legacy saved entries retain their metadata, and absent revision constants return
 `unknown`. The normalized report schema and source snapshot remain unchanged.
 Module ownership, revision policy, and saved-report compatibility are documented
-in `docs/Gear-Check-Progress.md` under Current module boundaries and compatibility.
+in `docs/gear-check/Gear-Check-Progress.md` under Current module boundaries and compatibility.
 
 ## Roster refresh coalescing (phase 8)
 
@@ -247,7 +259,7 @@ English/Russian, profile tabs, header visibility, and tooltip interactions.
 The modules and save/reset behavior below predate the character-system redesign.
 They are outside the TOC and release ZIP, except the still-active presentation
 module. These historical fixtures are not instructions for the current UI.
-Current ownership and acceptance are described above and in [the contract](../docs/Character-System-Contract.md).
+Current ownership and acceptance are described above and in [the contract](../docs/characters/Character-System-Contract.md).
 
 - `PlayerHistory.lua`: rating catalogs, normalization, and rating access.
 - `PlayerHistoryStore.lua`: encounter/scan history, Local Profile persistence,
@@ -378,12 +390,9 @@ Do not treat offline test runtime as the in-game baseline. Phase 1's automated
 coverage is ready; its manual timing gate remains open until these observations
 are recorded.
 
-## Manual CI and future automation
+## Pull request CI
 
 `.github/workflows/tests.yml` runs the same install/check commands on Windows and
-Linux. It has only `workflow_dispatch`, so it does not run on pushes or PRs. Once
-the workflow is on GitHub's default branch, use **Actions → Addon tests → Run
-workflow**. The workflow has been prepared locally; it has not been run on GitHub.
-
-To automate later, add `pull_request:` and the desired `push:` branch filter
-under `on:`. The test files and commands do not need to change.
+Linux for `pull_request` events: opening or reopening a PR and pushing new commits
+to its branch. It has no `push` or `workflow_dispatch` trigger. Release tag pushes
+are handled separately by `.github/workflows/release.yml`.

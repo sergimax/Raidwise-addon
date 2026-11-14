@@ -255,8 +255,8 @@ function W.FillConsumableStatusIcon(host, status, kindLabelKey)
 		host.icon:SetDesaturated(false)
 		host.icon:SetVertexColor(1, 1, 1)
 	else
-		host.icon:SetDesaturated(true)
-		host.icon:SetVertexColor(UI.TEXT_ALERT[1], UI.TEXT_ALERT[2], UI.TEXT_ALERT[3])
+		host.icon:SetDesaturated(false)
+		host.icon:SetVertexColor(1, 0.12, 0.12)
 	end
 	host:Show()
 end

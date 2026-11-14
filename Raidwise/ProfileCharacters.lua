@@ -43,11 +43,11 @@ local function CreateCharacterRow(parent, candidate)
 	row.name:SetPoint("LEFT", 0, 0)
 	row.name:SetJustifyH("LEFT")
 	row.buttons = {}
-	local keys = candidate and { "CHAR_LINK_ADD" } or { "CHAR_ROLE_MAIN", "CHAR_LINK_REMOVE" }
+	local keys = candidate and { "CHAR_LINK_ADD" } or { "OPEN_PROFILE", "CHAR_ROLE_MAIN", "CHAR_LINK_REMOVE" }
 	local previous
 	for index = #keys, 1, -1 do
 		local key = keys[index]
-		local button = W.CreatePlainButton(row, 70, 22, W.T(key))
+		local button = W.CreatePlainButton(row, key == "OPEN_PROFILE" and 85 or 70, 22, key == "OPEN_PROFILE" and (Addon.db.locale == "ruRU" and "Профиль" or "Profile") or W.T(key))
 		if previous then button:SetPoint("RIGHT", previous, "LEFT", -3, 0)
 		else button:SetPoint("RIGHT", row, "RIGHT", 0, 0) end
 		row.buttons[key] = button
@@ -88,6 +88,9 @@ local function FillRows(frame, content, rows, characters, candidate)
 				AttemptLink(frame, entry.guid)
 			end)
 		else
+			local open = row.buttons.OPEN_PROFILE
+			open.label:SetText(Addon.db.locale == "ruRU" and "Профиль" or "Profile")
+			open:SetScript("OnClick", function() Addon:ShowRaidCharacterWindow(entry) end)
 			for _, role in ipairs({ "main" }) do
 				local button = row.buttons["CHAR_ROLE_" .. string.upper(role)]
 				button.label:SetText(W.T("CHAR_ROLE_" .. string.upper(role)))
@@ -111,7 +114,10 @@ end
 function Addon:RefreshProfileCharacters(frame)
 	if not frame or not frame.charactersContent then return end
 	local guid = frame.profileMember and frame.profileMember.guid
-	frame.charactersHint:SetText(W.T("CHAR_LINK_HINT"))
+	frame.charactersHint:SetText(Addon.db.locale == "ruRU" and "Мнение и заметка у каждого персонажа свои. Связи сохраняются сразу."
+		or "Each character has their own opinion and note. Links save immediately.")
+	frame.characterSearchToggle.label:SetText(Addon.db.locale == "ruRU" and "Связать персонажа" or "Link character")
+	frame.charactersLinkedScroll:SetHeight(frame.characterSearchPanel:IsShown() and 80 or math.max(84, frame.profilePanels.characters:GetHeight() - 76))
 	frame.charactersSearchLabel:SetText(W.T("CHAR_LINK_SEARCH"))
 	frame.charactersTarget.label:SetText(W.T("CHAR_LINK_TARGET"))
 	frame.charactersStatus:SetText("")
@@ -121,35 +127,45 @@ function Addon:RefreshProfileCharacters(frame)
 	end
 	FillRows(frame, frame.charactersContent, frame.characterRows, linked, false)
 	FillRows(frame, frame.characterCandidatesContent, frame.characterCandidateRows,
-		guid and guid ~= "" and self:GetCharacterLinkCandidates(guid, frame.charactersSearch:GetText()) or {}, true)
+		frame.characterSearchPanel:IsShown() and guid and guid ~= "" and self:GetCharacterLinkCandidates(guid, frame.charactersSearch:GetText()) or {}, true)
 	if guid and guid ~= "" then frame.charactersTarget:Enable() else frame.charactersTarget:Disable() end
 end
 
 function Addon:CreateProfileCharactersPanel(frame, parent, width, layoutVersion)
-	local panel = CreateFrame("Frame", nil, parent)
-	panel:SetAllPoints(parent)
+	local panel = parent
 	panel:Hide()
 	frame.profilePanels.characters = panel
 	local hint = W.CreateFontString(panel, nil, "OVERLAY", "GameFontNormalSmall")
 	hint:SetPoint("TOPLEFT", 0, 0)
-	hint:SetPoint("RIGHT", panel, "RIGHT", 0, 0)
+	hint:SetWidth(width - 220)
 	hint:SetHeight(30)
 	hint:SetJustifyH("LEFT")
 	frame.charactersHint = hint
+	local toggle = W.CreatePlainButton(panel, 200, 24, "")
+	toggle:SetPoint("TOPRIGHT", 0, 0); frame.characterSearchToggle = toggle
+	local searchPanel = CreateFrame("Frame", nil, panel)
+	searchPanel:SetPoint("TOPLEFT", 0, -120); searchPanel:SetPoint("BOTTOMRIGHT", 0, 32)
+	frame.characterSearchPanel = searchPanel
+	toggle:SetScript("OnClick", function()
+		if searchPanel:IsShown() then searchPanel:Hide() else searchPanel:Show() end
+		Addon:RefreshProfileCharacters(frame)
+	end)
+	searchPanel:Hide()
 	local linkedScroll, linkedContent = CreateList(panel, "RaidwiseLinkedCharactersV" .. layoutVersion, 84)
 	linkedScroll:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -4)
 	linkedScroll:SetPoint("RIGHT", panel, "RIGHT", -24, 0)
 	linkedContent:SetWidth(width - 28)
 	frame.charactersContent, frame.characterRows = linkedContent, {}
-	local searchLabel = W.CreateFontString(panel, nil, "OVERLAY", "GameFontNormalSmall")
-	searchLabel:SetPoint("TOPLEFT", linkedScroll, "BOTTOMLEFT", 0, -10)
+	frame.charactersLinkedScroll = linkedScroll
+	local searchLabel = W.CreateFontString(searchPanel, nil, "OVERLAY", "GameFontNormalSmall")
+	searchLabel:SetPoint("TOPLEFT", 0, 0)
 	frame.charactersSearchLabel = searchLabel
-	local target = W.CreatePlainButton(panel, 120, 24, "")
-	local search, searchHost = W.CreateTextInput(panel, width - 128)
+	local target = W.CreatePlainButton(searchPanel, 120, 24, "")
+	local search, searchHost = W.CreateTextInput(searchPanel, width - 128)
 	searchHost:SetPoint("TOPLEFT", searchLabel, "BOTTOMLEFT", 0, -4)
 	searchHost:SetPoint("RIGHT", target, "LEFT", -8, 0)
 	target:ClearAllPoints()
-	target:SetPoint("RIGHT", panel, "RIGHT", 0, 0)
+	target:SetPoint("RIGHT", searchPanel, "RIGHT", 0, 0)
 	target:SetPoint("TOP", searchLabel, "BOTTOM", 0, -4)
 	search:SetScript("OnTextChanged", function() Addon:RefreshProfileCharacters(frame) end)
 	frame.charactersSearch, frame.charactersTarget = search, target
@@ -167,14 +183,14 @@ function Addon:CreateProfileCharactersPanel(frame, parent, width, layoutVersion)
 	local status = W.CreateFontString(panel, nil, "OVERLAY", "GameFontNormalSmall")
 	status:SetPoint("BOTTOMLEFT", 0, 0)
 	status:SetPoint("RIGHT", panel, "RIGHT", 0, 0)
-	status:SetHeight(58)
+	status:SetHeight(32)
 	status:SetJustifyH("LEFT")
 	status:SetJustifyV("TOP")
 	frame.charactersStatus = status
 
-	local candidatesScroll, candidatesContent = CreateList(panel, "RaidwiseCharacterCandidatesV" .. layoutVersion, 1)
+	local candidatesScroll, candidatesContent = CreateList(searchPanel, "RaidwiseCharacterCandidatesV" .. layoutVersion, 1)
 	candidatesScroll:SetPoint("TOPLEFT", searchHost, "BOTTOMLEFT", 0, -6)
-	candidatesScroll:SetPoint("BOTTOMRIGHT", status, "TOPRIGHT", -24, 4)
+	candidatesScroll:SetPoint("BOTTOMRIGHT", searchPanel, "BOTTOMRIGHT", -24, 0)
 	candidatesContent:SetWidth(width - 28)
 	frame.characterCandidatesContent, frame.characterCandidateRows = candidatesContent, {}
 end

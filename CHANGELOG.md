@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.3.0] - 2026-11-15
+
+### Added
+- Main-window collapse/expand control and an optional setting to hide the main window when entering combat.
+- Full raid Gear Check export with overall grades, matching equipment slots, item verdicts, enchantments and sockets; the regular export provides a compact item list.
+- Character Profile Overview with recent events, a private Note and meeting/link summaries; event selection supports categories, search and explicit confirmation.
+
+### Changed
+- Character Profiles use a compact layout with an expandable opinion/role editor, separate Meetings and change-journal views, independent pagination, and character-link search shown on demand. Linked names use class colors; GUID and confirmed deletion are in Actions.
+- Profile saving controls appear when needed for unsaved changes or errors; autosave and retained failed drafts remain available.
+- Main navigation, raid cards and Gear Check layouts are reorganized, with updated theme colors, grade colors, readable player names and colored GearScore/item-level values.
+
 ## [2.2.0] - 2026-11-10
 
 ### Added
@@ -337,7 +349,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Profile History shows **Was in the same party** count (increments after ≥30 minutes since last seen in a group)
 - Left menu category icons for each tab
 - **Info** page feature sections with the same menu icons and each view’s layout `vN`
-- Reputation model docs ([`docs/Reputation.md`](docs/Reputation.md))
+- Reputation model docs ([`docs/characters/Reputation.md`](docs/characters/Reputation.md))
 
 ### Changed
 - Slash commands: `/raidwise` / `/rw` open the window; `/raidwise close` / `/rw close` close it (removed `help`, `version`, `status`, `show`, `hide`)

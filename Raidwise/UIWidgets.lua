@@ -233,6 +233,10 @@ function W.SyncPlainIconButton(button)
 		button.icon:SetDesaturated(true)
 		button.icon:SetVertexColor(0.45, 0.45, 0.45)
 	end
+	if button.iconTint then
+		button.icon:SetDesaturated(button.iconDesaturated == true)
+		button.icon:SetVertexColor(button.iconTint[1], button.iconTint[2], button.iconTint[3])
+	end
 end
 
 -- Square icon button; titleKey is the gold tooltip title, tipKey the body.
@@ -477,7 +481,14 @@ end
 
 function W.SetMenuButtonState(button, selected, hovering)
 	if selected then
-		W.SetPlainButtonState(button, "selected")
+		if button.isMenuTab then
+			W.SetBackdropColor(button, UI.MENU_SELECTED_BG)
+			if button.label then
+				W.SetFontColor(button.label, UI.GOLD)
+			end
+		else
+			W.SetPlainButtonState(button, "selected")
+		end
 	elseif hovering then
 		W.SetPlainButtonState(button, "hover")
 	else

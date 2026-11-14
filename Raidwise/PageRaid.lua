@@ -6,25 +6,83 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 36
+local LAYOUT_VERSION = 61
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
 local RAID_CELL_GAP = 2
 local RAID_CELL_PAD = 4
 local RAID_LINE_H = 14
-local RAID_ICON = 20
+local RAID_ICON = 24
 local RAID_BTN_H = 20
 local RAID_BTN_GAP = 2
-local RAID_EVALUATION_W = 44
 local RAID_ACTION_W = 48
+local RAID_GRADE_REPORT_W = 27
+local RAID_GRADE_REPORT_H = 26
+local RAID_GRADE_REPORT_X = 35
+local RAID_GRADE_REPORT_TOP = -40
+local RAID_GRADE_REPORT_GAP = 2
 local RAID_GROUP_LABEL_H = 16
+
+local function GearScoreColor(score)
+	local minimum, midpoint, maximum = 5200, 5750, 6300
+	if score <= minimum then
+		return { 0.25, 1, 0.25 }
+	elseif score >= maximum then
+		return { 1, 0.25, 0.25 }
+	end
+	local progress = score <= midpoint
+		and (score - minimum) / (midpoint - minimum)
+		or (score - midpoint) / (maximum - midpoint)
+	if score <= midpoint then
+		return { 0.25 + 0.75 * progress, 1, 0.25 }
+	end
+	return { 1, 1 - 0.75 * progress, 0.25 }
+end
+
+local ILVL_COLOR_STOPS = {
+	{ 200, { 0.035, 0.647, 0.698 } },
+	{ 213, { 0.204, 0.431, 0.988 } },
+	{ 219, { 0.341, 0.388, 0.984 } },
+	{ 232, { 0.541, 0.369, 0.800 } },
+	{ 245, { 0.812, 0.373, 0.486 } },
+	{ 251, { 0.863, 0.412, 0.294 } },
+	{ 258, { 0.914, 0.451, 0.106 } },
+	{ 264, { 0.945, 0.420, 0.000 } },
+	{ 277, { 0.973, 0.184, 0.000 } },
+}
+
+local function ItemLevelColor(itemLevel)
+	local minimumLevel, maximumLevel = 232, 277
+	if itemLevel <= minimumLevel then
+		for index = 2, #ILVL_COLOR_STOPS do
+			if ILVL_COLOR_STOPS[index][1] == minimumLevel then
+				return ILVL_COLOR_STOPS[index][2]
+			end
+		end
+	end
+	for index = 2, #ILVL_COLOR_STOPS do
+		local previous, current = ILVL_COLOR_STOPS[index - 1], ILVL_COLOR_STOPS[index]
+		if itemLevel <= current[1] and current[1] >= minimumLevel then
+			local startLevel = math.max(previous[1], minimumLevel)
+			local startColor = previous[1] < minimumLevel and current[2] or previous[2]
+			local progress = (itemLevel - startLevel) / (current[1] - startLevel)
+			return {
+				startColor[1] + (current[2][1] - startColor[1]) * progress,
+				startColor[2] + (current[2][2] - startColor[2]) * progress,
+				startColor[3] + (current[2][3] - startColor[3]) * progress,
+			}
+		end
+	end
+	return ILVL_COLOR_STOPS[#ILVL_COLOR_STOPS][2]
+end
 local RAID_BLOCK_GAP = 12
 local RAID_REPORT_ICON = "Interface\\Icons\\Ability_Warrior_BattleShout"
 local RAID_TOOLBAR_SCAN_ICON = "Interface\\Icons\\INV_Misc_Spyglass_03"
 local RAID_TOOLBAR_EXPORT_ICON = "Interface\\Icons\\INV_Misc_Note_01"
 local RAID_TOOLBAR_REFRESH_ICON = "Interface\\Icons\\INV_Misc_PocketWatch_01"
 local RAID_TOOLBAR_BACK_ICON = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider"
+local RAID_TOOLBAR_CLOSE_ICON = "Interface\\Buttons\\UI-Panel-MinimizeButton-Up"
 local GRADE_CHIP_LABELS = { "S", "A", "B", "C", "D" }
 
 local function WrapThemeColor(color, text)
@@ -145,10 +203,10 @@ local function SummarizeGearCategory(results, field)
 end
 
 local GRADE_CELL_CATEGORIES = {
-    { key = "weapon", reportCategory = "weapon", tooltipKey = "BTN_RAID_MEMBER_WEAPON_REPORT_TIP", icon = "Interface\\Icons\\INV_Sword_04", row = 3, column = 1 },
-    { key = "armor", reportCategory = "armor", tooltipKey = "BTN_RAID_MEMBER_ARMOR_REPORT_TIP", icon = "Interface\\Icons\\INV_Chest_Plate04", row = 3, column = 2 },
-    { key = "gem", reportCategory = "gems", tooltipKey = "BTN_RAID_MEMBER_GEMS_REPORT_TIP", icon = "Interface\\Icons\\INV_Misc_Gem_Diamond_01", row = 4, column = 1 },
-    { key = "enchant", reportCategory = "enchants", tooltipKey = "BTN_RAID_MEMBER_ENCHANTS_REPORT_TIP", icon = "Interface\\Icons\\INV_Enchant_EssenceMagicLarge", row = 4, column = 2 },
+    { key = "armor", reportCategory = "armor", tooltipKey = "BTN_RAID_MEMBER_ARMOR_REPORT_TIP", icon = "Interface\\Icons\\INV_Chest_Plate04" },
+    { key = "weapon", reportCategory = "weapon", tooltipKey = "BTN_RAID_MEMBER_WEAPON_REPORT_TIP", icon = "Interface\\Icons\\INV_Sword_04" },
+    { key = "enchant", reportCategory = "enchants", tooltipKey = "BTN_RAID_MEMBER_ENCHANTS_REPORT_TIP", icon = "Interface\\Icons\\INV_Enchant_EssenceMagicLarge" },
+    { key = "gem", reportCategory = "gems", tooltipKey = "BTN_RAID_MEMBER_GEMS_REPORT_TIP", icon = "Interface\\Icons\\INV_Misc_Gem_Diamond_01" },
 }
 
 local function HideGradeCells(cell)
@@ -169,15 +227,20 @@ local function FillGradeCells(cell, grades)
     cell.gradesText:Hide()
     for index, category in ipairs(GRADE_CELL_CATEGORIES) do
         local gradeCell = cell.gradeCells[index]
-        gradeCell.label:SetText(W.IconMarkup(category.icon, RAID_LINE_H) .. " " .. W.WrapGearGradation(grades[index]))
-        W.SetFontColor(gradeCell.label, UI.TEXT_IDLE)
+        local grade = grades[index]
+        gradeCell.label:SetText(W.IconMarkup(category.icon, RAID_LINE_H) .. " " .. tostring(grade or "-"))
+		local verdictColor = W.GearVerdictColor(grade)
+		local isProblem = grade == "C" or grade == "D"
+		gradeCell.gradeColor = isProblem and verdictColor or UI.BTN_IDLE
+		W.SetBackdropColor(gradeCell, gradeCell.gradeColor)
+		W.SetFontColor(gradeCell.label, isProblem and UI.PANEL_BG or verdictColor)
         gradeCell:Show()
     end
 end
 
 -- Compact explicit opinion; an unrated character uses a dash.
 local function FormatRatingCellLine(member)
-	local iconMarkup = W.IconMarkup(W.RatingOpinionIcon(member), RAID_LINE_H)
+	local iconMarkup = W.IconMarkup(W.RatingOpinionIcon(member), 24)
 	if iconMarkup == "" then
 		iconMarkup = W.RatingOpinionSymbol(member)
 		if Addon.RatingWrapColor then
@@ -191,11 +254,23 @@ end
 
 local function FormatGearCategorySummaryLine(summary)
 	summary = summary or {}
+	local parts = {}
+	for _, grade in ipairs({ "s", "a", "b", "c", "d" }) do
+		local count = tonumber(summary[grade]) or 0
+		if count > 0 then
+			if #parts > 0 then parts[#parts + 1] = " · " end
+			parts[#parts + 1] = W.WrapGearGradation(string.upper(grade)) .. " " .. tostring(count)
+		end
+	end
 	local failedSuffix = ""
 	if (summary.failed or 0) > 0 then
 		failedSuffix = " · Failed " .. tostring(summary.failed)
 	end
-	return W.FormatGearVerdictCountsLine(nil, summary, failedSuffix)
+	if #parts == 0 and failedSuffix == "" then
+		return WrapThemeColor(UI.TEXT_DISABLED, "0")
+	end
+	parts[#parts + 1] = failedSuffix
+	return table.concat(parts)
 end
 
 local function FillGearCategorySummaryLabel(label, heading, summary)
@@ -576,12 +651,16 @@ local function SetChatReportButtonTooltip(button, tipKey, buildMessages)
 	button.tooltipKey = tipKey
 	button.buildChatMessages = buildMessages
 	button:SetScript("OnEnter", function(self)
-		W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		if not self.noHoverFill then
+			W.SetPlainButtonState(self, W.ActionButtonState(self, true))
+		end
 		local messages = self.buildChatMessages and self.buildChatMessages() or {}
 		ShowChatReportTooltip(self, self.tooltipKey, messages)
 	end)
 	button:SetScript("OnLeave", function(self)
-		W.SetPlainButtonState(self, W.ActionButtonState(self, false))
+		if not self.noHoverFill then
+			W.SetPlainButtonState(self, W.ActionButtonState(self, false))
+		end
 		GameTooltip:Hide()
 	end)
 end
@@ -695,12 +774,12 @@ local function CreateRaidRosterHeader(page)
 	end
 
 	local function CreateSummaryCell(tooltipKey, buildMessages, onClick)
-		local cell = CreateFrame("Frame", nil, summaryCol)
+		local cell = CreateFrame("Frame", nil, miniTable)
 		local reportBtn = CreateChatReportButton(cell, tooltipKey, buildMessages, onClick)
-		reportBtn:SetPoint("RIGHT", cell, "RIGHT", 0, 0)
+		reportBtn:SetPoint("LEFT", cell, "LEFT", 0, 0)
 		local body = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-		body:SetPoint("LEFT", cell, "LEFT", 0, 0)
-		body:SetPoint("RIGHT", reportBtn, "LEFT", -iconGap, 0)
+		body:SetPoint("LEFT", reportBtn, "RIGHT", iconGap, 0)
+		body:SetPoint("RIGHT", cell, "RIGHT", 0, 0)
 		body:SetHeight(row2H)
 		body:SetJustifyH("LEFT")
 		body:SetJustifyV("MIDDLE")
@@ -766,7 +845,8 @@ local function CreateRaidRosterHeader(page)
 	page.enchantGradeSummaryLabel = enchantGradeCol.body
 	page.reportEnchantBtn = enchantGradeCol.reportBtn
 
-	local summaryRows = { flaskCol, foodCol, gemGradeCol, armorGradeCol, weaponGradeCol, enchantGradeCol }
+	local consumableRows = { flaskCol, foodCol }
+	local summaryRows = { gemGradeCol, armorGradeCol, weaponGradeCol, enchantGradeCol }
 
 	local toolbar = CreateHeaderColumn()
 	page.raidToolbar = toolbar
@@ -775,7 +855,7 @@ local function CreateRaidRosterHeader(page)
 		toolbar,
 		row1H,
 		RAID_TOOLBAR_SCAN_ICON,
-		"GEAR_CHECK_SCAN",
+		"RAID_SCAN_LABEL",
 		"RAID_SCAN_TIP"
 	)
 	local exportBtn = W.CreatePlainIconButton(
@@ -785,36 +865,46 @@ local function CreateRaidRosterHeader(page)
 		"GEAR_CHECK_RAID_EXPORT",
 		"GEAR_CHECK_RAID_EXPORT_TIP"
 	)
-
-	local refreshBtn = W.CreatePlainIconButton(
-		toolbar,
-		row1H,
-		RAID_TOOLBAR_REFRESH_ICON,
-		"BTN_REFRESH",
-		"RAID_REFRESH_TIP"
-	)
-	refreshBtn:SetScript("OnClick", function()
-		Addon:RefreshPartyData(true)
-	end)
+	local function AddButtonText(button)
+		local text = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
+		text:SetPoint("LEFT", button.icon, "RIGHT", 4, 0)
+		text:SetPoint("RIGHT", button, "RIGHT", -6, 0)
+		text:SetJustifyH("LEFT")
+		text:SetText(W.T(button.titleKey))
+		W.SetFontColor(text, UI.TEXT_IDLE)
+		button.icon:ClearAllPoints()
+		button.icon:SetPoint("LEFT", button, "LEFT", 5, 0)
+		button.text = text
+		button.textWidth = math.ceil(text:GetStringWidth()) + row1H + 12
+	end
+	AddButtonText(scanBtn)
+	AddButtonText(exportBtn)
+	local fullExportBtn = W.CreatePlainIconButton(toolbar, row1H, RAID_TOOLBAR_EXPORT_ICON, "GEAR_CHECK_RAID_FULL_EXPORT", "GEAR_CHECK_RAID_FULL_EXPORT_TIP")
+	fullExportBtn.iconTint = { 1, 0.12, 0.12 }
+	fullExportBtn.iconDesaturated = false
+	W.SyncPlainIconButton(fullExportBtn)
+	fullExportBtn:Hide()
 
 	local textViewBtn = W.CreatePlainIconButton(
 		toolbar,
 		row1H,
-		RAID_TOOLBAR_BACK_ICON,
+		RAID_TOOLBAR_CLOSE_ICON,
 		"BTN_RAID_BACK_TO_ROSTER",
 		"BTN_RAID_BACK_TO_ROSTER_TIP"
 	)
 	textViewBtn:Disable()
+	textViewBtn:Hide()
 
 	page.gearCheckScanBtn = scanBtn
 	page.gearCheckExportBtn = exportBtn
-	page.refreshBtn = refreshBtn
+	page.gearCheckFullExportBtn = fullExportBtn
 	page.textViewBtn = textViewBtn
 
-	local toolbarBtns = { scanBtn, exportBtn, refreshBtn, textViewBtn }
+	local toolbarBtns = { scanBtn, exportBtn, fullExportBtn, textViewBtn }
 
 	local function LayoutRaidMiniTable()
-		local toolbarW = row1H * btnCount + btnGap * (btnCount - 1)
+		local toolbarW = btnGap * (#toolbarBtns - 1)
+		for _, button in ipairs(toolbarBtns) do toolbarW = toolbarW + (button.textWidth or row1H) end
 		toolbar:ClearAllPoints()
 		toolbar:SetSize(toolbarW, row1H)
 		toolbar:SetPoint("TOPRIGHT", miniTable, "TOPRIGHT", 0, 0)
@@ -827,7 +917,13 @@ local function CreateRaidRosterHeader(page)
 		statsCol:ClearAllPoints()
 		statsCol:SetHeight(row1H)
 		statsCol:SetPoint("TOPLEFT", legendCol, "TOPRIGHT", colGap, 0)
-		statsCol:SetPoint("TOPRIGHT", toolbar, "TOPLEFT", -colGap, 0)
+
+		for index, cell in ipairs(consumableRows) do
+			cell:ClearAllPoints()
+			cell:SetSize(104, row1H)
+			cell:SetPoint("RIGHT", index == 1 and foodCol or toolbar, "LEFT", -colGap, 0)
+		end
+		statsCol:SetPoint("RIGHT", flaskCol, "LEFT", -colGap, 0)
 
 		summaryCol:ClearAllPoints()
 		summaryCol:SetHeight(row2H)
@@ -844,8 +940,11 @@ local function CreateRaidRosterHeader(page)
 		for index = 1, #toolbarBtns do
 			local button = toolbarBtns[index]
 			button:ClearAllPoints()
-			button:SetSize(row1H, row1H)
-			button:SetPoint("TOPLEFT", toolbar, "TOPLEFT", (index - 1) * (row1H + btnGap), 0)
+			local buttonWidth = button.textWidth or row1H
+			button:SetSize(buttonWidth, row1H)
+			local x = 0
+			for previous = 1, index - 1 do x = x + (toolbarBtns[previous].textWidth or row1H) + btnGap end
+			button:SetPoint("TOPLEFT", toolbar, "TOPLEFT", x, 0)
 		end
 	end
 	miniTable:SetScript("OnSizeChanged", function()
@@ -926,7 +1025,12 @@ local function UpdateRaidExportActionButtons(page, busy)
 		busy = PageGearActionsBusy(page)
 	end
 	local exportOpen = page.exportViewMode == true
+	if page.gearCheckFullExportBtn then
+		if exportOpen and not busy then page.gearCheckFullExportBtn:Show(); page.gearCheckFullExportBtn:Enable()
+		else page.gearCheckFullExportBtn:Hide(); page.gearCheckFullExportBtn:Disable() end
+	end
 	if page.textViewBtn then
+		if exportOpen then page.textViewBtn:Show() else page.textViewBtn:Hide() end
 		if busy or not exportOpen then
 			page.textViewBtn:Disable()
 		else
@@ -1114,70 +1218,58 @@ local function CreateRaidPlayerCell(parent)
 
 	cell.classIconHost = CreateFrame("Frame", nil, cell)
 	cell.classIconHost:SetSize(RAID_ICON, RAID_ICON)
-	cell.classIconHost:SetPoint("TOPLEFT", RAID_CELL_PAD, -RAID_CELL_PAD)
+	cell.classIconHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -8)
 	cell.classIcon = cell.classIconHost:CreateTexture(nil, "ARTWORK")
 	cell.classIcon:SetAllPoints(cell.classIconHost)
 
 	cell.specIconHost = CreateFrame("Frame", nil, cell)
 	cell.specIconHost:SetSize(RAID_ICON, RAID_ICON)
-	cell.specIconHost:SetPoint("LEFT", cell.classIconHost, "RIGHT", 2, 0)
+	cell.specIconHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 26, -8)
 	cell.specIcon = cell.specIconHost:CreateTexture(nil, "ARTWORK")
 	cell.specIcon:SetAllPoints(cell.specIconHost)
 
-	cell.roleIconHost = CreateFrame("Frame", nil, cell)
-	cell.roleIconHost:SetSize(RAID_ICON, RAID_ICON)
-	cell.roleIconHost:SetPoint("LEFT", cell.specIconHost, "RIGHT", 2, 0)
-	cell.roleIcon = cell.roleIconHost:CreateTexture(nil, "ARTWORK")
-	cell.roleIcon:SetAllPoints(cell.roleIconHost)
-	cell.roleIconHost:EnableMouse(true)
-	cell.roleIconHost:SetScript("OnEnter", function(self)
-		if not cell.roleLabel or cell.roleLabel == "" then
-			return
-		end
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		GameTooltip:AddLine(cell.roleLabel)
-		GameTooltip:Show()
-	end)
-	cell.roleIconHost:SetScript("OnLeave", function()
-		GameTooltip:Hide()
-	end)
-
-	cell.nameText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.nameText:SetPoint("LEFT", cell.roleIconHost, "RIGHT", 4, 0)
-	cell.nameText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	cell.nameText:SetHeight(RAID_LINE_H)
+	cell.nameText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalLarge")
+	cell.nameText:SetPoint("TOPLEFT", cell, "TOPLEFT", 52, -2)
+	cell.nameText:SetWidth(76)
+	cell.nameText:SetHeight(36)
+	cell.nameText:SetWordWrap(true)
+	cell.nameText:SetNonSpaceWrap(true)
 	cell.nameText:SetJustifyH("LEFT")
 	cell.nameText:SetJustifyV("MIDDLE")
 	W.SetLightThemeTextOutline(cell.nameText)
 
 	cell.gearScoreText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gearScoreText:SetPoint("TOPLEFT", cell, "TOPLEFT", RAID_CELL_PAD, -28)
-	cell.gearScoreText:SetSize(48, RAID_BTN_H)
+	cell.gearScoreText:SetPoint("TOPLEFT", cell, "TOPLEFT", 52, -34)
+	cell.gearScoreText:SetSize(40, 28)
 	cell.gearScoreText:SetJustifyH("CENTER")
 	cell.gearScoreText:SetJustifyV("MIDDLE")
 
 	cell.itemLevelText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.itemLevelText:SetPoint("LEFT", cell.gearScoreText, "RIGHT", RAID_BTN_GAP, 0)
-	cell.itemLevelText:SetSize(48, RAID_BTN_H)
+	cell.itemLevelText:SetPoint("TOPLEFT", cell, "TOPLEFT", 94, -34)
+	cell.itemLevelText:SetSize(40, 28)
 	cell.itemLevelText:SetJustifyH("CENTER")
 	cell.itemLevelText:SetJustifyV("MIDDLE")
 
 	cell.opinionText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.opinionText:SetPoint("TOPRIGHT", cell, "TOPRIGHT", -RAID_CELL_PAD, -28)
-	cell.opinionText:SetSize(52, RAID_BTN_H)
+	cell.opinionText:SetPoint("TOPLEFT", cell, "TOPLEFT", 132, -34)
+	cell.opinionText:SetSize(34, 28)
 	cell.opinionText:SetJustifyH("CENTER")
 	cell.opinionText:SetJustifyV("MIDDLE")
 
 	cell.gradesText = W.CreateFontString(cell, nil, "OVERLAY", "GameFontNormalSmall")
-	cell.gradesText:SetPoint("TOPLEFT", cell, "TOPLEFT", RAID_CELL_PAD, -52)
-	cell.gradesText:SetSize(RAID_EVALUATION_W * 2 + RAID_BTN_GAP, RAID_BTN_H)
+	cell.gradesText:SetPoint("TOPLEFT", cell, "TOPLEFT", 49, -69)
+	cell.gradesText:SetSize(115, 26)
 	cell.gradesText:SetJustifyH("CENTER")
 	cell.gradesText:SetJustifyV("MIDDLE")
+	cell.gradesText:SetWordWrap(true)
 
 	cell.gradeCells = {}
 	for index, category in ipairs(GRADE_CELL_CATEGORIES) do
-		local gradeCell = W.CreatePlainButton(cell, RAID_EVALUATION_W, RAID_BTN_H, "")
-		gradeCell:SetPoint("TOPLEFT", cell, "TOPLEFT", RAID_CELL_PAD + (category.column - 1) * (RAID_EVALUATION_W + RAID_BTN_GAP), -28 - (category.row - 2) * 24)
+		local gradeCell = W.CreatePlainButton(cell, RAID_GRADE_REPORT_W, RAID_GRADE_REPORT_H, "")
+		gradeCell:SetPoint("TOPLEFT", cell, "TOPLEFT", 49 + (index - 1) * (RAID_GRADE_REPORT_W + RAID_GRADE_REPORT_GAP), -69)
+		W.SetBackdropColor(gradeCell, { 0, 0, 0, 0 })
+		W.ApplyOuterBorder(gradeCell, UI.BORDER, 1)
+		gradeCell.noHoverFill = true
 		local reportCategory = category.reportCategory
 		local function BuildMessages()
 			return Addon:FormatGearCheckMemberIssues(cell.gearEntry and cell.gearEntry.report, reportCategory)
@@ -1191,12 +1283,22 @@ local function CreateRaidPlayerCell(parent)
 	end
 
 	cell.flaskHost = W.CreateConsumableStatusHost(cell)
-	cell.flaskHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 96, -52)
+	cell.flaskHost:SetSize(16, 16)
+	cell.flaskHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 148, -16)
+	cell.flaskHost.icon:ClearAllPoints()
+	cell.flaskHost.icon:SetSize(16, 16)
+	cell.flaskHost.icon:SetPoint("CENTER", cell.flaskHost, "CENTER")
 	cell.foodHost = W.CreateConsumableStatusHost(cell)
-	cell.foodHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 96, -76)
+	cell.foodHost:SetSize(16, 16)
+	cell.foodHost:SetPoint("TOPLEFT", cell, "TOPLEFT", 148, -2)
+	cell.foodHost.icon:ClearAllPoints()
+	cell.foodHost.icon:SetSize(16, 16)
+	cell.foodHost.icon:SetPoint("CENTER", cell.foodHost, "CENTER")
 
 	local gearBtn = W.CreatePlainButton(cell, RAID_ACTION_W, RAID_BTN_H, W.T("BTN_RAID_GEAR"), "SecureActionButtonTemplate")
-	gearBtn:SetPoint("TOPRIGHT", cell, "TOPRIGHT", -RAID_CELL_PAD, -52)
+	gearBtn:SetSize(RAID_ACTION_W, RAID_BTN_H)
+	gearBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -34)
+	gearBtn:SetSize(44, 28)
 	W.SetPlainButtonTooltip(gearBtn, "BTN_RAID_GEAR_TIP")
 	gearBtn:RegisterForClicks("LeftButtonUp")
 	gearBtn:SetScript("PreClick", function(button)
@@ -1215,7 +1317,9 @@ local function CreateRaidPlayerCell(parent)
 	cell.gearBtn = gearBtn
 
 	local rescanBtn = W.CreatePlainButton(cell, RAID_ACTION_W, RAID_BTN_H, W.T("BTN_RAID_RESCAN"))
-	rescanBtn:SetPoint("TOPRIGHT", cell, "TOPRIGHT", -RAID_CELL_PAD, -76)
+	rescanBtn:SetSize(RAID_ACTION_W, RAID_BTN_H)
+	rescanBtn:SetPoint("TOPLEFT", cell, "TOPLEFT", 2, -69)
+	rescanBtn:SetSize(44, 26)
 	W.SetPlainButtonTooltip(rescanBtn, "BTN_RAID_RESCAN_TIP")
 	rescanBtn:SetScript("OnClick", function()
 		local frame = Addon.mainFrame
@@ -1380,7 +1484,7 @@ local function FillGearReportRows(cell, member, entry)
 		cell.gradesText:SetText(scanLabel)
 		W.SetFontColor(cell.gradesText, UI.TEXT_IDLE)
 	else
-		FillGradeCells(cell, { weaponGrade, armorGrade, gemGrade, enchantGrade })
+		FillGradeCells(cell, { armorGrade, weaponGrade, enchantGrade, gemGrade })
 	end
 
 	if cell.gearBtn then
@@ -1407,17 +1511,24 @@ local function FillRaidConsumableIcons(cell, member)
 		return
 	end
 	local status = Addon:UnitConsumableStatus(member.unit)
-	W.FillConsumableStatusIcon(cell.flaskHost, status and status.flask, "RAID_CONSUMABLE_FLASK")
-	W.FillConsumableStatusIcon(cell.foodHost, status and status.food, "RAID_CONSUMABLE_FOOD")
+	local function FillStatusSlot(host, consumable, labelKey)
+		W.FillConsumableStatusIcon(host, consumable, labelKey)
+		if not consumable then
+			host:Hide()
+			return
+		end
+		W.SetBackdropColor(host, { 0, 0, 0, 0 })
+	end
+	FillStatusSlot(cell.flaskHost, status and status.flask, "RAID_CONSUMABLE_FLASK")
+	FillStatusSlot(cell.foodHost, status and status.food, "RAID_CONSUMABLE_FOOD")
 end
 
 local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	local offline = member and member.unit and UnitIsConnected and not UnitIsConnected(member.unit)
-	if member then stripe = W.RaidScanBackground(gearEntry) end
 	cell.stripe = stripe
 	W.SetBackdropColor(cell, stripe)
 	-- Cells are reused as the roster changes; restore icons when a player reconnects.
-	for _, icon in ipairs({ cell.classIcon, cell.roleIcon, cell.specIcon }) do
+	for _, icon in ipairs({ cell.classIcon, cell.specIcon }) do
 		icon:SetDesaturated(offline and true or false)
 		icon:SetAlpha(offline and 0.5 or 1)
 	end
@@ -1430,7 +1541,6 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		cell.itemLevelText:SetText("")
 		cell.opinionText:SetText("")
 		cell.classIconHost:Hide()
-		cell.roleIconHost:Hide()
 		cell.specIconHost:Hide()
 		FillRaidConsumableIcons(cell, nil)
 		FillGearReportRows(cell, nil, nil)
@@ -1457,18 +1567,6 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 
 	local role = member.role or "unknown"
 	cell.roleLabel = role ~= "unknown" and (Addon.RaidRoleLabel and Addon:RaidRoleLabel(role)) or ""
-	if cell.roleLabel ~= "" and Addon.RaidRoleIcon then
-		W.SetSpellIconTexture(cell.roleIcon, Addon:RaidRoleIcon(role))
-		cell.roleIconHost:Show()
-		cell.nameText:ClearAllPoints()
-		cell.nameText:SetPoint("LEFT", cell.roleIconHost, "RIGHT", 4, 0)
-		cell.nameText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	else
-		cell.roleIconHost:Hide()
-		cell.nameText:ClearAllPoints()
-		cell.nameText:SetPoint("LEFT", cell.specIconHost, "RIGHT", 4, 0)
-		cell.nameText:SetPoint("RIGHT", cell, "RIGHT", -RAID_CELL_PAD, 0)
-	end
 
 	if member.specIcon and member.specIcon ~= "" then
 		W.SetSpecOrClassIcon(cell.specIcon, member.specIcon, member.class)
@@ -1484,8 +1582,8 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 		W.SetFontColor(cell.gearScoreText, UI.TEXT_DISABLED)
 		W.SetFontColor(cell.itemLevelText, UI.TEXT_DISABLED)
 	elseif hasScannedStats and member.gearScore then
-		W.SetFontColor(cell.gearScoreText, UI.GOLD)
-		W.SetFontColor(cell.itemLevelText, UI.GOLD)
+		W.SetFontColor(cell.gearScoreText, GearScoreColor(member.gearScore))
+		W.SetFontColor(cell.itemLevelText, ItemLevelColor(member.averageIlvl or 0))
 	else
 		W.SetFontColor(cell.gearScoreText, UI.TEXT_IDLE)
 		W.SetFontColor(cell.itemLevelText, UI.TEXT_IDLE)
@@ -1501,6 +1599,9 @@ local function FillRaidPlayerCell(cell, member, gearEntry, stripe)
 	for _, button in ipairs(cell.gradeCells or {}) do
 		if gearEntry and gearEntry.report then
 			button:Enable()
+			if button.gradeColor then
+				W.SetBackdropColor(button, button.gradeColor)
+			end
 		else
 			button:Disable()
 		end
@@ -1672,7 +1773,7 @@ function Addon:RunGearCheckMemberRescan(page, member)
 	return true
 end
 
-local function RunGearCheckRaidExport(page)
+local function RunGearCheckRaidExport(page, full)
 	if page.gearCheckScanning or page.gearCheckExporting or page.gearCheckMemberScanning then
 		return
 	end
@@ -1738,7 +1839,8 @@ local function RunGearCheckRaidExport(page)
 					Addon:Print(W.T("GEAR_CHECK_STATUS_FAIL"))
 				end
 			end)
-		end
+		end,
+		full
 	)
 	if not started then
 		page.gearCheckExporting = false
@@ -1829,8 +1931,9 @@ local function CreateRaidRosterPage(parent)
 		RunGearCheckRaidScan(page)
 	end)
 	page.gearCheckExportBtn:SetScript("OnClick", function()
-		RunGearCheckRaidExport(page)
+		RunGearCheckRaidExport(page, false)
 	end)
+	page.gearCheckFullExportBtn:SetScript("OnClick", function() RunGearCheckRaidExport(page, true) end)
 	page.textViewBtn:SetScript("OnClick", function()
 		ExitRaidExportView(page)
 	end)

@@ -4,7 +4,7 @@
 --   acceptable — usable surface (offsets, hybrid leftovers); no finding; B by default
 --   unwanted   — wrong-for-spec soft waste → soft finding → C
 --   forbidden  — explicitly inappropriate → hard finding → D
--- Surface rules distilled from docs/Gear-Check-Surface-From-BiS.md (example BiS lists).
+-- Surface rules distilled from docs/gear-check/Gear-Check-Surface-From-BiS.md (example BiS lists).
 
 local Addon = Raidwise
 
