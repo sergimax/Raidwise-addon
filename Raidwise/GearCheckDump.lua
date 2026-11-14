@@ -399,6 +399,18 @@ local function FormatRaidItemListEntry(entry, full)
 		return string.format("%s — %s", tostring(member.name or "?"), tostring(entry and entry.status or "unknown")), false
 	end
 	local lines = { tostring(report.character and report.character.name or member.name or "?") }
+	if full then
+		local overall = report.overall or {}
+		local grade = tostring(overall.status or "?")
+		local markedSlots = {}
+		for _, slot in ipairs(Addon:GetGearCheckEquipment(report)) do
+			if slot.item and not slot.empty and slot.verdict == grade then
+				markedSlots[#markedSlots + 1] = tostring(slot.slotName)
+			end
+		end
+		local slotSummary = #markedSlots > 0 and (" Slots: " .. table.concat(markedSlots, ", ")) or ""
+		lines[#lines + 1] = string.format("Overall: %s — %s%s", grade, tostring(overall.summary or ""), slotSummary)
+	end
 	for _, slot in ipairs(Addon:GetGearCheckEquipment(report)) do
 		local item = slot.item
 		if item and not slot.empty then
@@ -406,6 +418,7 @@ local function FormatRaidItemListEntry(entry, full)
 			local _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, version = strsplit(":", link)
 			local itemLine = string.format("%s: %s (id=%s)", tostring(slot.slotName), tostring(item.name or "?"), tostring(item.itemId or "?"))
 			if tonumber(version) and tonumber(version) > 0 then itemLine = itemLine .. " version=" .. tostring(version) end
+			if full and slot.verdict then itemLine = itemLine .. " verdict=" .. tostring(slot.verdict) end
 			lines[#lines + 1] = itemLine
 			if full then
 				local enchant = item.enchant or {}

@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 60
+local LAYOUT_VERSION = 61
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -82,6 +82,7 @@ local RAID_TOOLBAR_SCAN_ICON = "Interface\\Icons\\INV_Misc_Spyglass_03"
 local RAID_TOOLBAR_EXPORT_ICON = "Interface\\Icons\\INV_Misc_Note_01"
 local RAID_TOOLBAR_REFRESH_ICON = "Interface\\Icons\\INV_Misc_PocketWatch_01"
 local RAID_TOOLBAR_BACK_ICON = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider"
+local RAID_TOOLBAR_CLOSE_ICON = "Interface\\Buttons\\UI-Panel-MinimizeButton-Up"
 local GRADE_CHIP_LABELS = { "S", "A", "B", "C", "D" }
 
 local function WrapThemeColor(color, text)
@@ -864,17 +865,35 @@ local function CreateRaidRosterHeader(page)
 		"GEAR_CHECK_RAID_EXPORT",
 		"GEAR_CHECK_RAID_EXPORT_TIP"
 	)
+	local function AddButtonText(button)
+		local text = W.CreateFontString(button, nil, "OVERLAY", "GameFontNormalSmall")
+		text:SetPoint("LEFT", button.icon, "RIGHT", 4, 0)
+		text:SetPoint("RIGHT", button, "RIGHT", -6, 0)
+		text:SetJustifyH("LEFT")
+		text:SetText(W.T(button.titleKey))
+		W.SetFontColor(text, UI.TEXT_IDLE)
+		button.icon:ClearAllPoints()
+		button.icon:SetPoint("LEFT", button, "LEFT", 5, 0)
+		button.text = text
+		button.textWidth = math.ceil(text:GetStringWidth()) + row1H + 12
+	end
+	AddButtonText(scanBtn)
+	AddButtonText(exportBtn)
 	local fullExportBtn = W.CreatePlainIconButton(toolbar, row1H, RAID_TOOLBAR_EXPORT_ICON, "GEAR_CHECK_RAID_FULL_EXPORT", "GEAR_CHECK_RAID_FULL_EXPORT_TIP")
+	fullExportBtn.iconTint = { 1, 0.12, 0.12 }
+	fullExportBtn.iconDesaturated = false
+	W.SyncPlainIconButton(fullExportBtn)
 	fullExportBtn:Hide()
 
 	local textViewBtn = W.CreatePlainIconButton(
 		toolbar,
 		row1H,
-		RAID_TOOLBAR_BACK_ICON,
+		RAID_TOOLBAR_CLOSE_ICON,
 		"BTN_RAID_BACK_TO_ROSTER",
 		"BTN_RAID_BACK_TO_ROSTER_TIP"
 	)
 	textViewBtn:Disable()
+	textViewBtn:Hide()
 
 	page.gearCheckScanBtn = scanBtn
 	page.gearCheckExportBtn = exportBtn
@@ -884,7 +903,8 @@ local function CreateRaidRosterHeader(page)
 	local toolbarBtns = { scanBtn, exportBtn, fullExportBtn, textViewBtn }
 
 	local function LayoutRaidMiniTable()
-		local toolbarW = row1H * btnCount + btnGap * (btnCount - 1)
+		local toolbarW = btnGap * (#toolbarBtns - 1)
+		for _, button in ipairs(toolbarBtns) do toolbarW = toolbarW + (button.textWidth or row1H) end
 		toolbar:ClearAllPoints()
 		toolbar:SetSize(toolbarW, row1H)
 		toolbar:SetPoint("TOPRIGHT", miniTable, "TOPRIGHT", 0, 0)
@@ -920,8 +940,11 @@ local function CreateRaidRosterHeader(page)
 		for index = 1, #toolbarBtns do
 			local button = toolbarBtns[index]
 			button:ClearAllPoints()
-			button:SetSize(row1H, row1H)
-			button:SetPoint("TOPLEFT", toolbar, "TOPLEFT", (index - 1) * (row1H + btnGap), 0)
+			local buttonWidth = button.textWidth or row1H
+			button:SetSize(buttonWidth, row1H)
+			local x = 0
+			for previous = 1, index - 1 do x = x + (toolbarBtns[previous].textWidth or row1H) + btnGap end
+			button:SetPoint("TOPLEFT", toolbar, "TOPLEFT", x, 0)
 		end
 	end
 	miniTable:SetScript("OnSizeChanged", function()
@@ -1007,6 +1030,7 @@ local function UpdateRaidExportActionButtons(page, busy)
 		else page.gearCheckFullExportBtn:Hide(); page.gearCheckFullExportBtn:Disable() end
 	end
 	if page.textViewBtn then
+		if exportOpen then page.textViewBtn:Show() else page.textViewBtn:Hide() end
 		if busy or not exportOpen then
 			page.textViewBtn:Disable()
 		else

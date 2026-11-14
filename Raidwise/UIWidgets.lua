@@ -233,6 +233,10 @@ function W.SyncPlainIconButton(button)
 		button.icon:SetDesaturated(true)
 		button.icon:SetVertexColor(0.45, 0.45, 0.45)
 	end
+	if button.iconTint then
+		button.icon:SetDesaturated(button.iconDesaturated == true)
+		button.icon:SetVertexColor(button.iconTint[1], button.iconTint[2], button.iconTint[3])
+	end
 end
 
 -- Square icon button; titleKey is the gold tooltip title, tipKey the body.
