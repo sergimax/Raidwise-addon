@@ -4,13 +4,12 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 30
+local SHELL_LAYOUT_VERSION = 31
 
 -- Visual groups for navigation (ids stay stable for a future module split).
 local MENU_GROUPS = {
 	{ id = "personal", labelKey = "MENU_GROUP_PERSONAL" },
 	{ id = "raiding", labelKey = "MENU_GROUP_RAIDING" },
-	{ id = "exportWeb", labelKey = "MENU_GROUP_EXPORT_WEB" },
 	{ id = "other", labelKey = "MENU_GROUP_OTHER" },
 }
 
@@ -23,7 +22,7 @@ local PAGES = {
 	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03", group = "raiding" },
 	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "raiding" },
 	-- Module pages are appended by their separately loaded addon.
-	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "exportWeb" },
+	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "other" },
 	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01", group = "other" },
 	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark", group = "other" },
 }
@@ -423,7 +422,7 @@ end
 local function CreateMenuGroupHeading(parent, labelKey, yOffset)
 	local heading = W.CreateFontString(parent, nil, "OVERLAY", "GameFontNormalSmall")
 	heading:SetPoint("TOPLEFT", 10, yOffset)
-	heading:SetPoint("TOPRIGHT", -10, yOffset)
+	heading:SetPoint("TOPRIGHT", -6, yOffset)
 	heading:SetHeight(UI.MENU_GROUP_HEADING_H)
 	heading:SetJustifyH("LEFT")
 	heading:SetJustifyV("MIDDLE")
@@ -497,7 +496,7 @@ function Addon:CreateMainFrame()
 	-- Named frames are reused by CreateFrame; clear leftover children first.
 	local frame = CreateFrame("Frame", "RaidwiseFrame", UIParent)
 	W.DetachFrameChildren(frame)
-	frame:SetSize(UI.CONTENT_WIDTH, UI.CONTENT_HEIGHT + UI.MENU_BAR_H)
+	frame:SetSize(UI.CONTENT_WIDTH, UI.CONTENT_HEIGHT)
 	frame:SetPoint("CENTER")
 	frame:SetMovable(true)
 	frame:EnableMouse(true)
@@ -517,33 +516,40 @@ function Addon:CreateMainFrame()
 	local menu = CreateFrame("Frame", "RaidwiseMenu", frame)
 	W.DetachFrameChildren(menu)
 	menu:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -(UI.TITLE_H + 1))
-	menu:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -(UI.TITLE_H + 1))
-	menu:SetHeight(UI.MENU_BAR_H)
-	W.ApplyPlainPanel(menu)
+	menu:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 1, 1)
+	menu:SetWidth(UI.MENU_BAR_W)
+	W.ApplyPlainPanel(menu, UI.TITLE_BG)
 	menu:EnableMouse(true)
 	frame.menu = menu
 
 	local menuGap = UI.MENU_BTN_GAP or 4
-	local menuColumns = UI.MENU_COLUMNS or 5
-	local menuButtonWidth = math.floor((UI.CONTENT_WIDTH - UI.PAD * 2 - menuGap * (menuColumns - 1)) / menuColumns)
+	local menuButtonWidth = UI.MENU_BAR_W - 4
 	frame.menuButtons = {}
 	frame.menuGroupHeadings = {}
+	local currentGroup
+	local row = 0
 	for index = 1, #PAGES do
 		local pageInfo = PAGES[index]
-		local cellIndex = index - 1
-		local row = math.floor(cellIndex / menuColumns)
-		local column = cellIndex % menuColumns
-		local xOffset = UI.PAD + column * (menuButtonWidth + menuGap)
-		local yOffset = -2 - row * (UI.MENU_BTN_H + 2)
+		if pageInfo.group ~= currentGroup then
+			currentGroup = pageInfo.group
+			local groupInfo = MenuGroupById(currentGroup)
+			if row > 0 then row = row + 1 end
+			local heading = CreateMenuGroupHeading(menu, groupInfo.labelKey, -UI.PAD - row * (UI.MENU_BTN_H + menuGap))
+			frame.menuGroupHeadings[#frame.menuGroupHeadings + 1] = heading
+			row = row + 1
+		end
+		local xOffset = 2
+		local yOffset = -UI.PAD - row * (UI.MENU_BTN_H + menuGap)
 		local button = CreateMenuButton(menu, pageInfo.id, W.T(pageInfo.labelKey), xOffset, yOffset, menuButtonWidth, pageInfo.icon)
 		frame.menuButtons[#frame.menuButtons + 1] = button
+		row = row + 1
 	end
 
 	local content = CreateFrame("Frame", nil, frame)
-	content:SetPoint("TOPLEFT", UI.PAD, -(UI.TITLE_H + UI.MENU_BAR_H + UI.PAD))
+	content:SetPoint("TOPLEFT", UI.MENU_BAR_W + 2, -(UI.TITLE_H + UI.PAD))
 	content:SetPoint("BOTTOMRIGHT", -UI.PAD, UI.PAD)
 	frame.content = content
-	frame.expandedHeight = UI.CONTENT_HEIGHT + UI.MENU_BAR_H
+	frame.expandedHeight = UI.CONTENT_HEIGHT
 
 	frame.pages = {}
 	for index = 1, #PAGES do

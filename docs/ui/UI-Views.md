@@ -6,19 +6,19 @@ Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.m
 
 ## Shell
 
-Classic-theme plain panels: compact title/control bar at the very top, followed by horizontal navigation and page content.
+Classic-theme plain panels: compact title/control bar at the very top, followed by a narrow left navigation column and page content.
 
 ```text
-[ Main window 890 x 753 ]
+[ Main window 890 x 693 ]
 [ Raidwise vX | {page} vN | {format controls} | {chat controls} | [−] [X] ]
  [ tab ][ tab ][ tab ][ tab ][ tab ]
  [ tab ][ tab ][ tab ][ tab ][     ]
  [ page body: 870 x 653           ]
 ```
 
-Top bar (left to right): **Raidwise** + addon semver, active page name + its layout badge **`vN`**, then available format/chat controls and close **X**. The two-row navigation sits below the title; nine page tabs fill five cells in row one and four in row two. Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
+Top bar (left to right): **Raidwise** + addon semver, active page name + its layout badge **`vN`**, then available format/chat controls and close **X**. The narrow navigation column sits left of the page viewport, grouped under Personal, Raiding, and Other. Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
 
-Menu tabs each have an **18×18** category icon + label. Group metadata (`PAGES[].group` + `Addon.MenuGroups`) remains available to code, while visual headings and separators are omitted to keep the compact navigation quiet. Current tab order:
+Menu tabs each have an **16×16** category icon + label. Group headings are visible above Personal, Raiding, and Other. Current tab order:
 
 ```text
 [ watch ] Character cooldowns [ book ] Character database [ glory ] Raid roster [ BoK ] Raid composition
@@ -32,7 +32,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 30` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 31` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `VERSION = 38` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |

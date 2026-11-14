@@ -20,10 +20,10 @@ Current view is read-only after refresh; correction and JSON import controls rem
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Main frame (`RaidwiseFrame`) | **890 × 753** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
+| Main frame (`RaidwiseFrame`) | **890 × 693** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
 | Title bar | height **20** | Very top of window; drag handle; addon name/version, active page name/layout version, available report controls, collapse and close buttons |
-| Menu panel (`RaidwiseMenu`) | **888 × 60** | Horizontal navigation directly below the title bar |
-| Page viewport | **870 × 653** | Same usable page height as before moving the title bar |
+| Menu panel (`RaidwiseMenu`) | **85 × 671** | Narrow left navigation; title background fill |
+| Page viewport | **793 × 653** | 2 px gap after menu |
 | Collapse / expand button | **16 × 16** | Beside Close; reduces window to the title bar and restores it |
 | Close button | **16 × 16** | Rightmost title bar button |
 | Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the active page name |
@@ -37,17 +37,17 @@ active-group block + **19** scroll insets. The shell has a 20 px title/control b
 followed by a **60 px** navigation area, for an overall height of **753 px**. The raid viewport shows groups 1-5
 without any of groups 6-8 until scrolled; all other pages share this page height.
 
-## Top navigation
+## Left navigation
 
 | Element | Size | Notes |
 |---------|------|-------|
-| Navigation grid | **5 columns × 2 rows** | Nine page tabs; final cell remains empty |
-| Menu button | **171 × 28** | **18×18** icon left, label to the right |
+| Navigation groups | **3** | Personal, Raiding, Other |
+| Menu button | **81 × 27** | Fills the menu width with a 2 px inset; **16×16** icon left |
 | Menu icon | **18 × 18** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
 | Horizontal gap | 3 px | Between cells |
 | Vertical gap | 2 px | Between rows |
 | Cell inset | 10 px left/right; 2 px top | From the menu panel edge |
-| Group headings and separators | not rendered | Group IDs remain in page metadata |
+| Group headings | rendered | Personal, Raiding, Other |
 | Idle fill | `BTN_IDLE` = **0.165, 0.157, 0.133** | Menu + action buttons (dark theme) |
 | Hover fill | `BTN_HOVER` = **0.224, 0.212, 0.173** | Hovered tab or action button |
 | Active menu fill | `MENU_SELECTED_BG` = **0.300, 0.235, 0.120** | Warm gold-brown; active label uses `GOLD` |

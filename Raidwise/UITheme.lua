@@ -10,15 +10,14 @@ Addon.UITheme = {
 	TITLE_H = 20,
 	CLOSE_SIZE = 16,
 
-	-- Horizontal menu (RaidwiseMenu)
-	MENU_BAR_H = 60,
-	MENU_COLUMNS = 5,
-	MENU_BTN_H = 28,
-	MENU_BTN_GAP = 3,
-	MENU_ICON = 18,
+	-- Left navigation (RaidwiseMenu)
+	MENU_BAR_W = 90,
+	MENU_BTN_H = 27,
+	MENU_BTN_GAP = 1,
+	MENU_ICON = 16,
 	MENU_GROUP_HEADING_H = 16,
 	MENU_GROUP_HEADING_GAP = 2,
-	MENU_GROUP_GAP = 8,
+	MENU_GROUP_GAP = 3,
 	MENU_SEP_H = 1,
 
 	-- Status bar (under menu + content)
