@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 19
+local LAYOUT_VERSION = 20
 
 local RIGHT_COL_W = 220
 local COL_GAP = 10
@@ -22,7 +22,6 @@ local FILTERS = {
 	{ id = "items", labelKey = "GEAR_CHECK_FILTER_ITEMS", tipKey = "GEAR_CHECK_FILTER_ITEMS_TIP" },
 	{ id = "enchants", labelKey = "GEAR_CHECK_FILTER_ENCHANTS", tipKey = "GEAR_CHECK_FILTER_ENCHANTS_TIP" },
 	{ id = "gems", labelKey = "GEAR_CHECK_FILTER_GEMS", tipKey = "GEAR_CHECK_FILTER_GEMS_TIP" },
-	{ id = "ok", labelKey = "GEAR_CHECK_FILTER_OK", tipKey = "GEAR_CHECK_FILTER_OK_TIP" },
 }
 
 local REPORT_BUTTONS = {
@@ -225,10 +224,7 @@ local function BuildBreakdownGroups(report, filterId)
 		end
 	end
 
-	if filterId == "ok" then
-		AppendOkSlots()
-	else
-		for index = 1, #findings do
+	for index = 1, #findings do
 			local finding = findings[index]
 			if FindingMatchesFilter(finding, filterId) then
 				local severity = finding.severity
@@ -250,11 +246,8 @@ local function BuildBreakdownGroups(report, filterId)
 					end
 				end
 			end
-		end
-		if filterId == "all" then
-			AppendOkSlots()
-		end
 	end
+	if filterId == "all" then AppendOkSlots() end
 
 	local list = {}
 	for index = 1, #order do
@@ -646,11 +639,7 @@ local function ApplyBreakdown(page, report)
 	local emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_SCAN")
 	if report then
 		if #groups == 0 then
-			if filterId == "ok" then
-				emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_OK")
-			else
-				emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_FILTER")
-			end
+			emptyText = W.T("GEAR_CHECK_BREAK_EMPTY_FILTER")
 		end
 	end
 
