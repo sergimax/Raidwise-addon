@@ -4,7 +4,7 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-2.3.0-purple)
+![](https://img.shields.io/badge/current_version-2.3.1-purple)
 ![](https://img.shields.io/badge/last_updated-2026--11--15-blue)
 
 
@@ -47,8 +47,15 @@ tests and are excluded by [the packager](scripts/package-addon.mts).
 Branches and PR merges alone do not publish releases. Tags must point to commits
 containing the workflow; existing tags are not processed retroactively.
 The workflow uses GitHub's built-in token with `contents: write`; no personal
-access token is needed. An existing release is not overwritten: rerunning a
-successful publication fails rather than replacing its assets.
+access token is needed. To repair an existing release without moving its tag,
+run **Actions → Release addon → Run workflow** from the default branch and enter
+the existing tag (for example `v2.3.0`). The current workflow checks out that tag,
+checks and packages its files, then uploads/replaces only `Raidwise-vX.Y.Z.zip`;
+existing release notes and other assets are preserved.
+
+Download **Raidwise-vX.Y.Z.zip** for installation. GitHub also supplies **Source
+code (zip)** and **Source code (tar.gz)** automatically; those contain the entire
+repository and are not installation packages.
 
 After the prepared changes are committed and pushed, publish an explicitly
 requested version (replace `X.Y.Z` with that version):
