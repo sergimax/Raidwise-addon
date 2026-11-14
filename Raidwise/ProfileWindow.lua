@@ -258,7 +258,14 @@ Refresh = function(frame)
 		.. Text("Последняя: ", "Last: ") .. Time(stats.lastMetAt))
 	local links = Addon:GetLinkedCharacters(draft.key)
 	local names = {}
-	for _, link in ipairs(links) do if link.guid ~= draft.key then names[#names + 1] = Author(link.entry) end end
+	for _, link in ipairs(links) do
+		if link.guid ~= draft.key then
+			local label = Author(link.entry)
+			local color = RAID_CLASS_COLORS and RAID_CLASS_COLORS[link.entry.class]
+			if color then label = Addon:RatingWrapColor(label, {color.r, color.g, color.b}) end
+			names[#names + 1] = label
+		end
+	end
 	frame.linkSummary:SetText(#names > 0 and table.concat(names, ", ") or Text("Связанных персонажей нет", "No linked characters"))
 	if frame.selectedProfileTab == "meetings" then
 		local meetings = Addon:GetCharacterEncounters(draft.key)
