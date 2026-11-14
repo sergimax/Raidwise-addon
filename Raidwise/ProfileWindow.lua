@@ -1,9 +1,9 @@
 -- Active profile UI; the legacy CharacterProfile window is no longer loaded.
 local Addon = Raidwise
 local W = Addon.Widgets
-local PROFILE_LAYOUT_VERSION = 39
+local PROFILE_LAYOUT_VERSION = 40
 local VERSION = PROFILE_LAYOUT_VERSION
-local WIDTH, HEIGHT = 900, 700
+local WIDTH, HEIGHT = 820, 540
 local Refresh
 local words, translated = {}, setmetatable({}, {__mode="k"})
 local function Text(ru, en)
@@ -96,7 +96,7 @@ end
 local function Layout(frame)
 	local expanded = frame.editingOpinion and Editable(frame)
 	if expanded then frame.opinionEditor:Show() else frame.opinionEditor:Hide() end
-	local top = expanded and 222 or 146
+	local top = expanded and 192 or 116
 	frame.navigation:ClearAllPoints(); frame.navigation:SetPoint("TOPLEFT", 12, -top)
 	for _, panel in pairs(frame.profilePanels) do
 		panel:ClearAllPoints(); panel:SetPoint("TOPLEFT", 12, -(top + 36))
@@ -106,8 +106,8 @@ local function Layout(frame)
 	frame.eventList.scroll:SetHeight(height - 78)
 	frame.meetingList.scroll:SetHeight(height - 100)
 	frame.changeList.scroll:SetHeight(height - 78)
-	frame.overviewList.scroll:SetHeight(math.min(228, height - 76))
-	frame.notePanel:SetHeight(height - 130)
+	frame.overviewList.scroll:SetHeight(math.min(186, height - 76))
+	frame.notePanel:SetHeight(math.min(200, height - 104))
 end
 
 local eventGroups = {
@@ -176,7 +176,8 @@ Refresh = function(frame)
 		.. "  ·  " .. Time(profile and profile.updatedAt))
 	local editable = Editable(frame)
 	frame.selfHint:SetText(editable and "" or Text("Это ваш персонаж — оценка недоступна", "This is your character — rating is unavailable"))
-	if editable then frame.editOpinion:Show(); frame.typeButton:Show(); frame.overviewAdd:Show() else
+	if editable then frame.author:Show(); frame.editOpinion:Show(); frame.typeButton:Show(); frame.overviewAdd:Show() else
+		frame.author:Hide()
 		frame.editOpinion:Hide(); frame.typeButton:Hide(); frame.overviewAdd:Hide(); frame.eventMenu:Hide()
 	end
 	for _, button in ipairs(frame.opinions) do
@@ -240,7 +241,13 @@ Refresh = function(frame)
 	if frame.selectedProfileTab == "events" then Render(frame.eventList, Slice(events, frame.eventPage), DrawEvent) end
 	local recent = {}
 	for index = 1, math.min(3, #events) do recent[index] = events[index] end
-	if frame.selectedProfileTab == "overview" then Render(frame.overviewList, recent, DrawEvent) end
+	if frame.selectedProfileTab == "overview" then
+		Render(frame.overviewList, recent, DrawEvent)
+		local recentHeight = #recent > 0 and math.min(#recent * 62, frame.overviewList.scroll:GetHeight()) or 30
+		frame.overviewList.scroll:SetHeight(recentHeight)
+		if #recent > 0 then frame.overviewList.scroll:Show() else frame.overviewList.scroll:Hide() end
+		frame.allEvents:ClearAllPoints(); frame.allEvents:SetPoint("TOPLEFT", 0, -(40 + recentHeight + 8))
+	end
 	local empty = #events == 0 and Text("Событий пока нет", "No events yet") or ""
 	frame.eventsEmpty:SetText(empty); frame.overviewEmpty:SetText(empty)
 	local stats = Addon:GetCharacterMeetingStats(draft.key)
@@ -305,26 +312,26 @@ local function Create()
 	titleBar:SetPoint("TOPLEFT", 12, -10); titleBar:SetSize(WIDTH - 24, 26); W.AttachDragHandle(titleBar, frame)
 	local close = Button(titleBar, WIDTH - 48, 0, 24, "X", function() frame:Hide() end)
 	W.AttachLayoutVersionLabel(titleBar, VERSION, close)
-	frame.title = Label(titleBar, 0, 0, 590, ""); frame.title:SetHeight(24)
-	frame.details = Label(frame, 12, -42, WIDTH - 24, ""); frame.details:SetHeight(20)
-	frame.opinionSummary = Label(frame, 12, -68, 720, ""); frame.opinionSummary:SetHeight(30)
-	frame.author = Label(frame, 12, -104, 720, ""); frame.author:SetHeight(20)
-	frame.selfHint = Label(frame, 12, -126, 720, "")
-	frame.editOpinion = Button(frame, 770, -70, 118, Text("Изменить", "Edit"), function()
+	frame.title = Label(titleBar, 0, 0, 490, ""); frame.title:SetHeight(24)
+	frame.details = Label(frame, 12, -36, WIDTH - 24, ""); frame.details:SetHeight(20)
+	frame.opinionSummary = Label(frame, 12, -58, 664, ""); frame.opinionSummary:SetHeight(30)
+	frame.author = Label(frame, 12, -88, 664, ""); frame.author:SetHeight(20)
+	frame.selfHint = Label(frame, 12, -88, 664, "")
+	frame.editOpinion = Button(frame, 690, -58, 118, Text("Изменить", "Edit"), function()
 		frame.editingOpinion = not frame.editingOpinion; Refresh(frame)
 	end)
 	frame.opinionEditor = CreateFrame("Frame", nil, frame)
-	frame.opinionEditor:SetPoint("TOPLEFT", 12, -142); frame.opinionEditor:SetSize(876, 70)
+	frame.opinionEditor:SetPoint("TOPLEFT", 12, -122); frame.opinionEditor:SetSize(796, 64)
 	frame.opinions, frame.facts = {}, {}
 	for index, opinion in ipairs({"unset", "positive", "neutral", "negative"}) do
-		local button = Button(frame.opinionEditor, (index - 1) * 188, 0, 180, "", function()
+		local button = Button(frame.opinionEditor, (index - 1) * 172, 0, 164, "", function()
 			if not Editable(frame) then return end
 			frame.editor.draft.opinion = opinion ~= "unset" and opinion or nil; Changed(frame)
 		end)
 		button.opinion = opinion ~= "unset" and opinion or nil; frame.opinions[#frame.opinions + 1] = button
 	end
 	for index, fact in ipairs(Addon:FactCatalog()) do
-		local button = Button(frame.opinionEditor, (index - 1) * 188, -32, 180, "", function()
+		local button = Button(frame.opinionEditor, (index - 1) * 172, -30, 164, "", function()
 			if not Editable(frame) then return end
 			local facts, found = frame.editor.draft.facts, false
 			for position, value in ipairs(facts) do if value == fact.id then table.remove(facts, position); found = true; break end end
@@ -332,17 +339,17 @@ local function Create()
 		end)
 		button.fact = fact.id; frame.facts[#frame.facts + 1] = button
 	end
-	Button(frame.opinionEditor, 758, -32, 118, Text("Готово", "Done"), function() frame.editingOpinion = false; Refresh(frame) end)
+	Button(frame.opinionEditor, 688, -30, 108, Text("Готово", "Done"), function() frame.editingOpinion = false; Refresh(frame) end)
 	frame.profilePanels, frame.profileTabs = {}, {}
-	frame.navigation = CreateFrame("Frame", nil, frame); frame.navigation:SetSize(876, 28)
+	frame.navigation = CreateFrame("Frame", nil, frame); frame.navigation:SetSize(796, 28)
 	for index, tab in ipairs({{"overview", Text("Обзор", "Overview")}, {"events", Text("События", "Events")},
 		{"meetings", Text("Встречи", "Meetings")}, {"characters", Text("Персонажи", "Characters")}}) do
-		frame.profileTabs[tab[1]] = Button(frame.navigation, (index - 1) * 148, 0, 140, tab[2], function() SelectTab(frame, tab[1]) end)
+		frame.profileTabs[tab[1]] = Button(frame.navigation, (index - 1) * 138, 0, 130, tab[2], function() SelectTab(frame, tab[1]) end)
 	end
 	for _, id in ipairs({"overview", "events", "meetings", "characters", "history"}) do
 		frame.profilePanels[id] = CreateFrame("Frame", nil, frame)
 	end
-	frame.journalButton = Button(frame.navigation, 650, 0, 226, Text("Журнал изменений", "Change journal"), function()
+	frame.journalButton = Button(frame.navigation, 572, 0, 224, Text("Журнал изменений", "Change journal"), function()
 		if frame.selectedProfileTab ~= "history" then frame.beforeJournal = frame.selectedProfileTab end
 		SelectTab(frame, "history")
 	end)
@@ -357,15 +364,15 @@ local function Create()
 		return label
 	end
 	local overview = frame.profilePanels.overview
-	Label(overview, 0, 0, 290, Text("Последние события", "Recent events"))
-	frame.overviewAdd = Button(overview, 330, 0, 190, Text("Добавить событие", "Add event"), function() OpenEventPicker(frame) end)
-	frame.overviewList = List(overview, "RaidwiseProfileRecentV" .. VERSION, 0, -40, 520, 228)
-	frame.overviewEmpty = Label(overview, 0, -42, 480, "")
-	Button(overview, 0, -280, 180, Text("Все события", "All events"), function() SelectTab(frame, "events") end)
+	Label(overview, 0, 0, 270, Text("Последние события", "Recent events"))
+	frame.overviewAdd = Button(overview, 280, 0, 180, Text("Добавить событие", "Add event"), function() OpenEventPicker(frame) end)
+	frame.overviewList = List(overview, "RaidwiseProfileRecentV" .. VERSION, 0, -40, 460, 186)
+	frame.overviewEmpty = Label(overview, 0, -42, 436, "")
+	frame.allEvents = Button(overview, 0, -78, 160, Text("Все события", "All events"), function() SelectTab(frame, "events") end)
 	frame.notePanel = CreateFrame("Frame", nil, overview)
-	frame.notePanel:SetPoint("TOPLEFT", 540, 0); frame.notePanel:SetWidth(336)
+	frame.notePanel:SetPoint("TOPLEFT", 476, 0); frame.notePanel:SetWidth(320)
 	W.ApplyPlainPanel(frame.notePanel, {0.12, 0.22, 0.32, 0.75})
-	Label(frame.notePanel, 8, -8, 320, Text("Заметка — только для себя", "Private note — only for you"))
+	Label(frame.notePanel, 8, -8, 304, Text("Заметка — только для себя", "Private note — only for you"))
 	local box, host = W.CreateCopyBox(frame.notePanel, "RaidwisePrivateNoteScrollV" .. VERSION, "RaidwisePrivateNoteV" .. VERSION)
 	host:SetPoint("TOPLEFT", 6, -32); host:SetPoint("BOTTOMRIGHT", -6, 6); frame.notesBox = box
 	box:SetScript("OnMouseUp", function() end)
@@ -373,30 +380,30 @@ local function Create()
 		W.FitCopyBoxToText(self)
 		if not frame.updatingNote and frame.editor then frame.editor.draft.note = self:GetText(); Addon:MarkProfileEditorChanged(frame.editor); UpdateStatus(frame) end
 	end)
-	frame.meetingSummary = Label(overview, 540, 0, 270, ""); frame.meetingSummary:ClearAllPoints()
+	frame.meetingSummary = Label(overview, 476, 0, 248, ""); frame.meetingSummary:ClearAllPoints()
 	frame.meetingSummary:SetPoint("TOPLEFT", frame.notePanel, "BOTTOMLEFT", 0, -10); frame.meetingSummary:SetHeight(38)
 	local meetingLink = Button(overview, 0, 0, 60, Text("Все", "All"), function() SelectTab(frame, "meetings") end)
 	meetingLink:ClearAllPoints(); meetingLink:SetPoint("TOPRIGHT", frame.notePanel, "BOTTOMRIGHT", 0, -10)
-	frame.linkSummary = Label(overview, 0, 0, 260, ""); frame.linkSummary:ClearAllPoints()
-	frame.linkSummary:SetPoint("TOPLEFT", frame.notePanel, "BOTTOMLEFT", 0, -60); frame.linkSummary:SetHeight(48)
+	frame.linkSummary = Label(overview, 0, 0, 238, ""); frame.linkSummary:ClearAllPoints()
+	frame.linkSummary:SetPoint("TOPLEFT", frame.notePanel, "BOTTOMLEFT", 0, -56); frame.linkSummary:SetHeight(36)
 	local linksLink = Button(overview, 0, 0, 70, Text("Связи", "Links"), function() SelectTab(frame, "characters") end)
-	linksLink:ClearAllPoints(); linksLink:SetPoint("TOPRIGHT", frame.notePanel, "BOTTOMRIGHT", 0, -60)
+	linksLink:ClearAllPoints(); linksLink:SetPoint("TOPRIGHT", frame.notePanel, "BOTTOMRIGHT", 0, -56)
 	local events = frame.profilePanels.events
 	frame.typeButton = Button(events, 0, 0, 200, Text("Добавить событие", "Add event"), function() OpenEventPicker(frame) end)
-	frame.eventList = List(events, "RaidwiseProfileEventsV" .. VERSION, 0, -40, 876, 370)
-	frame.eventsEmpty = Label(events, 0, -42, 780, "")
+	frame.eventList = List(events, "RaidwiseProfileEventsV" .. VERSION, 0, -40, 796, 260)
+	frame.eventsEmpty = Label(events, 0, -42, 740, "")
 	frame.eventPages = Pager(events, "eventPage", "maxEventPage")
 	local meetings = frame.profilePanels.meetings
-	frame.meetings = Label(meetings, 0, 0, 876, ""); frame.meetings:SetHeight(40)
-	frame.meetingList = List(meetings, "RaidwiseProfileMeetingsV" .. VERSION, 0, -60, 876, 350)
-	frame.meetingsEmpty = Label(meetings, 0, -62, 780, "")
+	frame.meetings = Label(meetings, 0, 0, 796, ""); frame.meetings:SetHeight(40)
+	frame.meetingList = List(meetings, "RaidwiseProfileMeetingsV" .. VERSION, 0, -60, 796, 240)
+	frame.meetingsEmpty = Label(meetings, 0, -62, 740, "")
 	frame.meetingPages = Pager(meetings, "meetingPage", "maxMeetingPage")
 	local history = frame.profilePanels.history
 	frame.journalBack = Button(history, 0, 0, 150, Text("Назад", "Back"), function() SelectTab(frame, frame.beforeJournal or "overview") end)
-	frame.changeList = List(history, "RaidwiseProfileChangesV" .. VERSION, 0, -40, 876, 370)
-	frame.changesEmpty = Label(history, 0, -42, 780, "")
+	frame.changeList = List(history, "RaidwiseProfileChangesV" .. VERSION, 0, -40, 796, 260)
+	frame.changesEmpty = Label(history, 0, -42, 740, "")
 	frame.historyPages = Pager(history, "historyPage", "maxHistoryPage")
-	Addon:CreateProfileCharactersPanel(frame, frame.profilePanels.characters, 876, VERSION)
+	Addon:CreateProfileCharactersPanel(frame, frame.profilePanels.characters, 796, VERSION)
 	-- A modal chooser keeps selecting a type separate from committing an event.
 	frame.eventMenu = CreateFrame("Frame", nil, frame)
 	frame.eventMenu:SetSize(620, 480); frame.eventMenu:SetPoint("CENTER"); frame.eventMenu:SetFrameLevel(frame:GetFrameLevel() + 20)
@@ -449,15 +456,15 @@ local function Create()
 	end)
 	Button(frame.actionsMenu, 222, -40, 108, Text("Закрыть", "Close"), function() frame.actionsMenu:Hide() end)
 	frame.actionsMenu:Hide()
-	Button(titleBar, 640, 0, 124, Text("Действия", "Actions"), function()
+	Button(titleBar, 560, 0, 110, Text("Действия", "Actions"), function()
 		if frame.actionsMenu:IsShown() then frame.actionsMenu:Hide() else frame.actionsMenu:Show() end
 	end)
-	frame.status = Label(frame, 12, -668, 510, "")
-	frame.save = Button(frame, 536, -664, 110, "", function() Addon:SaveProfileEditor(frame.editor); Refresh(frame) end)
-	frame.reload = Button(frame, 654, -664, 110, Text("Перечитать", "Reload"), function()
+	frame.status = Label(frame, 12, -508, 430, "")
+	frame.save = Button(frame, 456, -504, 110, "", function() Addon:SaveProfileEditor(frame.editor); Refresh(frame) end)
+	frame.reload = Button(frame, 574, -504, 110, Text("Перечитать", "Reload"), function()
 		frame.eventMenu:Hide(); frame.editor = Addon:ReloadProfileEditor(frame.editor); Refresh(frame)
 	end)
-	frame.toNote = Button(frame, 772, -664, 116, Text("К заметке", "To note"), function()
+	frame.toNote = Button(frame, 692, -504, 116, Text("К заметке", "To note"), function()
 		SelectTab(frame, "overview"); frame.notesBox:SetFocus()
 	end)
 	frame:SetScript("OnUpdate", function(_, elapsed)

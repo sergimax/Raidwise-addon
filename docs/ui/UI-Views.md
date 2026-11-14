@@ -34,7 +34,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 32` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
-| Character | `PROFILE_LAYOUT_VERSION = 39` | `ProfileWindow.lua` | Title bar (left of close) |
+| Character | `PROFILE_LAYOUT_VERSION = 40` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
 | My gear and CDs exports | `LAYOUT_VERSION = 5` | `PageExport.lua` | Top title bar (next to page name) |
 | Raid | `LAYOUT_VERSION = 55` | `PageRaid.lua` | Top title bar (next to page name) |
@@ -247,10 +247,10 @@ Raid-wide gear check lives on **Raid roster** (Scan button + report rows per pla
 
 ## Character profile
 
-Active owner: `ProfileWindow.lua`, layout **v39** (`PROFILE_LAYOUT_VERSION`), save controller `ProfileEditor.lua`.
+Active owner: `ProfileWindow.lua`, layout **v40** (`PROFILE_LAYOUT_VERSION`), save controller `ProfileEditor.lua`.
 
 ```text
-[ Name-realm                         Actions     v39 X ]
+[ Name-realm                         Actions     v40 X ]
 [ Class / guild / spec / known gear                    ]
 [ Opinion · selected roles                      Edit  ]
 [ Author · updated time / self-profile explanation     ]
@@ -261,7 +261,9 @@ Active owner: `ProfileWindow.lua`, layout **v39** (`PROFILE_LAYOUT_VERSION`), sa
 [ Status           Save/retry · Reload on error · To note]
 ```
 
-Overview opens by default and shows up to three latest events. The private note
+The compact 820 × 540 window opens Overview by default with up to three latest
+events. Empty recent lists hide their scroll controls; All events follows the
+actual row count instead of reserving a large empty list. The private note
 appears only here; other sections offer To note with focus. The opinion and
 selected roles stay in the header; Edit expands controls and Done collapses them.
 Self-profiles hide rating and event creation controls with an explanation.

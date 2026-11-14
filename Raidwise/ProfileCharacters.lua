@@ -117,7 +117,7 @@ function Addon:RefreshProfileCharacters(frame)
 	frame.charactersHint:SetText(Addon.db.locale == "ruRU" and "Мнение и заметка у каждого персонажа свои. Связи сохраняются сразу."
 		or "Each character has their own opinion and note. Links save immediately.")
 	frame.characterSearchToggle.label:SetText(Addon.db.locale == "ruRU" and "Связать персонажа" or "Link character")
-	frame.charactersLinkedScroll:SetHeight(frame.characterSearchPanel:IsShown() and 112 or math.max(84, frame.profilePanels.characters:GetHeight() - 108))
+	frame.charactersLinkedScroll:SetHeight(frame.characterSearchPanel:IsShown() and 80 or math.max(84, frame.profilePanels.characters:GetHeight() - 76))
 	frame.charactersSearchLabel:SetText(W.T("CHAR_LINK_SEARCH"))
 	frame.charactersTarget.label:SetText(W.T("CHAR_LINK_TARGET"))
 	frame.charactersStatus:SetText("")
@@ -144,7 +144,7 @@ function Addon:CreateProfileCharactersPanel(frame, parent, width, layoutVersion)
 	local toggle = W.CreatePlainButton(panel, 200, 24, "")
 	toggle:SetPoint("TOPRIGHT", 0, 0); frame.characterSearchToggle = toggle
 	local searchPanel = CreateFrame("Frame", nil, panel)
-	searchPanel:SetPoint("TOPLEFT", 0, -158); searchPanel:SetPoint("BOTTOMRIGHT", 0, 58)
+	searchPanel:SetPoint("TOPLEFT", 0, -120); searchPanel:SetPoint("BOTTOMRIGHT", 0, 32)
 	frame.characterSearchPanel = searchPanel
 	toggle:SetScript("OnClick", function()
 		if searchPanel:IsShown() then searchPanel:Hide() else searchPanel:Show() end
@@ -183,7 +183,7 @@ function Addon:CreateProfileCharactersPanel(frame, parent, width, layoutVersion)
 	local status = W.CreateFontString(panel, nil, "OVERLAY", "GameFontNormalSmall")
 	status:SetPoint("BOTTOMLEFT", 0, 0)
 	status:SetPoint("RIGHT", panel, "RIGHT", 0, 0)
-	status:SetHeight(58)
+	status:SetHeight(32)
 	status:SetJustifyH("LEFT")
 	status:SetJustifyV("TOP")
 	frame.charactersStatus = status

@@ -213,28 +213,28 @@ Full-width description + limitation, then **two columns** with a responsive righ
 
 Raid-wide gear check is integrated into **Raid roster** (see that section). There is no separate gear-check raid tab.
 
-## Character profile — active layout v39
+## Character profile — active layout v40
 
 Owner: `ProfileWindow.lua`; save controller: `ProfileEditor.lua`.
 
 | Element | Geometry / behavior |
 |---|---|
-| Window | **900 × 700**, centered, clamped, draggable title |
-| Title bar | x=12, y=-10, **876 × 26**; title 590 px; Actions, badge and Close |
-| Details / opinion / author | y=-42 / -68 / -104; opinion height 30 px |
-| Opinion editor | x=12, y=-142, **876 × 70**; two rows of 180 × 24 buttons, 188 px stride; Done |
-| Navigation | y=-146 collapsed / -222 expanded; four 140 × 24 tabs, 148 px stride; journal 226 px |
-| Content host | x=12; y=-182 / -258; right inset 12, bottom inset 48; **876 × 470 / 394** |
-| Overview columns | **520 / 336** px, **20** px gap |
-| Recent events | y=-40; up to **228** px high, three 62 px rows; All events y=-280 |
-| Private note | right column; **336 × 340 / 264**; blue panel, 6 px inset, input starts y=-32 |
-| Overview summaries | 10 / 60 px below note; bounded meeting/link text and detail actions |
-| Event/journal lists | full width; y=-40; **392 / 316** px high; 62 px rows; 25 rows/page |
-| Meeting list | y=-60; **370 / 294** px high; independent 25-row pages |
-| Link list | fills available body when search closed; **112** px when open |
-| Link search | y=-158; bottom inset 58; own candidate scroll |
+| Window | **820 × 540**, centered, clamped, draggable title |
+| Title bar | x=12, y=-10, **796 × 26**; title 490 px; Actions, badge and Close |
+| Details / opinion / author | y=-36 / -58 / -88; opinion height 30 px; self explanation replaces author |
+| Opinion editor | x=12, y=-122, **796 × 64**; two rows of 164 × 24 buttons, 172 px stride; Done |
+| Navigation | y=-116 collapsed / -192 expanded; four 130 × 24 tabs, 138 px stride; journal 224 px |
+| Content host | x=12; y=-152 / -228; right inset 12, bottom inset 48; **796 × 340 / 264** |
+| Overview columns | **460 / 320** px, **16** px gap |
+| Recent events | y=-40; 62 px per row, up to three; empty list scroll hidden; All events 8 px below actual list/30 px empty hint |
+| Private note | right column; **320 × 200 / 160**; blue panel, 6 px inset, input starts y=-32 |
+| Overview summaries | 10 / 56 px below note; meeting text 38 px, link text 36 px, detail actions |
+| Event/journal lists | full width; y=-40; **262 / 186** px high; 62 px rows; 25 rows/page |
+| Meeting list | y=-60; **240 / 164** px high; independent 25-row pages |
+| Link list | fills available body when search closed; **80** px when open |
+| Link search | y=-120; bottom inset 32; own candidate scroll |
 | Event chooser | **620 × 480**, centered; grouped list **300** px high; search and explicit confirmation |
-| Footer | status x=12 y=-668, 510 px; Save 110, Reload 110, To note 116 px; buttons y=-664 |
+| Footer | status x=12 y=-508, 430 px; Save 110, Reload 110, To note 116 px; buttons y=-504 |
 
 Overview is the default. Long lists and the note scroll independently. Expanding
 the opinion editor reduces the body height without changing the outer window.
@@ -339,7 +339,7 @@ Header report controls are contextual: chat channels appear only on Raid roster,
 ## Historical character-system transition (2026-10-30)
 
 The sequence below records earlier layouts, not the current profile screen.
-Current profile dimensions are in the active v39 section above.
+Current profile dimensions are in the active v40 section above.
 
 Shell v23 removes the exchange group and profile-export entry; outer sizes are unchanged.
 Profile v36 removes the 90 x 18 Share button; the title now ends 8 px before

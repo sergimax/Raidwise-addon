@@ -76,6 +76,7 @@ test("active profile: autosave, explicit save, event editing, retained errors an
       a:ShowRaidCharacterWindow(x)
       local f=a.raidDetailFrame
       assert(f.selectedProfileTab=='overview' and not a:IsPlayerRecordFilled('X'))
+      assert(not f.overviewList.scroll:IsShown())
       assert(f.guidLabel:GetText()=='GUID: X' and not f.actionsMenu:IsShown())
       assert(f.profileTabs.overview.selected and not f.profileTabs.events.selected)
       f.editOpinion.scripts.OnClick();assert(f.opinionEditor:IsShown())
