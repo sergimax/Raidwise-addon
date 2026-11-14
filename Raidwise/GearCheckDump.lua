@@ -392,6 +392,42 @@ local function FormatRaidDumpEntry(entry)
 	return table.concat(lines, "\n"), false
 end
 
+local function FormatRaidItemListEntry(entry, full)
+	local report = entry and entry.report
+	local member = entry and entry.member or {}
+	if not report then
+		return string.format("%s — %s", tostring(member.name or "?"), tostring(entry and entry.status or "unknown")), false
+	end
+	local lines = { tostring(report.character and report.character.name or member.name or "?") }
+	for _, slot in ipairs(Addon:GetGearCheckEquipment(report)) do
+		local item = slot.item
+		if item and not slot.empty then
+			local link = tostring(item.link or "")
+			local _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, version = strsplit(":", link)
+			local itemLine = string.format("%s: %s (id=%s)", tostring(slot.slotName), tostring(item.name or "?"), tostring(item.itemId or "?"))
+			if tonumber(version) and tonumber(version) > 0 then itemLine = itemLine .. " version=" .. tostring(version) end
+			lines[#lines + 1] = itemLine
+			if full then
+				local enchant = item.enchant or {}
+				local enchantId = tonumber(enchant.enchantId)
+				local enchantName = ResolveEnchantDumpName(enchant)
+				if enchantId and enchantId > 0 then
+					lines[#lines + 1] = "  enchant: id=" .. tostring(enchantId)
+				elseif enchantName then
+					lines[#lines + 1] = "  enchant: " .. enchantName
+				end
+			for gemIndex, gem in ipairs(item.gems or {}) do
+				local gemName = ResolveGemDumpName(gem)
+				if gem.itemId or gemName then
+					lines[#lines + 1] = string.format("  socket %d: id=%s%s", tonumber(gem.socketIndex) or gemIndex, tostring(gem.itemId or "?"), gemName and (" name=" .. gemName) or "")
+				end
+			end
+			end
+		end
+	end
+	return table.concat(lines, "\n"), true
+end
+
 local function FinishRaidDumpJob(text)
 	local onComplete = raidDumpJob and raidDumpJob.onComplete
 	raidDumpJob = nil
@@ -421,7 +457,7 @@ raidDumpFrame:SetScript("OnUpdate", function()
 	end
 
 	local entry = results[index]
-	local part, ok = FormatRaidDumpEntry(entry)
+	local part, ok = FormatRaidItemListEntry(entry, job.full)
 	job.parts[#job.parts + 1] = part
 	if ok then
 		job.scanned = job.scanned + 1
@@ -434,7 +470,7 @@ raidDumpFrame:SetScript("OnUpdate", function()
 	end
 end)
 
-function Addon:FormatGearCheckRaidDump(results)
+function Addon:FormatGearCheckRaidDump(results, full)
 	if type(results) ~= "table" or #results == 0 then
 		return ""
 	end
@@ -444,7 +480,7 @@ function Addon:FormatGearCheckRaidDump(results)
 	local failed = 0
 	for index = 1, #results do
 		local entry = results[index]
-		local part, ok = FormatRaidDumpEntry(entry)
+		local part, ok = FormatRaidItemListEntry(entry, full == true)
 		parts[#parts + 1] = part
 		if ok then
 			scanned = scanned + 1
@@ -479,7 +515,7 @@ function Addon:CancelGearCheckRaidDump()
 end
 
 -- Builds the raid dump one player per frame to avoid freezing the UI on large rosters.
-function Addon:BuildGearCheckRaidDumpAsync(results, onProgress, onComplete)
+function Addon:BuildGearCheckRaidDumpAsync(results, onProgress, onComplete, full)
 	if type(results) ~= "table" or #results == 0 then
 		if onComplete then
 			onComplete("")
@@ -497,6 +533,7 @@ function Addon:BuildGearCheckRaidDumpAsync(results, onProgress, onComplete)
 		failed = 0,
 		onProgress = onProgress,
 		onComplete = onComplete,
+		full = full == true,
 	}
 	raidDumpFrame:Show()
 	return true

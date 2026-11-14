@@ -6,7 +6,7 @@ local UI = Addon.UITheme
 
 Addon.Pages = Addon.Pages or {}
 
-local LAYOUT_VERSION = 59
+local LAYOUT_VERSION = 60
 
 local RAID_CELL_W = 168
 local RAID_CELL_H = 100
@@ -864,17 +864,8 @@ local function CreateRaidRosterHeader(page)
 		"GEAR_CHECK_RAID_EXPORT",
 		"GEAR_CHECK_RAID_EXPORT_TIP"
 	)
-
-	local refreshBtn = W.CreatePlainIconButton(
-		toolbar,
-		row1H,
-		RAID_TOOLBAR_REFRESH_ICON,
-		"BTN_REFRESH",
-		"RAID_REFRESH_TIP"
-	)
-	refreshBtn:SetScript("OnClick", function()
-		Addon:RefreshPartyData(true)
-	end)
+	local fullExportBtn = W.CreatePlainIconButton(toolbar, row1H, RAID_TOOLBAR_EXPORT_ICON, "GEAR_CHECK_RAID_FULL_EXPORT", "GEAR_CHECK_RAID_FULL_EXPORT_TIP")
+	fullExportBtn:Hide()
 
 	local textViewBtn = W.CreatePlainIconButton(
 		toolbar,
@@ -887,10 +878,10 @@ local function CreateRaidRosterHeader(page)
 
 	page.gearCheckScanBtn = scanBtn
 	page.gearCheckExportBtn = exportBtn
-	page.refreshBtn = refreshBtn
+	page.gearCheckFullExportBtn = fullExportBtn
 	page.textViewBtn = textViewBtn
 
-	local toolbarBtns = { scanBtn, exportBtn, refreshBtn, textViewBtn }
+	local toolbarBtns = { scanBtn, exportBtn, fullExportBtn, textViewBtn }
 
 	local function LayoutRaidMiniTable()
 		local toolbarW = row1H * btnCount + btnGap * (btnCount - 1)
@@ -1011,6 +1002,10 @@ local function UpdateRaidExportActionButtons(page, busy)
 		busy = PageGearActionsBusy(page)
 	end
 	local exportOpen = page.exportViewMode == true
+	if page.gearCheckFullExportBtn then
+		if exportOpen and not busy then page.gearCheckFullExportBtn:Show(); page.gearCheckFullExportBtn:Enable()
+		else page.gearCheckFullExportBtn:Hide(); page.gearCheckFullExportBtn:Disable() end
+	end
 	if page.textViewBtn then
 		if busy or not exportOpen then
 			page.textViewBtn:Disable()
@@ -1754,7 +1749,7 @@ function Addon:RunGearCheckMemberRescan(page, member)
 	return true
 end
 
-local function RunGearCheckRaidExport(page)
+local function RunGearCheckRaidExport(page, full)
 	if page.gearCheckScanning or page.gearCheckExporting or page.gearCheckMemberScanning then
 		return
 	end
@@ -1820,7 +1815,8 @@ local function RunGearCheckRaidExport(page)
 					Addon:Print(W.T("GEAR_CHECK_STATUS_FAIL"))
 				end
 			end)
-		end
+		end,
+		full
 	)
 	if not started then
 		page.gearCheckExporting = false
@@ -1911,8 +1907,9 @@ local function CreateRaidRosterPage(parent)
 		RunGearCheckRaidScan(page)
 	end)
 	page.gearCheckExportBtn:SetScript("OnClick", function()
-		RunGearCheckRaidExport(page)
+		RunGearCheckRaidExport(page, false)
 	end)
+	page.gearCheckFullExportBtn:SetScript("OnClick", function() RunGearCheckRaidExport(page, true) end)
 	page.textViewBtn:SetScript("OnClick", function()
 		ExitRaidExportView(page)
 	end)

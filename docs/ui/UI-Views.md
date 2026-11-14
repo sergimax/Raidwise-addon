@@ -136,7 +136,7 @@ Current raid layout by group, with integrated gear-check scan. Parties 1–5 are
 | mini table | Two rows: chips + GS/roles + Flask/Food reports + icon toolbar (**28**), then four gear-category report cells (**20**); **4** px between rows |
 | row 1 grade chips | Colored `S · A · B · C · D`; hover shows `GEAR_CHECK_RAID_HINT` |
 | row 1 GS / roles | `Average GS` plus role counts on one line; hover shows per-role count and average GS |
-| row 1 toolbar | Icon buttons **Scan**, **Export all**, **Refresh**, **Back to roster** in a horizontal strip (**28×28**, **4** px gap). Hover shows the action name and tip. **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
+| row 1 toolbar | Icon buttons **Scan**, **Export all**, **Back to roster** in a horizontal strip (**28×28**, **4** px gap). Hover shows the action name and tip. **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
 | row 1 reports | **Flask** and **Food** compact counts, each with a **16×16** Battle Shout report button immediately left of its label; hover previews the report |
 | row 2 reports | Four equal cells: **Gems**, **Armor**, **Weapons** (main/off/2H/relic), **Enchants** — compact counts, each with a **16×16** Battle Shout report button immediately left of its label |
 | flask / food | `Flask n/total` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Missing names and `(n missing)` live in the hover tip. Out of range / offline are not listed as missing |

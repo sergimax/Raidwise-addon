@@ -152,7 +152,7 @@ Compact two-row header (grade chips + GS/roles + Flask/Food report controls + ic
 | Mini table | full width × **52** | Row 1 **28** + **4** px gap + row 2 **20** |
 | Row 1 chips | **≥72** wide | Colored `S · A · B · C · D`; full `GEAR_CHECK_RAID_HINT` on hover |
 | Row 1 GS / roles | remaining width | One line; per-role GS on hover |
-| Row 1 toolbar | **4×28** icons, **4** px gaps (**124** wide) | Scan, Export all, Refresh, Back to roster (icon + tooltip) |
+| Row 1 toolbar | **3×28** icons, **4** px gaps (**92** wide) | Scan, Export all, Back to roster (icon + tooltip) |
 | Row 1 reports | Flask/Food report cells, **104×28** each | **16×16** Battle Shout button left of label and count |
 | Row 2 reports | four equal cells, **8** px gaps, **20** tall | Gear category name + compact counts; **16×16** Battle Shout button left of each label |
 | Progress status | full width × **28** | **4** px under mini table (two lines) |
