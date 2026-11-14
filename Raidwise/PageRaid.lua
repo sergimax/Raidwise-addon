@@ -855,7 +855,7 @@ local function CreateRaidRosterHeader(page)
 		toolbar,
 		row1H,
 		RAID_TOOLBAR_SCAN_ICON,
-		"GEAR_CHECK_SCAN",
+		"RAID_SCAN_LABEL",
 		"RAID_SCAN_TIP"
 	)
 	local exportBtn = W.CreatePlainIconButton(
