@@ -4,8 +4,8 @@
 
 Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-2.2.0-purple)
-![](https://img.shields.io/badge/last_updated-2026--11--06-blue)
+![](https://img.shields.io/badge/current_version-2.3.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--11--15-blue)
 
 
 ## Install
@@ -100,11 +100,11 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 
 - Two blocks: raid groups **1–5**, then **6–8**; when not in a raid, your party fills group 1
 - Lines above the grid: compact header (S·A·B·C·D chips, GS and role counts, flask/food/gems/armor/weapons/enchants with report icons, Scan/Export/Refresh/Back icons); then scan status and progress
-- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, compact `P:`/`K:` ratings, separate gem/armor/weapon/enchant grades, **Gear** / **Rescan**, and sword/gem report icons
+- Each player card: class + name, flask/food status icons, role + spec + GS/iLvl, the saved opinion, separate gem/armor/weapon/enchant grades, **Gear** / **Rescan**, and sword/gem report icons
 - Sword/gem icons post that player's gear/weapon or gem/enchant findings to the configured report channel, always in short form (`CODE - slot,slot; CODE - slot`); hover previews the message
 - A successful full scan shows its completion date and time with the success message; individual rescans do not change that timestamp
 - Hover a card for selected opinion, **guild (rank)**, raid buffs, and gear-check details
-- **Scan** / **Export all** for raid-wide gear check; **Export all** opens copy text; **Back to roster** closes it; click the dump + Ctrl+C to copy
+- **Scan** / **Export all** for raid-wide gear check; **Export all** opens a compact item list; **Full export** adds overall/item grades, enchantments and sockets (a heavier operation); **Back to roster** closes it; click the dump + Ctrl+C to copy
 - **Refresh** re-scans GearScore and re-inspects nearby members for spec icons
 - Card click opens **Character profile**
 
@@ -137,12 +137,17 @@ Target scans do not create meetings. Old details expire while counters remain.
 Note or an explicit neutral opinion. Name/target addition opens an empty Profile.
 Both lists offer search, 25-row pages and direct access to the same Profile.
 
-**Profile** has three tabs: Events, History and Characters. Opinion, four role
-facts, author, personal meeting count and the local Note stay visible. There are
-22 concrete event types with fixed date/place and explicit authors. Linked alts
-keep separate opinions. Auto-save runs after one second idle; Save is also
-available. A failed draft stays in memory after closing. Self-rating is disabled,
-but a private Note about oneself is allowed.
+**Profile** opens a compact Overview with the three latest events, private Note,
+meeting summary and linked characters colored by class. Opinion and selected
+roles remain in the header; **Edit** expands their controls. **Events**, **Meetings**
+and **Characters** provide details; the change journal opens separately with Back
+and independent pagination. **To note** returns to Overview and focuses the Note.
+There are 22 event types with categories/search; selecting a type prepares the
+entry and explicit confirmation captures its date/place and author. Linked alts
+keep separate opinions and Notes; link search appears on demand. **Actions**
+contains GUID and confirmed deletion. One-second autosave remains; Save/Retry and
+Reload appear when needed. Failed drafts survive closing within the session.
+Self-rating is unavailable, but a private Note about oneself is allowed.
 
 Friends, ignore, inbox, guild, chat and tooltips display the chosen explicit opinion
 regardless of its author. A Note/scan alone creates no neutral marker. Negative
@@ -171,6 +176,7 @@ Report controls in the shared header:
 - The choice is saved on this account (`RaidwiseDB.locale`); a Russian client defaults to Russian
 - **Theme** category: switch between light and dark; saved per account in `RaidwiseDB.theme`
 - **Startup page**: which left-menu tab opens on `/raidwise` (`RaidwiseDB.startupTab`; default Character cooldowns; **Info** cannot be selected)
+- **Window**: optionally hide the main window when entering combat (`RaidwiseDB.hideInCombat`, off by default). The title-bar minus button collapses/expands the main window.
 - Unit tooltip option: hide selected opinion (`RaidwiseDB.tooltip`)
 - Preview of compact (live) and stacked tooltip layouts
 
