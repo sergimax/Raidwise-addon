@@ -488,6 +488,38 @@ test("guild row tooltip gives names and classes explicit readable colors", async
   `, ["PageGuild"], uiSetup);
 });
 
+test("mains-only mode excludes alt chains and unknown notes and combines with search and active raid groups", async () => {
+  await run(`
+    rows[1].officerNote='10000,500'
+    rows[2].officerNote='янтарь'
+    for _,entry in ipairs({{'Zero','0,0'},{'Chain','Alice'},{'Missing','Nobody'},{'Invalid','-1,2'}}) do
+      rows[#rows+1]={name=entry[1],rank='Member',rankIndex=3,class='Mage',classFile='MAGE',
+        publicNote='',officerNote=entry[2]}
+    end
+    function GetNumRaidMembers() return 3 end
+    function GetRaidRosterInfo(index) return ({'Янтарь','Alice','Zero'})[index],0,({5,1,6})[index] end
+    G.Accept(G.Collect())
+    assert(#G.Members(nil,nil,false,nil,false,true)==2)
+    assert(#G.Members('zero',nil,false,nil,false,true)==1)
+    assert(#G.Members('alice',nil,false,nil,false,true)==0)
+    local raid=G.Members(nil,nil,true,'ep',true,true)
+    assert(#raid==1 and raid[1].name=='Янтарь')
+    rights.view=false;assert(#G.Members(nil,nil,false,nil,false,true)==0)
+    rights.view=true
+    function GetGuildInfoText() return '-EPGP-\\n@BASE_GP:bad\\n-EPGP-' end
+    G.Accept(G.Collect());assert(#G.Members(nil,nil,false,nil,false,true)==2,'main detection does not require valid PR')
+    local page=Raidwise.Pages.Guild.Create(region());Raidwise.Pages.Guild.Refresh(page)
+    page.offset=1;page.verticalOffset=100
+    page.mainsOnly.scripts.OnClick()
+    assert(page.filterMains and page.offset==0 and page.verticalOffset==0)
+    assert(page.rows[1].entry.name=='Zero' and page.rows[2].entry.name=='Янтарь' and page.rows[3].entry==nil)
+    page.raidOnly.scripts.OnClick();assert(page.rows[1].entry.name=='Янтарь' and page.rows[2].entry==nil)
+    page.journalTab.scripts.OnClick();assert(not page.mainsOnly.shown)
+    page.rosterTab.scripts.OnClick();assert(page.mainsOnly.shown and page.filterMains)
+    page.mainsOnly.scripts.OnClick();assert(not page.filterMains and page.rows[1].entry.name=='Alice')
+  `, ["PageGuild"], uiSetup);
+});
+
 test("core loads the renamed guild addon in TOC order and registers one guild page", async () => {
   const lua = await Lua.create();
   try {

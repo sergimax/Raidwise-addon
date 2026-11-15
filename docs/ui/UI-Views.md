@@ -34,7 +34,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 34` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
-| Guild roster / journal | `LAYOUT_VERSION = 6` | `Raidwise_Guild/PageGuild.lua` | Top title bar (next to page name) |
+| Guild roster / journal | `LAYOUT_VERSION = 7` | `Raidwise_Guild/PageGuild.lua` | Top title bar (next to page name) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `PROFILE_LAYOUT_VERSION = 40` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
@@ -61,7 +61,7 @@ The Guild navigation group contains one Guild roster page registered by `Raidwis
 
 ```text
 [ Roster ][ Journal ][ Refresh ][ refresh progress: waiting / members read ]
-[ Search name / notes ][ Current raid 1–5 or event type ][ Minimum EP / Apply ][ BASE_GP ]
+[ Search name / notes ][ Current raid 1–5 or event type ][ Mains only ][ Minimum EP / Apply ][ BASE_GP ]
 [ Class-colored name | Class icon | Rank | Online | EP [roll] | GP (+base) | PR | Public note | Officer note ]
 [ 25 records per page; mouse wheel / vertical scrollbar for rows ]
 [ headers stay fixed vertically and scroll horizontally with rows ]

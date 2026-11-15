@@ -26,6 +26,8 @@ horizontal scrolling, scroll reset and active-mode highlighting; TOC loading che
 font-compatible separators in all shipped Lua modules.
 The guild row tooltip regression checks explicit bright colors for character
 name and class, avoiding inherited colors and extra Lua return values.
+Mains-only tests cover own/zero balances, alt chains, unknown notes, access loss,
+search/raid intersections and pagination/scroll reset.
 
 `npm run typecheck` runs both `tests/tsconfig.json` and `types/tsconfig.json`.
 The second project explicitly includes all three `types/*.ts` files and

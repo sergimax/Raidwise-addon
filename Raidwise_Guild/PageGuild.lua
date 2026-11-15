@@ -2,7 +2,7 @@
 local Addon = Raidwise
 local Guild = Addon.GuildManagement
 local W = Addon.Widgets
-local LAYOUT_VERSION = 6
+local LAYOUT_VERSION = 7
 local currentPage
 local kinds = { "invite", "join", "quit", "remove", "promote", "demote", "rank", "publicNote", "officerNote" }
 
@@ -191,6 +191,8 @@ local function Refresh(page)
 	page.kindButton.label:SetText(page.kind and T("GUILD_KIND_" .. page.kind) or T("GUILD_ALL_EVENTS"))
 	page.searchLabel:SetText(T(isLog and "GUILD_SEARCH_MEMBER" or "GUILD_SEARCH"))
 	Show(page.raidOnly, not isLog)
+	Show(page.mainsOnly, not isLog)
+	page.mainsOnly.label:SetText((page.filterMains and "[x] " or "[ ] ") .. T("GUILD_MAINS_ONLY"))
 	page.raidOnly.label:SetText((page.filterRaid and "[x] " or "[ ] ") .. T("GUILD_RAID_ONLY"))
 	if page.settingsKey ~= key then
 		page.settingsKey = key
@@ -208,11 +210,11 @@ local function Refresh(page)
 		end
 	end
 	local entries = isLog and Guild.Entries(page.search:GetText(), page.kind)
-		or Guild.Members(page.search:GetText(), nil, page.filterRaid, page.sortKey, page.descending)
+		or Guild.Members(page.search:GetText(), nil, page.filterRaid, page.sortKey, page.descending, page.filterMains)
 	local pages = math.max(1, math.ceil(#entries / #page.rows))
 	page.offset = math.min(page.offset, pages - 1)
 	local viewKey = table.concat({ tostring(key), page.mode, tostring(page.offset), page.search:GetText(),
-		tostring(page.filterRaid), tostring(page.kind), tostring(page.sortKey), tostring(page.descending) }, "\031")
+		tostring(page.filterRaid), tostring(page.filterMains), tostring(page.kind), tostring(page.sortKey), tostring(page.descending) }, "\031")
 	if page.viewKey ~= viewKey then page.verticalOffset = 0; page.viewKey = viewKey end
 	LayoutTable(page, columns, isLog, math.min(#page.rows, math.max(0, #entries - page.offset * #page.rows)))
 	page.count:SetText(string.format("%d / %d / %d", page.offset + 1, pages, #entries))
@@ -290,21 +292,23 @@ local function Create(parent)
 	page.progressLabel:SetHeight(14)
 	page.progressLabel:SetJustifyH("CENTER")
 	page.progress:Hide()
-	page.searchLabel = Label(page, 8, -38, 260, T("GUILD_SEARCH"))
-	page.search = Input(page, 8, -54, 260)
+	page.searchLabel = Label(page, 8, -38, 210, T("GUILD_SEARCH"))
+	page.search = Input(page, 8, -54, 210)
 	page.search:SetScript("OnTextChanged", function() page.offset = 0; Refresh(page) end)
-	page.kindButton = Button(page, 274, -54, 142, "GUILD_ALL_EVENTS", function() Cycle(page, "kind", kinds) end)
-	page.raidOnly = Button(page, 274, -54, 142, "GUILD_RAID_ONLY", function() page.filterRaid = not page.filterRaid; page.offset = 0; Refresh(page) end)
-	page.rollLabel = Label(page, 422, -38, 176, T("GUILD_ROLL_MINIMUM"))
-	page.rollMinimumEP = Input(page, 422, -54, 66)
+	page.kindButton = Button(page, 224, -54, 142, "GUILD_ALL_EVENTS", function() Cycle(page, "kind", kinds) end)
+	page.raidOnly = Button(page, 224, -54, 142, "GUILD_RAID_ONLY", function() page.filterRaid = not page.filterRaid; page.offset = 0; Refresh(page) end)
+	page.mainsOnly = Button(page, 372, -54, 130, "GUILD_MAINS_ONLY", function() page.filterMains = not page.filterMains; page.offset = 0; Refresh(page) end)
+	W.SetPlainButtonTooltip(page.mainsOnly, "GUILD_MAINS_HINT")
+	page.rollLabel = Label(page, 508, -38, 166, T("GUILD_ROLL_MINIMUM"))
+	page.rollMinimumEP = Input(page, 508, -54, 60)
 	page.rollMinimumEP:SetNumeric(true)
 	page.rollMinimumEP:SetText(tostring(Guild.RollMinimumEP()))
-	page.applyRoll = Button(page, 494, -54, 100, "GUILD_APPLY", function()
+	page.applyRoll = Button(page, 574, -54, 100, "GUILD_APPLY", function()
 		if Guild.SetRollMinimumEP(page.rollMinimumEP:GetText()) then page.editorMessage = nil
 		else page.editorMessage = "GUILD_ROLL_ERROR" end
 		Refresh(page)
 	end)
-	page.baseLabel = Label(page, 600, -38, width - 600, "")
+	page.baseLabel = Label(page, 680, -38, width - 680, "")
 	page.baseLabel:SetHeight(42)
 	page.headerScroll = CreateFrame("ScrollFrame", nil, page)
 	page.headerScroll:SetPoint("TOPLEFT", 8, -90)

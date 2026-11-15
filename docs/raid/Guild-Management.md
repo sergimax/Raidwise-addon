@@ -10,6 +10,8 @@ Select a character to edit notes. Save and Reload / cancel are explicit; refresh
 
 ## Balances and guild settings
 
+The **Mains only** toggle restricts the roster to characters with their own valid EP/GP balance in the officer note, including `0,0`. Linked alts, invalid links and unknown notes are excluded. It combines with search and the current-raid filter: an alt in the raid does not pull its absent main into the filtered list. Main detection remains available when BASE_GP is invalid, but requires current permission to read officer notes. The toggle defaults off, stays selected while switching between Roster and Journal, and does not filter journal entries. Changing it resets pagination and vertical scrolling while retaining editor drafts.
+
 Officer notes encode `EP,GP`, or the name of a main character. Main/alt chains are resolved from the full guild snapshot before any display filters. Cyrillic name comparisons are case-insensitive. Missing mains, cycles, ambiguous/invalid links or inaccessible notes produce unknown balances, with reasons in the tooltip. Access loss also hides previously calculated balances.
 
 `PR = EP / (note GP + BASE_GP)`. The base is read only from `@BASE_GP` inside a paired `-EPGP-` block in guild information. Missing block/parameter uses 500 with an explicit default label. Malformed, unclosed or contradictory settings make PR unknown; equal repeated base values are accepted. Other EPGP parameters (`@DECAY_P`, `@MIN_EP`, `@EXTRAS_P`) do not affect this page's calculations or local roll threshold. There is no manual base override and the module never changes guild information. A base of zero is valid, but a zero denominator produces unknown PR while EP, GP and roll eligibility remain available.

@@ -208,20 +208,21 @@ function Guild.Accept(snapshot)
 	return true
 end
 
-function Guild.Members(query, class, raidOnly, sortKey, descending)
+function Guild.Members(query, class, raidOnly, sortKey, descending, mainsOnly)
 	local store = Store()
 	local result, permissions = {}, Guild.Permissions()
 	query = Guild.Fold(query)
 	local balances = Guild.Balances and Guild.Balances() or nil
 	local raidNames = raidOnly and Guild.RaidNames() or nil
 	for index, member in ipairs(store and store.snapshot and store.snapshot.members or {}) do
+		local balance = balances and balances.members[index]
+		local isMain = balance and balance.mainIndex == index and balance.mainBalance and balance.ep ~= nil
 		local haystack = Guild.Fold(member.name .. " " .. member.publicNote .. " " .. (permissions.view and member.officerNote or ""))
 		if (not class or class == member.classFile) and (not raidNames or raidNames[Guild.Fold(member.name)])
-			and (query == "" or haystack:find(query, 1, true)) then
+			and (not mainsOnly or isMain) and (query == "" or haystack:find(query, 1, true)) then
 			local copy = {}
 			for field, value in pairs(member) do if field ~= "officerNote" or permissions.view then copy[field] = value end end
 			if balances and balances.members[index] then
-				local balance = balances.members[index]
 				for _, field in ipairs({ "ep", "gp", "effectiveGP", "pr", "bisEligible", "prReason", "balanceName" }) do copy[field] = balance[field] end
 			end
 			result[#result + 1] = copy

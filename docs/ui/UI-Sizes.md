@@ -6,9 +6,9 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 ## Shell
 
-### Guild roster / journal (layout v6)
+### Guild roster / journal (layout v7)
 
-`Raidwise_Guild/PageGuild.lua` fits the existing shell viewport. The control area is `CONTENT_WIDTH - MENU_BAR_W - 24` (856 px), with an 8 px left inset. Roster, Journal and Refresh are 120/90/96 × 24 px at x=8/132/226, y=8. The second toolbar row starts at y=54: search 260 × 24, raid/event control 142 × 24, roll threshold 66 × 24 and Apply 100 × 24. Search/threshold captions and the BASE_GP source start at y=38. The class filter is removed.
+`Raidwise_Guild/PageGuild.lua` fits the existing shell viewport. The control area is `CONTENT_WIDTH - MENU_BAR_W - 24` (856 px), with an 8 px left inset. Roster, Journal and Refresh are 120/90/96 × 24 px at x=8/132/226, y=8. The second toolbar row starts at y=54: search 210 × 24 at x=8, raid/event control 142 × 24 at x=224, Mains only 130 × 24 at x=372, roll threshold 60 × 24 at x=508, and Apply 100 × 24 at x=574. Search/threshold captions and the BASE_GP source start at y=38; the base label uses the remaining 176 px at x=680. Mains only is hidden in Journal mode. The class filter is removed.
 
 The refresh progress bar sits beside Refresh at x=330, y=13; it is 14 px tall and 534 px wide. A centered label shows waiting without a percentage, then actual processed/total members and percentage. Successful completion remains visible for 0.75 seconds; cancellation/failure clears it.
 
