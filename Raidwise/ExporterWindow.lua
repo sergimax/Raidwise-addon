@@ -4,12 +4,13 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 32
+local SHELL_LAYOUT_VERSION = 33
 
 -- Visual groups for navigation (ids stay stable for a future module split).
 local MENU_GROUPS = {
 	{ id = "personal", labelKey = "MENU_GROUP_PERSONAL" },
 	{ id = "raiding", labelKey = "MENU_GROUP_RAIDING" },
+	{ id = "guild", labelKey = "MENU_GROUP_GUILD" },
 	{ id = "other", labelKey = "MENU_GROUP_OTHER" },
 }
 
@@ -22,6 +23,7 @@ local PAGES = {
 	{ id = "geartarget", key = "GearCheckTarget", labelKey = "TAB_GEAR_CHECK_TARGET", icon = "Interface\\Icons\\INV_Misc_Spyglass_03", group = "raiding" },
 	{ id = "history", key = "History", labelKey = "TAB_HISTORY", icon = "Interface\\Icons\\INV_Misc_Book_11", group = "raiding" },
 	-- Module pages are appended by their separately loaded addon.
+	{ id = "guild", key = "Guild", labelKey = "GUILD_ROSTER", icon = "Interface\\Icons\\INV_Shirt_GuildTabard_01", group = "guild" },
 	{ id = "export", key = "Export", labelKey = "TAB_EXPORT", icon = "Interface\\Icons\\INV_Misc_Note_01", group = "other" },
 	{ id = "settings", key = "Settings", labelKey = "TAB_SETTINGS", icon = "Interface\\Icons\\INV_Misc_Gear_01", group = "other" },
 	{ id = "info", key = "Info", labelKey = "TAB_INFO", icon = "Interface\\Icons\\INV_Misc_QuestionMark", group = "other" },

@@ -17,7 +17,8 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Language | `Locale.lua` | `Addon:T`; search exact keys in both languages |
 | Chat preparation and gear reports | `ChatReports.lua`, `GearCheckReports.lua` | `PrepareReportMessage`, `BuildGearCheckChatMessages` |
 | Gear/bags/currency export, lockouts | `CharacterExport.lua`, `CharacterLockouts.lua` | `FormatEquippedGearExport`, `CollectCharacterCurrency`, `BuildCooldownTable` |
-| Guild EPGP module | `Raidwise/Modules/EPGP/` | Roster export, note parsing, main/alt graph, PR/BIS calculations, and EPGP page; keeps a narrow contract with core shell, locale, DB and roster events |
+| Guild management and local journal | `GuildManagement.lua`, `PageGuild.lua` | Full live roster, permission-aware reads, conflict-checked note/rank commands, confirmation/timeouts, bounded per-realm/guild snapshots and journal; see [guild management](raid/Guild-Management.md) |
+| Guild EPGP module | `../Raidwise_EPGP/` | Roster export, note parsing, main/alt graph, PR/BIS calculations, and EPGP page; separate load-on-demand addon, optional for guild management |
 | Inspect timing, identity, retries | `InspectCoordinator.lua`, `GearCheck.lua`, `PartyRoster.lua` | `StartInspectRequest`, `RetryInspectRequest`, `StartGearCheckUnitScan`, `CancelGearCheckScan` |
 | Item links, sockets and gems | `GearCheckCollector.lua` | `CollectGearCheckObservation`; private `ParseItemLinkParts`, `NormalizeItem` |
 | Report compatibility and completeness | `GearCheckReport.lua` | `NormalizeGearCheckReport`, `GetGearCheckScanState`; canonical nested fields win over legacy aliases |
@@ -166,6 +167,7 @@ header. Chat summaries are human-readable messages, not versioned data exports.
 | `gearCheckSaved` | `GearCheckSavedReports`: snapshots and retention (~14 days) |
 | `tooltip` | `RatingPresentation` / Settings: rating tooltip visibility |
 | `locale`, `theme`, `startupTab`, `reportChannel`, `reportForm` | Preferences consumed by locale, theme, shell and reporting |
+| `guildManagement` | GuildManagement: shared retention limit (100–10000, default 1000), realm/guild archives with last complete snapshot, bounded journal and previous server event window; local only |
 
 See [Reputation.md](characters/Reputation.md) for reputation data. Addon semver, rule/catalog revisions, and layout versions serve different purposes. Geometry rules live in `AGENTS.md`; current layouts and dimensions live in [UI-Views.md](ui/UI-Views.md) and [UI-Sizes.md](ui/UI-Sizes.md).
 

@@ -300,7 +300,7 @@ function Addon:StartEPGPRosterCollection()
 		memberCountReported = count,
 		members = {},
 		scannedAt = type(time) == "function" and time() or nil,
-		officerNotesStatus = (type(CanEditOfficerNote) ~= "function" or CanEditOfficerNote()) and "available" or "unavailable",
+		officerNotesStatus = (type(CanViewOfficerNote) == "function" and CanViewOfficerNote()) and "available" or "unavailable",
 	}
 	local frame = CreateFrame("Frame")
 	self.epgpCollectFrame = frame
@@ -520,7 +520,11 @@ if Addon.MenuPages then
 	if not hasGuildGroup and Addon.MenuGroups then
 		table.insert(Addon.MenuGroups, { id = "guild", labelKey = "MENU_GROUP_GUILD" })
 	end
-	table.insert(Addon.MenuPages, {
+	local position = #Addon.MenuPages + 1
+	for index, page in ipairs(Addon.MenuPages) do
+		if page.group == "guild" then position = index + 1 end
+	end
+	table.insert(Addon.MenuPages, position, {
 		id = "epgp", key = "EPGP", labelKey = "TAB_EPGP",
 		icon = "Interface\\Icons\\INV_Misc_Coin_02", group = "guild",
 	})

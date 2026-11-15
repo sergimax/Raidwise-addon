@@ -47,6 +47,8 @@ GearCheckCollector.lua
 GearCheck.lua
 GearCheckReports.lua
 GearCheckDump.lua
+GuildManagement.lua
+PageGuild.lua
 PageCooldowns.lua
 PageExport.lua
 PageRaid.lua

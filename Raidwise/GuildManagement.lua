@@ -1,0 +1,379 @@
+-- Live guild operations and a bounded, local observation journal (WoW 3.3.5a).
+local Addon = Raidwise
+local Guild = {}
+Addon.GuildManagement = Guild
+local runtime = { elapsed = 0, lastRequest = -10 }
+
+local function Clock() return GetTime and GetTime() or 0 end
+local function Now() return time and time() or 0 end
+local function Allowed(api) return type(api) == "function" and api() and true or false end
+
+function Guild.Permissions()
+	return { view = Allowed(CanViewOfficerNote), public = Allowed(CanEditPublicNote),
+		officer = Allowed(CanEditOfficerNote), promote = Allowed(CanGuildPromote), demote = Allowed(CanGuildDemote) }
+end
+
+function Guild.Identity()
+	if not Allowed(IsInGuild) or not GetGuildInfo or not GetRealmName then return nil end
+	local name = GetGuildInfo("player")
+	local realm = GetRealmName()
+	if not name or not realm then return nil end
+	return #realm .. ":" .. realm .. name
+end
+
+local function Store()
+	local key = Guild.Identity()
+	if not key or not Addon.db then return nil end
+	if type(Addon.db.guildManagement) ~= "table" then
+		Addon.db.guildManagement = { limit = 1000, guilds = {} }
+	end
+	local root = Addon.db.guildManagement
+	root.guilds = root.guilds or {}
+	root.limit = math.max(100, math.min(10000, math.floor(tonumber(root.limit) or 1000)))
+	if not root.guilds[key] then root.guilds[key] = { entries = {}, serverSeen = {} } end
+	return root.guilds[key], root, key
+end
+
+local function Prune(store, limit)
+	while #store.entries > limit do table.remove(store.entries, 1) end
+end
+
+function Guild.SetLimit(value)
+	local store, root = Store()
+	value = tonumber(value)
+	if not store or not value or value ~= value or value < 100 or value > 10000 then return false end
+	root.limit = math.floor(value)
+	for _, archive in pairs(root.guilds) do Prune(archive, root.limit) end
+	return true
+end
+
+function Guild.GetLimit()
+	local _, root = Store()
+	return root and root.limit or 1000
+end
+
+local function Append(store, root, entry)
+	entry.observedAt = Now()
+	store.entries[#store.entries + 1] = entry
+	Prune(store, root.limit)
+end
+
+-- Explicit Cyrillic folding also works in Lua's C locale.
+function Guild.Fold(text)
+	text = tostring(text or ""):lower()
+	local upper = { "А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "Й", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ", "Ы", "Ь", "Э", "Ю", "Я" }
+	local lower = { "а", "б", "в", "г", "д", "е", "ё", "ж", "з", "и", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я" }
+	for index, letter in ipairs(upper) do text = text:gsub(letter, lower[index]) end
+	return text
+end
+
+function Guild.Collect()
+	if not Guild.Identity() or not GetNumGuildMembers or not GetGuildRosterInfo
+		or not GetGuildRosterShowOffline or not GetGuildRosterShowOffline() then return nil end
+	local count = GetNumGuildMembers()
+	if not count or count == 0 then return nil end
+	local snapshot = { members = {}, at = Now(), key = Guild.Identity(), officer = Guild.Permissions().view }
+	local names = {}
+	for index = 1, count do
+		local name, rank, rankIndex, level, class, zone, note, officerNote, online, status, classFile = GetGuildRosterInfo(index)
+		if not name or names[name] or rankIndex == nil then return nil end
+		names[name] = true
+		snapshot.members[#snapshot.members + 1] = { name = name, rank = rank, rankIndex = rankIndex,
+			class = class, classFile = classFile, level = level, online = online and true or false,
+			publicNote = note or "", officerNote = snapshot.officer and (officerNote or "") or nil, index = index }
+	end
+	if GetNumGuildMembers() ~= count or Guild.Identity() ~= snapshot.key then return nil end
+	return snapshot
+end
+
+local function Find(snapshot, name)
+	for _, member in ipairs(snapshot and snapshot.members or {}) do
+		if member.name == name then return member end
+	end
+end
+
+local function Notify()
+	if Guild.OnChange then Guild.OnChange() end
+end
+
+local function SetStatus(key)
+	runtime.status = key
+	Notify()
+end
+
+function Guild.Status() return runtime.status end
+function Guild.Pending() return runtime.pending ~= nil end
+
+function Guild.Accept(snapshot)
+	local store, root, key = Store()
+	if not store or not snapshot or snapshot.key ~= key then return false end
+	local previous = store.snapshot
+	if previous then
+		for _, member in ipairs(snapshot.members) do
+			local old = Find(previous, member.name)
+			if old then
+				for _, field in ipairs({ "publicNote", "officerNote", "rank" }) do
+					if old[field] ~= nil and member[field] ~= nil and old[field] ~= member[field] then
+						Append(store, root, { source = "observation", kind = field, name = member.name,
+							before = old[field], after = member[field] })
+					end
+				end
+			end
+		end
+	end
+	store.snapshot = snapshot
+	local pending = runtime.pending
+	if pending and pending.key == key then
+		local member = Find(snapshot, pending.name)
+		local confirmed = member ~= nil
+		for field, value in pairs(pending.values) do
+			if not member or member[field] ~= value then confirmed = false end
+		end
+		if confirmed then
+			runtime.pending = nil
+			runtime.status = "GUILD_SAVED"
+			if Addon.RefreshEPGPRoster then Addon:RefreshEPGPRoster() end
+		end
+	end
+	Notify()
+	return true
+end
+
+function Guild.Members(query, class)
+	local store = Store()
+	local result, permissions = {}, Guild.Permissions()
+	query = Guild.Fold(query)
+	for _, member in ipairs(store and store.snapshot and store.snapshot.members or {}) do
+		local haystack = Guild.Fold(member.name .. " " .. member.publicNote .. " " .. (permissions.view and member.officerNote or ""))
+		if (not class or class == member.classFile) and (query == "" or haystack:find(query, 1, true)) then
+			local copy = {}
+			for field, value in pairs(member) do if field ~= "officerNote" or permissions.view then copy[field] = value end end
+			result[#result + 1] = copy
+		end
+	end
+	table.sort(result, function(left, right) return Guild.Fold(left.name) < Guild.Fold(right.name) end)
+	return result
+end
+
+function Guild.Entries(query, kind)
+	local store = Store()
+	local result, permissions = {}, Guild.Permissions()
+	query = Guild.Fold(query)
+	for index = #(store and store.entries or {}), 1, -1 do
+		local entry = store.entries[index]
+		local matches = Guild.Fold((entry.name or "") .. " " .. (entry.actor or "")):find(query, 1, true)
+		if (entry.kind ~= "officerNote" or permissions.view) and (not kind or entry.kind == kind) and matches then
+			local copy = {}
+			for field, value in pairs(entry) do copy[field] = value end
+			result[#result + 1] = copy
+		end
+	end
+	return result
+end
+
+local function EventKey(values)
+	local parts = {}
+	for index = 1, 4 do
+		local value = tostring(values[index] or "")
+		parts[index] = #value .. ":" .. value
+	end
+	return table.concat(parts)
+end
+
+function Guild.ImportEvents()
+	local store, root = Store()
+	if not store or not GetNumGuildEvents or not GetGuildEventInfo then return end
+	local seen, used, events = {}, {}, {}
+	for index = 1, GetNumGuildEvents() do
+		local values = { GetGuildEventInfo(index) }
+		if values[1] and values[2] then events[#events + 1] = values end
+	end
+	local function Age(values)
+		return (values[5] or 0) * 365 * 86400 + (values[6] or 0) * 30 * 86400
+			+ (values[7] or 0) * 86400 + (values[8] or 0) * 3600
+	end
+	table.sort(events, function(left, right) return Age(left) > Age(right) end)
+	for _, values in ipairs(events) do
+		local kind, player1, player2, rank = unpack(values)
+		if kind and player1 then
+			local key = EventKey(values)
+			local age, matched = Age(values), false
+			for index, previous in ipairs(store.serverSeen) do
+				-- Ages have hour precision and drift as time passes. Match occurrences,
+				-- not raw age tuples, so an ageing server window is not reimported.
+				local tolerance = ((values[5] or 0) > 0 or (values[6] or 0) > 0) and 6 * 86400 or 3700
+				if not used[index] and previous.key == key
+					and math.abs(age - previous.age - (Now() - previous.at)) <= tolerance then
+					used[index], matched = true, true; break
+				end
+			end
+			seen[#seen + 1] = { key = key, age = age, at = Now() }
+			if not matched then
+				Append(store, root, { source = "server", kind = kind,
+					name = player2 or player1, actor = player2 and player1 or nil, after = rank,
+					year = values[5], month = values[6], day = values[7], hour = values[8] })
+			end
+		end
+	end
+	-- Keep the previous window if a transient reply is empty.
+	if next(seen) then store.serverSeen = seen end
+	Notify()
+end
+
+local function Visible() return Guild.IsVisible and Guild.IsVisible() end
+
+local function RestoreOffline()
+	if runtime.offlineOwned and GetGuildRosterShowOffline and GetGuildRosterShowOffline() then
+		-- Never restore while another Raidwise collector still needs offline members.
+		if not Addon.epgpRefreshPending and not Addon.epgpCollectFrame and not Addon.guildRosterExportPending then
+			SetGuildRosterShowOffline(runtime.previousOffline)
+		end
+	end
+	runtime.offlineOwned = nil
+end
+
+local function StopPending(status)
+	runtime.pending = nil
+	runtime.requested = nil
+	RestoreOffline()
+	SetStatus(status)
+end
+
+function Guild.Request()
+	if not Guild.Identity() then SetStatus("GUILD_NO_GUILD"); return false end
+	if not GuildRoster or not SetGuildRosterShowOffline or not GetGuildRosterShowOffline then return false end
+	if Clock() - runtime.lastRequest < 2 or runtime.requested then return false end
+	Guild.Initialize()
+	runtime.lastRequest = Clock()
+	runtime.requested = { key = Guild.Identity(), at = Clock() }
+	if not GetGuildRosterShowOffline() then
+		runtime.previousOffline = false
+		runtime.offlineOwned = true
+		SetGuildRosterShowOffline(true)
+	end
+	GuildRoster()
+	if QueryGuildEventLog then
+		runtime.logKey = Guild.Identity()
+		QueryGuildEventLog()
+	end
+	SetStatus(runtime.pending and "GUILD_PENDING" or "GUILD_LOADING")
+	return true
+end
+
+function Guild.CanRank(member, direction)
+	if not member or not GetGuildInfo or not GuildControlGetNumRanks then return false end
+	local _, _, playerRank = GetGuildInfo("player")
+	if playerRank == nil then return false end
+	local permissions = Guild.Permissions()
+	if direction == "promote" then
+		return permissions.promote and member.rankIndex > 1 and member.rankIndex > playerRank + 1
+	end
+	return permissions.demote and member.rankIndex >= 1 and member.rankIndex > playerRank
+		and member.rankIndex < GuildControlGetNumRanks() - 1
+end
+
+function Guild.Submit(name, original, values, direction)
+	if runtime.pending then return false, "GUILD_PENDING" end
+	local snapshot = Guild.Collect()
+	local member = Find(snapshot, name)
+	if not member or not original or original.key ~= Guild.Identity() then return false, "GUILD_STALE" end
+	local permissions = Guild.Permissions()
+	local changed = {}
+	if direction then
+		if not Guild.CanRank(member, direction) then return false, "GUILD_DENIED" end
+		if member.rankIndex ~= original.rankIndex then return false, "GUILD_CONFLICT" end
+		local api = direction == "promote" and GuildPromote or GuildDemote
+		if type(api) ~= "function" then return false, "GUILD_DENIED" end
+		changed.rankIndex = member.rankIndex + (direction == "promote" and -1 or 1)
+		runtime.pending = { key = snapshot.key, name = name, values = changed, at = Clock() }
+		api(name)
+	else
+		-- Validate both edits before sending either command.
+		for _, field in ipairs({ "publicNote", "officerNote" }) do
+			local value = values and values[field]
+			if value ~= nil and value ~= original[field] then
+				local allowed = field == "publicNote" and permissions.public or (field == "officerNote" and permissions.view and permissions.officer)
+				local api = field == "publicNote" and GuildRosterSetPublicNote or GuildRosterSetOfficerNote
+				if not allowed or type(api) ~= "function" then return false, "GUILD_DENIED" end
+				if member[field] ~= original[field] then return false, "GUILD_CONFLICT" end
+				if type(value) ~= "string" then return false, "GUILD_STALE" end
+				changed[field] = value
+			end
+		end
+		if not next(changed) then return false, "GUILD_UNCHANGED" end
+		runtime.pending = { key = snapshot.key, name = name, values = changed, at = Clock() }
+		-- Resolve index immediately for each command; never use a sorted UI row index.
+		for _, field in ipairs({ "publicNote", "officerNote" }) do
+			if changed[field] ~= nil then
+				local current = Find(Guild.Collect(), name)
+				if not current or current[field] ~= original[field] then StopPending("GUILD_CONFLICT"); return false, "GUILD_CONFLICT" end
+				local api = field == "publicNote" and GuildRosterSetPublicNote or GuildRosterSetOfficerNote
+				api(current.index, changed[field])
+			end
+		end
+	end
+	Guild.Initialize()
+	SetStatus("GUILD_PENDING")
+	Guild.Request()
+	return true
+end
+
+function Guild.Initialize()
+	if runtime.frame then return end
+	local frame = CreateFrame("Frame")
+	runtime.frame = frame
+	frame:RegisterEvent("GUILD_ROSTER_UPDATE")
+	frame:RegisterEvent("GUILD_EVENT_LOG_UPDATE")
+	frame:RegisterEvent("PLAYER_GUILD_UPDATE")
+	frame:SetScript("OnEvent", function(_, event)
+		if event == "PLAYER_GUILD_UPDATE" then
+			if runtime.pending and runtime.pending.key ~= Guild.Identity() then StopPending("GUILD_STALE") end
+			Notify()
+		elseif event == "GUILD_EVENT_LOG_UPDATE" then
+			if runtime.logKey == Guild.Identity() and Visible() then Guild.ImportEvents() end
+		elseif Visible() or runtime.pending then
+			-- Defer past the game event so EPGP/export collectors can finish their work.
+			runtime.collect = true
+		end
+	end)
+	frame:SetScript("OnUpdate", function(_, elapsed)
+		runtime.elapsed = runtime.elapsed + elapsed
+		if runtime.elapsed < 0.25 then return end
+		runtime.elapsed = 0
+		if runtime.pending and runtime.pending.key ~= Guild.Identity() then StopPending("GUILD_STALE") end
+		if runtime.requested and runtime.requested.key ~= Guild.Identity() then
+			runtime.requested = nil; RestoreOffline(); SetStatus("GUILD_STALE")
+		end
+		if runtime.collect then
+			runtime.collect = nil
+			local snapshot = Guild.Collect()
+			if snapshot and (Visible() or runtime.pending) then
+				local wasPending = runtime.pending ~= nil
+				Guild.Accept(snapshot)
+				runtime.requested = nil
+				if not runtime.pending and not wasPending then SetStatus("GUILD_READY") end
+				if not Visible() and not runtime.pending then RestoreOffline() end
+			end
+		end
+		if runtime.pending and Clock() - runtime.pending.at > 12 then StopPending("GUILD_UNCERTAIN") end
+		if runtime.requested and Clock() - runtime.requested.at > 12 then
+			runtime.requested = nil; SetStatus("GUILD_UNCERTAIN")
+		end
+		if Visible() or runtime.pending then
+			if Clock() - runtime.lastRequest >= (runtime.pending and 2 or 30) then Guild.Request() end
+			-- Refresh permission-dependent controls even without a roster event.
+			local permissions = Guild.Permissions()
+			local rights = tostring(permissions.view) .. tostring(permissions.public) .. tostring(permissions.officer)
+				.. tostring(permissions.promote) .. tostring(permissions.demote)
+			if rights ~= runtime.rights then runtime.rights = rights; Notify() end
+		elseif not runtime.pending then
+			runtime.collect = nil
+			runtime.requested = nil
+			RestoreOffline()
+		end
+	end)
+end
+
+function Guild.Close()
+	if not runtime.pending then runtime.requested = nil; runtime.collect = nil; RestoreOffline() end
+end

@@ -62,7 +62,7 @@ function Addon:CollectGuildRosterSnapshot()
 	local count = GetNumGuildMembers()
 	if type(count) ~= "number" or count < 0 then return nil, "Guild roster unavailable" end
 	local snapshot = { memberCountReported = count, members = {}, scannedAt = type(time) == "function" and time() or nil }
-	local canReadOfficerNotes = type(CanEditOfficerNote) ~= "function" or CanEditOfficerNote()
+	local canReadOfficerNotes = type(CanViewOfficerNote) == "function" and CanViewOfficerNote()
 	snapshot.officerNotesStatus = canReadOfficerNotes and "available" or "unavailable"
 	for index = 1, count do
 		local name, rank, rankIndex, level, class, zone, note, officerNote, online, status, classFileName = GetGuildRosterInfo(index)

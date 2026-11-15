@@ -16,13 +16,14 @@ Classic-theme plain panels: compact title/control bar at the very top, followed 
  [ page body: 870 x 653           ]
 ```
 
-Top bar (left to right): **Raidwise** + addon semver, active page name + its layout badge **`vN`**, then available format/chat controls and close **X**. The narrow navigation column sits left of the page viewport, grouped under Personal, Raiding, and Other. Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
+Top bar (left to right): **Raidwise** + addon semver, active page name + its layout badge **`vN`**, then available format/chat controls and close **X**. The narrow navigation column sits left of the page viewport, grouped under Personal, Raiding, Guild, and Other. Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
 
-Menu tabs each have an **16×16** category icon + label. Group headings are visible above Personal, Raiding, and Other. Current tab order:
+Menu tabs each have an **16×16** category icon + label. Group headings are visible above Personal, Raiding, Guild, and Other. Current tab order:
 
 ```text
 [ watch ] Character cooldowns [ book ] Character database [ glory ] Raid roster [ BoK ] Raid composition
-[ scope ] Gear check (target) [ book ] History [ note ] My gear and CDs exports [ gear ] Settings [ ? ] Info
+[ scope ] Gear check (target) [ book ] History [ tabard ] Guild roster [ coin ] EPGP (if loaded)
+[ note ] My gear and CDs exports [ gear ] Settings [ ? ] Info
 ```
 
 Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
@@ -32,7 +33,8 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 32` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 33` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Guild roster / journal | `LAYOUT_VERSION = 1` | `PageGuild.lua` | Top title bar (next to page name) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `PROFILE_LAYOUT_VERSION = 40` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
@@ -53,6 +55,22 @@ vertically so all controls remain accessible in the shorter window.
 The table lists active views only. Retired `PageSyncExport`, `PageSync` and
 `PageReputation` are outside the TOC and have no active navigation or badges.
 Rules: see [AGENTS.md](../../AGENTS.md). Do **not** bump layout versions for locale-only string edits.
+
+## Guild roster and journal
+
+The Guild navigation group contains Guild roster, followed by EPGP when that addon is loaded. Guild roster belongs to the core addon.
+
+```text
+[ Roster ][ Journal ][ Refresh ]
+[ Search name / notes                 ][ Class / event type ]
+[ Name | Class | Rank | Online | Public note | Officer note ]
+[ 12 rows; journal mode shows character, event, source/receipt, actor ]
+[ Previous ][ Next ][ page / pages · matching count ]
+[ Roster: selected character, two note editors, Save / Reload, Promote / Demote ]
+[ Journal: selected event details; entry limit and Apply ]
+```
+
+The editor retains drafts across refreshes. Permission changes immediately hide officer details. Behavior and limits: [guild management](../raid/Guild-Management.md).
 
 ## Export gear and CDs
 

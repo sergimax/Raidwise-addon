@@ -6,6 +6,10 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 ## Shell
 
+### Guild roster / journal (layout v1)
+
+The page fits the existing shell viewport. Its width is `CONTENT_WIDTH - MENU_BAR_W - 24` (856 px with the current theme), with an 8 px left inset. Top mode/refresh buttons are 120 × 24 px. The search input is 350 × 24 px; the class/event cycle control is 180 × 24 px. Twelve list rows are 23 px tall with 25 px pitch, starting 112 px below the page top. Column widths are 116/106/106/66/176/246 px. Pagination starts at y=416. The 176 px editor/detail panel starts at y=450. The note editors are 350 × 24 px and follow the stock 31-character limit. All controls fit within 626 px of page height. The shell rebuild constant is now 33; dimensions are unchanged.
+
 ### EPGP roster (layout v16)
 
 Full-width toolbar with roster refresh, character search, GP base (default 500), minimum EP for roll settings, followed by status, group/raid scope filters, an include-linked-mains/alts option, pagination, progress, and a two-axis scrollable table.
