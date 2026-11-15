@@ -11,6 +11,12 @@ npm run check
 `npm test` for tests alone or `npm run test:watch` while editing. Failures return
 a nonzero exit status for CI.
 
+`guild-management.test.mts` covers the live guild model and page with Lua 5.1
+game mocks: note/rank permissions and conflicts, current roster indices,
+partial confirmations/timeouts, draft retention, Cyrillic search, per-guild
+archives, journal retention/deduplication and refresh lifecycle. In-client
+acceptance remains separate; see [guild management](../docs/raid/Guild-Management.md).
+
 `npm run typecheck` runs both `tests/tsconfig.json` and `types/tsconfig.json`.
 The second project explicitly includes all three `types/*.ts` files and
 `export-contracts.test.mts`. It permits the existing `InstanceDifficulty` enum
