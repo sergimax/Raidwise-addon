@@ -2,12 +2,12 @@
 local Addon = Raidwise
 local Guild = Addon.GuildManagement
 local W = Addon.Widgets
-local LAYOUT_VERSION = 5
+local LAYOUT_VERSION = 6
 local currentPage
 local kinds = { "invite", "join", "quit", "remove", "promote", "demote", "rank", "publicNote", "officerNote" }
 
 local function T(key) return Addon:T(key) end
-local function Safe(text) return tostring(text or ""):gsub("|", "||") end
+local function Safe(text) return (tostring(text or ""):gsub("|", "||")) end
 local function Show(frame, shown) if shown then frame:Show() else frame:Hide() end end
 local function Label(parent, x, y, width, text)
 	local label = W.CreateFontString(parent, nil, "OVERLAY", "GameFontHighlightSmall")
@@ -274,7 +274,7 @@ local function Create(parent)
 	page.layoutVersion, page.mode, page.offset = LAYOUT_VERSION, "roster", 0
 	currentPage = page
 	local width = Addon.UITheme.CONTENT_WIDTH - Addon.UITheme.MENU_BAR_W - 24
-	page.viewportWidth, page.viewportHeight = width - 14, 310
+	page.viewportWidth, page.viewportHeight = width - 14, 360
 	local function Mode(mode) page.mode = mode; page.offset = 0; Refresh(page) end
 	page.rosterTab = Button(page, 8, -8, 120, "GUILD_ROSTER", function() Mode("roster") end)
 	page.journalTab = Button(page, 132, -8, 90, "GUILD_LOG", function() Mode("log") end)
@@ -316,7 +316,7 @@ local function Create(parent)
 	page.tableContent:SetSize(width, 25 * 25)
 	page.scroll:SetScrollChild(page.tableContent)
 	page.hBar = W.CreateCooldownScrollBar(page, "HORIZONTAL")
-	page.hBar:SetPoint("TOPLEFT", 8, -422)
+	page.hBar:SetPoint("TOPLEFT", 8, -472)
 	page.hBar:SetSize(page.viewportWidth, 10)
 	page.hBar:SetScript("OnValueChanged", function(_, value)
 		page.scrollOffset = value; page.scroll:SetHorizontalScroll(value); page.headerScroll:SetHorizontalScroll(value)
@@ -372,8 +372,8 @@ local function Create(parent)
 			if not row.entry then return end
 			GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
 			if page.mode == "roster" then
-				GameTooltip:AddLine(Safe(row.entry.name))
-				GameTooltip:AddLine(Safe(row.entry.class))
+				GameTooltip:AddLine(Safe(row.entry.name), 1, 1, 1)
+				GameTooltip:AddLine(Safe(row.entry.class), 1, 1, 1)
 				GameTooltip:AddLine(T("GUILD_PUBLIC") .. ": " .. Safe(row.entry.publicNote), 1, 1, 1, true)
 				if Guild.Permissions().view then GameTooltip:AddLine(T("GUILD_OFFICER") .. ": " .. Safe(row.entry.officerNote), 1, 1, 1, true) end
 				if row.entry.balanceName then GameTooltip:AddLine(T("GUILD_BALANCE_OWNER") .. ": " .. Safe(row.entry.balanceName)) end
@@ -388,12 +388,12 @@ local function Create(parent)
 		row:SetScript("OnLeave", function() PaintRow(row); GameTooltip:Hide() end)
 		page.rows[index] = row
 	end
-	page.previous = Button(page, 8, -438, 84, "GUILD_PREVIOUS", function() page.offset = math.max(0, page.offset - 1); Refresh(page) end)
-	page.next = Button(page, 96, -438, 84, "GUILD_NEXT", function() page.offset = page.offset + 1; Refresh(page) end)
-	page.count = Label(page, 190, -445, 220, "")
+	page.previous = Button(page, 8, -488, 84, "GUILD_PREVIOUS", function() page.offset = math.max(0, page.offset - 1); Refresh(page) end)
+	page.next = Button(page, 96, -488, 84, "GUILD_NEXT", function() page.offset = page.offset + 1; Refresh(page) end)
+	page.count = Label(page, 190, -495, 220, "")
 	page.rosterPanel = CreateFrame("Frame", nil, page)
-	page.rosterPanel:SetPoint("TOPLEFT", 8, -472)
-	page.rosterPanel:SetSize(width, 160)
+	page.rosterPanel:SetPoint("TOPLEFT", 8, -522)
+	page.rosterPanel:SetSize(width, 128)
 	page.selectedLabel = Label(page.rosterPanel, 0, 0, width, "")
 	page.publicLabel = Label(page.rosterPanel, 0, -20, 350, T("GUILD_PUBLIC"))
 	page.officerLabel = Label(page.rosterPanel, 366, -20, 350, T("GUILD_OFFICER"))
@@ -412,12 +412,12 @@ local function Create(parent)
 	page.promote = Button(page.rosterPanel, 366, -66, 120, "GUILD_PROMOTE", function() Submit(page, "promote") end)
 	page.demote = Button(page.rosterPanel, 492, -66, 120, "GUILD_DEMOTE", function() Submit(page, "demote") end)
 	page.message = Label(page.rosterPanel, 0, -96, width, "")
-	page.message:SetHeight(44)
+	page.message:SetHeight(28)
 	page.logPanel = CreateFrame("Frame", nil, page)
-	page.logPanel:SetPoint("TOPLEFT", 8, -472)
-	page.logPanel:SetSize(width, 160)
+	page.logPanel:SetPoint("TOPLEFT", 8, -522)
+	page.logPanel:SetSize(width, 128)
 	page.detail = Label(page.logPanel, 0, 0, width - 205, "")
-	page.detail:SetHeight(156)
+	page.detail:SetHeight(104)
 	page.detail:SetJustifyV("TOP")
 	page.limitLabel = Label(page.logPanel, width - 195, 0, 190, T("GUILD_LIMIT"))
 	page.limit = Input(page.logPanel, width - 195, -23, 90)
@@ -427,8 +427,8 @@ local function Create(parent)
 		if not Guild.SetLimit(page.limit:GetText()) then page.detail:SetText(T("GUILD_LIMIT_ERROR")); return end
 		Refresh(page)
 	end)
-	page.localHint = Label(page.logPanel, width - 195, -88, 190, T("GUILD_LOCAL_HINT"))
-	page.localHint:SetHeight(80)
+	page.localHint = Label(page.logPanel, 0, -110, width, T("GUILD_LOCAL_HINT"))
+	page.localHint:SetHeight(18)
 	page:SetScript("OnShow", function() Guild.Initialize(); Guild.Request(); Refresh(page) end)
 	page:SetScript("OnHide", function() Guild.Close(); GameTooltip:Hide() end)
 	return page

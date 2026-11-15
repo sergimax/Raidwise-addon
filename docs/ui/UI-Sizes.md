@@ -6,15 +6,15 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 ## Shell
 
-### Guild roster / journal (layout v5)
+### Guild roster / journal (layout v6)
 
 `Raidwise_Guild/PageGuild.lua` fits the existing shell viewport. The control area is `CONTENT_WIDTH - MENU_BAR_W - 24` (856 px), with an 8 px left inset. Roster, Journal and Refresh are 120/90/96 × 24 px at x=8/132/226, y=8. The second toolbar row starts at y=54: search 260 × 24, raid/event control 142 × 24, roll threshold 66 × 24 and Apply 100 × 24. Search/threshold captions and the BASE_GP source start at y=38. The class filter is removed.
 
 The refresh progress bar sits beside Refresh at x=330, y=13; it is 14 px tall and 534 px wide. A centered label shows waiting without a percentage, then actual processed/total members and percentage. Successful completion remains visible for 0.75 seconds; cancellation/failure clears it.
 
-The fixed header viewport starts at y=90 and is 18 px tall. The row viewport starts at y=108, is 842 × 310 px, and contains up to 25 records per page with 23 px rows at 25 px pitch (625 px total). The mouse wheel scrolls three rows per notch; the 10 px vertical bar sits at x=854. Horizontal scrolling keeps the separate header and row viewports aligned. Roster columns remain 80/44/110/76/68/87/45/248/258 px (1016 px total), with 4 px padding on each side. Journal columns are 160/180/300/202 px. Class icons are 18 × 18 px. Sort hit areas are 18 px tall over EP, GP and PR. The 10 px horizontal scrollbar starts at y=422. Bars hide when the filtered rows or columns fit; changing page, mode, search, filter or sort resets vertical scrolling.
+The fixed header viewport starts at y=90 and is 18 px tall. The row viewport starts at y=108, is 842 × 360 px (two additional row pitches), and contains up to 25 records per page with 23 px rows at 25 px pitch (625 px total). The mouse wheel scrolls three rows per notch; the 10 px vertical bar sits at x=854. Horizontal scrolling keeps the separate header and row viewports aligned. Roster columns remain 80/44/110/76/68/87/45/248/258 px (1016 px total), with 4 px padding on each side. Journal columns are 160/180/300/202 px. Class icons are 18 × 18 px. Sort hit areas are 18 px tall over EP, GP and PR. The 10 px horizontal scrollbar starts at y=472. Bars hide when the filtered rows or columns fit; changing page, mode, search, filter or sort resets vertical scrolling.
 
-Pagination starts at y=438. The 160 px editor/detail panel starts at y=472. Note editors remain 350 × 24 px with the stock 31-character limit; editor actions start at y=66 within that panel, followed by status at y=96. All controls fit within the 653 px page viewport. Shell dimensions are unchanged; its rebuild version is 34. The retired EPGP page is no longer an active layout.
+Pagination starts at y=488. The 128 px editor/detail panel starts at y=522. Note editors remain 350 × 24 px with the stock 31-character limit; editor actions start at y=66 within that panel, followed by a 28 px status area at y=96. Journal details use 104 px height; its full-width local-history hint sits below at y=110 with 18 px height. All controls end by y=650 within the 653 px page viewport. Shell dimensions are unchanged; its rebuild version is 34. The retired EPGP page is no longer an active layout.
 
 | Element | Size | Notes |
 |---------|------|-------|

@@ -472,6 +472,22 @@ test("guild controls highlight the active mode and paginate 25 players with inde
   `, ["PageGuild"], uiSetup);
 });
 
+test("guild row tooltip gives names and classes explicit readable colors", async () => {
+  await run(`
+    local lines={}
+    GameTooltip={Hide=function() end,SetOwner=function() end,Show=function() end,
+      AddLine=function(_,text,red,green,blue) lines[#lines+1]={text,red,green,blue} end}
+    local page=Raidwise.Pages.Guild.Create(region())
+    G.Accept(G.Collect())
+    page.rows[1].scripts.OnEnter()
+    assert(lines[1][1]=='Alice' and lines[2][1]=='Воин')
+    for index=1,2 do
+      assert(lines[index][2] and lines[index][2]>=0.8 and lines[index][3] and lines[index][3]>=0.8
+        and lines[index][4] and lines[index][4]>=0.8,'tooltip name/class must stay readable on dark backgrounds')
+    end
+  `, ["PageGuild"], uiSetup);
+});
+
 test("core loads the renamed guild addon in TOC order and registers one guild page", async () => {
   const lua = await Lua.create();
   try {
