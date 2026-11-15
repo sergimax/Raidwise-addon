@@ -181,6 +181,11 @@ function region(parent)
   if changed and self.scripts.OnTextChanged then self.scripts.OnTextChanged(self) end
  end
  function result:GetText() return self.text end
+ function result:SetPoint(...) self.point={...} end
+ function result:ClearAllPoints() self.point=nil end
+ function result:SetWidth(width) self.width=width end
+ function result:SetTextColor(...) self.color={...} end
+ function result:CreateTexture() return region(self) end
  function result:Show() self.shown=true end
  function result:Hide() self.shown=false end
  function result:IsVisible() return self.shown and (not self.parent or self.parent:IsVisible()) end
@@ -198,12 +203,44 @@ Raidwise.Widgets={
  CreatePlainButton=function(parent) local button=region(parent);button.label=region(button);return button end,
  CreateTextInput=function(parent) local host=region(parent);return region(host),host end,
  SetPlainButtonTooltip=function(button,key) button.tooltipKey=key end,
+ ClassColor=function(class) if class=='MAGE' then return 0.4,0.8,1 end;return 1,0.5,0.3 end,
+ SetSpecOrClassIcon=function(texture,_,class) texture.class=class end,
+ SetFontColor=function(label,color) label.color=color end,
+ SetBackdropColor=function(frame,color) frame.background=color end,
 }
-Raidwise.UITheme={CONTENT_WIDTH=970,MENU_BAR_W=90}
+Raidwise.UITheme={CONTENT_WIDTH=970,MENU_BAR_W=90,TEXT_BODY={1,1,1},GEAR_GOOD={0.4,0.9,0.4},
+ CD_CURRENT_CHARACTER={0.25,0.22,0.14},BTN_IDLE={0.16,0.15,0.13},BTN_HOVER={0.2,0.2,0.2}}
 function Raidwise:T(key) return key end
 function Raidwise:FormatShortDateTime(value) return tostring(value) end
 GameTooltip={Hide=function() end}
 `;
+
+test("guild table aligns individual headers with cells and preserves selection and class presentation", async () => {
+  await run(`
+    local page=Raidwise.Pages.Guild.Create(region())
+    G.Accept(G.Collect())
+    assert(page.headers and #page.headers==6,'column headers must be individual aligned cells')
+    for index,header in ipairs(page.headers) do
+      assert(header.point[2]==page.rows[1].cells[index].point[2] and header.width==page.rows[1].cells[index].width,'header/cell alignment')
+    end
+    local row=page.rows[1]
+    assert(row.entry.name=='Alice' and row.classIcon.class=='WARRIOR' and row.classIcon.shown)
+    assert(row.cells[2].text=='' and row.cells[1].color[1]==1 and row.cells[1].color[2]==0.5)
+    assert(row.cells[4].color==Raidwise.UITheme.GEAR_GOOD)
+    row.scripts.OnClick()
+    assert(row.background==Raidwise.UITheme.CD_CURRENT_CHARACTER)
+    row.scripts.OnLeave();assert(row.background==Raidwise.UITheme.CD_CURRENT_CHARACTER)
+    page.rows[2].scripts.OnClick()
+    assert(row.background==Raidwise.UITheme.BTN_IDLE and page.rows[2].background==Raidwise.UITheme.CD_CURRENT_CHARACTER)
+    assert(page.rows[2].cells[4].color==Raidwise.UITheme.TEXT_BODY)
+    rows[2].publicNote='journal entry';G.Accept(G.Collect())
+    page.localizedButtons[2].scripts.OnClick()
+    assert(not row.classIcon.shown and row.cells[1].color==Raidwise.UITheme.TEXT_BODY)
+    for index=1,4 do assert(page.headers[index].point[2]==row.cells[index].point[2] and page.headers[index].width==row.cells[index].width) end
+    page.localizedButtons[1].scripts.OnClick()
+    assert(page.rows[2].classIcon.shown and page.rows[2].background==Raidwise.UITheme.CD_CURRENT_CHARACTER)
+  `, ["PageGuild"], uiSetup);
+});
 
 test("guild page preserves drafts across refreshes, exposes conflicts and hides officer history on rights loss", async () => {
   await run(`

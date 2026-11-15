@@ -4,7 +4,7 @@ The core addon provides **Guild → Guild roster**, independently of the optiona
 
 ## Roster and officer actions
 
-All members, including offline characters, appear in alphabetical order with class, rank, online status, public note and officer note. Search matches a literal substring in the name or either accessible note; the class filter applies at the same time. Cyrillic case folding includes Ё/ё. Class and journal-type buttons cycle through choices and return to All after the last choice. Lists show 12 rows per page; hover a roster row for full notes.
+All members, including offline characters, appear in alphabetical order with a class icon, class-colored name, rank, online status, public note and officer note. Online status is green; the selected character's row stays highlighted while editing, including on hover and refresh. Search matches a literal substring in the name or either accessible note; the class filter applies at the same time. Cyrillic case folding includes Ё/ё. Class and journal-type buttons cycle through choices and return to All after the last choice. Lists show 12 rows per page; hover a roster row for class name and full notes.
 
 Select a character to edit notes. Save and Reload / cancel are explicit; refreshes preserve drafts. The editors follow the stock 31-character UI limit. Raw officer notes are not reformatted as EPGP. After a confirmed action the loaded EPGP view is recalculated from the game roster.
 

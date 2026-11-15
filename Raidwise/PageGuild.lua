@@ -2,7 +2,7 @@
 local Addon = Raidwise
 local Guild = Addon.GuildManagement
 local W = Addon.Widgets
-local LAYOUT_VERSION = 1
+local LAYOUT_VERSION = 2
 local currentPage
 local kinds = { "invite", "join", "quit", "remove", "promote", "demote", "rank", "publicNote", "officerNote" }
 local classes = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK", "DRUID" }
@@ -17,6 +17,34 @@ local function Label(parent, x, y, width, text)
 	label:SetJustifyH("LEFT")
 	label:SetText(text or "")
 	return label
+end
+
+local function Columns(page, isLog)
+	if isLog then
+		return { { "GUILD_NAME", 160 }, { "GUILD_EVENT", 180 }, { "GUILD_SOURCE", 300 }, { "GUILD_ACTOR", page.tableWidth - 640 } }
+	end
+	return { { "GUILD_NAME", 120 }, { "GUILD_CLASS", 44 }, { "GUILD_RANK", 110 },
+		{ "GUILD_STATUS", 76 }, { "GUILD_PUBLIC", 248 }, { "GUILD_OFFICER", page.tableWidth - 598 } }
+end
+
+local function LayoutCells(cells, columns, y, headers)
+	local offset = 0
+	for index, cell in ipairs(cells) do
+		local column = columns[index]
+		Show(cell, column ~= nil)
+		if column then
+			cell:ClearAllPoints()
+			cell:SetPoint("TOPLEFT", offset + 4, y)
+			cell:SetWidth(column[2] - 8)
+			if headers then cell:SetText(T(column[1])) end
+			offset = offset + column[2]
+		end
+	end
+end
+
+local function PaintRow(row, hovering)
+	local theme = Addon.UITheme
+	W.SetBackdropColor(row, row.selected and theme.CD_CURRENT_CHARACTER or (hovering and theme.BTN_HOVER or theme.BTN_IDLE))
 end
 
 local function Button(parent, x, y, width, key, click)
@@ -115,7 +143,8 @@ local function Refresh(page)
 	page.classButton.label:SetText(page.class and ((LOCALIZED_CLASS_NAMES_MALE or {})[page.class] or page.class) or T("GUILD_ALL_CLASSES"))
 	page.kindButton.label:SetText(page.kind and T("GUILD_KIND_" .. page.kind) or T("GUILD_ALL_EVENTS"))
 	page.searchLabel:SetText(T(isLog and "GUILD_SEARCH_MEMBER" or "GUILD_SEARCH"))
-	page.header:SetText(T(isLog and "GUILD_LOG_HEADER" or "GUILD_ROSTER_HEADER"))
+	local columns = Columns(page, isLog)
+	LayoutCells(page.headers, columns, 0, true)
 	local entries = isLog and Guild.Entries(page.search:GetText(), page.kind) or Guild.Members(page.search:GetText(), page.class)
 	local pages = math.max(1, math.ceil(#entries / #page.rows))
 	page.offset = math.min(page.offset, pages - 1)
@@ -125,8 +154,13 @@ local function Refresh(page)
 	for index, row in ipairs(page.rows) do
 		local entry = entries[page.offset * #page.rows + index]
 		row.entry = entry
+		row.selected = not isLog and entry and entry.name == page.selected or false
+		PaintRow(row)
+		LayoutCells(row.cells, columns, -5)
+		Show(row.classIcon, entry and not isLog and entry.classFile ~= nil)
 		Show(row, entry ~= nil)
 		if entry then
+			for _, cell in ipairs(row.cells) do W.SetFontColor(cell, Addon.UITheme.TEXT_BODY) end
 			if isLog then
 				row.cells[1]:SetText(Safe(entry.name))
 				row.cells[2]:SetText(T("GUILD_KIND_" .. entry.kind))
@@ -135,9 +169,12 @@ local function Refresh(page)
 				row.cells[5]:SetText("")
 				row.cells[6]:SetText("")
 			else
-				local values = { entry.name, entry.class, entry.rank, T(entry.online and "GUILD_ONLINE" or "GUILD_OFFLINE"),
+				local values = { entry.name, "", entry.rank, T(entry.online and "GUILD_ONLINE" or "GUILD_OFFLINE"),
 					entry.publicNote, Guild.Permissions().view and entry.officerNote or T("GUILD_HIDDEN") }
 				for cell, value in ipairs(values) do row.cells[cell]:SetText(Safe(value)) end
+				row.cells[1]:SetTextColor(W.ClassColor(entry.classFile))
+				W.SetFontColor(row.cells[4], entry.online and Addon.UITheme.GEAR_GOOD or Addon.UITheme.TEXT_BODY)
+				W.SetSpecOrClassIcon(row.classIcon, nil, entry.classFile)
 			end
 		end
 	end
@@ -168,6 +205,7 @@ local function Create(parent)
 	page.layoutVersion, page.mode, page.offset = LAYOUT_VERSION, "roster", 0
 	currentPage = page
 	local width = Addon.UITheme.CONTENT_WIDTH - Addon.UITheme.MENU_BAR_W - 24
+	page.tableWidth = width
 	local function Mode(mode) page.mode = mode; page.offset = 0; Refresh(page) end
 	Button(page, 8, -8, 120, "GUILD_ROSTER", function() Mode("roster") end)
 	Button(page, 134, -8, 120, "GUILD_LOG", function() Mode("log") end)
@@ -177,32 +215,43 @@ local function Create(parent)
 	page.search:SetScript("OnTextChanged", function() page.offset = 0; Refresh(page) end)
 	page.classButton = Button(page, 366, -59, 180, "GUILD_ALL_CLASSES", function() Cycle(page, "class", classes) end)
 	page.kindButton = Button(page, 366, -59, 180, "GUILD_ALL_EVENTS", function() Cycle(page, "kind", kinds) end)
-	page.header = Label(page, 8, -94, width, "")
+	page.header = CreateFrame("Frame", nil, page)
+	page.header:SetPoint("TOPLEFT", 8, -94)
+	page.header:SetSize(width, 14)
+	page.headers = {}
+	for index = 1, 6 do
+		page.headers[index] = Label(page.header, 0, 0, 1, "")
+		page.headers[index]:SetHeight(14)
+	end
 	page.rows = {}
-	local offsets, widths = { 4, 124, 234, 344, 414, 594 }, { 116, 106, 106, 66, 176, width - 610 }
 	for index = 1, 12 do
 		local row = W.CreatePlainButton(page, width, 23, "")
 		row:SetPoint("TOPLEFT", 8, -112 - (index - 1) * 25)
 		row.cells = {}
 		for cell = 1, 6 do
-			row.cells[cell] = Label(row, offsets[cell], -5, widths[cell], "")
+			row.cells[cell] = Label(row, 0, -5, 1, "")
 			row.cells[cell]:SetHeight(14)
 		end
+		row.classIcon = row:CreateTexture(nil, "ARTWORK")
+		row.classIcon:SetSize(18, 18)
+		row.classIcon:SetPoint("CENTER", row.cells[2], "CENTER", 0, 0)
 		row:SetScript("OnClick", function()
 			if page.mode == "log" then ShowDetail(page, row.entry)
 			elseif not Guild.Pending() then SetEditor(page, row.entry); Refresh(page) end
 		end)
 		row:SetScript("OnEnter", function()
+			PaintRow(row, true)
 			if not row.entry then return end
 			GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
 			if page.mode == "roster" then
 				GameTooltip:AddLine(Safe(row.entry.name))
+				GameTooltip:AddLine(Safe(row.entry.class))
 				GameTooltip:AddLine(T("GUILD_PUBLIC") .. ": " .. Safe(row.entry.publicNote), 1, 1, 1, true)
 				if Guild.Permissions().view then GameTooltip:AddLine(T("GUILD_OFFICER") .. ": " .. Safe(row.entry.officerNote), 1, 1, 1, true) end
 			else GameTooltip:AddLine(T("GUILD_LOG_HINT")) end
 			GameTooltip:Show()
 		end)
-		row:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		row:SetScript("OnLeave", function() PaintRow(row); GameTooltip:Hide() end)
 		page.rows[index] = row
 	end
 	page.previous = Button(page, 8, -416, 90, "GUILD_PREVIOUS", function() page.offset = math.max(0, page.offset - 1); Refresh(page) end)

@@ -34,7 +34,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 33` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
-| Guild roster / journal | `LAYOUT_VERSION = 1` | `PageGuild.lua` | Top title bar (next to page name) |
+| Guild roster / journal | `LAYOUT_VERSION = 2` | `PageGuild.lua` | Top title bar (next to page name) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `PROFILE_LAYOUT_VERSION = 40` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
@@ -63,14 +63,14 @@ The Guild navigation group contains Guild roster, followed by EPGP when that add
 ```text
 [ Roster ][ Journal ][ Refresh ]
 [ Search name / notes                 ][ Class / event type ]
-[ Name | Class | Rank | Online | Public note | Officer note ]
+[ Class-colored name | Class icon | Rank | Online | Public note | Officer note ]
 [ 12 rows; journal mode shows character, event, source/receipt, actor ]
 [ Previous ][ Next ][ page / pages · matching count ]
 [ Roster: selected character, two note editors, Save / Reload, Promote / Demote ]
 [ Journal: selected event details; entry limit and Apply ]
 ```
 
-The editor retains drafts across refreshes. Permission changes immediately hide officer details. Behavior and limits: [guild management](../raid/Guild-Management.md).
+Headers and row cells use the same column definitions in both modes. Class icons replace class names (the tooltip retains the name); online status is green. The character selected for editing uses the shared current-character highlight, retained on hover and refresh. The editor retains drafts across refreshes. Permission changes immediately hide officer details. Behavior and limits: [guild management](../raid/Guild-Management.md).
 
 ## Export gear and CDs
 
