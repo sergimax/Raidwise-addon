@@ -1,4 +1,4 @@
--- Live guild operations and a bounded, local observation journal (WoW 3.3.5a).
+-- Guild module: live operations and a bounded local journal (WoW 3.3.5a).
 local Addon = Raidwise
 local Guild = {}
 Addon.GuildManagement = Guild
@@ -24,13 +24,14 @@ end
 local function Store()
 	local key = Guild.Identity()
 	if not key or not Addon.db then return nil end
-	if type(Addon.db.guildManagement) ~= "table" then
-		Addon.db.guildManagement = { limit = 1000, guilds = {} }
+	if type(Addon.db.guild) ~= "table" then
+		-- The retired guildManagement/epgp roots are intentionally not migrated.
+		Addon.db.guild = { limit = 1000, guilds = {} }
 	end
-	local root = Addon.db.guildManagement
+	local root = Addon.db.guild
 	root.guilds = root.guilds or {}
 	root.limit = math.max(100, math.min(10000, math.floor(tonumber(root.limit) or 1000)))
-	if not root.guilds[key] then root.guilds[key] = { entries = {}, serverSeen = {} } end
+	if not root.guilds[key] then root.guilds[key] = { entries = {}, serverSeen = {}, rollMinimumEP = 4000 } end
 	return root.guilds[key], root, key
 end
 
@@ -50,6 +51,49 @@ end
 function Guild.GetLimit()
 	local _, root = Store()
 	return root and root.limit or 1000
+end
+
+function Guild.RollMinimumEP()
+	local store = Store()
+	return store and store.rollMinimumEP or 4000
+end
+
+function Guild.SetRollMinimumEP(value)
+	local store = Store()
+	value = tonumber(value)
+	if not store or not value or value ~= value or value < 0 or value == math.huge or value % 1 ~= 0 then return false end
+	store.rollMinimumEP = value
+	if Guild.OnChange then Guild.OnChange() end
+	return true
+end
+
+function Guild.RaidNames()
+	local names = {}
+	for index = 1, (GetNumRaidMembers and GetNumRaidMembers() or 0) do
+		local name, _, subgroup = GetRaidRosterInfo(index)
+		if name and subgroup and subgroup >= 1 and subgroup <= 5 then names[Guild.Fold(name)] = true end
+	end
+	return names
+end
+
+function Guild.Balances()
+	local store = Store()
+	if not store or not store.snapshot or not Addon.GuildEPGP then return nil end
+	local canView, threshold = Guild.Permissions().view, Guild.RollMinimumEP()
+	local cached = runtime.balances
+	if cached and cached.snapshot == store.snapshot and cached.canView == canView and cached.threshold == threshold then return cached.value end
+	local snapshot = { members = {} }
+	for index, member in ipairs(store.snapshot.members) do
+		snapshot.members[index] = { name = member.name, officerNote = canView and member.officerNote or nil,
+			officerNoteStatus = canView and store.snapshot.officer and "available" or "unavailable" }
+	end
+	local parsed = Addon.GuildRosterParser.ParseGuildRosterSnapshot(snapshot)
+	local resolved = Addon.GuildRosterLinks.Resolve(parsed)
+	local settings = Addon.GuildEPGP.ParseGuildInfo(store.snapshot.guildInfo)
+	settings.bisMinimumEP = threshold
+	local value = Addon.GuildEPGP.Calculate(resolved, settings)
+	runtime.balances = { snapshot = store.snapshot, canView = canView, threshold = threshold, value = value }
+	return value
 end
 
 local function Append(store, root, entry)
@@ -72,7 +116,8 @@ function Guild.Collect()
 		or not GetGuildRosterShowOffline or not GetGuildRosterShowOffline() then return nil end
 	local count = GetNumGuildMembers()
 	if not count or count == 0 then return nil end
-	local snapshot = { members = {}, at = Now(), key = Guild.Identity(), officer = Guild.Permissions().view }
+	local snapshot = { members = {}, at = Now(), key = Guild.Identity(), officer = Guild.Permissions().view,
+		guildInfo = GetGuildInfoText and GetGuildInfoText() or nil }
 	local names = {}
 	for index = 1, count do
 		local name, rank, rankIndex, level, class, zone, note, officerNote, online, status, classFile = GetGuildRosterInfo(index)
@@ -132,26 +177,43 @@ function Guild.Accept(snapshot)
 		if confirmed then
 			runtime.pending = nil
 			runtime.status = "GUILD_SAVED"
-			if Addon.RefreshEPGPRoster then Addon:RefreshEPGPRoster() end
 		end
 	end
 	Notify()
 	return true
 end
 
-function Guild.Members(query, class)
+function Guild.Members(query, class, raidOnly, sortKey, descending)
 	local store = Store()
 	local result, permissions = {}, Guild.Permissions()
 	query = Guild.Fold(query)
-	for _, member in ipairs(store and store.snapshot and store.snapshot.members or {}) do
+	local balances = Guild.Balances and Guild.Balances() or nil
+	local raidNames = raidOnly and Guild.RaidNames() or nil
+	for index, member in ipairs(store and store.snapshot and store.snapshot.members or {}) do
 		local haystack = Guild.Fold(member.name .. " " .. member.publicNote .. " " .. (permissions.view and member.officerNote or ""))
-		if (not class or class == member.classFile) and (query == "" or haystack:find(query, 1, true)) then
+		if (not class or class == member.classFile) and (not raidNames or raidNames[Guild.Fold(member.name)])
+			and (query == "" or haystack:find(query, 1, true)) then
 			local copy = {}
 			for field, value in pairs(member) do if field ~= "officerNote" or permissions.view then copy[field] = value end end
+			if balances and balances.members[index] then
+				local balance = balances.members[index]
+				for _, field in ipairs({ "ep", "gp", "effectiveGP", "pr", "bisEligible", "prReason", "balanceName" }) do copy[field] = balance[field] end
+			end
 			result[#result + 1] = copy
 		end
 	end
-	table.sort(result, function(left, right) return Guild.Fold(left.name) < Guild.Fold(right.name) end)
+	table.sort(result, function(left, right)
+		if sortKey == "ep" or sortKey == "gp" or sortKey == "pr" then
+			local leftValue, rightValue = left[sortKey], right[sortKey]
+			if leftValue == nil and rightValue ~= nil then return false end
+			if rightValue == nil and leftValue ~= nil then return true end
+			if leftValue ~= rightValue then
+				if descending then return leftValue > rightValue end
+				return leftValue < rightValue
+			end
+		end
+		return Guild.Fold(left.name) < Guild.Fold(right.name)
+	end)
 	return result
 end
 
@@ -224,10 +286,7 @@ local function Visible() return Guild.IsVisible and Guild.IsVisible() end
 
 local function RestoreOffline()
 	if runtime.offlineOwned and GetGuildRosterShowOffline and GetGuildRosterShowOffline() then
-		-- Never restore while another Raidwise collector still needs offline members.
-		if not Addon.epgpRefreshPending and not Addon.epgpCollectFrame and not Addon.guildRosterExportPending then
-			SetGuildRosterShowOffline(runtime.previousOffline)
-		end
+		SetGuildRosterShowOffline(runtime.previousOffline)
 	end
 	runtime.offlineOwned = nil
 end
@@ -325,14 +384,17 @@ function Guild.Initialize()
 	frame:RegisterEvent("GUILD_ROSTER_UPDATE")
 	frame:RegisterEvent("GUILD_EVENT_LOG_UPDATE")
 	frame:RegisterEvent("PLAYER_GUILD_UPDATE")
+	frame:RegisterEvent("RAID_ROSTER_UPDATE")
 	frame:SetScript("OnEvent", function(_, event)
-		if event == "PLAYER_GUILD_UPDATE" then
+		if event == "RAID_ROSTER_UPDATE" then
+			if Visible() then Notify() end
+		elseif event == "PLAYER_GUILD_UPDATE" then
 			if runtime.pending and runtime.pending.key ~= Guild.Identity() then StopPending("GUILD_STALE") end
 			Notify()
 		elseif event == "GUILD_EVENT_LOG_UPDATE" then
 			if runtime.logKey == Guild.Identity() and Visible() then Guild.ImportEvents() end
 		elseif Visible() or runtime.pending then
-			-- Defer past the game event so EPGP/export collectors can finish their work.
+			-- Coalesce roster events before reading the game cache.
 			runtime.collect = true
 		end
 	end)

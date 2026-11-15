@@ -2,7 +2,7 @@
 local Addon = Raidwise
 local Guild = Addon.GuildManagement
 local W = Addon.Widgets
-local LAYOUT_VERSION = 2
+local LAYOUT_VERSION = 3
 local currentPage
 local kinds = { "invite", "join", "quit", "remove", "promote", "demote", "rank", "publicNote", "officerNote" }
 local classes = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK", "DRUID" }
@@ -21,10 +21,37 @@ end
 
 local function Columns(page, isLog)
 	if isLog then
-		return { { "GUILD_NAME", 160 }, { "GUILD_EVENT", 180 }, { "GUILD_SOURCE", 300 }, { "GUILD_ACTOR", page.tableWidth - 640 } }
+		return { { "GUILD_NAME", 160 }, { "GUILD_EVENT", 180 }, { "GUILD_SOURCE", 300 }, { "GUILD_ACTOR", page.viewportWidth - 640 } }
 	end
 	return { { "GUILD_NAME", 120 }, { "GUILD_CLASS", 44 }, { "GUILD_RANK", 110 },
-		{ "GUILD_STATUS", 76 }, { "GUILD_PUBLIC", 248 }, { "GUILD_OFFICER", page.tableWidth - 598 } }
+		{ "GUILD_STATUS", 76 }, { "GUILD_EP", 90 }, { "GUILD_GP", 130 }, { "GUILD_PR", 90 },
+		{ "GUILD_PUBLIC", 248 }, { "GUILD_OFFICER", 258 } }
+end
+
+local sortKeys = { [5] = "ep", [6] = "gp", [7] = "pr" }
+
+local function LayoutTable(page, columns, isLog)
+	local width = 0
+	for _, column in ipairs(columns) do width = width + column[2] end
+	page.tableWidth = width
+	page.tableContent:SetWidth(width)
+	page.header:SetWidth(width)
+	for _, row in ipairs(page.rows) do row:SetWidth(width) end
+	local maximum = math.max(0, width - page.viewportWidth)
+	page.hBar:SetMinMaxValues(0, maximum)
+	page.scrollOffset = math.min(page.scrollOffset or 0, maximum)
+	page.hBar:SetValue(page.scrollOffset)
+	page.scroll:SetHorizontalScroll(page.scrollOffset)
+	Show(page.hBar, maximum > 0)
+	for index, button in pairs(page.sortButtons) do
+		Show(button, not isLog)
+		button:SetWidth(columns[index] and columns[index][2] - 8 or 0)
+	end
+end
+
+local function FormatEP(member)
+	if member.ep == nil then return "— ?" end
+	return string.format("%.0f %s", member.ep, member.bisEligible and "V" or "X")
 end
 
 local function LayoutCells(cells, columns, y, headers)
@@ -143,9 +170,26 @@ local function Refresh(page)
 	page.classButton.label:SetText(page.class and ((LOCALIZED_CLASS_NAMES_MALE or {})[page.class] or page.class) or T("GUILD_ALL_CLASSES"))
 	page.kindButton.label:SetText(page.kind and T("GUILD_KIND_" .. page.kind) or T("GUILD_ALL_EVENTS"))
 	page.searchLabel:SetText(T(isLog and "GUILD_SEARCH_MEMBER" or "GUILD_SEARCH"))
+	Show(page.raidOnly, not isLog)
+	page.raidOnly.label:SetText((page.filterRaid and "[x] " or "[ ] ") .. T("GUILD_RAID_ONLY"))
+	if page.settingsKey ~= key then
+		page.settingsKey = key
+		page.rollMinimumEP:SetText(tostring(Guild.RollMinimumEP()))
+	end
+	local balances = Guild.Balances()
+	local settings = balances and balances.epgpSettings or Addon.GuildEPGP.ParseGuildInfo(nil)
+	local baseLabel = settings.minimumGP ~= nil and tostring(settings.minimumGP) or "?"
+	page.baseLabel:SetText("BASE_GP: " .. baseLabel .. " · " .. T("GUILD_BASE_" .. string.upper(settings.baseStatus)))
 	local columns = Columns(page, isLog)
+	LayoutTable(page, columns, isLog)
 	LayoutCells(page.headers, columns, 0, true)
-	local entries = isLog and Guild.Entries(page.search:GetText(), page.kind) or Guild.Members(page.search:GetText(), page.class)
+	if not isLog then
+		for index, sortKey in pairs(sortKeys) do
+			if page.sortKey == sortKey then page.headers[index]:SetText(T(columns[index][1]) .. (page.descending and " v" or " ^")) end
+		end
+	end
+	local entries = isLog and Guild.Entries(page.search:GetText(), page.kind)
+		or Guild.Members(page.search:GetText(), page.class, page.filterRaid, page.sortKey, page.descending)
 	local pages = math.max(1, math.ceil(#entries / #page.rows))
 	page.offset = math.min(page.offset, pages - 1)
 	page.count:SetText(string.format("%d / %d · %d", page.offset + 1, pages, #entries))
@@ -166,10 +210,11 @@ local function Refresh(page)
 				row.cells[2]:SetText(T("GUILD_KIND_" .. entry.kind))
 				row.cells[3]:SetText(DateText(entry))
 				row.cells[4]:SetText(Safe(entry.actor or ""))
-				row.cells[5]:SetText("")
-				row.cells[6]:SetText("")
+				for cell = 5, 9 do row.cells[cell]:SetText("") end
 			else
+				local gp = entry.gp ~= nil and string.format("%.0f (+%s)", entry.gp, baseLabel) or "—"
 				local values = { entry.name, "", entry.rank, T(entry.online and "GUILD_ONLINE" or "GUILD_OFFLINE"),
+					FormatEP(entry), gp, entry.pr and string.format("%.2f", entry.pr) or "—",
 					entry.publicNote, Guild.Permissions().view and entry.officerNote or T("GUILD_HIDDEN") }
 				for cell, value in ipairs(values) do row.cells[cell]:SetText(Safe(value)) end
 				row.cells[1]:SetTextColor(W.ClassColor(entry.classFile))
@@ -205,7 +250,7 @@ local function Create(parent)
 	page.layoutVersion, page.mode, page.offset = LAYOUT_VERSION, "roster", 0
 	currentPage = page
 	local width = Addon.UITheme.CONTENT_WIDTH - Addon.UITheme.MENU_BAR_W - 24
-	page.tableWidth = width
+	page.viewportWidth = width
 	local function Mode(mode) page.mode = mode; page.offset = 0; Refresh(page) end
 	Button(page, 8, -8, 120, "GUILD_ROSTER", function() Mode("roster") end)
 	Button(page, 134, -8, 120, "GUILD_LOG", function() Mode("log") end)
@@ -215,20 +260,54 @@ local function Create(parent)
 	page.search:SetScript("OnTextChanged", function() page.offset = 0; Refresh(page) end)
 	page.classButton = Button(page, 366, -59, 180, "GUILD_ALL_CLASSES", function() Cycle(page, "class", classes) end)
 	page.kindButton = Button(page, 366, -59, 180, "GUILD_ALL_EVENTS", function() Cycle(page, "kind", kinds) end)
-	page.header = CreateFrame("Frame", nil, page)
-	page.header:SetPoint("TOPLEFT", 8, -94)
+	page.raidOnly = Button(page, 8, -90, 146, "GUILD_RAID_ONLY", function() page.filterRaid = not page.filterRaid; page.offset = 0; Refresh(page) end)
+	page.rollLabel = Label(page, 164, -96, 210, T("GUILD_ROLL_MINIMUM"))
+	page.rollMinimumEP = Input(page, 380, -90, 70)
+	page.rollMinimumEP:SetNumeric(true)
+	page.rollMinimumEP:SetText(tostring(Guild.RollMinimumEP()))
+	page.applyRoll = Button(page, 458, -90, 110, "GUILD_APPLY", function()
+		if Guild.SetRollMinimumEP(page.rollMinimumEP:GetText()) then page.editorMessage = nil
+		else page.editorMessage = "GUILD_ROLL_ERROR" end
+		Refresh(page)
+	end)
+	page.baseLabel = Label(page, 580, -92, width - 580, "")
+	page.baseLabel:SetHeight(26)
+	page.scroll = CreateFrame("ScrollFrame", nil, page)
+	page.scroll:SetPoint("TOPLEFT", 8, -128)
+	page.scroll:SetSize(width, 268)
+	page.tableContent = CreateFrame("Frame", nil, page.scroll)
+	page.tableContent:SetSize(width, 268)
+	page.scroll:SetScrollChild(page.tableContent)
+	page.hBar = W.CreateCooldownScrollBar(page, "HORIZONTAL")
+	page.hBar:SetPoint("TOPLEFT", 8, -400)
+	page.hBar:SetSize(width, 10)
+	page.hBar:SetScript("OnValueChanged", function(_, value) page.scrollOffset = value; page.scroll:SetHorizontalScroll(value) end)
+	page.header = CreateFrame("Frame", nil, page.tableContent)
+	page.header:SetPoint("TOPLEFT", 0, 0)
 	page.header:SetSize(width, 14)
 	page.headers = {}
-	for index = 1, 6 do
+	page.sortButtons = {}
+	for index = 1, 9 do
 		page.headers[index] = Label(page.header, 0, 0, 1, "")
 		page.headers[index]:SetHeight(14)
+		local sortKey = sortKeys[index]
+		if sortKey then
+			local button = CreateFrame("Button", nil, page.header)
+			button:SetPoint("TOPLEFT", page.headers[index], "TOPLEFT", 0, 0)
+			button:SetHeight(18)
+			button:SetScript("OnClick", function()
+				if page.sortKey == sortKey then page.descending = not page.descending else page.sortKey, page.descending = sortKey, true end
+				page.offset = 0; Refresh(page)
+			end)
+			page.sortButtons[index] = button
+		end
 	end
 	page.rows = {}
-	for index = 1, 12 do
-		local row = W.CreatePlainButton(page, width, 23, "")
-		row:SetPoint("TOPLEFT", 8, -112 - (index - 1) * 25)
+	for index = 1, 10 do
+		local row = W.CreatePlainButton(page.tableContent, width, 23, "")
+		row:SetPoint("TOPLEFT", 0, -18 - (index - 1) * 25)
 		row.cells = {}
-		for cell = 1, 6 do
+		for cell = 1, 9 do
 			row.cells[cell] = Label(row, 0, -5, 1, "")
 			row.cells[cell]:SetHeight(14)
 		end
@@ -248,6 +327,12 @@ local function Create(parent)
 				GameTooltip:AddLine(Safe(row.entry.class))
 				GameTooltip:AddLine(T("GUILD_PUBLIC") .. ": " .. Safe(row.entry.publicNote), 1, 1, 1, true)
 				if Guild.Permissions().view then GameTooltip:AddLine(T("GUILD_OFFICER") .. ": " .. Safe(row.entry.officerNote), 1, 1, 1, true) end
+				if row.entry.balanceName then GameTooltip:AddLine(T("GUILD_BALANCE_OWNER") .. ": " .. Safe(row.entry.balanceName)) end
+				if row.entry.prReason then GameTooltip:AddLine(T(row.entry.prReason), 1, 0.6, 0.4, true) end
+				if row.entry.pr then
+					GameTooltip:AddLine(string.format("PR = %.0f / %.0f = %.2f", row.entry.ep, row.entry.effectiveGP, row.entry.pr))
+				end
+				GameTooltip:AddLine(T("GUILD_ROLL_HINT"), 1, 1, 1, true)
 			else GameTooltip:AddLine(T("GUILD_LOG_HINT")) end
 			GameTooltip:Show()
 		end)
@@ -323,6 +408,14 @@ Addon.Pages.Guild = {
 		end
 		page.publicLabel:SetText(T("GUILD_PUBLIC")); page.officerLabel:SetText(T("GUILD_OFFICER"))
 		page.limitLabel:SetText(T("GUILD_LIMIT")); page.localHint:SetText(T("GUILD_LOCAL_HINT"))
+		page.rollLabel:SetText(T("GUILD_ROLL_MINIMUM"))
 		Refresh(page)
 	end,
 }
+
+if Addon.MenuPages then
+	local position = #Addon.MenuPages + 1
+	for index, info in ipairs(Addon.MenuPages) do if info.group == "other" then position = index; break end end
+	table.insert(Addon.MenuPages, position, { id = "guild", key = "Guild", labelKey = "GUILD_ROSTER",
+		icon = "Interface\\Icons\\INV_Shirt_GuildTabard_01", group = "guild" })
+end

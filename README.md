@@ -20,15 +20,15 @@ notes, links, and exchanged data are reset without migration; settings, saved
 Gear Check reports, lockouts, and currencies remain. Install the full addon
 folder and restart the client because the TOC load order changed.
 
-1. Copy both `Raidwise` and `Raidwise_EPGP` folders into your client’s AddOns directory:
+1. Copy both `Raidwise` and `Raidwise_Guild` folders into your client’s AddOns directory:
 
    ```text
    <WoW>/Interface/AddOns/Raidwise/
-   <WoW>/Interface/AddOns/Raidwise_EPGP/
+   <WoW>/Interface/AddOns/Raidwise_Guild/
    ```
 
 2. Fully restart the client after installing new files or an updated TOC. Use `/reload` for edits to already loaded files.
-3. Enable **Raidwise** and **Raidwise EPGP** on the character select AddOns screen if needed.
+3. Enable **Raidwise** and **Raidwise Guild** on the character select AddOns screen if needed. Remove the retired `Raidwise_EPGP` folder when upgrading. Guild tools now share one [roster and journal page](docs/raid/Guild-Management.md); old guild/EPGP data is not migrated.
 4. If you previously used **mrc-exporter**, remove that folder from AddOns so only Raidwise loads.
 
 
@@ -42,7 +42,7 @@ Prepare version changes using the [release procedure](.agents/skills/bump/SKILL.
 
 After `npm run check` passes, GitHub Actions publishes a release with notes from
 that changelog entry and `Raidwise-vX.Y.Z.zip`. The ZIP contains both `Raidwise/`
-and `Raidwise_EPGP/`, ready to extract into `Interface/AddOns/`. Retired Lua modules remain in the repository for historical
+and `Raidwise_Guild/`, ready to extract into `Interface/AddOns/`. Retired Lua modules remain in the repository for historical
 tests and are excluded by [the packager](scripts/package-addon.mts).
 Branches and PR merges alone do not publish releases. Tags must point to commits
 containing the workflow; existing tags are not processed retroactively.

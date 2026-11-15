@@ -56,8 +56,8 @@ async function run(body: string, extraModules: string[] = [], extraSetup = "") {
   const lua = await Lua.create();
   try {
     lua.doStringSync(setup + extraSetup);
-    for (const name of ["GuildManagement", ...extraModules]) {
-      lua.doStringSync(await readFile(new URL(`../Raidwise/${name}.lua`, import.meta.url), "utf8"));
+    for (const name of ["GuildManagement", "GuildRosterParser", "GuildRosterLinks", "GuildEPGP", ...extraModules]) {
+      lua.doStringSync(await readFile(new URL(`../Raidwise_Guild/${name}.lua`, import.meta.url), "utf8"));
     }
     lua.doStringSync("G=Raidwise.GuildManagement; G.IsVisible=function() return true end\n" + body);
   } finally { lua.global.close(); }
@@ -184,6 +184,8 @@ function region(parent)
  function result:SetPoint(...) self.point={...} end
  function result:ClearAllPoints() self.point=nil end
  function result:SetWidth(width) self.width=width end
+ function result:SetMinMaxValues(minimum,maximum) self.minimum=minimum;self.maximum=maximum end
+ function result:SetValue(value) self.value=value end
  function result:SetTextColor(...) self.color={...} end
  function result:CreateTexture() return region(self) end
  function result:Show() self.shown=true end
@@ -202,6 +204,7 @@ Raidwise.Widgets={
  CreateFontString=function(parent) return region(parent) end,
  CreatePlainButton=function(parent) local button=region(parent);button.label=region(button);return button end,
  CreateTextInput=function(parent) local host=region(parent);return region(host),host end,
+ CreateCooldownScrollBar=function(parent) return region(parent) end,
  SetPlainButtonTooltip=function(button,key) button.tooltipKey=key end,
  ClassColor=function(class) if class=='MAGE' then return 0.4,0.8,1 end;return 1,0.5,0.3 end,
  SetSpecOrClassIcon=function(texture,_,class) texture.class=class end,
@@ -219,7 +222,7 @@ test("guild table aligns individual headers with cells and preserves selection a
   await run(`
     local page=Raidwise.Pages.Guild.Create(region())
     G.Accept(G.Collect())
-    assert(page.headers and #page.headers==6,'column headers must be individual aligned cells')
+    assert(page.headers and #page.headers==9,'column headers must be individual aligned cells')
     for index,header in ipairs(page.headers) do
       assert(header.point[2]==page.rows[1].cells[index].point[2] and header.width==page.rows[1].cells[index].width,'header/cell alignment')
     end
@@ -270,17 +273,164 @@ test("guild page preserves drafts across refreshes, exposes conflicts and hides 
   `, ["PageGuild"], uiSetup);
 });
 
-test("EPGP export distinguishes officer-note viewing from editing", async () => {
+test("guild balances distinguish officer-note viewing from editing", async () => {
+  await run(`
+    rights.officer=false
+    G.Accept(G.Collect())
+    assert(G.Members('Alice')[1].ep==100)
+    rights.view=false
+    assert(G.Members('Alice')[1].ep==nil and G.Members('Alice')[1].pr==nil)
+  `);
+});
+
+test("guild info base parsing handles defaults, other EPGP options and conflicting settings", async () => {
+  await run(`
+    local parse=Raidwise.GuildEPGP.ParseGuildInfo
+    assert(parse(nil).minimumGP==500 and parse('guild description').baseStatus=='default')
+    local valid=parse([[-EPGP-
+@BASE_GP:500
+@DECAY_P:20
+@MIN_EP:90000
+@EXTRAS_P:100
+-EPGP-]])
+    assert(valid.minimumGP==500 and valid.baseStatus=='guild')
+    assert(parse('-EPGP-\\n@DECAY_P:20\\n-EPGP-').baseStatus=='default')
+    for _,body in ipairs({'@BASE_GP:-1','@BASE_GP:1.5','@BASE_GP:abc','@BASE_GP:500\\n@BASE_GP:600'}) do
+      local config=parse('-EPGP-\\n'..body..'\\n-EPGP-')
+      assert(config.baseStatus=='invalid' and config.minimumGP==nil)
+    end
+    assert(parse('-EPGP-\\n@BASE_GP:500').baseStatus=='invalid')
+    assert(parse('-EPGP-\\r\\n@BASE_GP:0\\r\\n-EPGP-').minimumGP==0)
+  `);
+});
+
+test("guild balances resolve Cyrillic alt chains outside the active raid and separate roll eligibility from PR", async () => {
+  await run(`
+    local info='-EPGP-\\n@BASE_GP:500\\n@MIN_EP:99999\\n-EPGP-'
+    function GetGuildInfoText() return info end
+    rows={
+      {name='Мейн',rank='Officer',rankIndex=1,class='Маг',classFile='MAGE',publicNote='',officerNote='10000,1000'},
+      {name='Альт',rank='Member',rankIndex=3,class='Маг',classFile='MAGE',publicNote='find',officerNote='мЕЙН'},
+      {name='Chain',rank='Member',rankIndex=3,class='Маг',classFile='MAGE',publicNote='',officerNote='альт'},
+      {name='Reserve',rank='Member',rankIndex=3,class='Воин',classFile='WARRIOR',publicNote='',officerNote='20000,1000'},
+      {name='Missing',rank='Member',rankIndex=3,class='Воин',classFile='WARRIOR',publicNote='',officerNote='Nobody'},
+      {name='CycleA',rank='Member',rankIndex=3,class='Маг',classFile='MAGE',publicNote='',officerNote='CycleB'},
+      {name='CycleB',rank='Member',rankIndex=3,class='Маг',classFile='MAGE',publicNote='',officerNote='CycleA'},
+    }
+    function GetNumRaidMembers() return 4 end
+    function GetRaidRosterInfo(index)
+      return ({'Альт','Chain','Reserve','Outsider'})[index],0,({1,5,6,2})[index]
+    end
+    G.Accept(G.Collect())
+    local raid=G.Members(nil,nil,true)
+    assert(#raid==2 and #G.Members('find','MAGE',true)==1)
+    for _,member in ipairs(raid) do
+      assert(member.ep==10000 and member.gp==1000 and member.effectiveGP==1500)
+      assert(member.pr==10000/1500 and member.bisEligible and member.balanceName=='Мейн')
+    end
+    assert(G.SetRollMinimumEP(10001))
+    assert(not G.Members('Альт')[1].bisEligible and G.Members('Альт')[1].pr==10000/1500)
+    assert(not G.SetRollMinimumEP(-1) and not G.SetRollMinimumEP(1.5))
+    changeGuild('Other');assert(G.RollMinimumEP()==4000)
+    changeGuild('Guild');assert(G.RollMinimumEP()==10001)
+    assert(G.Members('Missing')[1].ep==nil and G.Members('CycleA')[1].pr==nil)
+    info='-EPGP-\\n@BASE_GP:broken\\n-EPGP-';G.Accept(G.Collect())
+    local member=G.Members('Альт')[1]
+    assert(member.ep==10000 and member.gp==1000 and member.pr==nil and member.prReason=='GUILD_REASON_BASE')
+    info='-EPGP-\\n@BASE_GP:0\\n-EPGP-';rows[1].officerNote='10000,0';G.Accept(G.Collect())
+    member=G.Members('Альт')[1]
+    assert(member.ep==10000 and member.gp==0 and member.pr==nil and member.prReason=='GUILD_REASON_ZERO')
+    assert(G.SetRollMinimumEP(4000) and G.Members('Альт')[1].bisEligible)
+    rights.view=false
+    assert(G.Members('Альт')[1].ep==nil and G.Members('Альт')[1].prReason=='GUILD_REASON_UNAVAILABLE')
+  `);
+});
+
+test("guild numeric sorting keeps unknowns last, uses unrounded PR and starts new storage without migration", async () => {
+  await run(`
+    Raidwise.db.guildManagement={limit=100, guilds={old={entries={{kind='join'}}}}}
+    Raidwise.db.epgp={bisMinimumEP=99999}
+    assert(G.GetLimit()==1000 and G.RollMinimumEP()==4000 and #G.Entries()==0)
+    rows[1].officerNote='4001,1000';rows[2].officerNote='4000,1000'
+    G.Accept(G.Collect())
+    assert(G.Members(nil,nil,false,'pr',true)[1].name=='Янтарь')
+    assert(G.Members(nil,nil,false,'pr',false)[1].name=='Alice')
+    rows[1].officerNote='4000,1000';G.Accept(G.Collect())
+    assert(G.Members(nil,nil,false,'pr',true)[1].name=='Alice')
+    rows[2].officerNote='Nobody';G.Accept(G.Collect())
+    assert(G.Members(nil,nil,false,'ep',false)[2].name=='Alice')
+    assert(G.Members(nil,nil,false,'gp',true)[2].name=='Alice')
+    function GetNumRaidMembers() return 0 end
+    assert(#G.Members(nil,nil,true)==0)
+  `);
+});
+
+test("guild page sorts balances, applies the roll threshold and scrolls the whole aligned table", async () => {
+  await run(`
+    rows[1].officerNote='10000,1000'
+    local page=Raidwise.Pages.Guild.Create(region())
+    G.Accept(G.Collect())
+    assert(page.hBar.maximum>0 and page.hBar.shown)
+    page.sortButtons[5].scripts.OnClick()
+    assert(page.rows[1].entry.name=='Янтарь' and page.rows[1].cells[5].text=='10000 V')
+    assert(page.rows[1].cells[6].text=='1000 (+500)' and page.rows[1].cells[7].text=='6.67')
+    page.rollMinimumEP:SetText('10001');page.applyRoll.scripts.OnClick()
+    assert(page.rows[1].cells[5].text=='10000 X' and page.editorMessage==nil)
+    page.sortButtons[5].scripts.OnClick();assert(page.rows[1].entry.name=='Alice')
+    page.raidOnly.scripts.OnClick();assert(not page.rows[1].shown)
+    page.raidOnly.scripts.OnClick();assert(page.rows[1].shown)
+    page.localizedButtons[2].scripts.OnClick();assert(not page.hBar.shown and page.hBar.maximum==0)
+  `, ["PageGuild"], uiSetup);
+});
+
+test("core loads the renamed guild addon in TOC order and registers one guild page", async () => {
   const lua = await Lua.create();
   try {
-    lua.doStringSync(setup);
-    lua.doStringSync(await readFile(new URL("../Raidwise_EPGP/GuildRosterExport.lua", import.meta.url), "utf8"));
+    lua.doStringSync(await readFile(new URL("lua/wow-stubs.lua", import.meta.url), "utf8"));
     lua.doStringSync(`
-      rights.officer=false
-      local snapshot=Raidwise:CollectGuildRosterSnapshot()
-      assert(snapshot.officerNotesStatus=='available' and snapshot.members[1].officerNote=='secret')
-      rights.view=false
-      assert(Raidwise:CollectGuildRosterSnapshot().officerNotesStatus=='unavailable')
+      SlashCmdList={};GameTooltip={}
+      function GetLocale() return 'enUS' end
+      function GetAddOnMetadata() return '' end
+      function GetRealmName() return 'Realm' end
+      function UnitGUID() return 'SELF' end
+      function UnitName() return 'Me' end
+      function time() return 1000 end
+      function ChatFrame_AddMessageEventFilter() end
+      guildSources={}
+    `);
+    for (const addon of ["Raidwise", "Raidwise_Guild"]) {
+      const toc = await readFile(new URL(`../${addon}/${addon}.toc`, import.meta.url), "utf8");
+      for (const entry of toc.split(/\r?\n/).filter(line => line.endsWith(".lua"))) {
+        const source = (await readFile(new URL(`../${addon}/${entry}`, import.meta.url), "utf8")).replace(/^\uFEFF/, "");
+        if (addon === "Raidwise") lua.doStringSync(source);
+        else {
+          lua.global.set("source", source);
+          lua.doStringSync("assert(loadstring(source));guildSources[#guildSources+1]=source");
+        }
+      }
+    }
+    lua.doStringSync(`
+      Raidwise.CreateMinimapButton=nil;Raidwise.InitializeClassicOpinionMarkers=nil
+      local built=false
+      Raidwise.CreateMainFrame=function()
+        assert(Raidwise.Pages.Guild and not Raidwise.Pages.EPGP)
+        assert(not Raidwise.ShowGuildRosterExport)
+        local count=0
+        for _,page in ipairs(Raidwise.MenuPages) do
+          assert(page.id~='epgp');if page.id=='guild' then count=count+1;assert(page.group=='guild') end
+        end
+        assert(count==1);built=true
+      end
+      local requested
+      function LoadAddOn(name)
+        requested=name;assert(name=='Raidwise_Guild')
+        for _,source in ipairs(guildSources) do assert(loadstring(source))() end
+        return true
+      end
+      local messages={}
+      function Raidwise:Print(text) messages[#messages+1]=text end
+      Raidwise:OnInitialize()
+      assert(requested=='Raidwise_Guild' and built and #messages==1,table.concat(messages,' | '))
     `);
   } finally { lua.global.close(); }
 });

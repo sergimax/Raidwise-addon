@@ -1,5 +1,7 @@
 # EPGP guild roster plan
 
+Historical plan for the retired Raidwise_EPGP addon. Its page, grouping UI and guild JSON export have been removed. Current ownership and supported balance calculations live in [Raidwise_Guild](Guild-Management.md); this document is retained as design history, not the current contract.
+
 ## Goal
 
 Add a staged workflow for turning the in-game guild roster and officer notes into structured EPGP data:

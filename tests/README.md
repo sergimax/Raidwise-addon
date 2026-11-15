@@ -16,6 +16,9 @@ game mocks: note/rank permissions and conflicts, current roster indices,
 partial confirmations/timeouts, draft retention, Cyrillic search, per-guild
 archives, journal retention/deduplication and refresh lifecycle. In-client
 acceptance remains separate; see [guild management](../docs/raid/Guild-Management.md).
+It also loads `Raidwise_Guild` through real bootstrap/TOC order, checks raid
+groups 1–5, Cyrillic main/alt chains, guild-info BASE_GP parsing, independent
+roll thresholds, unknown/zero PR, numeric sorting and horizontally aligned headers.
 
 `npm run typecheck` runs both `tests/tsconfig.json` and `types/tsconfig.json`.
 The second project explicitly includes all three `types/*.ts` files and

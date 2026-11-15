@@ -6,21 +6,13 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 ## Shell
 
-### Guild roster / journal (layout v2)
+### Guild roster / journal (layout v3)
 
-The page fits the existing shell viewport. Its width is `CONTENT_WIDTH - MENU_BAR_W - 24` (856 px with the current theme), with an 8 px left inset. Top mode/refresh buttons are 120 × 24 px. The search input is 350 × 24 px; the class/event cycle control is 180 × 24 px. Twelve list rows are 23 px tall with 25 px pitch, starting 112 px below the page top. Roster column widths are 120/44/110/76/248/258 px, with 4 px inner padding on each side. Journal columns are 160/180/300/216 px. Headers use the same widths, offsets and padding as row cells; class icons are 18 × 18 px, centered in their column. Pagination starts at y=416. The 176 px editor/detail panel starts at y=450. The note editors are 350 × 24 px and follow the stock 31-character limit. All controls fit within 626 px of page height. Shell dimensions are unchanged.
+`Raidwise_Guild/PageGuild.lua` fits the existing shell viewport. Its visible table width is `CONTENT_WIDTH - MENU_BAR_W - 24` (856 px with the current theme), with an 8 px left inset. Top mode/refresh buttons are 120 × 24 px. Search is 350 × 24 px; the class/event control is 180 × 24 px. The raid filter (146 × 24), roll threshold (70 × 24) and Apply (110 × 24) start at y=90; the base-GP/source label shares that row.
 
-### EPGP roster (layout v16)
+The horizontally scrollable table starts at y=128 and is 268 px tall. The header is 14 px tall; ten 23 px rows use a 25 px pitch starting at y=18 inside the table. Roster columns are 120/44/110/76/90/130/90/248/258 px (1166 px total), with 4 px padding on each side. Journal columns remain 160/180/300/216 px. Headers and rows share column definitions and scroll together. Class icons are 18 × 18 px. Sort hit areas are 18 px tall over EP, GP and PR. The 10 px horizontal scrollbar starts at y=400 and hides when the table fits.
 
-Full-width toolbar with roster refresh, character search, GP base (default 500), minimum EP for roll settings, followed by status, group/raid scope filters, an include-linked-mains/alts option, pagination, progress, and a two-axis scrollable table.
-Fifty rows are shown per page at 28 px row height.
-In full-guild view, clicking a main row collapses or expands its alts.
-Main rows use the current-character highlight background and larger font; alt rows remain indented.
-The first column displays “Мейн” or “Альт” plus the link status when it is not the normal main/linked state; `invalid` is shown as “Ошибка” and `invalid-chain` as “Ссылка”. Character names include 24 px class icons and class colors, with expand/collapse markers only on mains that have alts. Table sorting keeps each main's group contiguous.
-The EP column retains its numeric value and appends `V` when eligible, `X` when ineligible, or `?` when eligibility is unknown (for example, `97090 V`). EP and GP values are right-aligned. The GP column shows recorded GP and the added base in parentheses (for example, `1599 (+500)`); PR uses the sum. No separate status column is shown.
-Other columns show PR, note/link status, and the raw public note.
-The page is under the export menu group.
-Current view is read-only after refresh; correction and JSON import controls remain future work.
+Pagination starts at y=416. The 176 px editor/detail panel starts at y=450. Note editors remain 350 × 24 px with the stock 31-character limit. All controls fit within 626 px of page height. Shell dimensions are unchanged; its rebuild version is 34. The retired EPGP page is no longer an active layout.
 
 | Element | Size | Notes |
 |---------|------|-------|

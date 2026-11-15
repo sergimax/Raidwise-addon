@@ -22,7 +22,7 @@ Menu tabs each have an **16×16** category icon + label. Group headings are visi
 
 ```text
 [ watch ] Character cooldowns [ book ] Character database [ glory ] Raid roster [ BoK ] Raid composition
-[ scope ] Gear check (target) [ book ] History [ tabard ] Guild roster [ coin ] EPGP (if loaded)
+[ scope ] Gear check (target) [ book ] History [ tabard ] Guild roster (Raidwise_Guild)
 [ note ] My gear and CDs exports [ gear ] Settings [ ? ] Info
 ```
 
@@ -33,8 +33,8 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 33` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
-| Guild roster / journal | `LAYOUT_VERSION = 2` | `PageGuild.lua` | Top title bar (next to page name) |
+| Main shell | `SHELL_LAYOUT_VERSION = 34` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Guild roster / journal | `LAYOUT_VERSION = 3` | `Raidwise_Guild/PageGuild.lua` | Top title bar (next to page name) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `PROFILE_LAYOUT_VERSION = 40` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
@@ -43,7 +43,6 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Top title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 20` | `PageGearCheckTarget.lua` | Top title bar (next to page name) |
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Top title bar (next to page name) |
-| EPGP roster | `LAYOUT_VERSION = 16` | `PageEPGP.lua` | Top title bar (next to page name) |
 | Character database | `DATABASE_LAYOUT_VERSION = 13` | `PageHistory.lua` | Top title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 19` | `PageSettings.lua` | Top title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Top title bar (next to page name) |
@@ -58,13 +57,15 @@ Rules: see [AGENTS.md](../../AGENTS.md). Do **not** bump layout versions for loc
 
 ## Guild roster and journal
 
-The Guild navigation group contains Guild roster, followed by EPGP when that addon is loaded. Guild roster belongs to the core addon.
+The Guild navigation group contains one Guild roster page registered by `Raidwise_Guild`. The separate EPGP page is removed.
 
 ```text
 [ Roster ][ Journal ][ Refresh ]
 [ Search name / notes                 ][ Class / event type ]
-[ Class-colored name | Class icon | Rank | Online | Public note | Officer note ]
-[ 12 rows; journal mode shows character, event, source/receipt, actor ]
+[ Current raid 1–5 ][ Minimum EP ][ Apply ][ BASE_GP and source ]
+[ Class-colored name | Class icon | Rank | Online | EP [roll] | GP (+base) | PR | Public note | Officer note ]
+[ 10 rows; journal mode shows character, event, source/receipt, actor ]
+[ horizontal scroll for the whole table, including headers ]
 [ Previous ][ Next ][ page / pages · matching count ]
 [ Roster: selected character, two note editors, Save / Reload, Promote / Demote ]
 [ Journal: selected event details; entry limit and Apply ]

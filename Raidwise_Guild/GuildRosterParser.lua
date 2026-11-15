@@ -1,4 +1,4 @@
--- Pure note parsing for exported guild roster snapshots.
+-- Pure note parsing shared by the guild roster calculations.
 
 local Addon = Raidwise
 local Parser = {}
