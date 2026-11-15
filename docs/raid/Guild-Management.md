@@ -26,6 +26,8 @@ Officer-note reading uses `CanViewOfficerNote`, independently of editing. Losing
 
 Opening the page requests the full roster and server event log. The Refresh button uses the same path. While visible, the page processes roster events and requests another refresh every 30 seconds. Requests coalesce, with a minimum two-second interval and a 12-second timeout. A pending mutation can finish or time out after closing the page; otherwise no background collection occurs.
 
+Refresh shows a progress bar beside its button. Waiting for the game response has no invented percentage. The full roster is then read in batches of up to 50 members per update tick (at most once per 0.05 seconds), showing actual processed/total members. Only a complete, validated snapshot replaces the displayed roster. New roster events restart the scan; incomplete rows, count/guild changes or changed officer-note access discard partial results. The bar briefly shows completion and hides; timeout, close or cancellation clears it. Explicit officer-command validation still uses an immediate full read before sending commands.
+
 The collector temporarily includes offline members and restores the previous offline flag when closed. This is a shared game setting; simultaneous external addons can also change it.
 
 Incomplete or unavailable roster replies do not replace the last good snapshot. The collector requires every reported row, unique names, ranks, unchanged count and guild identity, and offline visibility. These checks cannot detect every server-side inconsistency. The first complete snapshot is a baseline, without synthetic member-add events.

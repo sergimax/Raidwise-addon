@@ -111,24 +111,38 @@ function Guild.Fold(text)
 	return text
 end
 
-function Guild.Collect()
+local function BeginCollection()
 	if not Guild.Identity() or not GetNumGuildMembers or not GetGuildRosterInfo
 		or not GetGuildRosterShowOffline or not GetGuildRosterShowOffline() then return nil end
 	local count = GetNumGuildMembers()
 	if not count or count == 0 then return nil end
 	local snapshot = { members = {}, at = Now(), key = Guild.Identity(), officer = Guild.Permissions().view,
 		guildInfo = GetGuildInfoText and GetGuildInfoText() or nil }
-	local names = {}
-	for index = 1, count do
+	return { snapshot = snapshot, count = count, index = 1, names = {} }
+end
+
+local function ReadMembers(job, budget)
+	local snapshot = job.snapshot
+	if Guild.Identity() ~= snapshot.key or GetNumGuildMembers() ~= job.count
+		or not GetGuildRosterShowOffline() or Guild.Permissions().view ~= snapshot.officer then return "invalid" end
+	for index = job.index, math.min(job.count, job.index + budget - 1) do
 		local name, rank, rankIndex, level, class, zone, note, officerNote, online, status, classFile = GetGuildRosterInfo(index)
-		if not name or names[name] or rankIndex == nil then return nil end
-		names[name] = true
+		if not name or job.names[name] or rankIndex == nil then return "invalid" end
+		job.names[name] = true
 		snapshot.members[#snapshot.members + 1] = { name = name, rank = rank, rankIndex = rankIndex,
 			class = class, classFile = classFile, level = level, online = online and true or false,
 			publicNote = note or "", officerNote = snapshot.officer and (officerNote or "") or nil, index = index }
+		job.index = index + 1
 	end
-	if GetNumGuildMembers() ~= count or Guild.Identity() ~= snapshot.key then return nil end
-	return snapshot
+	if GetNumGuildMembers() ~= job.count or Guild.Identity() ~= snapshot.key
+		or Guild.Permissions().view ~= snapshot.officer then return "invalid" end
+	return job.index > job.count and "complete" or "working"
+end
+
+function Guild.Collect()
+	-- Immediate reads are reserved for validating an explicit officer command.
+	local job = BeginCollection()
+	if job and ReadMembers(job, job.count) == "complete" then return job.snapshot end
 end
 
 local function Find(snapshot, name)
@@ -139,6 +153,17 @@ end
 
 local function Notify()
 	if Guild.OnChange then Guild.OnChange() end
+end
+
+local function SetProgress(phase, current, total)
+	runtime.progress = phase and { phase = phase, current = current or 0, total = total,
+		finishedAt = phase == "done" and Clock() or nil } or nil
+	if Guild.OnProgress then Guild.OnProgress() end
+end
+
+function Guild.Progress()
+	local progress = runtime.progress
+	if progress then return progress.phase, progress.current, progress.total end
 end
 
 local function SetStatus(key)
@@ -294,6 +319,8 @@ end
 local function StopPending(status)
 	runtime.pending = nil
 	runtime.requested = nil
+	runtime.collection, runtime.collect = nil, nil
+	SetProgress()
 	RestoreOffline()
 	SetStatus(status)
 end
@@ -305,6 +332,7 @@ function Guild.Request()
 	Guild.Initialize()
 	runtime.lastRequest = Clock()
 	runtime.requested = { key = Guild.Identity(), at = Clock() }
+	SetProgress("waiting")
 	if not GetGuildRosterShowOffline() then
 		runtime.previousOffline = false
 		runtime.offlineOwned = true
@@ -400,27 +428,41 @@ function Guild.Initialize()
 	end)
 	frame:SetScript("OnUpdate", function(_, elapsed)
 		runtime.elapsed = runtime.elapsed + elapsed
-		if runtime.elapsed < 0.25 then return end
+		if runtime.elapsed < 0.05 then return end
 		runtime.elapsed = 0
 		if runtime.pending and runtime.pending.key ~= Guild.Identity() then StopPending("GUILD_STALE") end
 		if runtime.requested and runtime.requested.key ~= Guild.Identity() then
-			runtime.requested = nil; RestoreOffline(); SetStatus("GUILD_STALE")
+			runtime.requested, runtime.collection, runtime.collect = nil, nil, nil
+			SetProgress(); RestoreOffline(); SetStatus("GUILD_STALE")
 		end
 		if runtime.collect then
 			runtime.collect = nil
-			local snapshot = Guild.Collect()
-			if snapshot and (Visible() or runtime.pending) then
+			runtime.collection = (Visible() or runtime.pending) and BeginCollection() or nil
+			if (Visible() or runtime.pending) and Guild.Identity() then
+				runtime.requested = runtime.requested or { key = Guild.Identity(), at = Clock() }
+				SetProgress(runtime.collection and "scanning" or "waiting", 0, runtime.collection and runtime.collection.count)
+			else SetProgress() end
+		end
+		if runtime.collection then
+			local job = runtime.collection
+			local result = ReadMembers(job, 50)
+			if result == "complete" then
 				local wasPending = runtime.pending ~= nil
-				Guild.Accept(snapshot)
+				runtime.collection = nil
+				Guild.Accept(job.snapshot)
 				runtime.requested = nil
+				SetProgress("done", job.count, job.count)
 				if not runtime.pending and not wasPending then SetStatus("GUILD_READY") end
 				if not Visible() and not runtime.pending then RestoreOffline() end
-			end
+			elseif result == "working" then SetProgress("scanning", job.index - 1, job.count)
+			else runtime.collection = nil; SetProgress("waiting") end
 		end
 		if runtime.pending and Clock() - runtime.pending.at > 12 then StopPending("GUILD_UNCERTAIN") end
 		if runtime.requested and Clock() - runtime.requested.at > 12 then
-			runtime.requested = nil; SetStatus("GUILD_UNCERTAIN")
+			runtime.requested, runtime.collection = nil, nil
+			SetProgress(); SetStatus("GUILD_UNCERTAIN")
 		end
+		if runtime.progress and runtime.progress.finishedAt and Clock() - runtime.progress.finishedAt >= 0.75 then SetProgress() end
 		if Visible() or runtime.pending then
 			if Clock() - runtime.lastRequest >= (runtime.pending and 2 or 30) then Guild.Request() end
 			-- Refresh permission-dependent controls even without a roster event.
@@ -431,11 +473,16 @@ function Guild.Initialize()
 		elseif not runtime.pending then
 			runtime.collect = nil
 			runtime.requested = nil
+			runtime.collection = nil
+			if runtime.progress then SetProgress() end
 			RestoreOffline()
 		end
 	end)
 end
 
 function Guild.Close()
-	if not runtime.pending then runtime.requested = nil; runtime.collect = nil; RestoreOffline() end
+	if not runtime.pending then
+		runtime.requested, runtime.collect, runtime.collection = nil, nil, nil
+		SetProgress(); RestoreOffline()
+	end
 end

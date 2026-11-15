@@ -34,7 +34,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 34` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
-| Guild roster / journal | `LAYOUT_VERSION = 3` | `Raidwise_Guild/PageGuild.lua` | Top title bar (next to page name) |
+| Guild roster / journal | `LAYOUT_VERSION = 4` | `Raidwise_Guild/PageGuild.lua` | Top title bar (next to page name) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `PROFILE_LAYOUT_VERSION = 40` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
@@ -60,7 +60,7 @@ Rules: see [AGENTS.md](../../AGENTS.md). Do **not** bump layout versions for loc
 The Guild navigation group contains one Guild roster page registered by `Raidwise_Guild`. The separate EPGP page is removed.
 
 ```text
-[ Roster ][ Journal ][ Refresh ]
+[ Roster ][ Journal ][ Refresh ][ refresh progress: waiting / members read ]
 [ Search name / notes                 ][ Class / event type ]
 [ Current raid 1–5 ][ Minimum EP ][ Apply ][ BASE_GP and source ]
 [ Class-colored name | Class icon | Rank | Online | EP [roll] | GP (+base) | PR | Public note | Officer note ]

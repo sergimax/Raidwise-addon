@@ -205,6 +205,11 @@ Raidwise.Widgets={
  CreatePlainButton=function(parent) local button=region(parent);button.label=region(button);return button end,
  CreateTextInput=function(parent) local host=region(parent);return region(host),host end,
  CreateCooldownScrollBar=function(parent) return region(parent) end,
+ CreateProgressBar=function(parent)
+  local progress=region(parent)
+  function progress:SetProgress(current,total) self.current=current;self.total=total end
+  return progress
+ end,
  SetPlainButtonTooltip=function(button,key) button.tooltipKey=key end,
  ClassColor=function(class) if class=='MAGE' then return 0.4,0.8,1 end;return 1,0.5,0.3 end,
  SetSpecOrClassIcon=function(texture,_,class) texture.class=class end,
@@ -381,6 +386,52 @@ test("guild page sorts balances, applies the roll threshold and scrolls the whol
     page.raidOnly.scripts.OnClick();assert(page.rows[1].shown)
     page.localizedButtons[2].scripts.OnClick();assert(not page.hBar.shown and page.hBar.maximum==0)
   `, ["PageGuild"], uiSetup);
+});
+
+test("guild refresh reports real chunk progress and publishes only a complete snapshot", async () => {
+  await run(`
+    local page=Raidwise.Pages.Guild.Create(region())
+    G.Accept(G.Collect())
+    local oldRows=rows
+    rows={}
+    for index=1,120 do rows[index]={name='Member'..index,rank='Member',rankIndex=3,
+      class='Mage',classFile='MAGE',publicNote='',officerNote='5000,0'} end
+    local read=GetGuildRosterInfo;local reads=0
+    function GetGuildRosterInfo(index) reads=reads+1;return read(index) end
+    assert(G.Request() and G.Progress()=='waiting' and page.progress.shown)
+    assert(page.progress.current==0 and reads==0)
+    event('GUILD_ROSTER_UPDATE');advance(0.06)
+    local phase,current,total=G.Progress()
+    assert(phase=='scanning' and current==50 and total==120 and reads==50)
+    assert(page.progress.current==50 and page.progress.total==120 and #G.Members()==#oldRows)
+    advance(0.06);assert(select(2,G.Progress())==100 and #G.Members()==#oldRows)
+    advance(0.06)
+    assert(G.Progress()=='done' and #G.Members()==120 and reads==120)
+    assert(page.progress.current==120 and page.progress.total==120)
+    advance(1);assert(G.Progress()==nil and not page.progress.shown)
+    advance(2);assert(G.Request());G.Close()
+    assert(G.Progress()==nil and not page.progress.shown)
+  `, ["PageGuild"], uiSetup);
+});
+
+test("guild refresh discards interrupted scans and clears progress on failure or guild change", async () => {
+  await run(`
+    G.Accept(G.Collect())
+    rows={}
+    for index=1,60 do rows[index]={name='Member'..index,rank='Member',rankIndex=3,
+      class='Mage',classFile='MAGE',publicNote='',officerNote='5000,0'} end
+    assert(G.Request());event('GUILD_ROSTER_UPDATE');advance(0.06)
+    assert(select(2,G.Progress())==50)
+    rows[55].missing=true;advance(0.06)
+    assert(G.Progress()=='waiting' and #G.Members()==2)
+    advance(13)
+    assert(G.Progress()==nil and G.Status()=='GUILD_UNCERTAIN' and #G.Members()==2)
+    rows[55].missing=nil;assert(G.Request());event('GUILD_ROSTER_UPDATE');advance(0.06)
+    rights.view=false;advance(0.06)
+    assert(G.Progress()=='waiting' and #G.Members()==2)
+    changeGuild('Other');advance(0.06)
+    assert(G.Progress()==nil and G.Status()=='GUILD_STALE' and #G.Members()==0)
+  `);
 });
 
 test("core loads the renamed guild addon in TOC order and registers one guild page", async () => {

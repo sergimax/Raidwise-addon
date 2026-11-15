@@ -6,11 +6,13 @@ View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture:
 
 ## Shell
 
-### Guild roster / journal (layout v3)
+### Guild roster / journal (layout v4)
 
 `Raidwise_Guild/PageGuild.lua` fits the existing shell viewport. Its visible table width is `CONTENT_WIDTH - MENU_BAR_W - 24` (856 px with the current theme), with an 8 px left inset. Top mode/refresh buttons are 120 × 24 px. Search is 350 × 24 px; the class/event control is 180 × 24 px. The raid filter (146 × 24), roll threshold (70 × 24) and Apply (110 × 24) start at y=90; the base-GP/source label shares that row.
 
-The horizontally scrollable table starts at y=128 and is 268 px tall. The header is 14 px tall; ten 23 px rows use a 25 px pitch starting at y=18 inside the table. Roster columns are 120/44/110/76/90/130/90/248/258 px (1166 px total), with 4 px padding on each side. Journal columns remain 160/180/300/216 px. Headers and rows share column definitions and scroll together. Class icons are 18 × 18 px. Sort hit areas are 18 px tall over EP, GP and PR. The 10 px horizontal scrollbar starts at y=400 and hides when the table fits.
+The refresh progress bar sits beside Refresh at x=390, y=13; it is 14 px tall and `viewportWidth - 382` (474) px wide. A centered label shows waiting without a percentage, then actual processed/total members and percentage. Successful completion remains visible for 0.75 seconds; cancellation/failure clears it.
+
+The horizontally scrollable table starts at y=128 and is 268 px tall. The header is 14 px tall; ten 23 px rows use a 25 px pitch starting at y=18 inside the table. Roster columns are 80/44/110/76/68/87/45/248/258 px (1016 px total), with 4 px padding on each side. Name is reduced by one third for the game's 12-character names; EP by one quarter, GP by one third (rounded to whole pixels), PR by half. Journal columns remain 160/180/300/216 px. Headers and rows share column definitions and scroll together. Class icons are 18 × 18 px. Sort hit areas are 18 px tall over EP, GP and PR. The 10 px horizontal scrollbar starts at y=400 and hides when the table fits.
 
 Pagination starts at y=416. The 176 px editor/detail panel starts at y=450. Note editors remain 350 × 24 px with the stock 31-character limit. All controls fit within 626 px of page height. Shell dimensions are unchanged; its rebuild version is 34. The retired EPGP page is no longer an active layout.
 

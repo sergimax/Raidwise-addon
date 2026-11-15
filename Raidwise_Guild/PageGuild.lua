@@ -2,7 +2,7 @@
 local Addon = Raidwise
 local Guild = Addon.GuildManagement
 local W = Addon.Widgets
-local LAYOUT_VERSION = 3
+local LAYOUT_VERSION = 4
 local currentPage
 local kinds = { "invite", "join", "quit", "remove", "promote", "demote", "rank", "publicNote", "officerNote" }
 local classes = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK", "DRUID" }
@@ -23,8 +23,8 @@ local function Columns(page, isLog)
 	if isLog then
 		return { { "GUILD_NAME", 160 }, { "GUILD_EVENT", 180 }, { "GUILD_SOURCE", 300 }, { "GUILD_ACTOR", page.viewportWidth - 640 } }
 	end
-	return { { "GUILD_NAME", 120 }, { "GUILD_CLASS", 44 }, { "GUILD_RANK", 110 },
-		{ "GUILD_STATUS", 76 }, { "GUILD_EP", 90 }, { "GUILD_GP", 130 }, { "GUILD_PR", 90 },
+	return { { "GUILD_NAME", 80 }, { "GUILD_CLASS", 44 }, { "GUILD_RANK", 110 },
+		{ "GUILD_STATUS", 76 }, { "GUILD_EP", 68 }, { "GUILD_GP", 87 }, { "GUILD_PR", 45 },
 		{ "GUILD_PUBLIC", 248 }, { "GUILD_OFFICER", 258 } }
 end
 
@@ -157,6 +157,17 @@ local function ShowDetail(page, entry)
 	page.detail:SetText(text)
 end
 
+local function UpdateProgress(page)
+	local phase, current, total = Guild.Progress()
+	Show(page.progress, phase ~= nil)
+	if not phase then return end
+	page.progress:SetProgress(current, total or 1)
+	if phase == "waiting" then page.progressLabel:SetText(T("GUILD_SCAN_WAITING"))
+	else
+		page.progressLabel:SetText(string.format(T("GUILD_SCAN_PROGRESS"), current, total, math.floor(current * 100 / total)))
+	end
+end
+
 local function Refresh(page)
 	if not page then return end
 	local key = Guild.Identity()
@@ -225,6 +236,7 @@ local function Refresh(page)
 	end
 	ShowDetail(page, page.detailEntry)
 	Editor(page)
+	UpdateProgress(page)
 end
 
 local function Submit(page, direction)
@@ -255,6 +267,13 @@ local function Create(parent)
 	Button(page, 8, -8, 120, "GUILD_ROSTER", function() Mode("roster") end)
 	Button(page, 134, -8, 120, "GUILD_LOG", function() Mode("log") end)
 	page.refresh = Button(page, 260, -8, 120, "GUILD_REFRESH", function() Guild.Request() end)
+	page.progress = W.CreateProgressBar(page, 14)
+	page.progress:SetPoint("TOPLEFT", 390, -13)
+	page.progress:SetWidth(width - 382)
+	page.progressLabel = Label(page.progress, 0, 0, width - 382, "")
+	page.progressLabel:SetHeight(14)
+	page.progressLabel:SetJustifyH("CENTER")
+	page.progress:Hide()
 	page.searchLabel = Label(page, 8, -42, width, T("GUILD_SEARCH"))
 	page.search = Input(page, 8, -59, 350)
 	page.search:SetScript("OnTextChanged", function() page.offset = 0; Refresh(page) end)
@@ -386,6 +405,7 @@ local function Create(parent)
 end
 
 Guild.IsVisible = function() return currentPage and currentPage:IsVisible() end
+Guild.OnProgress = function() if currentPage then UpdateProgress(currentPage) end end
 Guild.OnChange = function()
 	local page = currentPage
 	if not page then return end
