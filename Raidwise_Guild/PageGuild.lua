@@ -2,10 +2,9 @@
 local Addon = Raidwise
 local Guild = Addon.GuildManagement
 local W = Addon.Widgets
-local LAYOUT_VERSION = 4
+local LAYOUT_VERSION = 5
 local currentPage
 local kinds = { "invite", "join", "quit", "remove", "promote", "demote", "rank", "publicNote", "officerNote" }
-local classes = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK", "DRUID" }
 
 local function T(key) return Addon:T(key) end
 local function Safe(text) return tostring(text or ""):gsub("|", "||") end
@@ -30,7 +29,7 @@ end
 
 local sortKeys = { [5] = "ep", [6] = "gp", [7] = "pr" }
 
-local function LayoutTable(page, columns, isLog)
+local function LayoutTable(page, columns, isLog, visibleRows)
 	local width = 0
 	for _, column in ipairs(columns) do width = width + column[2] end
 	page.tableWidth = width
@@ -42,7 +41,17 @@ local function LayoutTable(page, columns, isLog)
 	page.scrollOffset = math.min(page.scrollOffset or 0, maximum)
 	page.hBar:SetValue(page.scrollOffset)
 	page.scroll:SetHorizontalScroll(page.scrollOffset)
+	page.headerScroll:SetHorizontalScroll(page.scrollOffset)
 	Show(page.hBar, maximum > 0)
+	local height = math.max(1, visibleRows) * 25
+	page.tableContent:SetHeight(height)
+	local verticalMaximum = math.max(0, height - page.viewportHeight)
+	page.verticalMaximum = verticalMaximum
+	page.verticalOffset = math.min(page.verticalOffset or 0, verticalMaximum)
+	page.vBar:SetMinMaxValues(0, verticalMaximum)
+	page.vBar:SetValue(page.verticalOffset)
+	page.scroll:SetVerticalScroll(page.verticalOffset)
+	Show(page.vBar, verticalMaximum > 0)
 	for index, button in pairs(page.sortButtons) do
 		Show(button, not isLog)
 		button:SetWidth(columns[index] and columns[index][2] - 8 or 0)
@@ -116,9 +125,9 @@ end
 local function DateText(entry)
 	if entry.source == "server" then
 		-- Server returns relative ages, not an absolute event timestamp.
-		return T("GUILD_SERVER") .. " · " .. Addon:FormatShortDateTime(entry.observedAt)
+		return T("GUILD_SERVER") .. " / " .. Addon:FormatShortDateTime(entry.observedAt)
 	end
-	return T("GUILD_OBSERVED") .. " · " .. Addon:FormatShortDateTime(entry.observedAt)
+	return T("GUILD_OBSERVED") .. " / " .. Addon:FormatShortDateTime(entry.observedAt)
 end
 
 local function Editor(page)
@@ -176,9 +185,9 @@ local function Refresh(page)
 	local isLog = page.mode == "log"
 	Show(page.rosterPanel, not isLog)
 	Show(page.logPanel, isLog)
-	Show(page.classButton, not isLog)
 	Show(page.kindButton, isLog)
-	page.classButton.label:SetText(page.class and ((LOCALIZED_CLASS_NAMES_MALE or {})[page.class] or page.class) or T("GUILD_ALL_CLASSES"))
+	page.rosterTab.selected, page.journalTab.selected = not isLog, isLog
+	PaintRow(page.rosterTab); PaintRow(page.journalTab)
 	page.kindButton.label:SetText(page.kind and T("GUILD_KIND_" .. page.kind) or T("GUILD_ALL_EVENTS"))
 	page.searchLabel:SetText(T(isLog and "GUILD_SEARCH_MEMBER" or "GUILD_SEARCH"))
 	Show(page.raidOnly, not isLog)
@@ -190,9 +199,8 @@ local function Refresh(page)
 	local balances = Guild.Balances()
 	local settings = balances and balances.epgpSettings or Addon.GuildEPGP.ParseGuildInfo(nil)
 	local baseLabel = settings.minimumGP ~= nil and tostring(settings.minimumGP) or "?"
-	page.baseLabel:SetText("BASE_GP: " .. baseLabel .. " · " .. T("GUILD_BASE_" .. string.upper(settings.baseStatus)))
+	page.baseLabel:SetText("BASE_GP: " .. baseLabel .. " / " .. T("GUILD_BASE_" .. string.upper(settings.baseStatus)))
 	local columns = Columns(page, isLog)
-	LayoutTable(page, columns, isLog)
 	LayoutCells(page.headers, columns, 0, true)
 	if not isLog then
 		for index, sortKey in pairs(sortKeys) do
@@ -200,10 +208,14 @@ local function Refresh(page)
 		end
 	end
 	local entries = isLog and Guild.Entries(page.search:GetText(), page.kind)
-		or Guild.Members(page.search:GetText(), page.class, page.filterRaid, page.sortKey, page.descending)
+		or Guild.Members(page.search:GetText(), nil, page.filterRaid, page.sortKey, page.descending)
 	local pages = math.max(1, math.ceil(#entries / #page.rows))
 	page.offset = math.min(page.offset, pages - 1)
-	page.count:SetText(string.format("%d / %d · %d", page.offset + 1, pages, #entries))
+	local viewKey = table.concat({ tostring(key), page.mode, tostring(page.offset), page.search:GetText(),
+		tostring(page.filterRaid), tostring(page.kind), tostring(page.sortKey), tostring(page.descending) }, "\031")
+	if page.viewKey ~= viewKey then page.verticalOffset = 0; page.viewKey = viewKey end
+	LayoutTable(page, columns, isLog, math.min(#page.rows, math.max(0, #entries - page.offset * #page.rows)))
+	page.count:SetText(string.format("%d / %d / %d", page.offset + 1, pages, #entries))
 	Enable(page.previous, page.offset > 0)
 	Enable(page.next, page.offset < pages - 1)
 	for index, row in ipairs(page.rows) do
@@ -262,48 +274,66 @@ local function Create(parent)
 	page.layoutVersion, page.mode, page.offset = LAYOUT_VERSION, "roster", 0
 	currentPage = page
 	local width = Addon.UITheme.CONTENT_WIDTH - Addon.UITheme.MENU_BAR_W - 24
-	page.viewportWidth = width
+	page.viewportWidth, page.viewportHeight = width - 14, 310
 	local function Mode(mode) page.mode = mode; page.offset = 0; Refresh(page) end
-	Button(page, 8, -8, 120, "GUILD_ROSTER", function() Mode("roster") end)
-	Button(page, 134, -8, 120, "GUILD_LOG", function() Mode("log") end)
-	page.refresh = Button(page, 260, -8, 120, "GUILD_REFRESH", function() Guild.Request() end)
+	page.rosterTab = Button(page, 8, -8, 120, "GUILD_ROSTER", function() Mode("roster") end)
+	page.journalTab = Button(page, 132, -8, 90, "GUILD_LOG", function() Mode("log") end)
+	for _, tab in ipairs({ page.rosterTab, page.journalTab }) do
+		tab:SetScript("OnEnter", function(button) PaintRow(button, true) end)
+		tab:SetScript("OnLeave", function(button) PaintRow(button) end)
+	end
+	page.refresh = Button(page, 226, -8, 96, "GUILD_REFRESH", function() Guild.Request() end)
 	page.progress = W.CreateProgressBar(page, 14)
-	page.progress:SetPoint("TOPLEFT", 390, -13)
-	page.progress:SetWidth(width - 382)
-	page.progressLabel = Label(page.progress, 0, 0, width - 382, "")
+	page.progress:SetPoint("TOPLEFT", 330, -13)
+	page.progress:SetWidth(width - 322)
+	page.progressLabel = Label(page.progress, 0, 0, width - 322, "")
 	page.progressLabel:SetHeight(14)
 	page.progressLabel:SetJustifyH("CENTER")
 	page.progress:Hide()
-	page.searchLabel = Label(page, 8, -42, width, T("GUILD_SEARCH"))
-	page.search = Input(page, 8, -59, 350)
+	page.searchLabel = Label(page, 8, -38, 260, T("GUILD_SEARCH"))
+	page.search = Input(page, 8, -54, 260)
 	page.search:SetScript("OnTextChanged", function() page.offset = 0; Refresh(page) end)
-	page.classButton = Button(page, 366, -59, 180, "GUILD_ALL_CLASSES", function() Cycle(page, "class", classes) end)
-	page.kindButton = Button(page, 366, -59, 180, "GUILD_ALL_EVENTS", function() Cycle(page, "kind", kinds) end)
-	page.raidOnly = Button(page, 8, -90, 146, "GUILD_RAID_ONLY", function() page.filterRaid = not page.filterRaid; page.offset = 0; Refresh(page) end)
-	page.rollLabel = Label(page, 164, -96, 210, T("GUILD_ROLL_MINIMUM"))
-	page.rollMinimumEP = Input(page, 380, -90, 70)
+	page.kindButton = Button(page, 274, -54, 142, "GUILD_ALL_EVENTS", function() Cycle(page, "kind", kinds) end)
+	page.raidOnly = Button(page, 274, -54, 142, "GUILD_RAID_ONLY", function() page.filterRaid = not page.filterRaid; page.offset = 0; Refresh(page) end)
+	page.rollLabel = Label(page, 422, -38, 176, T("GUILD_ROLL_MINIMUM"))
+	page.rollMinimumEP = Input(page, 422, -54, 66)
 	page.rollMinimumEP:SetNumeric(true)
 	page.rollMinimumEP:SetText(tostring(Guild.RollMinimumEP()))
-	page.applyRoll = Button(page, 458, -90, 110, "GUILD_APPLY", function()
+	page.applyRoll = Button(page, 494, -54, 100, "GUILD_APPLY", function()
 		if Guild.SetRollMinimumEP(page.rollMinimumEP:GetText()) then page.editorMessage = nil
 		else page.editorMessage = "GUILD_ROLL_ERROR" end
 		Refresh(page)
 	end)
-	page.baseLabel = Label(page, 580, -92, width - 580, "")
-	page.baseLabel:SetHeight(26)
+	page.baseLabel = Label(page, 600, -38, width - 600, "")
+	page.baseLabel:SetHeight(42)
+	page.headerScroll = CreateFrame("ScrollFrame", nil, page)
+	page.headerScroll:SetPoint("TOPLEFT", 8, -90)
+	page.headerScroll:SetSize(page.viewportWidth, 18)
 	page.scroll = CreateFrame("ScrollFrame", nil, page)
-	page.scroll:SetPoint("TOPLEFT", 8, -128)
-	page.scroll:SetSize(width, 268)
+	page.scroll:SetPoint("TOPLEFT", 8, -108)
+	page.scroll:SetSize(page.viewportWidth, page.viewportHeight)
 	page.tableContent = CreateFrame("Frame", nil, page.scroll)
-	page.tableContent:SetSize(width, 268)
+	page.tableContent:SetSize(width, 25 * 25)
 	page.scroll:SetScrollChild(page.tableContent)
 	page.hBar = W.CreateCooldownScrollBar(page, "HORIZONTAL")
-	page.hBar:SetPoint("TOPLEFT", 8, -400)
-	page.hBar:SetSize(width, 10)
-	page.hBar:SetScript("OnValueChanged", function(_, value) page.scrollOffset = value; page.scroll:SetHorizontalScroll(value) end)
-	page.header = CreateFrame("Frame", nil, page.tableContent)
+	page.hBar:SetPoint("TOPLEFT", 8, -422)
+	page.hBar:SetSize(page.viewportWidth, 10)
+	page.hBar:SetScript("OnValueChanged", function(_, value)
+		page.scrollOffset = value; page.scroll:SetHorizontalScroll(value); page.headerScroll:SetHorizontalScroll(value)
+	end)
+	page.vBar = W.CreateCooldownScrollBar(page, "VERTICAL")
+	page.vBar:SetPoint("TOPLEFT", width - 2, -108)
+	page.vBar:SetSize(10, page.viewportHeight)
+	page.vBar:SetScript("OnValueChanged", function(_, value) page.verticalOffset = value; page.scroll:SetVerticalScroll(value) end)
+	page.scroll:EnableMouseWheel(true)
+	page.scroll:SetScript("OnMouseWheel", function(_, delta)
+		page.vBar:SetValue(math.max(0, math.min(page.verticalMaximum or 0,
+			(page.verticalOffset or 0) - delta * 25 * 3)))
+	end)
+	page.header = CreateFrame("Frame", nil, page.headerScroll)
 	page.header:SetPoint("TOPLEFT", 0, 0)
-	page.header:SetSize(width, 14)
+	page.header:SetSize(width, 18)
+	page.headerScroll:SetScrollChild(page.header)
 	page.headers = {}
 	page.sortButtons = {}
 	for index = 1, 9 do
@@ -322,9 +352,9 @@ local function Create(parent)
 		end
 	end
 	page.rows = {}
-	for index = 1, 10 do
+	for index = 1, 25 do
 		local row = W.CreatePlainButton(page.tableContent, width, 23, "")
-		row:SetPoint("TOPLEFT", 0, -18 - (index - 1) * 25)
+		row:SetPoint("TOPLEFT", 0, -(index - 1) * 25)
 		row.cells = {}
 		for cell = 1, 9 do
 			row.cells[cell] = Label(row, 0, -5, 1, "")
@@ -358,36 +388,36 @@ local function Create(parent)
 		row:SetScript("OnLeave", function() PaintRow(row); GameTooltip:Hide() end)
 		page.rows[index] = row
 	end
-	page.previous = Button(page, 8, -416, 90, "GUILD_PREVIOUS", function() page.offset = math.max(0, page.offset - 1); Refresh(page) end)
-	page.next = Button(page, 104, -416, 90, "GUILD_NEXT", function() page.offset = page.offset + 1; Refresh(page) end)
-	page.count = Label(page, 210, -423, 180, "")
+	page.previous = Button(page, 8, -438, 84, "GUILD_PREVIOUS", function() page.offset = math.max(0, page.offset - 1); Refresh(page) end)
+	page.next = Button(page, 96, -438, 84, "GUILD_NEXT", function() page.offset = page.offset + 1; Refresh(page) end)
+	page.count = Label(page, 190, -445, 220, "")
 	page.rosterPanel = CreateFrame("Frame", nil, page)
-	page.rosterPanel:SetPoint("TOPLEFT", 8, -450)
-	page.rosterPanel:SetSize(width, 176)
+	page.rosterPanel:SetPoint("TOPLEFT", 8, -472)
+	page.rosterPanel:SetSize(width, 160)
 	page.selectedLabel = Label(page.rosterPanel, 0, 0, width, "")
-	page.publicLabel = Label(page.rosterPanel, 0, -23, 350, T("GUILD_PUBLIC"))
-	page.officerLabel = Label(page.rosterPanel, 366, -23, 350, T("GUILD_OFFICER"))
-	page.public = Input(page.rosterPanel, 0, -41, 350)
-	page.officer = Input(page.rosterPanel, 366, -41, 350)
+	page.publicLabel = Label(page.rosterPanel, 0, -20, 350, T("GUILD_PUBLIC"))
+	page.officerLabel = Label(page.rosterPanel, 366, -20, 350, T("GUILD_OFFICER"))
+	page.public = Input(page.rosterPanel, 0, -36, 350)
+	page.officer = Input(page.rosterPanel, 366, -36, 350)
 	page.public:SetMaxLetters(31)
 	page.officer:SetMaxLetters(31)
 	page.public:SetScript("OnTextChanged", function() Editor(page) end)
 	page.officer:SetScript("OnTextChanged", function() if not page.refreshingEditor then page.refreshingEditor = true; Editor(page); page.refreshingEditor = nil end end)
-	page.save = Button(page.rosterPanel, 0, -76, 120, "GUILD_SAVE", function() Submit(page) end)
-	page.cancel = Button(page.rosterPanel, 126, -76, 120, "GUILD_CANCEL", function()
+	page.save = Button(page.rosterPanel, 0, -66, 120, "GUILD_SAVE", function() Submit(page) end)
+	page.cancel = Button(page.rosterPanel, 126, -66, 120, "GUILD_CANCEL", function()
 		local member
 		for _, candidate in ipairs(Guild.Members()) do if candidate.name == page.selected then member = candidate end end
 		SetEditor(page, member); Refresh(page)
 	end)
-	page.promote = Button(page.rosterPanel, 366, -76, 120, "GUILD_PROMOTE", function() Submit(page, "promote") end)
-	page.demote = Button(page.rosterPanel, 492, -76, 120, "GUILD_DEMOTE", function() Submit(page, "demote") end)
-	page.message = Label(page.rosterPanel, 0, -110, width, "")
+	page.promote = Button(page.rosterPanel, 366, -66, 120, "GUILD_PROMOTE", function() Submit(page, "promote") end)
+	page.demote = Button(page.rosterPanel, 492, -66, 120, "GUILD_DEMOTE", function() Submit(page, "demote") end)
+	page.message = Label(page.rosterPanel, 0, -96, width, "")
 	page.message:SetHeight(44)
 	page.logPanel = CreateFrame("Frame", nil, page)
-	page.logPanel:SetPoint("TOPLEFT", 8, -450)
-	page.logPanel:SetSize(width, 176)
+	page.logPanel:SetPoint("TOPLEFT", 8, -472)
+	page.logPanel:SetSize(width, 160)
 	page.detail = Label(page.logPanel, 0, 0, width - 205, "")
-	page.detail:SetHeight(168)
+	page.detail:SetHeight(156)
 	page.detail:SetJustifyV("TOP")
 	page.limitLabel = Label(page.logPanel, width - 195, 0, 190, T("GUILD_LIMIT"))
 	page.limit = Input(page.logPanel, width - 195, -23, 90)

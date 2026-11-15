@@ -21,6 +21,9 @@ groups 1–5, Cyrillic main/alt chains, guild-info BASE_GP parsing, independent
 roll thresholds, unknown/zero PR, numeric sorting and horizontally aligned headers.
 Refresh regressions check real batch progress, complete-snapshot publication,
 progress-bar visibility, interrupted reads, permissions, timeouts and guild changes.
+Page tests also cover 25-record pagination, fixed vertical headers, synchronized
+horizontal scrolling, scroll reset and active-mode highlighting; TOC loading checks
+font-compatible separators in all shipped Lua modules.
 
 `npm run typecheck` runs both `tests/tsconfig.json` and `types/tsconfig.json`.
 The second project explicitly includes all three `types/*.ts` files and

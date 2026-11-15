@@ -34,7 +34,7 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
 | Main shell | `SHELL_LAYOUT_VERSION = 34` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
-| Guild roster / journal | `LAYOUT_VERSION = 4` | `Raidwise_Guild/PageGuild.lua` | Top title bar (next to page name) |
+| Guild roster / journal | `LAYOUT_VERSION = 5` | `Raidwise_Guild/PageGuild.lua` | Top title bar (next to page name) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `PROFILE_LAYOUT_VERSION = 40` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
@@ -61,17 +61,16 @@ The Guild navigation group contains one Guild roster page registered by `Raidwis
 
 ```text
 [ Roster ][ Journal ][ Refresh ][ refresh progress: waiting / members read ]
-[ Search name / notes                 ][ Class / event type ]
-[ Current raid 1–5 ][ Minimum EP ][ Apply ][ BASE_GP and source ]
+[ Search name / notes ][ Current raid 1–5 or event type ][ Minimum EP / Apply ][ BASE_GP ]
 [ Class-colored name | Class icon | Rank | Online | EP [roll] | GP (+base) | PR | Public note | Officer note ]
-[ 10 rows; journal mode shows character, event, source/receipt, actor ]
-[ horizontal scroll for the whole table, including headers ]
-[ Previous ][ Next ][ page / pages · matching count ]
+[ 25 records per page; mouse wheel / vertical scrollbar for rows ]
+[ headers stay fixed vertically and scroll horizontally with rows ]
+[ Previous ][ Next ][ page / pages / matching count ]
 [ Roster: selected character, two note editors, Save / Reload, Promote / Demote ]
 [ Journal: selected event details; entry limit and Apply ]
 ```
 
-Headers and row cells use the same column definitions in both modes. Class icons replace class names (the tooltip retains the name); online status is green. The character selected for editing uses the shared current-character highlight, retained on hover and refresh. The editor retains drafts across refreshes. Permission changes immediately hide officer details. Behavior and limits: [guild management](../raid/Guild-Management.md).
+Headers and row cells use the same column definitions in both modes. The active Roster/Journal tab remains highlighted on hover. Class icons replace class names (the tooltip retains the name); there is no class filter. Online status is green. The character selected for editing uses the shared current-character highlight, retained on hover and refresh. The editor retains drafts across refreshes. Permission changes immediately hide officer details. Behavior and limits: [guild management](../raid/Guild-Management.md).
 
 ## Export gear and CDs
 

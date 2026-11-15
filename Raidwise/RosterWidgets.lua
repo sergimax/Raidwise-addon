@@ -90,13 +90,13 @@ function W.FormatGearVerdictCountsLine(prefix, counts, suffix)
 		parts[#parts + 1] = prefix
 	end
 	parts[#parts + 1] = W.WrapGearGradation("S") .. " " .. tostring(counts.s or 0)
-	parts[#parts + 1] = " · "
+	parts[#parts + 1] = " / "
 	parts[#parts + 1] = W.WrapGearGradation("A") .. " " .. tostring(counts.a or 0)
-	parts[#parts + 1] = " · "
+	parts[#parts + 1] = " / "
 	parts[#parts + 1] = W.WrapGearGradation("B") .. " " .. tostring(counts.b or 0)
-	parts[#parts + 1] = " · "
+	parts[#parts + 1] = " / "
 	parts[#parts + 1] = W.WrapGearGradation("C") .. " " .. tostring(counts.c or 0)
-	parts[#parts + 1] = " · "
+	parts[#parts + 1] = " / "
 	parts[#parts + 1] = W.WrapGearGradation("D") .. " " .. tostring(counts.d or 0)
 	if suffix and suffix ~= "" then
 		parts[#parts + 1] = suffix

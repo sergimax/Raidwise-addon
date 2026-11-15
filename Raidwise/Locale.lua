@@ -8,10 +8,9 @@ local Translations = {
 		GUILD_LOG = "Journal",
 		GUILD_REFRESH = "Refresh",
 		GUILD_SCAN_WAITING = "Waiting for the game roster…",
-		GUILD_SCAN_PROGRESS = "Guild roster: %d / %d · %d%%",
-		GUILD_SEARCH = "Search name or either note · class filter applies together",
+		GUILD_SCAN_PROGRESS = "Guild roster: %d / %d / %d%%",
+		GUILD_SEARCH = "Search name or notes",
 		GUILD_SEARCH_MEMBER = "Search journal participants",
-		GUILD_ALL_CLASSES = "All classes",
 		GUILD_ALL_EVENTS = "All events",
 		GUILD_RAID_ONLY = "Current raid (1–5)",
 		GUILD_ROLL_MINIMUM = "Minimum EP for roll",
@@ -70,7 +69,7 @@ local Translations = {
 		GUILD_BEFORE = "Before",
 		GUILD_AFTER = "After",
 		GUILD_OBSERVED = "Detected",
-		GUILD_SERVER = "Server · received",
+		GUILD_SERVER = "Server / received",
 		GUILD_AGE = "Age at receipt (years/months/days/hours)",
 		GUILD_UNKNOWN_AUTHOR = "External changes: author and exact time unknown.",
 		GUILD_KIND_invite = "Invitation",
@@ -283,7 +282,7 @@ local Translations = {
 			.. "When you are not in a raid, party members fill group 1.\n"
 			.. "\n"
 			.. "- Groups 1–5, then 6–8: class, role, spec, flask/food, GearScore, iLvl, compact P:/K: ratings, and gem/armor/weapon/enchant grades\n"
-			.. "- Compact header: S·A·B·C·D chips (hover for meanings), average GS and role counts, flask/food/gems/armor/weapons/enchants with report icons, and Scan/Export/Refresh/Back icons\n"
+			.. "- Compact header: S/A/B/C/D chips (hover for meanings), average GS and role counts, flask/food/gems/armor/weapons/enchants with report icons, and Scan/Export/Refresh/Back icons\n"
 			.. "- Flask and food icons on each card: full color = active, red = missing, dim = out of range or offline\n"
 			.. "- Report icons beside flask, food, gems, armor, weapons, and enchants post missing or problem players to the report chat channel (title bar)\n"
 			.. "- Hover a card for opinion, tags, Karma, guild (rank), raid buffs, and gear-check details\n"
@@ -362,7 +361,7 @@ local Translations = {
 		RAID_CONSUMABLE_OFFLINE = "Offline",
 		RAID_CONSUMABLE_COUNT = "%s %d/%d",
 		RAID_CONSUMABLE_MISSING_COUNT = "(%d missing)",
-		RAID_CONSUMABLE_SUMMARY_EMPTY = "Flask — · Food —",
+		RAID_CONSUMABLE_SUMMARY_EMPTY = "Flask — / Food —",
 		RAID_CHAT_FLASK_MISSING = "[Rw] missing flask: %s",
 		RAID_CHAT_FLASK_ALL = "[Rw] all flasks present.",
 		RAID_CHAT_FOOD_MISSING = "[Rw] missing food: %s",
@@ -444,11 +443,11 @@ local Translations = {
 		GEAR_CHECK_RAID_STATUS_DONE = "Scan complete — %d players. Last full scan: %s.",
 		GEAR_CHECK_RAID_STATUS_EMPTY = "Not in a party or raid, or roster is empty.",
 		GEAR_CHECK_RAID_STATUS_BUSY = "A gear check scan is already running.",
-		GEAR_CHECK_RAID_SUMMARY = "D %d · C %d · B %d · A %d · S %d · Failed %d",
+		GEAR_CHECK_RAID_SUMMARY = "D %d / C %d / B %d / A %d / S %d / Failed %d",
 		GEAR_CHECK_RAID_SUMMARY_EMPTY = "Press Scan to check your party or raid.",
 		GEAR_CHECK_RAID_CELL_GEAR = "Armor/weap: %s",
 		GEAR_CHECK_RAID_CELL_ENCHANT = "Ench/sock: %s",
-		GEAR_CHECK_RAID_CELL_COUNTS = "D %d · C %d · Iss. %d",
+		GEAR_CHECK_RAID_CELL_COUNTS = "D %d / C %d / Iss. %d",
 		GEAR_CHECK_RAID_NOT_SCANNED = "—",
 		GEAR_CHECK_RAID_ROW_FAIL = "—",
 		GEAR_CHECK_RAID_CLICK_HINT = "Gear check opens the full report",
@@ -523,9 +522,9 @@ local Translations = {
 		GEAR_CHECK_OVERALL = "Overall: %s",
 		GEAR_CHECK_OVERALL_NONE = "Overall: —",
 		GEAR_CHECK_WHO = "%s — %s / %s",
-		GEAR_CHECK_GS_ILVL = "GearScore: %s · Avg iLvl: %s",
+		GEAR_CHECK_GS_ILVL = "GearScore: %s / Avg iLvl: %s",
 		GEAR_CHECK_SPEC_UNKNOWN = "spec unknown",
-		GEAR_CHECK_ISSUES = "Items S %d · A %d · B %d · C %d · D %d · Enchants %d · Gems %d · Meta %s",
+		GEAR_CHECK_ISSUES = "Items S %d / A %d / B %d / C %d / D %d / Enchants %d / Gems %d / Meta %s",
 		GEAR_CHECK_META_LINE = "Meta: %s",
 		GEAR_CHECK_META_NONE = "none",
 		GEAR_CHECK_META_ACTIVE = "active",
@@ -918,10 +917,9 @@ local Translations = {
 		GUILD_LOG = "Журнал",
 		GUILD_REFRESH = "Обновить",
 		GUILD_SCAN_WAITING = "Ожидание состава из игры…",
-		GUILD_SCAN_PROGRESS = "Состав гильдии: %d / %d · %d%%",
-		GUILD_SEARCH = "Поиск по имени и обеим заметкам · совместим с фильтром класса",
+		GUILD_SCAN_PROGRESS = "Состав гильдии: %d / %d / %d%%",
+		GUILD_SEARCH = "Поиск по имени и заметкам",
 		GUILD_SEARCH_MEMBER = "Поиск по участникам события",
-		GUILD_ALL_CLASSES = "Все классы",
 		GUILD_ALL_EVENTS = "Все события",
 		GUILD_RAID_ONLY = "В рейде (1–5)",
 		GUILD_ROLL_MINIMUM = "Минимум EP для ролла",
@@ -980,7 +978,7 @@ local Translations = {
 		GUILD_BEFORE = "Было",
 		GUILD_AFTER = "Стало",
 		GUILD_OBSERVED = "Обнаружено",
-		GUILD_SERVER = "Сервер · получено",
+		GUILD_SERVER = "Сервер / получено",
 		GUILD_AGE = "Давность при получении (лет/месяцев/дней/часов)",
 		GUILD_UNKNOWN_AUTHOR = "Для внешних изменений автор и точное время неизвестны.",
 		GUILD_KIND_invite = "Приглашение",
@@ -1193,7 +1191,7 @@ local Translations = {
 			.. "Вне рейда группа занимает слот 1.\n"
 			.. "\n"
 			.. "- Группы 1–5, затем 6–8: класс, роль, спек, настой/еда, GearScore, iLvl, компактные P:/K: рейтинги и оценки камней/брони/оружия/чар\n"
-			.. "- Компактная шапка: чипы S·A·B·C·D (наведение — расшифровка), средний GS и роли, настой/еда/камни/броня/оружие/чары с иконками отчёта, иконки Сканировать/Экспорт/Обновить/К составу\n"
+			.. "- Компактная шапка: чипы S/A/B/C/D (наведение — расшифровка), средний GS и роли, настой/еда/камни/броня/оружие/чары с иконками отчёта, иконки Сканировать/Экспорт/Обновить/К составу\n"
 			.. "- Иконки настоя и еды на карточке: цветная = есть, красная = нет, тусклая = вне зоны или офлайн\n"
 			.. "- Иконка отчёта рядом с настоем, едой, камнями, бронёй, оружием и чарами пишет в канал отчётов (Настройки), у кого нет баффа или есть проблемы с экипом\n"
 			.. "- Наведение: мнение, теги, Karma, гильдия (ранг), рейд-баффы, детали проверки экипа\n"
@@ -1272,7 +1270,7 @@ local Translations = {
 		RAID_CONSUMABLE_OFFLINE = "Не в сети",
 		RAID_CONSUMABLE_COUNT = "%s %d/%d",
 		RAID_CONSUMABLE_MISSING_COUNT = "(%d нет)",
-		RAID_CONSUMABLE_SUMMARY_EMPTY = "Настой — · Еда —",
+		RAID_CONSUMABLE_SUMMARY_EMPTY = "Настой — / Еда —",
 		RAID_CHAT_FLASK_MISSING = "[Rw] нет настоя: %s",
 		RAID_CHAT_FLASK_ALL = "[Rw] настой у всех есть.",
 		RAID_CHAT_FOOD_MISSING = "[Rw] нет еды: %s",
@@ -1354,11 +1352,11 @@ local Translations = {
 		GEAR_CHECK_RAID_STATUS_DONE = "Сканирование завершено — %d игроков. Последний полный скан: %s.",
 		GEAR_CHECK_RAID_STATUS_EMPTY = "Вы не в группе/рейде или состав пуст.",
 		GEAR_CHECK_RAID_STATUS_BUSY = "Сканирование Gear Check уже выполняется.",
-		GEAR_CHECK_RAID_SUMMARY = "D %d · C %d · B %d · A %d · S %d · Ошибок %d",
+		GEAR_CHECK_RAID_SUMMARY = "D %d / C %d / B %d / A %d / S %d / Ошибок %d",
 		GEAR_CHECK_RAID_SUMMARY_EMPTY = "Нажмите «Сканировать» для проверки группы или рейда.",
 		GEAR_CHECK_RAID_CELL_GEAR = "Броня/оруж.: %s",
 		GEAR_CHECK_RAID_CELL_ENCHANT = "Зач/сокеты: %s",
-		GEAR_CHECK_RAID_CELL_COUNTS = "D %d · C %d · Iss. %d",
+		GEAR_CHECK_RAID_CELL_COUNTS = "D %d / C %d / Iss. %d",
 		GEAR_CHECK_RAID_NOT_SCANNED = "—",
 		GEAR_CHECK_RAID_ROW_FAIL = "—",
 		GEAR_CHECK_RAID_CLICK_HINT = "«Экип» открывает полный отчёт",
@@ -1433,9 +1431,9 @@ local Translations = {
 		GEAR_CHECK_OVERALL = "Итог: %s",
 		GEAR_CHECK_OVERALL_NONE = "Итог: —",
 		GEAR_CHECK_WHO = "%s — %s / %s",
-		GEAR_CHECK_GS_ILVL = "GearScore: %s · Ср. iLvl: %s",
+		GEAR_CHECK_GS_ILVL = "GearScore: %s / Ср. iLvl: %s",
 		GEAR_CHECK_SPEC_UNKNOWN = "спек неизвестен",
-		GEAR_CHECK_ISSUES = "Предметы S %d · A %d · B %d · C %d · D %d · Чары %d · Камни %d · Мета %s",
+		GEAR_CHECK_ISSUES = "Предметы S %d / A %d / B %d / C %d / D %d / Чары %d / Камни %d / Мета %s",
 		GEAR_CHECK_META_LINE = "Мета: %s",
 		GEAR_CHECK_META_NONE = "нет",
 		GEAR_CHECK_META_ACTIVE = "активна",

@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import assert from "node:assert/strict";
 import test from "node:test";
 import { Lua } from "wasmoon-lua5.1";
 
@@ -185,7 +186,12 @@ function region(parent)
  function result:ClearAllPoints() self.point=nil end
  function result:SetWidth(width) self.width=width end
  function result:SetMinMaxValues(minimum,maximum) self.minimum=minimum;self.maximum=maximum end
- function result:SetValue(value) self.value=value end
+ function result:SetValue(value)
+  local changed=self.value~=value;self.value=value
+  if changed and self.scripts.OnValueChanged then self.scripts.OnValueChanged(self,value) end
+ end
+ function result:SetVerticalScroll(value) self.verticalScroll=value end
+ function result:SetHorizontalScroll(value) self.horizontalScroll=value end
  function result:SetTextColor(...) self.color={...} end
  function result:CreateTexture() return region(self) end
  function result:Show() self.shown=true end
@@ -196,7 +202,7 @@ function region(parent)
  function result:EnableKeyboard(enabled) self.enabled=enabled end
  function result:RegisterEvent() eventFrame=self end
  return setmetatable(result,{__index=function(_,key)
-  if key:match('^Set') or key=='EnableMouse' or key=='ClearFocus' then return function() end end
+  if key:match('^Set') or key=='EnableMouse' or key=='EnableMouseWheel' or key=='ClearFocus' then return function() end end
  end})
 end
 function CreateFrame(_,_,parent) return region(parent) end
@@ -434,6 +440,38 @@ test("guild refresh discards interrupted scans and clears progress on failure or
   `);
 });
 
+test("guild controls highlight the active mode and paginate 25 players with independently scrolling rows", async () => {
+  await run(`
+    rows={}
+    for index=1,30 do rows[index]={name=string.format('Name%02d',index),rank='Member',rankIndex=3,
+      class='Mage',classFile='MAGE',publicNote='',officerNote='5000,0'} end
+    local page=Raidwise.Pages.Guild.Create(region())
+    G.Accept(G.Collect())
+    assert(page.classButton==nil and #page.rows==25)
+    assert(page.rosterTab.selected and not page.journalTab.selected)
+    assert(page.rosterTab.background==Raidwise.UITheme.CD_CURRENT_CHARACTER)
+    page.rosterTab.scripts.OnEnter(page.rosterTab);page.rosterTab.scripts.OnLeave(page.rosterTab)
+    assert(page.rosterTab.background==Raidwise.UITheme.CD_CURRENT_CHARACTER)
+    assert(page.rows[25].entry.name=='Name25' and page.vBar.shown and page.vBar.maximum>0)
+    page.scroll.scripts.OnMouseWheel(page.scroll,-1)
+    assert(page.scroll.verticalScroll>0 and page.headerScroll.verticalScroll==nil,'header stays fixed vertically')
+    page.hBar:SetValue(80)
+    assert(page.scroll.horizontalScroll==80 and page.headerScroll.horizontalScroll==80)
+    page.rows[25].scripts.OnClick();assert(page.selected=='Name25')
+    page.next.scripts.OnClick()
+    assert(page.rows[1].entry.name=='Name26' and page.rows[5].entry.name=='Name30' and page.rows[6].entry==nil)
+    assert(not page.vBar.shown and page.scroll.verticalScroll==0 and page.selected=='Name25')
+    assert(not page.count.text:find(string.char(194,183),1,true))
+    page.journalTab.scripts.OnClick()
+    assert(page.journalTab.selected and not page.rosterTab.selected)
+    assert(page.journalTab.background==Raidwise.UITheme.CD_CURRENT_CHARACTER)
+    page.journalTab.scripts.OnEnter(page.journalTab);page.journalTab.scripts.OnLeave(page.journalTab)
+    assert(page.journalTab.background==Raidwise.UITheme.CD_CURRENT_CHARACTER)
+    page.rosterTab.scripts.OnClick()
+    assert(page.rosterTab.selected and page.offset==0 and page.scroll.verticalScroll==0)
+  `, ["PageGuild"], uiSetup);
+});
+
 test("core loads the renamed guild addon in TOC order and registers one guild page", async () => {
   const lua = await Lua.create();
   try {
@@ -453,6 +491,7 @@ test("core loads the renamed guild addon in TOC order and registers one guild pa
       const toc = await readFile(new URL(`../${addon}/${addon}.toc`, import.meta.url), "utf8");
       for (const entry of toc.split(/\r?\n/).filter(line => line.endsWith(".lua"))) {
         const source = (await readFile(new URL(`../${addon}/${entry}`, import.meta.url), "utf8")).replace(/^\uFEFF/, "");
+        assert(!source.includes("\u00b7"), `${addon}/${entry} must use font-compatible separators`);
         if (addon === "Raidwise") lua.doStringSync(source);
         else {
           lua.global.set("source", source);

@@ -405,14 +405,14 @@ function Addon:FormatGearCheckChatReport(report, mode)
 			end
 			local head = string.format("%s — %s", name, status)
 			if gearScore ~= nil then
-				head = head .. " · GS " .. tostring(gearScore)
+				head = head .. " / GS " .. tostring(gearScore)
 			end
 			if averageIlvl ~= nil then
-				head = head .. " · iLvl " .. tostring(averageIlvl)
+				head = head .. " / iLvl " .. tostring(averageIlvl)
 			end
-			head = head .. " · " .. table.concat(parts, " ")
+			head = head .. " / " .. table.concat(parts, " ")
 			if overall.resilienceItems and overall.resilienceItems > 0 then
-				head = head .. " · " .. tostring(overall.resilienceItems) .. "resil"
+				head = head .. " / " .. tostring(overall.resilienceItems) .. "resil"
 			end
 			lines[#lines + 1] = head
 			return lines
@@ -420,7 +420,7 @@ function Addon:FormatGearCheckChatReport(report, mode)
 		lines[#lines + 1] = string.format("%s — %s", name, status)
 		if gearScore ~= nil or averageIlvl ~= nil then
 			lines[#lines + 1] = string.format(
-				"GearScore: %s · Avg iLvl: %s",
+				"GearScore: %s / Avg iLvl: %s",
 				gearScore ~= nil and tostring(gearScore) or "-",
 				averageIlvl ~= nil and tostring(averageIlvl) or "-"
 			)

@@ -170,10 +170,10 @@ Refresh = function(frame)
 	frame.details:SetText(W.CharacterIconMarkup(identity, 16) .. table.concat({identity.classLabel or identity.class or "", identity.guildName or "",
 		identity.spec or "", identity.gearScore and ("GS: " .. identity.gearScore) or ""}, "  "))
 	frame.opinionSummary:SetText((draft.opinion and OpinionLabel(draft.opinion) or Text("Мнение не задано", "Opinion not set"))
-		.. (#draft.facts > 0 and ("  ·  " .. Addon:FactSummary(draft.facts)) or ""))
+		.. (#draft.facts > 0 and ("  /  " .. Addon:FactSummary(draft.facts)) or ""))
 	local profile = record.profile
 	frame.author:SetText(Text("Автор мнения: ", "Opinion author: ") .. Author(profile and profile.author)
-		.. "  ·  " .. Time(profile and profile.updatedAt))
+		.. "  /  " .. Time(profile and profile.updatedAt))
 	local editable = Editable(frame)
 	frame.selfHint:SetText(editable and "" or Text("Это ваш персонаж — оценка недоступна", "This is your character — rating is unavailable"))
 	if editable then frame.author:Show(); frame.editOpinion:Show(); frame.typeButton:Show(); frame.overviewAdd:Show() else
