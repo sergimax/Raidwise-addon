@@ -4,12 +4,13 @@ local Addon = Raidwise
 local W = Addon.Widgets
 local UI = Addon.UITheme
 
-local SHELL_LAYOUT_VERSION = 32
+local SHELL_LAYOUT_VERSION = 34
 
 -- Visual groups for navigation (ids stay stable for a future module split).
 local MENU_GROUPS = {
 	{ id = "personal", labelKey = "MENU_GROUP_PERSONAL" },
 	{ id = "raiding", labelKey = "MENU_GROUP_RAIDING" },
+	{ id = "guild", labelKey = "MENU_GROUP_GUILD" },
 	{ id = "other", labelKey = "MENU_GROUP_OTHER" },
 }
 
@@ -565,8 +566,6 @@ function Addon:CreateMainFrame()
 			elseif pageInfo.id == "info" then
 				frame.repoBox = page.repoBox
 				frame.repoHint = page.repoHint
-			elseif pageInfo.id == "epgp" then
-				frame.epgpPage = page
 			end
 		end
 	end

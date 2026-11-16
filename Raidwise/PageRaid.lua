@@ -258,13 +258,13 @@ local function FormatGearCategorySummaryLine(summary)
 	for _, grade in ipairs({ "s", "a", "b", "c", "d" }) do
 		local count = tonumber(summary[grade]) or 0
 		if count > 0 then
-			if #parts > 0 then parts[#parts + 1] = " · " end
+			if #parts > 0 then parts[#parts + 1] = " / " end
 			parts[#parts + 1] = W.WrapGearGradation(string.upper(grade)) .. " " .. tostring(count)
 		end
 	end
 	local failedSuffix = ""
 	if (summary.failed or 0) > 0 then
-		failedSuffix = " · Failed " .. tostring(summary.failed)
+		failedSuffix = " / Failed " .. tostring(summary.failed)
 	end
 	if #parts == 0 and failedSuffix == "" then
 		return WrapThemeColor(UI.TEXT_DISABLED, "0")
@@ -358,7 +358,7 @@ local function FormatGradeChipLine()
 	for index = 1, #GRADE_CHIP_LABELS do
 		parts[#parts + 1] = W.WrapGearGradation(GRADE_CHIP_LABELS[index])
 	end
-	return table.concat(parts, " · ")
+	return table.concat(parts, " / ")
 end
 
 local function FormatRaidRoleChip(label, bucket)
@@ -371,11 +371,11 @@ local function FormatRaidRosterStatsCompact(gearScore, roles)
 	return FormatRaidAverageGs(gearScore)
 		.. "   "
 		.. FormatRaidRoleChip(W.T("ROLE_TANKS"), roles.tank or {})
-		.. " · "
+		.. " / "
 		.. FormatRaidRoleChip(W.T("ROLE_HEALERS"), roles.healer or {})
-		.. " · "
+		.. " / "
 		.. FormatRaidRoleChip(W.T("ROLE_MELEE_SHORT"), roles.melee or {})
-		.. " · "
+		.. " / "
 		.. FormatRaidRoleChip(W.T("ROLE_RANGE"), roles.ranged or {})
 end
 

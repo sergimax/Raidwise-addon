@@ -243,7 +243,7 @@ function Addon:EventTypeDisplayLabel(eventTypeId)
 	if not groupLabel or groupLabel == "" then
 		return typeLabel
 	end
-	return groupLabel .. " · " .. typeLabel
+	return groupLabel .. " / " .. typeLabel
 end
 
 function Addon:RatingColorHex(color)

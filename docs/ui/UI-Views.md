@@ -16,13 +16,14 @@ Classic-theme plain panels: compact title/control bar at the very top, followed 
  [ page body: 870 x 653           ]
 ```
 
-Top bar (left to right): **Raidwise** + addon semver, active page name + its layout badge **`vN`**, then available format/chat controls and close **X**. The narrow navigation column sits left of the page viewport, grouped under Personal, Raiding, and Other. Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
+Top bar (left to right): **Raidwise** + addon semver, active page name + its layout badge **`vN`**, then available format/chat controls and close **X**. The narrow navigation column sits left of the page viewport, grouped under Personal, Raiding, Guild, and Other. Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
 
-Menu tabs each have an **16×16** category icon + label. Group headings are visible above Personal, Raiding, and Other. Current tab order:
+Menu tabs each have an **16×16** category icon + label. Group headings are visible above Personal, Raiding, Guild, and Other. Current tab order:
 
 ```text
 [ watch ] Character cooldowns [ book ] Character database [ glory ] Raid roster [ BoK ] Raid composition
-[ scope ] Gear check (target) [ book ] History [ note ] My gear and CDs exports [ gear ] Settings [ ? ] Info
+[ scope ] Gear check (target) [ book ] History [ tabard ] Guild roster (Raidwise_Guild)
+[ note ] My gear and CDs exports [ gear ] Settings [ ? ] Info
 ```
 
 Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
@@ -32,7 +33,8 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 
 | View | Constant | File | Badge location |
 |------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 32` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Main shell | `SHELL_LAYOUT_VERSION = 34` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
+| Guild roster / journal | `LAYOUT_VERSION = 7` | `Raidwise_Guild/PageGuild.lua` | Top title bar (next to page name) |
 | Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
 | Character | `PROFILE_LAYOUT_VERSION = 40` | `ProfileWindow.lua` | Title bar (left of close) |
 | Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
@@ -41,7 +43,6 @@ Independent from addon semver (`Addon.version` in the top title bar). Bump a vie
 | Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Top title bar (next to page name) |
 | Gear check (target) | `LAYOUT_VERSION = 20` | `PageGearCheckTarget.lua` | Top title bar (next to page name) |
 | History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Top title bar (next to page name) |
-| EPGP roster | `LAYOUT_VERSION = 16` | `PageEPGP.lua` | Top title bar (next to page name) |
 | Character database | `DATABASE_LAYOUT_VERSION = 13` | `PageHistory.lua` | Top title bar (next to page name) |
 | Settings | `LAYOUT_VERSION = 19` | `PageSettings.lua` | Top title bar (next to page name) |
 | Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Top title bar (next to page name) |
@@ -53,6 +54,23 @@ vertically so all controls remain accessible in the shorter window.
 The table lists active views only. Retired `PageSyncExport`, `PageSync` and
 `PageReputation` are outside the TOC and have no active navigation or badges.
 Rules: see [AGENTS.md](../../AGENTS.md). Do **not** bump layout versions for locale-only string edits.
+
+## Guild roster and journal
+
+The Guild navigation group contains one Guild roster page registered by `Raidwise_Guild`. The separate EPGP page is removed.
+
+```text
+[ Roster ][ Journal ][ Refresh ][ refresh progress: waiting / members read ]
+[ Search name / notes ][ Current raid 1–5 or event type ][ Mains only ][ Minimum EP / Apply ][ BASE_GP ]
+[ Class-colored name | Class icon | Rank | Online | EP [roll] | GP (+base) | PR | Public note | Officer note ]
+[ 25 records per page; mouse wheel / vertical scrollbar for rows ]
+[ headers stay fixed vertically and scroll horizontally with rows ]
+[ Previous ][ Next ][ page / pages / matching count ]
+[ Roster: selected character, two note editors, Save / Reload, Promote / Demote ]
+[ Journal: selected event details; entry limit and Apply ]
+```
+
+Headers and row cells use the same column definitions in both modes. The active Roster/Journal tab remains highlighted on hover. Class icons replace class names (the tooltip retains the name); there is no class filter. Online status is green. The character selected for editing uses the shared current-character highlight, retained on hover and refresh. The editor retains drafts across refreshes. Permission changes immediately hide officer details. Behavior and limits: [guild management](../raid/Guild-Management.md).
 
 ## Export gear and CDs
 

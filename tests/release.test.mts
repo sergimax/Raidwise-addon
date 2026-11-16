@@ -5,6 +5,7 @@ import { getPackageFiles, packageAddon } from "../scripts/package-addon.mts";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { execFileSync } from "node:child_process";
 
 const toc = "## Version: 3.2.1\r\n";
 const lua = 'Addon.version = "3.2.1"\n';
@@ -38,8 +39,10 @@ test("installable ZIP contains every allowlisted tracked runtime file and no ret
       offset += 46 + nameLength + zip.readUInt16LE(offset + 30) + zip.readUInt16LE(offset + 32);
     }
     assert.deepEqual(names.sort(), expected);
-    assert.deepEqual([...new Set(names.map((name) => name.split("/")[0]))].sort(), ["Raidwise", "Raidwise_EPGP"]);
-    assert(names.includes("Raidwise/Raidwise.toc") && names.includes("Raidwise_EPGP/Raidwise_EPGP.toc"));
+    const tocs = execFileSync("git", ["ls-tree", "-r", "--name-only", "HEAD"], {encoding:"utf8"})
+      .split("\n").filter(file => /^(Raidwise(?:_[A-Za-z0-9]+)?)\/\1\.toc$/.test(file));
+    assert.deepEqual([...new Set(names.map(name => name.split("/")[0]))].sort(), tocs.map(file => file.split("/")[0]).sort());
+    assert(tocs.every(toc => names.includes(toc)));
     assert(!names.includes("Raidwise/PlayerHistory.lua"));
   } finally { rmSync(dir, {recursive:true, force:true}); }
 });

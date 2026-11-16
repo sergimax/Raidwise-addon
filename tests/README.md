@@ -11,6 +11,24 @@ npm run check
 `npm test` for tests alone or `npm run test:watch` while editing. Failures return
 a nonzero exit status for CI.
 
+`guild-management.test.mts` covers the live guild model and page with Lua 5.1
+game mocks: note/rank permissions and conflicts, current roster indices,
+partial confirmations/timeouts, draft retention, Cyrillic search, per-guild
+archives, journal retention/deduplication and refresh lifecycle. In-client
+acceptance remains separate; see [guild management](../docs/raid/Guild-Management.md).
+It also loads `Raidwise_Guild` through real bootstrap/TOC order, checks raid
+groups 1–5, Cyrillic main/alt chains, guild-info BASE_GP parsing, independent
+roll thresholds, unknown/zero PR, numeric sorting and horizontally aligned headers.
+Refresh regressions check real batch progress, complete-snapshot publication,
+progress-bar visibility, interrupted reads, permissions, timeouts and guild changes.
+Page tests also cover 25-record pagination, fixed vertical headers, synchronized
+horizontal scrolling, scroll reset and active-mode highlighting; TOC loading checks
+font-compatible separators in all shipped Lua modules.
+The guild row tooltip regression checks explicit bright colors for character
+name and class, avoiding inherited colors and extra Lua return values.
+Mains-only tests cover own/zero balances, alt chains, unknown notes, access loss,
+search/raid intersections and pagination/scroll reset.
+
 `npm run typecheck` runs both `tests/tsconfig.json` and `types/tsconfig.json`.
 The second project explicitly includes all three `types/*.ts` files and
 `export-contracts.test.mts`. It permits the existing `InstanceDifficulty` enum

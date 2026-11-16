@@ -606,9 +606,9 @@ local function ApplySummary(page, report)
 	elseif metaText == "Inactive" then metaText = W.T("GEAR_CHECK_META_INACTIVE") end
 	page.issuesLabel:SetText(
 		W.FormatGearVerdictCountsLine("Items ", verdicts, "")
-			.. " · Enchants " .. tostring(issues.enchants or 0)
-			.. " · Gems " .. tostring(issues.gems or 0)
-			.. " · Meta " .. metaText
+			.. " / Enchants " .. tostring(issues.enchants or 0)
+			.. " / Gems " .. tostring(issues.gems or 0)
+			.. " / Meta " .. metaText
 	)
 	W.SetFontColor(page.issuesLabel, UI.TEXT_IDLE)
 

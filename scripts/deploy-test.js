@@ -9,10 +9,10 @@ if (!destArg) {
 
 const repoRoot = path.resolve(__dirname, "..");
 const destInput = path.resolve(destArg);
-const destRoot = ["raidwise", "raidwise_epgp"].includes(path.basename(destInput).toLowerCase())
+const destRoot = ["raidwise", "raidwise_guild"].includes(path.basename(destInput).toLowerCase())
   ? path.dirname(destInput)
   : destInput;
-const addons = ["Raidwise", "Raidwise_EPGP"];
+const addons = ["Raidwise", "Raidwise_Guild"];
 const useColor = process.stdout.isTTY && process.env.NO_COLOR === undefined;
 const colors = {
   reset: "\u001b[0m",

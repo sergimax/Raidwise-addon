@@ -25,9 +25,11 @@ export function getPackageFiles(toc: string, tracked: string[], addon = "Raidwis
 
 export function packageAddon(output: string): string[] {
   const files: string[] = [];
-  for (const addon of ["Raidwise", "Raidwise_EPGP"]) {
+  // Discover installable addons from the packaged commit, including historical tags.
+  const tracked = execFileSync("git", ["ls-tree", "-r", "--name-only", "HEAD"], { encoding: "utf8" }).trim().split("\n");
+  const addons = tracked.flatMap(file => file.match(/^(Raidwise(?:_[A-Za-z0-9]+)?)\/\1\.toc$/)?.[1] ?? []);
+  for (const addon of addons) {
     const toc = execFileSync("git", ["show", `HEAD:${addon}/${addon}.toc`], { encoding: "utf8" });
-    const tracked = execFileSync("git", ["ls-tree", "-r", "--name-only", "HEAD", "--", `${addon}/`], { encoding: "utf8" }).trim().split("\n");
     files.push(...getPackageFiles(toc, tracked, addon));
   }
   execFileSync("git", ["archive", "--format=zip", `--output=${resolve(output)}`, "HEAD", "--", ...files]);

@@ -179,7 +179,7 @@ function Addon:FormatGearCheckSavedLabel(entry)
 	end
 	local dateText = date("%Y-%m-%d %H:%M", entry.savedAt or 0)
 	local status = entry.overallStatus or "—"
-	return string.format("%s · %s · %s", dateText, name, status)
+	return string.format("%s / %s / %s", dateText, name, status)
 end
 
 function Addon:GearCheckSavedReportsSelfTest()

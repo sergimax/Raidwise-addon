@@ -4,7 +4,7 @@ Lua 5.1 / WoW 3.3.5a (`Interface: 30300`). Shipped code lives in `Raidwise/` on 
 
 Repository audit (2026-11-06): [findings and remediation plan](audits/Audit-2026-11-06.md), [verification and reproduction](audits/Audit-2026-11-06-Evidence.md). This is a dated assessment, not a replacement for the contracts below.
 
-Guild EPGP roster roadmap: [EPGP implementation plan](raid/EPGP-Plan.md).
+Guild roster, officer tools and balances: [guild module contract](raid/Guild-Management.md). The old [EPGP implementation plan](raid/EPGP-Plan.md) is historical.
 
 ## Find the owner first
 
@@ -17,7 +17,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Language | `Locale.lua` | `Addon:T`; search exact keys in both languages |
 | Chat preparation and gear reports | `ChatReports.lua`, `GearCheckReports.lua` | `PrepareReportMessage`, `BuildGearCheckChatMessages` |
 | Gear/bags/currency export, lockouts | `CharacterExport.lua`, `CharacterLockouts.lua` | `FormatEquippedGearExport`, `CollectCharacterCurrency`, `BuildCooldownTable` |
-| Guild EPGP module | `Raidwise/Modules/EPGP/` | Roster export, note parsing, main/alt graph, PR/BIS calculations, and EPGP page; keeps a narrow contract with core shell, locale, DB and roster events |
+| Guild module | `../Raidwise_Guild/` | GuildManagement owns live roster, permission-aware note/rank operations and local journal; GuildRosterParser/Links and GuildEPGP resolve balances and guild-info base GP; PageGuild owns the single roster/journal view. See [guild management](raid/Guild-Management.md) |
 | Inspect timing, identity, retries | `InspectCoordinator.lua`, `GearCheck.lua`, `PartyRoster.lua` | `StartInspectRequest`, `RetryInspectRequest`, `StartGearCheckUnitScan`, `CancelGearCheckScan` |
 | Item links, sockets and gems | `GearCheckCollector.lua` | `CollectGearCheckObservation`; private `ParseItemLinkParts`, `NormalizeItem` |
 | Report compatibility and completeness | `GearCheckReport.lua` | `NormalizeGearCheckReport`, `GetGearCheckScanState`; canonical nested fields win over legacy aliases |
@@ -45,6 +45,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 [Raidwise.toc](../Raidwise/Raidwise.toc) is the authoritative executable load order. Read it when adding/moving modules; do not maintain a duplicate full list here.
 
 - Bootstrap creates the namespace; later modules attach methods before normal event-driven use.
+- After core DB/locale initialization, bootstrap loads `Raidwise_Guild` before constructing the shell. The guild addon depends on Raidwise, uses its widgets/locale/DB, registers one Guild page, and owns its roster/raid event listener. Its TOC is the authoritative guild module load order. The retired Raidwise_EPGP addon and guild-export commands are removed.
 - `CharacterExport` provides `Addon.EscapeJsonString` before `CharacterLockouts`; both export formats share complete JSON string escaping (including U+0000–U+001F).
 - Initialization checks the active profile core/bridge APIs before opening UI. Missing APIs report an incomplete installation; retired `RatingTagGroups` is not a startup requirement.
 - `InspectCoordinator` precedes roster consumers and owns inspect API calls/events. Roster and gear retain their queues and result handling.
@@ -166,6 +167,7 @@ header. Chat summaries are human-readable messages, not versioned data exports.
 | `gearCheckSaved` | `GearCheckSavedReports`: snapshots and retention (~14 days) |
 | `tooltip` | `RatingPresentation` / Settings: rating tooltip visibility |
 | `locale`, `theme`, `startupTab`, `reportChannel`, `reportForm` | Preferences consumed by locale, theme, shell and reporting |
+| `guild` | Raidwise_Guild: shared retention limit (100–10000, default 1000), realm/guild archives with local roll EP threshold (4000), last complete snapshot and guild-info text, journal and previous server event window. Old `guildManagement`/`epgp` roots are not migrated or read. |
 
 See [Reputation.md](characters/Reputation.md) for reputation data. Addon semver, rule/catalog revisions, and layout versions serve different purposes. Geometry rules live in `AGENTS.md`; current layouts and dimensions live in [UI-Views.md](ui/UI-Views.md) and [UI-Sizes.md](ui/UI-Sizes.md).
 

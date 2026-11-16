@@ -4,7 +4,8 @@ local Addon = Raidwise
 local Resolver = {}
 
 local function NormalizeName(name)
-	return (tostring(name or ""):gsub("^%s+", ""):gsub("%s+$", ""):lower())
+	local trimmed = tostring(name or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	return Addon.GuildManagement and Addon.GuildManagement.Fold(trimmed) or trimmed:lower()
 end
 
 function Resolver.Resolve(snapshot)
@@ -49,6 +50,8 @@ function Resolver.Resolve(snapshot)
 			end
 		elseif note and note.status == "parsed" and note.kind == "balance" then
 			row.mainBalance = { ep = note.ep, gp = note.gp }
+		elseif note and (note.status == "unavailable" or note.status == "missing") then
+			row.linkStatus = note.status
 		elseif note and note.status == "invalid" then
 			row.linkStatus = "invalid"
 			row.linkWarnings[#row.linkWarnings + 1] = "Officer note is invalid"
