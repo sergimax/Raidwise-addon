@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [3.0.0] - 2026-11-16
+
+### Added
+- Guild roster with name/note search, current-raid groups 1–5 and mains-only filters, numeric EP/GP/PR sorting, and 25-record pages with fixed headers and two-axis scrolling.
+- Officer tools for editing public/officer notes and promoting/demoting one character at a time, with permission checks, conflict detection and confirmation from the updated game roster.
+- Local guild journal combining available server events and observed note/rank changes, separated by realm/guild, with a configurable 100–10000-entry limit (default 1000).
+- Manual and automatic roster refresh while the guild page is open, with a progress bar showing actual processed members.
+
+### Changed
+- **Breaking:** `Raidwise_Guild` replaces `Raidwise_EPGP`. Install `Raidwise/` and `Raidwise_Guild/`, remove the old module folder and restart the client. Existing EPGP snapshots/settings are not migrated; guild tools start with fresh local storage. Character profiles, encounters, Gear Check reports and other settings are preserved.
+- Guild balances are integrated into the roster, resolve main/alt chains, and read `@BASE_GP` from guild information for `PR = EP / (note GP + BASE_GP)`. The default base is explicitly labelled; invalid settings and zero denominators show unknown PR.
+- Minimum EP for roll is a separate local setting per guild, defaulting to 4000, with eligibility indicators based on the main's balance.
+- Interface/report separators use ASCII `/` for font compatibility.
+
+### Removed
+- Standalone EPGP page, its group/main/alt grouping controls, and `/rw guildexport` commands, including the `all` and `80` variants.
+
+### Fixed
+- Guild table headers align with their columns, selected characters and active modes remain highlighted, and names/classes in row tooltips use explicit readable colors.
+- Officer-note visibility and derived balances follow reading permission independently of editing permission, including after access changes.
+
 ## [2.3.1] - 2026-11-15
 
 ### Fixed

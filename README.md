@@ -2,13 +2,15 @@
 
 # Raidwise
 
-Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
+Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): guild management, party and raid rosters, raid composition checklist, player ratings, meeting history, account-wide lockouts, and character JSON export.
 
-![](https://img.shields.io/badge/current_version-2.3.1-purple)
-![](https://img.shields.io/badge/last_updated-2026--11--15-blue)
+![](https://img.shields.io/badge/current_version-3.0.0-purple)
+![](https://img.shields.io/badge/last_updated-2026--11--16-blue)
 
 
 ## Install
+
+**Upgrading to 3.0:** replace `Raidwise_EPGP` with `Raidwise_Guild` and fully restart the client. The standalone EPGP page and `/rw guildexport` commands are removed. Old EPGP settings/snapshots are not migrated; guild storage starts fresh. Existing character profiles, encounters, Gear Check reports and other settings are preserved.
 
 **Upgrading from 2.0 to 2.1:** existing profiles and notes are preserved; event
 journals migrate automatically to compact change records. Damaged entries are
@@ -86,6 +88,8 @@ The menu title bar shows **Raidwise** and the addon version.
 Esc or the title **X** closes the window.
 
 The draggable minimap button opens **Raid roster** on left-click and **Character cooldowns** on right-click. Hover for raid readiness, consumables, and account-wide character lockouts.
+
+**Guild roster** (Raidwise Guild): search names/notes, filter current-raid groups 1–5 or mains only, and sort EP/GP/PR. The page provides note/rank editing subject to guild permissions, conflict checks, refresh progress and a local journal with configurable retention. Guild-info `@BASE_GP` supplies the PR base; minimum EP for roll is a separate per-guild setting (default 4000). There are 25 records per page, fixed headers and horizontal/vertical scrolling. See the [guild module contract](docs/raid/Guild-Management.md) for limits and update behavior.
 
 **Character cooldowns** tab:
 
@@ -261,6 +265,13 @@ Raidwise/
   PageSettings.lua    # Settings tab
   PageInfo.lua        # Info tab
   ExporterWindow.lua  # main window shell (menu, title, status, tab wiring)
+Raidwise_Guild/
+  Raidwise_Guild.toc  # dependent addon, loaded by Raidwise
+  GuildManagement.lua # roster refresh, officer actions and local journal
+  GuildRosterParser.lua # raw note parsing
+  GuildRosterLinks.lua # main/alt chain resolution
+  GuildEPGP.lua      # guild-info base GP and priority calculation
+  PageGuild.lua      # combined roster and journal page
 scripts/
   generate-gear-check-bis.js # union web-app BiS preset IDs → GearCheckBis.lua
 docs/
@@ -277,6 +288,8 @@ types/
 ```
 
 ## Notes
+
+- Guild snapshots, journal, retention limit and per-guild roll threshold live in `RaidwiseDB.guild`; the old `epgp` and `guildManagement` roots are not migrated. SavedVariables names remain unchanged. Guild information is read-only; note/rank updates require an explicit permitted officer action. Journal storage is local and cannot reconstruct all changes missed while offline.
 
 - Character/profile data and saved Gear Check reports support one realm per SavedVariables dataset. Shared storage across independent realms/servers is not supported; see the [identity contract](docs/characters/Character-System-Contract.md).
 
