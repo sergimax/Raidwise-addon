@@ -24,13 +24,9 @@ for commands and selecting checks use [tests/README.md](../../tests/README.md).
 [Manual checks and dated evidence](Character-System-Verification.md) cover what
 the offline harness cannot establish.
 
-## Historical code
+## Compatibility boundaries
 
-`PlayerHistory`, `PlayerHistoryStore`, `CharacterLinks`, `ProfileDraft`,
-`CharacterProfile` and `ProfilePanels` are outside the TOC. Historical fixtures in
-[history](../../tests/history.test.mts), [architecture](../../tests/architecture.test.mts)
-and [roster-refresh](../../tests/roster-refresh.test.mts) may load them explicitly.
-`RatingPresentation` remains active; its use by old fixtures does not retire it.
-For disabled Sync/Karma modules and future design constraints, read
-[Synchronization.md](Synchronization.md). Check fixture dependencies before
-removing historical code; its presence is not a shipped feature.
+The active core deliberately does not import retired profile/exchange data; [storage constraints](Character-System-Contract.md) describe that boundary.
+[architecture tests](../../tests/architecture.test.mts) exercise current read, activation, target-addition and identity-upgrade APIs.
+Linking/deletion and observer-specific meetings use [player-links](../../tests/player-links.test.mts) and [encounters](../../tests/encounters.test.mts).
+For a future exchange/Karma design start with [Synchronization.md](Synchronization.md).

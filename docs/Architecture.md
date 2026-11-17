@@ -30,7 +30,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Group encounter sessions and retention | `PlayerEncounters.lua` | `RecordCurrentGroupHistory`, `GetCharacterMeetingStats`, `PruneCharacterEncounters` |
 | Database and recent-history lists | `PageHistory.lua`, `PlayerEncounters.lua` | `BuildHistoryRoster` |
 | Linked player characters and deletion | `PlayerRecordLinks.lua`, `ProfileCharacters.lua` | `LinkPlayerCharacters`, `DeleteCharacterDatabaseRecords` |
-| Retired profile exchange (not in TOC) | Sync/Karma modules | Historical owners and checks: [Synchronization.md](characters/Synchronization.md) |
+| Deferred profile exchange / Karma | `../docs/characters/Synchronization.md` | Future constraints; no runtime implementation |
 | Unsaved profile edits | `ProfileEditor.lua` | `SaveProfileEditor`, `TickProfileEditor`, `CloseProfileEditor` |
 | Profile window | `ProfileWindow.lua`, `ProfileEditor.lua`, `ProfileCharacters.lua` | `ShowRaidCharacterWindow`; character tasks and checks: [task map](characters/Reputation.md) |
 | Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `FindOpinionCharacter`, `RefreshUnitOpinionTooltip` |
@@ -47,11 +47,10 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 - Bootstrap creates the namespace; later modules attach methods before normal event-driven use.
 - After core DB/locale initialization, bootstrap loads `Raidwise_Guild` before constructing the shell. The guild addon depends on Raidwise, uses its widgets/locale/DB, registers one Guild page, and owns its roster/raid event listener. Its TOC is the authoritative guild module load order. The retired Raidwise_EPGP addon and guild-export commands are removed.
 - `CharacterExport` provides `Addon.EscapeJsonString` before `CharacterLockouts`; both export formats share complete JSON string escaping (including U+0000–U+001F).
-- Initialization checks the active profile core/bridge APIs before opening UI. Missing APIs report an incomplete installation; retired `RatingTagGroups` is not a startup requirement.
+- Initialization checks the active profile core/bridge APIs before opening UI. Missing APIs report an incomplete installation.
 - `InspectCoordinator` precedes roster consumers and owns inspect API calls/events. Roster and gear retain their queues and result handling.
 - Profile core/support, screen APIs, links and encounters precede presentation; ProfileEditor and ProfileCharacters precede ProfileWindow.
 - `HistoryProfileForMember` belongs to support and explicitly calls the encounter projection. `PruneHistory` belongs to bridge and delegates to encounter retention. Later modules do not replace either method or capture its previous implementation.
-- Legacy PlayerHistory, PlayerHistoryStore, CharacterLinks, ProfileDraft, CharacterProfile/ProfilePanels and Sync/Karma modules are not loaded; historical fixtures may load them explicitly in tests.
 - Shared UI owners, theme bindings and platform constraints: [UI task map](ui/UI-Views.md). The TOC owns their load order.
 - Gear catalogs and report compatibility helpers precede rules, grades, explanations and self-tests. Saved reports and collector precede `GearCheck`; reports and dumps follow it. Pages load before the shell.
 
@@ -107,8 +106,7 @@ Geometry rules live in `AGENTS.md`; current owners/layout inventory and outer di
 ## Runtime package
 
 The release workflow uses `scripts/package-addon.mts`: TOC + its Lua entries +
-tracked media from HEAD. Retired Lua stays in the repository for historical tests
-but is excluded from the installable ZIP. XML includes are not currently used;
+tracked media from HEAD. Lua outside the TOC is not shipped. XML includes are not currently used;
 the packager rejects them until recursive dependency handling is implemented.
 
 For conditional export-controller follow-up, read the owner TODOs at `PageRaid.UpdateRaidExportView` and `PageGearCheckTarget.RefreshSavedList` before changing those behaviors.

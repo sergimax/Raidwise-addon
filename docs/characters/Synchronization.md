@@ -21,8 +21,8 @@ These are retained future-design constraints, not shipped behavior:
   `RaidwiseKarma` v1 and its 0–100 scale are historical; missing data must not be
   replaced with demonstration values.
 
-## Historical owners and checks
+## Active boundary checks
 
-`SyncJSON`, `SyncData`, `SyncTransport`, `KarmaData`, `PageSync` and `PageSyncExport` remain outside [Raidwise.toc](../../Raidwise/Raidwise.toc).
-[sync.test.mts](../../tests/sync.test.mts) and [karma.test.mts](../../tests/karma.test.mts) exercise historical behavior; [player-records.test.mts](../../tests/player-records.test.mts) guards their exclusion from the active system.
-Review those dependencies before deleting or reusing the files. Start active character work at the [task map](Reputation.md).
+[player-records.test.mts](../../tests/player-records.test.mts) guards exclusion of retired modules from the TOC and the absence of active exchange entry points.
+[architecture.test.mts](../../tests/architecture.test.mts) checks current bootstrap and explicit activation without importing retired reviews.
+New exchange work needs the replacement design above; start active character changes at the [task map](Reputation.md).

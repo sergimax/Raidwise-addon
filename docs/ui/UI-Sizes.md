@@ -29,7 +29,7 @@ constant/builder; labels and behavior are owned by the subsystem task maps.
 | Target gear columns, summary and saved list | `PageGearCheckTarget.lua`: `RIGHT_COL_W`, `COL_GAP`, `SUMMARY_H`, `TOP_BLOCK_H`, `CreateGearCheckTargetPage` |
 | Role/class/effect composition controls | `PageComposition.lua`: `CreateCompositionPage`, `RefreshCompositionView` |
 | Guild headers, columns, rows and editor | `Raidwise_Guild/PageGuild.lua`: `Columns`, `LayoutTable`, `Create` |
-| Profile title, expanded editor, note and paged lists | `ProfileWindow.lua`: `WIDTH`, `HEIGHT`, `Create`, `List`, `Refresh`; no retired `CharacterProfile` geometry |
+| Profile title, expanded editor, note and paged lists | `ProfileWindow.lua`: `WIDTH`, `HEIGHT`, `Create`, `List`, `Refresh` |
 | History/database table and toolbar | `PageHistory.lua`: `CreateHistoryRow`, `CreateHistoryPage`; page registration selects history/database |
 | Cooldown table, scroll bars and headers | `PageCooldowns.lua`; `UIWidgets.lua`: `CreateCooldownScrollBar`, `LayoutTableScrollBars`, `CooldownTableTopOffset` |
 | Export/info/settings content | `PageExport.lua`, `PageInfo.lua`, `PageSettings.lua`; shared copy/input builders below |
@@ -38,7 +38,6 @@ constant/builder; labels and behavior are owned by the subsystem task maps.
 | Independent diagnostics scroll/edit area | `Diagnostics.lua`: `ShowDiagnostics`; its named scroll frame and edit-box dimensions |
 
 Detailed anchors/columns/padding are not duplicated as Markdown schematics.
-Historical Import/Share/Karma layouts are outside the active UI; see the
-[character map](../characters/Reputation.md#historical-code). HTML concepts remain
+For profile behavior use the [character map](../characters/Reputation.md). HTML concepts remain
 available through the [design index](index.html). Native visual checks are in the
 [UI map](UI-Views.md#native-client-constraints-and-verification).

@@ -42,15 +42,14 @@ Documentation cleanup alone does not change the registered generation.
 Shell version is rebuild-only. Badge placement and frame-stamping requirements
 are defined in AGENTS. Page content and header capabilities belong to the page
 registration; shared shell controls read `capabilities.reportChat` / `reportForm`.
-Retired Sync/Reputation/ProfilePanels views are outside the active TOC; their
-owners and historical fixtures are linked from the [character map](../characters/Reputation.md#historical-code).
+Profile exchange/Karma have no active views; their future constraints are in [Synchronization.md](../characters/Synchronization.md).
 
 ## Native-client constraints and verification
 
 - Read `CreateTextInput`'s source comment before changing Wrath input templates.
   `UIPanelScrollFrameTemplate` controls need nonempty frame names; the active
-  profile mock now rejects anonymous ones. The older architecture notes fixture
-  also loads retired `CharacterProfile`, so it is not proof of active profile UI.
+  profile mock rejects anonymous ones; diagnostics has a separate named-template
+  and window-reuse check.
 - `UITheme.ApplyTheme` preserves color-table identity because views retain those
   references. Follow its binding/font helpers instead of modifying global game
   font objects; game tooltips are outside addon text adjustments.

@@ -75,10 +75,8 @@ or disk persistence. [Manual checks and dated user evidence](../docs/characters/
 retain those limits. For SavedVariables maintenance use the
 [repair procedure](../docs/characters/Character-System-Contract.md#repairing-quarantined-records).
 
-Historical `history`, `sync` and `karma` fixtures may load modules excluded from
-the active TOC. Their passes do not imply shipped profile exchange or Karma.
-See the task map's [historical code](../docs/characters/Reputation.md#historical-code)
-section before changing or removing those fixtures.
+Current screen reads and target-addition/identity-upgrade behavior are checked through the active core/bridge in `architecture.test.mts`. `roster-refresh.test.mts` uses active encounter persistence while checking shared snapshots and hidden views.
+Self notes, independent linked opinions and deletion guarantees are covered by `player-records.test.mts` / `player-links.test.mts`; retired migration/exchange semantics are not supported contracts.
 
 ## Gear Check checks
 
@@ -165,7 +163,8 @@ data and roster authors), name-index rename/upgrade/recovery, profile deletion,
 and sparse selection among 10,000 identities. Warm lookup and roster tests reject
 a full identity scan; encounter summaries must not copy whole histories.
 The chat-color regression uses the active core and verifies independent opinions
-for linked characters. Historical migration fixtures remain explicitly separate.
+for linked characters.
+No retired profile implementation is loaded by these checks.
 
 For timings, run `node scripts/benchmark-records.mts`. It seeds synthetic 1k/10k
 identities with 11 filled profiles/recent encounters, reports the cold name-index
@@ -202,8 +201,6 @@ changes; repeat successful checks only after new edits or unresolved concerns.
 | Identity read models/index, associations and deletion | `record-reads.test.mts`, `player-links.test.mts` |
 | Meetings/retention and Database/History lists | `encounters.test.mts`, `database-page.test.mts` |
 | Character/cooldown JSON and TypeScript contracts | `export-contracts.test.mts` |
-| Retired profile migration and draft behavior (historical only) | `history.test.mts` |
-| Retired profile exchange (historical only) | `sync.test.mts`; historical Sync controls in `architecture.test.mts` |
 | Native friends, ignore, inbox and guild opinion marks | `classic-opinion.test.mts` |
 | Bare-client profile notes and diagnostics scroll template names | `architecture.test.mts` |
 | Theme bindings | `theme.test.mts` |
@@ -255,8 +252,8 @@ bindings, control builders, layout generations and their test suites.
 `architecture.test.mts` exercises page lifecycle and selected anchor regressions;
 header-capability cases are in `gear-check.test.mts`.
 `profile-window.test.mts` exercises the active window and rejects anonymous
-`UIPanelScrollFrameTemplate` creation. The older architecture profile-notes
-fixture loads retired `CharacterProfile`; it is not current profile acceptance.
+`UIPanelScrollFrameTemplate` creation.
+The separate diagnostics fixture also checks named template creation and reuse of its independent window.
 
 The [native-client checklist](../docs/ui/UI-Views.md#native-client-constraints-and-verification)
 retains locale/theme/scale, fresh construction, scrolling, tooltip and clipboard
