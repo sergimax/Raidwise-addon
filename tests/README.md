@@ -229,28 +229,21 @@ Use the [client timing protocol](../docs/gear-check/Gear-Check-Verification.md)
 when changing inspect/collection and the [composition manual checks](../docs/raid/Guild-Management-Verification.md#composition-presentation)
 for actual display and chat-skin behavior.
 
-## UI composition (refactoring phase 7)
+## UI checks
 
-This section records the earlier extraction. Theme and shell boundaries remain
-active; the profile builders described here belong to retired `ProfilePanels`.
-The current window is owned by `ProfileWindow`/`ProfileEditor`/`ProfileCharacters`;
-use their tests and the architecture map for current profile work.
+Use the [UI task map](../docs/ui/UI-Views.md) for shell/page dispatch, theme
+bindings, control builders, layout generations and their test suites.
+`theme.test.mts` checks stable palette references and bound colors;
+`architecture.test.mts` exercises page lifecycle and selected anchor regressions;
+header-capability cases are in `gear-check.test.mts`.
+`profile-window.test.mts` exercises the active window and rejects anonymous
+`UIPanelScrollFrameTemplate` creation. The older architecture profile-notes
+fixture loads retired `CharacterProfile`; it is not current profile acceptance.
 
-`UITheme.lua` initializes stable theme/color tables and color/text bindings.
-`UIWidgets.lua` supplies generic controls; `RosterWidgets.lua` supplies roster,
-gear-grade, consumable, and rating renderers. Load them in that order before
-pages. Existing `Raidwise.UITheme` and `Raidwise.Widgets` entry points remain.
-
-Page registrations declare `capabilities.reportChat` and `reportForm`; the shell
-reads these flags rather than checking tab IDs. Profile opinion, facts, events,
-notes, and history panels now have named builders with the same construction
-order, anchors, and dimensions. No layout versions change.
-
-Header tests load the real reporting page registrations. `theme.test.mts` checks
-stable palette references, bound-color updates, dark/light round trips, and
-unchanged shell dimensions. Profile command regressions also cover the corrected
-draft-event removal. Visual parity still needs in-game checks: both themes,
-English/Russian, profile tabs, header visibility, and tooltip interactions.
+The [native-client checklist](../docs/ui/UI-Views.md#native-client-constraints-and-verification)
+retains locale/theme/scale, fresh construction, scrolling, tooltip and clipboard
+checks that mocks cannot establish. The HTML previews are design references,
+not native rendering tests.
 
 ## Pull request CI
 

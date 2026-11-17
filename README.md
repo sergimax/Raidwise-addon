@@ -199,8 +199,8 @@ The minimap button position is saved in `RaidwiseDB.minimapAngle`.
 - About overview (one sentence per line, with lists) plus per-menu feature sections (same icons as the left menu, each with that view’s layout `vN`)
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
-View layouts: [`docs/ui/UI-Views.md`](docs/ui/UI-Views.md).
-Pixel sizes: [`docs/ui/UI-Sizes.md`](docs/ui/UI-Sizes.md).
+UI owners and layout versions: [`docs/ui/UI-Views.md`](docs/ui/UI-Views.md).
+Geometry owners and outer sizes: [`docs/ui/UI-Sizes.md`](docs/ui/UI-Sizes.md).
 Character task map: [`docs/characters/Reputation.md`](docs/characters/Reputation.md).
 Composition navigation and limits: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md).
 
@@ -280,8 +280,8 @@ scripts/
   generate-gear-check-bis.js # union web-app BiS preset IDs → GearCheckBis.lua
 docs/
   Architecture.md     # TOC order, layers, SavedVariables, refresh API
-  UI-Views.md         # ASCII layouts for each view + layout version table
-  UI-Sizes.md         # window / control pixel sizes
+  ui/UI-Views.md      # UI owners, checks and layout versions
+  ui/UI-Sizes.md      # outer sizes and detailed geometry owners
   gear-check/Gear-Check-Progress.md # gear owners, entry points and checks
   characters/Reputation.md # character owners, entry points and checks
   raid/Raid-Composition.md # composition owners and inference limits

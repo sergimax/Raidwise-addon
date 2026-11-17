@@ -36,7 +36,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Profile window | `ProfileWindow.lua`, `ProfileEditor.lua`, `ProfileCharacters.lua` | `ShowRaidCharacterWindow`; character tasks and checks: [task map](characters/Reputation.md) |
 | Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `FindOpinionCharacter`, `RefreshUnitOpinionTooltip` |
 | Native friends, ignore, inbox and guild opinion marks | `ClassicOpinionMarkers.lua` | `InitializeClassicOpinionMarkers`, `RefreshClassicOpinionMarkers` |
-| Theme / shared controls | `UITheme.lua`, `UIWidgets.lua`, `RosterWidgets.lua` | Stable theme tables; generic controls; roster/grade/rating controls |
+| Theme / shared controls | `UITheme.lua`, `UIWidgets.lua`, `RosterWidgets.lua` | `ApplyTheme`, generic and roster-specific builders; [UI owners/checks](ui/UI-Views.md) |
 | Raid and target gear views | `PageRaid.lua`, `PageGearCheckTarget.lua` | `RefreshRaidRosterView`, `RefreshGearCheckTargetView`, `ShowGearCheckReport` |
 | Other pages | `PageCooldowns.lua`, `PageExport.lua`, `PageComposition.lua`, `PageHistory.lua` (History and Character database), `PageSettings.lua`, `PageInfo.lua` | `Addon.Pages.*` registrations |
 | Shell and navigation | `ExporterWindow.lua`, `Minimap.lua` | `CreateMainFrame`, `SelectTab`, `RefreshLocalizedUI`; separate minimap entry point |
@@ -53,7 +53,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 - Profile core/support, screen APIs, links and encounters precede presentation; ProfileEditor and ProfileCharacters precede ProfileWindow.
 - `HistoryProfileForMember` belongs to support and explicitly calls the encounter projection. `PruneHistory` belongs to bridge and delegates to encounter retention. Later modules do not replace either method or capture its previous implementation.
 - Legacy PlayerHistory, PlayerHistoryStore, CharacterLinks, ProfileDraft, CharacterProfile/ProfilePanels and Sync/Karma modules are not loaded; historical fixtures may load them explicitly in tests.
-- `UITheme` precedes `UIWidgets`, then `RosterWidgets`, then views. Theme/color tables retain identity across theme changes.
+- Shared UI owners, theme bindings and platform constraints: [UI task map](ui/UI-Views.md). The TOC owns their load order.
 - Gear catalogs and report compatibility helpers precede rules, grades, explanations and self-tests. Saved reports and collector precede `GearCheck`; reports and dumps follow it. Pages load before the shell.
 
 ### Gear flow
@@ -70,7 +70,7 @@ Storage constraints and maintenance are linked from that map.
 For roster snapshots, active groups/reserves, role inference and provider counts, use the [composition task map](raid/Raid-Composition.md).
 It links the shared refresh owner and behavioral checks; [Gear Check](gear-check/Gear-Check-Progress.md) owns scan work lists and readiness summaries.
 
-Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The shell dispatches these methods; page modules own control labels and entry-specific collection. `entering=true` requests the original tab-entry work (lockout requests, roster refresh or history recording); locale refresh omits it. Public refresh wrappers remain compatible. Profile extraction preserves anchors, dimensions and named-frame versions.
+For page registration, entry/locale dispatch, contextual header controls and window generations use the [UI task map](ui/UI-Views.md).
 
 ### SavedVariables and versions
 
@@ -102,7 +102,7 @@ header. Chat summaries are human-readable messages, not versioned data exports.
 
 Character tasks and checks: [task map](characters/Reputation.md).
 Addon semver, rule/catalog revisions, and layout versions serve different purposes.
-Geometry rules live in `AGENTS.md`; current layouts and dimensions live in
+Geometry rules live in `AGENTS.md`; current owners/layout inventory and outer dimensions live in
 [UI-Views.md](ui/UI-Views.md) and [UI-Sizes.md](ui/UI-Sizes.md).
 
 ## Runtime package and deferred UI extraction

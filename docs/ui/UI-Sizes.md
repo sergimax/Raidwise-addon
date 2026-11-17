@@ -1,359 +1,44 @@
-# Raidwise UI sizes
+# UI geometry owners
 
-Reference for the main window and pages. All units are WoW UI pixels. Shared theme constants live in `UITheme.lua` and widgets in `UIWidgets.lua`; shell sizes in `ExporterWindow.lua`; page-specific columns in each `Page*.lua`. Values here must stay in sync with those tables.
+Use the [UI task map](UI-Views.md) for current layout versions and checks.
+Geometry is implemented in Lua; this guide retains a small outer-size reference
+and routes detailed changes to their owners. Apply [layout rules](../../AGENTS.md#layout-versions)
+when pixels or structure change; update the affected reference values here.
+Sizes use unscaled WoW UI coordinates, not a physical-screen guarantee.
 
-View layouts (ASCII schemes) live in [`UI-Views.md`](UI-Views.md). Architecture: [`Architecture.md`](Architecture.md).
+## Current outer geometry
 
-## Shell
+| Element | Default size | Authoritative source |
+|---|---|---|
+| Main frame, including title/navigation | 970 × 693 | `UITheme.CONTENT_WIDTH` / `CONTENT_HEIGHT`; `ExporterWindow.CreateMainFrame` |
+| Navigation column | 90 wide | `UITheme.MENU_BAR_W`; shell menu anchors |
+| Page viewport | 868 × 653 | `CreateMainFrame` content anchors: left `MENU_BAR_W + 2`, top `TITLE_H + PAD`, right/bottom `PAD` |
+| Profile popup | 820 × 540 | `ProfileWindow.lua`: `WIDTH`, `HEIGHT` |
+| Diagnostics popup | 620 × 420 | `Diagnostics.ShowDiagnostics`: `SetSize` |
 
-### Guild roster / journal (layout v7)
+## Find detailed dimensions
 
-`Raidwise_Guild/PageGuild.lua` fits the existing shell viewport. The control area is `CONTENT_WIDTH - MENU_BAR_W - 24` (856 px), with an 8 px left inset. Roster, Journal and Refresh are 120/90/96 × 24 px at x=8/132/226, y=8. The second toolbar row starts at y=54: search 210 × 24 at x=8, raid/event control 142 × 24 at x=224, Mains only 130 × 24 at x=372, roll threshold 60 × 24 at x=508, and Apply 100 × 24 at x=574. Search/threshold captions and the BASE_GP source start at y=38; the base label uses the remaining 176 px at x=680. Mains only is hidden in Journal mode. The class filter is removed.
+Paths below are relative to `Raidwise/`. Read bounded sections around the named
+constant/builder; labels and behavior are owned by the subsystem task maps.
 
-The refresh progress bar sits beside Refresh at x=330, y=13; it is 14 px tall and 534 px wide. A centered label shows waiting without a percentage, then actual processed/total members and percentage. Successful completion remains visible for 0.75 seconds; cancellation/failure clears it.
-
-The fixed header viewport starts at y=90 and is 18 px tall. The row viewport starts at y=108, is 842 × 360 px (two additional row pitches), and contains up to 25 records per page with 23 px rows at 25 px pitch (625 px total). The mouse wheel scrolls three rows per notch; the 10 px vertical bar sits at x=854. Horizontal scrolling keeps the separate header and row viewports aligned. Roster columns remain 80/44/110/76/68/87/45/248/258 px (1016 px total), with 4 px padding on each side. Journal columns are 160/180/300/202 px. Class icons are 18 × 18 px. Sort hit areas are 18 px tall over EP, GP and PR. The 10 px horizontal scrollbar starts at y=472. Bars hide when the filtered rows or columns fit; changing page, mode, search, filter or sort resets vertical scrolling.
-
-Pagination starts at y=488. The 128 px editor/detail panel starts at y=522. Note editors remain 350 × 24 px with the stock 31-character limit; editor actions start at y=66 within that panel, followed by a 28 px status area at y=96. Journal details use 104 px height; its full-width local-history hint sits below at y=110 with 18 px height. All controls end by y=650 within the 653 px page viewport. Shell dimensions are unchanged; its rebuild version is 34. The retired EPGP page is no longer an active layout.
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Main frame (`RaidwiseFrame`) | **970 × 693** | Movable, `DIALOG` strata, Esc-close via `UISpecialFrames` |
-| Title bar | height **20** | Very top of window; drag handle; addon name/version, active page name/layout version, available report controls, collapse and close buttons |
-| Menu panel (`RaidwiseMenu`) | **85 × 671** | Narrow left navigation; title background fill |
-| Page viewport | **873 × 653** | 2 px gap after menu |
-| Collapse / expand button | **16 × 16** | Beside Close; reduces window to the title bar and restores it |
-| Close button | **16 × 16** | Rightmost title bar button |
-| Page layout badge | in title bar | `v` + page `LAYOUT_VERSION`, immediately right of the active page name |
-| Panel fill | **#1a1915** ≈ RGB **0.10, 0.10, 0.08** | Low-noise Ivory theme; flat fill (no border edges) |
-| Title / status fill | **#24221c** ≈ RGB **0.14, 0.13, 0.11** | Same texture |
-| Gear Check gradation | S bright gold → A green → B amber → C orange → D red | `GEAR_S` / `GEAR_GOOD` / `GEAR_OK` / `GEAR_REPLACE` / `GEAR_BAD` — brighter, distinct rank colors in both themes; grades S…D and spec ranks (preferred…forbidden) |
-| Idle text | **#c1b9a7** ≈ RGB **0.76, 0.73, 0.66** | Ivory body / menu idle |
-
-The page viewport remains **653 px** high = **40** title/padding + **110** raid header + **524**
-active-group block + **19** scroll insets. The shell has a 20 px title/control bar at the top,
-followed by a **60 px** navigation area, for an overall height of **753 px**. The raid viewport shows groups 1-5
-without any of groups 6-8 until scrolled; all other pages share this page height.
-
-## Left navigation
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Navigation groups | **3** | Personal, Raiding, Other |
-| Menu button | **81 × 27** | Fills the menu width with a 2 px inset; **16×16** icon left |
-| Menu icon | **18 × 18** | `Interface\Icons\…` per tab; TexCoord crop `0.07–0.93` |
-| Horizontal gap | 3 px | Between cells |
-| Vertical gap | 2 px | Between rows |
-| Cell inset | 10 px left/right; 2 px top | From the menu panel edge |
-| Group headings | rendered | Personal, Raiding, Other |
-| Idle fill | `BTN_IDLE` = **0.165, 0.157, 0.133** | Menu + action buttons (dark theme) |
-| Hover fill | `BTN_HOVER` = **0.224, 0.212, 0.173** | Hovered tab or action button |
-| Active menu fill | `MENU_SELECTED_BG` = **0.300, 0.235, 0.120** | Warm gold-brown; active label uses `GOLD` |
-| Action selected fill | `BTN_SELECTED` = **0.161, 0.153, 0.122** | Other selected buttons retain their existing state |
-| Disabled fill | `BTN_DISABLED` = **0.090, 0.086, 0.075** | Dark theme |
-
-### Top title and report controls
-
-The title bar displays **Raidwise** and its addon version, then the active page name and
-its `LAYOUT_VERSION`, then report format and chat controls when the active page supports
-them. The title bar also has collapse/expand and close buttons at the right. The controls are compacted to fit the single-row title bar: the chat host is **337 px**
-wide and the format host is **184 px** wide, with an **8 px** gap. The close button remains
-at the far right.
-
-Groups (top to bottom): **Personal** — Character cooldowns (watch), Character database (book); **Raiding** — Raid roster (Glory of the Raider), Raid composition (Greater Blessing of Kings), Gear check (target) (spyglass), History (book); **Data exchange** — Characters data import (portal); **Export to web** — My gear and CDs exports (note), Characters data export (note); **Other** — Settings (gear), Info (question mark).
-
-## Content padding
-
-Characters data export has one full-width **Export database** action above its
-copy area. Import uses two equal copy-area columns separated by 24 px. Name
-inputs are 24 px tall, with 8 px horizontal / 3 px vertical text insets. The
-shared `Widgets.CreateTextInput` supplies anonymous frames with explicit fonts
-and theme-bound backgrounds, also used by History filters and Character linking.
-It avoids the broken anonymous `InputBoxTemplate` texture regions on 3.3.5.
-
-Import action rows are 24 px tall; the JSON and incoming-review copy areas begin
-454 px below the content top and fill the remaining height. The ignore section
-shows two 25 px rows with per-character Unignore buttons and Previous/Next paging.
-Its name input also filters that list. The Character title
-bar has a 90 x 18 px Share button, 6 px left of its layout badge. The database
-toolbar Share database button is 150 px wide, 8 px left of Refresh. Both open a
-170 x 122 px menu with target/guild/raid actions, an Export shortcut,
-and an X close button. Selecting the Share button again or changing views also
-closes the menu.
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Page padding | 10 px | Inside content, below title bar |
-| Page inner width | **870** | `890 - 10 - 10` |
-
-## Export tab
-
-See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Description | full inner width | `GameFontHighlight`; wraps via `SetWidth` |
-| Gap: description → checkbox | 8 px | |
-| Include-names checkbox | **24 × 24** | `UICheckButtonTemplate` |
-| Options row height | 28 px | Checkbox + clickable label |
-| Gap: checkbox → buttons | 10 px | |
-| Export data / Select all | equal width × **28** | `(innerWidth - 8) / 2`; 8 px gap between |
-| Gap: buttons → hint | 8 px | |
-| Copy hint | full inner width | `GameFontNormalSmall` |
-| Gap: hint → copy box | 6 px | |
-| Copy box | fills remaining height | Black fill; spacing from `COPY_PAD_*` and scrollbar gap (no tooltip border) |
-| Copy box insets | — | Padding via scroll anchors: **5 / 4 / 4 / 4** (`COPY_PAD_L/T/R/B`) |
-| EditBox padding inside box | 5, 6, 4, 4 | left, top, right, bottom |
-| Scrollbar | 20 px wide | Outside the copy host, 2 px gap; 16 px inset top/bottom |
-| EditBox line height | from `ChatFontNormal` | Face size + 2, or EditBox `cursorHeight` once known; not a hardcoded 12 px |
-| EditBox min height | 180 | Grows from measured wrapped text height |
-
-## Info tab
-
-See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Feature icon | **18 × 18** | Same `Interface\Icons\…` as left menu; TexCoord crop `0.07–0.93` |
-| Feature title + `vN` | gold title **16** pt, disabled version | Version is that page’s `LAYOUT_VERSION` |
-| Body / intro / repo hint | **15** pt, line spacing **2** | `GameFontHighlight` face via `ApplyFontSize`; sentences and `- ` lists |
-| Gap between feature blocks | **16** px | |
-| Heading → body | 8 px | About / GitHub |
-| Body → next heading | 14 px | |
-| URL copy box | height **28** | Black fill; internal 8 px horizontal / 4 px vertical padding |
-| Select all | **130 × 28** | Right of the URL box; 8 px gap |
-| Vertical scroll | **16** | Right of content when sections exceed the page |
-
-## Character cooldowns tab
-
-See [`UI-Views.md`](UI-Views.md) for the ASCII scheme.
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Toolbar row | height **28** | Hint left, Refresh right |
-| Gap: toolbar → table | 8 px | Table starts below Refresh button |
-| Refresh | **96 × 28** | Top-right of the page |
-| Instance column | **170** | Name + type stacked |
-| Character column | **90** | Spec icon **14 × 14**, class-colored name, last check (`18 Aug 23:58`), **Remove** **82 × 16** on non-current characters; current character column has a gold-tinted background |
-| Header row | **68** | Page-local in `PageCooldowns.lua` (taller: spec icon, name, last check, Remove) |
-| Data row | **34** | Alternate fills **0.094 / 0.078** (Classic `CD_ROW_A` / `CD_ROW_B`) |
-| Currency rows | **1** fixed | **Currency** / **Валюта** title + label column; ~**175** px tall; aligned icon+count chips |
-| Vertical scrollbar | **16** | Right of the table; hidden if unused |
-| Horizontal scrollbar | **16** | Bottom of the table; hidden if unused |
-
-## Raid roster tab
-
-Compact two-row header (grade chips + GS/roles + Flask/Food report controls + icon toolbar, then gear-category reports), then scan status + progress bar; roster table or export copy box at a fixed top offset. `LAYOUT_VERSION = 52`.
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Mini table | full width × **52** | Row 1 **28** + **4** px gap + row 2 **20** |
-| Row 1 chips | **≥72** wide | Colored `S · A · B · C · D`; full `GEAR_CHECK_RAID_HINT` on hover |
-| Row 1 GS / roles | remaining width | One line; per-role GS on hover |
-| Row 1 toolbar | **3×28** icons, **4** px gaps (**92** wide) | Scan, Export all, Back to roster (icon + tooltip) |
-| Row 1 reports | Flask/Food report cells, **104×28** each | **16×16** Battle Shout button left of label and count |
-| Row 2 reports | four equal cells, **8** px gaps, **20** tall | Gear category name + compact counts; **16×16** Battle Shout button left of each label |
-| Progress status | full width × **28** | **4** px under mini table (two lines) |
-| Progress bar | full width × **14** | **4** px under status; always reserved |
-| Player cell | **168 × 100** | Three rows: class+spec / name / Food / Flask; Rescan / Armor / Weapon / Enchant / Gems; GS / iLvl / opinion / Gear. Food and Flask icons are **16 × 16**, stacked at the right of the name; green tint means present, red means missing, muted means unknown. No drawn grid lines; raid-buff icons remain in hover tip |
-| Cell buttons | Rescan **31 × 26**; grades **31 × 26**; Gear **44 × 28** | Row 2 has Rescan plus four grade report buttons with verdict-colored backgrounds. Category tooltips and click-to-report behavior are retained. Scores are disabled until scanned; Rescan is disabled while any scan/export runs |
-| Cell gap | **2** | Between cells and columns |
-| Group label | height **16** | Group number (gold) + **3** party-only buff icons (**14** px, 1 px gap): Heroic Presence, Vampiric Embrace, Mana Tide Totem; full color = present in group, red tint = missing; hover shows spell name and provider names |
-| Block 1 | **5 × (168 + 2) − 2 = 848** | Parties 1–5 |
-| Block 2 | **3 × (168 + 2) − 2 = 508** | Parties 6–8, left-aligned under block 1 |
-| Gap between blocks | **12** | |
-| Cell content | **20** px class/spec/role and evaluation buttons; **14** px Flask/Food | The first row shows identity. The second shows GS and iLvl (or `-`) followed by an explicit-opinion icon (dash when unset). Rows three and four use score buttons in the left **90** px, a consumable icon, and an action button. Raid buffs listed on card hover |
-| Cell hover tooltip | — | Selected opinion, **Guild: Name (Rank)**, raid buffs, gear-check grades |
-
-Inspect queue runs sequentially; target scan blocked while raid scan is active. Per-player **Rescan** upserts that member’s result without clearing the rest of the raid results. Export builds dumps one player per frame (progress on this page), then opens the in-page export copy box (text view) for Ctrl+C.
-
-## Raid composition tab
-
-Same toolbar as Character cooldowns (`CD_TOOLBAR_H`, 8 px gap). Vertical scrollbar only.
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Toolbar | hint left; **Report missing** **110 × 28** then **Refresh** **96 × 28** | 4 px gap between buttons |
-| Top summary | full width | Roles (left) + Classes (right) on one band |
-| Role chip | icon **16** + count, width **34** | Gap **6** px (same as class chips) |
-| Class chip | icon **16** + count, width **34** | Gap **6** px; all 10 classes |
-| Spec chip | icon **16** + count, **34 x 20** | Up to 3 detected specs stacked under each class; summary grows by **20** px per row (maximum **60** px) |
-| Gap under summary | **12** px | Before 3-column checklist |
-| Columns | **3** | Equal width; `COMP_COL_GAP` **12** px |
-| Section heading | height **20** | Gold `GameFontNormal` |
-| Effect row | height **20** | Icon **16** px, name, count width **36** (right-aligned, no wrap) |
-| Gap between sections | **10** px | After packing into the shortest column |
-
-## Gear check (target) tab
-
-Current layout: **v15**. The dimensions below include the progress bar and Inspect target control.
-
-Layout v14 adds **Inspect target**, **220 x 28** px, between Scan and Character
-profile with a **4** px gap. The top block grows another **32** px.
-
-Layout v13 adds a **220 x 20** px scan progress bar above Scan with a **4** px
-gap. The top block grows by **24** px. It shows inspect/spec/gems/evaluation
-stages and elapsed seconds, not a completion percentage; retries can revisit
-earlier stages. It hides when scanning ends, leaving the final status visible.
-
-Full-width description + limitation, then **two columns** with a responsive right sidebar (up to **220** px) and **10** px gap, sized to the content width. Left: summary (**124** px), five report buttons, five filters, selectable breakdown text. Right top band: multi-line status, progress bar, **Scan**, **Inspect target**, **Character profile**; report row starts below the taller of summary vs top band. Lower right: **Save report**, **Delete selected report**, scrollable saved list. Report `B` opens the selectable text dump. `LAYOUT_VERSION = 18`.
-
-| Element | Size | Notes |
-|---------|------|-------|
-| Left column | **640** px | `innerW − RIGHT_COL_W − COL_GAP` |
-| Right column | **220** px | Top band + saved sidebar |
-| Summary (left) | height **124** | Top block; report row below `max(124, right top)` |
-| Class / spec icons | **18** px | On who line under Overall; tooltips show class / spec names |
-| Right top band | height **228** | Status, progress bar and 5 stacked buttons |
-| Report / filter rows | left width only | Five equal buttons each; report labels include 14 px icons and hover previews of the current chat output |
-| Breakdown | left, fills height | Slot groups with verdict color |
-| Saved list | right sidebar below delete | Scroll + vertical bar; all entries (not capped) |
-
-Raid-wide gear check is integrated into **Raid roster** (see that section). There is no separate gear-check raid tab.
-
-## Character profile — active layout v40
-
-Owner: `ProfileWindow.lua`; save controller: `ProfileEditor.lua`.
-
-| Element | Geometry / behavior |
+| Element | Owner / search entry point |
 |---|---|
-| Window | **820 × 540**, centered, clamped, draggable title |
-| Title bar | x=12, y=-10, **796 × 26**; title 490 px; Actions, badge and Close |
-| Details / opinion / author | y=-36 / -58 / -88; opinion height 30 px; self explanation replaces author |
-| Opinion editor | x=12, y=-122, **796 × 64**; two rows of 164 × 24 buttons, 172 px stride; Done |
-| Navigation | y=-116 collapsed / -192 expanded; four 130 × 24 tabs, 138 px stride; journal 224 px |
-| Content host | x=12; y=-152 / -228; right inset 12, bottom inset 48; **796 × 340 / 264** |
-| Overview columns | **460 / 320** px, **16** px gap |
-| Recent events | y=-40; 62 px per row, up to three; empty list scroll hidden; All events 8 px below actual list/30 px empty hint |
-| Private note | right column; **320 × 200 / 160**; blue panel, 6 px inset, input starts y=-32 |
-| Overview summaries | 10 / 56 px below note; meeting text 38 px, link text 36 px, detail actions |
-| Event/journal lists | full width; y=-40; **262 / 186** px high; 62 px rows; 25 rows/page |
-| Meeting list | y=-60; **240 / 164** px high; independent 25-row pages |
-| Link list | fills available body when search closed; **80** px when open |
-| Link search | y=-120; bottom inset 32; own candidate scroll |
-| Event chooser | **620 × 480**, centered; grouped list **300** px high; search and explicit confirmation |
-| Footer | status x=12 y=-508, 430 px; Save 110, Reload 110, To note 116 px; buttons y=-504 |
+| Shell title, menu spacing, content padding | `UITheme.lua`: `TITLE_H`, `MENU_*`, `PAD`; `ExporterWindow.lua`: `CreateTitleBar`, `CreateMainFrame` |
+| Contextual report controls | `ExporterWindow.lua`: `CreateHeaderReportChannels`, `CreateHeaderReportForm`, `UpdateShellHeader` |
+| Raid cards, bands and group scroll | `PageRaid.lua`: `RAID_CELL_W`, `RAID_CELL_H`, `CreateRaidPlayerCell`, `CreateRaidRosterHeader`, `CreateRaidRosterPage`; `UITheme.RAID_*` |
+| Target gear columns, summary and saved list | `PageGearCheckTarget.lua`: `RIGHT_COL_W`, `COL_GAP`, `SUMMARY_H`, `TOP_BLOCK_H`, `CreateGearCheckTargetPage` |
+| Role/class/effect composition controls | `PageComposition.lua`: `CreateCompositionPage`, `RefreshCompositionView` |
+| Guild headers, columns, rows and editor | `Raidwise_Guild/PageGuild.lua`: `Columns`, `LayoutTable`, `Create` |
+| Profile title, expanded editor, note and paged lists | `ProfileWindow.lua`: `WIDTH`, `HEIGHT`, `Create`, `List`, `Refresh`; no retired `CharacterProfile` geometry |
+| History/database table and toolbar | `PageHistory.lua`: `CreateHistoryRow`, `CreateHistoryPage`; page registration selects history/database |
+| Cooldown table, scroll bars and headers | `PageCooldowns.lua`; `UIWidgets.lua`: `CreateCooldownScrollBar`, `LayoutTableScrollBars`, `CooldownTableTopOffset` |
+| Export/info/settings content | `PageExport.lua`, `PageInfo.lua`, `PageSettings.lua`; shared copy/input builders below |
+| Copy boxes, text measurement and input insets | `UIWidgets.lua`: `CreateCopyBox`, `FitCopyBoxToText`, `ChatFontLineHeight`, `CreateLineCopyBox`, `CreateTextInput`; `UITheme.COPY_*` |
+| Fonts and theme bindings | `UITheme.lua`: `CreateFontString`, `ApplyTheme`, `SetFontColor`; `UIWidgets.lua`: `ApplyFontSize` |
+| Independent diagnostics scroll/edit area | `Diagnostics.lua`: `ShowDiagnostics`; its named scroll frame and edit-box dimensions |
 
-Overview is the default. Long lists and the note scroll independently. Expanding
-the opinion editor reduces the body height without changing the outer window.
-The note exists only in Overview. Autosave remains one second; closing/switching
-saves or retains the failed draft. GUID/deletion are in the Actions menu.
-
-## Diagnostics popup
-
-Independent **620 x 420** px centered dialog with a title and close button.
-The report scroll area has **20** px left/bottom, **40** px right and **48** px
-top insets; its multiline edit box is **550** px wide with **340** px initial
-height. Layout v2 uses a named scroll frame for the Wrath template and does not depend on the main shell or theme widgets.
-
-## History and Character database tabs
-
-Owner: `PageHistory.lua`. History v8 and Database v13 retain the existing outer
-page, filter/add toolbar anchors, row height and two-axis scrollbar widgets.
-History table starts at y=-116; Database at y=-200. Header height and row height
-come from `UITheme.CD_HEADER_H` / `CD_ROW_H`. Each text cell has 4 px horizontal
-insets; rows contain at most two lines, clipped to row height minus 6 px.
-
-| View | Columns in pixels | Total |
-|---|---|---:|
-| Database | name/realm 180, class/spec 100, opinion 90, author 170, guild 140, meetings 100, actions 80 | 860 |
-| History | name/realm 180, class 100, opinion 90, last date/place 330, meetings 140 | 840 |
-
-Delete button: 72 px wide, `CD_ROW_H - 8` high. Header and content share column
-widths. Pools contain at most 25 visible rows per page. Pagination clamps after
-filtering/deletion; scrollbar bounds are recalculated after every refresh.
-Name/class/guild inputs remain 150 px, 166 px stride at y=-80. Opinion button
-remains 160 x 24 and also supports Not set. Manual name input remains 230 px;
-Add / Add target are 150 px each and Delete all is 180 px.
-
-## Retired Reputation tab
-
-Removed from TOC and navigation. Former dimensions are historical; no Karma loader is active.
-
-## Settings tab
-
-Settings uses a vertical scroll viewport with a **16** px scrollbar and **4** px
-gap; inner content width is **850**. Content height follows the bottom of the
-Changelog controls with **10** px padding and updates after locale/preview changes.
-Mouse-wheel and scrollbar navigation keep lower controls accessible in the **653 px** page viewport (753 px shell).
-
-Settings v19 adds a **Window behavior** section with a checkbox to hide Raidwise when combat starts.
-
-Layout v15 retains the Changelog dimensions introduced in v14: the standard **28** px heading with **20** px section gap, a copy hint, and a URL copy box beside a **130 x 28** px Select all button with the standard **8** px gap. Both controls anchor vertically to the hint, avoiding a circular anchor dependency during window creation.
-
-Theme has its own **28** px category bar below Language, with the standard **20** px section gap. Its **160 x 28** toggle sits **10** px below the heading; Startup page follows the toggle. Light uses warm pale panels and dark text; dark retains the original palette. Choice is saved in `RaidwiseDB.theme`.
-
-Addon labels and text inputs have no text shadow in the light theme. Switching back to dark restores each region's original shadow; shared Blizzard font objects and game tooltips are unchanged.
-
-Language heading, hint, then two **120 × 28** locale buttons (**English**, **Русский**) with an 8 px gap. Selected button uses the same gold fill as the left menu.
-
-Below: **Startup page** heading, hint, then an **4-column** radio group (`UIRadioButtonTemplate`, **16** px, row **22**, 8 px gaps); selected page is stored in `RaidwiseDB.startupTab`.
-
-Report chat channel selection lives in the top title bar: **337 x 18** px group with eight **35 x 18** px cells. Each right-aligned **20** px label is followed by its **14** px radio with a **1** px gap; the group ends **24** px before Close. Labels: Slf / Say / Prt / Rd / Rdw / Gld / Gof / Aut. The page title is capped at **170–240** px by the visible report controls, with its version immediately after it. The Settings channel section is removed (Settings layout v13; shell layout v29).
-
-The shared header has a **184 x 18** px Short / Full radio group, **8** px before the chat-channel group. Each option is **50 x 18** px; a **30** px label precedes its **14** px radio by **1** px. Stored in `RaidwiseDB.reportForm`, default `short`; the Settings form section is removed.
-
-Category bars: **28** px high, **16** pt gold text, theme-aware `TITLE_BG` fill, **3** px gold left accent, **10** px text inset; **20** px gap above each subsequent category. Hint/control content uses the same **10** px inset; radio grids use inner width minus **20** px.
-
-Below: **Unit tooltips** category bar and hint, then one shared panel with **10** px padding. Left: **360** px options column with the selected-opinion visibility checkbox (**24 × 24**); retired tag/Karma options are not displayed. Right: remaining width after a **20** px column gap, containing a small **Live tooltip preview** label and compact + stacked samples. Preview text wraps within the right column. Panel height follows sample text height with a **120** px minimum content height plus **20** px padding (`LAYOUT_VERSION = 18`).
-
-## Fonts
-
-| Role | Font object | Color |
-|------|-------------|-------|
-| Window / menu titles | `GameFontNormal` | Gold `{1.00, 0.82, 0.00}` |
-| Menu / action buttons | `GameFontNormalSmall` | Idle `{1.00, 0.93, 0.73}`; hover `{1.00, 0.91, 0.55}`; selected gold |
-| Version / status / hints | `GameFontNormalSmall` | Idle text / `TEXT_DISABLED` |
-| Checkbox & section labels | `GameFontHighlight` | |
-| Info headings | `GameFontNormal` at **16** pt | About / GitHub / feature titles |
-| Info body | `GameFontHighlight` at **15** pt | Intro, feature bodies, repo hint |
-| Export JSON / profile notes | `ChatFontNormal` | |
-
-## Shared widgets (`UIWidgets.lua`)
-
-Key helpers used across pages (not on `Raidwise` directly):
-
-| Helper | Role |
-|--------|------|
-| `ApplyPlainPanel` / `HidePanelBorder` | Flat backdrop fill (no border edges) |
-| `ApplyOuterBorder` | 2 px bronze edge on a floating window (Character profile) |
-| `CreatePlainButton` / `SetPlainButtonState` / `SetMenuButtonState` | Menu and action buttons |
-| `ApplyFontSize` | Change a FontString’s point size (keeps face and flags) |
-| `CreateCopyBox` / `CreateLineCopyBox` | Export and URL copy areas |
-| `SetSpecOrClassIcon` / `SetSpellIconTexture` / `CreateBuffIconHost` / `CreateConsumableStatusHost` | Class, spec, raid-buff, and flask/food status icons |
-| `TableIconInset` / `TableIconTopOffset` | Center icons in table rows |
-| `AttachLayoutVersionLabel` | Profile title-bar `vN` badge |
-| `RatingOpinionIcon` / `RatingOpinionSymbol` / `RatingOpinionColor` / `ShowMemberRatingTooltip` | Opinion display in roster tables |
-
-## Changing sizes
-
-1. Edit the `UI` / theme constants in `UITheme.lua`, `ExporterWindow.lua`, or the relevant `Page*.lua`.
-2. Bump that view’s `LAYOUT_VERSION` when structure or named frames change.
-3. Update this document and [`UI-Views.md`](UI-Views.md) to match (include the new `vN`).
-4. Reload the UI (`/reload`) and check `/raidwise` (layout rebuild should also fire when versions mismatch).
-
-Header report controls are contextual: chat channels appear only on Raid roster, Raid composition, and Gear check (target); Short / Full appears only on Gear check (target), whose output uses that setting. Both groups are hidden on all other views. Switching views preserves saved selections.
-
-## Historical character-system transition (2026-10-30)
-
-The sequence below records earlier layouts, not the current profile screen.
-Current profile dimensions are in the active v40 section above.
-
-Shell v23 removes the exchange group and profile-export entry; outer sizes are unchanged.
-Profile v36 removes the 90 x 18 Share button; the title now ends 8 px before
-the layout badge. Its former Karma labels are blank pending the profile redesign.
-Database v11 removes the 150 px Share database button; table and outer sizes are unchanged.
-Settings v17 removes the two Karma tooltip options, leaving two personal options;
-the panel keeps its existing minimum height and column widths.
-
-Settings v18 leaves only the selected-opinion visibility checkbox. Retired tag
-and Karma flags have no effect on generated tooltip lines. Panel minimum height,
-360 px options column and preview-column gap remain unchanged.
-
-Profile v38 restores inline class/spec and coloured opinion icons. Title text is
-330 px; GUID occupies 230 px at x=335 in the title bar. Opinion label is 65 px
-at x=12; four buttons are 139 px wide at x=80/227/374/521, y=-86.
-The event selector opens a 510 x 272 panel below its button, with a 260 px
-scroll area and 26 px rows. Window and existing content sizes are unchanged.
-History v8 / Database v13 restore inline class/spec and coloured opinion icons
-inside existing columns; specialization text appears in both lists.
+Detailed anchors/columns/padding are not duplicated as Markdown schematics.
+Historical Import/Share/Karma layouts are outside the active UI; see the
+[character map](../characters/Reputation.md#historical-code). HTML concepts remain
+available through the [design index](index.html). Native visual checks are in the
+[UI map](UI-Views.md#native-client-constraints-and-verification).

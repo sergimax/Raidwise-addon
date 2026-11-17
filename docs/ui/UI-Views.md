@@ -1,439 +1,72 @@
-# UI view schemes
-
-ASCII layouts for each window and content page. Update this file when a view changes.
-Pixel sizes live in [`UI-Sizes.md`](UI-Sizes.md).
-Shared widgets: `UIWidgets.lua`.
-Page modules and shell: see [`Architecture.md`](../Architecture.md).
-
-Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.md`](../Architecture.md).
-
-## Shell
-
-Classic-theme plain panels: compact title/control bar at the very top, followed by a narrow left navigation column and page content.
-
-```text
-[ Main window 890 x 693 ]
-[ Raidwise vX | {page} vN | {format controls} | {chat controls} | [−] [X] ]
- [ tab ][ tab ][ tab ][ tab ][ tab ]
- [ tab ][ tab ][ tab ][ tab ][     ]
- [ page body: 870 x 653           ]
-```
-
-Top bar (left to right): **Raidwise** + addon semver, active page name + its layout badge **`vN`**, then available format/chat controls and close **X**. The narrow navigation column sits left of the page viewport, grouped under Personal, Raiding, Guild, and Other. Shell `SHELL_LAYOUT_VERSION` is rebuild-only (not shown in UI).
-
-Menu tabs each have an **16×16** category icon + label. Group headings are visible above Personal, Raiding, Guild, and Other. Current tab order:
-
-```text
-[ watch ] Character cooldowns [ book ] Character database [ glory ] Raid roster [ BoK ] Raid composition
-[ scope ] Gear check (target) [ book ] History [ tabard ] Guild roster (Raidwise_Guild)
-[ note ] My gear and CDs exports [ gear ] Settings [ ? ] Info
-```
-
-Icons (`Interface\Icons\`): `INV_Misc_PocketWatch_01`, `INV_Misc_Note_01`, `Achievement_Dungeon_GloryoftheRaider`, `Spell_Magic_GreaterBlessingofKings`, `INV_Misc_Spyglass_03`, `INV_Misc_Book_11`, `INV_Misc_Gear_01`, `INV_Misc_QuestionMark`.
-## Layout versions
-
-Independent from addon semver (`Addon.version` in the top title bar). Bump a view’s `LAYOUT_VERSION` when structure, sizes, or named frames change; open windows rebuild on next show.
-
-| View | Constant | File | Badge location |
-|------|----------|------|----------------|
-| Main shell | `SHELL_LAYOUT_VERSION = 34` | `ExporterWindow.lua` | Rebuild only (not shown in UI) |
-| Guild roster / journal | `LAYOUT_VERSION = 7` | `Raidwise_Guild/PageGuild.lua` | Top title bar (next to page name) |
-| Diagnostics popup | `LAYOUT_VERSION = 2` | `Diagnostics.lua` | Independent report window; no badge |
-| Character | `PROFILE_LAYOUT_VERSION = 40` | `ProfileWindow.lua` | Title bar (left of close) |
-| Cooldowns | `LAYOUT_VERSION = 9` | `PageCooldowns.lua` | Top title bar (next to page name) |
-| My gear and CDs exports | `LAYOUT_VERSION = 5` | `PageExport.lua` | Top title bar (next to page name) |
-| Raid | `LAYOUT_VERSION = 55` | `PageRaid.lua` | Top title bar (next to page name) |
-| Composition | `LAYOUT_VERSION = 10` | `PageComposition.lua` | Top title bar (next to page name) |
-| Gear check (target) | `LAYOUT_VERSION = 20` | `PageGearCheckTarget.lua` | Top title bar (next to page name) |
-| History | `LAYOUT_VERSION = 8` | `PageHistory.lua` | Top title bar (next to page name) |
-| Character database | `DATABASE_LAYOUT_VERSION = 13` | `PageHistory.lua` | Top title bar (next to page name) |
-| Settings | `LAYOUT_VERSION = 19` | `PageSettings.lua` | Top title bar (next to page name) |
-| Info | `LAYOUT_VERSION = 5` | `PageInfo.lua` | Top title bar (next to page name) |
-
-The shared shell is **753 px** tall on every page, with a **653 px** page viewport. The Raid viewport fits groups
-1-5; groups 6-8 are below the fold and accessible by scrolling. Settings now scrolls
-vertically so all controls remain accessible in the shorter window.
-
-The table lists active views only. Retired `PageSyncExport`, `PageSync` and
-`PageReputation` are outside the TOC and have no active navigation or badges.
-Rules: see [AGENTS.md](../../AGENTS.md). Do **not** bump layout versions for locale-only string edits.
-
-## Guild roster and journal
-
-The Guild navigation group contains one Guild roster page registered by `Raidwise_Guild`. The separate EPGP page is removed.
-
-```text
-[ Roster ][ Journal ][ Refresh ][ refresh progress: waiting / members read ]
-[ Search name / notes ][ Current raid 1–5 or event type ][ Mains only ][ Minimum EP / Apply ][ BASE_GP ]
-[ Class-colored name | Class icon | Rank | Online | EP [roll] | GP (+base) | PR | Public note | Officer note ]
-[ 25 records per page; mouse wheel / vertical scrollbar for rows ]
-[ headers stay fixed vertically and scroll horizontally with rows ]
-[ Previous ][ Next ][ page / pages / matching count ]
-[ Roster: selected character, two note editors, Save / Reload, Promote / Demote ]
-[ Journal: selected event details; entry limit and Apply ]
-```
-
-Headers and row cells use the same column definitions in both modes.
-The active Roster/Journal tab remains highlighted on hover.
-Class icons replace class names (the tooltip retains the name); there is no class filter.
-Online status is green.
-The character selected for editing uses the shared current-character highlight, retained on hover and refresh.
-The editor retains drafts across refreshes.
-Permission changes immediately hide officer details.
-Owners and checks: [guild task map](../raid/Guild-Management.md).
-
-## Export gear and CDs
-
-```text
-[ short description ]
-[ checkbox for including item names ]
-[ export data button ] [ select all data button ]
-[ short hint about copy ]
-[ input for copy ]
-```
-
-| Block | In-game text / control |
-|-------|------------------------|
-| short description | “Export this character's gear, bags, and raid lockouts as JSON.” |
-| checkbox | Include item names |
-| export data button | **Export character data** — fills the copy box |
-| select all data button | **Select all** — highlights JSON for Ctrl+C (disabled until export) |
-| short hint | Starts as “After export, press Ctrl+C to copy.” |
-| input for copy | Multiline EditBox on black fill; click selects all; Ctrl+C copies. Padding unchanged. |
-
-## Retired exchange pages
-
-Profile import/export and Share menus are outside the TOC. See [Synchronization.md](../characters/Synchronization.md).
-
-## Character cooldowns
-
-Account-wide lockout table. Columns persist in `RaidwiseDB.characters` after you log in on each character.
-
-```text
-[ short description ]                              [ Refresh ]
-        8 px gap
-[ Raid / Dungeon | Char (class color + spec icon) | Char | ... ]
-                 | last check                     | last check |
-                 |                                | [ Remove ] |
-[ Icecrown Citadel                               | 10 10h 25 25h | -   ]
-[ (Raid)                                         |               |     ]
-[ Currency          | (title line — empty in char cols)        ]
-[ Gold  12.3kg      | [icon] 645g  | ...                      ]
-[ Frost  47         | [icon] 2     | ...                      ]
-```
-
-| Block | In-game text / control |
-|-------|------------------------|
-| short description | “Lockouts and currency for every character saved on this account.” |
-| Refresh | Requests fresh raid info, then redraws the table (hover tip) |
-| first column | Instance name, then kind in parentheses (`(Raid)` / `(Dungeon)`); **Currency** row at bottom |
-| character columns | Name in class color with the primary spec icon; last check time (`18 Aug 23:58`) under the name; current character first with a theme-aware gold background across its header and cells; **Remove** on other columns deletes that character from `RaidwiseDB.characters` (login again restores) |
-| saved cell | Compact size/mode tags (`10`, `10h`, `25`, `25h`, …); tooltip lists each variant with time until reset |
-| currency cell | Title line + label column with account totals (`Gold  12kg`); character columns skip one line, then icon+count chips aligned to labels |
-| empty cell | `-` (not saved) |
-| empty table | “Log in on each character…” if none saved; “No current lockouts.” if columns exist but no lockouts (**Currency** row still shows) |
-
-Rows come only from current lockouts; each instance is one row with all size/mode variants combined in character cells (10 / 10 Heroic / 25 / 25 Heroic, plus older 20 and 40). Expired lockouts are dropped.
-
-## Raid roster
-
-Layout v55 uses three rows: class+spec / name / Food icon / Flask icon; Rescan / Armor / Weapon / Enchant / Gems; GS / iLvl / opinion / Gear. Food and Flask icons are stacked at the right of the name, tinted green when present and red when missing (unknown stays muted). Gear category report buttons use the verdict color as their background and retain their tooltip and click action. Gear buttons keep
-`SecureActionButtonTemplate`: their target action selects the cell's current
-unit, then PostClick opens target check. Unit/GUID validation prevents stale
-cells from opening a different character's report.
-
-Current raid layout by group, with integrated gear-check scan. Parties 1–5 are the first block; parties 6–8 are the second. Each party has five player slots. Not in a raid: party members fill group 1 (same inspect/GS pipeline as before; no separate party tab).
-
-```text
-[ S·A·B·C·D  Average GS 6158  Tanks 2 · Healers 6 · Melee 12 · Range 5  [shout] Flask 22/25 [shout] Food 20/25 [scan][export][refresh][back] ]
-[ [shout] Gems … | [shout] Armor … | [shout] Weapons … | [shout] Enchants … ]
-[ scan / export status (reserved height)                                 ]
-[ progress bar track (always reserved)                                   ]
-        8 px gap
-[ roster table — or export copy box when text view is on                 ]
-[class+spec][  name  ][Food ][Flask]
-[Rescan][Armor ][Weapon ][Enchant][Gems]
-[  GS  ][ iLvl ][opinion][ Gear ]
-        12 px gap
-[ 6              ][ 7              ][ 8              ]
-[ player cell    ] ...
-```
-
-| Block | In-game text / control |
-|-------|------------------------|
-| mini table | Two rows: chips + GS/roles + Flask/Food reports + icon toolbar (**28**), then four gear-category report cells (**20**); **4** px between rows |
-| row 1 grade chips | Colored `S · A · B · C · D`; hover shows `GEAR_CHECK_RAID_HINT` |
-| row 1 GS / roles | `Average GS` plus role counts on one line; hover shows per-role count and average GS |
-| row 1 toolbar | Icon buttons **Scan**, **Export all**, **Back to roster** in a horizontal strip (**28×28**, **4** px gap). Hover shows the action name and tip. **Back to roster** enabled only while export text is open. Dump click (or Export all) highlights text for Ctrl+C |
-| row 1 reports | **Flask** and **Food** compact counts, each with a **16×16** Battle Shout report button immediately left of its label; hover previews the report |
-| row 2 reports | Four equal cells: **Gems**, **Armor**, **Weapons** (main/off/2H/relic), **Enchants** — compact counts, each with a **16×16** Battle Shout report button immediately left of its label |
-| flask / food | `Flask n/total` / `Food n/total`; green when everyone in range has them, red if anyone is confirmed missing. Missing names and `(n missing)` live in the hover tip. Out of range / offline are not listed as missing |
-| gems / armor / weapons / enchants | Separate S / A / B / C / D counts (+ Failed). Weapons include main-hand, off-hand, two-hand and relic slots. Dim until first scan (`Press Scan to check.`) |
-| report icon | Battle Shout button to the left of each category label; hover (cell or icon) shows the category tip, current counts, plus a preview of the chat line(s) that will be posted |
-| scan status | Below the mini table; reserved **28** px; scan/export/rescan text. After a successful full scan, shows the completion message, player count, and last full-scan date/time (local clock, including seconds). Restored when returning from export or refreshing locale; individual rescans do not change the full-scan timestamp. Before the first full scan, idle text is empty. |
-| progress bar | Below status (**4** px gap); height **14**; track always reserved |
-| column header | Group number (`1`–`8`) plus party-only buff icons (Heroic Presence, Vampiric Embrace, Mana Tide Totem); full color = someone in the group provides it, red tint = missing; hover shows spell and provider names. Buffing shaman totems are raid-wide within 30 yd and are not shown here. |
-| line 1 | Class icon + spec icon (question mark when unknown) + role icon when known + class-colored name. |
-| line 2 | `GS` and `iLvl` values (each `-` until scanned or unavailable), then personal opinion icon and Karma percent; tags stay on hover. |
-| line 3 | Weapon and armor score buttons, Flask status icon, then **Gear**. Each score button posts that evaluation group's findings to the report chat channel. |
-| line 4 | Gem and enchant score buttons, Food status icon, then **Rescan**. Each score button posts that evaluation group's findings to the report chat channel. |
-| hover | Opinion + tags + Karma percent/tags + **Guild: Name (Rank)** + **gear check** section + raid-buff icons and names last |
-| click | Left-click card → **Character profile**; **Gear check** / **Rescan** / report buttons do their own actions |
-
-API: `StartGearCheckRaidScan`, `GetLastGearCheckRaidResults`, `ShowGearCheckReport`, `IsGearCheckScanBusy`.
-
-Player-card backgrounds use neutral alternating row fills and no longer encode gear-scan grades. Scan state and category grades remain available in the cell and its tooltip. Empty slots keep the same alternating fills.
-
-Online character names use the exact `RAID_CLASS_COLORS` color in both themes, without contrast recoloring. In the light theme, raid-roster names have a one-pixel opaque black shadow for legibility over status backgrounds. Offline characters retain their scan background, with muted names and dimmed grayscale class/role/spec icons; GS and iLvl are dimmed. Characters without a gear-check report show `-` for GS and iLvl and an amber **Not scanned** label (or the specific scan failure) in the score area. Existing reports remain accessible. Styling updates on roster refresh after reconnecting or receiving a report.
-
-## Raid composition
-
-Wowhead-style checklist of the current party or raid: who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered.
-Catalog owner and inference limits: [composition task map](../raid/Raid-Composition.md).
-Detected primary specs appear as icon/count rows beneath their corresponding class, in talent-tree order; hover for the spec name and players.
-
-```text
-[ short description ]                   [ Report missing ] [ Refresh ]
-        8 px gap
-[ Roles ]                    [ Classes ]
-[ (tank)2 (heal)6 (m)12 (r)5 ] [ W2 Pa1 Hu0 Ro1 … Dr0 ]
-                             [ spec icons + counts under each class ]
-                             [ next detected spec + count           ]
-                             [ next detected spec + count           ]
-        gap
-[ Aggro              ] [ Buffs              ] [ External buffs    ]
-[ (icon) Misdirect 1 ] [ (icon) 10% stats 1 ] [ (icon) Focus Magic 0 ]
-[ Damage reduction   ] [ Debuffs            ] [ Mana / Health regen ]
-```
-
-| Block | In-game text / control |
-|-------|------------------------|
-| short description | “Who is needed, and which raid buffs, debuffs, and utility are already covered.” |
-| Report missing | Posts absent classes to the selected header report channel; all present → short “all classes present” line (hover tip) |
-| Refresh | Re-reads the current group (same inspect/GearScore path as Raid roster) (hover tip) |
-| Roles | Left of top band: role icon + count; tooltip = role name + who / Missing |
-| Classes | Right of top band: all 10 WotLK class icons + count; present gold, absent dim; tooltip = class + who / Missing |
-| columns | Three equal columns below; sections pack into the shortest column |
-| section heading | Name left; `present/total` right-aligned above row counts; gold, or **red** when present is `0` |
-| row | Spell icon, name, count of players who can provide it; **Shift-click** posts effect + class/spec — spell lines to the report chat channel (title bar) |
-| present | Gold name and count (`> 0`) |
-| missing | Dim name and `0` |
-| tooltip | Who in the raid has it; then **Brought by:** on its own line, then one source class/spec — spell per line; hint for Shift-click |
-
-Spec is the primary talent tree (same as Raid roster). Solo shows only your own coverage.
-
-## Gear check (target)
-
-Report buttons include 14 px icons and Chat preview tooltips for the displayed report, using the current Short/Full setting. With no report, the tooltip indicates that a scan is needed.
-
-Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, progress, Scan, Inspect target, Character profile, Show as a text, Select all (top band), then Save report, Delete selected report, scrollable saved list.
-Owners and checks: [Gear Check task map](../gear-check/Gear-Check-Progress.md).
-Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
-
-```text
-[ short description — full width ]
-[ surface-level limitation — full width ]
-
-LEFT (640px)                          RIGHT (~220px)
-[ summary: Overall / class+spec icons / who / GS+iLvl … ]  [ status line 1 ]
-                                        [ status line 2 … ]
-                                        [ Scan progress ]
-                                        [ Scan ]
-                                        [ Inspect target ]
-                                        [ Character profile ]
-                                        [ Show as a text ]
-                                        [ Select all ]
-
-[ Report summary | … | Report B ]
-[ All | Items | Enchants | Gems | B ]
-
-[ scrollable findings by slot ]         [ Save report ]
-                                        [ Delete selected report ]
-                                        [ Saved reports (~14 days) — scroll ]
-
-(Show as a text → raw dump copy box below top band; text view + Select all stay in top band)
-```
-
-| Block | In-game text / control |
-|-------|------------------------|
-| short description | Overall: S (on published BiS lists) / A (preferred) / B (usable·acceptable) / C (unwanted·soft) / D (forbidden·wrong for spec); surface-level PvE; S is list membership, not a unique BiS pick |
-| limitation | S = published BiS-list membership, not a unique pick; no build / encounter / stat-weight optimization |
-| Character profile | Opens the displayed scan character by GUID; creates a missing history entry without changing existing notes or ratings. Disabled without a report GUID. |
-| summary (left) | Overall status (colored), class + spec icons + character line, GearScore / avg iLvl, issue counts, meta, sets |
-| status (right) | Multi-line hint or scan result (`\n` breaks + word wrap); sits above Scan |
-| Scan | Resolves target or self, inspects if needed, evaluate + refresh UI (hover tip) |
-| Show as a text | Toggles raw dump (replaces main columns; stays in top band) (hover tip) |
-| Select all | Enabled in text view when dump has text (hover tip) |
-| report buttons | Print to the title-bar report channel (`[Rw]-gear` lines); hover previews the report |
-| filters | All / Items / Enchants / Gems / **B**; hover tip per filter |
-| breakdown (left) | Active filter name as gold header (except **All**); then `[VERDICT] Slot — Item` plus finding bullets |
-| Save report | Stores current evaluated snapshot (~14 days); scans are **not** auto-saved (hover tip) |
-| Delete selected report | Removes the currently viewed saved entry (hover tip) |
-| saved panel (right) | Scrollable list of all saved entries; click loads frozen snapshot |
-
-`LAYOUT_VERSION = 20`. Slash: `/rw gearcheck`; `/rw gearcheck summary|items|enchants|gems`; `/rw gearcheck test`.
-
-Saved snapshot fields: `rulesetVersion` (`GEAR_CHECK_RULESET_VERSION` in rules), `dataVersion` (`GEAR_CHECK_DATA_VERSION` in catalog), both independent of addon semver. Expired entries prune on load/save.
-
-Raid-wide gear check lives on **Raid roster** (Scan button + report rows per player cell). See that section for layout and interaction.
-
-## Character profile
-
-Active owner: `ProfileWindow.lua`, layout **v40** (`PROFILE_LAYOUT_VERSION`), save controller `ProfileEditor.lua`.
-
-```text
-[ Name-realm                         Actions     v40 X ]
-[ Class / guild / spec / known gear                    ]
-[ Opinion · selected roles                      Edit  ]
-[ Author · updated time / self-profile explanation     ]
-[ Expandable opinion and role editor; Done             ]
-[ Overview ][ Events ][ Meetings ][ Characters ] [Journal]
-[ Overview: recent events (60%) | Private note (40%)    ]
-[ Add event / All events        | Meeting/link summaries]
-[ Status           Save/retry · Reload on error · To note]
-```
-
-The compact 820 × 540 window opens Overview by default with up to three latest
-events. Empty recent lists hide their scroll controls; All events follows the
-actual row count instead of reserving a large empty list. The private note
-appears only here; other sections offer To note with focus. The opinion and
-selected roles stay in the header; Edit expands controls and Done collapses them.
-Self-profiles hide rating and event creation controls with an explanation.
-Events retain type/date/place/author and offer type editing/removal. Add event
-opens a grouped searchable chooser: selection prepares, explicit Add confirms
-and captures the context. Type editing preserves original event date/place.
-Meetings show the current observer and lifetime summary above their own list;
-the journal opens separately with Back. Both have independent 25-row pagination.
-Characters initially show existing links; Link character reveals search/target.
-Each row offers profile navigation, main designation and permitted unlinking.
-GUID and confirmed deletion are in Actions. One-second autosave, retained failed
-drafts and close/switch saves remain; manual Save appears for dirty drafts,
-Retry/Reload on error. Reload explicitly discards the draft. Deletion invalidates
-pending drafts before hiding. Previous profile modules remain outside the TOC.
-
-## History and Character database
-
-Active owner: `PageHistory.lua`; list data: `PlayerEncounters.BuildHistoryRoster`.
-
-```text
-DATABASE v13
-[ Filled profiles hint                         Refresh ]
-[ Name ][ Class ][ Guild ][ Opinion: all / + / = / - / unset ]
-[ Add name ][ Add ][ Add target ][ Delete all ]
-[ Name-realm | Class/spec | Opinion | Author | Guild | Meetings | Delete ]
-[ Rows open the shared Profile; 25 rows per page, two-axis scroll ]
-
-HISTORY v8
-[ Last 14 days — current character              Refresh ]
-[ Name ][ Class ][ Guild ]
-[ Name-realm | Class | Opinion | Last date / place | Meetings ]
-[ Only this observer's recent group/raid partners; 25 per page ]
-```
-
-The database includes any meaningful saved content, including a private note or
-explicit neutral opinion. A note alone displays Not set and no opinion author.
-Neither scans, links nor opening/adding an empty card creates a database entry.
-Database sorting uses the newest profile/note update; History uses the last
-meeting; both break ties by name/realm and identity key. Searches combine
-case-insensitive name/realm, class and guild substrings.
-
-Adding a name/target opens an unfilled Profile; live GUID discovery preserves
-new profile data via the identity core. Delete confirms the selected identities;
-Delete all snapshots the whole saved database, independent of current filters.
-Deletion preserves meetings/counters, so a removed card can remain in History.
-Old meetings age out of History without deleting a filled Profile from Database.
-No tags, GS, ilvl, legacy source columns or sharing controls remain in these lists.
-
-## Retired Reputation page
-
-Removed from navigation and TOC; profiles live in Database. No Karma loader.
-
-## Settings
-
-The Changelog section below Unit tooltips provides the repository's `CHANGELOG.md` URL and a localized Select all button. Select the address, then press Ctrl+C and paste it into a browser.
-
-A **Theme: Dark / Theme: Light** toggle in its own **Theme** category below Language applies immediately and persists in `RaidwiseDB.theme`. Dark is the default.
-
-Category titles use full-width shaded bars with a gold left accent and larger text. The unit-tooltip controls and live preview share one panel; the preview is a subordinate label, not another category.
-
-```text
-[ language heading ]
-[ short hint ]
-[ English button ] [ Русский button ]
-
-[ Theme category bar ]
-[ Theme: Dark / Theme: Light button ]
-
-[ Startup page heading ]
-[ short hint ]
-( ) Cooldowns   ( ) Export      ( ) Raid        ( ) Composition
-( ) Gear target ( ) History     ( ) Settings
-
-[ Unit tooltips category bar ]
-[ short hint ]
-+------------------------------------------------------------------+
-| [ ] Hide personal opinion   | Live tooltip preview                |
-| [ ] Hide personal tags      | Compact: sample lines               |
-| [ ] Hide Karma              | Stacked: sample lines               |
-| [ ] Hide Karma tags         |                                    |
-+------------------------------------------------------------------+
-```
-
-| Block | In-game text / control |
-|-------|------------------------|
-| language heading | Language |
-| short hint | “Interface language. Saved on this account.” |
-| English / Русский | Menu-style buttons; the active locale is selected. Choice is stored in `RaidwiseDB.locale` (`enUS` / `ruRU`). Default is the client locale. |
-| Startup page | Exclusive radio group for left-menu pages (**Info** excluded); selected page opens on `/raidwise`. Stored in `RaidwiseDB.startupTab` (default `cooldowns`). Saved `party` / `gearraid` migrate to `raid`. |
-| Report chat channel (shared title bar) | `Slf`, `Say`, `Prt`, `Rd`, `Rdw`, `Gld`, `Gof`, `Aut` exclusive radios with chat-colored labels and full-name tooltips; destination for Raid roster, Composition, and Gear check reports. Stored in `RaidwiseDB.reportChannel` (default `auto` = RAID in a raid, PARTY in a party). Unavailable channels print to the local chat frame instead. |
-| Gear check report form (shared title bar) | Short (default) or Full wording for Gear check Report buttons / `/rw gearcheck …`. Stored in `RaidwiseDB.reportForm`. |
-| Unit tooltips | Checkboxes stored in `RaidwiseDB.tooltip` (`hidePersonal`, `hidePersonalTags`, `hideCommunity`, `hideCommunityTags`); default all shown |
-| Live tooltip preview | Inside the Unit tooltips panel, beside its checkboxes; compact and stacked sample lines update when options change |
-
-Switching language updates the left menu, page labels, and visible tables without `/reload`. Player unit tooltips (mouseover/target) append personal opinion + top 3 tags and, for players in History, Karma mock percent + top 3 tags (`UnitTooltips.lua`).
-
-## Info
-
-```text
-[ about heading ]
-[ intro sentences ]
-[ slash command list ]
-[ menu icon ] Menu name  vN
-[ section sentences ]
-[ section list ]
-… (one block per menu page except Info)
-[ github heading ]
-[ short hint about copy ]
-[ input for repo URL ] [ select all button ]
-```
-
-| Block | In-game text / control |
-|-------|------------------------|
-| about heading | About |
-| intro | Raid-prep overview, then a slash-command list (`/raidwise`, `/rw`, `close`, `gearcheck`); one sentence per line |
-| feature sections | Same icons as the left menu; title = menu label; **`vN`** = that page’s `LAYOUT_VERSION`; body is sentences plus a list of what the view does |
-| github heading | GitHub |
-| short hint | “Select the URL, then press Ctrl+C to copy.” |
-| input for repo URL | Single-line copy box with `https://github.com/sergimax/Raidwise-addon` |
-| select all button | **Select all** — highlights the URL for Ctrl+C |
-| scroll | Vertical scroll when sections exceed the content area |
-
-## Adding a view
-
-1. Add a tab in `PAGES` in `ExporterWindow.lua` (shell) with a menu `group` and a `Page*.lua` module under `Addon.Pages`.
-2. Give the view a `LAYOUT_VERSION` constant, stamp it on the frame, and show it in the top shell title bar next to the page name (pages) or with `AttachLayoutVersionLabel` (profile popup).
-3. Paste a new `## Title` scheme here (same `[ block ]` style) including the layout `vN`.
-4. Implement the page and record sizes in `UI-Sizes.md`.
-5. See [`Architecture.md`](../Architecture.md) for load order and the two version concepts (addon semver vs layout).
-
-> **Note:** Shell and per-page layout versions force recreate when constants bump (see Architecture). Named scroll/edit frames use a `V` + layout version suffix.
-
-The shared header contains Short / Full exclusive report-form radios immediately before the chat channels. They retain `RaidwiseDB.reportForm` and are removed from Settings. Full form names and help remain localized in tooltips.
-
-Header report controls are contextual: chat channels appear only on Raid roster, Raid composition, and Gear check (target); Short / Full appears only on Gear check (target), whose output uses that setting. Both groups are hidden on all other views. Switching views preserves saved selections.
-
-Profile v38: GUID in the title bar; explicit Opinion label; Reset clears the
-opinion. Opinion buttons retain coloured labels/icons. Events/History/Characters
-keep the active highlight on mouse leave. Event types use a scrollable chooser
-with direct selection. Profile and both character lists show class/spec icons;
-unset opinions in lists retain their separate, uncoloured label.
+# UI task map and layout versions
+
+Start here for shell, page, theme and shared-control work. Paths below are
+relative to `Raidwise/` unless a companion addon is named. Search the entry point
+before its helpers; [Architecture](../Architecture.md) routes behavior outside UI.
+
+| Change | Owner / search entry point | Checks |
+|---|---|---|
+| Navigation, startup tab or title/report controls | `ExporterWindow.lua`: `CreateMainFrame`, `SelectTab`, private `UpdateShellHeader`; `PAGES`, `MENU_GROUPS` | [architecture](../../tests/architecture.test.mts), header cases in [gear-check](../../tests/gear-check.test.mts) |
+| Page entry, localization or registration | Owning `Addon.Pages.*` registration: `Create`, `Refresh(page, entering)`, `ApplyLocale`; `ExporterWindow.lua`: `RefreshLocalizedUI` | [architecture](../../tests/architecture.test.mts): entry versus locale refresh |
+| Stale shell/page generation | `ExporterWindow.lua`: private `PageLayoutStale`, `ShellNeedsRebuild`, `TearDownMainFrame` | Inspect these comparisons when changing rebuild behavior; page lifecycle/stamp fixtures are in [architecture](../../tests/architecture.test.mts) |
+| Shared dimensions, colors or fonts | `UITheme.lua`: constants, `ApplyTheme`, `SetTheme`; [geometry owners](UI-Sizes.md) | [theme](../../tests/theme.test.mts): stable palette references and bindings |
+| Inputs, buttons, copy boxes or dragging | `UIWidgets.lua`: `CreateTextInput`, `CreateCopyBox`, `FitCopyBoxToText`, `CreatePlainButton`, `AttachDragHandle` | [theme](../../tests/theme.test.mts); native templates/clipboard need client checks below |
+| Roster cards, grades, consumables or opinion renderers | `RosterWidgets.lua`; owning page creates/anchors the controls | [gear map](../gear-check/Gear-Check-Progress.md), [character map](../characters/Reputation.md), [composition map](../raid/Raid-Composition.md) |
+| Profile popup and its separate lists | `ProfileWindow.lua`: private `Create`, `List`, `Refresh`; public `ShowRaidCharacterWindow`; `ProfileEditor.lua`, `ProfileCharacters.lua` | [profile-window](../../tests/profile-window.test.mts): interactions, anchors and named template-scroll requirement |
+| Diagnostics popup | `Diagnostics.lua`: `ShowDiagnostics` | [architecture](../../tests/architecture.test.mts): diagnostics/native-template fixture |
+| Guild table/editor | `Raidwise_Guild/PageGuild.lua`: private `LayoutTable`, `Create`, `Refresh` | [guild map](../raid/Guild-Management.md) |
+
+## Active views and layout versions
+
+The code owns these values; this table is the required layout inventory under
+[AGENTS.md](../../AGENTS.md#layout-versions). For geometry/structural changes apply
+that rule and update this table plus affected [sizes](UI-Sizes.md).
+Documentation cleanup alone does not change the registered generation.
+
+| View | Registration / entry | Current constant | Owner |
+|---|---|---|---|
+| Main shell | `CreateMainFrame` | `SHELL_LAYOUT_VERSION = 34` | [ExporterWindow.lua](../../Raidwise/ExporterWindow.lua) |
+| Guild roster / journal | `Addon.Pages.Guild` | `LAYOUT_VERSION = 7` | [PageGuild.lua](../../Raidwise_Guild/PageGuild.lua) |
+| Diagnostics | `ShowDiagnostics` | `LAYOUT_VERSION = 2` | [Diagnostics.lua](../../Raidwise/Diagnostics.lua) |
+| Profile | `ShowRaidCharacterWindow` | `PROFILE_LAYOUT_VERSION = 40` | [ProfileWindow.lua](../../Raidwise/ProfileWindow.lua) |
+| Cooldowns | `Addon.Pages.Cooldowns` | `LAYOUT_VERSION = 9` | [PageCooldowns.lua](../../Raidwise/PageCooldowns.lua) |
+| Gear / cooldown export | `Addon.Pages.Export` | `LAYOUT_VERSION = 5` | [PageExport.lua](../../Raidwise/PageExport.lua) |
+| Raid | `Addon.Pages.Raid` | `LAYOUT_VERSION = 61` | [PageRaid.lua](../../Raidwise/PageRaid.lua) |
+| Composition | `Addon.Pages.Composition` | `LAYOUT_VERSION = 10` | [PageComposition.lua](../../Raidwise/PageComposition.lua) |
+| Target Gear Check | `Addon.Pages.GearCheckTarget` | `LAYOUT_VERSION = 20` | [PageGearCheckTarget.lua](../../Raidwise/PageGearCheckTarget.lua) |
+| History | `Addon.Pages.History` | `LAYOUT_VERSION = 8` | [PageHistory.lua](../../Raidwise/PageHistory.lua) |
+| Character database | `Addon.Pages.Database` | `DATABASE_LAYOUT_VERSION = 13` | [PageHistory.lua](../../Raidwise/PageHistory.lua) |
+| Settings | `Addon.Pages.Settings` | `LAYOUT_VERSION = 19` | [PageSettings.lua](../../Raidwise/PageSettings.lua) |
+| Info | `Addon.Pages.Info` | `LAYOUT_VERSION = 5` | [PageInfo.lua](../../Raidwise/PageInfo.lua) |
+
+Shell version is rebuild-only. Badge placement and frame-stamping requirements
+are defined in AGENTS. Page content and header capabilities belong to the page
+registration; shared shell controls read `capabilities.reportChat` / `reportForm`.
+Retired Sync/Reputation/ProfilePanels views are outside the active TOC; their
+owners and historical fixtures are linked from the [character map](../characters/Reputation.md#historical-code).
+
+## Native-client constraints and verification
+
+- Read `CreateTextInput`'s source comment before changing Wrath input templates.
+  `UIPanelScrollFrameTemplate` controls need nonempty frame names; the active
+  profile mock now rejects anonymous ones. The older architecture notes fixture
+  also loads retired `CharacterProfile`, so it is not proof of active profile UI.
+- `UITheme.ApplyTheme` preserves color-table identity because views retain those
+  references. Follow its binding/font helpers instead of modifying global game
+  font objects; game tooltips are outside addon text adjustments.
+- Existing mocks cover behavior and selected anchor/template assumptions, not
+  the native template engine, font rendering or complete shell-rebuild parity.
+
+For affected changes check fresh construction and reopening/rebuilds, all active
+pages, both locales/themes and UI scales. Exercise header control visibility,
+long text, scrolling, tooltips, dragging, selection and actual clipboard copying.
+Record date/revision/scenarios for client evidence; these reference docs are not
+an acceptance report. Subsystem protocols: [profile](../characters/Character-System-Verification.md),
+[gear](../gear-check/Gear-Check-Verification.md), [guild/composition](../raid/Guild-Management-Verification.md).
+
+## Design references
+
+[HTML index](index.html) preserves theme, roster-cell and scan-color explorations
+with sample data. They are design references, not screenshots or executable
+specifications of the current addon. Determine adopted behavior/geometry from
+Lua and use the client checks above for actual visual parity.

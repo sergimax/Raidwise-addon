@@ -4,7 +4,7 @@ This directory is organized by topic. Start with [Architecture.md](Architecture.
 
 | Folder | Contents |
 |---|---|
-| [ui/](ui/) | Window/page layout references, pixel sizes, and HTML visual previews including theme and raid-scan colors. |
+| [ui/](ui/UI-Views.md) | UI task map/layout inventory, geometry owners and indexed design references. |
 | [raid/](raid/Guild-Management.md) | Guild task map, external limits/manual checks and [composition navigation](raid/Raid-Composition.md). |
 | [gear-check/](gear-check/Gear-Check-Progress.md) | Gear Check task map, compatibility, catalog maintenance and manual verification. |
 | [characters/](characters/Reputation.md) | Character task map, storage constraints/repair, manual evidence and deferred exchange. |
@@ -13,6 +13,6 @@ This directory is organized by topic. Start with [Architecture.md](Architecture.
 
 `Architecture.md` is intentionally kept at the root as the task-routing entry point referenced by `AGENTS.md`.
 
-For character, Gear Check and guild/composition work, keep entry points and checks in the task map; put executable
+For subsystem and UI work, keep entry points and checks in the task map; put executable
 behavior in source/tests. Preserve non-obvious reasons beside the relevant code
 or in a short decision record, and keep dated evidence separate from current status.

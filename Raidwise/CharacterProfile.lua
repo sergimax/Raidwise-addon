@@ -9,7 +9,7 @@ local function T(key, ...)
 	return W.T(key, ...)
 end
 
--- Profile-local sizes (keep in sync with docs/ui/UI-Sizes.md Character profile).
+-- Retired profile-local geometry; active dimensions are owned by ProfileWindow.lua.
 -- Colors come from Addon.UITheme (Classic).
 local Theme = Addon.UITheme
 local UI = {
