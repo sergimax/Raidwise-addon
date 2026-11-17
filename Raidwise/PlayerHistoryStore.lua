@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/history.test.mts and tests/roster-refresh.test.mts before removal.
 -- History storage, legacy migration, encounters, and persistence.
 local Addon = Raidwise
 

@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/sync.test.mts and tests/karma.test.mts before removal.
 -- Bounded JSON codec for interchange. Never executes imported text.
 local Addon = Raidwise
 local MAX_BYTES, MAX_DEPTH, MAX_NODES = 262144, 16, 40000

@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/architecture.test.mts before removal.
 -- Explicit profile sharing and reviewed imports; no background database merging.
 local Addon = Raidwise
 local W = Addon.Widgets

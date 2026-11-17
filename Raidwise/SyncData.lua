@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/sync.test.mts and tests/karma.test.mts before removal.
 -- Versioned profile exchange. Projection excludes private notes and local history.
 local Addon = Raidwise
 Addon.SYNC_REPORT_VERSION = 1

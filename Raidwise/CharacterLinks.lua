@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/sync.test.mts and tests/architecture.test.mts before removal.
 -- Local, manually recorded groups of characters belonging to one player.
 local Addon = Raidwise
 local ROLES = { main = true, alt = true }

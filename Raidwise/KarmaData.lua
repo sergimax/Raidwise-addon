@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/karma.test.mts before removal.
 -- Versioned, read-only Global Karma dataset import and lookup.
 local Addon = Raidwise
 

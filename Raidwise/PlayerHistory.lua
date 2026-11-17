@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/history.test.mts and tests/architecture.test.mts before removal.
 -- Rating catalogs, normalization, and saved-rating access.
 local Addon = Raidwise
 

@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/architecture.test.mts before removal.
 -- Full saved-profile export for Raidwise data exchange.
 local Addon = Raidwise
 local W = Addon.Widgets

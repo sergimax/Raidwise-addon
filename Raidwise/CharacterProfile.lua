@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/history.test.mts and tests/architecture.test.mts before removal.
 -- Character profile window (standalone): opinion, tags, notes, history.
 
 local Addon = Raidwise

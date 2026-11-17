@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/history.test.mts before removal.
 -- Plain profile draft state; no frames, rendering, or persistence writes.
 local Addon = Raidwise
 

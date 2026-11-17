@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; not part of the active reputation UI.
+-- TODO: Review retired-module guards in tests/player-records.test.mts and dependents before removal.
 -- Separate ownership views for local opinions, received opinions, and Karma.
 local Addon = Raidwise
 local W = Addon.Widgets
