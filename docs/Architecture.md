@@ -57,37 +57,9 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 
 ### Gear flow
 
-Inspect readiness accepts absent payloads, matching unit tokens, and matching
-character GUIDs; current unit identity is checked before dispatch. Unknown-spec
-evaluation defers specialization-dependent penalties while retaining objective
-checks such as missing enchants/gems and resilience. It remains provisional.
-
-Dump diagnostics include a copied request trace (requests/events/accepted/last
-payload) and `character.talentRead` (readiness, raw group/tab count, selected group,
-and per-tree points). These distinguish event delivery from empty talent reads;
-an incomplete final verdict alone does not prove the ready event was absent.
-
-The collector's gem cache retains at most 1,024 GUID/slot entries, tied to the
-exact item link. Reads expire after 10 seconds from the initial read, without
-extension on a cache hit. Collection sweeps expired entries at most once per
-second; reaching capacity evicts the oldest entry before inserting a new key.
-No idle timer is added: unused expired entries are removed on subsequent
-collection, and memory remains bounded while idle.
-
-`CollectGearCheck` normalizes truthy numeric WoW API results to a boolean before
-passing inspect readiness to the collector; its strict `true` check must not
-receive a raw `UnitIsUnit` result of `1`.
-
-`StartGearCheckUnitScan` requests inspect through the coordinator. `CollectGearCheck` supplies readiness to `CollectGearCheckObservation(unit, inspectReady)` and retains the observation. Collection does not evaluate. Finalization calls `EvaluateGearCheck`, which produces findings and invokes grade aggregation. Formatting belongs in reports, dumps and explanations.
-
-Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level inspect and counts). `NormalizeGearCheckReport` is the adapter at collection, evaluation and snapshot creation boundaries; canonical fields are `character`, `equipment`, and `collection`. Equipment/inspect accessors centralize reads of legacy reports. Rule and catalog revisions are independent of addon semver; saved reports retain original metadata. See [Gear-Check-Progress.md](gear-check/Gear-Check-Progress.md) for compatibility and grading details.
-
-`GetGearCheckScanState` derives `complete`, `incomplete`, or `unavailable` independently of S/A/B/C/D grades. Overall results carry optional `scanState`, `scanReason`, and `provisional` metadata. Views and chat show incomplete/unavailable labels; raid/minimap readiness counts exclude those reports. Diagnostic grades remain available for partial observations.
-
-Raid roster presentation derives independent category grades from the same report:
-gems, armor, weapons (main-hand, off-hand, two-hand and relic slots), and
-enchants. The legacy combined `gearGrade` and `enchantSocketGrade` fields remain
-available for older consumers and saved reports.
+Use the [Gear Check task map](gear-check/Gear-Check-Progress.md) for inspect, collection, grades, saved reports, dumps and their tests.
+Before changing formats or revisions read [compatibility and limits](gear-check/Gear-Check-Contract.md); for IDs/profiles/BiS inputs use [maintenance](gear-check/Gear-Check-Surface-From-BiS.md).
+Real-client timing and inspect interference require the separate [verification protocol](gear-check/Gear-Check-Verification.md).
 
 ### Refresh and reputation flow
 

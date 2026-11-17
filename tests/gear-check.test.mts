@@ -205,6 +205,36 @@ test("collection orchestration and offline evaluation have explicit boundaries",
   });
 });
 
+test("surface grades ignore item level, GearScore and ordinary socket color matching", async () => {
+  await withAddon(async (lua) => {
+    lua.doStringSync(`
+      local function Evaluate(itemLevel, gearScore, socketColor)
+        local sockets={total=1,empty=0,meta=0,red=0,yellow=0,blue=0,prismatic=0}
+        sockets[socketColor]=1
+        local slot={key="waist",slotName="WaistSlot",policy="CHECKED",empty=false,gaps={},item={
+          itemId=999001,infoKnown=true,category="armor",armorType="cloth",itemLevel=itemLevel,
+          stats={intellect=40,spellPower=60,spirit=30},gaps={},sockets=sockets,
+          gems={{itemId=40113,color="red",isMeta=false}},
+          enchant={enchantId=0,present=false,known=true,gaps={}}}}
+        local report={character={classFile="PRIEST",specTab=1,specKnown=true,
+          gearScore=gearScore,averageIlvl=itemLevel,gaps={}},equipment={slot}}
+        local findings=Raidwise:EvaluateGearCheck(report)
+        assert(slot.verdict=="A","Known appropriate waist/gem should remain A")
+        local result={slot.verdict,report.overall.status,report.overall.gemGrade,
+          report.overall.armorGrade,report.overall.enchantGrade}
+        for _,finding in ipairs(findings) do
+          result[#result+1]=finding.code..":"..finding.severity
+        end
+        return table.concat(result,"|")
+      end
+      local baseline=Evaluate(200,6000,"red")
+      assert(Evaluate(1,6000,"red")==baseline,"Item level changed the result")
+      assert(Evaluate(200,100,"red")==baseline,"GearScore changed the result")
+      assert(Evaluate(200,6000,"blue")==baseline,"Ordinary socket mismatch changed the result")
+    `);
+  });
+});
+
 test("gem collection, cache invalidation, and meta regressions", async () => {
   await withAddon(async (lua) => {
     lua.doStringSync(await readFile(new URL("lua/gear-check-gems.lua", import.meta.url), "utf8"));

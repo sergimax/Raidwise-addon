@@ -137,8 +137,8 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 - **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to the **report chat channel** (header; default Auto = raid/party)
 - Report buttons show icons and previews; summaries list all grade counts, and gem reports group warnings by theme without gem IDs.
 - **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
-- **Character profile** opens the scanned player's profile; target scans also record that player in History
-- Surface-level disclaimer; rules and known false positives: [`docs/gear-check/Gear-Check-Progress.md`](docs/gear-check/Gear-Check-Progress.md)
+- **Character profile** opens the scanned player's profile; target scans do not create group-meeting History entries
+- Surface-level disclaimer; development owners and checks: [Gear Check task map](docs/gear-check/Gear-Check-Progress.md). [Catalog maintenance](docs/gear-check/Gear-Check-Surface-From-BiS.md) covers investigating false positives.
 - `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
 
 **History** shows this character's group/raid meetings from the last 14 days.
@@ -282,7 +282,7 @@ docs/
   Architecture.md     # TOC order, layers, SavedVariables, refresh API
   UI-Views.md         # ASCII layouts for each view + layout version table
   UI-Sizes.md         # window / control pixel sizes
-  Gear-Check-Progress.md # Gear Check phase board (planned / done / test steps)
+  gear-check/Gear-Check-Progress.md # gear owners, entry points and checks
   characters/Reputation.md # character owners, entry points and checks
   Raid-Composition.md # classes/specs tracked by the Raid composition tab
 types/

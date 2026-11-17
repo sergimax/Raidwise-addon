@@ -1,5 +1,5 @@
 -- Gear Check: collect equipped gear into a normalized model (schemaVersion 3).
--- Phase 2: no suitability rules. Phase 3+ must use this table only — no WoW API in rules.
+-- Collection only; suitability evaluation consumes this model without live WoW reads.
 
 local Addon = Raidwise
 

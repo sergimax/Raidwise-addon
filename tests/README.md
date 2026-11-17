@@ -46,11 +46,6 @@ names on/off, optional GearScore/currency, populated lockouts and empty lists.
 Gear Check's model is explicitly type-checked; its real Lua behavior remains
 covered by the existing gear/report tests, not a new complete runtime TS validator.
 
-The gem fixture also inserts 2,048 unique GUIDs without expiry, checks the
-1,024-entry cap and oldest-entry eviction, then checks expiration, GUID isolation
-and the original non-sliding 10-second TTL. Expiry cleanup happens during
-collection, not through an idle timer.
-
 The Addon tests workflow runs only on pull requests (opened, synchronized with new
 commits, or reopened), on both Windows and Ubuntu. Branch pushes without a pull
 request and manual dispatch do not trigger it.
@@ -91,6 +86,22 @@ Historical `history`, `sync` and `karma` fixtures may load modules excluded from
 the active TOC. Their passes do not imply shipped profile exchange or Karma.
 See the task map's [historical code](../docs/characters/Reputation.md#historical-code)
 section before changing or removing those fixtures.
+
+## Gear Check checks
+
+Use the [Gear Check task map](../docs/gear-check/Gear-Check-Progress.md) to select
+owners and suites for inspect lifecycle, collection, compatibility, findings,
+grades, saved revisions, dumps and chat. It also links the shipped rule fixtures
+(`GearCheckSelfTest.lua`, `/rw gearcheck test`) and Lua gem/scan scenarios.
+New rules should be exercised through `EvaluateGearCheck`, with real Lua and
+observations supplied as data. The boundary regression forbids live item/talent/
+identity API reads during evaluation; do not replace it with a JS implementation.
+
+[Revision/compatibility policy](../docs/gear-check/Gear-Check-Contract.md) describes
+when the independent revisions change. For server timing, locale/tooltip reads,
+inspect-addon interference, clipboard and persistence use the
+[manual protocol](../docs/gear-check/Gear-Check-Verification.md). No live timing
+baseline has been established by the simulated scheduling tests.
 
 ## Lua test runner
 
@@ -212,15 +223,6 @@ Check in the test files, `package.json`, and `package-lock.json`; ignore
 folder. Offline tests cannot validate WoW's inspect event timing or real tooltip
 behavior: follow collector changes with an in-game rescan.
 
-## Revision independence (phase 9)
-
-`saved-revisions.test.mts` verifies that changing addon semver leaves rule/catalog
-metadata unchanged, new rules and catalog revisions can change independently,
-legacy saved entries retain their metadata, and absent revision constants return
-`unknown`. The normalized report schema and source snapshot remain unchanged.
-Module ownership, revision policy, and saved-report compatibility are documented
-in `docs/gear-check/Gear-Check-Progress.md` under Current module boundaries and compatibility.
-
 ## Roster refresh coalescing (phase 8)
 
 `RosterRefresh.lua` collects one fresh `BuildRosterSnapshot` per scheduled pass.
@@ -265,116 +267,6 @@ stable palette references, bound-color updates, dark/light round trips, and
 unchanged shell dimensions. Profile command regressions also cover the corrected
 draft-event removal. Visual parity still needs in-game checks: both themes,
 English/Russian, profile tabs, header visibility, and tooltip interactions.
-
-## Gear pipeline separation (phase 5)
-
-- `GearCheckCollector.lua`: item/gem reads and normalization; accepts inspect
-  readiness explicitly through `CollectGearCheckObservation(unit, inspectReady)`.
-  It returns a snapshot without evaluating it or replacing the last report.
-- `GearCheck.lua`: request orchestration and last-report state. The existing
-  `CollectGearCheck` entry point supplies readiness and retains the snapshot.
-- `GearCheckRules.lua`: findings, meta activation, and set counts; its existing
-  `EvaluateGearCheck` entry point then invokes grade aggregation.
-- `GearCheckGrades.lua`: per-slot, category, and overall grades.
-- `GearCheckExplanations.lua`: category tooltip lines and B-grade explanations.
-- `GearCheckSelfTest.lua`: the same rule fixtures for offline tests and the
-  unchanged `/rw gearcheck test` command; it remains shipped in the TOC.
-
-`Raidwise.GearCheckPolicy` is internal shared eligibility policy, not saved state.
-Rules populate it before grades, and grades before explanations. This prevents
-display explanations from duplicating the rules that determine eligibility.
-
-The boundary regression asserts collection does not evaluate and exercises all
-rule fixtures with live item/talent/identity APIs disabled. Existing gem tests
-retain unknown/missing socket and meta coverage. No schema, grade semantics,
-scan timing, UI geometry, or SavedVariables keys change in phase 5.
-
-## Dump extraction (phase 3)
-
-`GearCheckDump.lua` owns target/raid dump formatting, name resolution for dump
-details, and asynchronous raid export jobs. Public methods and output are
-unchanged. `dump.test.mts` covers synchronous/asynchronous output equality,
-one-entry-per-frame progress, overlapping job rejection, completion cleanup,
-cancellation exactly once, restart, empty results, and routing to the raid export
-view or target text view. These checks passed before and after extraction.
-Frame rendering and clipboard interaction still require an in-game check.
-
-## Report preparation (phase 2)
-
-`ChatReports.lua` owns final network-message preparation (255 UTF-8 bytes,
-complete hyperlinks, and color resets). Self/unavailable-channel output remains
-untruncated. `GearCheckReports.lua` owns gear report formatting; the existing
-formatting APIs remain available, and `BuildGearCheckChatMessages` supplies the
-final messages used by target previews and sending. Roster and composition
-previews use the same finalizer as `SendReportChat`.
-
-The final-message regression loads the real transport and verifies Cyrillic,
-whole spell links, all gear report modes in Short/Full form, and local/network
-preview equality. Existing grouping and composition tests remain in place.
-Messages still send immediately; this phase adds no queue or pacing. Gear reports
-now share the transport's existing unavailable-channel warning throttle.
-
-## Scan refactoring baseline (phase 1)
-
-`scan.test.mts` loads the real `GearCheck.lua` scheduler into an isolated Lua 5.1
-VM for each scenario. `lua/scan-runtime.lua` supplies deterministic frames,
-inspect events, unit identities, and elapsed time. `lua/scan-scenarios.lua` mocks
-collection and evaluation so scheduler failures are isolated from gem rules.
-Existing gem tests continue to exercise collection and normalization separately.
-
-Passing scenarios cover consecutive target requests, rejection of overlapping
-requests, idle/unrelated/duplicate inspect events, disappearance and recovery,
-the four-second initial deadline, sequential raid requests, and resuming roster
-inspects after completion. The roster resume callback is mocked; these tests do
-not yet exercise PartyRoster.lua's queue or interference from other addons.
-
-The three original defect scenarios (`identity`, `spec-retry`, `gem-retry`) now
-pass as ordinary blocking tests after phase 4. Target and raid cancellation,
-restart, and completed-result retention are covered too. `inspect.test.mts`
-loads the real PartyRoster.lua queue with the coordinator and verifies timeout
-release, identity validation, and roster-to-gear-to-roster handoff.
-
-### Inspect coordination (phase 4)
-
-`InspectCoordinator.lua` alone calls NotifyInspect/ClearInspectPlayer and owns
-INSPECT_TALENT_READY. Roster and gear consumers retain their work lists; each
-active request captures owner, unit, GUID, callbacks, and deadline. Requests are
-polled at 0.25 seconds, initially expire after four seconds, and gear-specific
-spec/gem retries each receive two seconds. Completion/cancellation clears the
-active request before invoking callbacks. Successful inspect events have no
-added settling delay. Roster requests now time out and release the queue.
-
-`CancelGearCheckScan()` cancels target or raid work, returns whether work existed,
-and reports `cancelled` exactly once. Completed raid entries remain available.
-This is an addon API; no new UI button or slash command is added.
-
-Events without unit identity cannot be conclusively attributed to a server
-request on 3.3.5a. Captured GUID validation prevents reassigned unit tokens from
-being accepted, but does not prove a no-argument event was generated by this
-addon rather than an external inspect addon. Verify interference in game.
-
-### Timing baseline and in-game verification
-
-Simulated baseline: a request with no inspect event releases the scanner at four
-seconds; a two-member raid with events supplied 0.25 seconds apart completes at
-0.5 simulated seconds with no extra successful-path wait. These are scheduling
-observations, not real server latency or CPU performance measurements.
-
-**Actual in-game baseline: pending.** Before changing inspect coordination:
-
-1. Record addon commit, client/server, group size, online/in-range count, and
-   whether other inspect addons are enabled. Use the same conditions afterward.
-2. Scan the same target five times: record elapsed time, result status, and
-   gem/meta/weapon consistency. Keep the first cold scan separate from repeats.
-3. Run three full raid scans: record each elapsed time, completed/skipped/timeout
-   counts, and any inconsistent reports. Record median and range.
-4. During a target scan, switch target or let it disappear. Check recovery with
-   another scan. During raid scanning, test a member leaving or going offline.
-5. After phase 4, repeat this protocol and compare both correctness and duration.
-
-Do not treat offline test runtime as the in-game baseline. Phase 1's automated
-coverage is ready; its manual timing gate remains open until these observations
-are recorded.
 
 ## Pull request CI
 

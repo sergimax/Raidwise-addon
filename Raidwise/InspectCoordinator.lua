@@ -75,6 +75,7 @@ frame:SetScript("OnEvent", function(_, _, unit)
 	if status then Release(request, status); return end
 	-- Some clients/servers supply a GUID instead of a unit token. Neither form
 	-- may complete a request for a different character; absent payloads are valid.
+	-- A payload-free event cannot prove which addon initiated the inspect.
 	if unit and unit ~= request.guid and not UnitIsUnit(unit, request.unit) then return end
 	request.trace.accepted = request.trace.accepted + 1
 	if request.onReady then request.onReady() end

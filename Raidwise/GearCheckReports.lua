@@ -1,7 +1,7 @@
 -- Gear report formatting; collection and scan orchestration stay in GearCheck.lua.
 local Addon = Raidwise
 
--- Phase 7: chat reports. Destination is Settings report channel. Finding text stays English.
+-- Chat reports use the shared report channel. Finding text stays English.
 local CHAT_ITEM_CATEGORIES = {
 	item = true,
 	armor = true,

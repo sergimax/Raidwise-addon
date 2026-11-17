@@ -466,6 +466,7 @@ local function EvaluateEnchant(findings, profile, slot)
 	end
 end
 
+-- Ordinary socket matching is optional: chosen gem stats can outweigh the socket bonus.
 local function EvaluateGems(findings, profile, slot)
 	local item = slot.item
 	local sockets = item.sockets or {}

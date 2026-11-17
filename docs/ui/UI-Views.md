@@ -1,8 +1,11 @@
 # UI view schemes
 
-ASCII layouts for each window and content page. Update this file when a view changes. Pixel sizes live in [`UI-Sizes.md`](UI-Sizes.md). Shared widgets: `UIWidgets.lua`. Page modules and shell: see [`Architecture.md`](Architecture.md).
+ASCII layouts for each window and content page. Update this file when a view changes.
+Pixel sizes live in [`UI-Sizes.md`](UI-Sizes.md).
+Shared widgets: `UIWidgets.lua`.
+Page modules and shell: see [`Architecture.md`](../Architecture.md).
 
-Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.md`](Architecture.md).
+Architecture overview (TOC order, SavedVariables, refresh API): [`Architecture.md`](../Architecture.md).
 
 ## Shell
 
@@ -214,7 +217,9 @@ Spec is the primary talent tree (same as Raid roster). Solo shows only your own 
 
 Report buttons include 14 px icons and Chat preview tooltips for the displayed report, using the current Short/Full setting. With no report, the tooltip indicates that a scan is needed.
 
-Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, progress, Scan, Inspect target, Character profile, Show as a text, Select all (top band), then Save report, Delete selected report, scrollable saved list. Spec / progress: Gear Check specification + `docs/gear-check/Gear-Check-Progress.md`. Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
+Two-column layout: **left** — summary, chat reports, filters, findings; **right** — status, progress, Scan, Inspect target, Character profile, Show as a text, Select all (top band), then Save report, Delete selected report, scrollable saved list.
+Owners and checks: [Gear Check task map](../gear-check/Gear-Check-Progress.md).
+Types: `types/GearCheck.ts`. Stat profile editor: `gear-check-debug/stats-matrix.html`.
 
 ```text
 [ short description — full width ]
@@ -410,7 +415,7 @@ Switching language updates the left menu, page labels, and visible tables withou
 2. Give the view a `LAYOUT_VERSION` constant, stamp it on the frame, and show it in the top shell title bar next to the page name (pages) or with `AttachLayoutVersionLabel` (profile popup).
 3. Paste a new `## Title` scheme here (same `[ block ]` style) including the layout `vN`.
 4. Implement the page and record sizes in `UI-Sizes.md`.
-5. See [`Architecture.md`](Architecture.md) for load order and the two version concepts (addon semver vs layout).
+5. See [`Architecture.md`](../Architecture.md) for load order and the two version concepts (addon semver vs layout).
 
 > **Note:** Shell and per-page layout versions force recreate when constants bump (see Architecture). Named scroll/edit frames use a `V` + layout version suffix.
 
