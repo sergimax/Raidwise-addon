@@ -23,10 +23,6 @@ These are retained future-design constraints, not shipped behavior:
 
 ## Historical owners and checks
 
-`SyncJSON`, `SyncData`, `SyncTransport`, `KarmaData`, `PageSync`, `PageSyncExport`
-and `PageReputation` are outside [Raidwise.toc](../../Raidwise/Raidwise.toc).
-[sync.test.mts](../../tests/sync.test.mts) and
-[karma.test.mts](../../tests/karma.test.mts) exercise historical behavior;
-[player-records.test.mts](../../tests/player-records.test.mts) guards their
-exclusion from the active system. Review those dependencies before deleting or
-reusing the files. Start active character work at the [task map](Reputation.md).
+`SyncJSON`, `SyncData`, `SyncTransport`, `KarmaData`, `PageSync` and `PageSyncExport` remain outside [Raidwise.toc](../../Raidwise/Raidwise.toc).
+[sync.test.mts](../../tests/sync.test.mts) and [karma.test.mts](../../tests/karma.test.mts) exercise historical behavior; [player-records.test.mts](../../tests/player-records.test.mts) guards their exclusion from the active system.
+Review those dependencies before deleting or reusing the files. Start active character work at the [task map](Reputation.md).
