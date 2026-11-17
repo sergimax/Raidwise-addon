@@ -4,7 +4,8 @@ Lua 5.1 / WoW 3.3.5a (`Interface: 30300`). Shipped code lives in `Raidwise/` on 
 
 Repository audit (2026-11-06): [findings and remediation plan](audits/Audit-2026-11-06.md), [verification and reproduction](audits/Audit-2026-11-06-Evidence.md). This is a dated assessment, not a replacement for the contracts below.
 
-Guild roster, officer tools and balances: [guild module contract](raid/Guild-Management.md). The old [EPGP implementation plan](raid/EPGP-Plan.md) is historical.
+Guild roster, officer tools and balances: [guild task map](raid/Guild-Management.md).
+Raid effects, roles and provider inference: [composition task map](raid/Raid-Composition.md).
 
 ## Find the owner first
 
@@ -17,7 +18,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Language | `Locale.lua` | `Addon:T`; search exact keys in both languages |
 | Chat preparation and gear reports | `ChatReports.lua`, `GearCheckReports.lua` | `PrepareReportMessage`, `BuildGearCheckChatMessages` |
 | Gear/bags/currency export, lockouts | `CharacterExport.lua`, `CharacterLockouts.lua` | `FormatEquippedGearExport`, `CollectCharacterCurrency`, `BuildCooldownTable` |
-| Guild module | `../Raidwise_Guild/` | GuildManagement owns live roster, permission-aware note/rank operations and local journal; GuildRosterParser/Links and GuildEPGP resolve balances and guild-info base GP; PageGuild owns the single roster/journal view. See [guild management](raid/Guild-Management.md) |
+| Guild module | `../Raidwise_Guild/` | `Guild.Request`, `Guild.Submit`, `Guild.ImportEvents`, `EPGP.Calculate`; [owners and checks](raid/Guild-Management.md) |
 | Inspect timing, identity, retries | `InspectCoordinator.lua`, `GearCheck.lua`, `PartyRoster.lua` | `StartInspectRequest`, `RetryInspectRequest`, `StartGearCheckUnitScan`, `CancelGearCheckScan` |
 | Item links, sockets and gems | `GearCheckCollector.lua` | `CollectGearCheckObservation`; private `ParseItemLinkParts`, `NormalizeItem` |
 | Report compatibility and completeness | `GearCheckReport.lua` | `NormalizeGearCheckReport`, `GetGearCheckScanState`; canonical nested fields win over legacy aliases |
@@ -66,13 +67,8 @@ Real-client timing and inspect interference require the separate [verification p
 For profile reads/writes, identity lookup, journals and encounter projection, use the [character task map](characters/Reputation.md) to find the owner and behavior tests.
 Storage constraints and maintenance are linked from that map.
 
-Composition uses groups 1–5 from live collection or the shared snapshot, excluding reserve groups 6–8.
-Its counts, providers and chat reports use that same subset.
-Raid gear scanning also uses groups 1–5.
-Roster grade summaries filter saved and manual results against current group membership.
-Reserves retain manual Rescan and individual reports; shared snapshots remain complete.
-
-`ScheduleRosterRefresh` merges same-frame requests. Each pass builds one snapshot shared by history and the visible raid/composition page. Hidden views are not redrawn; history still records. Snapshots are not cached across passes. Inspect queue advancement is immediate; consumable icons have their own targeted refresh path.
+For roster snapshots, active groups/reserves, role inference and provider counts, use the [composition task map](raid/Raid-Composition.md).
+It links the shared refresh owner and behavioral checks; [Gear Check](gear-check/Gear-Check-Progress.md) owns scan work lists and readiness summaries.
 
 Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The shell dispatches these methods; page modules own control labels and entry-specific collection. `entering=true` requests the original tab-entry work (lockout requests, roster refresh or history recording); locale refresh omits it. Public refresh wrappers remain compatible. Profile extraction preserves anchors, dimensions and named-frame versions.
 
@@ -102,7 +98,7 @@ header. Chat summaries are human-readable messages, not versioned data exports.
 | `gearCheckSaved` | `GearCheckSavedReports`: snapshots and retention (~14 days) |
 | `tooltip` | `RatingPresentation` / Settings: rating tooltip visibility |
 | `locale`, `theme`, `startupTab`, `reportChannel`, `reportForm` | Preferences consumed by locale, theme, shell and reporting |
-| `guild` | Raidwise_Guild: shared retention limit (100–10000, default 1000), realm/guild archives with local roll EP threshold (4000), last complete snapshot and guild-info text, journal and previous server event window. Old `guildManagement`/`epgp` roots are not migrated or read. |
+| `guild` | `Raidwise_Guild/GuildManagement.lua`: local archives, snapshots and preferences; [storage limits](raid/Guild-Management-Contract.md) |
 
 Character tasks and checks: [task map](characters/Reputation.md).
 Addon semver, rule/catalog revisions, and layout versions serve different purposes.

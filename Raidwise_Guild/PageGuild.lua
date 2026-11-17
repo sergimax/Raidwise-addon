@@ -403,6 +403,7 @@ local function Create(parent)
 	page.officerLabel = Label(page.rosterPanel, 366, -20, 350, T("GUILD_OFFICER"))
 	page.public = Input(page.rosterPanel, 0, -36, 350)
 	page.officer = Input(page.rosterPanel, 366, -36, 350)
+	-- Match the stock editor; this is not a verified server byte limit.
 	page.public:SetMaxLetters(31)
 	page.officer:SetMaxLetters(31)
 	page.public:SetScript("OnTextChanged", function() Editor(page) end)

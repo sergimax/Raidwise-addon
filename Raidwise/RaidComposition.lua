@@ -1,5 +1,5 @@
 -- Raid composition checklist (Wowhead-style exclusive buff/debuff categories).
--- Keep in sync with docs/raid/Raid-Composition.md.
+-- EFFECTS below owns the catalog; task navigation: docs/raid/Raid-Composition.md.
 
 local Addon = Raidwise
 
@@ -851,7 +851,7 @@ function Addon:CompositionMembers(refreshGearScore, snapshot, includeReserves)
 	return members
 end
 
--- REFACTOR candidate: triple-nested scan of EFFECTS catalog vs roster members (~100 lines).
+-- Infer potential providers from supplied class/tree data, not observed casts or active auras.
 function Addon:AnalyzeRaidComposition(members)
 	local roles = {
 		tank = { count = 0, names = {} },

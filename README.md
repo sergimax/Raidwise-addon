@@ -127,7 +127,7 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 - Gold rows are covered; dim rows are missing. Section titles show present/total (red when nothing in the section is present)
 - Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to the report chat channel (header)
 - **Report missing** posts absent classes to the report chat channel (header); **Refresh** re-reads the group (same inspect path as Raid roster)
-- Full tracking list: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md)
+- Effect catalog owner and coverage limits: [composition task map](docs/raid/Raid-Composition.md)
 - Reports preview their output; effect reports include clickable spell links and fit one 255-byte chat message.
 
 **Gear check (target)** tab:
@@ -202,7 +202,7 @@ The minimap button position is saved in `RaidwiseDB.minimapAngle`.
 View layouts: [`docs/ui/UI-Views.md`](docs/ui/UI-Views.md).
 Pixel sizes: [`docs/ui/UI-Sizes.md`](docs/ui/UI-Sizes.md).
 Character task map: [`docs/characters/Reputation.md`](docs/characters/Reputation.md).
-Composition tracking: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md).
+Composition navigation and limits: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md).
 
 Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet). `types/GearCheck.ts` describes the Gear Check normalized report (`schemaVersion` 3).
 
@@ -284,7 +284,7 @@ docs/
   UI-Sizes.md         # window / control pixel sizes
   gear-check/Gear-Check-Progress.md # gear owners, entry points and checks
   characters/Reputation.md # character owners, entry points and checks
-  Raid-Composition.md # classes/specs tracked by the Raid composition tab
+  raid/Raid-Composition.md # composition owners and inference limits
 types/
   CharacterExport.ts  # TypeScript types for the Export tab JSON
   CooldownsExport.ts  # TypeScript types for account-wide cooldown JSON shape

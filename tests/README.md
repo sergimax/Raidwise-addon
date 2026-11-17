@@ -11,23 +11,16 @@ npm run check
 `npm test` for tests alone or `npm run test:watch` while editing. Failures return
 a nonzero exit status for CI.
 
-`guild-management.test.mts` covers the live guild model and page with Lua 5.1
-game mocks: note/rank permissions and conflicts, current roster indices,
-partial confirmations/timeouts, draft retention, Cyrillic search, per-guild
-archives, journal retention/deduplication and refresh lifecycle. In-client
-acceptance remains separate; see [guild management](../docs/raid/Guild-Management.md).
-It also loads `Raidwise_Guild` through real bootstrap/TOC order, checks raid
-groups 1–5, Cyrillic main/alt chains, guild-info BASE_GP parsing, independent
-roll thresholds, unknown/zero PR, numeric sorting and horizontally aligned headers.
-Refresh regressions check real batch progress, complete-snapshot publication,
-progress-bar visibility, interrupted reads, permissions, timeouts and guild changes.
-Page tests also cover 25-record pagination, fixed vertical headers, synchronized
-horizontal scrolling, scroll reset and active-mode highlighting; TOC loading checks
-font-compatible separators in all shipped Lua modules.
-The guild row tooltip regression checks explicit bright colors for character
-name and class, avoiding inherited colors and extra Lua return values.
-Mains-only tests cover own/zero balances, alt chains, unknown notes, access loss,
-search/raid intersections and pagination/scroll reset.
+## Guild checks
+
+Use the [guild task map](../docs/raid/Guild-Management.md) for owners and scenarios
+in `guild-management.test.mts`: roster/refresh, officer actions, local journal,
+parsing/links/balances and page interactions. It also points to actual bootstrap/
+TOC coverage. [External limits](../docs/raid/Guild-Management-Contract.md) and the
+[manual matrix](../docs/raid/Guild-Management-Verification.md) distinguish mock
+coverage from actual server confirmation and UI behavior.
+
+## Type checking
 
 `npm run typecheck` runs both `tests/tsconfig.json` and `types/tsconfig.json`.
 The second project explicitly includes all three `types/*.ts` files and
@@ -223,27 +216,18 @@ Check in the test files, `package.json`, and `package-lock.json`; ignore
 folder. Offline tests cannot validate WoW's inspect event timing or real tooltip
 behavior: follow collector changes with an in-game rescan.
 
-## Roster refresh coalescing (phase 8)
+## Roster and composition checks
 
-`RosterRefresh.lua` collects one fresh `BuildRosterSnapshot` per scheduled pass.
-`ScheduleRosterRefresh` merges same-frame requests, retaining a forced GearScore
-refresh if any caller requests one. History and the visible raid/composition view
-receive that snapshot through optional arguments on their existing APIs. Direct
-calls without a snapshot continue collecting fresh data. Nothing is cached across
-passes; entering a view still requests fresh data.
-
-Roster inspect completion, group/guild updates, and gear-result view refreshes
-schedule rendering for the next frame. Inspect queue advancement is immediate;
-no inspect settling delay is introduced. History still records while the shell
-is hidden. Existing targeted consumable icon updates remain unchanged.
-
-`roster-refresh.test.mts` verifies that eleven merged requests collect two members
-exactly twice total (once per member), render one visible view once, and reuse
-the same members for history. It also verifies changed identities/data on the
-next pass, forced-refresh precedence, hidden-view behavior, and requests raised
-during rendering. Existing scan timing tests remain unchanged. These are offline
-call counts, not measured in-game CPU or raid-scan speed improvements; the manual
-timing protocol below remains pending. No speculative per-card diffing is added.
+The [composition task map](../docs/raid/Raid-Composition.md) routes effect data,
+role inference and reports to their owners. `architecture.test.mts` checks active
+versus reserve groups and known/unknown-tree provider inference;
+`roster-refresh.test.mts` checks shared snapshots, coalesced requests, forced
+refresh precedence, hidden-view behavior and refreshes requested during rendering.
+The report-link/byte-budget scenarios are in `gear-check.test.mts`.
+These are behavior/call-count checks, not measured client speed improvements.
+Use the [client timing protocol](../docs/gear-check/Gear-Check-Verification.md)
+when changing inspect/collection and the [composition manual checks](../docs/raid/Guild-Management-Verification.md#composition-presentation)
+for actual display and chat-skin behavior.
 
 ## UI composition (refactoring phase 7)
 

@@ -73,7 +73,14 @@ The Guild navigation group contains one Guild roster page registered by `Raidwis
 [ Journal: selected event details; entry limit and Apply ]
 ```
 
-Headers and row cells use the same column definitions in both modes. The active Roster/Journal tab remains highlighted on hover. Class icons replace class names (the tooltip retains the name); there is no class filter. Online status is green. The character selected for editing uses the shared current-character highlight, retained on hover and refresh. The editor retains drafts across refreshes. Permission changes immediately hide officer details. Behavior and limits: [guild management](../raid/Guild-Management.md).
+Headers and row cells use the same column definitions in both modes.
+The active Roster/Journal tab remains highlighted on hover.
+Class icons replace class names (the tooltip retains the name); there is no class filter.
+Online status is green.
+The character selected for editing uses the shared current-character highlight, retained on hover and refresh.
+The editor retains drafts across refreshes.
+Permission changes immediately hide officer details.
+Owners and checks: [guild task map](../raid/Guild-Management.md).
 
 ## Export gear and CDs
 
@@ -181,7 +188,9 @@ Online character names use the exact `RAID_CLASS_COLORS` color in both themes, w
 
 ## Raid composition
 
-Wowhead-style checklist of the current party or raid: who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered. Tracking list: [`Raid-Composition.md`](../raid/Raid-Composition.md). Detected primary specs appear as icon/count rows beneath their corresponding class, in talent-tree order; hover for the spec name and players.
+Wowhead-style checklist of the current party or raid: who is needed, and which exclusive buffs, externals, DR, debuffs, and regen are already covered.
+Catalog owner and inference limits: [composition task map](../raid/Raid-Composition.md).
+Detected primary specs appear as icon/count rows beneath their corresponding class, in talent-tree order; hover for the spec name and players.
 
 ```text
 [ short description ]                   [ Report missing ] [ Refresh ]

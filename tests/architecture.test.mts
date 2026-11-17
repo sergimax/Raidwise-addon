@@ -160,6 +160,37 @@ test("composition excludes reserve groups in live and snapshot reads without shr
   `);
 });
 
+test("composition infers potential providers from known primary trees without inventing unknown specs", async () => {
+  await run(["RaidRoles", "RaidComposition"], "", `
+    local function forbidden() error("Composition read live talents or auras") end
+    GetTalentTabInfo=forbidden; UnitBuff=forbidden; UnitAura=forbidden
+    local function Effect(result, id)
+      for _,section in ipairs(result.sections) do
+        for _,effect in ipairs(section.effects) do if effect.id==id then return effect end end
+      end
+      error("Missing effect: "..id)
+    end
+    local function Class(result, token)
+      for _,class in ipairs(result.classes) do if class.class==token then return class end end
+      error("Missing class: "..token)
+    end
+    local unknown={name="Unknown",class="DRUID"}
+    local first=Raidwise:AnalyzeRaidComposition({unknown})
+    assert(Effect(first,"motw").count==1,"Unknown spec lost its class-wide capability")
+    assert(Effect(first,"spell_taken").count==0,"Unknown spec invented a Balance talent")
+    assert(Class(first,"DRUID").count==1 and #Class(first,"DRUID").specs==0)
+
+    local known={name="Balance",class="DRUID",specTab=1}
+    local mixed=Raidwise:AnalyzeRaidComposition({unknown,known})
+    assert(mixed.memberCount==2 and Class(mixed,"DRUID").count==2)
+    assert(#Class(mixed,"DRUID").specs==1 and Class(mixed,"DRUID").specs[1].count==1)
+    assert(Effect(mixed,"motw").count==2)
+    local inferred=Effect(mixed,"spell_taken")
+    assert(inferred.count==1 and inferred.providers[1]=="Balance")
+    assert(mixed.roles.ranged.count==1,"Known primary tree did not supply its inferred role")
+  `);
+});
+
 test("raid scan selects active groups and summaries exclude manually scanned reserves", async () => {
   await run(["GearCheck"], "", `
     local groups={[1]={{guid="A"}},[5]={{guid="B"}},[6]={{guid="C"}},[8]={{guid="D"}}}

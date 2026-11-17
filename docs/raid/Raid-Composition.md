@@ -1,176 +1,41 @@
-# Raid composition tracking
+# Raid composition task map
 
-What the **Raid composition** tab (**Анализ состава**) checks for Wrath of the Lich King **3.3.5a**. Layout: class/role summary on top, then exclusive buff/debuff/utility categories (similar to the [Wowhead raid composition](https://www.wowhead.com/wotlk/raid-composition) tool).
+Paths below are relative to `Raidwise/`. The executable effect catalog is
+`EFFECTS` in [RaidComposition.lua](../../Raidwise/RaidComposition.lua): categories,
+class/tree sources, spell IDs and hidden/priority flags belong there.
 
-Only the strongest effect in a category applies to the raid. The tab marks a category **present** if anyone in the current party or raid can bring it, and **missing** otherwise. Spec is the player’s **primary talent tree** (same inspect data as Raid roster). Deep talent points are not read: if the tree is right, the addon assumes the usual raid talent is taken. Effect-row tooltips list each source class/spec with the **spell name** from `GetSpellInfo` (client language). **Shift-click** a row to post that effect with each provider class/spec and spell to the report chat channel in Settings (`need` if missing, `have` if covered).
+| Change | Owner / search entry point | Behavior checks |
+|---|---|---|
+| Active roster, party/solo or reserves | `RaidComposition.lua`: `CompositionMembers`; `PartyRoster.lua` supplies members | [architecture](../../tests/architecture.test.mts): live/snapshot active groups and explicit reserves |
+| Effect/provider matching and class/spec totals | `RaidComposition.lua`: `EFFECTS`, private `SourceMatches`, `AnalyzeRaidComposition` | [architecture](../../tests/architecture.test.mts): unknown versus known primary trees and potential providers |
+| Role classification | `RaidRoles.lua`: `RoleForRaidMember`; `RaidComposition.lua`: private `EnsureMemberRole` | [architecture](../../tests/architecture.test.mts): inferred role with known tree |
+| Shared roster refresh or visible-page redraw | `RosterRefresh.lua`: `BuildRosterSnapshot`, `ScheduleRosterRefresh`; `PageComposition.lua`: `RefreshCompositionView` | [roster-refresh](../../tests/roster-refresh.test.mts) |
+| Effect/missing-class report, preview or spell links | `PageComposition.lua`: private `BuildEffectRowMessage`, `BuildMissingClassesMessage`, `AddChatPreview`; `ChatReports.lua`: `PrepareReportMessage` | [gear-check](../../tests/gear-check.test.mts): composition report links, fallback, whole-source trimming and byte budget |
+| Controls and geometry | `PageComposition.lua`; [UI views](../ui/UI-Views.md) / [sizes](../ui/UI-Sizes.md) | [manual checks](Guild-Management-Verification.md#composition-presentation) |
 
-**Priority** effects (raid-critical): Misdirection, Tricks of the Trade, 10% stats, Gift of the Wild, Bloodlust / Heroism, Innervate, Divine Sacrifice, Blessing of Sanctuary / Renewed Hope, Spell damage taken, Spell hit (Misery), Replenishment. Headings show **present/total** coverage; a section heading turns **red** only when **0** effects in that section are present.
+## Meaning and limits of coverage
 
-Sources: [Icy Veins buffs and debuffs](https://www.icy-veins.com/wotlk-classic/raid-buffs-and-debuffs), Blizzard’s WotLK exclusive-category list, and the Wowhead composition sections named below.
+Composition shows **potential providers** inferred from class and primary talent
+tree. It does not inspect deep talent choices, pets, current auras/casts or
+subgroup assignments of blessings/totems. A matching tree can light a category
+without the corresponding talent actually being selected. Category presence is
+not a comparison of active spell strength.
 
-## Roles
+An unknown spec remains in its class total and can supply class-wide effects;
+spec-specific effects require the matching known tree. Roles use class/tree
+heuristics and supplied roles, including the roster's Main Tank override.
+Default raid input is groups 1–5; reserves 6–8 stay in the full shared snapshot
+and require explicit inclusion. Solo/party use the corresponding collected roster.
 
-Already used on Raid roster. Counted here from the same tank / healer / melee / ranged rules (`RaidRoles.lua`). Shown in the composition top summary as icon + count (horizontal).
+The shared header chooses the report channel. Link/hover presentation depends
+on client and chat skin; see the [manual checks](Guild-Management-Verification.md#composition-presentation).
+For guild balance work use the [guild map](Guild-Management.md).
 
-| Role | Typical trees |
-|------|----------------|
-| Tank | Warrior Protection, Paladin Protection, Death Knight Blood (or Main Tank flag) |
-| Healer | Priest Discipline/Holy, Paladin Holy, Shaman Restoration, Druid Restoration |
-| Melee DPS | Arms/Fury, Retribution, Combat/Assassination/Subtlety, Unholy/Frost DK, Enhancement, Feral |
-| Ranged DPS | Hunter (all), Mage (all), Warlock (all), Shadow Priest, Elemental, Balance |
+## Historical catalog references
 
-## Classes
-
-Top summary (right of Roles) lists all **10** WotLK classes in fixed order with a player count next to each icon. Present classes are full/gold; missing classes are dim (`0`). Tooltip shows who is in the raid for that class, or Missing. **Report missing** posts the absent class names to the report chat channel (Settings).
-
-Detected primary talent trees from the roster scan are listed vertically beneath each class as spec icons with player counts, in talent-tree order. Hover a spec to see its name and players. Only detected specs are shown; players whose spec is still unknown remain in the class total. Counts update as scan results arrive and when the roster changes.
-
-## Buffs
-
-Raid-wide stat and throughput buffs. Spells in the same row **do not stack**.
-
-| Category | Effect | Who brings it |
-|----------|--------|----------------|
-| 10% stats | Blessing of Kings; Blessing of Sanctuary (Prot) | Any Paladin; Protection Paladin |
-| Gift of the Wild | Flat stats + resistances | Any Druid |
-| Stamina | Power Word: Fortitude / Prayer of Fortitude | Any Priest |
-| Intellect | Arcane Intellect / Arcane Brilliance; Fel Intelligence | Any Mage; Affliction Warlock |
-| Spirit | Divine Spirit / Prayer of Spirit; Fel Intelligence | Any Priest; Affliction Warlock |
-| Attack power | Battle Shout; Blessing of Might | Any Warrior; Any Paladin |
-| Strength / Agility | Horn of Winter; Strength of Earth Totem | Any Death Knight; Any Shaman |
-| Health | Commanding Shout; Blood Pact (Imp) | Any Warrior; Any Warlock (Imp; Destruction improves it) |
-| Mana per 5 | Blessing of Wisdom; Mana Spring Totem | Any Paladin; Any Shaman (Restoration improves it) |
-| Spell power | Flametongue Totem; Totem of Wrath; Demonic Pact | Any Shaman; Elemental Shaman; Demonology Warlock |
-| 5% melee/ranged crit | Leader of the Pack; Rampage | Feral Druid; Fury Warrior |
-| 5% spell crit (raid aura) | Moonkin Aura; Elemental Oath | Balance Druid; Elemental Shaman |
-| Melee haste | Improved Icy Talons; Windfury Totem | Frost Death Knight; Any Shaman (Enhancement improves it) |
-| Spell haste | Wrath of Air Totem | Any Shaman |
-| 3% haste (all) | Swift Retribution; Improved Moonkin Aura | Retribution Paladin; Balance Druid |
-| 3% damage | Sanctified Retribution; Ferocious Inspiration; Arcane Empowerment | Retribution Paladin; Beast Mastery Hunter; Arcane Mage |
-| 10% attack power | Trueshot Aura; Unleashed Rage; Abomination’s Might | Marksmanship Hunter; Enhancement Shaman; Blood Death Knight |
-| Bloodlust / Heroism | Raid haste, 10 min CD | Any Shaman |
-| Healing received | Tree of Life; Improved Devotion Aura | Restoration Druid; Holy Paladin |
-
-## Aggro
-
-Threat transfer tools for pulling or recovering aggro onto a tank.
-
-| Spell | Who | View |
-|-------|-----|------|
-| Misdirection | Any Hunter | |
-| Tricks of the Trade | Any Rogue | |
-
-## External buffs
-
-Single-target (or small-group) spells you put **on an ally**. Count is how many people in the raid can cast it.
-
-Rows marked **hidden** stay in this list for reference but are omitted from the Raid composition tab (self-targeted or not useful for raid-lead coverage).
-
-| Spell | Who | View |
-|-------|-----|------|
-| Focus Magic | Arcane Mage | |
-| Hysteria | Blood Death Knight | |
-| Power Infusion | Discipline Priest | |
-| Innervate | Any Druid | hidden |
-| Hand of Salvation | Any Paladin | |
-| Hand of Freedom | Any Paladin | |
-| Guardian Spirit | Holy Priest | |
-| Earth Shield | Restoration Shaman | |
-| Beacon of Light | Holy Paladin | |
-| Sacred Shield | Holy Paladin | hidden |
-| Intervene | Any Warrior | hidden |
-
-## Damage reduction
-
-Raid or personal CDs and passives that cut damage. Guardian Spirit is also listed under External buffs.
-
-Self-targeted defensives are marked **hidden** and are omitted from the Raid composition tab.
-
-| Spell / effect | Who | View |
-|----------------|-----|------|
-| Anti-Magic Zone | Unholy Death Knight | hidden |
-| Divine Guardian | Protection Paladin | |
-| Divine Sacrifice | Protection Paladin | |
-| Hand of Sacrifice | Any Paladin | |
-| Hand of Protection | Any Paladin | |
-| Pain Suppression | Discipline Priest | |
-| Aura Mastery | Any Paladin (Retribution talent is the usual raid take) | |
-| Shield Wall | Any Warrior | hidden |
-| Last Stand | Protection Warrior | hidden |
-| Icebound Fortitude | Any Death Knight | hidden |
-| Vampiric Blood | Blood Death Knight | hidden |
-| Survival Instincts | Feral Druid | hidden |
-| Frenzied Regeneration | Feral Druid | hidden |
-| Dispersion | Shadow Priest | hidden |
-| Divine Protection | Any Paladin | hidden |
-| Divine Shield | Any Paladin | hidden |
-| Barkskin | Any Druid | hidden |
-| Ice Block | Any Mage | hidden |
-| Cloak of Shadows | Any Rogue | hidden |
-| Anti-Magic Shell | Any Death Knight | hidden |
-| Lay on Hands | Any Paladin | |
-| Divine Hymn | Any Priest | |
-| Tranquility | Restoration Druid | hidden |
-| Blessing of Sanctuary / Renewed Hope | Protection Paladin; Discipline Priest | |
-| Inspiration / Ancestral Healing | Discipline or Holy Priest; Restoration Shaman | |
-
-Aura Mastery is treated as present for **any Paladin** (the ability exists on the class; Retribution is the typical raid talent). Divine Guardian requires Protection.
-
-## Debuffs
-
-Boss debuffs. Major and minor armor **do stack with each other**. Moonkin Aura / Elemental Oath are the **raid buff** for 5% spell crit; Improved Shadow Bolt is the **boss debuff** in the same exclusive category as Improved Scorch and Winter’s Chill.
-
-| Category | Effect | Who | View |
-|----------|--------|-----|------|
-| Armor (major, 20%) | Sunder Armor; Expose Armor; Acid Spit (worm pet) | Any Warrior; Any Rogue; Beast Mastery Hunter (pet) | |
-| Armor (minor, 5%) | Faerie Fire; Curse of Weakness; Sting (wasp pet) | Any Druid; Any Warlock; Any Hunter (pet) | |
-| Bleed damage | Mangle; Trauma; Stampede (pet) | Feral Druid; Arms Warrior; Beast Mastery Hunter | |
-| Physical damage taken | Blood Frenzy; Savage Combat | Arms Warrior; Combat Rogue | |
-| Spell damage taken | Curse of the Elements; Earth and Moon; Ebon Plaguebringer | Any Warlock; Balance Druid; Unholy Death Knight | |
-| Spell hit (Misery) | Misery; Improved Faerie Fire | Shadow Priest; Balance Druid | |
-| Crit chance taken | Heart of the Crusader; Totem of Wrath; Master Poisoner | Retribution or Protection Paladin; Elemental Shaman; Assassination Rogue | |
-| Spell crit taken | Improved Scorch; Winter’s Chill; Improved Shadow Bolt | Fire Mage; Frost Mage; Destruction Warlock | |
-| Attack speed slow | Thunder Clap; Icy Touch; Infected Wounds; Judgements of the Just | Any Warrior; Any Death Knight; Feral Druid; Protection Paladin | |
-| Attack power down | Demoralizing Shout; Demoralizing Roar; Curse of Weakness; Vindication | Any Warrior; Feral Druid; Any Warlock; Ret/Prot Paladin | |
-| Healing reduction | Mortal Strike; Aimed Shot; Wound Poison; Furious Attacks | Arms Warrior; Any Hunter; Any Rogue; Fury Warrior | |
-| Cast speed slow | Curse of Tongues; Slow; Mind-numbing Poison; Lava Breath (pet) | Any Warlock; Arcane Mage; Any Rogue; Beast Mastery Hunter | |
-| Melee hit reduction | Insect Swarm; Scorpid Sting | Balance Druid; Any Hunter | |
-| Judgement of Light | Health return on melee hits | Any Paladin | hidden |
-| Judgement of Wisdom | Mana return on melee/spell hits | Any Paladin | hidden |
-
-Acid Spit, Hunter Sting, Stampede, and Lava Breath depend on the pet. Beast Mastery / any Hunter is listed as a **possible** source.
-
-## Mana regeneration
-
-| Spell / effect | Who | View |
-|----------------|-----|------|
-| Replenishment | Shadow Priest (Vampiric Touch); Survival Hunter (Hunting Party); Retribution Paladin (Judgements of the Wise); Frost Mage (Enduring Winter); Destruction Warlock (Improved Soul Leech) | |
-| Mana Tide Totem | Restoration Shaman | |
-| Hymn of Hope | Any Priest | |
-| Innervate | Any Druid | |
-| Shadowfiend | Any Priest | hidden |
-| Revitalize | Restoration Druid | |
-| Judgement of Wisdom | Any Paladin | |
-
-One Replenishment source covers 10 people; 25-man raids usually want two.
-
-## Health regeneration
-
-| Spell / effect | Who | View |
-|----------------|-----|------|
-| Improved Leader of the Pack | Feral Druid | |
-| Vampiric Embrace | Shadow Priest | |
-| Judgement of Light | Any Paladin | |
-| Gift of the Naaru | Draenei (any class) | hidden |
-
-## Limits
-
-- Primary talent tab only; a Balance Druid without Earth and Moon still lights that row.
-- Pets (Imp Blood Pact, Acid Spit, Sting) are not inspected; the class/spec is enough to mark coverage.
-- Blessings and totems are “can provide”, not “currently assigned on this subgroup”.
-- Party (5) and raid (40) both feed the same checklist; solo shows only your own rows as present.
-- Rows marked **hidden** (self-targeted defensives, Sacred Shield, Intervene, Shadowfiend, Gift of the Naaru) are not shown in the tab.
-
-Report tooltips preview the same message used by the Report button and Shift-click effect rows. The preview is omitted when no report message can be built.
-
-Composition effect reports use native spell links when GetSpellLink resolves them, with plain spell names as fallback. Reports and previews share the same text. Each effect report stays within 255 bytes by omitting whole trailing sources and adding (+N); it never splits link markup or sends continuation messages. Native links open spell tooltips on click; hover behavior depends on the chat UI (for example, ElvUI hyperlink hover).
+The checklist drew on [Wowhead composition](https://www.wowhead.com/wotlk/raid-composition),
+[Icy Veins categories](https://www.icy-veins.com/wotlk-classic/raid-buffs-and-debuffs)
+and the Blizzard WotLK exclusive-category list cited by the former document.
+These are provenance, not a guarantee of current behavior on a private server.
+Change the owning Lua data and exercise representative provider behavior rather
+than maintaining a second Markdown matrix of every spell.
