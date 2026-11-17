@@ -70,35 +70,29 @@ checks compact versus full raid exports (grades, enchants and sockets), matching
 synchronous/asynchronous output, cancellation and export routing.
 
 
-The active character-system suites are `player-records`, `encounters`,
-`player-links`, `profile-window`, `database-page`, `opinion-display`, and
-`classic-opinion`. They load PlayerRecords/Support and the active screen APIs,
-not the retired profile migration modules. Older history/sync/Karma cases may
-load retired files explicitly as historical compatibility fixtures; they do not
-mean those modules are shipped in the TOC. Final verification and outstanding
-in-game work: [Character-System-Verification.md](../docs/characters/Character-System-Verification.md).
+## Character-system checks
 
-`player-records.test.mts` also verifies journal v1-to-v2 migration (reconstruction
-of old event snapshots, ordering, authors, dates, baseline gaps, idempotence and
-unknown-version rejection), and 100/1,000 sequential event saves with linear journal
-storage. Detached profile/page reads must not traverse the whole journal.
-`profile-window.test.mts` exercises Overview navigation, expandable opinion controls,
-searchable event selection with explicit confirmation, character-link search, and
-independent meeting/journal pages with clamping without whole-record reads. These are storage/read-path checks, not in-game
-latency or memory benchmarks; draft validation still visits current events.
+Select the suite by task using the [character task map](../docs/characters/Reputation.md).
+It links the active owners to the behavioral tests for persistence, identity,
+authorship, journals/recovery, deletion/links, encounters, lists and opinion marks.
+Use the named suite for focused work, for example:
 
-Storage recovery tests cover damaged profile/note/event fields, nested encounters
-and counters, identities/groups, journals, preserved quarantine originals,
-idempotence, explicit repair and overwrite conflicts. Integration checks use the
-real bridge, database roster, presence observations, bootstrap and diagnostics;
-private note content must not appear in reports. Unsupported formats/invalid roots
-remain untouched and unavailable. Recovery procedure: the character-system contract.
+```sh
+node --test tests/player-links.test.mts
+```
 
-Identity scope is one realm. `player-records` verifies that a conflicting realm
-cannot overwrite a known GUID or move its aliases, drafts, journal or links;
-same-realm renames still work. `encounters` covers observer/subject conflicts,
-and `opinion-display` checks realm matching on the chat GUID fast path. These
-guards do not constitute multi-realm persistence or a saved-report migration.
+Run `npm run check` before completing code/test changes. These suites execute
+real Lua through mocks; they do not establish client rendering, live server timing
+or disk persistence. [Manual checks and dated user evidence](../docs/characters/Character-System-Verification.md)
+retain those limits. For SavedVariables maintenance use the
+[repair procedure](../docs/characters/Character-System-Contract.md#repairing-quarantined-records).
+
+Historical `history`, `sync` and `karma` fixtures may load modules excluded from
+the active TOC. Their passes do not imply shipped profile exchange or Karma.
+See the task map's [historical code](../docs/characters/Reputation.md#historical-code)
+section before changing or removing those fixtures.
+
+## Lua test runner
 
 The runner is TypeScript (`gear-check.test.mts`) using Node's built-in `node:test`
 and `node:assert/strict`. Node runs the erasable TypeScript directly; `tsc` handles
@@ -271,32 +265,6 @@ stable palette references, bound-color updates, dark/light round trips, and
 unchanged shell dimensions. Profile command regressions also cover the corrected
 draft-event removal. Visual parity still needs in-game checks: both themes,
 English/Russian, profile tabs, header visibility, and tooltip interactions.
-
-## Historical profile and history separation (refactoring phase 6)
-
-The modules and save/reset behavior below predate the character-system redesign.
-They are outside the TOC and release ZIP, except the still-active presentation
-module. These historical fixtures are not instructions for the current UI.
-Current ownership and acceptance are described above and in [the contract](../docs/characters/Character-System-Contract.md).
-
-- `PlayerHistory.lua`: rating catalogs, normalization, and rating access.
-- `PlayerHistoryStore.lua`: encounter/scan history, Local Profile persistence,
-  sender-scoped Exchange migration, and legacy-field cleanup.
-- `RatingPresentation.lua`: rating labels, tooltip formatting, and chat marks.
-- `ProfileDraft.lua`: plain draft creation/copying and tag, fact, and event edits.
-  UI frames hold this object as `profileDraft`; mutations do not save it.
-- `CharacterProfile.lua`: frames, rendering, and command wrappers that explicitly
-  persist drafts and refresh views. Notes keep their separate save/reset behavior.
-
-`history.test.mts` covers idempotent legacy migration and cleanup, Local Profile
-opinion/tags/facts/events/notes persistence, draft discard/reopen, tag limits,
-and real profile commit/add-event/notes command wrappers with a minimal frame.
-`sync.test.mts` covers Local-only export, sender isolation, and read-only
-received profiles.
-It does not validate visual layout or interaction with a running WoW client.
-Current in-game acceptance must exercise autosave, explicit Save, failed-draft
-retention and switching players in both languages; the old Notes Save/Reset
-controls are not part of the active profile window.
 
 ## Gear pipeline separation (phase 5)
 

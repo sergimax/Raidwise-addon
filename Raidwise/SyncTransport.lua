@@ -1,3 +1,5 @@
+-- Retired: outside Raidwise.toc; retained for historical fixtures.
+-- TODO: Review tests/sync.test.mts and tests/architecture.test.mts before removal.
 -- Wrath 3.3.5 SendAddonMessage transport. Offers broadcast; accepted data whispers.
 local Addon = Raidwise
 local PREFIX, CHUNK, TIMEOUT = "RaidwiseSync1", 180, 1800

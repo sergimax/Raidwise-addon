@@ -15,7 +15,7 @@ Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): guil
 **Upgrading from 2.0 to 2.1:** existing profiles and notes are preserved; event
 journals migrate automatically to compact change records. Damaged entries are
 isolated with their originals retained. `/rw diagnose` reports storage health;
-the [character-system contract](docs/characters/Character-System-Contract.md) documents repair.
+the [storage maintenance guide](docs/characters/Character-System-Contract.md#repairing-quarantined-records) documents repair.
 
 **Upgrading from before 2.0:** back up SavedVariables first. Legacy character profiles,
 notes, links, and exchanged data are reset without migration; settings, saved
@@ -168,8 +168,9 @@ controls the opinion line.
 Profile exchange, its menus/pages, and Karma are disabled pending future work.
 Gear/currency/lockout export remains available. Full profile deletion clears the
 opinion, facts, events, Note, changes and links but preserves meetings/counters.
-See [current model](docs/characters/Reputation.md), [contract](docs/characters/Character-System-Contract.md)
-and [redesign acceptance](docs/characters/Character-System-Verification.md).
+For development use the [character task map](docs/characters/Reputation.md);
+[storage constraints/repair](docs/characters/Character-System-Contract.md) and
+[manual checks with dated evidence](docs/characters/Character-System-Verification.md) are separate references.
 Subsequent fixes and remaining checks: [November audit](docs/audits/Audit-2026-11-06.md)
 and [verification evidence](docs/audits/Audit-2026-11-06-Evidence.md).
 
@@ -198,7 +199,10 @@ The minimap button position is saved in `RaidwiseDB.minimapAngle`.
 - About overview (one sentence per line, with lists) plus per-menu feature sections (same icons as the left menu, each with that view’s layout `vN`)
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
-View layouts: [`docs/ui/UI-Views.md`](docs/ui/UI-Views.md). Pixel sizes: [`docs/ui/UI-Sizes.md`](docs/ui/UI-Sizes.md). Reputation model: [`docs/characters/Reputation.md`](docs/characters/Reputation.md). Composition tracking: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md).
+View layouts: [`docs/ui/UI-Views.md`](docs/ui/UI-Views.md).
+Pixel sizes: [`docs/ui/UI-Sizes.md`](docs/ui/UI-Sizes.md).
+Character task map: [`docs/characters/Reputation.md`](docs/characters/Reputation.md).
+Composition tracking: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md).
 
 Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet). `types/GearCheck.ts` describes the Gear Check normalized report (`schemaVersion` 3).
 
@@ -279,7 +283,7 @@ docs/
   UI-Views.md         # ASCII layouts for each view + layout version table
   UI-Sizes.md         # window / control pixel sizes
   Gear-Check-Progress.md # Gear Check phase board (planned / done / test steps)
-  Reputation.md       # current local character model
+  characters/Reputation.md # character owners, entry points and checks
   Raid-Composition.md # classes/specs tracked by the Raid composition tab
 types/
   CharacterExport.ts  # TypeScript types for the Export tab JSON
@@ -291,7 +295,7 @@ types/
 
 - Guild snapshots, journal, retention limit and per-guild roll threshold live in `RaidwiseDB.guild`; the old `epgp` and `guildManagement` roots are not migrated. SavedVariables names remain unchanged. Guild information is read-only; note/rank updates require an explicit permitted officer action. Journal storage is local and cannot reconstruct all changes missed while offline.
 
-- Character/profile data and saved Gear Check reports support one realm per SavedVariables dataset. Shared storage across independent realms/servers is not supported; see the [identity contract](docs/characters/Character-System-Contract.md).
+- Character/profile data and saved Gear Check reports support one realm per SavedVariables dataset. Shared storage across independent realms/servers is not supported; see the [storage constraints](docs/characters/Character-System-Contract.md).
 
 - Incomplete/unavailable scans remain visibly marked and do not count as ready in raid/minimap summaries; unconfirmed empty sockets require another inspect response before being reported as missing gems.
 

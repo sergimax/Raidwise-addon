@@ -1,64 +1,42 @@
-# Итоговая проверка системы персонажей
+# Character-system manual checks and dated evidence
 
-Дата: **2026-10-31**. Этап 9 (этап 8 в нумерации плана) завершён с учётом
-пользовательской проверки в WoW, приведённой ниже. Последующая отдельная правка
-Gear Check от 2026-10-31 устранила сбой Balance BiS off-hand: на том срезе
-`npm run check` — typecheck успешен, **75/75** тестов. Ниже сохранён исходный
-результат приёмки до этой правки. Релиз, изменение semver, commit и tag в рамках этапа не выполнялись.
+For current automated checks use the [task map](Reputation.md) and
+[tests/README.md](../../tests/README.md). Test results come from a current run;
+historical totals and resolved failures are not a live status report.
 
-Это историческая приёмка переработки. Последующие исправления и результат 92/92
-после очереди 6 зафиксированы в [аудите 2026-11-06](../audits/Audit-2026-11-06.md) и
-[протоколе](../audits/Audit-2026-11-06-Evidence.md). Приведённая ниже пользовательская
-проверка WoW не подтверждает автоматически эти более поздние изменения.
+## Manual checks still requiring current evidence
 
-Основания: [решения](Character-System-Redesign.md), [контракт](Character-System-Contract.md),
-[план](Character-System-Implementation-Plan.md). Baseline сохранён историческим.
+The 2026-11-15 profile redesign recorded outstanding v40 readability checks.
+Check long names/text/events/links and pagination in both locales and themes,
+including supported UI scales. Layout references: [UI views](../ui/UI-Views.md)
+and [sizes](../ui/UI-Sizes.md).
 
-## Завершённая офлайн-часть этапа 9
+When claiming current in-client acceptance, also check the affected scenarios:
 
-- Активная загрузка использует PlayerRecords/Support, screen API, новые links,
-  encounters, editor и window. PlayerHistory/Store, CharacterLinks, ProfileDraft,
-  CharacterProfile/Panels и Sync/Karma исключены из TOC. Старые файлы оставлены
-  для явных исторических тестов; запуск аддона их не исполняет.
-- Нет прежних миграций, автоматической общей оценки альтов и 51% fallback.
-  Нет двойного сохранения идентичностей через alias `RaidwiseDB.history`.
-- Из UI связей удалены неиспользуемые предложения выбрать общее мнение.
-  Удалён переопределяемый старый обработчик удаления из screen API.
-- Диагностика проверяет активацию новой схемы, отсутствие прежних корней и
-  транспорта, наличие обязательных методов. Содержимое Заметок не выводится.
-- Тесты новой системы переведены на реальный активный набор core/support-модулей.
-  Старые migration/exchange-тесты остаются историческими и не доказывают
-  активность этих функций в игре.
-- README, Architecture, Reputation, Synchronization и описание экранов обновлены.
+- Fresh construction after a full restart for TOC changes and after `/reload`;
+  existing-window diagnostics alone cannot prove construction.
+- Overview, Events, Meetings and Characters; the separate change journal;
+  idle/manual save, close/switch, retained failed drafts, reload and deletion.
+- Quiet groups, reconnects, roster/zone and party-to-raid transitions with real
+  server events; verify observers' independent meeting counts.
+- Filled-profile opinion marks and refreshing tooltips/native lists with the
+  actual skin/addons. Notes alone must not produce a marker.
+- Gear Check, composition and gear/currency/lockout export smoke checks if
+  cross-feature acceptance is claimed.
 
-## Подтверждено офлайн
+These are evidence gaps, not confirmed defects. Previously uncompleted checks
+need not block documentation cleanup that leaves their scenarios unchanged.
+Offline mocks do not establish real rendering, server timing or disk persistence.
 
-| Область | Покрытие |
-|---|---|
-| Lua | Все TOC-модули компилируются как Lua 5.1 |
-| Новая схема | Первая и повторная инициализация; неизвестная схема не перезаписывается; прочие данные сохранены |
-| Идентичность | Имя/realm → GUID, перенос ссылок и черновиков, отказ от конфликтного слияния |
-| Авторство | Общая версия, разные авторы событий, неизменные дата/место, отсутствие самооценки |
-| Сохранение | Idle/manual/close/switch, конфликт ревизий, сохранение неудачного черновика, его перечитывание |
-| Приватность | Заметка не становится мнением, не попадает в журнал/маркеры/подсказки |
-| Встречи | Дедупликация, смена зоны, группа → рейд, grace 5 минут, перезагрузка runtime-модуля |
-| Очистка | Граница 14 дней; счётчики и профильные данные остаются |
-| Связи/удаление | Разные мнения, смена основного, распускание группы, другие профили сохранны, черновик не воскресает |
-| База/История | Заполненность, unset ≠ neutral, поиск, сортировка, пагинация и массовое удаление |
-| Представление | Чат/ростер/unit tooltip; друзья/игнор/почта/гильдия в harness; обновление после удаления |
-| Неизменённые функции | Существующие проверки inspect, состава, exports, lockouts, темы и архитектуры входят в общий набор |
+## Historical acceptance boundary
 
-Проверки выполнены через установленный Node/TypeScript и `wasmoon-lua5.1`.
-`npm run check`: typecheck успешен; **74 из 75** тестов проходят.
-Единственный оставшийся сбой: `tests/gear-check.test.mts`,
-`Balance held off-hand BiS should be S`. Он воспроизводился до переработки
-и остаётся отдельной задачей; тест не удалён и не ослаблен ради зелёного результата.
-Офлайн-harness не подтверждает рендеринг и серверные события настоящего клиента.
+The following user evidence concerns 2026-10-31. It predates the November profile
+redesign and subsequent fixes; it does not certify today's implementation.
 
 ## Проверка в WoW — результаты пользователя
 
 Источник: сообщение пользователя от **2026-10-31**, а не автоматическое
-наблюдение агента за клиентом. Полный исходный чеклист сохранён ниже.
+наблюдение агента за клиентом. Таблица ниже передаёт результаты по пунктам прежнего чеклиста.
 
 | Пункт | Результат |
 |---|---|
@@ -106,29 +84,3 @@ Scope: opening and gear rules; not every tab, profile interaction or live inspec
 поэтому отчёт сам по себе не доказывает создание окна с нуля после `/reload`.
 Нулевое число сохранённых мнений также не доказывает работу маркеров с заполненным
 Профилем; по маркерам отдельно принято ручное подтверждение пользователя (п. 7).
-
-### Исходный чеклист
-
-1. Установить полную папку аддона и полностью перезапустить WoW (TOC изменён).
-   Проверить запуск без Lua-ошибок и `/rw diagnose`; сохранить текст отчёта.
-2. Проверить старую установку и новую: настройки, валюты/КД и отчёты Gear Check
-   сохраняются. После `/reload` и входа другим персонажем новые Профиль/Заметка
-   остаются общими, счётчики — персональными, повторного сброса нет.
-3. Проверить Профиль во всех трёх вкладках: длинные имена/события, прокрутку,
-   светлую/тёмную тему, ruRU/enUS, выбранное разрешение и UI scale.
-4. Изменить мнение, факт, событие и Заметку; проверить авто/ручное сохранение,
-   Escape, смену объекта, самооценку и Заметку о себе, удаление до автосохранения.
-5. Вступить в группу, перейти в рейд, сменить зону, выйти/вернуться до и после
-   пяти минут, выполнить `/reload` и реконнект. Проверить счётчик и места встречи.
-   Отдельный Gear Check цели не должен создавать встречу.
-6. Проверить Базу/Историю, фильтр unset/neutral, страницу после удаления, открытие
-   из рейда/Истории/цели. Удаление профиля сохраняет недавнюю встречу.
-7. Проверить друзей, игнор, обе формы гильдии, страницы почты, chat links и unit
-   tooltip, включая используемый UI skin. После удаления старые отметки исчезают.
-8. Убедиться, что обмен/Репутация/Карма отсутствуют. Проверить основные сценарии
-   Gear Check, состава, lockouts/валют и их экспорта на реальном сервере.
-
-Известный офлайн-сбой `Balance held off-hand BiS should be S` оставлен отдельной
-задачей Gear Check и не блокирует закрытие переработки системы персонажей.
-Успешные 165 встроенных проверок правил не опровергают этот сбой: это другой
-набор проверок. Неподтверждённые ограничения отмечены в таблице выше.
