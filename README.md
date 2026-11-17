@@ -15,7 +15,7 @@ Raid-prep addon for **Wrath of the Lich King 3.3.5a** (`Interface: 30300`): guil
 **Upgrading from 2.0 to 2.1:** existing profiles and notes are preserved; event
 journals migrate automatically to compact change records. Damaged entries are
 isolated with their originals retained. `/rw diagnose` reports storage health;
-the [character-system contract](docs/characters/Character-System-Contract.md) documents repair.
+the [storage maintenance guide](docs/characters/Character-System-Contract.md#repairing-quarantined-records) documents repair.
 
 **Upgrading from before 2.0:** back up SavedVariables first. Legacy character profiles,
 notes, links, and exchanged data are reset without migration; settings, saved
@@ -36,36 +36,12 @@ folder and restart the client because the TOC load order changed.
 
 ## Releases
 
-Pushing a stable version tag such as `vX.Y.Z` triggers
-[the release workflow](.github/workflows/release.yml). The tagged commit must
-already contain matching versions in `Raidwise/Raidwise.toc` and
-`Raidwise/Raidwise.lua`, plus a dated `CHANGELOG.md` entry for that version.
-Prepare version changes using the [release procedure](.agents/skills/bump/SKILL.md).
+Install **Raidwise-vX.Y.Z.zip** from a release.
+GitHub's automatic **Source code** archives contain the repository and are not installation packages.
+The release ZIP includes both addon folders.
 
-After `npm run check` passes, GitHub Actions publishes a release with notes from
-that changelog entry and `Raidwise-vX.Y.Z.zip`. The ZIP contains both `Raidwise/`
-and `Raidwise_Guild/`, ready to extract into `Interface/AddOns/`. Retired Lua modules remain in the repository for historical
-tests and are excluded by [the packager](scripts/package-addon.mts).
-Branches and PR merges alone do not publish releases. Tags must point to commits
-containing the workflow; existing tags are not processed retroactively.
-The workflow uses GitHub's built-in token with `contents: write`; no personal
-access token is needed. To repair an existing release without moving its tag,
-run **Actions → Release addon → Run workflow** from the default branch and enter
-the existing tag (for example `v2.3.0`). The current workflow checks out that tag,
-checks and packages its files, then uploads/replaces only `Raidwise-vX.Y.Z.zip`;
-existing release notes and other assets are preserved.
-
-Download **Raidwise-vX.Y.Z.zip** for installation. GitHub also supplies **Source
-code (zip)** and **Source code (tar.gz)** automatically; those contain the entire
-repository and are not installation packages.
-
-After the prepared changes are committed and pushed, publish an explicitly
-requested version (replace `X.Y.Z` with that version):
-
-```sh
-git tag -a vX.Y.Z -m "Raidwise X.Y.Z"
-git push origin vX.Y.Z
-```
+For an explicitly requested release or repair of an existing asset, use the [shared packaging/release guide](tests/README.md#packaging-and-releases).
+It explains tagged builds, validation and repair without moving a tag.
 
 ## Usage
 
@@ -83,13 +59,17 @@ In-game slash commands:
 
 Run diagnostics immediately after `/reload`, outside combat, to test fresh window construction. Copy the report with Ctrl+A / Ctrl+C. After installing new Lua files, restart the client with the entire updated `Raidwise` folder. For CLI checks, `npm run diagnose` writes `diagnostics/latest.txt`; see [tests/README.md](tests/README.md).
 
-Plain panels, a **left menu** grouped as Personal / Raiding / Other, and a content page.
+Plain panels, a **left menu** grouped as Personal / Raiding / Guild / Other, and a content page.
 The menu title bar shows **Raidwise** and the addon version.
 Esc or the title **X** closes the window.
 
 The draggable minimap button opens **Raid roster** on left-click and **Character cooldowns** on right-click. Hover for raid readiness, consumables, and account-wide character lockouts.
 
-**Guild roster** (Raidwise Guild): search names/notes, filter current-raid groups 1–5 or mains only, and sort EP/GP/PR. The page provides note/rank editing subject to guild permissions, conflict checks, refresh progress and a local journal with configurable retention. Guild-info `@BASE_GP` supplies the PR base; minimum EP for roll is a separate per-guild setting (default 4000). There are 25 records per page, fixed headers and horizontal/vertical scrolling. See the [guild module contract](docs/raid/Guild-Management.md) for limits and update behavior.
+**Guild roster** (Raidwise Guild): search names/notes, filter current-raid groups 1–5 or mains only, and sort EP/GP/PR.
+The page provides note/rank editing subject to guild permissions, conflict checks, refresh progress and a local journal with configurable retention.
+Guild-info `@BASE_GP` supplies the PR base; minimum EP for roll is a separate per-guild setting (default 4000).
+There are 25 records per page, fixed headers and horizontal/vertical scrolling.
+See the [guild limits](docs/raid/Guild-Management-Contract.md) for limits and update behavior.
 
 **Character cooldowns** tab:
 
@@ -127,7 +107,7 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 - Gold rows are covered; dim rows are missing. Section titles show present/total (red when nothing in the section is present)
 - Hover a row for who has it and which class/spec brings which spell; **Shift-click** posts that effect to the report chat channel (header)
 - **Report missing** posts absent classes to the report chat channel (header); **Refresh** re-reads the group (same inspect path as Raid roster)
-- Full tracking list: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md)
+- Effect catalog owner and coverage limits: [composition task map](docs/raid/Raid-Composition.md)
 - Reports preview their output; effect reports include clickable spell links and fit one 255-byte chat message.
 
 **Gear check (target)** tab:
@@ -137,8 +117,8 @@ The draggable minimap button opens **Raid roster** on left-click and **Character
 - **Report …** buttons and `/rw gearcheck summary|items|enchants|gems|ok` print to the **report chat channel** (header; default Auto = raid/party)
 - Report buttons show icons and previews; summaries list all grade counts, and gem reports group warnings by theme without gem IDs.
 - **Show as a text** toggles the raw dump; **Save report** keeps a snapshot (~14 days)
-- **Character profile** opens the scanned player's profile; target scans also record that player in History
-- Surface-level disclaimer; rules and known false positives: [`docs/gear-check/Gear-Check-Progress.md`](docs/gear-check/Gear-Check-Progress.md)
+- **Character profile** opens the scanned player's profile; target scans do not create group-meeting History entries
+- Surface-level disclaimer; development owners and checks: [Gear Check task map](docs/gear-check/Gear-Check-Progress.md). [Catalog maintenance](docs/gear-check/Gear-Check-Surface-From-BiS.md) covers investigating false positives.
 - `/rw gearcheck` opens this tab and scans; `/rw gearcheck test` runs the offline self-test
 
 **History** shows this character's group/raid meetings from the last 14 days.
@@ -168,10 +148,11 @@ controls the opinion line.
 Profile exchange, its menus/pages, and Karma are disabled pending future work.
 Gear/currency/lockout export remains available. Full profile deletion clears the
 opinion, facts, events, Note, changes and links but preserves meetings/counters.
-See [current model](docs/characters/Reputation.md), [contract](docs/characters/Character-System-Contract.md)
-and [redesign acceptance](docs/characters/Character-System-Verification.md).
-Subsequent fixes and remaining checks: [November audit](docs/audits/Audit-2026-11-06.md)
-and [verification evidence](docs/audits/Audit-2026-11-06-Evidence.md).
+For development use the [character task map](docs/characters/Reputation.md);
+[storage constraints/repair](docs/characters/Character-System-Contract.md) and
+[manual checks with dated evidence](docs/characters/Character-System-Verification.md) are separate references.
+Current manual checks are linked from the character task map;
+[November measurements](docs/audits/Audit-2026-11-06-Evidence.md) are historical evidence.
 
 Report controls in the shared header:
 
@@ -198,7 +179,10 @@ The minimap button position is saved in `RaidwiseDB.minimapAngle`.
 - About overview (one sentence per line, with lists) plus per-menu feature sections (same icons as the left menu, each with that view’s layout `vN`)
 - Repository URL in a copy box with **Select all** (Ctrl+C)
 
-View layouts: [`docs/ui/UI-Views.md`](docs/ui/UI-Views.md). Pixel sizes: [`docs/ui/UI-Sizes.md`](docs/ui/UI-Sizes.md). Reputation model: [`docs/characters/Reputation.md`](docs/characters/Reputation.md). Composition tracking: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md).
+UI owners and layout versions: [`docs/ui/UI-Views.md`](docs/ui/UI-Views.md).
+Geometry owners and outer sizes: [`docs/ui/UI-Sizes.md`](docs/ui/UI-Sizes.md).
+Character task map: [`docs/characters/Reputation.md`](docs/characters/Reputation.md).
+Composition navigation and limits: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md).
 
 Consumers can type the Export-tab JSON with `types/CharacterExport.ts`. `types/CooldownsExport.ts` describes the account-wide cooldown JSON shape (from `FormatCooldownsExport`; not wired to a UI button yet). `types/GearCheck.ts` describes the Gear Check normalized report (`schemaVersion` 3).
 
@@ -212,96 +196,31 @@ Main addon view (`/raidwise`):
 
 ## Layout
 
-```text
-Raidwise/
-  Raidwise.toc        # addon metadata (Interface 30300)
-  Raidwise.lua        # entry point, events, slash commands
-  Locale.lua          # English / Russian UI strings and language switch
-  PlayerRecords.lua   # core profile drafts and persistence
-  PlayerRecordSupport.lua # active catalogs and identity helpers
-  PlayerRecordBridge.lua  # screen-facing character API
-  PlayerRecordLinks.lua   # reference links and profile deletion
-  PlayerEncounters.lua    # personal group/raid sessions
-  ProfileEditor.lua       # unified save controller
-  ChatReports.lua     # shared final chat message preparation
-  CharacterExport.lua # character JSON export (gear, bags, lockouts)
-  CharacterLockouts.lua # account-wide lockout snapshots for the cooldowns table
-  InspectCoordinator.lua # shared inspect ownership, identity, and deadlines
-  PartyRoster.lua     # party / raid member stats for roster views
-  RosterRefresh.lua   # coalesced refreshes and shared per-pass roster snapshots
-  RaidRoles.lua       # raid role and spec/race buff lookups
-  RaidComposition.lua # party/raid buff, debuff, and utility coverage
-  RatingPresentation.lua # rating labels, tooltips, and chat marks
-  ProfileCharacters.lua # profile Characters tab
-  Diagnostics.lua    # runtime checks and independent copy window
-  Minimap.lua         # draggable launcher and raid/lockout summary tooltip
-  UnitTooltips.lua    # personal/community lines on player unit tooltips
-  ClassicOpinionMarkers.lua # native social, inbox and guild opinion marks
-  UITheme.lua         # theme palettes and bound colors/text
-  UIWidgets.lua       # shared panels, buttons, icons, layout version badges
-  RosterWidgets.lua   # roster, rating, and gear presentation helpers
-  GearCheckCatalog.lua # enchant / gem seed catalogs
-  GearCheckSets.lua   # T9/T10 set-piece ids (informational)
-  GearCheckTrinkets.lua # preferred/allowed trinket pools by role
-  GearCheckProfiles.lua # class + 30-spec Gear Check profiles
-  GearCheckBis.lua    # generated spec BiS item-ID sets (S grade)
-  GearCheckRules.lua  # findings, meta activation, and rule revision
-  GearCheckReport.lua # report compatibility and scan completeness
-  GearCheckGrades.lua # slot, category, and overall grades
-  GearCheckExplanations.lua # category tooltips and grade explanations
-  GearCheckSelfTest.lua # offline and in-game rule fixtures
-  GearCheckCollector.lua # item/gem reads and normalized snapshots
-  GearCheckSavedReports.lua # manual save / load / prune (~14 days)
-  GearCheck.lua       # scan orchestration and last-report state
-  GearCheckReports.lua # gear report formatting and final messages
-  GearCheckDump.lua    # text dumps and asynchronous raid export jobs
-  PageCooldowns.lua   # Character cooldowns tab
-  PageExport.lua      # Export gear and CDs tab
-  PageRaid.lua        # Raid roster tab
-  PageComposition.lua # Raid composition tab
-  PageGearCheckTarget.lua # Gear check (target) tab
-  PageHistory.lua     # History and Character database tabs
-  ProfileWindow.lua   # Active profile window
-  PageSettings.lua    # Settings tab
-  PageInfo.lua        # Info tab
-  ExporterWindow.lua  # main window shell (menu, title, status, tab wiring)
-Raidwise_Guild/
-  Raidwise_Guild.toc  # dependent addon, loaded by Raidwise
-  GuildManagement.lua # roster refresh, officer actions and local journal
-  GuildRosterParser.lua # raw note parsing
-  GuildRosterLinks.lua # main/alt chain resolution
-  GuildEPGP.lua      # guild-info base GP and priority calculation
-  PageGuild.lua      # combined roster and journal page
-scripts/
-  generate-gear-check-bis.js # union web-app BiS preset IDs → GearCheckBis.lua
-docs/
-  Architecture.md     # TOC order, layers, SavedVariables, refresh API
-  UI-Views.md         # ASCII layouts for each view + layout version table
-  UI-Sizes.md         # window / control pixel sizes
-  Gear-Check-Progress.md # Gear Check phase board (planned / done / test steps)
-  Reputation.md       # current local character model
-  Raid-Composition.md # classes/specs tracked by the Raid composition tab
-types/
-  CharacterExport.ts  # TypeScript types for the Export tab JSON
-  CooldownsExport.ts  # TypeScript types for account-wide cooldown JSON shape
-  GearCheck.ts        # TypeScript types for Gear Check report + findings
-```
+Use the task maps to find the owner and its checks; the TOCs own the executable
+file list. Detailed source catalogs are not duplicated here.
+
+| Work | Start here |
+|---|---|
+| Code ownership and focused searches | [Architecture](docs/Architecture.md) |
+| Installable core / guild load order | [Raidwise.toc](Raidwise/Raidwise.toc), [Raidwise_Guild.toc](Raidwise_Guild/Raidwise_Guild.toc) |
+| UI/page changes and geometry | [UI task map](docs/ui/UI-Views.md), [geometry owners](docs/ui/UI-Sizes.md) |
+| Behavior checks, diagnostics and benchmarks | [tests README](tests/README.md) |
+| JSON/model contracts | [CharacterExport](types/CharacterExport.ts), [CooldownsExport](types/CooldownsExport.ts), [GearCheck](types/GearCheck.ts) |
+| Catalog/profile/BiS maintenance | [maintenance guide](docs/gear-check/Gear-Check-Surface-From-BiS.md) |
+| Requested release / installable ZIP | [packaging guide](tests/README.md#packaging-and-releases), [bump procedure](.agents/skills/bump/SKILL.md) |
 
 ## Notes
 
-- Guild snapshots, journal, retention limit and per-guild roll threshold live in `RaidwiseDB.guild`; the old `epgp` and `guildManagement` roots are not migrated. SavedVariables names remain unchanged. Guild information is read-only; note/rank updates require an explicit permitted officer action. Journal storage is local and cannot reconstruct all changes missed while offline.
+- Target: WoW **3.3.5a**, `Interface: 30300`. **GearScore** is optional.
+- SavedVariables use `RaidwiseDB` under `WTF/Account/.../SavedVariables/`.
+  Legacy `MrcExporterDB` supplies old settings migration input. For current
+  storage ownership see [Architecture](docs/Architecture.md#savedvariables-and-versions).
+- Character data and saved Gear Check reports support one realm per dataset;
+  see [storage limits and repair](docs/characters/Character-System-Contract.md).
+- Guild history is local; permission masking does not erase retained data.
+  [Guild limits](docs/raid/Guild-Management-Contract.md) explain scope and retention.
+- Incomplete scans do not count as ready. Profile exchange is disabled;
+  private Notes remain local. Character/cooldown/gear exports have their own
+  format contracts, separate from addon semver.
 
-- Character/profile data and saved Gear Check reports support one realm per SavedVariables dataset. Shared storage across independent realms/servers is not supported; see the [identity contract](docs/characters/Character-System-Contract.md).
-
-- Incomplete/unavailable scans remain visibly marked and do not count as ready in raid/minimap summaries; unconfirmed empty sockets require another inspect response before being reported as missing gems.
-
-Offline development checks use TypeScript, Node.js 24, and a Lua 5.1 WebAssembly
-runtime: `npm ci --ignore-scripts`, then `npm run check`. See
-[tests/README.md](tests/README.md) for test organization, watch mode, and pull request CI.
-
-- Target build: **3.3.5a** (private-server style clients use `## Interface: 30300`).
-- Saved variables are stored in `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Settings from the old `MrcExporterDB` are migrated on first load. Per-character lockouts and currency snapshots for the cooldowns table live in `RaidwiseDB.characters` (`.lockouts`, `.currency`). The character system lives in `RaidwiseDB.playerRecords`; old profile roots are retired without review migration. Interface language is `RaidwiseDB.locale` (`enUS` or `ruRU`). Startup left-menu page is `RaidwiseDB.startupTab`. Unit tooltip visibility flags live in `RaidwiseDB.tooltip`.
-- `## X-LastUpdated` in the `.toc` is set manually; keep the README badge in sync.
-- Character, cooldown and Gear Check exports retain their format versions. Profile exchange is disabled; private Notes remain local.
-- Optional dependency: **GearScore** (`## OptionalDeps`) for the `gearScore` export field.
-- Regenerating S-grade BiS IDs: `node scripts/generate-gear-check-bis.js` (reads sibling `Raidwise` web-app presets; see `docs/gear-check/Gear-Check-Surface-From-BiS.md`).
+Development setup and checks: [tests/README.md](tests/README.md).

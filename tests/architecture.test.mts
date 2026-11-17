@@ -73,41 +73,6 @@ test("negative personal opinions color the whole chat body red and preserve chat
   `);
 });
 
-test("own profiles reject local edits and indirect linked opinion changes", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks"], `
-    Raidwise.db={}
-    function time() return 1000 end
-    function UnitGUID() return "SELF" end
-    function UnitName() return "Me" end
-    function GetRealmName() return "Realm" end
-  `, `
-    assert(not Raidwise:CanEditCharacterProfile({guid="SELF"}))
-    assert(not Raidwise:AddCharacterRecord("me-Realm"))
-    local own=Raidwise:EnsureHistoryEntryForGuid("SELF",{name="Me",realm="Realm"})
-    local alias=Raidwise:EnsureHistoryEntryForGuid("name:realm:me",{name="Me",realm="Realm"})
-    for _, entry in ipairs({own,alias}) do
-      assert(not Raidwise:SavePersonalRatingForGuid(entry.guid,nil,"positive",{},{}))
-      assert(not Raidwise:SaveHistoryEventsForGuid(entry.guid,nil,{}))
-      assert(not Raidwise:AddHistoryEventForGuid(entry.guid,nil,"same_party"))
-      assert(not Raidwise:RemoveHistoryEventForGuid(entry.guid,"1"))
-      assert(entry.notes==nil and entry.events==nil and entry.recordSource==nil)
-      assert(not Raidwise:SaveProfileNotesForGuid(entry.guid,nil,"test"))
-    end
-    local other=Raidwise:EnsureHistoryEntryForGuid("OTHER",{name="Other",realm="Realm"})
-    assert(Raidwise:CanEditCharacterProfile(other))
-    assert(Raidwise:SaveProfileNotesForGuid("OTHER",nil,"allowed"))
-    assert(Raidwise:LinkPlayerCharacters("OTHER","SELF"))
-    assert(Raidwise:SetLinkedCharacterRole("SELF","SELF","main"))
-    Raidwise:SyncLinkedPlayerOpinion("OTHER","negative")
-    assert(Raidwise:GetPersonalRating(own).opinion=="neutral")
-    assert(Raidwise:GetPersonalRating(other).opinion=="negative")
-    assert(Raidwise:UnlinkPlayerCharacter("SELF","OTHER"))
-    assert(Raidwise:LinkPlayerCharacters("SELF","OTHER",nil,"positive"))
-    assert(Raidwise:GetPersonalRating(own).opinion=="neutral")
-    assert(Raidwise:GetPersonalRating(other).opinion=="positive")
-  `);
-});
-
 test("roster Gear targets the same character before navigation and native inspect avoids active scans", async () => {
   await run(["PageGearCheckTarget"], `
     Raidwise.UITheme={ACTION_BTN_H=28}
@@ -157,6 +122,37 @@ test("composition excludes reserve groups in live and snapshot reads without shr
     function GetNumRaidMembers() return 0 end
     Raidwise.BuildPartyRoster=function() return groups[1] end
     assert(#Raidwise:CompositionMembers(false)==1)
+  `);
+});
+
+test("composition infers potential providers from known primary trees without inventing unknown specs", async () => {
+  await run(["RaidRoles", "RaidComposition"], "", `
+    local function forbidden() error("Composition read live talents or auras") end
+    GetTalentTabInfo=forbidden; UnitBuff=forbidden; UnitAura=forbidden
+    local function Effect(result, id)
+      for _,section in ipairs(result.sections) do
+        for _,effect in ipairs(section.effects) do if effect.id==id then return effect end end
+      end
+      error("Missing effect: "..id)
+    end
+    local function Class(result, token)
+      for _,class in ipairs(result.classes) do if class.class==token then return class end end
+      error("Missing class: "..token)
+    end
+    local unknown={name="Unknown",class="DRUID"}
+    local first=Raidwise:AnalyzeRaidComposition({unknown})
+    assert(Effect(first,"motw").count==1,"Unknown spec lost its class-wide capability")
+    assert(Effect(first,"spell_taken").count==0,"Unknown spec invented a Balance talent")
+    assert(Class(first,"DRUID").count==1 and #Class(first,"DRUID").specs==0)
+
+    local known={name="Balance",class="DRUID",specTab=1}
+    local mixed=Raidwise:AnalyzeRaidComposition({unknown,known})
+    assert(mixed.memberCount==2 and Class(mixed,"DRUID").count==2)
+    assert(#Class(mixed,"DRUID").specs==1 and Class(mixed,"DRUID").specs[1].count==1)
+    assert(Effect(mixed,"motw").count==2)
+    local inferred=Effect(mixed,"spell_taken")
+    assert(inferred.count==1 and inferred.providers[1]=="Balance")
+    assert(mixed.roles.ranged.count==1,"Known primary tree did not supply its inferred role")
   `);
 });
 
@@ -268,25 +264,63 @@ test("canonical reports preserve legacy inputs and separate grades from complete
   `);
 });
 
-test("rating getters do not migrate or initialize SavedVariables", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore"], "Raidwise.db={}; function time() return 100 end", `
-    assert(Raidwise:GetHistoryEntry("absent")==nil and Raidwise.db.history==nil)
-    assert(#Raidwise:BuildHistoryRoster()==0 and Raidwise.db.history==nil)
-    local entry={guid="A",rating={personal={opinion="positive",tags={"late"},updatedAt=10}}}
-    Raidwise.db.history={A=entry}
-    Raidwise:GetPersonalRating(entry)
-    Raidwise:GetCommunityRating(entry)
-    Raidwise:GetHistoryEvents(entry)
-    Raidwise:BuildHistoryRoster()
-    assert(entry.events==nil and entry.notes==nil and not entry.rating.personal.reputationV2)
-    assert(entry.rating.personal.tags[1]=="late")
-    Raidwise:InitializeHistoryStore()
-    assert(entry.rating==nil and entry.events==nil and Raidwise:GetHistoryEvents(entry)[1].type=="late_arrival")
-    Raidwise:InitializeHistoryStore()
-    assert(#Raidwise:GetHistoryEvents(entry)==1)
-    local personal=Raidwise:GetPersonalRating(entry)
-    personal.tags[1]="changed"
-    assert(Raidwise:GetLocalProfile("A").personal.tags[1]~="changed")
+test("active rating and roster reads leave retired data untouched until explicit activation", async () => {
+  await run(["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks", "PlayerEncounters"], `
+    Raidwise.db={}
+    function time() return 100 end
+    function UnitGUID() return "SELF" end
+    function UnitName() return "Me", "Realm" end
+    function GetRealmName() return "Realm" end
+  `, `
+    local a=Raidwise
+    local legacy={guid="A",rating={personal={opinion="positive",tags={"late"},updatedAt=10}}}
+    local oldHistory={A=legacy}
+    a.db.history=oldHistory
+    assert(a:GetHistoryEntry("A")==nil and a:GetLocalProfile("A")==nil)
+    assert(not a:GetPersonalRating(legacy).hasOpinion and a:GetCommunityRating(legacy)==nil)
+    assert(#a:GetHistoryEvents(legacy)==0 and #a:BuildHistoryRoster()==0)
+    assert(a.db.playerRecords==nil and a.db.history==oldHistory)
+    assert(legacy.events==nil and legacy.rating.personal.tags[1]=="late")
+
+    assert(a:InitializeHistoryStore())
+    assert(a.db.history==nil and a:GetHistoryEntry("A")==nil,"Retired reviews were imported")
+    assert(a:UpsertPlayerRecordIdentity({guid="A",name="Other",realm="Realm"})=="A")
+    local draft=a:CreatePlayerRecordDraft("A")
+    draft.opinion="positive";draft.facts={"raid_leader"}
+    assert(a:CommitPlayerRecordDraft(draft))
+    local personal=a:GetPersonalRating({guid="A"})
+    personal.facts[1]="changed"
+    assert(a:GetLocalProfile("A").personal.facts[1]=="raid_leader")
+  `);
+});
+
+test("active target addition validates the player and upgrades typed identity without losing notes", async () => {
+  await run(["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks", "PlayerEncounters"], `
+    Raidwise.db={}
+    targetExists=true;targetPlayer=true;targetGuid="TARGET";targetName="Targeter"
+    function time() return 100 end
+    function GetRealmName() return "Realm" end
+    function UnitGUID(unit) if unit=="target" then return targetGuid end;return "SELF" end
+    function UnitName(unit) return unit=="target" and targetName or "Me", "Realm" end
+    function UnitClass() return "Mage", "MAGE" end
+    function UnitExists() return targetExists end
+    function UnitIsPlayer() return targetPlayer end
+  `, `
+    local a=Raidwise
+    assert(a:InitializeHistoryStore())
+    local target=assert(a:AddTargetCharacterRecord())
+    assert(target.guid=="TARGET" and target.name=="Targeter" and target.realm=="Realm")
+    assert(not a:IsPlayerRecordFilled(target.guid),"Opening a target created a filled profile")
+    targetExists=false;assert(not a:AddTargetCharacterRecord())
+    targetExists=true;targetPlayer=false;assert(not a:AddTargetCharacterRecord())
+    targetPlayer=true;targetGuid=nil;assert(not a:AddTargetCharacterRecord())
+
+    local typed=assert(a:AddCharacterRecord("Upgrade-Realm"))
+    assert(a:SaveProfileNotesForGuid(typed.guid,nil,"keep this note"))
+    targetGuid="UPGRADED";targetName="Upgrade"
+    local upgraded=assert(a:AddTargetCharacterRecord())
+    assert(upgraded.guid=="UPGRADED" and a:GetHistoryEntry(typed.guid)==nil)
+    assert(a:GetProfileNotes(upgraded)=="keep this note")
   `);
 });
 
@@ -348,36 +382,6 @@ test("party and raid collection share identity fields and retain raid role", asy
     end
     assert(party.role==nil and raid.role=="tank")
     assert(Raidwise:CollectRaidMember("player",false).role=="melee")
-  `);
-});
-
-test("profile panel construction and history rendering survive extraction", async () => {
-  await run(["ProfilePanels"], `
-    function widget()
-      return setmetatable({}, {__index=function(_,key)
-        if key=="GetFrameLevel" then return function() return 1 end end
-        if key=="GetWidth" then return function() return 400 end end
-        if key=="CreateTexture" then return widget end
-        return function() end
-      end})
-    end
-    CreateFrame=function() return widget() end
-    Raidwise.Widgets={T=function(key) return key end,CreateFontString=widget,
-      CreatePlainButton=widget,ApplyPlainPanel=function() end,SetFontColor=function() end}
-  `, `
-    local controls={UI={ACTION_BTN_GAP=8,ACTION_BTN_H=28},
-      GetRatingTagGroups=function() return {} end,
-      CreateOpinionRadio=function() return {host=widget()} end,
-      CreateProfileNotesBox=function() return widget(),widget() end}
-    for _,key in ipairs({"PROFILE_EVENT_GROUP_ICON","PROFILE_EVENT_PICKER_H","PROFILE_EVENT_TYPE_BTN_H",
-      "PROFILE_EVENT_TYPE_ROW_H","PROFILE_LAYOUT_VERSION","PROFILE_OPINION_HEADER_H",
-      "PROFILE_OPINION_ROW_H","PROFILE_TAG_COL_GAP","PROFILE_TAG_GROUP_GAP",
-      "PROFILE_TAG_GROUP_HEADING_H","PROFILE_TAG_ROW_H"}) do controls[key]=20 end
-    local frame={profilePanels={}}
-    Raidwise:CreateProfilePanels(frame,widget(),440,controls)
-    for _,key in ipairs({"opinion","facts","events","notes","history"}) do assert(frame.profilePanels[key],key) end
-    Raidwise:RefreshProfileHistoryPanel(frame,{changes={}},14)
-    assert(#frame.historyRows==1)
   `);
 });
 
@@ -447,7 +451,7 @@ test("every shipped module compiles as Lua 5.1", async () => {
 });
 
 test("Settings and character linking panels avoid circular frame anchors", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "SyncJSON", "SyncData", "SyncTransport", "PageSettings", "ProfileCharacters", "PageHistory", "PageExport", "PageSyncExport", "PageSync"], `
+  await run(["PlayerRecords", "PlayerRecordSupport", "PlayerRecordBridge", "PlayerRecordLinks", "PlayerEncounters", "PageSettings", "ProfileCharacters", "PageHistory", "PageExport"], `
     local serial=0
     local function depends(region,wanted,seen)
       if region==wanted then return true end
@@ -505,58 +509,18 @@ test("Settings and character linking panels avoid circular frame anchors", async
     function time() return 100 end
     function GetRealmName() return "Realm" end
     function UnitGUID() return "SELF" end
+    function UnitName() return "Me", "Realm" end
     UIParent=region()
   `, `
+    assert(Raidwise:InitializeHistoryStore())
     local history=Raidwise.Pages.History.Create(region())
     local database=Raidwise.Pages.Database.Create(region())
     assert(history.layoutVersion==Raidwise.Pages.History.LAYOUT_VERSION and not history.database)
     assert(database.layoutVersion==Raidwise.Pages.Database.LAYOUT_VERSION and database.addButton)
-    Raidwise.syncOffers={}
-    Raidwise.GetSyncReviewText=function() return "preview" end
     Raidwise.mainFrame={pages={}}
     local export=Raidwise.Pages.Export.Create(region())
     Raidwise.mainFrame.pages.export=export
-	local syncExport=Raidwise.Pages.SyncExport.Create(region())
-	Raidwise.mainFrame.pages.syncExport=syncExport
-    local sync=Raidwise.Pages.Sync.Create(region())
-    local shareAnchor=region(); shareAnchor:Show()
-    Raidwise:ShowSyncShareMenu(shareAnchor)
-    assert(Raidwise.syncShareMenu:IsShown())
-    Raidwise:ShowSyncShareMenu(shareAnchor)
-    assert(not Raidwise.syncShareMenu:IsShown())
-    Raidwise:ShowSyncShareMenu(shareAnchor)
-    Raidwise.syncShareMenu.closeButton.scripts.OnClick()
-    assert(not Raidwise.syncShareMenu:IsShown())
-    Raidwise:ShowSyncShareMenu(shareAnchor)
-    Raidwise:HideSyncShareMenu()
-    assert(not Raidwise.syncShareMenu:IsShown())
-    Raidwise:RefreshSyncView()
-    assert(sync.layoutVersion==Raidwise.Pages.Sync.LAYOUT_VERSION and sync.json and sync.ignoreName)
-	assert(export.layoutVersion==Raidwise.Pages.Export.LAYOUT_VERSION and export.exportBox)
-	assert(syncExport.layoutVersion==Raidwise.Pages.SyncExport.LAYOUT_VERSION and syncExport.copyBox)
-	local selectedTab
-	Raidwise.SelectTab=function(_,tab) selectedTab=tab end
-	Raidwise:OpenSyncView()
-	assert(selectedTab=="syncExport")
-    Raidwise:SetSyncSenderIgnored("Zulu",true)
-    Raidwise:SetSyncSenderIgnored("Alpha-Realm",true)
-    Raidwise:SetSyncSenderIgnored("Bravo",true)
-    assert(sync.ignoredRows[1].name=="alpha" and sync.ignoredRows[2].name=="bravo")
-    sync.ignoredNext.scripts.OnClick()
-    assert(sync.ignoredRows[1].name=="zulu" and not sync.ignoredRows[2].name)
-    sync.ignoreName:SetText("ALP"); sync.ignoreName.scripts.OnTextChanged()
-    assert(sync.ignoredRows[1].name=="alpha" and sync.ignoredOffset==0)
-    sync.ignoredRows[1].remove.scripts.OnClick()
-    assert(not Raidwise:IsSyncSenderIgnored("Alpha-OtherRealm") and not sync.ignoredRows[1].name)
-    sync.ignoreName:SetText(""); sync.ignoreName.scripts.OnTextChanged()
-    assert(sync.ignoredRows[1].name=="bravo" and sync.ignoredRows[2].name=="zulu")
-    local pasted
-    Raidwise.StageSyncImport=function(_,value) pasted=value; return {} end
-    sync.json:SetText("pasted JSON")
-    for _, control in ipairs(sync.syncButtons) do
-      if control.syncKey=="SYNC_PREVIEW" then control.scripts.OnClick() end
-    end
-    assert(pasted=="pasted JSON")
+    assert(export.layoutVersion==Raidwise.Pages.Export.LAYOUT_VERSION and export.exportBox)
     local refreshes=0
     Raidwise.RefreshHistoryView=function() refreshes=refreshes+1 end
     database.opinionButton.scripts.OnClick()
@@ -593,86 +557,6 @@ test("Settings and character linking panels avoid circular frame anchors", async
   `);
 });
 
-test("character groups share only opinions, log changes and retain one main", async () => {
-  await run(["PlayerHistory", "PlayerHistoryStore", "CharacterLinks", "RatingPresentation"], `
-    Raidwise.db={}
-    function time() return 100 end
-    function GetRealmName() return "Realm" end
-    function UnitGUID() return "SELF" end
-    function ChatFrame_AddMessageEventFilter() end
-  `, `
-    local a=Raidwise:EnsureHistoryEntryForGuid("A",{name="Main",realm="Realm"})
-    local b=Raidwise:EnsureHistoryEntryForGuid("B",{name="Alt",realm="Realm"})
-    local c=Raidwise:EnsureHistoryEntryForGuid("C",{name="OtherAlt",realm="Other",class="PRIEST"})
-    Raidwise:SavePersonalRatingForGuid("A",nil,"positive",{}, {"raid_leader"})
-    Raidwise:SavePersonalRatingForGuid("B",nil,"negative",{}, {})
-    b.notes="private"; b.events={{id="own",type="same_party",eventAt=1,context={}}}
-    local ok,reason=Raidwise:LinkPlayerCharacters("A","B")
-    assert(not ok and reason=="CHAR_LINK_CONFLICT" and not a.playerGroupId and not b.playerGroupId)
-    assert(Raidwise:LinkPlayerCharacters("A","B",nil,"positive"))
-    local groupId=a.playerGroupId
-    assert(b.playerGroupId==groupId and Raidwise.db.localCharacterMains[groupId]=="A")
-    assert(Raidwise.db.characterGroups[groupId].mainGuid==nil)
-    local shared = Raidwise:GetSharedCharacterLinks("A")
-    assert(#shared==2 and shared[1].guid=="A" and shared[2].guid=="B")
-    for _, member in ipairs(shared) do
-      assert(member.role==nil and member.mainGuid==nil and member.entry==nil)
-    end
-    -- Migrate the original saved format once, retaining a local choice thereafter.
-    Raidwise.db.localCharacterMains=nil
-    Raidwise.db.characterGroups[groupId].mainGuid="A"
-    Raidwise:InitializeHistoryStore()
-    assert(Raidwise.db.localCharacterMains[groupId]=="A")
-    assert(Raidwise.db.characterGroups[groupId].mainGuid==nil)
-    assert(Raidwise:GetPersonalRating(b).opinion=="positive" and #Raidwise:GetPersonalRating(b).facts==0)
-    assert(Raidwise:GetProfileNotes(b)=="private" and #Raidwise:GetHistoryEvents(b)==1)
-    local count=#Raidwise:GetProfileChanges(a)
-    assert(not Raidwise:LinkPlayerCharacters("A","B") and #Raidwise:GetProfileChanges(a)==count)
-    assert(Raidwise:LinkPlayerCharacters("B","C",nil,"positive"))
-    assert(#Raidwise:GetLinkedCharacters("C")==3)
-    Raidwise:SavePersonalRatingForGuid("B",nil,"negative",{}, {})
-    assert(Raidwise:GetPersonalRating(a).opinion=="negative" and Raidwise:GetPersonalRating(c).opinion=="negative")
-    assert(Raidwise:GetPersonalRating(a).facts[1]=="raid_leader" and Raidwise:GetProfileNotes(b)=="private" and #Raidwise:GetHistoryEvents(b)==1)
-    assert(not Raidwise:UnlinkPlayerCharacter("B","A"),"Allowed removal of the main")
-    assert(Raidwise:SetLinkedCharacterRole("B","B","main"))
-    local sharedAfter=Raidwise:GetSharedCharacterLinks("A")
-    for index, member in ipairs(shared) do
-      assert(sharedAfter[index].guid==member.guid and sharedAfter[index].name==member.name)
-    end
-    -- Foreign/legacy Main metadata cannot replace an existing local preference.
-    Raidwise.db.characterGroups[groupId].mainGuid="A"
-    Raidwise:InitializeCharacterLinks()
-    assert(Raidwise.db.localCharacterMains[groupId]=="B")
-    assert(Raidwise:GetLinkedCharacters("C")[1].guid=="B")
-    assert(Raidwise:UnlinkPlayerCharacter("B","A"))
-    assert(not a.playerGroupId and Raidwise:GetPersonalRating(a).opinion=="negative")
-    assert(Raidwise:GetProfileChanges(a)[#Raidwise:GetProfileChanges(a)].kind=="character_unlink")
-    Raidwise:SavePersonalRatingForGuid("B",nil,"positive",{}, {})
-    assert(Raidwise:GetPersonalRating(a).opinion=="negative" and Raidwise:GetPersonalRating(c).opinion=="positive")
-    local d=Raidwise:EnsureHistoryEntryForGuid("D",{name="Another"})
-    assert(Raidwise:LinkPlayerCharacters("A","D",nil,"negative"))
-    assert(a.playerGroupId~=groupId and Raidwise.db.characterGroups[groupId].members.B)
-    ok,reason=Raidwise:LinkPlayerCharacters("A","C",nil,"positive")
-    assert(not ok and reason=="CHAR_LINK_OTHER_GROUP")
-    local e=Raidwise:EnsureHistoryEntryForGuid("E",{name="SecondAlt",realm="Other",class="MAGE"})
-    assert(Raidwise:LinkPlayerCharacters("B","E",nil,"positive"))
-    RAID_CLASS_COLORS={PRIEST={r=1,g=0.5,b=0},MAGE={r=0.25,g=0.78,b=0.92}}
-    function Raidwise:T(key,...)
-      if key=="CHAR_LINK_TOOLTIP" then return string.format("%s (%s) with alts in %s (local links):",...) end
-      if key=="CHAR_ROLE_MAIN" then return "main" end
-      return key
-    end
-    local tooltipLines=Raidwise:BuildLinkedCharacterTooltipLines(b)
-    assert(#tooltipLines==2)
-    assert(tooltipLines[1]=="Alt (main) with alts in Other (local links):")
-    assert(tooltipLines[2]=="|cffff8000OtherAlt|r, |cff40c7ebSecondAlt|r")
-    local saved=Raidwise.db; Raidwise.db=nil; Raidwise.db=saved
-    assert(Raidwise:GetLinkedCharacters("C")[1].guid=="B")
-    assert(not Raidwise:SetLinkedCharacterRole("B","C","twink"))
-  `);
-});
-
-
 test("compact shell fits active raid groups with reserves below the viewport", async () => {
   await run(["UITheme", "UIWidgets", "PageRaid"], `Raidwise.Widgets={}`, `
     local visited={}
@@ -703,11 +587,7 @@ test("compact shell fits active raid groups with reserves below the viewport", a
 });
 
 
-test("profile notes and diagnostics scroll templates receive unique names on bare Wrath", async () => {
-  const source = await readFile(new URL("../Raidwise/CharacterProfile.lua", import.meta.url), "utf8");
-  const start = source.indexOf("local function CreateProfileNotesBox(");
-  const end = source.indexOf("local function ProfileFieldValue", start);
-  assert.ok(start >= 0 && end > start);
+test("diagnostics scroll templates receive names on bare Wrath and reuse the window", async () => {
   await run(["Diagnostics"], `
     widgets={}
     function widget(parent,name)
@@ -735,16 +615,6 @@ test("profile notes and diagnostics scroll templates receive unique names on bar
     end
     Raidwise.Print=function() end
   `, `
-    local W=setmetatable({},{__index=function() return function() end end})
-    local Theme={}
-    local PROFILE_LAYOUT_VERSION=1
-    local notesScrollSerial=0
-    ${source.slice(start, end)}
-    local first=CreateProfileNotesBox(widget(),400,96)
-    local second=CreateProfileNotesBox(widget(),400,96)
-    assert(first.scroll.name~=second.scroll.name)
-    assert(_G[first.scroll.name.."ScrollBar"].relative==first)
-    assert(_G[second.scroll.name.."ScrollBar"].relative==second)
     Raidwise.RunDiagnostics=function() return "test report",true end
     Raidwise:ShowDiagnostics()
     local frame=Raidwise.diagnosticsFrame

@@ -268,6 +268,7 @@ local function EventKey(values)
 	return table.concat(parts)
 end
 
+-- No stable server event IDs: even occurrence/age matching can leave identical events ambiguous.
 function Guild.ImportEvents()
 	local store, root = Store()
 	if not store or not GetNumGuildEvents or not GetGuildEventInfo then return end

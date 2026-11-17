@@ -3,6 +3,41 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { Lua } from "wasmoon-lua5.1";
 
+test("saved snapshots detach observations, expire at the boundary and delete independently", async () => {
+  const lua = await Lua.create();
+  try {
+    lua.doStringSync("Raidwise={db={}}; local now=100; function time() return now end; function SetTime(value) now=value end");
+    for (const module of ["GearCheckReport", "GearCheckSavedReports"]) {
+      lua.doStringSync(await readFile(new URL(`../Raidwise/${module}.lua`, import.meta.url), "utf8"));
+    }
+    lua.doStringSync(`
+      local report={character={guid="A",name="Original",unit="target"},equipment={
+        {item={gems={{itemId=40113,stats={spellPower=23}}}}}}}
+      local first=assert(Raidwise:SaveGearCheckReport(report))
+      local saved=assert(Raidwise:GetGearCheckSavedReport(first))
+      report.character.name="Changed"
+      report.equipment[1].item.gems[1].stats.spellPower=99
+      assert(saved.report.character.name=="Original")
+      assert(saved.report.character.unit==nil and report.character.unit=="target")
+      assert(saved.report.equipment[1].item.gems[1].stats.spellPower==23)
+      assert(saved.report.equipment==saved.report.slots,"Snapshot compatibility aliases disagree")
+
+      SetTime(101)
+      local second=assert(Raidwise:SaveGearCheckReport(report))
+      assert(first~=second and #Raidwise:ListGearCheckSavedReports("A")==2)
+      SetTime(saved.expiresAt-1)
+      assert(Raidwise:PruneExpiredGearCheckReports()==0)
+      SetTime(saved.expiresAt)
+      assert(Raidwise:PruneExpiredGearCheckReports()==1)
+      assert(Raidwise:GetGearCheckSavedReport(first)==nil)
+      assert(Raidwise:GetGearCheckSavedReport(second)~=nil,"Unexpired snapshot was removed")
+      assert(Raidwise:DeleteGearCheckSavedReport(second))
+      assert(not Raidwise:DeleteGearCheckSavedReport(second))
+      assert(#Raidwise:ListGearCheckSavedReports("A")==0)
+    `);
+  } finally { lua.global.close(); }
+});
+
 test("saved report revisions are independent of release version and preserve legacy entries", async () => {
   const lua = await Lua.create();
   try {

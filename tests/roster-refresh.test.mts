@@ -8,12 +8,17 @@ test("roster bursts share collection with history and render only the visible vi
   try {
     assert.equal(lua.doStringSync("return _VERSION"), "Lua 5.1");
     for (const path of ["lua/wow-stubs.lua", "lua/scan-runtime.lua", "../Raidwise/PartyRoster.lua",
-      "../Raidwise/RosterRefresh.lua", "../Raidwise/RaidComposition.lua", "../Raidwise/PlayerHistoryStore.lua"]) {
+      "../Raidwise/RosterRefresh.lua", "../Raidwise/RaidComposition.lua", "../Raidwise/PlayerRecords.lua",
+      "../Raidwise/PlayerRecordSupport.lua", "../Raidwise/PlayerRecordBridge.lua",
+      "../Raidwise/PlayerRecordLinks.lua", "../Raidwise/PlayerEncounters.lua"]) {
       lua.doStringSync(await readFile(new URL(path, import.meta.url), "utf8"));
     }
     lua.doStringSync(`
       function time() return 1000 end
       Raidwise.db={}
+      function GetRealmName() return "Realm" end
+      function UnitName(unit) return unit=="player" and "Me" or unit, "Realm" end
+      assert(Raidwise:InitializeHistoryStore())
       function GetNumRaidMembers() return 2 end
       function GetRaidRosterInfo(index) return "Name",nil,index end
       local collections,raidRenders,compositionRenders,historyWrites,inspects=0,0,0,0,0
@@ -21,12 +26,14 @@ test("roster bursts share collection with history and render only the visible vi
       local forceScores
       Raidwise.CollectRaidMember=function(_,unit,refresh)
         collections=collections+1; forceScores=refresh
-        return {unit=unit,guid=UnitGUID(unit),class="WARRIOR",name=unit,version=version}
+        return {unit=unit,guid=UnitGUID(unit),class="WARRIOR",name=unit..version,realm="Realm",version=version}
       end
       Raidwise.CollectPartyMember=function() error("History recollected the shared roster") end
       local recorded={}
-      Raidwise.UpsertHistoryMember=function(_,member)
+      local upsert=Raidwise.UpsertHistoryMember
+      Raidwise.UpsertHistoryMember=function(self,member)
         historyWrites=historyWrites+1; recorded[member.unit]=member
+        return upsert(self,member)
       end
       Raidwise.QueuePartyInspects=function() inspects=inspects+1 end
       Raidwise.mainFrame={selectedTab="raid",shown=true,IsShown=function(self) return self.shown end}
@@ -46,6 +53,7 @@ test("roster bursts share collection with history and render only the visible vi
       for index=1,10 do Raidwise:ScheduleRosterRefresh(false) end
       ScanRuntime:Tick(0.01)
       assert(collections==2 and historyWrites==2 and raidRenders==1 and compositionRenders==0)
+      assert(Raidwise:GetCharacterMeetingStats("A").count==1 and Raidwise:GetCharacterMeetingStats("B").count==1)
       assert(forceScores==true, "Strong refresh request was lost")
       ScanRuntime:Tick(0.01); assert(collections==2)
       version=2; ScanRuntime.identities.raid1="CHANGED"
@@ -56,6 +64,7 @@ test("roster bursts share collection with history and render only the visible vi
       Raidwise.mainFrame.shown=false
       Raidwise:ScheduleRosterRefresh(false); ScanRuntime:Tick(0.01)
       assert(collections==6 and historyWrites==6 and raidRenders==1 and compositionRenders==1)
+      assert(Raidwise:GetCharacterMeetingStats("CHANGED").count==1 and Raidwise:GetCharacterMeetingStats("B").count==1)
       -- A request raised during rendering must survive for the next frame.
       Raidwise.mainFrame.shown=true
       local render=Raidwise.RefreshCompositionView

@@ -422,6 +422,8 @@ local function EnsureSavedRows(page, needed)
 	end
 end
 
+-- TODO: On saved-report behavior changes, extract list/selection/save/delete together.
+-- Keep persistence in GearCheckSavedReports and control geometry in this page.
 RefreshSavedList = function(page)
 	if not page or not page.savedContent then
 		return

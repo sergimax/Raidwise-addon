@@ -1,4 +1,4 @@
--- Gear Check saved reports (manual save, ~14-day retention). Spec §§25–27.
+-- Manual Gear Check snapshots; compatibility: docs/gear-check/Gear-Check-Contract.md.
 
 local Addon = Raidwise
 
@@ -105,6 +105,7 @@ function Addon:SaveGearCheckReport(report)
 	local character = report.character or {}
 	local overall = report.overall
 
+	-- Installed revisions at save time do not prove when the observation was evaluated.
 	local entry = {
 		id = id,
 		savedAt = savedAt,

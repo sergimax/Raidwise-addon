@@ -11,23 +11,16 @@ npm run check
 `npm test` for tests alone or `npm run test:watch` while editing. Failures return
 a nonzero exit status for CI.
 
-`guild-management.test.mts` covers the live guild model and page with Lua 5.1
-game mocks: note/rank permissions and conflicts, current roster indices,
-partial confirmations/timeouts, draft retention, Cyrillic search, per-guild
-archives, journal retention/deduplication and refresh lifecycle. In-client
-acceptance remains separate; see [guild management](../docs/raid/Guild-Management.md).
-It also loads `Raidwise_Guild` through real bootstrap/TOC order, checks raid
-groups 1–5, Cyrillic main/alt chains, guild-info BASE_GP parsing, independent
-roll thresholds, unknown/zero PR, numeric sorting and horizontally aligned headers.
-Refresh regressions check real batch progress, complete-snapshot publication,
-progress-bar visibility, interrupted reads, permissions, timeouts and guild changes.
-Page tests also cover 25-record pagination, fixed vertical headers, synchronized
-horizontal scrolling, scroll reset and active-mode highlighting; TOC loading checks
-font-compatible separators in all shipped Lua modules.
-The guild row tooltip regression checks explicit bright colors for character
-name and class, avoiding inherited colors and extra Lua return values.
-Mains-only tests cover own/zero balances, alt chains, unknown notes, access loss,
-search/raid intersections and pagination/scroll reset.
+## Guild checks
+
+Use the [guild task map](../docs/raid/Guild-Management.md) for owners and scenarios
+in `guild-management.test.mts`: roster/refresh, officer actions, local journal,
+parsing/links/balances and page interactions. It also points to actual bootstrap/
+TOC coverage. [External limits](../docs/raid/Guild-Management-Contract.md) and the
+[manual matrix](../docs/raid/Guild-Management-Verification.md) distinguish mock
+coverage from actual server confirmation and UI behavior.
+
+## Type checking
 
 `npm run typecheck` runs both `tests/tsconfig.json` and `types/tsconfig.json`.
 The second project explicitly includes all three `types/*.ts` files and
@@ -45,11 +38,6 @@ fail assertions. Fixtures cover all 32 control bytes, quotes/backslashes, Unicod
 names on/off, optional GearScore/currency, populated lockouts and empty lists.
 Gear Check's model is explicitly type-checked; its real Lua behavior remains
 covered by the existing gear/report tests, not a new complete runtime TS validator.
-
-The gem fixture also inserts 2,048 unique GUIDs without expiry, checks the
-1,024-entry cap and oldest-entry eviction, then checks expiration, GUID isolation
-and the original non-sliding 10-second TTL. Expiry cleanup happens during
-collection, not through an idle timer.
 
 The Addon tests workflow runs only on pull requests (opened, synchronized with new
 commits, or reopened), on both Windows and Ubuntu. Branch pushes without a pull
@@ -70,35 +58,43 @@ checks compact versus full raid exports (grades, enchants and sockets), matching
 synchronous/asynchronous output, cancellation and export routing.
 
 
-The active character-system suites are `player-records`, `encounters`,
-`player-links`, `profile-window`, `database-page`, `opinion-display`, and
-`classic-opinion`. They load PlayerRecords/Support and the active screen APIs,
-not the retired profile migration modules. Older history/sync/Karma cases may
-load retired files explicitly as historical compatibility fixtures; they do not
-mean those modules are shipped in the TOC. Final verification and outstanding
-in-game work: [Character-System-Verification.md](../docs/characters/Character-System-Verification.md).
+## Character-system checks
 
-`player-records.test.mts` also verifies journal v1-to-v2 migration (reconstruction
-of old event snapshots, ordering, authors, dates, baseline gaps, idempotence and
-unknown-version rejection), and 100/1,000 sequential event saves with linear journal
-storage. Detached profile/page reads must not traverse the whole journal.
-`profile-window.test.mts` exercises Overview navigation, expandable opinion controls,
-searchable event selection with explicit confirmation, character-link search, and
-independent meeting/journal pages with clamping without whole-record reads. These are storage/read-path checks, not in-game
-latency or memory benchmarks; draft validation still visits current events.
+Select the suite by task using the [character task map](../docs/characters/Reputation.md).
+It links the active owners to the behavioral tests for persistence, identity,
+authorship, journals/recovery, deletion/links, encounters, lists and opinion marks.
+Use the named suite for focused work, for example:
 
-Storage recovery tests cover damaged profile/note/event fields, nested encounters
-and counters, identities/groups, journals, preserved quarantine originals,
-idempotence, explicit repair and overwrite conflicts. Integration checks use the
-real bridge, database roster, presence observations, bootstrap and diagnostics;
-private note content must not appear in reports. Unsupported formats/invalid roots
-remain untouched and unavailable. Recovery procedure: the character-system contract.
+```sh
+node --test tests/player-links.test.mts
+```
 
-Identity scope is one realm. `player-records` verifies that a conflicting realm
-cannot overwrite a known GUID or move its aliases, drafts, journal or links;
-same-realm renames still work. `encounters` covers observer/subject conflicts,
-and `opinion-display` checks realm matching on the chat GUID fast path. These
-guards do not constitute multi-realm persistence or a saved-report migration.
+Run `npm run check` before completing code/test changes. These suites execute
+real Lua through mocks; they do not establish client rendering, live server timing
+or disk persistence. [Manual checks and dated user evidence](../docs/characters/Character-System-Verification.md)
+retain those limits. For SavedVariables maintenance use the
+[repair procedure](../docs/characters/Character-System-Contract.md#repairing-quarantined-records).
+
+Current screen reads and target-addition/identity-upgrade behavior are checked through the active core/bridge in `architecture.test.mts`. `roster-refresh.test.mts` uses active encounter persistence while checking shared snapshots and hidden views.
+Self notes, independent linked opinions and deletion guarantees are covered by `player-records.test.mts` / `player-links.test.mts`; retired migration/exchange semantics are not supported contracts.
+
+## Gear Check checks
+
+Use the [Gear Check task map](../docs/gear-check/Gear-Check-Progress.md) to select
+owners and suites for inspect lifecycle, collection, compatibility, findings,
+grades, saved revisions, dumps and chat. It also links the shipped rule fixtures
+(`GearCheckSelfTest.lua`, `/rw gearcheck test`) and Lua gem/scan scenarios.
+New rules should be exercised through `EvaluateGearCheck`, with real Lua and
+observations supplied as data. The boundary regression forbids live item/talent/
+identity API reads during evaluation; do not replace it with a JS implementation.
+
+[Revision/compatibility policy](../docs/gear-check/Gear-Check-Contract.md) describes
+when the independent revisions change. For server timing, locale/tooltip reads,
+inspect-addon interference, clipboard and persistence use the
+[manual protocol](../docs/gear-check/Gear-Check-Verification.md). No live timing
+baseline has been established by the simulated scheduling tests.
+
+## Lua test runner
 
 The runner is TypeScript (`gear-check.test.mts`) using Node's built-in `node:test`
 and `node:assert/strict`. Node runs the erasable TypeScript directly; `tsc` handles
@@ -110,6 +106,23 @@ executes the real addon Lua through WebAssembly. Each test creates an isolated V
 asserts `_VERSION == "Lua 5.1"`, loads the modules in addon dependency order, and
 closes the VM in `finally`. Python, Lupa, and a separate system Lua installation
 are not required.
+
+## Export and lockout client checks
+
+Owners: `CharacterExport.FormatEquippedGearExport`;
+`CharacterLockouts.SaveCurrentCharacterLockouts`, `BuildCooldownTable`,
+`RemoveCharacterLockouts`, `FormatCooldownsExport`.
+[export-contracts.test.mts](export-contracts.test.mts) parses real Lua JSON against
+[character](../types/CharacterExport.ts) and [cooldown](../types/CooldownsExport.ts)
+contracts; [dump.test.mts](dump.test.mts) checks format versions. Their mocked
+save/collection paths do not prove real server lockout/reset behavior.
+
+For affected changes, record client/server/revision and check delayed raid-info
+replies, different difficulties, reset boundaries, currency reads and each own
+character's snapshots after login/reload. Parse the actual copied JSON with the
+consumer. A mock pass or in-memory save does not demonstrate current disk
+persistence or the target server's responses. No successful in-client execution
+of this matrix was recorded in the removed November audit plan.
 
 ## Copyable diagnostics
 
@@ -150,7 +163,8 @@ data and roster authors), name-index rename/upgrade/recovery, profile deletion,
 and sparse selection among 10,000 identities. Warm lookup and roster tests reject
 a full identity scan; encounter summaries must not copy whole histories.
 The chat-color regression uses the active core and verifies independent opinions
-for linked characters. Historical migration fixtures remain explicitly separate.
+for linked characters.
+No retired profile implementation is loaded by these checks.
 
 For timings, run `node scripts/benchmark-records.mts`. It seeds synthetic 1k/10k
 identities with 11 filled profiles/recent encounters, reports the cold name-index
@@ -159,7 +173,8 @@ lookup, 100 warm lookups and ten builds of each list. `--dense` fills every reco
 These are single-process WASM measurements, not pass/fail latency thresholds or
 WoW FPS/RAM estimates. Cold lookup includes index construction; sorting and
 retention costs remain for dense lists. After committing, HEAD becomes the new
-baseline; the audit evidence records the revision used for the comparison.
+baseline; [the dated audit evidence](../docs/audits/Audit-2026-11-06-Evidence.md)
+records the old comparison revision and its measurement limits.
 
 `release.test.mts` validates the runtime allowlist and builds an actual ZIP from
 HEAD in a temporary directory, then reads its central directory. The package must
@@ -186,8 +201,6 @@ changes; repeat successful checks only after new edits or unresolved concerns.
 | Identity read models/index, associations and deletion | `record-reads.test.mts`, `player-links.test.mts` |
 | Meetings/retention and Database/History lists | `encounters.test.mts`, `database-page.test.mts` |
 | Character/cooldown JSON and TypeScript contracts | `export-contracts.test.mts` |
-| Retired profile migration and draft behavior (historical only) | `history.test.mts` |
-| Retired profile exchange (historical only) | `sync.test.mts`; historical Sync controls in `architecture.test.mts` |
 | Native friends, ignore, inbox and guild opinion marks | `classic-opinion.test.mts` |
 | Bare-client profile notes and diagnostics scroll template names | `architecture.test.mts` |
 | Theme bindings | `theme.test.mts` |
@@ -218,195 +231,34 @@ Check in the test files, `package.json`, and `package-lock.json`; ignore
 folder. Offline tests cannot validate WoW's inspect event timing or real tooltip
 behavior: follow collector changes with an in-game rescan.
 
-## Revision independence (phase 9)
+## Roster and composition checks
 
-`saved-revisions.test.mts` verifies that changing addon semver leaves rule/catalog
-metadata unchanged, new rules and catalog revisions can change independently,
-legacy saved entries retain their metadata, and absent revision constants return
-`unknown`. The normalized report schema and source snapshot remain unchanged.
-Module ownership, revision policy, and saved-report compatibility are documented
-in `docs/gear-check/Gear-Check-Progress.md` under Current module boundaries and compatibility.
+The [composition task map](../docs/raid/Raid-Composition.md) routes effect data,
+role inference and reports to their owners. `architecture.test.mts` checks active
+versus reserve groups and known/unknown-tree provider inference;
+`roster-refresh.test.mts` checks shared snapshots, coalesced requests, forced
+refresh precedence, hidden-view behavior and refreshes requested during rendering.
+The report-link/byte-budget scenarios are in `gear-check.test.mts`.
+These are behavior/call-count checks, not measured client speed improvements.
+Use the [client timing protocol](../docs/gear-check/Gear-Check-Verification.md)
+when changing inspect/collection and the [composition manual checks](../docs/raid/Guild-Management-Verification.md#composition-presentation)
+for actual display and chat-skin behavior.
 
-## Roster refresh coalescing (phase 8)
+## UI checks
 
-`RosterRefresh.lua` collects one fresh `BuildRosterSnapshot` per scheduled pass.
-`ScheduleRosterRefresh` merges same-frame requests, retaining a forced GearScore
-refresh if any caller requests one. History and the visible raid/composition view
-receive that snapshot through optional arguments on their existing APIs. Direct
-calls without a snapshot continue collecting fresh data. Nothing is cached across
-passes; entering a view still requests fresh data.
+Use the [UI task map](../docs/ui/UI-Views.md) for shell/page dispatch, theme
+bindings, control builders, layout generations and their test suites.
+`theme.test.mts` checks stable palette references and bound colors;
+`architecture.test.mts` exercises page lifecycle and selected anchor regressions;
+header-capability cases are in `gear-check.test.mts`.
+`profile-window.test.mts` exercises the active window and rejects anonymous
+`UIPanelScrollFrameTemplate` creation.
+The separate diagnostics fixture also checks named template creation and reuse of its independent window.
 
-Roster inspect completion, group/guild updates, and gear-result view refreshes
-schedule rendering for the next frame. Inspect queue advancement is immediate;
-no inspect settling delay is introduced. History still records while the shell
-is hidden. Existing targeted consumable icon updates remain unchanged.
-
-`roster-refresh.test.mts` verifies that eleven merged requests collect two members
-exactly twice total (once per member), render one visible view once, and reuse
-the same members for history. It also verifies changed identities/data on the
-next pass, forced-refresh precedence, hidden-view behavior, and requests raised
-during rendering. Existing scan timing tests remain unchanged. These are offline
-call counts, not measured in-game CPU or raid-scan speed improvements; the manual
-timing protocol below remains pending. No speculative per-card diffing is added.
-
-## UI composition (refactoring phase 7)
-
-This section records the earlier extraction. Theme and shell boundaries remain
-active; the profile builders described here belong to retired `ProfilePanels`.
-The current window is owned by `ProfileWindow`/`ProfileEditor`/`ProfileCharacters`;
-use their tests and the architecture map for current profile work.
-
-`UITheme.lua` initializes stable theme/color tables and color/text bindings.
-`UIWidgets.lua` supplies generic controls; `RosterWidgets.lua` supplies roster,
-gear-grade, consumable, and rating renderers. Load them in that order before
-pages. Existing `Raidwise.UITheme` and `Raidwise.Widgets` entry points remain.
-
-Page registrations declare `capabilities.reportChat` and `reportForm`; the shell
-reads these flags rather than checking tab IDs. Profile opinion, facts, events,
-notes, and history panels now have named builders with the same construction
-order, anchors, and dimensions. No layout versions change.
-
-Header tests load the real reporting page registrations. `theme.test.mts` checks
-stable palette references, bound-color updates, dark/light round trips, and
-unchanged shell dimensions. Profile command regressions also cover the corrected
-draft-event removal. Visual parity still needs in-game checks: both themes,
-English/Russian, profile tabs, header visibility, and tooltip interactions.
-
-## Historical profile and history separation (refactoring phase 6)
-
-The modules and save/reset behavior below predate the character-system redesign.
-They are outside the TOC and release ZIP, except the still-active presentation
-module. These historical fixtures are not instructions for the current UI.
-Current ownership and acceptance are described above and in [the contract](../docs/characters/Character-System-Contract.md).
-
-- `PlayerHistory.lua`: rating catalogs, normalization, and rating access.
-- `PlayerHistoryStore.lua`: encounter/scan history, Local Profile persistence,
-  sender-scoped Exchange migration, and legacy-field cleanup.
-- `RatingPresentation.lua`: rating labels, tooltip formatting, and chat marks.
-- `ProfileDraft.lua`: plain draft creation/copying and tag, fact, and event edits.
-  UI frames hold this object as `profileDraft`; mutations do not save it.
-- `CharacterProfile.lua`: frames, rendering, and command wrappers that explicitly
-  persist drafts and refresh views. Notes keep their separate save/reset behavior.
-
-`history.test.mts` covers idempotent legacy migration and cleanup, Local Profile
-opinion/tags/facts/events/notes persistence, draft discard/reopen, tag limits,
-and real profile commit/add-event/notes command wrappers with a minimal frame.
-`sync.test.mts` covers Local-only export, sender isolation, and read-only
-received profiles.
-It does not validate visual layout or interaction with a running WoW client.
-Current in-game acceptance must exercise autosave, explicit Save, failed-draft
-retention and switching players in both languages; the old Notes Save/Reset
-controls are not part of the active profile window.
-
-## Gear pipeline separation (phase 5)
-
-- `GearCheckCollector.lua`: item/gem reads and normalization; accepts inspect
-  readiness explicitly through `CollectGearCheckObservation(unit, inspectReady)`.
-  It returns a snapshot without evaluating it or replacing the last report.
-- `GearCheck.lua`: request orchestration and last-report state. The existing
-  `CollectGearCheck` entry point supplies readiness and retains the snapshot.
-- `GearCheckRules.lua`: findings, meta activation, and set counts; its existing
-  `EvaluateGearCheck` entry point then invokes grade aggregation.
-- `GearCheckGrades.lua`: per-slot, category, and overall grades.
-- `GearCheckExplanations.lua`: category tooltip lines and B-grade explanations.
-- `GearCheckSelfTest.lua`: the same rule fixtures for offline tests and the
-  unchanged `/rw gearcheck test` command; it remains shipped in the TOC.
-
-`Raidwise.GearCheckPolicy` is internal shared eligibility policy, not saved state.
-Rules populate it before grades, and grades before explanations. This prevents
-display explanations from duplicating the rules that determine eligibility.
-
-The boundary regression asserts collection does not evaluate and exercises all
-rule fixtures with live item/talent/identity APIs disabled. Existing gem tests
-retain unknown/missing socket and meta coverage. No schema, grade semantics,
-scan timing, UI geometry, or SavedVariables keys change in phase 5.
-
-## Dump extraction (phase 3)
-
-`GearCheckDump.lua` owns target/raid dump formatting, name resolution for dump
-details, and asynchronous raid export jobs. Public methods and output are
-unchanged. `dump.test.mts` covers synchronous/asynchronous output equality,
-one-entry-per-frame progress, overlapping job rejection, completion cleanup,
-cancellation exactly once, restart, empty results, and routing to the raid export
-view or target text view. These checks passed before and after extraction.
-Frame rendering and clipboard interaction still require an in-game check.
-
-## Report preparation (phase 2)
-
-`ChatReports.lua` owns final network-message preparation (255 UTF-8 bytes,
-complete hyperlinks, and color resets). Self/unavailable-channel output remains
-untruncated. `GearCheckReports.lua` owns gear report formatting; the existing
-formatting APIs remain available, and `BuildGearCheckChatMessages` supplies the
-final messages used by target previews and sending. Roster and composition
-previews use the same finalizer as `SendReportChat`.
-
-The final-message regression loads the real transport and verifies Cyrillic,
-whole spell links, all gear report modes in Short/Full form, and local/network
-preview equality. Existing grouping and composition tests remain in place.
-Messages still send immediately; this phase adds no queue or pacing. Gear reports
-now share the transport's existing unavailable-channel warning throttle.
-
-## Scan refactoring baseline (phase 1)
-
-`scan.test.mts` loads the real `GearCheck.lua` scheduler into an isolated Lua 5.1
-VM for each scenario. `lua/scan-runtime.lua` supplies deterministic frames,
-inspect events, unit identities, and elapsed time. `lua/scan-scenarios.lua` mocks
-collection and evaluation so scheduler failures are isolated from gem rules.
-Existing gem tests continue to exercise collection and normalization separately.
-
-Passing scenarios cover consecutive target requests, rejection of overlapping
-requests, idle/unrelated/duplicate inspect events, disappearance and recovery,
-the four-second initial deadline, sequential raid requests, and resuming roster
-inspects after completion. The roster resume callback is mocked; these tests do
-not yet exercise PartyRoster.lua's queue or interference from other addons.
-
-The three original defect scenarios (`identity`, `spec-retry`, `gem-retry`) now
-pass as ordinary blocking tests after phase 4. Target and raid cancellation,
-restart, and completed-result retention are covered too. `inspect.test.mts`
-loads the real PartyRoster.lua queue with the coordinator and verifies timeout
-release, identity validation, and roster-to-gear-to-roster handoff.
-
-### Inspect coordination (phase 4)
-
-`InspectCoordinator.lua` alone calls NotifyInspect/ClearInspectPlayer and owns
-INSPECT_TALENT_READY. Roster and gear consumers retain their work lists; each
-active request captures owner, unit, GUID, callbacks, and deadline. Requests are
-polled at 0.25 seconds, initially expire after four seconds, and gear-specific
-spec/gem retries each receive two seconds. Completion/cancellation clears the
-active request before invoking callbacks. Successful inspect events have no
-added settling delay. Roster requests now time out and release the queue.
-
-`CancelGearCheckScan()` cancels target or raid work, returns whether work existed,
-and reports `cancelled` exactly once. Completed raid entries remain available.
-This is an addon API; no new UI button or slash command is added.
-
-Events without unit identity cannot be conclusively attributed to a server
-request on 3.3.5a. Captured GUID validation prevents reassigned unit tokens from
-being accepted, but does not prove a no-argument event was generated by this
-addon rather than an external inspect addon. Verify interference in game.
-
-### Timing baseline and in-game verification
-
-Simulated baseline: a request with no inspect event releases the scanner at four
-seconds; a two-member raid with events supplied 0.25 seconds apart completes at
-0.5 simulated seconds with no extra successful-path wait. These are scheduling
-observations, not real server latency or CPU performance measurements.
-
-**Actual in-game baseline: pending.** Before changing inspect coordination:
-
-1. Record addon commit, client/server, group size, online/in-range count, and
-   whether other inspect addons are enabled. Use the same conditions afterward.
-2. Scan the same target five times: record elapsed time, result status, and
-   gem/meta/weapon consistency. Keep the first cold scan separate from repeats.
-3. Run three full raid scans: record each elapsed time, completed/skipped/timeout
-   counts, and any inconsistent reports. Record median and range.
-4. During a target scan, switch target or let it disappear. Check recovery with
-   another scan. During raid scanning, test a member leaving or going offline.
-5. After phase 4, repeat this protocol and compare both correctness and duration.
-
-Do not treat offline test runtime as the in-game baseline. Phase 1's automated
-coverage is ready; its manual timing gate remains open until these observations
-are recorded.
+The [native-client checklist](../docs/ui/UI-Views.md#native-client-constraints-and-verification)
+retains locale/theme/scale, fresh construction, scrolling, tooltip and clipboard
+checks that mocks cannot establish. The HTML previews are design references,
+not native rendering tests.
 
 ## Pull request CI
 
@@ -414,3 +266,32 @@ are recorded.
 Linux for `pull_request` events: opening or reopening a PR and pushing new commits
 to its branch. It has no `push` or `workflow_dispatch` trigger. Release tag pushes
 are handled separately by `.github/workflows/release.yml`.
+
+## Packaging and releases
+
+[package-addon.mts](../scripts/package-addon.mts) and
+[release.test.mts](release.test.mts) own the installable ZIP allowlist. The script
+packages tracked HEAD content; it does not bundle uncommitted working files.
+For a requested version change use the [bump procedure](../.agents/skills/bump/SKILL.md),
+[AGENTS release rules](../AGENTS.md#versioning-and-changelog) and root changelog.
+
+The [release workflow](../.github/workflows/release.yml) publishes stable version
+tags; branch updates/PR merges alone do not publish. It checks the tagged tree,
+runs the checks and packages `Raidwise/` plus `Raidwise_Guild/`. Installation uses
+`Raidwise-vX.Y.Z.zip`; GitHub's automatic Source archives contain the repository.
+The built-in token has `contents: write`; a personal access token is not required.
+
+To repair an existing release asset, choose **Actions → Release addon → Run
+workflow** on the default branch and supply its existing tag. The workflow checks
+out that tag, checks/packages its files and replaces only its installable ZIP;
+existing release notes and other assets remain. This does not move the tag.
+After the prepared changes are committed and pushed, explicitly requested
+publication uses an annotated stable tag (replace `X.Y.Z` with that version):
+
+```sh
+git tag -a vX.Y.Z -m "Raidwise X.Y.Z"
+git push origin vX.Y.Z
+```
+
+Only publish/tag when explicitly requested. Release date metadata and README
+badges should follow the released TOC, not an ordinary documentation edit.

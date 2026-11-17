@@ -1,14 +1,11 @@
 /**
  * Normalized Gear Check model (schemaVersion 3).
+ * Collected by GearCheckCollector.lua; GearCheckRules.lua attaches findings and
+ * invokes grading. Evaluation consumes observations without live WoW reads.
  *
- * Produced by `Raidwise/GearCheck.lua`. Phase 3+ rules must consume this shape
- * only — no WoW API calls inside the rules engine.
- *
- * `itemLevel` is informational and must never affect S / A / B / C / D.
- * Unknown data uses `gaps[]` (`{ code, detail? }`); never invent a D verdict.
- *
- * Phase 3 attaches `findings[]` and `profile` after evaluate; verdicts come in Phase 4.
- * schemaVersion 2 reports used GOOD / OK / REPLACE / BAD; rescan to refresh.
+ * itemLevel and GearScore are informational; neither determines S / A / B / C / D.
+ * Unknown observations use gaps[] rather than an invented failure grade.
+ * Compatibility and revision policy: docs/gear-check/Gear-Check-Contract.md.
  */
 
 export type GearCheckSchemaVersion = 3;
@@ -239,7 +236,7 @@ export type GearCheckSlot = {
   empty: boolean;
   item?: GearCheckItem;
   gaps: GearCheckGap[];
-  /** Phase 4: set on CHECKED filled slots after aggregate. */
+  /** Set on CHECKED filled slots after grade aggregation. */
   verdict?: GearCheckItemVerdict;
 };
 
@@ -329,11 +326,11 @@ export type GearCheckCollection = {
 };
 
 /**
- * Frozen Gear Check report.
+ * Normalized observation with evaluation results.
  * Rules read `character` + `equipment` (+ top-level `gaps`); collection gates completeness.
- * After Phase 3 evaluate: `findings` + `profile`.
- * After Phase 4 aggregate: per-slot `verdict` + `verdicts` counts (S / A / B / C / D).
- * After Phase 5: `overall`, `meta` activation, informational `sets`.
+ * Evaluation attaches `findings`, `profile`, `meta` activation and informational `sets`.
+ * Aggregation supplies per-slot `verdict`, `verdicts` counts (S / A / B / C / D)
+ * and `overall`.
  *
  * Convenience aliases (`name`, `isSelf`, `inspect`, `slots`, …) may also be present
  * for UI/inspect orchestration; prefer the nested fields in new code.

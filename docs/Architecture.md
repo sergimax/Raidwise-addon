@@ -2,9 +2,8 @@
 
 Lua 5.1 / WoW 3.3.5a (`Interface: 30300`). Shipped code lives in `Raidwise/` on the single `Raidwise` namespace. GearScore is optional. Rules: [AGENTS.md](../AGENTS.md). Checks: [tests/README.md](../tests/README.md).
 
-Repository audit (2026-11-06): [findings and remediation plan](audits/Audit-2026-11-06.md), [verification and reproduction](audits/Audit-2026-11-06-Evidence.md). This is a dated assessment, not a replacement for the contracts below.
-
-Guild roster, officer tools and balances: [guild module contract](raid/Guild-Management.md). The old [EPGP implementation plan](raid/EPGP-Plan.md) is historical.
+Guild roster, officer tools and balances: [guild task map](raid/Guild-Management.md).
+Raid effects, roles and provider inference: [composition task map](raid/Raid-Composition.md).
 
 ## Find the owner first
 
@@ -12,12 +11,13 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 
 | Task | Owner files | Entry points / boundaries |
 |---|---|---|
+| Documentation ownership or decision records | `../docs/README.md` | [Documentation rules](README.md#documentation-ownership); use the domain map before editing behavior descriptions |
 | Bootstrap, DB, slash, report transport | `Raidwise.lua` | Lifecycle, slash handlers, `SendReportChat` |
 | Copyable troubleshooting reports | `Diagnostics.lua`, `../scripts/diagnose.cjs` | `/rw diagnose` runtime smoke checks; `npm run diagnose` offline suite and report file; see tests/README.md |
 | Language | `Locale.lua` | `Addon:T`; search exact keys in both languages |
 | Chat preparation and gear reports | `ChatReports.lua`, `GearCheckReports.lua` | `PrepareReportMessage`, `BuildGearCheckChatMessages` |
 | Gear/bags/currency export, lockouts | `CharacterExport.lua`, `CharacterLockouts.lua` | `FormatEquippedGearExport`, `CollectCharacterCurrency`, `BuildCooldownTable` |
-| Guild module | `../Raidwise_Guild/` | GuildManagement owns live roster, permission-aware note/rank operations and local journal; GuildRosterParser/Links and GuildEPGP resolve balances and guild-info base GP; PageGuild owns the single roster/journal view. See [guild management](raid/Guild-Management.md) |
+| Guild module | `../Raidwise_Guild/` | `Guild.Request`, `Guild.Submit`, `Guild.ImportEvents`, `EPGP.Calculate`; [owners and checks](raid/Guild-Management.md) |
 | Inspect timing, identity, retries | `InspectCoordinator.lua`, `GearCheck.lua`, `PartyRoster.lua` | `StartInspectRequest`, `RetryInspectRequest`, `StartGearCheckUnitScan`, `CancelGearCheckScan` |
 | Item links, sockets and gems | `GearCheckCollector.lua` | `CollectGearCheckObservation`; private `ParseItemLinkParts`, `NormalizeItem` |
 | Report compatibility and completeness | `GearCheckReport.lua` | `NormalizeGearCheckReport`, `GetGearCheckScanState`; canonical nested fields win over legacy aliases |
@@ -25,17 +25,17 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 | Saved reports and dumps | `GearCheckSavedReports.lua`, `GearCheckDump.lua` | `SaveGearCheckReport`, `FormatGearCheckDump`; dump module owns asynchronous raid export jobs |
 | Rosters and shared refresh | `PartyRoster.lua`, `RosterRefresh.lua` | `BuildRaidGroups`, `BuildRosterSnapshot`, `ScheduleRosterRefresh` |
 | Roles, consumables, composition | `RaidRoles.lua`, `RaidComposition.lua` | `UnitConsumableStatus`, `AnalyzeRaidComposition` |
-| Profile catalogs and identity support | `PlayerRecordSupport.lua`, `PlayerRecords.lua` | Three opinions, four facts, 22 event types; context capture, self-rating checks; detached identity reads and normalized name/realm index |
-| Profile persistence and screen API | `PlayerRecords.lua`, `PlayerRecordBridge.lua` | `InitializeHistoryStore` activates `playerRecords` once without migrating old reviews; validation/quarantine and `RestorePlayerRecordEntry`; core drafts, journal v2 migration, separate profile/journal reads |
-| Group encounter sessions and retention | `PlayerEncounters.lua` | `RecordCurrentGroupHistory`, `GetCharacterEncounters`, `GetCharacterMeetingStats`, `PruneCharacterEncounters`, `ProjectCharacterEncounters`; bridge retains the `PruneHistory` compatibility entry point. 30-second presence observations, no inspect. |
-| Database and recent-history lists | `PageHistory.lua`, `PlayerEncounters.lua` | `BuildHistoryRoster` selects filled profiles or recent encounters for the current observer; database sorts by profile/note update. Unset and explicit neutral opinions have distinct filters. |
-| Linked player characters and deletion | `PlayerRecordLinks.lua`, `ProfileCharacters.lua` | Active groups in `playerRecords.groups`, no opinion synchronization; journal and generation-safe deletion. Display helpers live in `PlayerRecordSupport.lua`. |
-| Retired profile exchange (not in TOC) | `SyncJSON.lua`, `SyncData.lua`, `SyncTransport.lua`, `PageSyncExport.lua`, `PageSync.lua`, `PageReputation.lua`, `KarmaData.lua` | Archived implementation for later redesign; no active transport registration, pages or Karma import. See [Synchronization.md](characters/Synchronization.md). |
-| Unsaved profile edits | `ProfileEditor.lua` | One-second autosave, explicit save, retained failed drafts, reload and invalidation on deletion |
-| Profile window | `ProfileWindow.lua`, `ProfileEditor.lua`, `ProfileCharacters.lua` | Active v40 Overview, Events, Meetings and Characters; separate journal, expandable opinion editor, unified core drafts, one-second autosave, retained errors; old `CharacterProfile`/`ProfilePanels` are outside TOC. |
-| Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `FindOpinionCharacter`, explicit-opinion tooltip lines (no tags/Karma); `RefreshUnitOpinionTooltip` rebuilds a shown unit fill after save/delete without touching item tooltips |
-| Native friends, ignore, inbox and guild opinion marks | `ClassicOpinionMarkers.lua` | `InitializeClassicOpinionMarkers`, `RefreshClassicOpinionMarkers`; read-only name/realm lookup, secure post-update hooks |
-| Theme / shared controls | `UITheme.lua`, `UIWidgets.lua`, `RosterWidgets.lua` | Stable theme tables; generic controls; roster/grade/rating controls |
+| Profile catalogs and identity support | `PlayerRecordSupport.lua`, `PlayerRecords.lua` | `GetProfileEventCatalog`, `UpsertPlayerRecordIdentity`, `FindPlayerRecordIdentities` |
+| Profile persistence and screen API | `PlayerRecords.lua`, `PlayerRecordBridge.lua` | `CommitPlayerRecordDraft`, `InitializeHistoryStore`, `RestorePlayerRecordEntry` |
+| Group encounter sessions and retention | `PlayerEncounters.lua` | `RecordCurrentGroupHistory`, `GetCharacterMeetingStats`, `PruneCharacterEncounters` |
+| Database and recent-history lists | `PageHistory.lua`, `PlayerEncounters.lua` | `BuildHistoryRoster` |
+| Linked player characters and deletion | `PlayerRecordLinks.lua`, `ProfileCharacters.lua` | `LinkPlayerCharacters`, `DeleteCharacterDatabaseRecords` |
+| Deferred profile exchange / Karma | `../docs/characters/Synchronization.md` | Future constraints; no runtime implementation |
+| Unsaved profile edits | `ProfileEditor.lua` | `SaveProfileEditor`, `TickProfileEditor`, `CloseProfileEditor` |
+| Profile window | `ProfileWindow.lua`, `ProfileEditor.lua`, `ProfileCharacters.lua` | `ShowRaidCharacterWindow`; character tasks and checks: [task map](characters/Reputation.md) |
+| Rating display and unit tooltips | `RatingPresentation.lua`, `UnitTooltips.lua` | `FindOpinionCharacter`, `RefreshUnitOpinionTooltip` |
+| Native friends, ignore, inbox and guild opinion marks | `ClassicOpinionMarkers.lua` | `InitializeClassicOpinionMarkers`, `RefreshClassicOpinionMarkers` |
+| Theme / shared controls | `UITheme.lua`, `UIWidgets.lua`, `RosterWidgets.lua` | `ApplyTheme`, generic and roster-specific builders; [UI owners/checks](ui/UI-Views.md) |
 | Raid and target gear views | `PageRaid.lua`, `PageGearCheckTarget.lua` | `RefreshRaidRosterView`, `RefreshGearCheckTargetView`, `ShowGearCheckReport` |
 | Other pages | `PageCooldowns.lua`, `PageExport.lua`, `PageComposition.lua`, `PageHistory.lua` (History and Character database), `PageSettings.lua`, `PageInfo.lua` | `Addon.Pages.*` registrations |
 | Shell and navigation | `ExporterWindow.lua`, `Minimap.lua` | `CreateMainFrame`, `SelectTab`, `RefreshLocalizedUI`; separate minimap entry point |
@@ -47,105 +47,34 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 - Bootstrap creates the namespace; later modules attach methods before normal event-driven use.
 - After core DB/locale initialization, bootstrap loads `Raidwise_Guild` before constructing the shell. The guild addon depends on Raidwise, uses its widgets/locale/DB, registers one Guild page, and owns its roster/raid event listener. Its TOC is the authoritative guild module load order. The retired Raidwise_EPGP addon and guild-export commands are removed.
 - `CharacterExport` provides `Addon.EscapeJsonString` before `CharacterLockouts`; both export formats share complete JSON string escaping (including U+0000–U+001F).
-- Initialization checks the active profile core/bridge APIs before opening UI. Missing APIs report an incomplete installation; retired `RatingTagGroups` is not a startup requirement.
+- Initialization checks the active profile core/bridge APIs before opening UI. Missing APIs report an incomplete installation.
 - `InspectCoordinator` precedes roster consumers and owns inspect API calls/events. Roster and gear retain their queues and result handling.
 - Profile core/support, screen APIs, links and encounters precede presentation; ProfileEditor and ProfileCharacters precede ProfileWindow.
 - `HistoryProfileForMember` belongs to support and explicitly calls the encounter projection. `PruneHistory` belongs to bridge and delegates to encounter retention. Later modules do not replace either method or capture its previous implementation.
-- Legacy PlayerHistory, PlayerHistoryStore, CharacterLinks, ProfileDraft, CharacterProfile/ProfilePanels and Sync/Karma modules are not loaded; historical fixtures may load them explicitly in tests.
-- `UITheme` precedes `UIWidgets`, then `RosterWidgets`, then views. Theme/color tables retain identity across theme changes.
+- Shared UI owners, theme bindings and platform constraints: [UI task map](ui/UI-Views.md). The TOC owns their load order.
 - Gear catalogs and report compatibility helpers precede rules, grades, explanations and self-tests. Saved reports and collector precede `GearCheck`; reports and dumps follow it. Pages load before the shell.
 
 ### Gear flow
 
-Inspect readiness accepts absent payloads, matching unit tokens, and matching
-character GUIDs; current unit identity is checked before dispatch. Unknown-spec
-evaluation defers specialization-dependent penalties while retaining objective
-checks such as missing enchants/gems and resilience. It remains provisional.
-
-Dump diagnostics include a copied request trace (requests/events/accepted/last
-payload) and `character.talentRead` (readiness, raw group/tab count, selected group,
-and per-tree points). These distinguish event delivery from empty talent reads;
-an incomplete final verdict alone does not prove the ready event was absent.
-
-The collector's gem cache retains at most 1,024 GUID/slot entries, tied to the
-exact item link. Reads expire after 10 seconds from the initial read, without
-extension on a cache hit. Collection sweeps expired entries at most once per
-second; reaching capacity evicts the oldest entry before inserting a new key.
-No idle timer is added: unused expired entries are removed on subsequent
-collection, and memory remains bounded while idle.
-
-`CollectGearCheck` normalizes truthy numeric WoW API results to a boolean before
-passing inspect readiness to the collector; its strict `true` check must not
-receive a raw `UnitIsUnit` result of `1`.
-
-`StartGearCheckUnitScan` requests inspect through the coordinator. `CollectGearCheck` supplies readiness to `CollectGearCheckObservation(unit, inspectReady)` and retains the observation. Collection does not evaluate. Finalization calls `EvaluateGearCheck`, which produces findings and invokes grade aggregation. Formatting belongs in reports, dumps and explanations.
-
-Schema 3 retains compatibility aliases (`equipment`/`slots`, nested/top-level inspect and counts). `NormalizeGearCheckReport` is the adapter at collection, evaluation and snapshot creation boundaries; canonical fields are `character`, `equipment`, and `collection`. Equipment/inspect accessors centralize reads of legacy reports. Rule and catalog revisions are independent of addon semver; saved reports retain original metadata. See [Gear-Check-Progress.md](gear-check/Gear-Check-Progress.md) for compatibility and grading details.
-
-`GetGearCheckScanState` derives `complete`, `incomplete`, or `unavailable` independently of S/A/B/C/D grades. Overall results carry optional `scanState`, `scanReason`, and `provisional` metadata. Views and chat show incomplete/unavailable labels; raid/minimap readiness counts exclude those reports. Diagnostic grades remain available for partial observations.
-
-Raid roster presentation derives independent category grades from the same report:
-gems, armor, weapons (main-hand, off-hand, two-hand and relic slots), and
-enchants. The legacy combined `gearGrade` and `enchantSocketGrade` fields remain
-available for older consumers and saved reports.
+Use the [Gear Check task map](gear-check/Gear-Check-Progress.md) for inspect, collection, grades, saved reports, dumps and their tests.
+Before changing formats or revisions read [compatibility and limits](gear-check/Gear-Check-Contract.md); for IDs/profiles/BiS inputs use [maintenance](gear-check/Gear-Check-Surface-From-BiS.md).
+Real-client timing and inspect interference require the separate [verification protocol](gear-check/Gear-Check-Verification.md).
 
 ### Refresh and reputation flow
 
-`GetPlayerRecordStore` is internal mutable access for core/bridge/links/encounters.
-Views use detached `GetHistoryEntry`/`GetPlayerRecordIdentity`, profile, link and
-roster reads. `HistoryStore` remains an explicit full identity snapshot for
-compatibility/diagnostics; it must not be used for per-message/per-row lookup.
-`FindPlayerRecordIdentities` returns only a normalized name/realm bucket. Its
-runtime index is built lazily, updated on identity upsert/rename/GUID upgrade,
-and reset on initialization, identity recovery or replacement of the store.
-Profile deletion retains identity/counters; opinion lookup reads current profiles
-and cannot return the deleted opinion. Direct writes to identity names outside
-the core are unsupported because they bypass validation and index maintenance.
+For profile reads/writes, identity lookup, journals and encounter projection, use the [character task map](characters/Reputation.md) to find the owner and behavior tests.
+Storage constraints and maintenance are linked from that map.
 
-Database candidates come from profile/note keys; history candidates come from the
-current observer's recent encounters. Projection reads summary scalars without
-copying encounter histories. Filtering/sorting still materializes the matching
-list, and retention still walks stored encounters. Dense 10k lists are not made
-constant-time by the name index. Reproducible workloads: tests/README.md.
+For roster snapshots, active groups/reserves, role inference and provider counts, use the [composition task map](raid/Raid-Composition.md).
+It links the shared refresh owner and behavioral checks; [Gear Check](gear-check/Gear-Check-Progress.md) owns scan work lists and readiness summaries.
 
-Composition uses groups 1–5 from live collection or the shared snapshot, excluding
-reserve groups 6–8. Its counts, providers and chat reports use that same subset.
-Raid gear scanning also uses groups 1–5. Roster grade summaries filter saved and
-manual results against current group membership. Reserves retain manual Rescan
-and individual reports; shared snapshots remain complete.
-
-`ScheduleRosterRefresh` merges same-frame requests. Each pass builds one snapshot shared by history and the visible raid/composition page. Hidden views are not redrawn; history still records. Snapshots are not cached across passes. Inspect queue advancement is immediate; consumable icons have their own targeted refresh path.
-
-Profile commands commit one core draft, then refresh rating views. The local note shares
-save controls but does not change opinion authorship. Initialization activates the new
-store once; no old review migration runs. Read APIs do not initialize SavedVariables.
-Group observations track independent observer/subject sessions and preserve counters
-when details expire. There is no active Karma fallback or profile exchange.
-
-Loading validates nested records and quarantines damaged components with their
-original values preserved. Healthy records remain available. Unknown versions
-or invalid root containers remain untouched and unavailable; bootstrap reports
-the error. `GetPlayerRecordHealth` supplies content-free diagnostic status;
-`RestorePlayerRecordEntry` validates explicit repairs without overwriting live data.
-
-Profile event journals use independent `journalVersion=2`, storing event deltas
-by ID instead of full before/after arrays. Initialization atomically converts
-the remaining valid old journals while preserving their history; unknown journal versions fail
-without replacement. ProfileWindow copies the profile and one 25-row journal
-page separately; whole-record reads remain available for explicit compatibility
-consumers. Format and migration: [character-system contract](characters/Character-System-Contract.md).
-
-Pages register `Create`, `Refresh(page, entering)`, and `ApplyLocale(page)`. The shell dispatches these methods; page modules own control labels and entry-specific collection. `entering=true` requests the original tab-entry work (lockout requests, roster refresh or history recording); locale refresh omits it. Public refresh wrappers remain compatible. Profile extraction preserves anchors, dimensions and named-frame versions.
+For page registration, entry/locale dispatch, contextual header controls and window generations use the [UI task map](ui/UI-Views.md).
 
 ### SavedVariables and versions
 
-Identity scope is one realm per SavedVariables dataset (user decision,
-2026-11-06). GUID keys remain unchanged, including saved Gear Check reports.
-Core identity upsert rejects a known GUID with a different normalized realm
-before moving aliases. Group history respects this conflict for observer and
-subject; chat GUID lookup also checks the sender realm. These guards do not
-provide multi-realm/server storage. See the identity section of the
-[character-system contract](characters/Character-System-Contract.md).
+Before changing character identity scope or saved reports, read the
+[realm-scope decision](adr/0001-character-realm-scope.md) and
+[storage constraints](characters/Character-System-Contract.md).
 
 Copyable character/gear and cooldown JSON exports carry numeric `reportVersion: 1`.
 Profile JSON exchange is disabled. Target Gear
@@ -167,34 +96,21 @@ header. Chat summaries are human-readable messages, not versioned data exports.
 | `gearCheckSaved` | `GearCheckSavedReports`: snapshots and retention (~14 days) |
 | `tooltip` | `RatingPresentation` / Settings: rating tooltip visibility |
 | `locale`, `theme`, `startupTab`, `reportChannel`, `reportForm` | Preferences consumed by locale, theme, shell and reporting |
-| `guild` | Raidwise_Guild: shared retention limit (100–10000, default 1000), realm/guild archives with local roll EP threshold (4000), last complete snapshot and guild-info text, journal and previous server event window. Old `guildManagement`/`epgp` roots are not migrated or read. |
+| `guild` | `Raidwise_Guild/GuildManagement.lua`: local archives, snapshots and preferences; [storage limits](raid/Guild-Management-Contract.md) |
 
-See [Reputation.md](characters/Reputation.md) for reputation data. Addon semver, rule/catalog revisions, and layout versions serve different purposes. Geometry rules live in `AGENTS.md`; current layouts and dimensions live in [UI-Views.md](ui/UI-Views.md) and [UI-Sizes.md](ui/UI-Sizes.md).
+Character tasks and checks: [task map](characters/Reputation.md).
+Addon semver, rule/catalog revisions, and layout versions serve different purposes.
+Geometry rules live in `AGENTS.md`; current owners/layout inventory and outer dimensions live in
+[UI-Views.md](ui/UI-Views.md) and [UI-Sizes.md](ui/UI-Sizes.md).
 
-The [character-system baseline](characters/Character-System-Baseline.md) records the pre-simplification behavior and known documentation/code discrepancies as of 2026-10-29; it is a historical analysis, not the future design contract.
-
-Agreed changes for the new system are tracked separately in [character-system redesign decisions](characters/Character-System-Redesign.md).
-
-The [character-system implementation plan](characters/Character-System-Implementation-Plan.md) records the stages and their validation. Shipped behavior and the dated acceptance results are recorded in [Character-System-Verification.md](characters/Character-System-Verification.md).
-
-The [character-system contract](characters/Character-System-Contract.md) defines the local data model, reduced event catalog and screen structure. The bridge, redesigned ProfileWindow and group encounter sessions are active in the TOC; legacy profile and exchange modules remain outside it.
-
-## Runtime package and deferred UI extraction
+## Runtime package
 
 The release workflow uses `scripts/package-addon.mts`: TOC + its Lua entries +
-tracked media from HEAD. Retired Lua stays in the repository for historical tests
-but is excluded from the installable ZIP. XML includes are not currently used;
+tracked media from HEAD. Lua outside the TOC is not shipped. XML includes are not currently used;
 the packager rejects them until recursive dependency handling is implemented.
 
-Audit D08 remains deliberate follow-up debt, not a file-length target. When raid
-export behavior changes, extract the `PageRaid` export state/actions together
-(`UpdateRaidExportView`, `ShowRaidExportText`, `ExitRaidExportView`,
-`RunGearCheckRaidExport`) while preserving dump-job ownership in `GearCheckDump`.
-When target saved-report behavior changes, extract its list/selection/save/delete
-controller from `PageGearCheckTarget` while preserving persistence ownership in
-`GearCheckSavedReports`. Keep control creation and geometry in each page; verify
-cancel/restart, selection and navigation before changing those boundaries. Queue 6
-does not alter these features or layout versions, so no mechanical split is made.
+For conditional export-controller follow-up, read the owner TODOs at `PageRaid.UpdateRaidExportView` and `PageGearCheckTarget.RefreshSavedList` before changing those behaviors.
+[Gear task routes](gear-check/Gear-Check-Progress.md) identify their persistence/dump owners and checks.
 
 ## Focused searches
 
@@ -204,7 +120,7 @@ Start with named files from the task table, or `Raidwise/` and `tests/`. Example
 rg -n 'StartGearCheckUnitScan|TryCollectPending' Raidwise/GearCheck.lua
 rg -n -C 6 'gemFieldsComplete' Raidwise/GearCheckCollector.lua
 rg -n 'SETTINGS_CHANGELOG' Raidwise/Locale.lua Raidwise/PageSettings.lua
-rg -n '^function Addon:|^local function' Raidwise/CharacterProfile.lua
+rg -n '^function Addon:|^local function' Raidwise/ProfileWindow.lua
 git diff --stat
 git diff -- Raidwise/GearCheck.lua tests/scan.test.mts
 ```

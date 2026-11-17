@@ -130,6 +130,7 @@ local function EventIndex(events)
 end
 
 -- Positions make deletions/reordering reversible without copying unchanged events.
+-- Store only changed event IDs: full before/after arrays made a growing journal quadratic.
 local function EventDelta(before, after)
 	local beforeIndex, afterIndex = EventIndex(before), EventIndex(after)
 	if not beforeIndex or not afterIndex then return nil end
@@ -352,6 +353,7 @@ end
 
 -- INTERNAL mutable access for core, bridge, links and encounters only.
 -- Views use detached identity/profile/roster APIs; writes must go through owners.
+-- Internal mutable access. Views use detached reads; identity writes must maintain the name index.
 function Addon:GetPlayerRecordStore()
 	local store = self.db and self.db.playerRecords
 	if type(store) ~= "table" or store.schemaVersion ~= 1 or rejectedStores[store] then return nil end

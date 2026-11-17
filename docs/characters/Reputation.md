@@ -1,64 +1,32 @@
-# Local character profiles
+# Character-system task map
 
-Current implementation after the character-system redesign. Detailed fields and
-rules: [contract](Character-System-Contract.md). Original behavior is retained in
-[baseline](Character-System-Baseline.md); implementation/verification status is
-tracked in the [plan](Character-System-Implementation-Plan.md). Subsequent fixes
-and remaining limitations are recorded in the [November audit](../audits/Audit-2026-11-06.md).
+Start here for character/profile work. Search the named entry point before reading
+its helpers. Paths below are relative to `Raidwise/`; tests are in `tests/`.
+The active load order is [Raidwise.toc](../../Raidwise/Raidwise.toc).
 
-## Storage and ownership
+| Change | Owner / entry point | Behavior checks |
+|---|---|---|
+| Save, autosave, retry, close or reload edits | `ProfileEditor.lua`: `SaveProfileEditor`, `TickProfileEditor`, `CloseProfileEditor`; `PlayerRecords.lua`: `CommitPlayerRecordDraft` | [profile-window](../../tests/profile-window.test.mts), [player-records](../../tests/player-records.test.mts) |
+| Profile fields, event catalog, authorship or validation | `PlayerRecords.lua`: `CreatePlayerRecordDraft`, `AddPlayerRecordDraftEvent`, `CommitPlayerRecordDraft`; `PlayerRecordSupport.lua` | [player-records](../../tests/player-records.test.mts) |
+| Identity lookup, rename or name-to-GUID upgrade | `PlayerRecords.lua`: `UpsertPlayerRecordIdentity`, `FindPlayerRecordIdentities`; `PlayerRecordBridge.lua`: `GetHistoryEntry` | [player-records](../../tests/player-records.test.mts), [opinion-display](../../tests/opinion-display.test.mts) |
+| Link characters or delete profile data | `PlayerRecordLinks.lua`: `LinkPlayerCharacters`, `DeleteCharacterDatabaseRecords`; `ProfileCharacters.lua` | [player-links](../../tests/player-links.test.mts), [profile-window](../../tests/profile-window.test.mts), [database-page](../../tests/database-page.test.mts) |
+| Record meetings, count sessions or prune details | `PlayerEncounters.lua`: `RecordCurrentGroupHistory`, `GetCharacterMeetingStats`, `PruneCharacterEncounters`; `RosterRefresh.lua` supplies roster observations | [encounters](../../tests/encounters.test.mts), [roster-refresh](../../tests/roster-refresh.test.mts) |
+| Database / recent-history membership, filters or sorting | `PlayerEncounters.lua`: `BuildHistoryRoster`; `PageHistory.lua` | [database-page](../../tests/database-page.test.mts), [encounters](../../tests/encounters.test.mts) |
+| Profile window or journal pagination | `ProfileWindow.lua`; `PlayerRecords.lua`: `GetPlayerRecordChangePage` | [profile-window](../../tests/profile-window.test.mts), [player-records](../../tests/player-records.test.mts) |
+| Opinion marks, chat or tooltips | `RatingPresentation.lua`, `UnitTooltips.lua`, `ClassicOpinionMarkers.lua` | [opinion-display](../../tests/opinion-display.test.mts), [classic-opinion](../../tests/classic-opinion.test.mts) |
+| Load, quarantine or repair saved records | `PlayerRecords.lua`: `InitializePlayerRecords`, `GetPlayerRecordHealth`, `RestorePlayerRecordEntry`; `PlayerRecordBridge.lua`: `InitializeHistoryStore` | [player-records](../../tests/player-records.test.mts), [architecture](../../tests/architecture.test.mts) |
 
-`RaidwiseDB.playerRecords` owns identities, profiles, notes, changes, groups,
-encounters and meeting statistics. Profile/Note are shared across one's own
-characters; meeting details and counters belong to the observer/subject pair.
-The author is a concrete character. Editing a version changes its author;
-editing only the private Note does not. Unchanged events retain their authors.
-No legacy `history`/`reputation` data is imported, and the new store is not
-reset on subsequent logins. Other addon settings, lockouts and gear reports remain.
+Read [storage constraints and repair](Character-System-Contract.md) when changing
+persistence or repairing SavedVariables. Reasons for the realm scope are in
+[ADR 0001](../adr/0001-character-realm-scope.md).
+For geometry use [UI views](../ui/UI-Views.md) and [sizes](../ui/UI-Sizes.md);
+for commands and selecting checks use [tests/README.md](../../tests/README.md).
+[Manual checks and dated evidence](Character-System-Verification.md) cover what
+the offline harness cannot establish.
 
-## Profile
+## Compatibility boundaries
 
-The independent profile window contains three tabs: Events, History, Characters.
-Current layout versions and dimensions live in [UI views](../ui/UI-Views.md) and [UI sizes](../ui/UI-Sizes.md).
-Opinion, four facts, authorship, meeting summary and the private Note stay visible.
-There are three explicit opinions and a distinct Not set state. Events use the
-22-type catalog and automatically captured time/place; backdating is unavailable.
-Facts remain Raid Leader, PUG Raid Leader, Guild Master and Guild Officer.
-
-Changes save after one second idle or by Save. Close/switch attempts a save;
-on failure the draft remains in memory with a visible error and Reload option.
-Saved means SavedVariables in memory, not an immediate guaranteed disk write.
-Self-rating is disabled; a private Note about oneself is allowed. The Note is
-never part of shared opinion data or the change log.
-
-## Database, History and deletion
-
-Database lists meaningfully filled profiles; one Note or an explicit neutral
-opinion suffices. Adding a name/target only opens an empty Profile. History
-lists current observer's group/raid meetings from the last 14 days, including
-players with or without saved profiles. A target scan never creates a meeting.
-
-Repeated observations, zone changes and party-to-raid transitions do not inflate
-counts. Returns within five minutes continue a session; longer unobserved gaps
-start another. A lightweight 30-second observation supports quiet groups.
-Age pruning deletes old meeting details only, preserving approximate lifetime
-counts, events, changes, notes and filled profiles.
-
-Manual links retain a local Main but never share opinions. Full deletion clears
-the selected profile, Note, changes and links, invalidates pending drafts and
-preserves encounters/counters plus other members' profiles. It requires confirmation.
-Identities and quarantined originals also remain. The storage/cleanup matrix in
-the [contract](Character-System-Contract.md) defines retention and bulk-delete scope;
-profile deletion is not a complete SavedVariables purge.
-
-## Presentation
-
-Chat, roster, unit tooltips, friends, ignore, inbox and guild use the chosen explicit
-opinion regardless of author. Not set, a Note alone, a scan or a meeting cannot
-create a neutral marker. Negative chat keeps item/achievement links and their colors.
-Open unit tooltips and native lists refresh after save/delete. Only one opinion
-visibility setting remains; retired Karma/tag flags do not affect output.
-
-There is no active Karma, profile import/export or Share menu. The future external
-service and exchange contract are deferred. Offline tests do not establish real
-server, skin, clipboard or screen-layout behavior; see the final verification report.
+The active core deliberately does not import retired profile/exchange data; [storage constraints](Character-System-Contract.md) describe that boundary.
+[architecture tests](../../tests/architecture.test.mts) exercise current read, activation, target-addition and identity-upgrade APIs.
+Linking/deletion and observer-specific meetings use [player-links](../../tests/player-links.test.mts) and [encounters](../../tests/encounters.test.mts).
+For a future exchange/Karma design start with [Synchronization.md](Synchronization.md).

@@ -36,22 +36,10 @@
 
 ## Релизы
 
-Тег стабильной версии `vX.Y.Z` запускает [release workflow](.github/workflows/release.yml).
-Версии в TOC и `Raidwise.lua` должны совпадать с тегом; в `CHANGELOG.md` должна быть
-датированная запись этой версии. Подготовка — по [процедуре релиза](.agents/skills/bump/SKILL.md).
-После успешного `npm run check` публикуются заметки и `Raidwise-vX.Y.Z.zip`.
-Внутри — папки `Raidwise/` и `Raidwise_Guild/` с TOC и Lua-модулями из коммита тега.
-Архивные Lua-модули остаются только в репозитории
-для исторических тестов; [сборщик](scripts/package-addon.mts) исключает их из ZIP.
-Ветки и merge PR сами по себе релиз не публикуют. Для исправления существующего
-релиза без переноса тега: **Actions → Release addon → Run workflow** на основной
-ветке, затем указать тег (например `v2.3.0`). Актуальный workflow проверит и
-упакует файлы из тега, добавит или заменит только `Raidwise-vX.Y.Z.zip`, сохранив
-описание релиза и остальные вложения.
+Для установки скачивайте **Raidwise-vX.Y.Z.zip** из релиза: он содержит обе папки аддонов.
+Автоматические архивы GitHub **Source code** содержат репозиторий и не являются установочным пакетом.
 
-Для установки скачивайте **Raidwise-vX.Y.Z.zip**. Автоматические **Source code
-(zip)** и **Source code (tar.gz)** содержат весь репозиторий и не предназначены
-для установки аддона.
+Для явно запрошенного выпуска или восстановления существующего ZIP используйте [общее руководство](tests/README.md#packaging-and-releases): сборка из тега, проверки и замена пакета без перемещения тега описаны в одном месте.
 
 ## Использование
 
@@ -71,7 +59,7 @@
 
 Запускайте диагностику сразу после `/reload`, вне боя, чтобы проверить создание окна. Ctrl+A / Ctrl+C копирует отчёт. После установки новых Lua-файлов перезапустите клиент, предварительно обновив всю папку `Raidwise`. Проверка из CLI: `npm run diagnose`, отчёт — `diagnostics/latest.txt`; подробнее в [tests/README.md](tests/README.md).
 
-Простые панели, **левое меню** (группы Личное / Рейд / Прочее) и страница содержимого.
+Простые панели, **левое меню** (группы Личное / Рейд / Гильдия / Прочее) и страница содержимого.
 В заголовке меню — **Raidwise** и версия аддона.
 Esc или **X** в заголовке закрывает окно.
 
@@ -114,7 +102,7 @@ Esc или **X** в заголовке закрывает окно.
 - Наведите на строку: кто даёт эффект и какой класс/спек какое заклинание; **Shift+клик** пишет эффект в канал отчётов (шапка окна)
 - **Сообщить** — отсутствующие классы в канал отчётов (шапка окна); **Обновить** заново считывает группу (тот же осмотр, что у состава рейда)
 - Подсказки показывают текст отчёта; отчёты эффектов содержат ссылки на заклинания и помещаются в одно сообщение до 255 байт.
-- Полный список: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md)
+- Владельцы каталога эффектов и ограничения: [карта состава](docs/raid/Raid-Composition.md)
 
 Вкладка **Проверка экипа (цель)**:
 
@@ -123,7 +111,7 @@ Esc или **X** в заголовке закрывает окно.
 - Кнопки **Отчёт …** и `/rw gearcheck summary|items|enchants|gems|ok` печатают в **канал отчётов** (шапка окна; по умолчанию Авто = рейд/группа)
 - Кнопки отчётов имеют иконки и превью; сводка показывает количество всех оценок, а проблемы камней сгруппированы по теме без ID.
 - **Показать текстом** — сырой dump; **Сохранить отчёт** — снимок (~14 дней)
-- Поверхностная оговорка; правила и известные ложные срабатывания: [`docs/gear-check/Gear-Check-Progress.md`](docs/gear-check/Gear-Check-Progress.md)
+- Владельцы и проверки: [карта Gear Check](docs/gear-check/Gear-Check-Progress.md). Разбор ложных срабатываний — в [обслуживании каталогов](docs/gear-check/Gear-Check-Surface-From-BiS.md).
 - `/rw gearcheck` открывает вкладку и сканирует; `/rw gearcheck test` — офлайн self-test
 
 **История** показывает встречи в группах/рейдах за последние 14 дней для текущего
@@ -148,10 +136,10 @@ Esc или **X** в заголовке закрывает окно.
 мнение независимо от автора. Одна Заметка/скан не создаёт нейтральную отметку.
 Карма и весь обмен профилями отключены; экспорт экипировки/валют/КД остаётся.
 Полное удаление очищает профиль, Заметку, журнал и связи, сохраняя встречи/счётчики.
-[Текущая модель](docs/characters/Reputation.md), [контракт](docs/characters/Character-System-Contract.md),
-[приёмка переработки](docs/characters/Character-System-Verification.md).
-Последующие исправления и оставшиеся проверки — в [ноябрьском аудите](docs/audits/Audit-2026-11-06.md)
-и [протоколе](docs/audits/Audit-2026-11-06-Evidence.md).
+Для разработки: [карта системы персонажей](docs/characters/Reputation.md),
+[ограничения хранения и восстановление](docs/characters/Character-System-Contract.md),
+[ручные проверки и датированные свидетельства](docs/characters/Character-System-Verification.md).
+[Ноябрьские измерения](docs/audits/Audit-2026-11-06-Evidence.md) — исторические данные.
 
 Управление отчётами в шапке окна:
 
@@ -179,7 +167,10 @@ Esc или **X** в заголовке закрывает окно.
 - Краткий обзор (одно предложение на строку, со списками) и блоки по пунктам меню (те же иконки, у каждого свой layout `vN`)
 - URL репозитория в поле копирования с кнопкой **Выделить всё** (Ctrl+C)
 
-Схемы окон: [`docs/ui/UI-Views.md`](docs/ui/UI-Views.md). Размеры в пикселях: [`docs/ui/UI-Sizes.md`](docs/ui/UI-Sizes.md). Модель репутации: [`docs/characters/Reputation.md`](docs/characters/Reputation.md). Что проверяет анализ состава: [`docs/raid/Raid-Composition.md`](docs/raid/Raid-Composition.md).
+Владельцы UI и layout-версии: [карта интерфейса](docs/ui/UI-Views.md).
+Геометрия: [размеры и владельцы](docs/ui/UI-Sizes.md).
+Персонажи: [карта задач](docs/characters/Reputation.md).
+Состав рейда: [владельцы и ограничения](docs/raid/Raid-Composition.md).
 
 Потребители могут типизировать JSON вкладки Export через `types/CharacterExport.ts`. `types/CooldownsExport.ts` описывает форму JSON КД аккаунта (`FormatCooldownsExport`; пока без кнопки в UI). `types/GearCheck.ts` — нормализованный отчёт Gear Check (`schemaVersion` 3).
 
@@ -193,93 +184,31 @@ Esc или **X** в заголовке закрывает окно.
 
 ## Структура
 
-```text
-Raidwise/
-  Raidwise.toc        # метаданные аддона (Interface 30300)
-  Raidwise.lua        # точка входа, события, слэш-команды
-  Locale.lua          # строки интерфейса EN/RU и переключение языка
-  ChatReports.lua     # shared final chat message preparation
-  CharacterExport.lua # JSON-экспорт персонажа (экипировка, сумки, КД)
-  CharacterLockouts.lua # снимки КД аккаунта для таблицы кулдаунов
-  InspectCoordinator.lua # shared inspect ownership, identity, and deadlines
-  PartyRoster.lua     # статы участников группы / рейда
-  RosterRefresh.lua   # coalesced refreshes and shared per-pass roster snapshots
-  RaidRoles.lua       # роли и рейд-баффы по спеку / расе
-  RaidComposition.lua # покрытие баффов, дебаффов и утилиты в группе / рейде
-  PlayerRecords.lua   # локальное хранилище Профилей и Заметок
-  PlayerRecordSupport.lua # каталоги и представление персонажей
-  PlayerRecordBridge.lua # API экранов
-  PlayerRecordLinks.lua # связи и удаление данных
-  PlayerEncounters.lua # встречи, счётчики и очистка
-  RatingPresentation.lua # мнения, подсказки и отметки в чате
-  ProfileEditor.lua   # черновики и автосохранение
-  ProfileWindow.lua   # самостоятельное окно Профиля
-  ProfileCharacters.lua # вкладка персонажей в профиле
-  Diagnostics.lua    # проверки и независимое окно отчёта
-  Minimap.lua         # кнопка миникарты и подсказка с готовностью рейда и КД
-  UnitTooltips.lua    # выбранное мнение в подсказках
-  ClassicOpinionMarkers.lua # отметки мнения в друзьях, игноре, почте и гильдии
-  UITheme.lua         # theme palettes and bound colors/text
-  UIWidgets.lua       # общие панели, кнопки, иконки, бейджи версии вёрстки
-  RosterWidgets.lua   # roster, rating, and gear presentation helpers
-  GearCheckCatalog.lua # каталоги чар / камней
-  GearCheckSets.lua   # id кусков T9/T10 (информационно)
-  GearCheckTrinkets.lua # пулы тринкетов по роли
-  GearCheckProfiles.lua # профили классов + 30 спеков
-  GearCheckBis.lua    # сгенерированные BiS item ID по спеку (оценка S)
-  GearCheckRules.lua  # находки, активация мета-камней и ревизия правил
-  GearCheckReport.lua # совместимость отчётов и полнота сканирования
-  GearCheckGrades.lua # slot, category, and overall grades
-  GearCheckExplanations.lua # category tooltips and grade explanations
-  GearCheckSelfTest.lua # offline and in-game rule fixtures
-  GearCheckCollector.lua # item/gem reads and normalized snapshots
-  GearCheckSavedReports.lua # ручное сохранение / загрузка / очистка (~14 дней)
-  GearCheck.lua       # управление сканированием и последним отчётом
-  GearCheckReports.lua # gear report formatting and final messages
-  GearCheckDump.lua    # text dumps and asynchronous raid export jobs
-  PageCooldowns.lua   # вкладка Character cooldowns
-  PageExport.lua      # вкладка Export gear and CDs
-  PageRaid.lua        # вкладка Raid roster
-  PageComposition.lua # вкладка Raid composition
-  PageGearCheckTarget.lua # вкладка Gear check (target)
-  PageHistory.lua     # вкладка History
-  PageSettings.lua    # вкладка Settings
-  PageInfo.lua        # вкладка Info
-  ExporterWindow.lua  # оболочка главного окна (меню, заголовок, статус, вкладки)
-Raidwise_Guild/
-  Raidwise_Guild.toc  # зависимый аддон, загружается Raidwise
-  GuildManagement.lua # обновление состава, действия офицера и локальный журнал
-  GuildRosterParser.lua # разбор заметок
-  GuildRosterLinks.lua # цепочки мейн/альт
-  GuildEPGP.lua      # база GP из информации гильдии и расчёт PR
-  PageGuild.lua      # единая страница состава и журнала
-scripts/
-  generate-gear-check-bis.js # объединение BiS ID из веб-приложения → GearCheckBis.lua
-docs/
-  Architecture.md     # порядок TOC, слои, SavedVariables, API обновления
-  UI-Views.md         # ASCII-схемы каждого вида + таблица layout-версий
-  UI-Sizes.md         # размеры окна и элементов
-  Gear-Check-Progress.md # фазы Gear Check (план / готово / как тестировать)
-  Reputation.md       # текущая локальная модель персонажей
-  Raid-Composition.md # классы и спеки, которые проверяет анализ состава
-types/
-  CharacterExport.ts  # TypeScript-типы JSON вкладки Export
-  CooldownsExport.ts  # TypeScript-типы JSON КД аккаунта
-  GearCheck.ts        # TypeScript-типы нормализованного отчёта Gear Check
-```
+Владельцев и проверки ищите через карты задач; исполняемый список файлов
+задают TOC. Полный каталог исходников здесь не дублируется.
+
+| Задача | Откуда начать |
+|---|---|
+| Владельцы модулей и точечный поиск | [Architecture](docs/Architecture.md) |
+| Порядок загрузки core / guild | [Raidwise.toc](Raidwise/Raidwise.toc), [Raidwise_Guild.toc](Raidwise_Guild/Raidwise_Guild.toc) |
+| Страницы UI и геометрия | [карта UI](docs/ui/UI-Views.md), [размеры и владельцы](docs/ui/UI-Sizes.md) |
+| Тесты, диагностика и бенчмарки | [tests README](tests/README.md) |
+| Контракты JSON и моделей | [CharacterExport](types/CharacterExport.ts), [CooldownsExport](types/CooldownsExport.ts), [GearCheck](types/GearCheck.ts) |
+| Каталоги, профили и BiS | [обслуживание данных](docs/gear-check/Gear-Check-Surface-From-BiS.md) |
+| Запрошенный релиз / установочный ZIP | [руководство сборки](tests/README.md#packaging-and-releases), [процедура bump](.agents/skills/bump/SKILL.md) |
 
 ## Заметки
 
-- Снимки состава, журнал, лимит истории и порог EP для ролла хранятся в `RaidwiseDB.guild`; старые корни `epgp` и `guildManagement` не переносятся. Имена SavedVariables не изменились. Запись заметок и званий выполняется только явным действием при наличии прав; журнал локален и не восстанавливает все изменения за время отсутствия в игре.
+- Целевой клиент: WoW **3.3.5a**, `Interface: 30300`. **GearScore** необязателен.
+- SavedVariables хранятся в `RaidwiseDB` под `WTF/Account/.../SavedVariables/`.
+  Старый `MrcExporterDB` используется как вход переноса настроек. Владельцы
+  текущего хранения — в [Architecture](docs/Architecture.md#savedvariables-and-versions).
+- Данные персонажей и сохранённые отчёты Gear Check рассчитаны на один реалм
+  в наборе данных: [ограничения и восстановление](docs/characters/Character-System-Contract.md).
+- Гильдейская история локальна; скрытие по правам не стирает сохранённые данные.
+  Область хранения и retention — в [ограничениях](docs/raid/Guild-Management-Contract.md).
+- Неполные сканы не учитываются как готовые. Обмен профилями отключён;
+  приватные Заметки остаются локальными. У экспорта персонажа/КД/экипировки
+  собственные контракты формата, независимые от semver аддона.
 
-- Данные персонажей/профилей и сохранённые отчёты Gear Check поддерживают один реалм на набор SavedVariables. Совместное хранение данных независимых реалмов/серверов не поддерживается; см. [контракт идентичности](docs/characters/Character-System-Contract.md).
-
-- Связи хранятся в `RaidwiseDB.playerRecords.groups`; мнение каждого связанного персонажа независимо. См. [Reputation.md](docs/characters/Reputation.md).
-- Неполные и недоступные сканы явно помечены и не учитываются как готовые в рейде/мини-карте. Неподтверждённые пустые гнёзда требуют повторного ответа осмотра перед выводом об отсутствующих камнях.
-
-- Целевая сборка: **3.3.5a** (клиенты приватных серверов используют `## Interface: 30300`).
-- Сохранённые переменные лежат в `RaidwiseDB` (`WTF/Account/.../SavedVariables/`). Настройки старого `MrcExporterDB` переносятся при первой загрузке. КД и валюты — в `RaidwiseDB.characters`, новая система персонажей — в `RaidwiseDB.playerRecords`. Старые профильные данные не переносятся. Язык — `RaidwiseDB.locale`, стартовая вкладка — `RaidwiseDB.startupTab`, флаги подсказок — `RaidwiseDB.tooltip`.
-- `## X-LastUpdated` в `.toc` задаётся вручную; бейдж в README нужно держать в синхроне.
-- Экспорт экипировки, валют, КД и Gear Check сохраняет версии форматов. Обмен профилями отключён; Заметки остаются локальными.
-- Необязательная зависимость: **GearScore** (`## OptionalDeps`) для поля `gearScore` в экспорте.
-- Пересборка ID для оценки S: `node scripts/generate-gear-check-bis.js` (читает пресеты соседнего веб-репо `Raidwise`; см. `docs/gear-check/Gear-Check-Surface-From-BiS.md`).
+Подготовка окружения и проверки: [tests/README.md](tests/README.md).

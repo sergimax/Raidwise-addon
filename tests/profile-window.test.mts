@@ -8,7 +8,7 @@ test("active profile: autosave, explicit save, event editing, retained errors an
   try {
     lua.doStringSync(await readFile(new URL("lua/sync-setup.lua", import.meta.url), "utf8"));
     lua.doStringSync(`
-      UIParent={};UISpecialFrames={};StaticPopupDialogs={};regionCount=0
+      UIParent={};UISpecialFrames={};StaticPopupDialogs={};regionCount=0;profileScrollCount=0
       function date(_,value) return tostring(value) end
       local function depends(value,wanted,seen)
         if value==wanted then return true end
@@ -42,7 +42,13 @@ test("active profile: autosave, explicit save, event editing, retained errors an
         function r:Disable() self.enabled=false end
         return setmetatable(r,{__index=function(_,key) if key:match('^[A-Z]') then return function() end end end})
       end
-      function CreateFrame(_,_,parent) return region(parent) end
+      function CreateFrame(_,name,parent,template)
+        if template=="UIPanelScrollFrameTemplate" then
+          assert(type(name)=="string" and name~="","Wrath template scroll frames need names")
+          profileScrollCount=profileScrollCount+1
+        end
+        return region(parent)
+      end
       Raidwise.Widgets={}
       local w=Raidwise.Widgets
       function w.IconMarkup(path) return path and ('|T'..path..':14|t') or '' end
@@ -178,6 +184,7 @@ test("active profile: autosave, explicit save, event editing, retained errors an
       assert(f.meetingList.rows[1].label:GetText():find('35',1,true))
       f.journalButton.scripts.OnClick();assert(f.meetingPage==2 and f.historyPage==journalPage)
       a.GetPlayerRecord=wholeRecord;a.GetPlayerRecordChangePage=getPage
+      assert(profileScrollCount>0,"The active profile created no template scroll frames")
     `);
   } finally { lua.global.close(); }
 });

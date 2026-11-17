@@ -382,7 +382,7 @@ function Addon:GearCheckRulesSelfTest()
 	Check("T10 seed → 4/5 equipped", t10Count == 4)
 	Check("T10 counts do not force D", t10.overall and t10.overall.status ~= "D")
 
-	-- Phase 8: Enhancement intellect is preferred (not unwanted)
+	-- Enhancement intellect is preferred (not unwanted)
 	local enhInt = {
 		character = { classFile = "SHAMAN", specTab = 2, specKnown = true, gaps = {} },
 		equipment = {
@@ -540,7 +540,7 @@ function Addon:GearCheckRulesSelfTest()
 	Check("blood Mighty Armor cloak → not ENCHANT_BAD_STAT", not HasCode(fBlood, "ENCHANT_BAD_STAT"))
 	Check("blood Armor Webbing → not ENCHANT_NOT_CHECKABLE", not HasCode(fBlood, "ENCHANT_NOT_CHECKABLE"))
 
-	-- Phase 8: unknown gem → not-checkable (info), not false GEM_LOWER_LEVEL
+	-- Unknown gem → not-checkable (info), not false GEM_LOWER_LEVEL
 	local unkGem = {
 		character = { classFile = "WARRIOR", specTab = 1, specKnown = true, gaps = {} },
 		equipment = {

@@ -1039,6 +1039,8 @@ local function UpdateRaidExportActionButtons(page, busy)
 	end
 end
 
+-- TODO: On raid-export behavior changes, extract export view/actions together.
+-- Keep dump jobs in GearCheckDump and control geometry in this page.
 local function UpdateRaidExportView(page)
 	if not page then
 		return
