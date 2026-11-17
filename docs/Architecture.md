@@ -2,8 +2,6 @@
 
 Lua 5.1 / WoW 3.3.5a (`Interface: 30300`). Shipped code lives in `Raidwise/` on the single `Raidwise` namespace. GearScore is optional. Rules: [AGENTS.md](../AGENTS.md). Checks: [tests/README.md](../tests/README.md).
 
-Repository audit (2026-11-06): [findings and remediation plan](audits/Audit-2026-11-06.md), [verification and reproduction](audits/Audit-2026-11-06-Evidence.md). This is a dated assessment, not a replacement for the contracts below.
-
 Guild roster, officer tools and balances: [guild task map](raid/Guild-Management.md).
 Raid effects, roles and provider inference: [composition task map](raid/Raid-Composition.md).
 
@@ -13,6 +11,7 @@ Paths below are relative to `Raidwise/`. Search the entry point before reading i
 
 | Task | Owner files | Entry points / boundaries |
 |---|---|---|
+| Documentation ownership or decision records | `../docs/README.md` | [Documentation rules](README.md#documentation-ownership); use the domain map before editing behavior descriptions |
 | Bootstrap, DB, slash, report transport | `Raidwise.lua` | Lifecycle, slash handlers, `SendReportChat` |
 | Copyable troubleshooting reports | `Diagnostics.lua`, `../scripts/diagnose.cjs` | `/rw diagnose` runtime smoke checks; `npm run diagnose` offline suite and report file; see tests/README.md |
 | Language | `Locale.lua` | `Addon:T`; search exact keys in both languages |
@@ -105,22 +104,15 @@ Addon semver, rule/catalog revisions, and layout versions serve different purpos
 Geometry rules live in `AGENTS.md`; current owners/layout inventory and outer dimensions live in
 [UI-Views.md](ui/UI-Views.md) and [UI-Sizes.md](ui/UI-Sizes.md).
 
-## Runtime package and deferred UI extraction
+## Runtime package
 
 The release workflow uses `scripts/package-addon.mts`: TOC + its Lua entries +
 tracked media from HEAD. Retired Lua stays in the repository for historical tests
 but is excluded from the installable ZIP. XML includes are not currently used;
 the packager rejects them until recursive dependency handling is implemented.
 
-Audit D08 remains deliberate follow-up debt, not a file-length target. When raid
-export behavior changes, extract the `PageRaid` export state/actions together
-(`UpdateRaidExportView`, `ShowRaidExportText`, `ExitRaidExportView`,
-`RunGearCheckRaidExport`) while preserving dump-job ownership in `GearCheckDump`.
-When target saved-report behavior changes, extract its list/selection/save/delete
-controller from `PageGearCheckTarget` while preserving persistence ownership in
-`GearCheckSavedReports`. Keep control creation and geometry in each page; verify
-cancel/restart, selection and navigation before changing those boundaries. Queue 6
-does not alter these features or layout versions, so no mechanical split is made.
+For conditional export-controller follow-up, read the owner TODOs at `PageRaid.UpdateRaidExportView` and `PageGearCheckTarget.RefreshSavedList` before changing those behaviors.
+[Gear task routes](gear-check/Gear-Check-Progress.md) identify their persistence/dump owners and checks.
 
 ## Focused searches
 

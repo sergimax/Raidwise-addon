@@ -109,6 +109,23 @@ asserts `_VERSION == "Lua 5.1"`, loads the modules in addon dependency order, an
 closes the VM in `finally`. Python, Lupa, and a separate system Lua installation
 are not required.
 
+## Export and lockout client checks
+
+Owners: `CharacterExport.FormatEquippedGearExport`;
+`CharacterLockouts.SaveCurrentCharacterLockouts`, `BuildCooldownTable`,
+`RemoveCharacterLockouts`, `FormatCooldownsExport`.
+[export-contracts.test.mts](export-contracts.test.mts) parses real Lua JSON against
+[character](../types/CharacterExport.ts) and [cooldown](../types/CooldownsExport.ts)
+contracts; [dump.test.mts](dump.test.mts) checks format versions. Their mocked
+save/collection paths do not prove real server lockout/reset behavior.
+
+For affected changes, record client/server/revision and check delayed raid-info
+replies, different difficulties, reset boundaries, currency reads and each own
+character's snapshots after login/reload. Parse the actual copied JSON with the
+consumer. A mock pass or in-memory save does not demonstrate current disk
+persistence or the target server's responses. No successful in-client execution
+of this matrix was recorded in the removed November audit plan.
+
 ## Copyable diagnostics
 
 Run `npm run diagnose` from the repository root after changes or when reporting a
@@ -157,7 +174,8 @@ lookup, 100 warm lookups and ten builds of each list. `--dense` fills every reco
 These are single-process WASM measurements, not pass/fail latency thresholds or
 WoW FPS/RAM estimates. Cold lookup includes index construction; sorting and
 retention costs remain for dense lists. After committing, HEAD becomes the new
-baseline; the audit evidence records the revision used for the comparison.
+baseline; [the dated audit evidence](../docs/audits/Audit-2026-11-06-Evidence.md)
+records the old comparison revision and its measurement limits.
 
 `release.test.mts` validates the runtime allowlist and builds an actual ZIP from
 HEAD in a temporary directory, then reads its central directory. The package must
@@ -251,3 +269,32 @@ not native rendering tests.
 Linux for `pull_request` events: opening or reopening a PR and pushing new commits
 to its branch. It has no `push` or `workflow_dispatch` trigger. Release tag pushes
 are handled separately by `.github/workflows/release.yml`.
+
+## Packaging and releases
+
+[package-addon.mts](../scripts/package-addon.mts) and
+[release.test.mts](release.test.mts) own the installable ZIP allowlist. The script
+packages tracked HEAD content; it does not bundle uncommitted working files.
+For a requested version change use the [bump procedure](../.agents/skills/bump/SKILL.md),
+[AGENTS release rules](../AGENTS.md#versioning-and-changelog) and root changelog.
+
+The [release workflow](../.github/workflows/release.yml) publishes stable version
+tags; branch updates/PR merges alone do not publish. It checks the tagged tree,
+runs the checks and packages `Raidwise/` plus `Raidwise_Guild/`. Installation uses
+`Raidwise-vX.Y.Z.zip`; GitHub's automatic Source archives contain the repository.
+The built-in token has `contents: write`; a personal access token is not required.
+
+To repair an existing release asset, choose **Actions → Release addon → Run
+workflow** on the default branch and supply its existing tag. The workflow checks
+out that tag, checks/packages its files and replaces only its installable ZIP;
+existing release notes and other assets remain. This does not move the tag.
+After the prepared changes are committed and pushed, explicitly requested
+publication uses an annotated stable tag (replace `X.Y.Z` with that version):
+
+```sh
+git tag -a vX.Y.Z -m "Raidwise X.Y.Z"
+git push origin vX.Y.Z
+```
+
+Only publish/tag when explicitly requested. Release date metadata and README
+badges should follow the released TOC, not an ordinary documentation edit.

@@ -19,6 +19,10 @@ When claiming current in-client acceptance, also check the affected scenarios:
   idle/manual save, close/switch, retained failed drafts, reload and deletion.
 - Quiet groups, reconnects, roster/zone and party-to-raid transitions with real
   server events; verify observers' independent meeting counts.
+- For profile/journal storage changes, exercise a backed-up test dataset with
+  1,000 events: record opening time, client memory and SavedVariables growth
+  before/after repeated edits, then check normal reload persistence. Offline
+  linear-growth assertions are not client performance or disk measurements.
 - Filled-profile opinion marks and refreshing tooltips/native lists with the
   actual skin/addons. Notes alone must not produce a marker.
 - Gear Check, composition and gear/currency/lockout export smoke checks if
